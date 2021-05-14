@@ -18,6 +18,7 @@ interface IProps {
     boxed?: boolean;
     noMargin?: boolean;
     refNode?: React.RefObject<GeoLookupInputComponent>;
+    language?: string;
     onChange(field: string, value?: Partial<ILocation>): void;
     onFocus?(): void;
     popupContainer?(): HTMLElement;
@@ -35,6 +36,7 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
             value,
             field,
             readOnly,
+            language,
             onFocus,
             popupContainer,
             refNode,
@@ -55,6 +57,7 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
                     onChange={onChange}
                     initialValue={value}
                     readOnly={readOnly}
+                    language={language}
                     disableSearch={disableSearch}
                     disableAddLocation={disableAddLocation ?? true}
                     onFocus={onFocus}
