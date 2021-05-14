@@ -10,9 +10,9 @@ export class EditorFieldFullText extends React.PureComponent<IEditorFieldProps> 
 
         return (
             <EditorFieldText
+                {...this.props}
                 field={this.props.field ?? 'full_text'}
                 label={this.props.label ?? gettext('Search Text')}
-                {...this.props}
             />
         );
     }

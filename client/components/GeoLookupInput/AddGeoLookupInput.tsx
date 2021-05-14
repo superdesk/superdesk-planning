@@ -66,6 +66,7 @@ const mapStateToProps = (state) => ({
 
 export class GeoLookupInputComponent extends React.Component<IProps, IState> {
     dom: {
+        input: React.RefObject<HTMLInputElement>;
         geolookup: React.RefObject<Geolookup>;
     };
 
@@ -94,8 +95,13 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         this.removeLocation = this.removeLocation.bind(this);
 
         this.dom = {
-            geolookup: React.createRef<Geolookup>(),
+            input: React.createRef(),
+            geolookup: React.createRef(),
         };
+    }
+
+    focus() {
+        this.dom.input.current?.focus();
     }
 
     closeSuggestsPopUp() {
@@ -286,7 +292,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         } = this.props;
 
         return (
-            <div className="addgeolookup">
+            <React.Fragment>
                 {initialValue?.name == null ? null : (
                     <LocationItem
                         location={initialValue}
@@ -295,6 +301,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                     />
                 )}
                 <DebounceInput
+                    inputRef={this.dom.input}
                     minLength={2}
                     debounceTimeout={500}
                     value={this.state.unsavedInput}
@@ -347,16 +354,20 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                     disableAutoLookup={true}
                     onSuggestSelect={this.onSuggestSelect}
                     onSuggestsLookup={planningApi.locations.searchExternal}
-                    // onGeocodeSuggest={this.onGeocodeSuggest}
                     onSuggestResults={this.onSuggestResults}
                     getSuggestLabel={this.getSuggestLabel}
                     readOnly={false}
                     ignoreTab
                     ref={this.dom.geolookup}
                 />
-            </div>
+            </React.Fragment>
         );
     }
 }
 
-export const AddGeoLookupInput = connect(mapStateToProps)(GeoLookupInputComponent);
+export const AddGeoLookupInput = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(GeoLookupInputComponent);

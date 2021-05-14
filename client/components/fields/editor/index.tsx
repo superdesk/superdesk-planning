@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import {EditorFieldCategories} from './Categories';
 import {EditorFieldCoverageType} from './CoverageType';
 import {EditorFieldEndDateTime} from './EndDateTime';
@@ -37,6 +35,33 @@ import {EditorFieldExportTemplate} from './ExportTemplate';
 import {EditorFieldContentTemplate} from './ContentTemplate';
 import {EditorFieldScheduleHour} from './ScheduleHour';
 import {EditorFieldScheduleMonthDay} from './ScheduleMonthDay';
+import {EditorFieldEventRecurringRules} from './EventRecurringRules';
+import {EditorFieldEventSchedule} from './EventSchedule';
+import {EditorFieldDefinitionShort} from './DefinitionShort';
+import {EditorFieldContacts} from './Contacts';
+import {EditorFieldEventOccurenceStatus} from './EventOccurenceStatus';
+import {EditorFieldEventAttachments} from './EventAttachments';
+import {EditorFieldEventLinks} from './EventLinks';
+import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlannings';
+import {EditorFieldHeadline} from './Headline';
+import {EditorFieldPlanningDateTime} from './PlanningDateTime';
+import {EditorFieldNotForPublication} from './NotForPublication';
+import {EditorFieldOverrideAutoAssignToWorkflow} from './OverrideAutoAssignToWorkflow';
+import {EditorFieldAssociatedEvent} from './AssociatedEvent';
+import {EditorFieldCoverages} from './Coverages';
+import {EditorFieldGenre} from './Genre';
+import {EditorFieldNewsCoverageStatus} from './NewsCoverageStatus';
+import {EditorFieldKeywords} from './Keywords';
+import {EditorFieldCoverageSchedule} from './CoverageSchedule';
+import {EditorFieldNoContentLinking} from './NoContentLinking';
+import {EditorFieldCoverageContact} from './CoverageContact';
+import {EditorFieldXMPFile} from './XMPFile';
+import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
+import {EditorFieldCustomVocabularies} from './CustomVocabularies';
+import {EditorFieldDefinitionLong} from './DefinitionLong';
+import {EditorFieldEdnote} from './Ednote';
+import {EditorFieldDescriptionText} from './DescriptionText';
+import {EditorFieldInternalNote} from './InternalNote';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
@@ -102,4 +127,33 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     content_template: EditorFieldContentTemplate,
     hour: EditorFieldScheduleHour,
     month_day: EditorFieldScheduleMonthDay,
+
+    'dates.recurring_rules': EditorFieldEventRecurringRules,
+    dates: EditorFieldEventSchedule,
+    definition_short: EditorFieldDefinitionShort,
+    definition_long: EditorFieldDefinitionLong,
+    internal_note: EditorFieldInternalNote,
+    ednote: EditorFieldEdnote,
+    description_text: EditorFieldDescriptionText,
+    contacts: EditorFieldContacts,
+    event_contact_info: EditorFieldContacts,
+    occur_status: EditorFieldEventOccurenceStatus,
+    files: EditorFieldEventAttachments,
+    links: EditorFieldEventLinks,
+    related_plannings: EditorFieldEventRelatedPlannings,
+    headline: EditorFieldHeadline,
+    planning_date: EditorFieldPlanningDateTime,
+    'flags.marked_for_not_publication': EditorFieldNotForPublication,
+    'flags.overide_auto_assign_to_workflow': EditorFieldOverrideAutoAssignToWorkflow,
+    associated_event: EditorFieldAssociatedEvent,
+    coverages: EditorFieldCoverages,
+    genre: EditorFieldGenre,
+    news_coverage_status: EditorFieldNewsCoverageStatus,
+    keywords: EditorFieldKeywords,
+    coverage_schedule: EditorFieldCoverageSchedule,
+    'flags.no_content_linking': EditorFieldNoContentLinking,
+    coverage_contact: EditorFieldCoverageContact,
+    xmp_file: EditorFieldXMPFile,
+    scheduled_updates: EditorFieldScheduledUpdates,
+    custom_vocabularies: EditorFieldCustomVocabularies,
 };

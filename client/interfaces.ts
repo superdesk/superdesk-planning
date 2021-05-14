@@ -6,9 +6,11 @@ import {
     IRestApiResponse,
     IDesk,
     IContentProfile,
+    IArticle,
 } from 'superdesk-api';
-import {Store} from 'redux';
-import moment from 'moment';
+import {Dispatch, Store} from 'redux';
+import * as moment from 'moment';
+import * as React from 'react';
 
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
@@ -74,6 +76,12 @@ export interface ICoverageProvider {
     name: string;
 }
 
+export interface IIngestProvider {
+    id: string;
+    name: string;
+    display_name?: string;
+}
+
 export type IFile = {
     _id: string;
     filemeta: {
@@ -97,7 +105,13 @@ export enum JUMP_INTERVAL {
     MONTH = 'MONTH'
 }
 
-export type IPlanningWorkflowStatus = 'assigned' | 'in_progress' | 'completed' | 'submitted' | 'cancelled' | 'reverted';
+export type IPlanningWorkflowStatus = 'draft'
+    | 'assigned'
+    | 'in_progress'
+    | 'completed'
+    | 'submitted'
+    | 'cancelled'
+    | 'reverted';
 export type IPlanningPubstatus = 'usable' | 'cancelled';
 export type IWorkflowState =
     | 'draft'
@@ -114,6 +128,8 @@ export type IPlanningAssignedTo = {
     assignment_id: string;
     state: string;
     contact: string;
+    user: IUser['_id'];
+    desk: IDesk['_id'];
 };
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
@@ -369,7 +385,7 @@ export interface IEventItem extends IBaseRestApiResponse {
             frequency?: string;
             interval?: number;
             endRepeatMode?: 'count' | 'until';
-            until?: string | Date;
+            until?: string | Date | moment.Moment;
             count?: number;
             bymonth?: string;
             byday?: string;
@@ -391,6 +407,8 @@ export interface IEventItem extends IBaseRestApiResponse {
             byminute?: string;
         }
     };
+    _startTime?: string | Date | moment.Moment;
+    _endTime?: string | Date | moment.Moment;
     _planning_schedule?: Array<{
         scheduled?: string | Date;
     }>;
@@ -426,7 +444,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     expired?: boolean;
     pubstatus?: IPlanningPubstatus;
     lock_user?: string;
-    lock_time?: string | Date;
+    lock_time?: string | Date | moment.Moment;
     lock_session?: string;
     lock_action?: string;
     update_method?: IEventUpdateMethod;
@@ -449,9 +467,13 @@ export interface IEventItem extends IBaseRestApiResponse {
     _plannings?: Array<IPlanningItem>;
     template?: string;
     _sortDate?: string | Date | moment.Moment;
+
+    // Used only to add/modify Plannings/Coverages from the Event form
+    // These are only stored with the Autosave and not the actual Event
+    associated_plannings: Array<Partial<IPlanningItem>>;
 }
 
-export interface IEventTemplate extends IBaseRestApiResponse{
+export interface IEventTemplate extends IBaseRestApiResponse {
     is_public: boolean;
     template_name: string;
     template_type: string;
@@ -577,7 +599,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     expired: boolean;
     featured: boolean;
     lock_user: string;
-    lock_time: string | Date;
+    lock_time: string | Date | moment.Moment;
     lock_session: string;
     lock_action: string;
     coverages: Array<IPlanningCoverageItem>;
@@ -605,6 +627,9 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     reason: string;
     _time_to_be_confirmed: boolean;
     _cancelAllCoverage: boolean;
+
+    // Used when showing Associated Planning item for Events
+    _agendas: Array<IAgenda>;
 }
 
 export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
@@ -623,7 +648,7 @@ export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
 
 export interface IFeaturedPlanningLock extends IBaseRestApiResponse {
     lock_user: string;
-    lock_time: string | Date;
+    lock_time: string | Date | moment.Moment;
     lock_session: string;
 }
 
@@ -708,7 +733,7 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     versioncreated: string;
     type: string;
     lock_user: string;
-    lock_time: string | Date;
+    lock_time: string | Date | moment.Moment;
     lock_session: string;
     lock_action: string;
     _to_delete: boolean;
@@ -831,6 +856,7 @@ export type ICombinedEventOrPlanningSearchParams = IEventSearchParams | IPlannin
 
 interface IProfileEditorField {
     enabled: boolean;
+    index?: number;
 }
 
 interface IProfileEditorDatesField extends IProfileEditorField {
@@ -840,22 +866,22 @@ interface IProfileEditorDatesField extends IProfileEditorField {
     };
 }
 
-interface IProfileSchemaType<T> {
+interface IBaseProfileSchemaType<T> {
     type: T;
     required: boolean;
     validate_on_post?: boolean;
 }
 
-interface IProfileSchemaTypeList extends IProfileSchemaType<'list'> {
+export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     schema?: {[key: string]: any};
     mandatory_in_list?: {[key: string]: any};
 }
 
-interface IProfileSchemaTypeInteger extends IProfileSchemaType<'integer'> {}
-interface IProfileSchemaTypeDict extends IProfileSchemaType<'dict'> {}
-interface IProfileSchemaTypeDateTime extends IProfileSchemaType<'datetime'> {}
+export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
+export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
+export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
 
-interface IProfileSchemaTypeString extends IProfileSchemaType<'string'> {
+export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
     minlength?: number;
     maxlength?: number;
 }
@@ -864,6 +890,12 @@ export interface IAdvancedSearchFormProfileField {
     enabled: boolean;
     index: number;
     group?: string;
+}
+
+export interface IEditorProfile {
+    editor: {[key: string]: IProfileEditorField};
+    name: string;
+    schema: {[key: string]: IProfileSchemaType};
 }
 
 export interface IEventFormProfile {
@@ -1045,6 +1077,20 @@ export interface IFormProfiles {
     planning: IPlanningFormProfile;
 }
 
+export type IProfileSchema = IEventFormProfile['schema']
+    | IPlanningFormProfile['schema']
+    | ICoverageFormProfile['schema'];
+
+export type IProfileSchemaType = IProfileSchemaTypeList
+    | IProfileSchemaTypeInteger
+    | IProfileSchemaTypeDict
+    | IProfileSchemaTypeDateTime
+    | IProfileSchemaTypeString;
+
+export type IFormProfileItem = IEventFormProfile
+    | IPlanningFormProfile
+    | ICoverageFormProfile;
+
 export interface IFormNavigation {
     scrollToViewItem?: any;
     contacts?: any;
@@ -1053,11 +1099,12 @@ export interface IFormNavigation {
     files?: any;
     links?: any;
     planning?: any;
+    onTabChange?(index: number): void;
 }
 
 export interface IFormItemManager {
     forceUpdateInitialValues(updates: Partial<IEventOrPlanningItem>): void;
-    startPartialSave(updates: Partial<IEventOrPlanningItem>): void;
+    startPartialSave(updates: Partial<IEventOrPlanningItem>): boolean;
     addCoverageToWorkflow(
         planning: IPlanningItem,
         coverage: IPlanningCoverageItem,
@@ -1082,7 +1129,27 @@ export interface IFormItemManager {
         scheduledUpdate: ICoverageScheduledUpdate,
         index: number
     ): Promise<IPlanningItem>;
-    finalisePartialSave(diff: Partial<IEventOrPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
+    finalisePartialSave(diff: DeepPartial<IEventOrPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
+    setState(newState: Partial<IEditorState>): Promise<IEditorState>;
+    getState(): IEditorState;
+    getProps(): IEditorProps;
+    editor: any;
+    resetForm(
+        initialValues?: IEventOrPlanningItem,
+        diff?: DeepPartial<IEventOrPlanningItem>,
+        dirty?: boolean,
+        callback?: () => void,
+    ): Promise<IEditorState>;
+}
+
+export interface IFormAutosave {
+    flushAutosave(): Promise<void>;
+    cancelAutosave(): void;
+    saveAutosave(props: IEditorProps, diff: IEditorState['diff']): Promise<void>;
+    loadAutosave(props: IEditorProps): Promise<IEditorState['diff']>;
+    createAutosave(diff: IEditorState['diff']): Promise<void>;
+    createOrLoadAutosave(props: IEditorProps, diff: IEditorState['diff']): Promise<void>;
+    remove(): Promise<void>;
 }
 
 export interface ISearchParams {
@@ -1251,28 +1318,23 @@ export interface ISearchFilter extends IBaseRestApiResponse {
     schedules?: Array<ISearchFilterSchedule>;
 }
 
-export interface IEditFilterFieldProps {
-    filter: ISearchFilter;
-    invalid: boolean;
-    errors: {[key: string]: string};
-    onChange<T extends keyof ISearchFilter>(field: T, value: ISearchFilter[T]): void;
-    getPopupContainer(): any;
-    language: string;
-}
-
 export interface IEditorFieldProps {
     item: any;
     field: string;
     label: string;
     required?: boolean;
+    disabled?: boolean;
     defaultValue?: any;
     autoFocus?: boolean;
-    errors?: {[key: string]: string};
+    errors?: {[key: string]: any};
     invalid?: boolean;
     language?: string;
     testId?: string;
+    refNode?: React.RefObject<any & IEditorRefComponent>;
+    schema?: IProfileSchemaType;
+    showErrors?: boolean;
 
-    onChange(field: string, value: any): void;
+    onChange(field: string | {[key: string]: any}, value: any): void;
     popupContainer?(): HTMLElement;
 }
 
@@ -1378,10 +1440,45 @@ export interface IEventState {
     eventTemplates: Array<IEventItem>;
 }
 
+export interface IEditorFormState {
+    itemId?: IEventOrPlanningItem['_id'];
+    itemType?: 'event' | 'planning';
+    action?: any;
+    initialValues?: DeepPartial<IEventOrPlanningItem>;
+    itemHistory?: Array<any>;
+    groups?: {[key: string]: IEditorFormGroup};
+    bookmarks?: {[key: string]: IEditorBookmark};
+    activeBookmarkId?: IEditorBookmark['id'];
+    diff?: DeepPartial<IEventOrPlanningItem>;
+}
+
+export interface IFormState {
+    profiles: {};
+    autosaves: {
+        event?: DeepPartial<IEventOrPlanningItem>;
+        planning?: DeepPartial<IEventOrPlanningItem>;
+    };
+    editors: {
+        panel?: IEditorFormState;
+        modal?: IEditorFormState;
+    };
+}
+
+export interface IPlanningState {
+    plannings: {[key: string]: IPlanningItem};
+    planningsInList: Array<IPlanningItem['_id']>;
+    currentPlanningId?: IPlanningItem['_id'];
+    editorOpened?: boolean;
+    readOnly?: boolean;
+    planningHistoryItems: Array<any>;
+}
+
 export interface IPlanningAppState {
     main: IMainState;
     agenda: IAgendaState;
     events: IEventState;
+    planning: IPlanningState;
+    forms: IFormState;
 }
 
 export interface INominatimLocalityFields {
@@ -1516,12 +1613,214 @@ export interface INominatimItem {
     };
 }
 
-// export interface INominatimItemResponse {
-//     isFixture: boolean;
-//     label: string;
-//     placeId: number;
-//     raw: INominatimItem;
-// }
+export type IEditorAction = 'read' | 'create' | 'edit';
+
+export interface IEditorState {
+    tab: number;
+    diff: DeepPartial<IEventOrPlanningItem>;
+    errors: {[key: string]: string};
+    errorMessages: Array<string>;
+    dirty: boolean;
+    submitting: boolean;
+    submitFailed: boolean;
+    partialSave: boolean;
+    itemReady: boolean;
+    loading: boolean;
+    initialValues: Partial<IEventOrPlanningItem>;
+
+    // Sidebar navigation
+    activeNav?: string; // is this used anymore?
+}
+
+export interface IEditorProps {
+    item?: IEventOrPlanningItem;
+    itemId?: IEventOrPlanningItem['_id'];
+    itemType: string;
+    itemAction?: IEditorAction;
+    session: ISession;
+    privileges: IPrivileges;
+    lockedItems: ILockedItems;
+    users: Array<IUser>;
+    addNewsItemToPlanning?: IArticle;
+    formProfiles: IFormProfiles;
+    occurStatuses: Array<IEventOccurStatus>;
+    itemActions: {[key: string]: () => void}; // List of item action dispatches (i.e. Cancel Event)
+    showUnlock: boolean;
+    hideItemActions: boolean;
+    hideMinimize: boolean;
+    createAndPost: boolean;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    contentTypes: Array<IG2ContentType>;
+    className?: string;
+    contentClassName?: string;
+    navigation?: IFormNavigation;
+    inModalView: boolean;
+    hideExternalEdit: boolean;
+    defaultDesk: IDesk;
+    preferredCoverageDesks: {[key: string]: string};
+    associatedPlannings?: Array<IPlanningItem>;
+    associatedEvent?: IEventItem;
+    currentWorkspace: string;
+    editorType: EDITOR_TYPE;
+    groups: Array<IEditorFormGroup>;
+
+    minimize(): void;
+    openCancelModal(modalProps: {
+        itemId: IEventOrPlanningItem['_id'],
+        itemType: string,
+        onCancel(): void,
+        onIgnore(): void,
+        onSave(withConfirmation: boolean, updateMethod: string): void,
+        onSaveAndPost(withConfirmation: boolean, updateMethod: string): void
+    }): void;
+    onChange?(diff: Partial<IEventOrPlanningItem>): void;
+    onCancel?(): void;
+    notifyValidationErrors(errors: Array<string>): void;
+    saveDiffToStore(diff: DeepPartial<IEventOrPlanningItem>): void;
+    dispatch: Dispatch;
+}
+
+export enum BOOKMARK_TYPE {
+    formGroup = 'BOOKMARK_FORM_GROUP',
+    divider = 'BOOKMARK_DIVIDER',
+    custom = 'BOOKMARK_CUSTOM'
+}
+
+export enum EDITOR_TYPE {
+    INLINE = 'panel',
+    POPUP = 'modal',
+}
+
+export interface IEditorBookmarkBase {
+    id: string;
+    index: number;
+    type: BOOKMARK_TYPE;
+    disabled?: boolean;
+}
+
+export interface IEditorBookmarkDivider extends IEditorBookmarkBase {
+    type: BOOKMARK_TYPE.divider;
+}
+
+export interface IEditorBookmarkGroup extends IEditorBookmarkBase {
+    type: BOOKMARK_TYPE.formGroup;
+    name: string;
+    tooltip: string;
+    icon: string;
+    group_id: string;
+}
+
+export interface IBookmarkProps {
+    bookmark: IEditorBookmark;
+    active: boolean;
+    editorType: EDITOR_TYPE;
+    index: number;
+    item?: DeepPartial<IEventOrPlanningItem>;
+    readOnly: boolean;
+}
+
+export interface IEditorBookmarkCustom extends IEditorBookmarkBase {
+    type: BOOKMARK_TYPE.custom;
+    component: React.ComponentType<IBookmarkProps>;
+}
+
+export type IEditorBookmark = IEditorBookmarkDivider
+    | IEditorBookmarkGroup
+    | IEditorBookmarkCustom;
+
+export interface IEditorFormGroup {
+    id: string;
+    index: number;
+    fields: Array<string>;
+    disabled?: boolean;
+    useToggleBox?: boolean;
+    title?: string;
+}
+
+export abstract class IEditorRefComponent {
+    abstract scrollIntoView(): void;
+    abstract getBoundingClientRect(): DOMRect | undefined;
+    abstract focus(): void;
+}
+
+export abstract class IEditorHeaderComponent {
+    abstract unregisterKeyBoardShortcuts(): void;
+}
+
+export interface IEditorAPI {
+    ready: boolean;
+    events: {
+        onEditorConstructed(manager: IFormItemManager, autosave: IFormAutosave): void;
+        onEditorMounted(manager: IFormItemManager, autosave: IFormAutosave): void;
+        onEditorUnmounted(): void;
+        onEditorFormMounted(): void;
+        onEditorClosed(): void;
+
+        onOpenForCreate(newState: Partial<IEditorState>): void;
+        onOpenForEdit(newState: Partial<IEditorState>): void;
+        onOpenForRead(newState: Partial<IEditorState>): void;
+        onOriginalChanged(item: IEventOrPlanningItem): void;
+        onItemUpdated(newState: Partial<IEditorState>): void;
+
+        onScroll(): void;
+    };
+    dom: {
+        popupContainer: React.RefObject<HTMLDivElement>;
+        editorContainer: React.RefObject<any>;
+        headerInstance: React.RefObject<any & IEditorHeaderComponent>;
+        formContainer: React.RefObject<HTMLDivElement>;
+        groups: {[key: string]: React.RefObject<any & IEditorRefComponent>};
+        fields: {[key: string]: React.RefObject<any & IEditorRefComponent>};
+    };
+    form: {
+        getProps(): IEditorProps;
+        setState(newState: Partial<IEditorState>): Promise<IEditorState>;
+        getState(): IEditorState;
+        getDiff<T extends IEventOrPlanningItem>(): DeepPartial<T>;
+        changeField(
+            field: string,
+            value: any,
+            updateDirtyFlag?: boolean,
+            saveAutosave?: boolean
+        ): Promise<void>;
+
+        scrollToTop(): void;
+        scrollToBookmarkGroup(bookmark: IEditorBookmarkGroup): void;
+        waitForScroll(): Promise<void>;
+
+        getAction(): IEditorAction;
+        isReadOnly(): boolean;
+    };
+    manager?: IFormItemManager; // Older Form API
+    autosave?: IFormAutosave; // Form Autosave
+    item: {
+        getItemType(): string;
+        getItemId(): IEventOrPlanningItem['_id'];
+        getAssociatedPlannings(): Array<IPlanningItem>;
+        events: {
+            getGroupsForItem(item: Partial<IEventItem>): {
+                bookmarks: Array<IEditorBookmark>;
+                groups: Array<IEditorFormGroup>;
+            };
+            getRelatedPlanningDomRef(planId: IPlanningItem['_id']): React.RefObject<any>;
+            addPlanningItem(): void;
+            removePlanningItem(item: DeepPartial<IPlanningItem>): void;
+            updatePlanningItem(
+                original: DeepPartial<IPlanningItem>,
+                updates: DeepPartial<IPlanningItem>,
+                scrollOnChange: boolean
+            ): void;
+        };
+        planning: {
+            getGroupsForItem(item: Partial<IPlanningItem>): {
+                bookmarks: Array<IEditorBookmark>;
+                groups: Array<IEditorFormGroup>;
+            };
+            getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
+            addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;
+        };
+    };
+}
 
 export interface IPlanningAPI {
     redux: {
@@ -1535,11 +1834,13 @@ export interface IPlanningAPI {
         getLocked(): Promise<Array<IEventItem>>;
         getEditorProfile(): IEventFormProfile;
         getSearchProfile(): IEventSearchProfile;
+        create(updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
+        update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
     };
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IPlanningItem>>;
-        getById(planId: IPlanningItem['_id']): Promise<IPlanningItem>;
+        getById(planId: IPlanningItem['_id'], saveToStore?: boolean): Promise<IPlanningItem>;
         getByIds(planIds: Array<IPlanningItem['_id']>): Promise<Array<IPlanningItem>>;
         getLocked(): Promise<Array<IPlanningItem>>;
         getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;
@@ -1551,6 +1852,16 @@ export interface IPlanningAPI {
             getById(id: string): Promise<IFeaturedPlanningItem>;
             getByDate(date: moment.Moment): Promise<IFeaturedPlanningItem>;
         };
+        coverages: {
+            setDefaultValues(
+                item: DeepPartial<IPlanningItem>,
+                event?: IEventItem,
+                g2contentType?: IG2ContentType['qcode']
+            ): DeepPartial<IPlanningCoverageItem>;
+        }
+        create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
+        update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
+        createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
     };
     coverages: {
         getEditorProfile(): ICoverageFormProfile;
@@ -1599,4 +1910,16 @@ export interface IPlanningAPI {
         searchExternal(searchText: string): Promise<Array<Partial<ILocation>>>;
         reloadList(): void;
     };
+    autosave: {
+        getById(
+            type: IEventOrPlanningItem['type'],
+            id: IEventOrPlanningItem['_id']
+        ): Promise<IEventOrPlanningItem | null>;
+        save(
+            original: IEventOrPlanningItem | undefined,
+            updates: Partial<IEventOrPlanningItem>
+        ): Promise<IEventOrPlanningItem>;
+        delete(item: IEventOrPlanningItem): Promise<void>;
+    };
+    editor(type: EDITOR_TYPE): IEditorAPI;
 }

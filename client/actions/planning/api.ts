@@ -229,14 +229,7 @@ const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} =
         if (has(storedPlannings, pid) && !force) {
             promise = Promise.resolve(storedPlannings[pid]);
         } else {
-            promise = planningApi.planning.getById(pid)
-                .then((item) => {
-                    if (saveToStore) {
-                        dispatch(self.receivePlannings([item]));
-                    }
-
-                    return Promise.resolve(item);
-                }, (error) => Promise.reject(error));
+            promise = planningApi.planning.getById(pid, saveToStore);
         }
 
         return promise.then((item) => {

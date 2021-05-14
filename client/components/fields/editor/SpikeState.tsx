@@ -26,10 +26,10 @@ export class EditorFieldSpikeState extends React.PureComponent<IEditorFieldProps
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={field}
                 label={this.props.label ?? gettext('Include Spiked')}
                 defaultValue={false}
-                {...this.props}
                 item={item}
                 onChange={onChange}
             />

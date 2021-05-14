@@ -10,10 +10,10 @@ export class EditorFieldOnlyPosted extends React.PureComponent<IEditorFieldProps
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'posted'}
                 label={this.props.label ?? gettext('Only Posted')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }

@@ -890,7 +890,7 @@ export const shouldLockEventForEdit = (item, privileges) => (
 
 const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) => {
     const occurStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
-        label: 'Planned, occurs certainly',
+        label: 'Confirmed',
         qcode: 'eocstat:eos5',
         name: 'Planned, occurs certainly',
     };
@@ -916,10 +916,11 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
     return newEvent;
 };
 
-const shouldFetchFilesForEvent = (event) => (
-    get(event, 'files', []).filter((f) => typeof (f) === 'string'
-            || f instanceof String).length > 0
-);
+function shouldFetchFilesForEvent(event?: IEventItem) {
+    return (event?.files || [])
+        .filter((file) => typeof file === 'string')
+        .length > 0;
+}
 
 const getRepeatSummaryForEvent = (schedule) => {
     const frequency = get(schedule, 'recurring_rule.frequency');

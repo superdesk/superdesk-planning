@@ -10,6 +10,7 @@ export class EditorFieldItemType extends React.PureComponent<IEditorFieldProps> 
 
         return (
             <EditorFieldSelect
+                {...this.props}
                 field={this.props.field ?? 'item_type'}
                 label={this.props.label ?? gettext('Item Type')}
                 options={[{
@@ -24,7 +25,6 @@ export class EditorFieldItemType extends React.PureComponent<IEditorFieldProps> 
                 }]}
                 valueAsString={true}
                 defaultValue={'combined'}
-                {...this.props}
             />
         );
     }

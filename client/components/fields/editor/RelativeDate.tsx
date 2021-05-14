@@ -11,6 +11,7 @@ export class EditorFieldRelativeDate extends React.PureComponent<IEditorFieldPro
 
         return (
             <EditorFieldRadio
+                {...this.props}
                 field={this.props.field ?? 'date_filter'}
                 label={this.props.label ?? gettext('Date Filters')}
                 defaultValue={''}
@@ -27,7 +28,6 @@ export class EditorFieldRelativeDate extends React.PureComponent<IEditorFieldPro
                     value: DATE_RANGE.NEXT_WEEK,
                     label: gettext('Next Week'),
                 }]}
-                {...this.props}
             />
         );
     }

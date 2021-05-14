@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 
 import {get, remove} from 'lodash';
 
@@ -12,12 +12,36 @@ import {onEventCapture} from '../../utils';
 
 import './style.scss';
 
+interface IProps {
+    field: string;
+    label: string;
+    value: Array<string>;
+    options: Array<{[key: string]: any}>;
+    labelKey?: string; // defaults to 'name'
+    valueKey?: string; // defaults to 'qcode'
+    searchKey?: string; // defaults to 'name'
+    allowCustom?: boolean;
+    readOnly?: boolean;
+    invalid?: boolean;
+    required?: boolean;
+    onChange(field: string, value: Array<string>): void;
+    onFocus?(): void;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
+
+interface IState {
+    popupOpened: boolean;
+    inputText: string;
+    filteredOptions: Array<{[key: string]: any}>;
+}
+
 /**
  * @ngdoc react
  * @name SelectTagInput
  * @description Component to select tags like Keyword of a news story
  */
-export class SelectTagInput extends React.Component {
+export class SelectTagInput extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -46,7 +70,11 @@ export class SelectTagInput extends React.Component {
 
     addTag(tag) {
         if (tag) {
-            const valueText = get(tag, this.props.valueKey, tag);
+            const valueText = get(
+                tag,
+                this.props.valueKey ?? 'qcode',
+                tag
+            );
 
             // If the tag is not currently in the list of tags
             // Then call onChange with the new set of tags
@@ -88,7 +116,12 @@ export class SelectTagInput extends React.Component {
 
         // Remove selected values from options
         if (numTags > 0) {
-            tags.forEach((v) => remove(filteredOptions, (o) => get(o, this.props.valueKey) === v));
+            tags.forEach(
+                (v) => remove(
+                    filteredOptions,
+                    (o) => get(o, this.props.valueKey ?? 'qcode') === v
+                )
+            );
         }
 
         if (inputText) {
@@ -96,7 +129,7 @@ export class SelectTagInput extends React.Component {
 
             // Filter those substrings according to inputText
             filteredOptions = filteredOptions.filter((o) => {
-                const optionName = get(o, this.props.searchKey, '').toLowerCase();
+                const optionName = get(o, this.props.searchKey ?? 'name', '').toLowerCase();
 
                 return optionName.substr(0, inputText.length) === inputNoCase ||
                     optionName.indexOf(inputNoCase) >= 0;
@@ -116,10 +149,20 @@ export class SelectTagInput extends React.Component {
     }
 
     render() {
-        const {label, value, labelKey, allowCustom, readOnly, invalid, required, onFocus, ...props} = this.props;
+        const {
+            label,
+            value,
+            labelKey = 'name',
+            allowCustom,
+            readOnly,
+            invalid,
+            required,
+            onFocus,
+            ...props
+        } = this.props;
 
         return (
-            <div>
+            <React.Fragment>
                 <Row noPadding={true}>
                     <LineInput noMargin={true} invalid={invalid} required={required}>
                         <Label text={label} />
@@ -170,32 +213,32 @@ export class SelectTagInput extends React.Component {
                         )}
                     </LineInput>
                 </Row>
-            </div>
+            </React.Fragment>
         );
     }
 }
 
-SelectTagInput.propTypes = {
-    field: PropTypes.string,
-    label: PropTypes.string,
-    value: PropTypes.arrayOf(PropTypes.string),
-    onChange: PropTypes.func,
-    options: PropTypes.array,
-    labelKey: PropTypes.string,
-    valueKey: PropTypes.string,
-    searchKey: PropTypes.string,
-    allowCustom: PropTypes.bool,
-    readOnly: PropTypes.bool,
-    invalid: PropTypes.bool,
-    required: PropTypes.bool,
-    onFocus: PropTypes.func,
-};
-
-SelectTagInput.defaultProps = {
-    labelKey: 'name',
-    valueKey: 'qcode',
-    searchKey: 'name',
-    allowCustom: true,
-    readOnly: false,
-    required: false,
-};
+// SelectTagInput.propTypes = {
+//     field: PropTypes.string,
+//     label: PropTypes.string,
+//     value: PropTypes.arrayOf(PropTypes.string),
+//     onChange: PropTypes.func,
+//     options: PropTypes.array,
+//     labelKey: PropTypes.string,
+//     valueKey: PropTypes.string,
+//     searchKey: PropTypes.string,
+//     allowCustom: PropTypes.bool,
+//     readOnly: PropTypes.bool,
+//     invalid: PropTypes.bool,
+//     required: PropTypes.bool,
+//     onFocus: PropTypes.func,
+// };
+//
+// SelectTagInput.defaultProps = {
+//     labelKey: 'name',
+//     valueKey: 'qcode',
+//     searchKey: 'name',
+//     allowCustom: true,
+//     readOnly: false,
+//     required: false,
+// };

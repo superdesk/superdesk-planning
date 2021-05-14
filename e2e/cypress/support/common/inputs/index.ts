@@ -7,3 +7,4 @@ export {UserSelectInput} from './userSelectInput';
 export {RadioInputs} from './radioInputs';
 export {SpikeStateInput} from './spikeStateInput';
 export {LocationInput} from './locationInput';
+export {NewCheckboxInput} from './newCheckbox';

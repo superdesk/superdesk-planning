@@ -24,6 +24,7 @@ export class EditorFieldRadio extends React.PureComponent<IProps> {
                     value={value}
                     message={error ?? ''}
                     invalid={error?.length > 0 && this.props.invalid}
+                    readOnly={this.props.disabled}
                 />
             </Row>
         );

@@ -1,152 +1,66 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {get} from 'lodash';
+import {isEqual} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
+import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
+import {IDesk} from 'superdesk-api';
+import {superdeskApi} from '../../../superdeskApi';
 
-import {onEventCapture, gettext, planningUtils} from '../../../utils';
-import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
-import {CoveragesMenuPopup} from './CoveragesMenuPopup';
-import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
+import {AddCoveragesWrapper} from './AddCoveragesWrapper';
 
+interface IProps {
+    field: string;
+    value: Array<IPlanningCoverageItem>;
+    className?: string;
+    buttonClass?: string;
 
-export class CoverageAddButton extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {isOpen: false, advanced: false};
-        this.toggleMenu = this.toggleMenu.bind(this);
-        this.closeMenu = this.closeMenu.bind(this);
-        this.openMenu = this.openMenu.bind(this);
-        this.openAdvanced = this.openAdvanced.bind(this);
-    }
+    onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
+    createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
+    onOpen?(): void;
+    onAdd(
+        qcode: IG2ContentType['qcode'],
+        defaultDesk?: IDesk,
+        preferredCoverageDesks?: {[key: string]: IDesk['_id']}
+    ): void;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
 
-    componentDidMount() {
-        this.items = this.getCoverageTypes(this.props);
-    }
+export class CoverageAddButton extends React.Component<IProps> {
+    shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<{}>, nextContext: any): boolean {
+        // For some reason this component get's re-rendered (which causes problems with e2e tests)
+        // Make sure to only re-render if Coverage ID's change
+        const prevIds = (this.props.value ?? []).map((coverage) => coverage.coverage_id);
+        const nextIds = (nextProps.value ?? []).map((coverage) => coverage.coverage_id);
 
-    componentWillReceiveProps(nextProps) {
-        this.items = this.getCoverageTypes(nextProps);
-    }
-
-    getCoverageTypes(props) {
-        const language = getUserInterfaceLanguage();
-
-        return props.contentTypes.map((c) => ({
-            id: `coverage-menu-add-${c.qcode}`,
-            label: getVocabularyItemFieldTranslated(
-                c,
-                'name',
-                language
-            ),
-            icon: planningUtils.getCoverageIcon(get(c, 'content item type') || c.qcode),
-            callback: props.onAdd.bind(
-                null,
-                c.qcode,
-                props.defaultDesk,
-                props.preferredCoverageDesks
-            ),
-        }));
-    }
-
-    closeMenu(event) {
-        onEventCapture(event);
-        this.setState({isOpen: false});
-    }
-
-    openAdvanced(event) {
-        onEventCapture(event);
-        this.setState({isOpen: false, advanced: true});
-    }
-
-    openMenu(event) {
-        if (this.props.coverageAddAdvancedMode) {
-            this.openAdvanced(event);
-            return;
-        }
-
-        onEventCapture(event);
-
-        this.setState({isOpen: true});
-
-        if (this.props.onOpen) {
-            this.props.onOpen();
-        }
+        return this.props.field !== nextProps.field ||
+            !isEqual(prevIds, nextIds);
     }
 
     render() {
-        const {className, buttonClass, onPopupOpen, onPopupClose} = this.props;
+        const {gettext} = superdeskApi.localization;
+        const {
+            className = 'dropdown dropdown--align-right dropdown--dropup pull-right',
+            buttonClass = 'dropdown__toggle sd-create-btn',
+            ...props
+        } = this.props;
 
         return (
-            <div className={className}>
-                <button className={buttonClass} onClick={this.toggleMenu} title={gettext('Create new coverage')}>
-                    <i className="icon-plus-large" />
-                    <span className="circle" />
-
-                    {this.state.isOpen && (
-                        <CoveragesMenuPopup
-                            closeMenu={this.closeMenu}
-                            actions={this.items}
-                            target="icon-plus-large"
-                            onPopupOpen={onPopupOpen}
-                            onPopupClose={onPopupClose}
-                            openAdvanced={this.openAdvanced}
-                        />
-                    )}
-                </button>
-                {this.state.advanced && (
-                    <CoverageAddAdvancedModal
-                        close={() => this.setState({advanced: false})}
-
-                        contentTypes={this.props.contentTypes}
-                        newsCoverageStatus={this.props.newsCoverageStatus}
-
-                        field={this.props.field}
-                        value={this.props.value}
-                        onChange={this.props.onChange}
-                        createCoverage={this.props.createCoverage}
-
-                        users={this.props.users}
-                        desks={this.props.desks}
-
-                        coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
-                        setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
-                    />
+            <AddCoveragesWrapper
+                {...props}
+                target="icon-plus-large"
+                button={({toggleMenu}) => (
+                    <div className={className}>
+                        <button
+                            className={buttonClass}
+                            onClick={toggleMenu}
+                            title={gettext('Create new coverage')}
+                        >
+                            <i className="icon-plus-large" />
+                            <span className="circle" />
+                        </button>
+                    </div>
                 )}
-            </div>
+            />
         );
     }
-
-    toggleMenu(event) {
-        this.state.isOpen ?
-            this.closeMenu(event) :
-            this.openMenu(event);
-    }
 }
-
-CoverageAddButton.propTypes = {
-    contentTypes: PropTypes.array.isRequired,
-    defaultDesk: PropTypes.object,
-    className: PropTypes.string,
-    buttonClass: PropTypes.string,
-    onOpen: PropTypes.func,
-    onAdd: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    preferredCoverageDesks: PropTypes.object,
-    newsCoverageStatus: PropTypes.array,
-
-    desks: PropTypes.array,
-    users: PropTypes.array,
-    field: PropTypes.string,
-    value: PropTypes.array,
-    onChange: PropTypes.func,
-    createCoverage: PropTypes.func,
-    coverageAddAdvancedMode: PropTypes.bool,
-    setCoverageAddAdvancedMode: PropTypes.func,
-};
-
-CoverageAddButton.defaultProps = {
-    contentTypes: [],
-    className: 'dropdown dropdown--align-right dropdown--dropup pull-right',
-    buttonClass: 'dropdown__toggle sd-create-btn',
-};

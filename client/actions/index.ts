@@ -1,6 +1,7 @@
 export * from './modal';
 export * from './agenda';
 export * from './assignments';
+import * as editors from './editor';
 
 import planning from './planning/index';
 import events from './events/index';
@@ -55,4 +56,5 @@ export {
     users,
     modalActions,
     contacts,
+    editors,
 };

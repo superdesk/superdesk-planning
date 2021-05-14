@@ -10,6 +10,8 @@
 
 """Superdesk Planning - Planning Autosaves"""
 
+from copy import deepcopy
+
 from superdesk import Resource
 from .events_schema import events_schema
 from superdesk.metadata.utils import item_url
@@ -22,7 +24,15 @@ class EventAutosaveResource(Resource):
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PUT', 'PATCH', 'DELETE']
 
-    schema = events_schema
+    schema = deepcopy(events_schema)
+    schema['associated_plannings'] = {
+        'type': 'list',
+        'required': False,
+        'schema': {
+            'type': 'dict',
+            'allow_unknown': True
+        }
+    }
     datasource = {
         'source': 'event_autosave',
     }

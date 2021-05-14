@@ -20,15 +20,20 @@ export class EditorFieldIngestSourceComponent extends React.PureComponent<IProps
 
         return (
             <EditorFieldVocabulary
+                {...this.props}
                 field={this.props.field ?? 'source'}
                 label={this.props.label ?? gettext('Source')}
                 defaultValue={[]}
                 options={this.props.ingestProviders}
                 valueKey={'id'}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldIngestSource = connect(mapStateToProps)(EditorFieldIngestSourceComponent);
+export const EditorFieldIngestSource = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldIngestSourceComponent);

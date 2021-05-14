@@ -1,27 +1,46 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import 'whatwg-fetch';
 import {get} from 'lodash';
 
 import {appConfig} from 'appConfig';
 
-import {gettext} from '../../../utils/gettext';
+import {superdeskApi} from '../../../superdeskApi';
 
 import {Row, LineInput, Label, TextArea} from './';
 import {IconButton} from '../';
 
 import './style.scss';
 
+interface IProps {
+    field: string;
+    value: string;
+    label?: string;
+    readOnly?: boolean;
+    message?: string;
+    noMargin?: boolean; // defaults to true
+
+    onChange(field: string, value: string): void;
+    remove(): void;
+    onFocus?(): void;
+}
+
+interface IState {
+    title: string;
+}
+
 /**
  * @ngdoc react
  * @name LinkInput
  * @description Component to attach links as input
  */
-export class LinkInput extends React.Component {
+export class LinkInput extends React.Component<IProps, IState> {
+    errorTitle: string;
+
     constructor(props) {
         super(props);
         this.state = {title: props.value};
-        this.errorTitle = gettext('Could not load title');
+        this.errorTitle = superdeskApi.localization.gettext('Could not load title');
     }
 
     componentWillMount() {
@@ -125,7 +144,18 @@ export class LinkInput extends React.Component {
     }
 
     render() {
-        const {value, field, remove, onChange, label, readOnly, noMargin, onFocus, ...props} = this.props;
+        const {gettext} = superdeskApi.localization;
+        const {
+            value,
+            field,
+            remove,
+            onChange,
+            label,
+            readOnly,
+            noMargin = true,
+            onFocus,
+            ...props
+        } = this.props;
 
         const showLink = this.state.title &&
             !props.message &&
@@ -203,20 +233,20 @@ export class LinkInput extends React.Component {
     }
 }
 
-LinkInput.propTypes = {
-    remove: PropTypes.func,
-    field: PropTypes.string,
-    value: PropTypes.string,
-    label: PropTypes.string,
-    onChange: PropTypes.func,
-    readOnly: PropTypes.bool,
-    message: PropTypes.string,
-    onFocus: PropTypes.func,
-    noMargin: PropTypes.bool,
-};
-
-LinkInput.defaultProps = {
-    readOnly: false,
-    value: '',
-    noMargin: true,
-};
+// LinkInput.propTypes = {
+//     remove: PropTypes.func,
+//     field: PropTypes.string,
+//     value: PropTypes.string,
+//     label: PropTypes.string,
+//     onChange: PropTypes.func,
+//     readOnly: PropTypes.bool,
+//     message: PropTypes.string,
+//     onFocus: PropTypes.func,
+//     noMargin: PropTypes.bool,
+// };
+//
+// LinkInput.defaultProps = {
+//     readOnly: false,
+//     value: '',
+//     noMargin: true,
+// };

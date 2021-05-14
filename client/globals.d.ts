@@ -97,6 +97,9 @@ declare module '*.html';
 
 type Dictionary<K, V> = {[key: string]: V};
 type valueof<T> = T[keyof T];
+type DeepPartial<T> = {
+    [K in keyof T]?: DeepPartial<T[K]>;
+}
 
 // ResizeObserver types aren't available in the version of Typescript we use
 // see: https://github.com/Microsoft/TypeScript/issues/28502

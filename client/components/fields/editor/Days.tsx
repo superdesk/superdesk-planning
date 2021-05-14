@@ -27,6 +27,7 @@ export class EditorFieldDays extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldCheckboxGroup
+                {...this.props}
                 field={this.props.field ?? 'week_days'}
                 label={this.props.label ?? gettext('Week Days')}
                 options={this.options}
@@ -42,7 +43,6 @@ export class EditorFieldDays extends React.PureComponent<IProps> {
                         WEEK_DAY.SATURDAY,
                     ]
                 }
-                {...this.props}
             />
         );
     }

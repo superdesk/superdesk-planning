@@ -64,18 +64,6 @@ module.exports = {
                 use: ['json-loader']
             },
             {
-                enforce: 'post',
-                test: /\.jsx?/,
-                loader: 'istanbul-instrumenter-loader',
-                exclude: [
-                    /node_modules\//,
-                    /client\/index\.js/,
-                    /_test\.jsx?/,
-                    /tests\.js/,
-                    /client\/controllers\//
-                ]
-            },
-            {
                 test: /\.(png|gif|jpeg|jpg|woff|woff2|eot|ttf|svg)(\?.*$|$)/,
                 loader: 'file-loader'
             }

@@ -1,18 +1,36 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get, union} from 'lodash';
 import classNames from 'classnames';
 
-import {ITEM_TYPE, UI, KEYCODES} from '../../../constants';
-
-import {ItemMenuPanel} from './ItemMenuPanel';
+import {ITEM_TYPE, KEYCODES, UI} from '../../../constants';
 import {Modal} from '../../index';
 import {EditorModal} from '../index';
+import {EditorComponent} from '../ItemEditor';
 
-import {gettext, onEventCapture, getItemType, isExistingItem} from '../../../utils';
+import {getItemType, gettext, isExistingItem, onEventCapture} from '../../../utils';
 import './style.scss';
+import {EDITOR_TYPE, IEventOrPlanningItem} from '../../../interfaces';
+import {EditorBookmarksBar} from '../../Editor/EditorBookmarksBar';
+import {planningApi} from '../../../superdeskApi';
 
-export class EditorModalPanel extends React.Component {
+interface IProps {
+    initialValues: DeepPartial<IEventOrPlanningItem>;
+}
+
+interface IState {
+    openItems: Array<any>;
+    scrollToViewItem: string;
+    diff: DeepPartial<IEventOrPlanningItem>;
+    activeItem: string;
+    currentTab: number;
+}
+
+export class EditorModalPanel extends React.Component<IProps, IState> {
+    dom: {
+        menu: React.RefObject<HTMLDivElement>;
+        editor: React.RefObject<EditorComponent>;
+    };
+
     constructor(props) {
         super(props);
 
@@ -25,8 +43,8 @@ export class EditorModalPanel extends React.Component {
         };
 
         this.dom = {
-            menu: null,
-            editor: null,
+            menu: React.createRef<HTMLDivElement>(),
+            editor: React.createRef<EditorComponent>(),
         };
 
         this.onMenuItemClick = this.onMenuItemClick.bind(this);
@@ -63,27 +81,27 @@ export class EditorModalPanel extends React.Component {
     handleKeydown(event) {
         if (event.keyCode === KEYCODES.ESCAPE) {
             event.preventDefault();
-            this.dom.editor.cancelFromHeader();
+            this.dom.editor.current?.cancelFromHeader();
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState.activeItem !== this.state.activeItem &&
-            this.state.activeItem === 'event' || this.state.activeItem === 'planning') {
-            this.dom.menu.scrollTop = 0;
+            (this.state.activeItem === 'event' || this.state.activeItem === 'planning') &&
+            this.dom.menu.current != null
+        ) {
+            this.dom.menu.current.scrollTop = 0;
         }
     }
 
     onCloseModal() {
-        if (this.dom.editor) {
-            this.dom.editor.cancelFromHeader();
-        }
+        this.dom.editor.current?.cancelFromHeader();
     }
 
     onMenuItemClick(menuItemName) {
         // Change tab to content
-        if (this.dom.editor && this.state.currentTab !== UI.EDITOR.CONTENT_TAB_INDEX) {
-            this.dom.editor.setActiveTab(UI.EDITOR.CONTENT_TAB_INDEX);
+        if (this.state.currentTab !== UI.EDITOR.CONTENT_TAB_INDEX) {
+            this.dom.editor.current?.setActiveTab(UI.EDITOR.CONTENT_TAB_INDEX);
         }
 
         this.setState({
@@ -121,7 +139,7 @@ export class EditorModalPanel extends React.Component {
     }
 
     onEditorTabChange(tab) {
-        let newState = {currentTab: tab};
+        let newState: Partial<IState> = {currentTab: tab};
 
         if (tab !== UI.EDITOR.CONTENT_TAB_INDEX) {
             newState = {
@@ -163,26 +181,24 @@ export class EditorModalPanel extends React.Component {
                 <div className="editorModal">
                     <div
                         className="editorModal__menu"
-                        ref={(node) => this.dom.menu = node}
+                        ref={this.dom.menu}
                     >
-                        <ItemMenuPanel
-                            item={this.state.diff}
-                            onMenuItemClick={this.onMenuItemClick}
-                            activeItem={this.state.activeItem}
-                        />
+                        <EditorBookmarksBar editorType={EDITOR_TYPE.POPUP} />
                     </div>
                     <div
                         className={classNames(
                             'editorModal__editor',
                             'sd-page-content__content-block',
-                            'sd-page-content__content-block--right')}
+                            'sd-page-content__content-block--right'
+                        )}
+                        onScroll={planningApi.editor(EDITOR_TYPE.POPUP).events.onScroll}
                     >
                         <EditorModal
                             navigation={navigation}
                             onChange={this.onEditorItemChange}
                             hideMinimize
                             hideExternalEdit
-                            ref={(node) => this.dom.editor = node}
+                            ref={this.dom.editor}
                         />
                     </div>
                 </div>
@@ -190,8 +206,3 @@ export class EditorModalPanel extends React.Component {
         ]);
     }
 }
-
-EditorModalPanel.propTypes = {
-    handleHide: PropTypes.func.isRequired,
-    initialValues: PropTypes.object,
-};

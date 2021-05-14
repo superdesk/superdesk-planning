@@ -27,7 +27,7 @@ describe('actions.main', () => {
         it('closes panel editor', () => {
             store.test(null, main.closeEditor());
 
-            expect(store.dispatch.callCount).toBe(1);
+            expect(store.dispatch.callCount).toBe(3);
             expect(store.dispatch.args[0]).toEqual([{
                 type: 'MAIN_CLOSE_EDITOR',
                 payload: false,
@@ -43,7 +43,7 @@ describe('actions.main', () => {
         it('closes modal editor', () => {
             store.test(null, main.closeEditor(true));
 
-            expect(store.dispatch.callCount).toBe(1);
+            expect(store.dispatch.callCount).toBe(3);
             expect(store.dispatch.args[0]).toEqual([{
                 type: 'MAIN_CLOSE_EDITOR',
                 payload: true,

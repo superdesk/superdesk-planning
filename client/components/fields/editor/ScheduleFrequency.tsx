@@ -11,6 +11,7 @@ export class EditorFieldScheduleFrequency extends React.PureComponent<IEditorFie
 
         return (
             <EditorFieldRadio
+                {...this.props}
                 field={this.props.field ?? 'frequency'}
                 label={this.props.label ?? gettext('Frequency')}
                 defaultValue={SCHEDULE_FREQUENCY.HOURLY}
@@ -26,7 +27,6 @@ export class EditorFieldScheduleFrequency extends React.PureComponent<IEditorFie
                 }]}
                 size="medium-3"
                 noMargin={true}
-                {...this.props}
             />
         );
     }

@@ -20,15 +20,20 @@ export class EditorFieldPlaceComponent extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldVocabulary
+                {...this.props}
                 field={this.props.field ?? 'place'}
                 label={this.props.label ?? gettext('Place')}
                 defaultValue={[]}
                 options={this.props.locators}
                 groupField="group"
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldPlace = connect(mapStateToProps)(EditorFieldPlaceComponent);
+export const EditorFieldPlace = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldPlaceComponent);

@@ -43,16 +43,21 @@ export class EditorFieldExportTemplateComponent extends React.PureComponent<IPro
 
         return (
             <EditorFieldSelect
+                {...this.props}
                 field={field}
                 label={this.props.label ?? gettext('Export Template')}
                 options={templates}
                 labelField="label"
                 keyField="name"
                 valueAsString={true}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldExportTemplate = connect(mapStateToProps)(EditorFieldExportTemplateComponent);
+export const EditorFieldExportTemplate = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldExportTemplateComponent);

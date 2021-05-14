@@ -1,6 +1,5 @@
 /* eslint-disable react/no-multi-comp */
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
 
@@ -8,156 +7,158 @@ import {Button} from '../../';
 import {Row, LineInput} from '../';
 import './style.scss';
 
-/**
- * @ngdoc react
- * @name InputArray
- * @description Component to create an array of input components
- */
-export const InputArray = ({
-    field,
-    value,
-    onChange,
-    addButtonComponent,
-    addButtonProps,
-    addButtonText,
-    maxCount,
-    addOnly,
-    originalCount,
-    element,
-    defaultElement,
-    readOnly,
-    message,
-    invalid,
-    row,
-    buttonWithLabel,
-    label,
-    labelClassName,
-    ...props
-}) => {
-    const add = ((...args) => {
-        let currentValue = args.shift();
-        const newElement = typeof defaultElement === 'function' ? defaultElement(...args) : defaultElement;
+interface IProps {
+    field: string;
+    value: Array<any>;
+    onChange(field: string, value: Array<any>): void;
+    addButtonComponent: React.ComponentClass;
+    addButtonProps: any;
+    addButtonText: string;
+    maxCount: number;
+    addOnly: boolean;
+    originalCount: number;
+    element: React.ComponentClass;
+    defaultElement: any;
+    readOnly: boolean;
+    message: any;
+    invalid: boolean;
+    row: boolean;
+    buttonWithLabel: boolean;
+    label: string;
+    labelClassName: string;
+    hint: string;
+    required: boolean;
+    boxed: boolean;
+    noMargin: boolean;
+    item: any;
+    diff: any;
+    formProfile: any;
+    errors: {[key: string]: any};
+    showErrors: boolean;
+    testId?: string;
 
-        onChange(field, [...currentValue, newElement]);
-    }).bind(null, value);
+    getRef?(field: string, value: any): React.RefObject<any>;
+}
 
-    const remove = (index) => {
-        onChange(field, value.filter((v, ind) => ind !== index));
-    };
+export class InputArray extends React.PureComponent<IProps> {
+    constructor(props) {
+        super(props);
 
-    const Component = element;
+        this.onAdd = this.onAdd.bind(this);
+        this.remove = this.remove.bind(this);
+    }
 
-    const showAddButton = (maxCount ? value.length < maxCount : true) && !readOnly;
-    const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
-    const customButton = addButtonComponent ? React.createElement(addButtonComponent,
-        {...addButtonProps, onAdd: add}) : false;
-    let addButton = row ? (customButton || <Button onClick={add} text={addButtonText} />) :
-        (customButton || <Button onClick={add} text={addButtonText} tabIndex={0} enterKeyIsClick />);
+    onAdd(...args) {
+        let currentValue = this.props.value ?? [];
+        const newElement = typeof this.props.defaultElement === 'function' ?
+            this.props.defaultElement(...args) :
+            this.props.defaultElement;
 
-    const labelComponent = label ? (
-        <div>
-            <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
-            {buttonWithLabel && showAddButton && addButton}
-        </div>
-    ) : null;
+        this.props.onChange(this.props.field, [...currentValue, newElement]);
+    }
 
-    const getComponent = (val, index, row) => {
-        const indexReadOnly = isIndexReadOnly(index);
+    remove(index: number) {
+        this.props.onChange(
+            this.props.field,
+            (this.props.value ?? []).filter((value, i) => i !== index)
+        );
+    }
 
-        return row ?
-            (
-                <Component
-                    key={index}
-                    index={index}
-                    field={`${field}[${index}]`}
-                    onChange={onChange}
-                    value={val}
-                    remove={remove.bind(null, index)}
-                    readOnly={indexReadOnly}
-                    message={get(message, `[${index}]`)}
-                    invalid={!!get(message, `[${index}]`)}
-                    {...props}
-                />
-            ) :
-            (
-                <Component
-                    key={index}
-                    index={index}
-                    field={`${field}[${index}]`}
-                    onChange={onChange}
-                    value={val}
-                    remove={remove.bind(null, index)}
-                    readOnly={indexReadOnly}
-                    message={get(message, `[${index}]`)}
-                    invalid={!!get(message, `[${index}]`)}
-                    {...props}
+    renderButton() {
+        if (this.props.addButtonComponent != null) {
+            const AddButton = this.props.addButtonComponent;
+
+            return (
+                <AddButton
+                    onAdd={this.onAdd}
+                    {...this.props.addButtonProps}
                 />
             );
-    };
+        }
 
-    return (
-        <Row noPadding={!!message}>
-            {labelComponent}
-            {get(message, field) && (
-                <LineInput
-                    invalid={true}
-                    message={get(message, field)}
-                    readOnly
-                    noLabel
-                />
-            )}
-            {value && value.map((val, index) => (getComponent(val, index, row)))}
-            {!buttonWithLabel && showAddButton && addButton}
-        </Row>
-    );
-};
+        const props = this.props.row ? {
+            onAdd: this.onAdd,
+            text: this.props.addButtonText,
+        } : {
+            onAdd: this.onAdd,
+            text: this.props.addButtonText,
+            tabIndex: 0,
+            enterKeyIsClick: true,
+        };
 
-InputArray.propTypes = {
-    field: PropTypes.string.isRequired,
-    label: PropTypes.string,
-    value: PropTypes.array,
-    onChange: PropTypes.func.isRequired,
-    addButtonText: PropTypes.string.isRequired,
-    maxCount: PropTypes.number,
-    addOnly: PropTypes.bool,
-    originalCount: PropTypes.number,
-    element: PropTypes.func.isRequired,
-    defaultElement: PropTypes.any,
+        return <Button {...props} />;
+    }
 
-    hint: PropTypes.string,
-    message: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-    ]),
-    required: PropTypes.bool,
-    invalid: PropTypes.bool,
-    readOnly: PropTypes.bool,
-    boxed: PropTypes.bool,
-    noMargin: PropTypes.bool,
-    buttonWithLabel: PropTypes.bool,
+    render() {
+        const {
+            field,
+            value = [],
+            onChange,
+            addButtonComponent,
+            addButtonProps,
+            addButtonText,
+            maxCount = 0,
+            addOnly,
+            originalCount,
+            element,
+            defaultElement = {},
+            readOnly,
+            message,
+            invalid,
+            row = true,
+            buttonWithLabel,
+            label,
+            labelClassName,
+            testId,
+            ...props
+        } = this.props;
 
-    item: PropTypes.object,
-    diff: PropTypes.object,
-    formProfile: PropTypes.object,
-    errors: PropTypes.object,
-    showErrors: PropTypes.bool,
-    row: PropTypes.bool,
-    addButtonComponent: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.object,
-    ]),
-    addButtonProps: PropTypes.object,
-    labelClassName: PropTypes.string,
-};
+        const Component = element;
+        const showAddButton = (maxCount ? value.length < maxCount : true) && !readOnly;
+        const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
+        const addButton = this.renderButton();
 
-InputArray.defaultProps = {
-    value: [],
-    defaultElement: {},
-    required: false,
-    invalid: false,
-    readOnly: false,
-    boxed: false,
-    noMargin: true,
-    maxCount: 0,
-    row: true,
-};
+        return (
+            <Row
+                noPadding={!!message}
+                testId={testId}
+            >
+                {!label?.length ? null : (
+                    <div>
+                        <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
+                        {buttonWithLabel && showAddButton && addButton}
+                    </div>
+                )}
+                {get(message, field) && (
+                    <LineInput
+                        invalid={true}
+                        message={get(message, field)}
+                        readOnly
+                        noLabel
+                    />
+                )}
+                {(value || []).map((val, index) => (
+                    <Component
+                        {...props}
+                        key={index}
+                        ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
+                        testId={`${testId}[${index}]`}
+                        // ref={this.props.assignRef == null ? undefined : (node) => {
+                        //     this.props.assignRef(val, node);
+                        // }}
+                        // ref={this.props.refs != null ? this.props.refs[index] : undefined}
+                        index={index}
+                        field={`${field}[${index}]`}
+                        onChange={onChange}
+                        value={val}
+                        remove={() => this.remove(index)}
+                        readOnly={isIndexReadOnly(index)}
+                        message={get(message, `[${index}]`)}
+                        invalid={!!get(message, `[${index}]`)}
+                    />
+                ))}
+                {!buttonWithLabel && showAddButton && addButton}
+            </Row>
+        );
+    }
+}

@@ -1,7 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {difference, isEqual} from 'lodash';
+
+import {IContactItem} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -9,7 +10,36 @@ import * as actions from '../../actions';
 import {ContactMetaData} from './';
 import './style.scss';
 
-class ContactsPreviewListComponent extends React.Component {
+interface IProps {
+    contacts?: {[key: string]: IContactItem};
+    contactIds: Array<IContactItem['_id']>;
+    scrollInView?: boolean;
+    scrollIntoViewOptions: any;
+    tabEnabled?: boolean;
+    readOnly?: boolean;
+    inner?: boolean;
+
+    fetchContacts(ids: Array<IContactItem['_id']>): Promise<IContactItem>;
+    onEditContact?(contact: IContactItem): void;
+    onRemoveContact?(contact: IContactItem): void;
+}
+
+interface IState {
+    fetchingContacts: boolean;
+    fetchingIds: Array<IContactItem['_id']>;
+}
+
+const mapStateToProps = (state) => ({
+    contacts: selectors.general.contactsById(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    fetchContacts: (ids) => dispatch(actions.contacts.fetchContactsByIds(ids)),
+});
+
+class ContactsPreviewListComponent extends React.Component<IProps, IState> {
+    _isMounted: boolean;
+
     constructor(props) {
         super(props);
 
@@ -74,56 +104,37 @@ class ContactsPreviewListComponent extends React.Component {
 
     render() {
         // eslint-disable-next-line no-unused-vars
-        const {contactIds, fetchContacts, onEditContact, onRemoveContact, contacts, ...props} = this.props;
-        const {fetchingContacts} = this.state;
+        const {
+            contactIds,
+            fetchContacts,
+            onEditContact,
+            onRemoveContact,
+            contacts,
+            scrollInView,
+            ...props
+        } = this.props;
 
         return (
             <div className="contacts-list__holder">
-                {contactIds.map((contactId) => (
+                {(contactIds || []).map((contactId) => (contacts[contactId] == null ? null : (
                     <ContactMetaData
                         key={contactId}
-                        contact={contacts[contactId] || {}}
-                        fetchingContacts={fetchingContacts}
-
+                        contact={contacts[contactId]}
                         {...props}
-
-                        onEditContact={onEditContact ? onEditContact.bind(null, contacts[contactId] || {}) : null}
-                        onRemoveContact={onRemoveContact ? onRemoveContact.bind(null, contacts[contactId] || {}) : null}
+                        onEditContact={onEditContact != null ?
+                            onEditContact.bind(null, contacts[contactId] || {}) :
+                            null
+                        }
+                        onRemoveContact={onRemoveContact != null ?
+                            onRemoveContact.bind(null, contacts[contactId] || {}) :
+                            null
+                        }
                     />
-                ))}
+                )))}
             </div>
         );
     }
 }
-
-ContactsPreviewListComponent.propTypes = {
-    contacts: PropTypes.object,
-    contactIds: PropTypes.array,
-    fetchContacts: PropTypes.func,
-    onEditContact: PropTypes.func,
-    onRemoveContact: PropTypes.func,
-
-    scrollInView: PropTypes.bool,
-    scrollIntoViewOptions: PropTypes.object,
-    tabEnabled: PropTypes.bool,
-    readOnly: PropTypes.bool,
-    inner: PropTypes.bool,
-};
-
-ContactsPreviewListComponent.defaultProps = {
-    contactIds: [],
-    scrollInView: true,
-    readOnly: false,
-    inner: false,
-};
-
-const mapStateToProps = (state) => ({
-    contacts: selectors.general.contactsById(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    fetchContacts: (ids) => dispatch(actions.contacts.fetchContactsByIds(ids)),
-});
 
 export const ContactsPreviewList = connect(
     mapStateToProps,

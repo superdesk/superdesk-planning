@@ -5,19 +5,26 @@ import {IEditorFieldProps} from '../../../interfaces';
 import {EditorFieldDateTime} from './base/dateTime';
 
 interface IProps extends IEditorFieldProps {
-    canClear: boolean;
+    canClear?: boolean;
+    timeField?: string;
 }
 
 export class EditorFieldEndDateTime extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const {
+            field,
+            label,
+            refNode,
+            ...props
+        } = this.props;
 
         return (
             <EditorFieldDateTime
-                field={this.props.field ?? 'end_date'}
-                label={this.props.label ?? gettext('To')}
-                canClear={this.props.canClear}
-                {...this.props}
+                ref={refNode}
+                {...props}
+                field={field ?? 'end_date'}
+                label={label ?? gettext('To')}
             />
         );
     }
