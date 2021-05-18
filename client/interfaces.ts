@@ -1907,7 +1907,7 @@ export interface IPlanningAPI {
         browse(searchText: string, page?: number): Promise<IRestApiResponse<ILocation>>;
         search(searchText?: string, page?: number): Promise<IRestApiResponse<ILocation>>;
 
-        searchExternal(searchText: string): Promise<Array<Partial<ILocation>>>;
+        searchExternal(searchText: string, language?: string): Promise<Array<Partial<ILocation>>>;
         reloadList(): void;
     };
     autosave: {

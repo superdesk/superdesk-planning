@@ -320,7 +320,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const language = getUsersDefaultLanguage();
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
         const defaultGenre = (appConfig.default_genre || [{}])[0];
         const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
@@ -436,7 +435,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
         const globalProps = {
             item: this.props.value,
-            language: this.props.value.planning?.language ?? language,
+            language: this.props.value.planning?.language ?? getUsersDefaultLanguage(),
             onChange: this.onChange,
             errors: this.props.errors,
             readOnly: this.props.readOnly,

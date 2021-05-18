@@ -452,7 +452,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 editorType={this.props.editorType}
                 globalProps={{
                     item: this.props.diff,
-                    language: getUserInterfaceLanguage(),
+                    language: this.props.diff.language ?? getUserInterfaceLanguage(),
                     onChange: this.props.onChangeHandler,
                     errors: this.props.errors,
                     showErrors: this.props.submitFailed,
