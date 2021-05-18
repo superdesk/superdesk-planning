@@ -9,6 +9,7 @@ import classNames from 'classnames';
  */
 export const Content = ({children, className, flex}) => (
     <div
+        aria-labelledby="planning-preview-heading"
         className={classNames(
             'side-panel__content',
             {'side-panel__content--flex': flex},

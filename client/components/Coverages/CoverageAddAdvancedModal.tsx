@@ -178,14 +178,14 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                 }}
             >
                 <Modal.Header>
-                    <a className="close" onClick={this.props.close}>
-                        <i className="icon-close-small" />
-                    </a>
                     <h3 className="modal__heading">
                         {gettext('Add Coverages')}
                         {' '}
                         <small>{gettext('(advanced mode)')}</small>
                     </h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.props.close}>
+                        <i className="icon-close-small" />
+                    </a>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="sd-list-item-group sd-list-item-group--space-between-items">

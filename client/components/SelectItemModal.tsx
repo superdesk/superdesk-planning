@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Modal} from './index';
 import {Button} from 'react-bootstrap';
+import {gettext} from '../utils';
 
 export const SelectItemModal = ({handleHide, modalProps}) => {
     const handleClose = () => {
@@ -23,10 +24,10 @@ export const SelectItemModal = ({handleHide, modalProps}) => {
     return (
         <Modal show={true} onHide={handleClose}>
             <Modal.Header>
-                <a className="close" onClick={handleCancel}>
+                <h3 className="modal__heading">{ modalProps.title || 'Select item' }</h3>
+                <a className="icn-btn" aria-label={gettext('Close')} onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>
-                <h3>{ modalProps.title || 'Select item' }</h3>
             </Modal.Header>
             <Modal.Body>
                 <div className="sd-list-item-group sd-list-item-group--space-between-items">

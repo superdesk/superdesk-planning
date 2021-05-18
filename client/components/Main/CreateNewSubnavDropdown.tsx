@@ -66,6 +66,10 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                     gettext('Create new planning item') :
                     gettext('Create new item')
                 }
+                aria-label={createPlanningOnly ?
+                    gettext('Create new planning item') :
+                    gettext('Create new item')
+                }
                 scrollable={true}
                 searchable={true}
             />

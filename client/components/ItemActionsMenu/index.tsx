@@ -51,6 +51,7 @@ export class ItemActionsMenu extends React.Component {
                 className={className}
                 onClick={this.toggleMenu}
                 title={gettext('Actions')}
+                aria-label={gettext('More actions')}
             >
                 <i className="icon-dots-vertical" />
 

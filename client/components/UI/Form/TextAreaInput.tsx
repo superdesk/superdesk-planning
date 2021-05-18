@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
+import {get, uniqueId} from 'lodash';
 
 import {LineInput, Label, TextArea} from './';
 
@@ -28,9 +28,11 @@ export const TextAreaInput = ({
     rows,
     labelIcon,
     ...props
-}) => (
-    <LineInput {...props} readOnly={readOnly}>
-        <Label text={label} icon={labelIcon} />
+}) => {
+    const textareaId = uniqueId('textarea-');
+
+    return (<LineInput {...props} readOnly={readOnly}>
+        <Label htmlFor={textareaId} text={label} icon={labelIcon} />
         <TextArea
             field={field}
             value={value}
@@ -44,13 +46,14 @@ export const TextAreaInput = ({
             initialFocus={initialFocus}
             refNode={refNode}
             rows={rows}
+            id={textareaId}
         />
 
         {maxLength > 0 &&
             <div className="sd-line-input__char-count">{get(value, 'length', 0)}/{maxLength}</div>
         }
-    </LineInput>
-);
+    </LineInput>)
+};
 
 TextAreaInput.propTypes = {
     field: PropTypes.string,

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {KEYCODES} from './constants';
-import {onEventCapture} from './utils';
+import {onEventCapture, gettext} from './utils';
 
 import {IconButton} from './';
 
@@ -13,6 +13,7 @@ import {IconButton} from './';
  * @description CollapseBox which has a closed and open view of an item
  */
 export class CollapseBox extends React.Component {
+    
     constructor(props) {
         super(props);
         this.state = {isOpen: this.props.isOpen};
@@ -138,6 +139,7 @@ export class CollapseBox extends React.Component {
                             <div className="sd-collapse-box__tools sd-collapse-box__tools--rightFlex">
                                 <IconButton
                                     icon="icon-chevron-up-thin"
+                                    aria-label={gettext('Collapse')}
                                     tabIndex={this.props.tabEnabled ? 0 : null}
                                     onClick={this.closeBox.bind(null, this.props)}
                                     onKeyDown={this.props.tabEnabled ? this.handleKeyDown : null}

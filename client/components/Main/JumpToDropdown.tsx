@@ -51,6 +51,7 @@ export class JumpToDropdown extends React.Component {
                     dropdown={true}
                     textWithIcon={true}
                     noBorderNoPadding={this.props.noBorderNoPadding}
+                    aria-label={gettext('Jump to specific date')}
                 >
                     {this.props.currentStartFilter.format(this.props.dateFormat)}
                 </NavButton>

@@ -153,10 +153,10 @@ export class EditorModalPanel extends React.Component {
 
         return ([
             <Modal.Header key="modal-header">
-                <a className="close" onClick={this.onCloseModal}>
+                <h3 className="modal__heading">{modalTitle}</h3>
+                <a className="icn-btn" aria-label={gettext('Close')} onClick={this.onCloseModal}>
                     <i className="icon-close-small" />
                 </a>
-                <h3>{modalTitle}</h3>
             </Modal.Header>,
 
             <Modal.Body noPadding fullHeight noScroll key="modal-body">

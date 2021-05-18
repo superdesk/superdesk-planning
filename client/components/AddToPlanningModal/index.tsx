@@ -60,12 +60,12 @@ export class AddToPlanningComponent extends React.Component {
                 fill={true}
             >
                 <Modal.Header>
+                    <h3 className="modal__heading">{gettext('Select an existing Planning Item or create a new one')}</h3>
                     {actionInProgress ? null : (
-                        <a className="close" onClick={handleCancel}>
+                        <a className="icn-btn" onClick={handleCancel}>
                             <i className="icon-close-small" />
                         </a>
                     )}
-                    <h3>{gettext('Select an existing Planning Item or create a new one')}</h3>
                 </Modal.Header>
 
                 <Modal.Body noPadding fullHeight noScroll>

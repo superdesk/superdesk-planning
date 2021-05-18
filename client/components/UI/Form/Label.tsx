@@ -9,7 +9,7 @@ import './style.scss';
  * @name Label
  * @description Form label component
  */
-export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLeft, icon}) => (
+export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLeft, icon, htmlFor}) => (
     !text ? null : (
         <label
             className={classNames({
@@ -21,6 +21,7 @@ export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLef
                 'form-label--padding': padding,
                 'form-label--left-margin': marginLeft,
             })}
+            htmlFor={htmlFor}
         >
             {icon && <i className={icon} />}
             {text}

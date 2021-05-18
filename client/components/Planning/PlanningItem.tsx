@@ -263,6 +263,7 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
                         >
                             <NavButton
                                 className="dropdown sd-create-btn"
+                                aria-label={gettext('Add as coverage')}
                                 onClick={this.onAddCoverageButtonClick}
                                 icon="icon-plus-large"
                             >

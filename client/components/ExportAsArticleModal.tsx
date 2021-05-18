@@ -167,7 +167,7 @@ export class ExportAsArticleModal extends React.Component {
         return (
             <Modal show={true}>
                 <Modal.Header>
-                    <h3>{gettext('Export as article')}</h3>
+                    <h3 className="modal__heading">{gettext('Export as article')}</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <Row>

@@ -27,6 +27,7 @@ export const Tools = ({className, tools, children, topTools}) => (
                 onClick={tool.onClick}
                 data-sd-tooltip={tool.title}
                 data-flow="left"
+                aria-label={tool.title}
             />
         ))}
         {children}

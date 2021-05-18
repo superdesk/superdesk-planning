@@ -98,10 +98,10 @@ export class ConfirmationModal extends React.Component {
         return (
             <Modal show={true} onHide={this.onCancel}>
                 <Modal.Header>
-                    <a className="close" onClick={this.onCancel}>
+                    <h3 className="modal__heading">{modalProps.title || gettext('Confirmation')}</h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.onCancel}>
                         <Icon icon="icon-close-small" />
                     </a>
-                    <h3>{modalProps.title || gettext('Confirmation')}</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <div>

@@ -186,6 +186,7 @@ export class LinkInput extends React.Component {
                                 target="_blank"
                                 icon="icon-link"
                                 tooltip={gettext('Open link')}
+                                aria-label={gettext('Open link')}
                             />
                         )}
 
@@ -195,6 +196,7 @@ export class LinkInput extends React.Component {
                             icon="icon-trash"
                             enterKeyIsClick={true}
                             tooltip={gettext('Delete link')}
+                            aria-label={gettext('Delete link')}
                         />
                     </span>
                 </LineInput>

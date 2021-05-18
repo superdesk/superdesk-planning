@@ -79,7 +79,7 @@ export class FileInput extends React.Component {
             <Row className="file-input" key={index} noPadding>
                 {get(val, 'media') && (
                     <LineInput>
-                        <a className="icn-btn sd-line-input__icon-right" onClick={this.onRemove.bind(null, index)}>
+                        <a className="icn-btn sd-line-input__icon-right" aria-label={gettext('Remove')} onClick={this.onRemove.bind(null, index)}>
                             <i className="icon-trash" />
                         </a>
                         <a
@@ -114,6 +114,7 @@ export class FileInput extends React.Component {
                                 tabIndex={0}
                                 icon="icon-trash"
                                 enterKeyIsClick={true}
+                                aria-label={gettext('Remove')}
                             />
                         </span>
                     </LineInput>
