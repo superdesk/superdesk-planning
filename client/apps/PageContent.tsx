@@ -119,7 +119,7 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
         return (
             <div className={sectionClassName}>
                 <div className={mainClassName} aria-labelledby="planning-heading">
-                <h2 id="planning-heading" className="a11y-only">{gettext('Events and Planning content')}</h2>
+                    <h2 id="planning-heading" className="a11y-only">{gettext('Events and Planning content')}</h2>
                     {SubNavPanel && (
                         <SubNavPanel
                             filtersOpen={this.state.filtersOpen}

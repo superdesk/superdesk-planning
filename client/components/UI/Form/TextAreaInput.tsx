@@ -31,28 +31,30 @@ export const TextAreaInput = ({
 }) => {
     const textareaId = uniqueId('textarea-');
 
-    return (<LineInput {...props} readOnly={readOnly}>
-        <Label htmlFor={textareaId} text={label} icon={labelIcon} />
-        <TextArea
-            field={field}
-            value={value}
-            onChange={onChange}
-            autoHeight={autoHeight}
-            autoHeightTimeout={autoHeightTimeout}
-            nativeOnChange={nativeOnChange}
-            placeholder={placeholder}
-            readOnly={readOnly}
-            onFocus={onFocus}
-            initialFocus={initialFocus}
-            refNode={refNode}
-            rows={rows}
-            id={textareaId}
-        />
+    return (
+        <LineInput {...props} readOnly={readOnly}>
+            <Label htmlFor={textareaId} text={label} icon={labelIcon} />
+            <TextArea
+                field={field}
+                value={value}
+                onChange={onChange}
+                autoHeight={autoHeight}
+                autoHeightTimeout={autoHeightTimeout}
+                nativeOnChange={nativeOnChange}
+                placeholder={placeholder}
+                readOnly={readOnly}
+                onFocus={onFocus}
+                initialFocus={initialFocus}
+                refNode={refNode}
+                rows={rows}
+                id={textareaId}
+            />
 
-        {maxLength > 0 &&
+            {maxLength > 0 &&
             <div className="sd-line-input__char-count">{get(value, 'length', 0)}/{maxLength}</div>
-        }
-    </LineInput>)
+            }
+        </LineInput>
+    );
 };
 
 TextAreaInput.propTypes = {

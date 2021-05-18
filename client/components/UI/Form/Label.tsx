@@ -38,6 +38,7 @@ Label.propTypes = {
     padding: PropTypes.bool,
     marginLeft: PropTypes.bool,
     icon: PropTypes.string,
+    htmlFor: PropTypes.string,
 };
 
 Label.defaultProps = {

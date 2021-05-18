@@ -27,26 +27,28 @@ export const TextInput = ({
 }) => {
     const inputId = uniqueId('input-');
 
-    return (<LineInput {...props} invalid={invalid} readOnly={readOnly}>
-        <Label htmlFor={inputId} text={label} />
-        <Input
-            field={field}
-            value={value}
-            onChange={onChange}
-            type={type}
-            readOnly={readOnly}
-            refNode={refNode}
-            className={inputClassName}
-            autoFocus={autoFocus}
-            onFocus={onFocus}
-            testId={testId}
-            id={inputId}
-        />
+    return (
+        <LineInput {...props} invalid={invalid} readOnly={readOnly}>
+            <Label htmlFor={inputId} text={label} />
+            <Input
+                field={field}
+                value={value}
+                onChange={onChange}
+                type={type}
+                readOnly={readOnly}
+                refNode={refNode}
+                className={inputClassName}
+                autoFocus={autoFocus}
+                onFocus={onFocus}
+                testId={testId}
+                id={inputId}
+            />
 
-        {maxLength > 0 &&
+            {maxLength > 0 &&
             <div className="sd-line-input__char-count">{get(value, 'length', 0)}/{maxLength}</div>
-        }
-    </LineInput>)
+            }
+        </LineInput>
+    );
 };
 
 TextInput.propTypes = {
