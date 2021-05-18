@@ -6,25 +6,54 @@ import {KEYCODES} from '../constants';
 
 import './style.scss';
 
+interface IProps {
+    style?: string;
+    isOpen?: boolean; // defaults to true
+    onOpen?(): void;
+    onClose?(): void;
+    refNode?(node: HTMLElement): void;
+    title: string;
+    scrollInView?: boolean;
+    hideUsingCSS?: boolean;
+    invalid?: boolean;
+    noMargin?: boolean;
+    forceScroll?: boolean;
+    paddingTop?: boolean;
+    badgeValue?: string | number;
+    testId?: string;
+}
+
+interface IState {
+    isOpen: boolean;
+}
+
 /**
  * @ngdoc react
  * @name ToggleBox
  * @description ToggleBox used to open/close a set of details
  */
-export class ToggleBox extends React.Component {
+export class ToggleBox extends React.Component<IProps, IState> {
+    dom: {node: React.RefObject<HTMLDivElement>};
+
     constructor(props) {
         super(props);
-        this.state = {isOpen: this.props.isOpen};
+        this.state = {isOpen: this.props.isOpen ?? true};
         this.scrollInView = this.scrollInView.bind(this);
         this.toggle = this.toggle.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.dom = {node: null};
+        this.dom = {node: React.createRef<HTMLDivElement>()};
     }
 
     componentDidMount() {
         if (this.props.scrollInView && this.props.forceScroll) {
             this.scrollInView();
         }
+    }
+
+    getBoundingClientRect() {
+        return this.dom.node.current != null ?
+            this.dom.node.current.getBoundingClientRect() :
+            null;
     }
 
     handleKeyDown(event) {
@@ -41,24 +70,32 @@ export class ToggleBox extends React.Component {
     }
 
     toggle() {
-        this.setState({isOpen: !this.state.isOpen});
+        this.setState({isOpen: !this.state.isOpen}, () => {
+            if (!this.state.isOpen && this.props.onClose) {
+                this.props.onClose();
+            } else if (this.props.onOpen) {
+                this.props.onOpen();
+            }
+        });
+    }
 
-        if (this.state.isOpen && this.props.onClose) {
-            this.props.onClose();
+    focus() {
+        if (!this.state.isOpen) {
+            this.toggle();
         } else if (this.props.onOpen) {
             this.props.onOpen();
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.isOpen !== nextProps.isOpen) {
+        if ((this.props.isOpen ?? true) !== (nextProps.isOpen ?? true)) {
             this.setState({isOpen: nextProps.isOpen});
         }
     }
 
     scrollInView() {
-        if (this.state.isOpen && this.dom.node) {
-            this.dom.node.scrollIntoView();
+        if (this.state.isOpen && this.dom.node.current != null) {
+            this.dom.node.current.scrollIntoView({behavior: 'smooth'});
         }
     }
 
@@ -95,7 +132,7 @@ export class ToggleBox extends React.Component {
                         'toggle-box--padding-top': paddingTop,
                     }
                 )}
-                ref={(node) => this.dom.node = node}
+                ref={this.dom.node}
                 data-test-id={testId}
             >
                 <a
@@ -140,32 +177,3 @@ export class ToggleBox extends React.Component {
         );
     }
 }
-
-ToggleBox.propTypes = {
-    style: PropTypes.string,
-    isOpen: PropTypes.bool,
-    onOpen: PropTypes.func,
-    onClose: PropTypes.func,
-    refNode: PropTypes.func,
-    title: PropTypes.string.isRequired,
-    children: PropTypes.node,
-    scrollInView: PropTypes.bool,
-    hideUsingCSS: PropTypes.bool,
-    invalid: PropTypes.bool,
-    noMargin: PropTypes.bool,
-    forceScroll: PropTypes.bool,
-    paddingTop: PropTypes.bool,
-    badgeValue: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-    ]),
-    testId: PropTypes.string,
-};
-
-ToggleBox.defaultProps = {
-    isOpen: true,
-    scrollInView: false,
-    hideUsingCSS: false,
-    invalid: false,
-    noMargin: false,
-};

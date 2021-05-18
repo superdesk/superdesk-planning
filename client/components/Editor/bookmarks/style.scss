@@ -1,0 +1,24 @@
+
+.editor-bookmarks {
+    flex-grow: 1;
+    .editor-bookmark.active {
+        background-color: var(--color-input-bg--focus);
+        border-right: 2px solid #5ea9c8;
+    }
+    .related-plannings .planning-item {
+        background-color: var(--color-bg-100);
+        border-radius: 0;
+    }
+
+    &--popup .editor-bookmark {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+
+        &.active {
+            background-color: var(--color-input-bg--focus);
+            border-right: 4px solid #5ea9c8;
+            color: #5ea9c8;
+        }
+    }
+}

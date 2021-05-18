@@ -47,6 +47,7 @@ export const ScheduledUpdate = ({
     message,
     onAddScheduledUpdateToWorkflow,
     onCancelCoverage,
+    testId,
     ...props
 }) => {
     const coverage = get(diff, `coverages[${coverageIndex}]`);
@@ -191,6 +192,7 @@ export const ScheduledUpdate = ({
 
     return (
         <CollapseBox
+            testId={testId}
             collapsedItem={coverageItem}
             openItem={openItem}
             openItemTopBar={coverageTopBar}
@@ -207,6 +209,7 @@ export const ScheduledUpdate = ({
 };
 
 ScheduledUpdate.propTypes = {
+    testId: PropTypes.string,
     field: PropTypes.string,
     value: PropTypes.object,
     onChange: PropTypes.func,

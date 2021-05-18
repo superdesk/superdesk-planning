@@ -10,10 +10,10 @@ export class EditorFieldAdHocPlanning extends React.PureComponent<IEditorFieldPr
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'ad_hoc_planning'}
                 label={this.props.label ?? gettext('Ad Hoc Planning')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }

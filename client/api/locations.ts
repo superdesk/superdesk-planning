@@ -1,5 +1,6 @@
 import * as Nominatim from 'nominatim-browser';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
 import {IPlanningAPI, ILocation, INominatimItem} from '../interfaces';
 import {superdeskApi, planningApi} from '../superdeskApi';
@@ -205,16 +206,19 @@ function search(searchText?: string, page: number = 1): Promise<IRestApiResponse
     );
 }
 
-function searchExternal(searchText?: string): Promise<Array<Partial<ILocation>>> {
+function searchExternal(searchText?: string, language?: string): Promise<Array<Partial<ILocation>>> {
     if (!searchText?.length) {
         return Promise.resolve([]);
     }
+
 
     return Nominatim.geocode({
         q: searchText,
         addressdetails: true,
         extratags: true,
         namedetails: true,
+        // @ts-ignore - Not defined in `nominatim-browser` package
+        'accept-language': language || getUserInterfaceLanguage(),
     })
         .then((response: Array<INominatimItem>) => (
             response.map(

@@ -1,16 +1,46 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
+
+import {IPlanningCoverageItem} from '../../../interfaces';
+import {IArticle, IDesk, IUser} from 'superdesk-api';
 
 import {getCreator, getItemInArrayById, gettext, planningUtils, onEventCapture} from '../../../utils';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {Button} from '../../UI';
 import {UserAvatar} from '../../';
-import {StateLabel} from '../../../components';
+import {StateLabel} from '../../StateLabel';
 import * as actions from '../../../actions';
 
-export class CoverageFormHeaderComponent extends React.Component {
+interface IProps {
+    field: string;
+    value: IPlanningCoverageItem;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    readOnly?: boolean;
+    addNewsItemToPlanning?: IArticle;
+    onChange(field: string, value: any): void;
+    onFocus?(): void;
+    onRemoveAssignment?(): void;
+    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+    showEditCoverageAssignmentModal(props: {
+        field: string;
+        value: IPlanningCoverageItem;
+        disableDeskSelection: boolean;
+        disableUserSelection: boolean;
+        priorityPrefix: string;
+        onChange(field: string, value: any): void;
+        setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+    }): void;
+}
+
+const mapDispatchToProps = (dispatch) => ({
+    showEditCoverageAssignmentModal: (props) => dispatch(
+        actions.assignments.ui.showEditCoverageAssignmentModal(props)
+    ),
+});
+
+export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
         this.showAssignmentModal = this.showAssignmentModal.bind(this);
@@ -155,43 +185,25 @@ export class CoverageFormHeaderComponent extends React.Component {
                                 autoFocus
                             />
                         </ListRow>
-                        <ListRow>
-                            <Button
-                                text={gettext('Remove')}
-                                className="btn btn--hollow btn--small"
-                                onClick={onRemoveAssignment}
-                                tabIndex={0}
-                                enterKeyIsClick
-                                disabled={!!addNewsItemToPlanning}
-                                autoFocus
-                            />
-                        </ListRow>
+                        {!onRemoveAssignment ? null : (
+                            <ListRow>
+                                <Button
+                                    text={gettext('Remove')}
+                                    className="btn btn--hollow btn--small"
+                                    onClick={onRemoveAssignment}
+                                    tabIndex={0}
+                                    enterKeyIsClick
+                                    disabled={!!addNewsItemToPlanning}
+                                    autoFocus
+                                />
+                            </ListRow>
+                        )}
                     </Column>
                 )}
             </Item>
         );
     }
 }
-
-CoverageFormHeaderComponent.propTypes = {
-    field: PropTypes.string,
-    value: PropTypes.object,
-    onChange: PropTypes.func,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    readOnly: PropTypes.bool,
-    addNewsItemToPlanning: PropTypes.object,
-    onFocus: PropTypes.func,
-    onRemoveAssignment: PropTypes.func,
-    setCoverageDefaultDesk: PropTypes.func,
-    showEditCoverageAssignmentModal: PropTypes.func,
-};
-
-const mapDispatchToProps = (dispatch) => ({
-    showEditCoverageAssignmentModal: (props) => dispatch(
-        actions.assignments.ui.showEditCoverageAssignmentModal(props)
-    ),
-});
 
 export const CoverageFormHeader = connect(
     null,

@@ -20,15 +20,20 @@ export class EditorFieldUrgencyComponent extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldColouredValue
+                {...this.props}
                 field={this.props.field ?? 'urgency'}
                 label={this.props.label ?? gettext('Urgency')}
                 options={this.props.urgencies}
                 iconName="urgency-label"
                 clearable={true}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldUrgency = connect(mapStateToProps)(EditorFieldUrgencyComponent);
+export const EditorFieldUrgency = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldUrgencyComponent);

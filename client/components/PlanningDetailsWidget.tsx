@@ -40,7 +40,7 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
             this.setState({planning});
         });
 
-        sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
+        sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
             // Fetch the agendas before saving the store to the state
             store.dispatch(fetchAgendas()).then(() => {
                 this.setState({store});

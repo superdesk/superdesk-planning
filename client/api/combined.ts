@@ -32,7 +32,7 @@ function modifyResponseForClient(response: IResponse): IResponse {
     return response;
 }
 
-function modifyItemForClient(item: IEventOrPlanningItem): IEventOrPlanningItem {
+export function modifyItemForClient(item: IEventOrPlanningItem): IEventOrPlanningItem {
     if (item.type === 'event') {
         eventUtils.modifyForClient(item);
     } else {

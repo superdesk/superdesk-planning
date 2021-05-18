@@ -9,6 +9,7 @@ import * as multiSelect from './multiSelect';
 import * as vocabs from './vocabs';
 import * as featuredPlanning from './featuredPlanning';
 import * as locations from './locations';
+import * as editors from './editors';
 
 export * from './assignments';
 
@@ -24,4 +25,5 @@ export {
     vocabs,
     featuredPlanning,
     locations,
+    editors,
 };

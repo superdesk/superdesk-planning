@@ -24,6 +24,7 @@ export class EditorFieldScheduleMonthDay extends React.PureComponent<IEditorFiel
 
         return (
             <EditorFieldSelect
+                {...this.props}
                 field={field}
                 label={this.props.label ?? gettext('Day of the Month')}
                 labelField="label"
@@ -62,7 +63,6 @@ export class EditorFieldScheduleMonthDay extends React.PureComponent<IEditorFiel
                     {value: 29, label: gettext('Last Day')},
 
                 ]}
-                {...this.props}
                 item={item}
                 onChange={onChange}
             />

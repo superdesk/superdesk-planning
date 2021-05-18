@@ -39,12 +39,14 @@ export const DateTimeInput = ({
     showToBeConfirmed,
     onToBeConfirmed,
     toBeConfirmed,
+    testId,
     ...props
 }) => (
     <Row
         flex={true}
         halfWidth={halfWidth}
         noPadding={!!invalid}
+        testId={testId}
         className={{
             'date-time-input__row': true,
             'date-time-input__row--required': required,
@@ -150,6 +152,7 @@ DateTimeInput.propTypes = {
     showToBeConfirmed: PropTypes.bool,
     onToBeConfirmed: PropTypes.func,
     toBeConfirmed: PropTypes.bool,
+    testId: PropTypes.string,
 };
 
 DateTimeInput.defaultProps = {

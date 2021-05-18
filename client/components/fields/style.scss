@@ -52,3 +52,12 @@
       overflow: visible !important;
     }
 }
+
+.basic-drag-block {
+	transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+
+	&:focus {
+		background-color: var(--color-input-bg--focus);
+		border: 2px dashed #5ea9c8;
+	}
+}

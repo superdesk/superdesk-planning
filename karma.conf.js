@@ -25,18 +25,10 @@ module.exports = function(config) {
         preprocessors: {
             'tests.ts': ['webpack', 'sourcemap'],
         },
-        coverageReporter: {
-            type : 'lcov',
-            dir : '../coverage/',
-            subdir: '.',
-            instrumenterOptions: {
-                istanbul: { noCompact: true }
-            },
-        },
         // test results reporter to use
         // possible values: 'dots', 'progress'
         // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-        reporters: ['dots', 'coverage'],
+        reporters: ['dots'],
         // web server port
         port: 9876,
         // enable / disable colors in the output (reporters and logs)

@@ -1,6 +1,8 @@
 import * as React from 'react';
 import moment from 'moment-timezone';
 
+import {SUBNAV_VIEW_SIZE} from './PlanningListSubNav';
+
 import {DateInputPopup} from '../../components/UI/Form/DateInput/DateInputPopup';
 import {timeUtils, gettext} from '../../utils';
 import {Button} from 'superdesk-ui-framework/react';
@@ -10,6 +12,7 @@ interface IProps {
     onChange(newDate?: moment.Moment): void;
     defaultTimezone?: string;
     dateFormat?: string;
+    viewSize: SUBNAV_VIEW_SIZE;
 }
 
 interface IState {
@@ -48,17 +51,29 @@ export class SubNavDatePicker extends React.Component<IProps, IState> {
     render() {
         return (
             <span>
-                <span className="subnav-calendar__date-picker sd-text__normal">
+                <span
+                    className="subnav-calendar__date-picker sd-text__normal cursor-pointer"
+                    onClick={this.togglePopup}
+                >
                     {this.props.date.format(this.props.dateFormat ?? 'LL')}
                 </span>
-                <Button
-                    size="normal"
-                    icon="calendar"
-                    text={gettext('Date picker')}
-                    shape="round"
-                    iconOnly={true}
-                    onClick={this.togglePopup}
-                />
+                {this.props.viewSize === 'compact' ? (
+                    <span
+                        className="sd-margin-r--2 cursor-pointer"
+                        onClick={this.togglePopup}
+                    >
+                        <span className="dropdown__caret" />
+                    </span>
+                ) : (
+                    <Button
+                        size="normal"
+                        icon="calendar"
+                        text={gettext('Date picker')}
+                        shape="round"
+                        iconOnly={true}
+                        onClick={this.togglePopup}
+                    />
+                )}
                 {!this.state.popupOpen ? null : (
                     <DateInputPopup
                         onChange={this.onChange}

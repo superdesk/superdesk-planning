@@ -1,6 +1,7 @@
 export * from './modal';
 export * from './agenda';
 export * from './assignments';
+import * as editors from './editor';
 
 import planning from './planning/index';
 import events from './events/index';
@@ -17,13 +18,27 @@ import * as modalActions from './modal';
 import contacts from './contacts';
 import otherNotifications from './notifications';
 
-import {RESET_STORE, INIT_STORE} from '../constants';
+import {currentWorkspace} from '../selectors/general';
+import {RESET_STORE, INIT_STORE, WORKSPACE} from '../constants';
 
 const resetStore = () => ({type: RESET_STORE});
-const initStore = (workspace) => ({
-    type: INIT_STORE,
-    payload: workspace,
-});
+
+function initStore(workspace: string) {
+    return (dispatch, getState) => {
+        const previousWorkspace = currentWorkspace(getState());
+
+        // If the PlanningDetails AuthoringWidget is loaded at the same time as Assignments view
+        // then don't bother about changing the workspace in the store
+        // This works because there is no custom workspace logic for the PlanningDetails widget view
+        // (specifically from websocket notifications)
+        if (!(previousWorkspace === WORKSPACE.ASSIGNMENTS && workspace === WORKSPACE.AUTHORING_WIDGET)) {
+            dispatch({
+                type: INIT_STORE,
+                payload: workspace,
+            });
+        }
+    };
+}
 
 /**
  * Map WebSocket Notifications to Action Event
@@ -55,4 +70,5 @@ export {
     users,
     modalActions,
     contacts,
+    editors,
 };

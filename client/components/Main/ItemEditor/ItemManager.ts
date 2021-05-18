@@ -1,20 +1,46 @@
-import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
+import * as React from 'react';
+import {Dispatch} from 'redux';
+import {cloneDeep, get, isEqual, set} from 'lodash';
+
+import {appConfig} from 'appConfig';
 import {
-    isTemporaryId,
-    removeAutosaveFields,
+    EDITOR_TYPE,
+    IEditorAPI,
+    IEditorProps,
+    IEditorState,
+    IEventOrPlanningItem
+} from '../../../interfaces';
+import {planningApi} from '../../../superdeskApi';
+import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
+
+import {
     eventUtils,
-    planningUtils,
+    isTemporaryId,
     itemsEqual,
+    planningUtils,
+    removeAutosaveFields,
     shouldUnLockItem,
 } from '../../../utils';
 import {validateItem} from '../../../validators';
-import {cloneDeep, get, set, isEqual} from 'lodash';
 import * as actions from '../../../actions';
-import {appConfig} from 'appConfig';
+
+import {EditorComponent} from './Editor';
+import {AutoSave} from './AutoSave';
+import {EditorGroup} from '../../Editor/EditorGroup';
 
 
 export class ItemManager {
-    constructor(editor) {
+    editor: EditorComponent;
+    dispatch: Dispatch;
+    autoSave: AutoSave;
+    mounted: boolean;
+    form: {
+        nodes: {[key: string]: React.RefObject<EditorGroup>};
+        contentNode?: React.RefObject<HTMLDivElement>;
+    };
+    editorApi: IEditorAPI;
+
+    constructor(editor: EditorComponent) {
         this.editor = editor;
         this.dispatch = this.editor.props.dispatch;
         this.autoSave = this.editor.autoSave;
@@ -38,6 +64,11 @@ export class ItemManager {
         this.finaliseCancelCoverage = this.finaliseCancelCoverage.bind(this);
         this.setStateForPartialSave = this.setStateForPartialSave.bind(this);
 
+        this.editorApi = planningApi.editor(this.props.inModalView ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE);
+        this.editorApi.events.onEditorConstructed(this, this.autoSave);
+
+        this.form = {nodes: {}};
+
         this.editor.state = {
             tab: UI.EDITOR.CONTENT_TAB_INDEX,
             diff: {},
@@ -53,22 +84,28 @@ export class ItemManager {
         };
     }
 
-    get props() {
+    get props(): IEditorProps {
         return this.editor.props;
     }
 
-    get state() {
+    get state(): IEditorState {
         return this.editor.state;
     }
 
-    setState(state, cb = null, saveAutosave = false) {
-        let promise = Promise.resolve();
+    getProps(): IEditorProps {
+        return this.editor.props;
+    }
 
-        if (this.editor && this.editor.setState && this.mounted) {
-            promise = new Promise((resolve) => {
+    getState(): IEditorState {
+        return this.editor.state;
+    }
+
+    setState(state: Partial<IEditorState>, cb?: () => void, saveAutosave: boolean = false) {
+        const promise = !this.editor || !this.editor.setState || !this.mounted ?
+            Promise.resolve() :
+            new Promise((resolve) => {
                 this.editor.setState(state, resolve);
             });
-        }
 
         if (this.props.onChange && state.diff) {
             promise.then(() => this.props.onChange(state.diff));
@@ -86,11 +123,19 @@ export class ItemManager {
             promise.then(cb);
         }
 
-        return promise;
+        // If the `diff` has changed, then push those changes to the Redux Store
+        if (state.diff != null) {
+            this.props.saveDiffToStore(state.diff);
+        }
+
+        return promise.then(() => this.state);
     }
 
     componentWillMount() {
         this.mounted = true;
+        const editor = planningApi.editor(this.props.inModalView ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE);
+
+        editor.events.onEditorMounted(this, this.autoSave);
 
         if (this.props.itemId && this.props.itemType && this.props.itemAction) {
             this.onItemIDChanged(this.props);
@@ -98,14 +143,15 @@ export class ItemManager {
     }
 
     componentWillUnmount() {
+        this.editorApi.events.onEditorUnmounted();
         this.mounted = false;
     }
 
     openInModal() {
         return this.autoSave.flushAutosave()
             .then(() => (
-                this.dispatch(actions.main.openEditorAction(
-                    this.props.initialValues,
+                this.dispatch<any>(actions.main.openEditorAction(
+                    this.state.initialValues,
                     'edit',
                     false,
                     true
@@ -113,37 +159,52 @@ export class ItemManager {
             ));
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!nextProps.itemType || !nextProps.itemId || !nextProps.itemAction) {
+    componentDidUpdate(prevProps: Readonly<IEditorProps>) {
+        const prevId = prevProps.itemId;
+        const currentId = this.props.itemId;
+        const idChanged = prevId !== currentId;
+
+        const prevType = prevProps.itemType;
+        const currentType = this.props.itemType;
+        const typeChanged = prevType !== currentType;
+
+        const prevAction = prevProps.itemAction;
+        const currentAction = this.props.itemAction;
+        const actionChanged = prevAction !== currentAction;
+
+        if ((typeChanged && !currentType) ||
+            (idChanged && !currentId) ||
+            (actionChanged && !currentAction)
+        ) {
             this.autoSave.flushAutosave();
 
             if (!this.props.inModalView) {
                 this.clearForm();
             }
-        } else if (this.props.itemAction !== nextProps.itemAction) {
-            this.onItemActionChanged(nextProps);
-        } else if (nextProps.itemId !== this.props.itemId) {
-            this.onItemIDChanged(nextProps);
+        } else if (actionChanged) {
+            this.onItemActionChanged(prevProps);
+        } else if (idChanged) {
+            this.onItemIDChanged(prevProps);
         } else if (!this.state.loading &&
-            !isTemporaryId(nextProps.itemId) &&
-            !itemsEqual(this.props.item, nextProps.item) &&
+            !isTemporaryId(currentId) &&
+            !itemsEqual(prevProps.item, this.props.item) &&
             !this.state.submitting
         ) {
-            this.onItemChanged(nextProps);
+            this.onItemChanged(this.props);
         }
     }
 
-    onItemActionChanged(nextProps) {
+    onItemActionChanged(prevProps: IEditorProps) {
         let promise = Promise.resolve();
 
-        if (this.props.itemAction && nextProps.itemAction === 'read') {
+        if (prevProps.itemAction && this.props.itemAction === 'read') {
             promise = this.autoSave.remove();
         }
 
-        return promise.then(() => this.onItemIDChanged(nextProps));
+        return promise.then(() => this.onItemIDChanged(prevProps));
     }
 
-    onItemIDChanged(nextProps) {
+    onItemIDChanged(prevProps: IEditorProps) {
         return this.setState({
             itemReady: false,
             tab: UI.EDITOR.CONTENT_TAB_INDEX,
@@ -152,32 +213,35 @@ export class ItemManager {
             diff: {},
         })
             .then(() => {
-                switch (nextProps.itemAction) {
+                window.dispatchEvent(
+                    new CustomEvent('planning-editor--id-changed')
+                );
+
+                switch (this.props.itemAction) {
                 case 'create':
-                    return this.createNew(nextProps);
+                    return this.createNew(this.props);
                 case 'edit':
-                    return this.loadItem(nextProps);
+                    return this.loadItem(this.props);
                 case 'read':
                 default:
-                    return this.loadReadOnlyItem(nextProps);
+                    return this.loadReadOnlyItem(this.props);
                 }
             });
     }
 
-    onItemChanged(nextProps) {
-        // Only update the item if the editor is in read-only mode
-        // Otherwise handle specific item updates in Event/Planning editors
-        // i.e. Assignment updates are handled in Planning editor
-        if (nextProps.itemAction === 'read') {
-            this.resetForm(nextProps.item);
-        }
+    onItemChanged(nextProps: IEditorProps) {
+        this.editorApi.events.onOriginalChanged(nextProps.item);
     }
 
-    validate(nextProps, newState, currentState = {}) {
+    validate(
+        nextProps: IEditorProps,
+        newState: Partial<IEditorState>,
+        currentState: Partial<IEditorState> = {}
+    ) {
         const errors = cloneDeep(newState.errors || currentState.errors || {});
         const errorMessages = [];
 
-        this.dispatch(validateItem({
+        this.dispatch<any>(validateItem({
             profileName: nextProps.itemType,
             diff: newState.diff || currentState.diff,
             item: newState.initialValues || currentState.initialValues,
@@ -191,7 +255,7 @@ export class ItemManager {
         newState.errorMessages = errorMessages;
     }
 
-    createNew(nextProps) {
+    createNew(nextProps: IEditorProps) {
         if (nextProps.itemType === ITEM_TYPE.EVENT || nextProps.itemType === ITEM_TYPE.PLANNING) {
             const defaultValues = nextProps.itemType === ITEM_TYPE.EVENT ?
                 this.getEventDefaults(nextProps) :
@@ -221,6 +285,7 @@ export class ItemManager {
                     );
 
                     this.validate(nextProps, newState);
+                    this.editorApi.events.onOpenForCreate(newState);
                     return this.setState(newState);
                 });
         }
@@ -229,7 +294,7 @@ export class ItemManager {
         return Promise.resolve();
     }
 
-    getEventDefaults(nextProps) {
+    getEventDefaults(nextProps: IEditorProps) {
         const defaultValues = eventUtils.defaultEventValues(
             nextProps.occurStatuses,
             nextProps.defaultCalendar,
@@ -240,7 +305,7 @@ export class ItemManager {
         return defaultValues;
     }
 
-    getPlanningDefaults(nextProps) {
+    getPlanningDefaults(nextProps: IEditorProps) {
         const defaultValues = planningUtils.defaultPlanningValues(
             nextProps.currentAgenda,
             nextProps.defaultPlace
@@ -250,23 +315,26 @@ export class ItemManager {
         return defaultValues;
     }
 
-    loadReadOnlyItem(nextProps) {
-        return this.dispatch(
+    loadReadOnlyItem(nextProps: IEditorProps) {
+        return this.dispatch<any>(
             actions.main.fetchById(nextProps.itemId, nextProps.itemType, true)
         )
-            .then((original) => (
-                this.setState({
+            .then((original) => {
+                const newState: Partial<IEditorState> = {
                     initialValues: original,
                     diff: original,
                     dirty: false,
                     submitting: false,
                     itemReady: true,
                     loading: false,
-                })
-            ));
+                };
+
+                this.editorApi.events.onOpenForRead(newState);
+                this.setState(newState);
+            });
     }
 
-    loadItem(nextProps) {
+    loadItem(nextProps: IEditorProps) {
         let initialValues;
         let promise;
 
@@ -278,17 +346,17 @@ export class ItemManager {
             // Makes sure we're working on the very latest item
             // In case our store does not have the latest item
             // (network issues/missed notification)
-            promise = this.dispatch(
+            promise = this.dispatch<any>(
                 actions.main.fetchById(nextProps.itemId, nextProps.itemType, true)
             )
                 .then((original) => {
                     initialValues = cloneDeep(original);
-                    return this.dispatch(actions.locks.lock(original));
+                    return this.dispatch<any>(actions.locks.lock(original));
                 });
         } else {
             // Fetch the latest item from the API to view in read-only mode
             initialValues = nextProps.initialValues;
-            promise = this.dispatch(
+            promise = this.dispatch<any>(
                 actions.main.fetchById(nextProps.itemId, nextProps.itemType, true)
             );
         }
@@ -347,6 +415,7 @@ export class ItemManager {
                 };
 
                 this.validate(nextProps, newState);
+                this.editorApi.events.onOpenForEdit(newState);
                 return this.setState(newState);
             })
             .catch(() => {
@@ -414,7 +483,7 @@ export class ItemManager {
             submitFailed: false,
         })
             .then(() => this.autoSave.flushAutosave())
-            .then(() => this.dispatch(
+            .then(() => this.dispatch<any>(
                 actions.main.post(this.state.initialValues)
             ))
             .then(
@@ -440,7 +509,7 @@ export class ItemManager {
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
-                        this.dispatch(
+                        this.dispatch<any>(
                             actions.main.notifyPreconditionFailed(this.props.inModalView)
                         );
                     }
@@ -456,7 +525,7 @@ export class ItemManager {
             submitFailed: false,
         })
             .then(() => this.autoSave.flushAutosave())
-            .then(() => this.dispatch(
+            .then(() => this.dispatch<any>(
                 actions.main.unpost(this.state.initialValues)
             ))
             .then(
@@ -482,7 +551,7 @@ export class ItemManager {
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
-                        this.dispatch(
+                        this.dispatch<any>(
                             actions.main.notifyPreconditionFailed(this.props.inModalView)
                         );
                     }
@@ -549,18 +618,18 @@ export class ItemManager {
             updates.pubstatus = POST_STATE.CANCELLED;
         }
 
-        return this.dispatch(actions.main.save(
+        return this.dispatch<any>(actions.main.save(
             isTemporary ? {} : this.state.initialValues,
             updates,
             false
         ))
             .then(() => {
-                this.dispatch(actions.clearPrevious());
+                this.dispatch<any>(actions.clearPrevious());
                 return this.editor.onCancel(false);
             }, (error) => {
                 if (get(error, 'status') === 412) {
                     // If etag error, then notify user and change editor to read-only
-                    this.dispatch(
+                    this.dispatch<any>(
                         actions.main.notifyPreconditionFailed(this.props.inModalView)
                     );
                 }
@@ -622,7 +691,7 @@ export class ItemManager {
 
         return promise.then(() => this.autoSave.flushAutosave())
             .then(() => (
-                this.dispatch(actions.main.save(
+                this.dispatch<any>(actions.main.save(
                     isTemporary ? {} : this.state.initialValues,
                     updates,
                     withConfirmation
@@ -638,7 +707,7 @@ export class ItemManager {
 
                     // If event was created by a planning item, unlock the planning item
                     if (get(updates, '_planning_item')) {
-                        this.dispatch(actions.planning.api.unlock({
+                        this.dispatch<any>(actions.planning.api.unlock({
                             _id: updates._planning_item,
                             type: ITEM_TYPE.PLANNING,
                         }));
@@ -652,7 +721,7 @@ export class ItemManager {
                 } else if (closeAfter) {
                     return this.editor.onCancel(updateStates);
                 } else {
-                    return this.setState({
+                    const newState: Partial<IEditorState> = {
                         initialValues: updatedItem,
                         diff: cloneDeep(updatedItem),
                         dirty: false,
@@ -662,12 +731,16 @@ export class ItemManager {
                         errorMessages: [],
                         itemReady: true,
                         loading: false,
-                    }, null, true);
+                    };
+
+                    this.editorApi.events.onItemUpdated(newState);
+
+                    return this.setState(newState, null, true);
                 }
             }, (error) => {
                 if (get(error, 'status') === 412) {
                     // If etag error, then notify user and change editor to read-only
-                    this.dispatch(
+                    this.dispatch<any>(
                         actions.main.notifyPreconditionFailed(this.props.inModalView)
                     );
                 }
@@ -699,7 +772,7 @@ export class ItemManager {
         return false;
     }
 
-    finalisePartialSave(diff, updateDirtyFlag = false) {
+    finalisePartialSave(diff, updateDirtyFlag = false): Promise<void> {
         const clonedDiff = cloneDeep(diff);
         const initialValues = cloneDeep(this.state.initialValues);
 
@@ -739,8 +812,8 @@ export class ItemManager {
         return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
-    lock(item) {
-        return this.dispatch(
+    lock(item: IEventOrPlanningItem) {
+        return this.dispatch<any>(
             actions.locks.lock(item)
         );
     }
@@ -757,18 +830,18 @@ export class ItemManager {
             action = actions.planning.api.unlock;
         }
 
-        return this.dispatch(action({
+        return this.dispatch<any>(action({
             _id: itemId,
             type: itemType,
         }));
     }
 
-    unlockThenLock(item) {
+    unlockThenLock(item: IEventOrPlanningItem) {
         return this.setState({
             itemReady: false,
             loading: true,
         })
-            .then(() => this.dispatch(
+            .then(() => this.dispatch<any>(
                 actions.locks.unlockThenLock(item, this.props.inModalView)
             ));
     }
@@ -783,8 +856,8 @@ export class ItemManager {
         }
 
         // If event was created by a planning item, unlock the planning item
-        if (get(diff, '_planning_item')) {
-            this.dispatch(actions.planning.api.unlock({
+        if (diff?.type === 'event' && diff._planning_item) {
+            this.dispatch<any>(actions.planning.api.unlock({
                 _id: diff._planning_item,
                 type: ITEM_TYPE.PLANNING,
             }));
@@ -804,7 +877,7 @@ export class ItemManager {
         })
             // If an item was provided, then we want to change the editor to this item
             // otherwise simply change the itemAction of this editor in redux
-            .then(() => (this.dispatch(newItem !== null ?
+            .then(() => (this.dispatch<any>(newItem !== null ?
                 actions.main.openForEdit(newItem, !this.props.inModalView, this.props.inModalView) :
                 actions.main.changeEditorAction(action, this.props.inModalView)
             )));
@@ -827,29 +900,29 @@ export class ItemManager {
     }
 
     addCoverageToWorkflow(planning, coverage, index) {
-        return this.dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index))
+        return this.dispatch<any>(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index))
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     addScheduledUpdateToWorkflow(planning, coverage, covergeIndex, scheduledUpdate, index) {
-        return this.dispatch(actions.planning.ui.addScheduledUpdateToWorkflow(planning, coverage, covergeIndex,
+        return this.dispatch<any>(actions.planning.ui.addScheduledUpdateToWorkflow(planning, coverage, covergeIndex,
             scheduledUpdate, index))
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     removeAssignment(planning, coverage, index) {
-        return this.dispatch(actions.planning.ui.removeAssignment(planning, coverage, index))
+        return this.dispatch<any>(actions.planning.ui.removeAssignment(planning, coverage, index))
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     cancelCoverage(planning, coverage, index, scheduledUpdate, scheduledUpdateIndex) {
-        return this.dispatch(actions.planning.ui.openCancelCoverageModal(planning,
+        return this.dispatch<any>(actions.planning.ui.openCancelCoverageModal(planning,
             coverage, index, this.finaliseCancelCoverage, this.setStateForPartialSave,
             scheduledUpdate, scheduledUpdateIndex));
     }
 
     finaliseCancelCoverage(planning, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) {
-        return this.dispatch(actions.planning.ui.cancelCoverage(planning, updatedCoverage, index,
+        return this.dispatch<any>(actions.planning.ui.cancelCoverage(planning, updatedCoverage, index,
             scheduledUpdate, scheduledUpdateIndex)).then((updates) =>
             this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }

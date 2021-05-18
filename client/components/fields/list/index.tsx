@@ -8,6 +8,10 @@ import {ListFieldAgendas} from './Agendas';
 import {ListFieldPlaces} from './Places';
 import {ListFieldSubjects} from './Subject';
 import {PreviewFieldFilterSchedule} from '../common/PreviewFilterSchedule';
+import {ListFieldSlugline} from './Slugline';
+import {ListFieldDescription} from './Description';
+import {ListFieldState} from './State';
+import {ListFieldDateTime} from './DateTime';
 
 export const FIELD_TO_LIST_COMPONENT = {
     item_type: ListFieldItemType,
@@ -18,4 +22,8 @@ export const FIELD_TO_LIST_COMPONENT = {
     place: ListFieldPlaces,
     subject: ListFieldSubjects,
     filter_schedule: PreviewFieldFilterSchedule,
+    slugline: ListFieldSlugline,
+    description: ListFieldDescription,
+    state: ListFieldState,
+    datetime: ListFieldDateTime,
 };
