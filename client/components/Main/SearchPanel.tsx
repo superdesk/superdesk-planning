@@ -106,7 +106,7 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
                         tools={[{
                             icon: 'icon-close-small',
                             onClick: this.props.toggleFilterPanel,
-                            title: 'Close'
+                            title: gettext('Close'),
                         }]}
                     />
                     <h3 className="side-panel__heading">

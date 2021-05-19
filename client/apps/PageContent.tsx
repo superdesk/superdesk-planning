@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 import {WorkqueueContainer, ModalsContainer} from '../components';
 import {PopupEditorPortal} from '../components/Main/ItemEditorModal';
-import {gettext} from '../utils';
+import {superdeskApi} from '../superdeskApi';
 
 import './style.scss';
 
@@ -115,6 +115,8 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
             'sd-page-content__content-block--right',
             'sd-page-content__content-block--30-slide'
         );
+
+        const {gettext} = superdeskApi.localization;
 
         return (
             <div className={sectionClassName}>
