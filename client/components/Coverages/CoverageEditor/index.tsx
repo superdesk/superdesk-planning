@@ -113,7 +113,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
         let itemActions = [];
 
         if (!readOnly && !addNewsItemToPlanning) {
-            const language = getUserInterfaceLanguage();
+            const language = value.planning?.language ?? getUserInterfaceLanguage();
             const duplicateActions = contentTypes
                 .filter((contentType) => (
                     contentType.qcode !== get(value, 'planning.g2_content_type')

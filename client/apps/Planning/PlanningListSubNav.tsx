@@ -89,12 +89,19 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
 
     onContainerMounted(node: HTMLDivElement) {
         this.container = node;
-        this.resizeObserver.observe(this.container);
-        this.onResized();
+
+        // This can get called from `Add To Planning` modal with `null` value
+        // so don't bother registering an observer in this case
+        if (this.container != null) {
+            this.resizeObserver.observe(this.container);
+            this.onResized();
+        }
     }
 
     componentWillUnmount() {
-        this.resizeObserver.unobserve(this.container);
+        if (this.container != null) {
+            this.resizeObserver.unobserve(this.container);
+        }
     }
 
     onResized() {

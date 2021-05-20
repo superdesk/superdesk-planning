@@ -137,6 +137,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const editor = planningApi.editor(this.props.editorType);
+        const language = this.props.diff.language ?? getUserInterfaceLanguage();
 
         return (
             <EditorForm
@@ -147,7 +148,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                 editorType={this.props.editorType}
                 globalProps={{
                     item: this.props.diff,
-                    language: getUserInterfaceLanguage(),
+                    language: language,
                     onChange: this.props.onChangeHandler,
                     errors: this.props.errors,
                     disabled: this.props.readOnly,

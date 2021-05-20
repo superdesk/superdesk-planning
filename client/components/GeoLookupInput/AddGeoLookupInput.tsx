@@ -39,6 +39,7 @@ interface IProps {
     regions: Array<IVocabularyItem>;
     countries: Array<IVocabularyItem>;
     preferredCountry?: IVocabularyItem['name'];
+    language?: string;
     onChange(field: string, value?: Partial<ILocation>): void;
     onFocus?(): void;
     popupContainer?(): HTMLElement;
@@ -89,6 +90,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         this.closeSuggestsPopUp = this.closeSuggestsPopUp.bind(this);
         this.onAddNewLocation = this.onAddNewLocation.bind(this);
         this.removeLocation = this.removeLocation.bind(this);
+        this.searchExternalLocations = this.searchExternalLocations.bind(this);
 
         this.dom = {
             input: React.createRef(),
@@ -181,6 +183,13 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
     searchLocalLocations(name?: string) {
         planningApi.locations.search((name ?? this.state.unsavedInput).trim())
             .then(this.setLocalLocations);
+    }
+
+    searchExternalLocations(searchText: string) {
+        return planningApi.locations.searchExternal(
+            searchText,
+            this.props.language
+        );
     }
 
     searchGeoLookupComponent() {
@@ -320,7 +329,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                 <Geolookup
                     disableAutoLookup={true}
                     onSuggestSelect={this.onSuggestSelect}
-                    onSuggestsLookup={planningApi.locations.searchExternal}
+                    onSuggestsLookup={this.searchExternalLocations}
                     onSuggestResults={this.onSuggestResults}
                     getSuggestLabel={this.getSuggestLabel}
                     readOnly={false}
