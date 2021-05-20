@@ -1,30 +1,34 @@
 import * as React from 'react';
+import {connect} from 'react-redux';
 import {set, cloneDeep} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IVocabularyItem} from 'superdesk-api';
 import {ILocation} from '../../interfaces';
-import {superdeskApi} from '../../superdeskApi';
+import {superdeskApi, planningApi} from '../../superdeskApi';
+
+import * as selectors from '../../selectors';
 
 import {formatLocationToAddress} from '../../utils/locations';
 
-import {ButtonList} from '../UI';
-import {Field, TextInput, SelectInputWithFreeText, TextAreaInput} from '../UI/Form';
-import {Popup, Content, Footer, Header} from '../UI/Popup';
+import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
+import {EditorFieldText} from '../fields/editor/base/text';
+import Modal from '../Modal';
+import ModalDialog from '../Modal/ModalDialog';
+import {renderFieldsForPanel} from '../fields';
 
 import './style.scss';
 
 interface IProps {
     initialName?: string;
-    target: string;
-    regions: Array<IVocabularyItem>;
-    countries: Array<IVocabularyItem>;
-    defaultCountry?: IVocabularyItem['name'];
     initialAddressIsName?: boolean;
-    onCancel(): void;
-    onSave(location: Partial<ILocation>): void;
-    popupContainer?(): HTMLElement;
-    onPopupOpen?(): void;
-    onPopupClose?(): void;
+
+    // Redux states
+    defaultCountry?: IVocabularyItem['name'];
+
+    // functions to close the popup (and resolve/reject the Promise)
+    resolve(location: ILocation): void;
+    reject(error?: any): void;
 }
 
 interface IState {
@@ -36,9 +40,13 @@ interface IState {
     };
 }
 
-export class CreateNewGeoLookup extends React.Component<IProps, IState> {
+const mapStateToProps = (state) => ({
+    defaultCountry: selectors.general.preferredCountry(state),
+});
+
+class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
     dom: {
-        name: React.RefObject<HTMLInputElement>;
+        name: React.RefObject<EditorFieldText>;
     };
 
     constructor(props) {
@@ -59,11 +67,10 @@ export class CreateNewGeoLookup extends React.Component<IProps, IState> {
                 },
             },
         };
-        this.dom = {name: React.createRef<HTMLInputElement>()};
+        this.dom = {name: React.createRef()};
 
         this.onChange = this.onChange.bind(this);
         this.onSave = this.onSave.bind(this);
-        this.onCancel = this.onCancel.bind(this);
     }
 
     componentDidMount() {
@@ -102,148 +109,80 @@ export class CreateNewGeoLookup extends React.Component<IProps, IState> {
     }
 
     onSave() {
-        this.props.onSave(this.getLocationFromState(this.state.item));
-        this.onCancel();
-    }
-
-    onCancel() {
-        this.props.onCancel();
+        planningApi.locations.getOrCreate(this.getLocationFromState(this.state.item))
+            .then((newLocation) => {
+                this.props.resolve(newLocation);
+            }, (error) => {
+                this.props.reject(error);
+            });
     }
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const buttons = [{
-            type: 'button',
-            onClick: this.onCancel,
-            text: gettext('Cancel'),
-        },
-        {
-            color: 'primary',
-            type: 'submit',
-            onClick: this.onSave,
-            text: gettext('Save'),
-            disabled: this.state.formInvalid,
-        },
-        ];
         const item = this.state.item;
 
         return (
-            <Popup
-                close={this.props.onCancel}
-                target={this.props.target}
-                noPadding={true}
-                inheritWidth={true}
-                className="addgeolookup__popup-create"
-                popupContainer={this.props.popupContainer}
-                onPopupOpen={this.props.onPopupOpen}
-                onPopupClose={this.props.onPopupClose}
-            >
-                <Header
-                    text={gettext('Add New Event Location')}
-                    onClose={this.props.onCancel}
-                />
-                <Content className="addgeolookup__suggests-wrapper">
-                    <Field
-                        component={TextInput}
-                        field="location.name"
-                        label={gettext('Name')}
-                        onChange={this.onChange}
-                        value={item.location.name}
-                        required
-                        noMargin
-                        refNode={this.dom.name}
-                    />
-                    <Field
-                        component={TextInput}
-                        field="location.address.line[0]"
-                        label={gettext('Address')}
-                        onChange={this.onChange}
-                        value={item.location.address.line?.[0]}
-                        required
-                        noMargin
-                    />
-                    <Field
-                        component={TextInput}
-                        field="location.address.area"
-                        label={gettext('Area')}
-                        onChange={this.onChange}
-                        value={item.location.address.area}
-                        noMargin
-                    />
-                    <Field
-                        component={TextInput}
-                        field="location.address.suburb"
-                        label={gettext('Suburb')}
-                        onChange={this.onChange}
-                        value={item.location.address.suburb}
-                        noMargin
-                    />
-                    <Field
-                        component={TextInput}
-                        field="location.address.city"
-                        label={gettext('City/Town')}
-                        onChange={this.onChange}
-                        value={item.location.address.city}
-                        required
-                        noMargin
-                    />
-                    <Field
-                        component={TextInput}
-                        field="location.address.locality"
-                        label={gettext('Locality')}
-                        onChange={this.onChange}
-                        value={item.location.address.locality}
-                        noMargin
-                    />
-                    <Field
-                        component={SelectInputWithFreeText}
-                        field="state"
-                        label={gettext('State/Province/Region')}
-                        onChange={this.onChange}
-                        value={item.state}
-                        options={this.props.regions}
-                        labelField="name"
-                        textInput={typeof item.state === 'string' && item.state?.length > 0}
-                        noMargin
-                        clearable
-                    />
-                    <Field
-                        component={TextInput}
-                        field="location.address.postal_code"
-                        label={gettext('Post Code')}
-                        onChange={this.onChange}
-                        value={item.location.address.postal_code}
-                        noMargin
-                    />
-                    <Field
-                        component={SelectInputWithFreeText}
-                        field="country"
-                        label={gettext('Country')}
-                        onChange={this.onChange}
-                        options={this.props.countries}
-                        value={item.country}
-                        labelField="name"
-                        textInput={typeof item.country === 'string' && item.country?.length > 0}
-                        required
-                        noMargin
-                        clearable
-                    />
-                    <Field
-                        component={TextAreaInput}
-                        field="location.details[0]"
-                        label={gettext('Notes')}
-                        onChange={this.onChange}
-                        value={item.location?.details?.[0]}
-                        noMargin
-                        autoHeight={false}
-                        rows={3}
-                        labelIcon="icon-info-sign icon--blue sd-padding-r--3"
-                    />
-                </Content>
-                <Footer>
-                    <ButtonList buttonList={buttons} />
-                </Footer>
-            </Popup>
+            <ModalDialog className="modal">
+                <Modal.Header>
+                    <a className="close" onClick={this.props.reject}>
+                        <i className="icon-close-small" />
+                    </a>
+                    <h3 className="modal__heading">
+                        {gettext('Add New Event Location')}
+                    </h3>
+                </Modal.Header>
+                <Modal.Body>
+                    {renderFieldsForPanel(
+                        'editor',
+                        {
+                            'location.name': {enabled: true, index: 1},
+                            'location.address': {enabled: true, index: 2},
+                            'location.area': {enabled: true, index: 3},
+                            'location.suburb': {enabled: true, index: 4},
+                            'location.city': {enabled: true, index: 5},
+                            'location.locality': {enabled: true, index: 6},
+                            'location.region': {enabled: true, index: 7},
+                            'location.postal_code': {enabled: true, index: 8},
+                            'location.country': {enabled: true, index: 9},
+                            'location.notes': {enabled: true, index: 10},
+                        },
+                        {
+                            item: item,
+                            onChange: this.onChange,
+                            language: getUserInterfaceLanguage(),
+                        },
+                        {
+                            'location.name': {required: true},
+                            'location.address': {required: true},
+                            'location.city': {required: true},
+                            'location.region': {clearable: true},
+                            'location.country': {required: true, clearable: true},
+                        },
+                        null,
+                        null,
+                        'enabled',
+                        {'location.name': this.dom.name}
+                    )}
+                </Modal.Body>
+                <Modal.Footer flex={true}>
+                    <ButtonGroup align="right">
+                        <Button
+                            text={gettext('Cancel')}
+                            onClick={this.props.reject}
+                            data-test-id="location-form__cancel-button"
+                        />
+                        <Button
+                            text={gettext('Create Location')}
+                            onClick={this.onSave}
+                            type="primary"
+                            disabled={this.state.formInvalid}
+                            data-test-id="location-form__create-button"
+                        />
+                    </ButtonGroup>
+                </Modal.Footer>
+            </ModalDialog>
         );
     }
 }
+
+export const CreateNewGeoLookup = connect(mapStateToProps)(CreateNewGeoLookupComponent);
