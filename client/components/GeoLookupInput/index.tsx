@@ -23,6 +23,7 @@ interface IProps {
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
+    showAddLocationForm(props: any): void;
 }
 
 export class GeoLookupInput extends React.PureComponent<IProps> {
@@ -38,6 +39,7 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
             onFocus,
             popupContainer,
             refNode,
+            showAddLocationForm,
             ...props
         } = this.props;
 
@@ -61,6 +63,7 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
                     popupContainer={popupContainer}
                     onPopupOpen={props.onPopupOpen}
                     onPopupClose={props.onPopupClose}
+                    showAddLocationForm={showAddLocationForm}
                 />
             </LineInput>
         );

@@ -14,7 +14,6 @@ import {formatLocationToAddress} from '../../utils/locations';
 import {KEYCODES} from '../../constants';
 
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
-import {CreateNewGeoLookup} from './CreateNewGeoLookup';
 import {LocationItem} from './LocationItem';
 
 import './style.scss';
@@ -45,12 +44,12 @@ interface IProps {
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
+    showAddLocationForm(props: any): Promise<ILocation | undefined>;
 }
 
 interface IState {
     searchResults?: Array<Partial<ILocation>>;
     openSuggestsPopUp: boolean;
-    openNewLocationPopup: boolean;
     unsavedInput: string;
     localSearchResults?: Array<ILocation>;
     searchLocalAlways: boolean;
@@ -75,7 +74,6 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         this.state = {
             searchResults: null,
             openSuggestsPopUp: false,
-            openNewLocationPopup: false,
             unsavedInput: '',
             localSearchResults: null,
             searchLocalAlways: true,
@@ -89,8 +87,6 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         this.setLocalLocations = this.setLocalLocations.bind(this);
         this.onLocalSearchOnly = this.onLocalSearchOnly.bind(this);
         this.closeSuggestsPopUp = this.closeSuggestsPopUp.bind(this);
-        this.closeNewLocationPopUp = this.closeNewLocationPopUp.bind(this);
-        this.saveNewLocation = this.saveNewLocation.bind(this);
         this.onAddNewLocation = this.onAddNewLocation.bind(this);
         this.removeLocation = this.removeLocation.bind(this);
 
@@ -113,34 +109,23 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         });
     }
 
-    closeNewLocationPopUp() {
-        this.setState({
-            openNewLocationPopup: false,
-            unsavedInput: '',
-            searching: false,
-            searchLocalAlways: true,
-        });
-    }
-
     onAddNewLocation() {
         this.setState({
             openSuggestsPopUp: false,
-            openNewLocationPopup: true,
             searching: false,
             searchLocalAlways: true,
-        });
-    }
-
-    saveNewLocation(value: Partial<ILocation>) {
-        planningApi.locations.getOrCreate(value)
-            .then((newLocation) => {
-                this.onSuggestSelect(newLocation);
-                this.setState({
-                    unsavedInput: '',
-                    searching: false,
-                    searchLocalAlways: true,
+        }, () => {
+            this.props.showAddLocationForm({
+                initialName: this.state.unsavedInput,
+                initialAddressIsName: appConfig.planning_allow_freetext_location,
+            })
+                .then((location) => {
+                    if (location != null) {
+                        this.onSuggestSelect(location);
+                        this.setState({unsavedInput: ''});
+                    }
                 });
-            });
+        });
     }
 
     removeLocation() {
@@ -180,7 +165,6 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         if ((event.target?.value?.length ?? 0) > 1) {
             this.setState({
                 openSuggestsPopUp: true,
-                openNewLocationPopup: false,
                 unsavedInput: event.target.value,
                 searching: !this.state.searchLocalAlways,
                 searchLocalAlways: !this.state.openSuggestsPopUp || this.state.searchLocalAlways,
@@ -223,7 +207,6 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                 (item) => item.raw
             ),
             openSuggestsPopUp: true,
-            openNewLocationPopup: false,
             searching: false,
         });
     }
@@ -331,22 +314,6 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                         onPopupOpen={onPopupOpen}
                         onPopupClose={onPopupClose}
                         target="sd-line-input__input"
-                    />
-                )}
-
-                {this.state.openNewLocationPopup && (
-                    <CreateNewGeoLookup
-                        initialName={this.state.unsavedInput}
-                        onSave={this.saveNewLocation}
-                        onCancel={this.closeNewLocationPopUp}
-                        target="sd-line-input__input"
-                        popupContainer={this.props.popupContainer}
-                        regions={this.props.regions}
-                        countries={this.props.countries}
-                        defaultCountry={this.props.preferredCountry}
-                        initialAddressIsName={appConfig.planning_allow_freetext_location}
-                        onPopupOpen={onPopupOpen}
-                        onPopupClose={onPopupClose}
                     />
                 )}
 
