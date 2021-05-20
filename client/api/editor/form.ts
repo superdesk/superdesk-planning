@@ -9,6 +9,8 @@ import {planningApi} from '../../superdeskApi';
 
 import {isItemReadOnly} from '../../utils';
 import {editorSelectors} from '../../selectors/editors';
+import * as actions from '../../actions';
+// import {showPopupForm, hidePopupForm} from '../../actions/editor';
 
 export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
     function setState(newState: Partial<IEditorState>) {
@@ -19,10 +21,10 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         return planningApi.editor(type).manager.getState();
     }
 
-    function scrollToBookmarkGroup(bookmark: IEditorBookmarkGroup) {
+    function scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id']) {
         const editor = planningApi.editor(type);
 
-        editor.dom.groups[bookmark.group_id]?.current?.scrollIntoView();
+        editor.dom.groups[bookmarkId]?.current?.scrollIntoView();
     }
 
     function scrollToTop() {
@@ -113,6 +115,31 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         return Promise.resolve();
     }
 
+    function showPopupForm(component: React.ComponentClass, props: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const {dispatch} = planningApi.redux.store;
+
+            dispatch<any>(actions.editors.showPopupForm(
+                type,
+                component,
+                {
+                    ...props,
+                    resolve: resolve,
+                    reject: reject,
+                }
+            ));
+        })
+            .finally(() => {
+                closePopupForm();
+            });
+    }
+
+    function closePopupForm() {
+        const {dispatch} = planningApi.redux.store;
+
+        dispatch(actions.editors.hidePopupForm(type));
+    }
+
     return {
         setState,
         getState,
@@ -124,5 +151,7 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         getDiff,
         isReadOnly,
         waitForScroll,
+        showPopupForm,
+        closePopupForm,
     };
 }

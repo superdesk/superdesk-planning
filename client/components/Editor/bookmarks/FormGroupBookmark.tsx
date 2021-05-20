@@ -24,7 +24,7 @@ export class FormGroupBookmark extends React.PureComponent<IProps> {
 
         (bookmark.index === 0 && editor.dom.formContainer?.current != null) ?
             editor.form.scrollToTop() :
-            editor.form.scrollToBookmarkGroup(bookmark);
+            editor.form.scrollToBookmarkGroup(bookmark.group_id);
     }
 
     renderForPanel() {
