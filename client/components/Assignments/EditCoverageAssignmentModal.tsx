@@ -72,12 +72,12 @@ export class EditCoverageAssignmentModalComponent extends React.Component {
                 fill={false}
             >
                 <Modal.Header>
+                    <h3 className="modal__heading">{gettext('Coverage Assignment Details')}</h3>
                     {submitting ? null : (
-                        <a className="close" onClick={handleHide}>
+                        <a className="icn-btn" aria-label={gettext('Close')} onClick={handleHide}>
                             <i className="icon-close-small" />
                         </a>
                     )}
-                    <h3>{gettext('Coverage Assignment Details')}</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="update-assignment">

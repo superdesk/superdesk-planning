@@ -3,6 +3,7 @@ import classNames from 'classnames';
 
 import {WorkqueueContainer, ModalsContainer} from '../components';
 import {PopupEditorPortal} from '../components/Main/ItemEditorModal';
+import {superdeskApi} from '../superdeskApi';
 
 import './style.scss';
 
@@ -115,9 +116,12 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
             'sd-page-content__content-block--30-slide'
         );
 
+        const {gettext} = superdeskApi.localization;
+
         return (
             <div className={sectionClassName}>
-                <div className={mainClassName}>
+                <div className={mainClassName} aria-labelledby="planning-heading">
+                    <h2 id="planning-heading" className="a11y-only">{gettext('Events and Planning content')}</h2>
                     {SubNavPanel && (
                         <SubNavPanel
                             filtersOpen={this.state.filtersOpen}

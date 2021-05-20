@@ -65,6 +65,7 @@ export const FeaturedPlanningItem = ({
                         <NavButton
                             navbtn={false}
                             className="dropdown sd-create-btn"
+                            text={gettext('Remove from Feature Stories')}
                             onClick={onRemoveFromSelectedFeaturedPlanning.bind(null, item)}
                             icon="icon-chevron-left-thin"
                         >
@@ -116,6 +117,7 @@ export const FeaturedPlanningItem = ({
                     >
                         <NavButton
                             className="dropdown sd-create-btn"
+                            text={gettext('Add to Feature Stories')}
                             onClick={onAddToSelectedFeaturedPlanning.bind(null, item)}
                             icon="icon-chevron-right-thin"
                         >
