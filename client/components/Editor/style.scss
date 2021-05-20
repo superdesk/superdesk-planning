@@ -1,0 +1,72 @@
+
+.editor-popup-form {
+    position: absolute;
+    width: 0;
+    height: 0;
+
+    .editor-popup-form__backdrop {
+        position: absolute;;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        opacity: 0;
+        transition: opacity 0.3s linear;
+        z-index: 1050;
+    }
+
+    .editor-popup-form__container {
+        position: absolute;
+        opacity: 1;
+        width: 100%;
+        height: 100%;
+        z-index: 1150;
+        padding: 2.4rem;
+    }
+
+    &--open {
+        width: 100%;
+        height: 100%;
+
+        .editor-popup-form__backdrop {
+            opacity: 0.6;
+        }
+    }
+
+    .modal {
+        position: relative;
+        left: unset;
+        right: unset;
+        top: unset;
+        bottom: unset;
+        width: 100%;
+        height: 100%;
+    }
+
+    .modal__dialog {
+        max-width: unset;
+    }
+
+    .modal__content {
+        margin: 0;
+    }
+
+    .modal__body {
+        max-width: unset !important;
+        flex-grow: 1 !important;;
+        flex-shrink: 1 !important;;
+    }
+
+    .popup__menu {
+        display: flex;
+        flex-direction: column;
+        max-height: 100%;
+    }
+
+    .popup__menu-content {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        flex-shrink: 1;
+        overflow-y: auto;
+    }
+}
