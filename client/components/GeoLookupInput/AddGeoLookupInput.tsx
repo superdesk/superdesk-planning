@@ -1,15 +1,13 @@
 import React from 'react';
-import {connect} from 'react-redux';
 import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
 
 import {appConfig} from 'appConfig';
-import {IUser, IVocabularyItem, IRestApiResponse} from 'superdesk-api';
+import {IRestApiResponse} from 'superdesk-api';
 import {ILocation, IEventLocation} from '../../interfaces';
 
 import {superdeskApi, planningApi} from '../../superdeskApi';
 
-import * as selectors from '../../selectors';
 import {formatLocationToAddress} from '../../utils/locations';
 import {KEYCODES} from '../../constants';
 
@@ -35,10 +33,6 @@ interface IProps {
     readOnly?: boolean;
     disableSearch?: boolean;
     disableAddLocation?: boolean;
-    users: Array<IUser>;
-    regions: Array<IVocabularyItem>;
-    countries: Array<IVocabularyItem>;
-    preferredCountry?: IVocabularyItem['name'];
     language?: string;
     onChange(field: string, value?: Partial<ILocation>): void;
     onFocus?(): void;
@@ -57,14 +51,7 @@ interface IState {
     searching: boolean;
 }
 
-const mapStateToProps = (state) => ({
-    users: selectors.general.users(state),
-    regions: selectors.general.regions(state),
-    countries: selectors.general.countries(state),
-    preferredCountry: selectors.general.preferredCountry(state),
-});
-
-export class GeoLookupInputComponent extends React.Component<IProps, IState> {
+export class AddGeoLookupInput extends React.Component<IProps, IState> {
     dom: {
         input: React.RefObject<HTMLInputElement>;
         geolookup: React.RefObject<Geolookup>;
@@ -340,10 +327,3 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         );
     }
 }
-
-export const AddGeoLookupInput = connect(
-    mapStateToProps,
-    null,
-    null,
-    {forwardRef: true}
-)(GeoLookupInputComponent);
