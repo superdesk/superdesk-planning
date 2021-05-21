@@ -1,5 +1,10 @@
 # Superdesk Planning Changelog
 
+## [2.2.1] 2021-05-21
+### Fixes
+- [SDESK-5961] fix: While creating new location from event, save button is not activated (#1576)
+- fix(data-update): Location update fails if CV items is empty (#1577)
+
 ## * Release v2.2.0 - 2021-05-13
 
 ## [2.2.0-rc.2] 2021-05-06
