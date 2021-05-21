@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {get} from 'lodash';
+import {get, memoize} from 'lodash';
 
 import {Select, Option} from 'superdesk-ui-framework/react';
 import {IEditorFieldProps} from '../../../../interfaces';
@@ -16,14 +16,6 @@ interface IProps extends IEditorFieldProps {
     readOnly?: boolean;
     info?: string;
     inlineLabel?: boolean;
-}
-
-// Store the translated option in state
-interface IState {
-    options: Array<{
-        value: string;
-        label: string;
-    }>;
 }
 
 function getOptionsFromProps(props: IProps) {
@@ -44,28 +36,15 @@ function getOptionsFromProps(props: IProps) {
         options;
 }
 
-export class EditorFieldSelect extends React.Component<IProps, IState> {
+export class EditorFieldSelect extends React.PureComponent<IProps> {
     node: React.RefObject<HTMLDivElement>;
+    getOptions = memoize(getOptionsFromProps);
 
     constructor(props) {
         super(props);
 
-        this.state = {
-            options: getOptionsFromProps(this.props),
-        };
         this.node = React.createRef();
-
         this.onChange = this.onChange.bind(this);
-    }
-
-    static getDerivedStateFromProps(props: IProps, state: IState) {
-        if (props.options.length != state.options.length) {
-            return {
-                options: getOptionsFromProps(props),
-            };
-        }
-
-        return null;
     }
 
     onChange(newValue: string) {
@@ -104,6 +83,7 @@ export class EditorFieldSelect extends React.Component<IProps, IState> {
     }
 
     render() {
+        const options = this.getOptions(this.props);
         const value = this.getValue();
         const error = get(this.props.errors ?? {}, this.props.field);
 
@@ -124,7 +104,7 @@ export class EditorFieldSelect extends React.Component<IProps, IState> {
                     disabled={this.props.disabled}
                     invalid={this.props.invalid}
                 >
-                    {this.state.options.map((option) => (
+                    {options.map((option) => (
                         <Option
                             key={option.value}
                             value={option.value}
