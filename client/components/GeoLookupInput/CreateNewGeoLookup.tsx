@@ -124,12 +124,16 @@ class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
         return (
             <ModalDialog className="modal">
                 <Modal.Header>
-                    <a className="close" onClick={this.props.reject}>
-                        <i className="icon-close-small" />
-                    </a>
                     <h3 className="modal__heading">
                         {gettext('Add New Event Location')}
                     </h3>
+                    <a
+                        className="icn-btn"
+                        aria-label={gettext('Close')}
+                        onClick={this.props.reject}
+                    >
+                        <i className="icon-close-small" />
+                    </a>
                 </Modal.Header>
                 <Modal.Body>
                     {renderFieldsForPanel(
