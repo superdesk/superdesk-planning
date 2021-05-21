@@ -14,6 +14,7 @@ export class Content extends React.PureComponent<IProps> {
     render() {
         return (
             <div
+                aria-labelledby="planning-preview-heading"
                 className={classNames(
                     'side-panel__content',
                     {

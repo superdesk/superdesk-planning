@@ -4,7 +4,7 @@ import moment from 'moment-timezone';
 import {SUBNAV_VIEW_SIZE} from './PlanningListSubNav';
 
 import {DateInputPopup} from '../../components/UI/Form/DateInput/DateInputPopup';
-import {timeUtils} from '../../utils';
+import {timeUtils, gettext} from '../../utils';
 import {Button} from 'superdesk-ui-framework/react';
 
 interface IProps {
@@ -68,7 +68,7 @@ export class SubNavDatePicker extends React.Component<IProps, IState> {
                     <Button
                         size="normal"
                         icon="calendar"
-                        text="date-picker"
+                        text={gettext('Date picker')}
                         shape="round"
                         iconOnly={true}
                         onClick={this.togglePopup}

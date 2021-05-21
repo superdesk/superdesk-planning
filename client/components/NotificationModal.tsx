@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {Modal} from './index';
 import {Button} from 'react-bootstrap';
 import {KEYCODES} from '../constants';
+import {superdeskApi} from '../superdeskApi';
 
 export class NotificationModal extends React.Component {
     constructor(props) {
@@ -35,14 +36,15 @@ export class NotificationModal extends React.Component {
 
     render() {
         const {modalProps} = this.props;
+        const {gettext} = superdeskApi.localization;
 
         return (
             <Modal show={true} onHide={this.handleClose}>
                 <Modal.Header>
-                    <a className="close" onClick={this.handleClose}>
+                    <h3 className="modal__heading">{ modalProps.title || gettext('Notification') }</h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.handleClose}>
                         <i className="icon-close-small" />
                     </a>
-                    <h3>{ modalProps.title || 'Notification' }</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <div>

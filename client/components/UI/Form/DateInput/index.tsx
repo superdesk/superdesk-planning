@@ -207,6 +207,7 @@ export class DateInput extends React.Component<IProps, IState> {
                         icon="icon-calendar"
                         onFocus={onFocus}
                         onClick={readOnly ? undefined : this.toggleOpenDatePicker}
+                        aria-label={gettext('Date picker')}
                     />
                 )}
                 {inputAsLabel && value &&

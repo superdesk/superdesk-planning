@@ -152,15 +152,12 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                 onHide={handleHide}
             >
                 <Modal.Header>
-                    <a
-                        className="close"
-                        onClick={handleHide}
-                    >
-                        <i className="icon-close-small" />
-                    </a>
                     <h3 className="modal__heading">
                         {gettext('Manage Events & Planning Filters')}
                     </h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={handleHide}>
+                        <i className="icon-close-small" />
+                    </a>
                 </Modal.Header>
                 <Modal.Body
                     noPadding={true}

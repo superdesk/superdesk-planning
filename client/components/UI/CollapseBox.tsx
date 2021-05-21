@@ -2,7 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 
 import {KEYCODES} from './constants';
-import {onEventCapture} from './utils';
+import {onEventCapture, gettext} from './utils';
 
 import {IconButton} from './';
 
@@ -172,6 +172,7 @@ export class CollapseBox extends React.Component<IProps, IState> {
                             <div className="sd-collapse-box__tools sd-collapse-box__tools--rightFlex">
                                 <IconButton
                                     icon="icon-chevron-up-thin"
+                                    aria-label={gettext('Collapse')}
                                     tabIndex={this.props.tabEnabled ? 0 : null}
                                     onClick={this.closeBox.bind(null, this.props)}
                                     onKeyDown={this.props.tabEnabled ? this.handleKeyDown : null}

@@ -410,12 +410,14 @@ export class EditorHeader extends React.Component {
                         onClick={minimize}
                         icon="big-icon--minimize"
                         title={gettext('Minimise')}
+                        aria-label={gettext('Minimise')}
                     />
                 )}
 
                 {!loading && states.isBeingEdited && !hideExternalEdit && (
                     <NavButton
                         onClick={closeEditorAndOpenModal}
+                        aria-label={gettext('Edit in popup')}
                         icon="icon-external"
                         title={gettext('Edit in popup')}
                     />

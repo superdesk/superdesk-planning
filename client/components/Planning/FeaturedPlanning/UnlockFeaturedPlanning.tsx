@@ -7,7 +7,7 @@ import {ButtonList} from '../../UI';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {PRIVILEGES, KEYCODES} from '../../../constants';
-import {getItemInArrayById} from '../../../utils';
+import {getItemInArrayById, gettext} from '../../../utils';
 
 
 class UnlockFeaturedPlanningComponent extends React.Component {
@@ -63,10 +63,10 @@ class UnlockFeaturedPlanningComponent extends React.Component {
         return (
             <Modal show={true} onHide={handleHide}>
                 <Modal.Header>
-                    {<a className="close" onClick={handleHide}>
+                    <h3 className="modal__heading">{gettext('Featured Stories Locked')}</h3>
+                    {<a className="icn-btn" aria-label={gettext('Close')} onClick={handleHide}>
                         <i className="icon-close-small" />
                     </a>}
-                    <h3>{gettext('Featured Stories Locked')}</h3>
                 </Modal.Header>
                 <Modal.Body>
                     {currentUserId === lockUser ?

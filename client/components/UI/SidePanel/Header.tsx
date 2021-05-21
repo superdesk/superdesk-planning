@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {gettext} from '../../../utils';
 
 /**
  * @ngdoc react
@@ -18,6 +19,7 @@ export const Header = ({children, className, darkBlue, darker}) => (
             className
         )}
     >
+        <h3 id="planning-preview-heading" className="a11y-only">{gettext('Item preview')}</h3>
         {children}
     </div>
 );

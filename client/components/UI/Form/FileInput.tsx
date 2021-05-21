@@ -114,6 +114,7 @@ export class FileInput extends React.PureComponent<IProps> {
                         <a
                             tabIndex={0}
                             className="icn-btn sd-line-input__icon-right"
+                            aria-label={gettext('Remove')}
                             onClick={this.onRemove.bind(null, index)}
                         >
                             <i className="icon-trash" />
@@ -150,6 +151,7 @@ export class FileInput extends React.PureComponent<IProps> {
                                 tabIndex={0}
                                 icon="icon-trash"
                                 enterKeyIsClick={true}
+                                aria-label={gettext('Remove')}
                             />
                         </span>
                     </LineInput>
