@@ -2,8 +2,8 @@
   "name": "superdesk",
   "license": "GPL-3.0",
   "dependencies": {
-    "@superdesk/build-tools": "^1.0.3",
-    "@superdesk/planning-extension": "1.0.5",
+    "@superdesk/build-tools": "^1.0.4",
+    "@superdesk/planning-extension": "^1.0.6",
     "react-geolookup": "github:superdesk/react-geolookup",
     "superdesk-core": "github:superdesk/superdesk-client-core#develop",
     "superdesk-planning": "file:../"
@@ -22,7 +22,7 @@
     "cypress-ui": "cypress open",
     "cypress-ci": "cypress run",
     "clean": "grunt clean",
-    "build": "node --max-old-space-size=8192 ./node_modules/.bin/grunt build && npx @superdesk/build-tools prepare-root-repo ./ && npx @superdesk/build-tools extensions build ./",
+    "build": "npx @superdesk/build-tools build-root-repo ./",
     "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server"
   }
 }
