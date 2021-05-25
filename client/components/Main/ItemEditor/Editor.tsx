@@ -14,6 +14,8 @@ import {Tabs as NavTabs} from '../../UI/Nav';
 import {Content, SidePanel} from '../../UI/SidePanel';
 import {EditorHeader} from './index';
 import {HistoryTab} from '../index';
+import {EditorPopupForm} from '../../Editor/EditorPopupForm';
+
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
 
@@ -396,6 +398,8 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     itemAction={this.props.itemAction}
                 />
                 {this.renderContent()}
+
+                <EditorPopupForm editorType={this.props.editorType} />
 
                 {(this.props.inModalView || this.props.addNewsItemToPlanning) && (
                     <div ref={this.editorApi.dom.popupContainer} />

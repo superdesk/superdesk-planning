@@ -16,7 +16,6 @@ import {ContentBlock, ContentBlockInner} from '../UI/SidePanel';
 import {EditorBookmarksBar} from './EditorBookmarksBar';
 
 import {editorSelectors} from '../../selectors/editors';
-import {EditorPopupForm} from './EditorPopupForm';
 
 interface IProps {
     defaultGroup: IEditorFormGroup['id'];
@@ -87,7 +86,6 @@ class EditorFormComponent extends React.PureComponent<IProps> {
                     {this.props.children}
                     <div style={{height: '80vh'}} />
                 </div>
-                <EditorPopupForm editorType={this.props.editorType} />
             </React.Fragment>
         );
     }
