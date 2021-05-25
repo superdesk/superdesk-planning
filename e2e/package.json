@@ -23,6 +23,6 @@
     "clean": "grunt clean",
     "build": "node --max-old-space-size=8192 ./node_modules/.bin/grunt build && npx @superdesk/build-tools prepare-root-repo ./",
     "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server",
-    "postinstall": "&& npx @superdesk/build-tools extensions build ./"
+    "postinstall": "npx @superdesk/build-tools extensions build ./"
   }
 }
