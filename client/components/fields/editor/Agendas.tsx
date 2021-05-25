@@ -37,6 +37,7 @@ export class EditorFieldAgendasComponent extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldVocabulary
+                {...this.props}
                 field={field}
                 label={this.props.label ?? gettext('Agendas')}
                 options={this.props.agendas.filter(
@@ -44,7 +45,6 @@ export class EditorFieldAgendasComponent extends React.PureComponent<IProps> {
                 )}
                 defaultValue={[]}
                 valueKey="_id"
-                {...this.props}
                 item={item}
                 onChange={onChange}
             />
@@ -52,4 +52,9 @@ export class EditorFieldAgendasComponent extends React.PureComponent<IProps> {
     }
 }
 
-export const EditorFieldAgendas = connect(mapStateToProps)(EditorFieldAgendasComponent);
+export const EditorFieldAgendas = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldAgendasComponent);

@@ -4,11 +4,12 @@ import moment from 'moment';
 import {appConfig} from 'appConfig';
 import {planningApi as planningApis, superdeskApi} from '../superdeskApi';
 import {
+    EDITOR_TYPE,
+    ICombinedEventOrPlanningSearchParams,
     ISearchFilter,
     ISearchParams,
     LIST_VIEW_TYPE,
     PLANNING_VIEW,
-    ICombinedEventOrPlanningSearchParams,
 } from '../interfaces';
 
 import {
@@ -93,13 +94,20 @@ const openForEdit = (item, updateUrl = true, modal = false) => (
 
 const openEditorAction = (item, action, updateUrl = true, modal = false) => (
     (dispatch, getState, {$timeout, $location}) => {
+        const state = getState();
         const itemId = getItemId(item);
         const itemType = getItemType(item);
 
         // If the item being edited is currently opened in the Preview panel
         // then close the preview panel
-        if (selectors.main.previewId(getState()) === itemId) {
+        if (selectors.main.previewId(state) === itemId) {
             dispatch(self.closePreview());
+        }
+
+        // If the panel editor is currently open, then close it
+        // This reset's the Editor's states, bookmarks, groups and DOM refs
+        if (selectors.forms.currentItemId(state) != null || selectors.forms.currentItemType(state) != null) {
+            dispatch(closeEditor());
         }
 
         dispatch({
@@ -941,6 +949,9 @@ const closeEditor = (modal = false) => (
             type: MAIN.ACTIONS.CLOSE_EDITOR,
             payload: modal,
         });
+
+        planningApis.editor(modal ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE)
+            .events.onEditorClosed();
 
         if (!modal) {
             // Update the URL

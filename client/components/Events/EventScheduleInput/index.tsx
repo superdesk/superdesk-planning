@@ -1,35 +1,54 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {get} from 'lodash';
 import moment from 'moment';
 
-import {eventUtils, gettext, timeUtils} from '../../../utils';
+import {IEventItem, IEventFormProfile} from '../../../interfaces';
+import {superdeskApi} from '../../../superdeskApi';
+
+import {eventUtils, timeUtils} from '../../../utils';
+import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 import {Row, DateTimeInput, LineInput, ToggleInput, Field, TimeZoneInput} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
-import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
-export class EventScheduleInput extends React.Component {
+interface IProps {
+    item: IEventItem;
+    diff: Partial<IEventItem>;
+    readOnly: boolean;
+    errors?: {[key: string]: any};
+    showErrors?: boolean;
+    formProfile: IEventFormProfile;
+    showRepeat?: boolean; // defaults to true
+    showRepeatToggle?: boolean; // defaults to true
+    showFirstEventLabel?: boolean; // defaults to true
+    showTimeZone?: boolean;
+
+    onChange(field: string | {[key: string]: any}, value: any): void;
+    popupContainer(): HTMLElement;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+    refNode?(node: HTMLElement): void;
+}
+
+interface IState {
+    isAllDay: boolean;
+    isMultiDay: boolean;
+}
+
+export class EventScheduleInput extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
+
+        const dates = this.props.item?.dates ?? {};
+
         this.state = {
-            isAllDay: false,
-            isMultiDay: false,
+            isAllDay: eventUtils.isEventAllDay(dates.start, dates.end, true),
+            isMultiDay: !eventUtils.isEventSameDay(dates.start, dates.end),
         };
 
         this.onChange = this.onChange.bind(this);
         this.handleAllDayChange = this.handleAllDayChange.bind(this);
         this.handleDoesRepeatChange = this.handleDoesRepeatChange.bind(this);
         this.handleToBeConfirmed = this.handleToBeConfirmed.bind(this);
-    }
-
-    componentWillMount() {
-        const dates = get(this.props, 'item.dates') || {};
-
-        this.setState({
-            isAllDay: eventUtils.isEventAllDay(dates.start, dates.end, true),
-            isMultiDay: !eventUtils.isEventSameDay(dates.start, dates.end),
-        });
     }
 
     onChange(field, value) {
@@ -55,10 +74,9 @@ export class EventScheduleInput extends React.Component {
 
     changeTimezone(value) {
         const dtFormat = 'DD/MM/YYYY HH:mm';
-        const dates = get(this.props, 'diff.dates', {});
-        const _startTime = get(this.props, 'diff._startTime');
-        const _endTime = get(this.props, 'diff._endTime');
-
+        const dates = this.props.diff?.dates ?? {};
+        const _startTime = this.props.diff?._startTime;
+        const _endTime = this.props.diff?._endTime;
         let changes = {'dates.tz': value};
 
         const addChange = (field, fieldValue) => {
@@ -80,9 +98,8 @@ export class EventScheduleInput extends React.Component {
     }
 
     changeStartDate(value) {
-        const startDate = get(this.props, 'diff.dates.start');
-        const endDate = get(this.props, 'diff.dates.end');
-
+        const startDate = this.props.diff?.dates?.start != null ? moment(this.props.diff.dates.start) : null;
+        const endDate = this.props.diff?.dates?.end != null ? moment(this.props.diff.dates.end) : null;
         const changes = {'dates.start': value};
 
         if (!startDate) {
@@ -110,12 +127,12 @@ export class EventScheduleInput extends React.Component {
             return;
         }
 
-        const startDate = get(this.props, 'diff.dates.start');
-        const _startTime = get(this.props, 'diff._startTime');
-        const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
+        const startDate = this.props.diff?.dates?.start;
+        const _startTime = this.props.diff?._startTime;
+        const defaultDurationOnChange = this.props.formProfile?.editor?.dates?.default_duration_on_change ?? 1;
         const newStartDate = !startDate ?
             value :
-            startDate
+            moment(startDate)
                 .hour(value.hour())
                 .minute(value.minute())
                 .second(value.second());
@@ -135,7 +152,7 @@ export class EventScheduleInput extends React.Component {
     }
 
     changeEndDate(value) {
-        const startDate = get(this.props, 'diff.dates.start');
+        const startDate = this.props.diff?.dates?.start;
         const changes = {'dates.end': value};
 
         if (!startDate) {
@@ -152,9 +169,9 @@ export class EventScheduleInput extends React.Component {
             return;
         }
 
-        const endDate = get(this.props, 'diff.dates.end');
-        const _endTime = get(this.props, 'diff._endTime');
-        const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
+        const endDate = this.props.diff?.dates?.end != null ? moment(this.props.diff.dates.end) : null;
+        const _endTime = this.props.diff?._endTime;
+        const defaultDurationOnChange = this.props.formProfile?.editor?.dates?.default_duration_on_change ?? 1;
         const newEndDate = endDate ? endDate.hour(value.hour()).minute(value.minute()) : value;
         const changes = {'dates.end': newEndDate};
 
@@ -177,12 +194,12 @@ export class EventScheduleInput extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        const nextDates = get(nextProps, 'diff.dates') || {};
+    componentWillReceiveProps(nextProps: Readonly<IProps>) {
+        const nextDates = nextProps.diff?.dates ?? {};
         const isAllDay = eventUtils.isEventAllDay(nextDates.start, nextDates.end, true);
         const isMultiDay = !eventUtils.isEventSameDay(nextDates.start, nextDates.end);
 
-        const newState = {};
+        const newState: Partial<IState> = {};
 
         if (isAllDay !== this.state.isAllDay) {
             newState.isAllDay = isAllDay;
@@ -192,28 +209,33 @@ export class EventScheduleInput extends React.Component {
             newState.isMultiDay = isMultiDay;
         }
 
-        this.setState(newState);
+        if (Object.keys(newState).length) {
+            this.setState({
+                ...this.state,
+                ...newState,
+            });
+        }
     }
 
     handleAllDayChange(field, value) {
-        const dates = get(this.props, 'diff.dates', get(this.props, 'item.dates', {}));
+        const dates = this.props.diff?.dates ?? this.props.item?.dates ?? {};
         let newStart, newEnd, startTime = null, endTime = null;
 
-        newStart = (dates.start || (dates.tz ? moment.tz(dates.tz) : moment()))
-            .clone()
+        newStart = moment((dates.start || (dates.tz ? moment.tz(dates.tz) : moment())))
             .startOf('day');
 
         if (value) {
             // If allDay is enabled, then set the event to all day
-            newEnd = (dates.end || (dates.tz ? moment.tz(dates.tz) : moment()))
-                .clone()
+            newEnd = moment(dates.end || (dates.tz ? moment.tz(dates.tz) : moment()))
                 .endOf('day');
             startTime = newStart.clone();
             endTime = newEnd.clone();
         } else {
             // If allDay is disabled, then set the new dates to the initial values
             // since last save and time to empty
-            newEnd = (get(dates, 'end') || newStart.clone()).hour(0).minute(1);
+            newEnd = moment(dates?.end || newStart)
+                .hour(0)
+                .minute(1);
         }
 
         this.props.onChange({
@@ -249,22 +271,23 @@ export class EventScheduleInput extends React.Component {
     handleToBeConfirmed(field) {
         this.props.onChange({
             [TO_BE_CONFIRMED_FIELD]: true,
-            _startTime: get(this.props, 'diff._startTime'),
-            _endTime: get(this.props, 'diff._endTime'),
+            _startTime: this.props.diff?._startTime,
+            _endTime: this.props.diff?._endTime,
         }, null);
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             item,
             diff,
-            showRepeat,
-            showRepeatToggle,
+            showRepeat = true,
+            showRepeatToggle = true,
             readOnly,
             errors,
             showErrors,
             popupContainer,
-            showFirstEventLabel,
+            showFirstEventLabel = true,
             onPopupOpen,
             onPopupClose,
             showTimeZone,
@@ -273,7 +296,7 @@ export class EventScheduleInput extends React.Component {
         } = this.props;
         const {isAllDay} = this.state;
 
-        const doesRepeat = !!get(diff, 'dates.recurring_rule');
+        const doesRepeat = diff?.dates?.recurring_rule != null;
 
         const fieldProps = {
             item: item,
@@ -321,7 +344,7 @@ export class EventScheduleInput extends React.Component {
                         onChange={this.onChange}
                         schedule={diff.dates || {}}
                         readOnly={readOnly}
-                        errors={get(errors, 'dates.recurring_rule')}
+                        errors={errors?.dates?.recurring_rule}
                         popupContainer={popupContainer}
                         onPopupOpen={onPopupOpen}
                         onPopupClose={onPopupClose}
@@ -341,13 +364,13 @@ export class EventScheduleInput extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField="_startTime"
-                    remoteTimeZone={get(diff, 'dates.tz')}
+                    remoteTimeZone={diff?.dates?.tz}
                     allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                     refNode={refNode}
                     showToBeConfirmed
                     onToBeConfirmed={this.handleToBeConfirmed}
-                    toBeConfirmed={get(diff, TO_BE_CONFIRMED_FIELD)}
+                    toBeConfirmed={diff?._time_to_be_confirmed}
                 />
 
                 <Field
@@ -363,16 +386,16 @@ export class EventScheduleInput extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField="_endTime"
-                    remoteTimeZone={get(diff, 'dates.tz')}
+                    remoteTimeZone={diff?.dates?.tz}
                     allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                     showToBeConfirmed
                     onToBeConfirmed={this.handleToBeConfirmed}
-                    toBeConfirmed={get(diff, TO_BE_CONFIRMED_FIELD)}
+                    toBeConfirmed={diff?._time_to_be_confirmed}
                 />
 
                 <Row flex={true} noPadding>
-                    {get(formProfile, 'editor.dates.all_day.enabled') && (
+                    {!(formProfile?.editor?.dates?.all_day?.enabled ?? true) ? null : (
                         <Field
                             onChange={this.handleAllDayChange}
                             field="dates.all_day"
@@ -382,7 +405,7 @@ export class EventScheduleInput extends React.Component {
                             {...toggleProps}
                         />
                     )}
-                    {showTimeZone && (
+                    {!showTimeZone ? null : (
                         <Field
                             field="dates.tz"
                             label={gettext('Timezone')}
@@ -390,18 +413,18 @@ export class EventScheduleInput extends React.Component {
                             onChange={this.onChange}
                             row={false}
                             {...fieldProps}
-                            halfWidth={get(formProfile, 'editor.dates.all_day.enabled')}
+                            halfWidth={formProfile?.editor?.dates?.all_day?.enabled}
                         />
                     )}
                 </Row>
 
                 <Row
-                    enabled={!!get(errors, 'dates.range')}
+                    enabled={errors?.dates?.range != null}
                     noPadding={true}
                 >
                     <LineInput
                         invalid={true}
-                        message={get(errors, 'dates.range')}
+                        message={errors?.dates?.range}
                         readOnly={true}
                     />
                 </Row>
@@ -409,32 +432,3 @@ export class EventScheduleInput extends React.Component {
         );
     }
 }
-
-EventScheduleInput.propTypes = {
-    item: PropTypes.object.isRequired,
-    diff: PropTypes.object.isRequired,
-    onChange: PropTypes.func.isRequired,
-    readOnly: PropTypes.bool,
-    showRepeat: PropTypes.bool,
-    showRepeatSummary: PropTypes.bool,
-    showRepeatToggle: PropTypes.bool,
-    errors: PropTypes.object,
-    showErrors: PropTypes.bool,
-    dirty: PropTypes.bool,
-    formProfile: PropTypes.object,
-    popupContainer: PropTypes.func,
-    showFirstEventLabel: PropTypes.bool,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    showTimeZone: PropTypes.bool,
-    refNode: PropTypes.func,
-};
-
-EventScheduleInput.defaultProps = {
-    readOnly: false,
-    showRepeat: true,
-    showRepeatSummary: true,
-    showRepeatToggle: true,
-    showFirstEventLabel: true,
-    showTimeZone: false,
-};

@@ -5,6 +5,8 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 
 import {appConfig} from 'appConfig';
+import {IEventOrPlanningItem, IFile, IPlanningCoverageItem, IIngestProvider} from '../interfaces';
+import {IUser} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
 
 import planningApp from '../reducers';
@@ -44,10 +46,6 @@ export {lockUtils};
 export {planningUtils};
 export {timeUtils};
 export {eventPlanningUtils};
-
-// Polyfill Promise.finally function as this was introduced in Chrome 63+
-import promiseFinally from 'promise.prototype.finally';
-promiseFinally.shim();
 
 export const createTestStore = (params = {}) => {
     const {initialState = {}, extraArguments = {}} = params;
@@ -127,8 +125,7 @@ export const createTestStore = (params = {}) => {
                     // if there is no id we add one
 
                     if (!response._id) {
-                        response._id = Math.random().toString(36)
-                            .substr(2, 10);
+                        response._id = generateTempId();
                     }
                     // reponse as a promise
                     return Promise.resolve(response);
@@ -277,25 +274,29 @@ export const notifyError = (notify, error, defaultMessage) => {
  * @param {Array} users - The array of users, typically from the redux store
  * @return {object} The user object found or ingest provider id, otherwise nothing is returned
  */
-export const getCreator = (item, creator, users) => {
-    const user = get(item, creator);
+export function getCreator(
+    item: IEventOrPlanningItem | IPlanningCoverageItem,
+    creator: string,
+    users: Array<IUser>
+): IUser | IIngestProvider['id'] | undefined {
+    const user: IUser | IUser['_id'] | undefined = get(item, creator);
 
     if (user) {
-        return user.display_name ? user : users.find((u) => u._id === user);
+        return typeof user === 'string' ?
+            users.find((u) => u._id === user) :
+            user;
     }
 
-    const ingestProvider = get(item, 'ingest_provider');
-
-    if (ingestProvider) {
-        return ingestProvider;
-    }
-};
+    return get(item, 'ingest_provider') as IIngestProvider['id'] | undefined;
+}
 
 export const getItemInArrayById = (items, id, field = '_id') => (
     id && Array.isArray(items) ? items.find((item) => get(item, field) === id) : null
 );
 
-export const getItemId = (item) => get(item, '_id');
+export function getItemId(item): IEventOrPlanningItem['_id'] {
+    return get(item, '_id');
+}
 export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '_id');
 export const getItemWorkflowState = (item, field = 'state') => (get(item, field, WORKFLOW_STATE.DRAFT));
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
@@ -746,7 +747,13 @@ export const getAutosaveItem = (autosaves, itemType, itemId) => (
     get(autosaves, `${itemType}["${itemId}"]`) || null
 );
 
-export const generateTempId = () => TEMP_ID_PREFIX + moment().valueOf();
+export function generateTempId(): string {
+    return TEMP_ID_PREFIX +
+        moment().valueOf() +
+        Math.random()
+            .toString(36)
+            .replace(/[^a-z]+/g, '');
+}
 
 /**
  * Removes fields from an item for use with Autosave
@@ -819,7 +826,7 @@ export const itemsEqual = (nextItem, currentItem) => {
             return;
         }
 
-        set(item, field, value.format('YYYY-MM-DDTHH:mm'));
+        set(item, field, moment(value).format('YYYY-MM-DDTHH:mm'));
     };
 
     itemDates.forEach(
@@ -989,6 +996,6 @@ export const sanitizeItemFields = (item) => {
     }
 };
 
-export const getFileDownloadURL = (file) => (
-    appConfig.server.url + '/upload/' + file.filemeta.media_id + '/raw'
-);
+export function getFileDownloadURL(file: IFile): string {
+    return appConfig.server.url + '/upload/' + file.filemeta.media_id + '/raw';
+}

@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 import {cloneDeep, get} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
+import {IPlanningAppState, IPlanningItem, LIST_VIEW_TYPE} from '../interfaces';
 
 import {session, userPreferences} from './general';
 import {getSearchDateRange, lockUtils, planningUtils} from '../utils';
@@ -14,7 +14,9 @@ function getCurrentListViewType(state?: IPlanningAppState) {
 const storedEvents = (state) => get(state, 'events.events', {});
 
 export const planningHistory = (state) => get(state, 'planning.planningHistoryItems');
-export const storedPlannings = (state) => get(state, 'planning.plannings', {});
+export function storedPlannings(state: IPlanningAppState): {[key: string]: IPlanningItem} {
+    return state.planning?.plannings ?? {};
+}
 export const planIdsInList = (state) => get(state, 'planning.planningsInList', []);
 export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');

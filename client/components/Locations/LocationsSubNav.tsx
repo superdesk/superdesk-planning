@@ -47,6 +47,7 @@ export class LocationsSubNavComponent extends React.Component {
                         onClick={this.createLocation}
                         empty={true}
                         title={gettext('Create a new location')}
+                        aria-label={gettext('Create a new location')}
                     >
                         <span className="circle" />
                     </Button>

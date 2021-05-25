@@ -593,7 +593,7 @@ const uploadFiles = (event) => (
 );
 
 const save = (original, updates) => (
-    (dispatch, getState, {api}) => {
+    (dispatch) => {
         let promise;
 
         if (original) {
@@ -632,12 +632,10 @@ const save = (original, updates) => (
             eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
                 EVENTS.UPDATE_METHODS[0].value;
 
-            return api('events').save(originalItem, eventUpdates);
-        })
-            .then(
-                (data) => Promise.resolve(get(data, '_items') || [data]),
-                (error) => Promise.reject(error)
-            );
+            return originalEvent?._id != null ?
+                planningApis.events.update(originalItem, eventUpdates) :
+                planningApis.events.create(eventUpdates);
+        });
     }
 );
 

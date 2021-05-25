@@ -85,8 +85,7 @@ describe('Search.Events: searching events', () => {
             expectedCount: 0,
         }, {
             params: {no_calendar_assigned: false},
-            expectedCount: 1,
-            clearAfter: true
+            expectedCount: 1
         }, {
             params: {location: LOCATIONS.sydney_opera_house.name},
             expectedCount: 1,

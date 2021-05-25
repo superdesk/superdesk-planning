@@ -40,6 +40,7 @@ interface IProps {
     regions: Array<IVocabularyItem>;
     countries: Array<IVocabularyItem>;
     preferredCountry?: IVocabularyItem['name'];
+    language?: string;
     onChange(field: string, value?: Partial<ILocation>): void;
     onFocus?(): void;
     popupContainer?(): HTMLElement;
@@ -66,6 +67,7 @@ const mapStateToProps = (state) => ({
 
 export class GeoLookupInputComponent extends React.Component<IProps, IState> {
     dom: {
+        input: React.RefObject<HTMLInputElement>;
         geolookup: React.RefObject<Geolookup>;
     };
 
@@ -92,10 +94,16 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         this.saveNewLocation = this.saveNewLocation.bind(this);
         this.onAddNewLocation = this.onAddNewLocation.bind(this);
         this.removeLocation = this.removeLocation.bind(this);
+        this.searchExternalLocations = this.searchExternalLocations.bind(this);
 
         this.dom = {
-            geolookup: React.createRef<Geolookup>(),
+            input: React.createRef(),
+            geolookup: React.createRef(),
         };
+    }
+
+    focus() {
+        this.dom.input.current?.focus();
     }
 
     closeSuggestsPopUp() {
@@ -193,6 +201,13 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
             .then(this.setLocalLocations);
     }
 
+    searchExternalLocations(searchText: string) {
+        return planningApi.locations.searchExternal(
+            searchText,
+            this.props.language
+        );
+    }
+
     searchGeoLookupComponent() {
         if (this.dom.geolookup.current != undefined) {
             this.dom.geolookup.current.hideSuggests();
@@ -286,7 +301,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
         } = this.props;
 
         return (
-            <div className="addgeolookup">
+            <React.Fragment>
                 {initialValue?.name == null ? null : (
                     <LocationItem
                         location={initialValue}
@@ -295,6 +310,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                     />
                 )}
                 <DebounceInput
+                    inputRef={this.dom.input}
                     minLength={2}
                     debounceTimeout={500}
                     value={this.state.unsavedInput}
@@ -346,17 +362,21 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                 <Geolookup
                     disableAutoLookup={true}
                     onSuggestSelect={this.onSuggestSelect}
-                    onSuggestsLookup={planningApi.locations.searchExternal}
-                    // onGeocodeSuggest={this.onGeocodeSuggest}
+                    onSuggestsLookup={this.searchExternalLocations}
                     onSuggestResults={this.onSuggestResults}
                     getSuggestLabel={this.getSuggestLabel}
                     readOnly={false}
                     ignoreTab
                     ref={this.dom.geolookup}
                 />
-            </div>
+            </React.Fragment>
         );
     }
 }
 
-export const AddGeoLookupInput = connect(mapStateToProps)(GeoLookupInputComponent);
+export const AddGeoLookupInput = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(GeoLookupInputComponent);

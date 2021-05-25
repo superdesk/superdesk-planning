@@ -48,6 +48,7 @@ const ActionsSubnavDropdownComponent = (props) => {
             items={items}
             alignRight={true}
             tooltip={gettext('Actions')}
+            aria-label={gettext('Actions')}
         />
     );
 };

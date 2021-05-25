@@ -48,11 +48,11 @@ export class EditorFieldWorkflowState extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldVocabulary
+                {...this.props}
                 field={this.props.field ?? 'state'}
                 label={this.props.label ?? gettext('State')}
                 onChange={this.props.onChange}
                 options={options}
-                {...this.props}
             />
         );
     }

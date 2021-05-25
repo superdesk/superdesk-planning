@@ -6,6 +6,8 @@ import {coverages} from './coverages';
 import {combined} from './combined';
 import {ui} from './ui';
 import {locations} from './locations';
+import {autosave} from './autosave';
+import {editor} from './editor';
 
 export const planningApis: Omit<IPlanningAPI, 'redux' | '$location'> = {
     events,
@@ -15,4 +17,6 @@ export const planningApis: Omit<IPlanningAPI, 'redux' | '$location'> = {
     search,
     ui,
     locations,
+    autosave,
+    editor,
 };

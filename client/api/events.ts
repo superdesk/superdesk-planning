@@ -1,10 +1,20 @@
-import {IEventItem, ISearchAPIParams, ISearchParams, ISearchSpikeState, IPlanningAPI, FILTER_TYPE} from '../interfaces';
-import {cvsToString, convertCommonParams, searchRaw, searchRawGetAll} from './search';
+import {
+    FILTER_TYPE,
+    IEventItem,
+    IPlanningAPI, IPlanningItem,
+    ISearchAPIParams,
+    ISearchParams,
+    ISearchSpikeState,
+    LOCK_STATE
+} from '../interfaces';
 import {IRestApiResponse} from 'superdesk-api';
-import {superdeskApi, planningApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
+import {EVENTS, TEMP_ID_PREFIX} from '../constants';
+
+import {convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
 import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
-import {EVENTS} from '../constants';
+import * as actions from '../actions';
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -24,6 +34,14 @@ function modifyResponseForClient(response: IRestApiResponse<IEventItem>): IRestA
 function modifyItemForClient(item: IEventItem): IEventItem {
     eventUtils.modifyForClient(item);
     return item;
+}
+
+function modifySaveResponseForClient(response: IEventItem | IRestApiResponse<IEventItem>): Array<IEventItem> {
+    const items = (response as IRestApiResponse<IEventItem>)?._items ??
+        [response as IEventItem];
+
+    items.forEach(modifyItemForClient);
+    return items;
 }
 
 export function searchEvents(params: ISearchParams): Promise<IRestApiResponse<IEventItem>> {
@@ -93,7 +111,7 @@ export function getEventByIds(
 
 export function getLockedEvents(): Promise<Array<IEventItem>> {
     return searchEvents({
-        lock_state: 'locked',
+        lock_state: LOCK_STATE.LOCKED,
         only_future: false,
     })
         .then(modifyResponseForClient)
@@ -110,6 +128,60 @@ function getEventSearchProfile() {
     return eventSearchProfile(planningApi.redux.store.getState());
 }
 
+function createOrUpdatePlannings(
+    event: IEventItem,
+    items: Array<Partial<IPlanningItem>>
+): Promise<Array<IPlanningItem>> {
+    return Promise.all(
+        items.map(
+            (updates) => (
+                updates._id.startsWith(TEMP_ID_PREFIX) ?
+                    planningApi.planning.createFromEvent(event, updates) :
+                    planningApi.planning.getById(updates._id)
+                        .then((original) => (
+                            planningApi.planning.update(original, updates)
+                        ))
+            )
+        )
+    );
+}
+
+function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
+    return superdeskApi.dataApi.create<IEventItem | IRestApiResponse<IEventItem>>('events', {
+        ...updates,
+        associated_plannings: undefined,
+    })
+        .then((response) => {
+            const events: Array<IEventItem> = modifySaveResponseForClient(response);
+
+            return createOrUpdatePlannings(events[0], updates.associated_plannings ?? [])
+                .then((plannings) => {
+                    // Make sure to update the Redux Store with the latest Planning items
+                    // So that the Editor can set the state with these latest items
+                    planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(plannings));
+
+                    return events;
+                });
+        });
+}
+
+function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
+    return superdeskApi.dataApi.patch<any>('events', original, {
+        ...updates,
+        associated_plannings: undefined,
+    })
+        .then((response) => {
+            const events = modifySaveResponseForClient(response);
+
+            return createOrUpdatePlannings(events[0], updates.associated_plannings ?? [])
+                .then((plannings) => {
+                    planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(plannings));
+
+                    return events;
+                });
+        });
+}
+
 export const events: IPlanningAPI['events'] = {
     search: searchEvents,
     searchGetAll: searchEventsGetAll,
@@ -118,4 +190,6 @@ export const events: IPlanningAPI['events'] = {
     getLocked: getLockedEvents,
     getEditorProfile: getEventEditorProfile,
     getSearchProfile: getEventSearchProfile,
+    create: create,
+    update: update,
 };

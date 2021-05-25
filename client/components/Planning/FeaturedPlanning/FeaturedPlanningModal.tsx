@@ -400,13 +400,13 @@ export class FeaturedPlanningModalComponent extends React.Component {
         return (
             <Modal show={true} fill={true} onHide={this.onCloseModal}>
                 <Modal.Header>
-                    {<a className="close" onClick={this.onCloseModal}>
-                        <i className="icon-close-small" />
-                    </a>}
-                    <h3>{gettext(
+                    <h3 className="modal__heading">{gettext(
                         'Featured Stories based on timezone: {{tz}}',
                         {tz: gettext(appConfig.defaultTimezone)}
                     )}</h3>
+                    {<a className="icn-btn" aria-label={gettext('Close')} onClick={this.onCloseModal}>
+                        <i className="icon-close-small" />
+                    </a>}
                 </Modal.Header>
                 <Modal.Body noPadding fullHeight noScroll>
                     <SubNav className="grid">

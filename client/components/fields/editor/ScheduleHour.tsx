@@ -36,6 +36,7 @@ export class EditorFieldScheduleHour extends React.PureComponent<IEditorFieldPro
 
         return (
             <EditorFieldSelect
+                {...this.props}
                 field={field}
                 label={this.props.label ?? gettext('Hour')}
                 labelField="label"
@@ -43,7 +44,6 @@ export class EditorFieldScheduleHour extends React.PureComponent<IEditorFieldPro
                 valueAsString={true}
                 defaultValue={'-1'}
                 options={this.options}
-                {...this.props}
                 item={item}
                 onChange={onChange}
             />

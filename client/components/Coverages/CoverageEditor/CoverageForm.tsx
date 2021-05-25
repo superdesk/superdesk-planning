@@ -20,25 +20,12 @@ import {
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {getItemInArrayById, planningUtils, generateTempId, assignmentUtils} from '../../../utils';
-import {WORKFLOW_STATE, TO_BE_CONFIRMED_FIELD} from '../../../constants';
-import {Button} from '../../UI';
-import {Row, Label, LineInput, FileInput} from '../../UI/Form';
-import {ScheduledUpdate} from '../ScheduledUpdate';
-
-import {
-    TextInput,
-    TextAreaInput,
-    ExpandableTextAreaInput,
-    SelectInput,
-    DateTimeInput,
-    SelectTagInput,
-    Field,
-    ToggleInput,
-} from '../../UI/Form';
-import {InternalNoteLabel} from '../../';
-import {ContactField, ContactsPreviewList} from '../../Contacts';
+import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
+import {profileConfigToFormProfile} from '../../../utils/forms';
+import {WORKFLOW_STATE} from '../../../constants';
+import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {getUsersDefaultLanguage} from '../../../utils/users';
+import {renderFieldsForPanel} from '../../fields';
 
 import '../style.scss';
 
@@ -54,10 +41,11 @@ interface IProps {
     errors: {[key: string]: any}
     showErrors: boolean;
     hasAssignment: boolean;
-    addNewsItemToPlanning: IArticle;
+    addNewsItemToPlanning?: IArticle;
     index: number;
     defaultDesk: IDesk;
     files: Array<IFile>;
+    includeScheduledUpdates?: boolean;
 
     // Functions
     onChange(field: string, value: any): void;
@@ -102,6 +90,7 @@ const mapStateToProps = (state) => ({
     keywords: selectors.general.keywords(state),
     preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
+    formProfile: selectors.forms.coverageProfile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -112,12 +101,13 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     fullFilePath: string;
     xmpFullFilePath: string;
     dom: {
-        contentType?: any;
+        contentType?: React.RefObject<EditorFieldSelect>;
         popupContainer?: any;
     };
 
     constructor(props) {
         super(props);
+        this.onChange = this.onChange.bind(this);
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
         this.onAddScheduledUpdate = this.onAddScheduledUpdate.bind(this);
@@ -128,28 +118,34 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         this.onRemoveFile = this.onRemoveFile.bind(this);
         this.onAddXmpFile = this.onAddXmpFile.bind(this);
         this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
+        this.onContentTypeChange = this.onContentTypeChange.bind(this);
         this.dom = {
-            contentType: null,
+            contentType: React.createRef(),
             popupContainer: null,
         };
         this.state = {
             openScheduledUpdates: [],
             uploading: false,
         };
-        this.fullFilePath = `coverages[${this.props.index}].planning.files`;
-        this.xmpFullFilePath = `coverages[${this.props.index}].planning.xmp_file`;
+        this.fullFilePath = 'planning.files';
+        this.xmpFullFilePath = 'planning.xmp_file';
     }
 
     componentDidUpdate(prevProps: Readonly<IProps>) {
         if (!prevProps.hasAssignment && this.props.hasAssignment) {
-            this.dom.contentType.focus();
+            this.dom.contentType.current?.focus();
         }
     }
 
-    onTimeToBeConfirmed() {
-        const {onChange, index} = this.props;
+    onChange(field: string, value: any) {
+        this.props.onChange(
+            `${this.props.field}.${field}`,
+            value
+        );
+    }
 
-        onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, true);
+    onTimeToBeConfirmed() {
+        this.onChange('_time_to_be_confirmed', true);
     }
 
     getCoverageFiles(): Array<string> {
@@ -179,7 +175,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             relatedFieldStr = field.replace('_scheduledTime', 'scheduled');
             fieldStr = field;
 
-            onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, false);
+            this.onChange('_time_to_be_confirmed', false);
 
             if (!get(value, 'planning.scheduled')) {
                 finalValue = moment().hour(newValue.hour())
@@ -192,13 +188,13 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     .minute(newValue.minute());
             }
         } else {
-            onChange(field, newValue);
+            this.onChange(field, newValue);
             return;
         }
 
-        onChange(fieldStr, finalValue);
+        this.onChange(fieldStr, finalValue);
         if (relatedFieldStr) {
-            onChange(relatedFieldStr, finalValue);
+            this.onChange(relatedFieldStr, finalValue);
         }
     }
 
@@ -219,7 +215,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         planningUtils.setDefaultAssignment(defaultScheduledUpdate, this.props.preferredCoverageDesks,
             get(this.props, 'value.planning.g2_content_type'), this.props.defaultDesk);
 
-        this.props.onChange(`${this.props.field}.scheduled_updates`,
+        this.onChange('scheduled_updates',
             [
                 ...get(this.props, 'value.scheduled_updates', []),
                 defaultScheduledUpdate,
@@ -232,9 +228,11 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onRemoveScheduledUpdate(indexToRemove: number) {
         // Remove the scheduled update at the index
-        this.props.onChange(`${this.props.field}.scheduled_updates`,
+        this.onChange(
+            'scheduled_updates',
             this.props.value.scheduled_updates.filter(
-                (_, index) => index !== indexToRemove)
+                (_, index) => index !== indexToRemove
+            )
         );
     }
 
@@ -276,7 +274,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             return;
         }
 
-        this.onAddFiles(fileList, true);
+        return this.onAddFiles(fileList, true);
     }
 
     onRemoveXmpFile(file: IFile) {
@@ -296,7 +294,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                         ...newFiles.map((f) => f._id),
                     ];
 
-                this.props.onChange(changeFullFilePath, value);
+                this.onChange(changeFullFilePath, value);
                 this.setState({uploading: false});
             }, () => {
                 this.props.notifyValidationErrors(['Failed to upload files']);
@@ -311,320 +309,151 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath;
         const value = xmpFile ? null : coverageFiles.filter((f) => f !== file._id);
 
-        promise.then(() => this.props.onChange(changeFullFilePath, value));
+        promise.then(() => this.onChange(changeFullFilePath, value));
+    }
+
+    onContentTypeChange(field: string, value: IG2ContentType['qcode']) {
+        if (this.props.value.planning?.g2_content_type !== value) {
+            this.onChange(field, value);
+            this.onChange('planning.genre', null);
+        }
     }
 
     render() {
-        const {gettext} = superdeskApi.localization;
-        const {
-            field,
-            value,
-            index,
-            onChange,
-            newsCoverageStatus,
-            contentTypes,
-            languages,
-            genres,
-            keywords,
-            readOnly,
-            item,
-            diff,
-            formProfile,
-            errors,
-            showErrors,
-            hasAssignment,
-            addNewsItemToPlanning,
-            popupContainer,
-            onFieldFocus,
-            onPopupOpen,
-            onPopupClose,
-            planningAllowScheduledUpdates,
-            onRemoveAssignment,
-            setCoverageDefaultDesk,
-            createUploadLink,
-            files,
-            ...props
-        } = this.props;
-
-        const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
-        const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
-        const onContentTypeChange = (f, v) => {
-            if (v) {
-                onChange(f, get(v, 'qcode') || null);
-                onChange(`${field}.planning.genre`, null);
-            }
-        };
+        const contentTypeQcode = this.props.value.planning?.g2_content_type;
         const defaultGenre = (appConfig.default_genre || [{}])[0];
+        const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
+        const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
 
-        if (contentTypeQcode === 'text' && !get(value, 'planning.genre')) {
-            value.planning.genre = defaultGenre;
-        }
-
-        const fieldProps = {
-            item: item,
-            diff: diff,
-            onChange: onChange,
-            formProfile: formProfile,
-            errors: errors,
-            showErrors: showErrors,
-            onFocus: onFieldFocus,
-        };
-
-        const roFields = planningUtils.getCoverageReadOnlyFields(
-            value,
-            readOnly,
-            newsCoverageStatus,
-            addNewsItemToPlanning
+        const readOnlyFields = planningUtils.getCoverageReadOnlyFields(
+            this.props.value,
+            this.props.readOnly,
+            this.props.newsCoverageStatus,
+            this.props.addNewsItemToPlanning
+        );
+        const {profile, fieldProps} = profileConfigToFormProfile(
+            this.props.formProfile,
+            [
+                ['coverage_contact', 'contact_info'],
+                ['g2_content_type'],
+                ['language'],
+                ['xmp_file'],
+                ['genre'],
+                ['slugline'],
+                ['ednote'],
+                ['keywords', 'keyword'],
+                ['internal_note'],
+                ['files'],
+                ['news_coverage_status'],
+                ['coverage_schedule', 'scheduled'],
+                ['flags.no_content_linking', 'flags'],
+                ['scheduled_updates'],
+            ],
+            {
+                coverage_contact: {
+                    field: 'planning.contact_info',
+                    assignmentField: 'assigned_to.contact',
+                    label: assignmentUtils.getContactLabel(this.props.value),
+                },
+                g2_content_type: {
+                    readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
+                    field: 'planning.g2_content_type',
+                    onChange: this.onContentTypeChange,
+                    clearable: false,
+                    valueAsString: true,
+                    refNode: this.dom.contentType,
+                },
+                language: {
+                    field: 'planning.language',
+                    clearable: false,
+                },
+                xmp_file: {
+                    readOnly: this.props.readOnly || readOnlyFields.xmp_file,
+                    field: 'planning.xmp_file',
+                    enabled: showXmpFileInput,
+                    hideInput: hideXmpFileInput,
+                    createUploadLink: this.props.createUploadLink,
+                    files: this.props.files,
+                    onAddFiles: this.onAddXmpFile,
+                    onRemoveFile: this.onRemoveXmpFile,
+                },
+                genre: {
+                    readOnly: this.props.readOnly || readOnlyFields.genre,
+                    field: 'planning.genre',
+                    defaultValue: contentTypeQcode === 'text' ? defaultGenre : null,
+                    clearable: true,
+                },
+                slugline: {
+                    readOnly: this.props.readOnly || readOnlyFields.slugline,
+                    field: 'planning.slugline',
+                },
+                ednote: {
+                    readOnly: this.props.readOnly || readOnlyFields.ednote,
+                    field: 'planning.ednote',
+                },
+                keywords: {
+                    readOnly: this.props.readOnly || readOnlyFields.keyword,
+                    field: 'planning.keyword',
+                },
+                internal_note: {
+                    readOnly: this.props.readOnly || readOnlyFields.internal_note,
+                    field: 'planning.internal_note',
+                },
+                files: {
+                    readOnly: this.props.readOnly || readOnlyFields.files,
+                    field: 'planning.files',
+                },
+                news_coverage_status: {
+                    readOnly: this.props.readOnly || readOnlyFields.newsCoverageStatus,
+                    field: 'news_coverage_status',
+                },
+                coverage_schedule: {
+                    readOnly: this.props.readOnly || readOnlyFields.scheduled,
+                    field: 'planning.scheduled',
+                    timeField: 'planning._scheduledTime',
+                    toBeConfirmed: this.props.value?._time_to_be_confirmed,
+                    onToBeConfirmed: this.onTimeToBeConfirmed,
+                    onChange: this.onScheduleChanged,
+                },
+                'flags.no_content_linking': {
+                    readOnly: this.props.readOnly || readOnlyFields.flags,
+                    field: 'flags.no_content_linking',
+                },
+                scheduled_updates: {
+                    onRemoveAssignment: this.props.onRemoveAssignment,
+                    setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
+                    onRemoveScheduledUpdate: this.onRemoveScheduledUpdate,
+                    onScheduleChanged: this.onScheduleChanged,
+                    onScheduledUpdateClose: this.onScheduledUpdateClose,
+                    onScheduledUpdateOpen: this.onScheduledUpdateOpen,
+                    onAddScheduledUpdate: this.onAddScheduledUpdate,
+                    canCreateScheduledUpdate: this.props.addNewsItemToPlanning == null &&
+                    !get(this.props.diff, `${this.props.field}.flags.no_content_linking`),
+                },
+            }
         );
 
-        const canCreateScheduledUpdate = !addNewsItemToPlanning &&
-            !get(diff, `${field}.flags.no_content_linking`);
+        const globalProps = {
+            item: this.props.value,
+            language: this.props.value.planning?.language ?? getUsersDefaultLanguage(),
+            onChange: this.onChange,
+            errors: this.props.errors,
+            readOnly: this.props.readOnly,
+            disabled: this.props.readOnly,
+        };
 
-        const contactLabel = assignmentUtils.getContactLabel(get(diff, field));
-        const showXmpFileInput = planningUtils.showXMPFileUIControl(value);
-        const hideXMPFileInput = this.props.value?.planning?.xmp_file != null;
+        if (!this.props.includeScheduledUpdates) {
+            profile.scheduled_updates.enabled = false;
+        }
 
         return (
             <div className="coverage-editor">
-                {get(diff, `${field}.assigned_to.contact`) ? (
-                    <Row className="coverage-editor__contact">
-                        <Label row={true} text={contactLabel} />
-                        <ContactsPreviewList
-                            contactIds={[get(diff, `${field}.assigned_to.contact`)]}
-                            scrollInView={true}
-                            scrollIntoViewOptions={{block: 'center'}}
-                        />
-                    </Row>
-                ) : (
-                    <Field
-                        component={ContactField}
-                        field={`${field}.planning.contact_info`}
-                        profileName="contact_info"
-                        label={contactLabel}
-                        defaultValue={[]}
-                        {...fieldProps}
-                        readOnly={readOnly}
-                        onPopupOpen={onPopupOpen}
-                        onPopupClose={onPopupClose}
-                        singleValue={true}
-                    />
+                {renderFieldsForPanel(
+                    'editor',
+                    profile,
+                    globalProps,
+                    fieldProps
                 )}
-
-                <InternalNoteLabel
-                    item={diff}
-                    prefix={`coverages[${index}].planning.`}
-                    noteField="workflow_status_reason"
-                    showTooltip={false}
-                    showText
-                    stateField={value.workflow_status === WORKFLOW_STATE.CANCELLED ?
-                        `coverages[${index}].workflow_status` : 'state'}
-                    className="form__row"
-                />
-                <Field
-                    component={SelectInput}
-                    field={`${field}.planning.g2_content_type`}
-                    profileName="g2_content_type"
-                    label={gettext('Coverage Type')}
-                    options={contentTypes}
-                    labelField="name"
-                    clearable={false}
-                    value={contentType}
-                    defaultValue={null}
-                    {...fieldProps}
-                    onChange={onContentTypeChange}
-                    readOnly={roFields.g2_content_type}
-                    autoFocus={hasAssignment}
-                    refNode={(ref) => this.dom.contentType = ref}
-                    language={value.planning.language}
-                />
-
-                <Field
-                    component={SelectInput}
-                    field={`${field}.planning.language`}
-                    profileName="language"
-                    label={gettext('Language')}
-                    defaultValue={diff.language ?? getUsersDefaultLanguage()}
-                    options={languages}
-                    {...fieldProps}
-                    labelField={'name'}
-                    valueAsString={true}
-                />
-
-                {showXmpFileInput && (
-                    <div
-                        className={this.state.uploading ? 'sd-loader' : 'sd-line-input'}
-                    >
-                        {!this.state.uploading && (
-                            <Field
-                                label={gettext('Associate an XMP file')}
-                                component={FileInput}
-                                field={`${field}.planning.xmp_file`}
-                                createLink={createUploadLink}
-                                defaultValue={[]}
-                                readOnly={roFields.xmp_file}
-                                hideInput={hideXMPFileInput}
-                                {...fieldProps}
-                                files={files}
-                                onAddFiles={this.onAddXmpFile}
-                                onRemoveFile={this.onRemoveXmpFile}
-                                formats={'*.xmp'}
-                            />
-                        )}
-                    </div>
-                )}
-
-                <Field
-                    component={SelectInput}
-                    field={`${field}.planning.genre`}
-                    profileName="genre"
-                    label={gettext('Genre')}
-                    options={genres}
-                    labelField="name"
-                    clearable={true}
-                    defaultValue={contentTypeQcode === 'text' ? defaultGenre : null}
-                    readOnly={roFields.genre}
-                    language={value.planning.language}
-                    {...fieldProps}
-                />
-
-                <Field
-                    component={TextInput}
-                    field={`${field}.planning.slugline`}
-                    profileName="slugline"
-                    label={gettext('Slugline')}
-                    readOnly={roFields.slugline}
-                    autoFocus={hasAssignment && roFields.g2_content_type}
-                    {...fieldProps}
-                />
-
-                <Field
-                    component={TextAreaInput}
-                    field={`${field}.planning.ednote`}
-                    profileName="ednote"
-                    label={gettext('Ed Note')}
-                    readOnly={roFields.ednote}
-                    {...fieldProps}
-                />
-
-                <Field
-                    component={SelectTagInput}
-                    field={`${field}.planning.keyword`}
-                    profileName="keyword"
-                    label={gettext('Keywords')}
-                    defaultValue={[]}
-                    options={keywords}
-                    readOnly={roFields.keyword}
-                    {...fieldProps}
-                    onPopupOpen={onPopupOpen}
-                    onPopupClose={onPopupClose}
-                />
-
-                <Field
-                    component={ExpandableTextAreaInput}
-                    field={`${field}.planning.internal_note`}
-                    profileName="internal_note"
-                    label={gettext('Internal Note')}
-                    readOnly={roFields.internal_note}
-                    {...fieldProps}
-                />
-
-                {get(formProfile, 'editor.files.enabled') && (
-                    <div className={this.state.uploading ? 'sd-loader' : 'sd-line-input'}>
-                        {!this.state.uploading && (
-                            <Field
-                                label={gettext('Attach files')}
-                                component={FileInput}
-                                field={`${field}.planning.files`}
-                                profileName="files"
-                                createLink={createUploadLink}
-                                defaultValue={[]}
-                                readOnly={roFields.files}
-                                {...fieldProps}
-                                files={files}
-                                onAddFiles={this.onAddFiles}
-                                onRemoveFile={this.onRemoveFile}
-                            />
-                        )}
-                    </div>
-                )}
-
-                <Field
-                    component={SelectInput}
-                    field={`${field}.news_coverage_status`}
-                    profileName="news_coverage_status"
-                    label={gettext('Coverage Status')}
-                    defaultValue={planningUtils.getDefaultCoverageStatus(newsCoverageStatus)}
-                    options={newsCoverageStatus}
-                    {...fieldProps}
-                    readOnly={roFields.newsCoverageStatus}
-                    language={value.planning.language}
-                />
-
-                <Field
-                    component={DateTimeInput}
-                    field={`${field}.planning.scheduled`}
-                    profileName="scheduled"
-                    label={gettext('Due')}
-                    defaultValue={null}
-                    row={false}
-                    {...fieldProps}
-                    onChange={this.onScheduleChanged}
-                    readOnly={roFields.scheduled}
-                    popupContainer={popupContainer}
-                    onPopupOpen={onPopupOpen}
-                    onPopupClose={onPopupClose}
-                    timeField={`${field}.planning._scheduledTime`}
-                    showToBeConfirmed
-                    toBeConfirmed={get(value, TO_BE_CONFIRMED_FIELD)}
-                    onToBeConfirmed={this.onTimeToBeConfirmed}
-                />
-
-                <Field
-                    component={ToggleInput}
-                    field={`${field}.flags.no_content_linking`}
-                    label={gettext('Do not link content updates')}
-                    labelLeft={true}
-                    defaultValue={false}
-                    {...fieldProps}
-                    readOnly={roFields.flags}
-                    profileName="flags"
-                />
-
-                {planningAllowScheduledUpdates && contentTypeQcode === 'text' && (
-                    <Row>
-                        <LineInput><Label text={gettext('SCHEDULED UPDATES')} /></LineInput>
-                        {(value.scheduled_updates || []).map((s, i) => (
-                            <ScheduledUpdate
-                                key={i}
-                                value={s}
-                                field={field}
-                                coverageIndex={index}
-                                index={i}
-                                newsCoverageStatus={newsCoverageStatus}
-                                readOnly={readOnly}
-                                contentTypes={contentTypes}
-                                onRemoveAssignment={onRemoveAssignment}
-                                setCoverageDefaultDesk={setCoverageDefaultDesk}
-                                onRemove={this.onRemoveScheduledUpdate.bind(null, i)}
-                                onScheduleChanged={this.onScheduleChanged}
-                                genres={genres}
-                                onClose={this.onScheduledUpdateClose}
-                                onOpen={this.onScheduledUpdateOpen}
-                                openScheduledUpdates={this.state.openScheduledUpdates}
-                                {...fieldProps}
-                                {...props}
-                            />
-                        ))}
-                        {canCreateScheduledUpdate && (
-                            <Button
-                                color="primary"
-                                text={gettext('Schedule an update')}
-                                onClick={this.onAddScheduledUpdate}
-                            />
-                        )}
-                    </Row>
-                )}
-
             </div>
         );
     }

@@ -49,6 +49,7 @@ describe('<AddGeoLookupInput />', () => {
                 users={[]}
                 regions={[]}
                 countries={[]}
+                language="en"
             />
         );
         return wrapper;
@@ -75,8 +76,14 @@ describe('<AddGeoLookupInput />', () => {
         expect(planningApis.locations.searchExternal.callCount).toBe(2);
         // There's a bug in the library `react-geoloookup` that causes
         // our `searchExternal` to be called twice
-        expect(planningApis.locations.searchExternal.args[0]).toEqual([]);
-        expect(planningApis.locations.searchExternal.args[1]).toEqual(['Syd']);
+        expect(planningApis.locations.searchExternal.args[0]).toEqual([
+            undefined,
+            'en',
+        ]);
+        expect(planningApis.locations.searchExternal.args[1]).toEqual([
+            'Syd',
+            'en',
+        ]);
     });
 
     it('external search button can be controlled by disableSearch prop', () => {

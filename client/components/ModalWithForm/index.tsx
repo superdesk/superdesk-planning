@@ -103,10 +103,10 @@ export class ModalWithForm extends React.Component {
                 white={white}
             >
                 <Modal.Header>
-                    <a className="close" onClick={this.onHide}>
+                    <h3 className="modal__heading">{title}</h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.onHide}>
                         <i className="icon-close-small" />
                     </a>
-                    <h3>{title}</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <Form

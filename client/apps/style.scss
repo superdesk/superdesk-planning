@@ -31,8 +31,12 @@
     }
 }
 
-.sd-page-content--slide-in--open .sd-page-content__content-block--main {
-    width: calc(100vw - 60.8rem) !important;
+.sd-page-content--slide-in--open .sd-page-content__content-block--right.sd-edit-panel {
+    width: 44%;
+
+    @media only screen and (max-width: 1430px) {
+        width: 54%;
+    }
 }
 
 // Make <div class="sd-line-input__input" /> the same as an input element when
@@ -171,5 +175,5 @@ a:hover {
 }
 
 .sd-filters-panel--fixed {
-    flex-shrink: 0;    
+    flex-shrink: 0;
 }

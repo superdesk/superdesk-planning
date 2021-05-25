@@ -10,10 +10,10 @@ export class EditorFieldNoCalendarAssigned extends React.PureComponent<IEditorFi
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'no_calendar_assigned'}
                 label={this.props.label ?? gettext('No Calendar Assigned')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }

@@ -102,7 +102,7 @@ function getStartOfPreviousMonth(date: moment.Moment = null): moment.Moment {
         current.subtract(1, 'M').date(1);
 }
 
-function isEventInDifferentTimeZone(event: IEventItem): boolean {
+function isEventInDifferentTimeZone(event: Partial<IEventItem>): boolean {
     const dateInEventTimeZone = getDateInRemoteTimeZone(event?.dates?.start, event?.dates?.tz);
     const dateInLocalTimeZone = getDateInRemoteTimeZone(event?.dates?.start);
 

@@ -7,12 +7,19 @@ import {superdeskApi} from '../../../superdeskApi';
 export class EditorFieldSlugline extends React.PureComponent<IEditorFieldProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const {
+            field,
+            label,
+            refNode,
+            ...props
+        } = this.props;
 
         return (
             <EditorFieldText
-                field={this.props.field ?? 'slugline'}
-                label={this.props.label ?? gettext('Slugline')}
-                {...this.props}
+                ref={refNode}
+                {...props}
+                field={field ?? 'slugline'}
+                label={label ?? gettext('Slugline')}
             />
         );
     }

@@ -7,12 +7,17 @@ import {superdeskApi} from '../../../superdeskApi';
 export class EditorFieldReference extends React.PureComponent<IEditorFieldProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const {
+            refNode,
+            ...props
+        } = this.props;
 
         return (
             <EditorFieldText
-                field={this.props.field ?? 'reference'}
-                label={this.props.label ?? gettext('Reference')}
-                {...this.props}
+                ref={refNode}
+                {...props}
+                field={props.field ?? 'reference'}
+                label={props.label ?? gettext('Reference')}
             />
         );
     }

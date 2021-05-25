@@ -10,10 +10,10 @@ export class EditorFieldNoCoverage extends React.PureComponent<IEditorFieldProps
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'no_coverage'}
                 label={this.props.label ?? gettext('Without Coverage')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }

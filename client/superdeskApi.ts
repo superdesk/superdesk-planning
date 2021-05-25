@@ -14,6 +14,7 @@ export const planningApi = planningApis as IPlanningAPI;
 
 if (process.env.NODE_ENV !== 'production') {
     // For convenience during development, add the APIs to the global window object
+    // @ts-ignore
     window.api = {
         superdesk: superdeskApi,
         planning: planningApi,

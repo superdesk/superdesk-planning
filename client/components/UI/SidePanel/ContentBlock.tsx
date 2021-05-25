@@ -1,37 +1,35 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
 import classNames from 'classnames';
 
-/**
- * @ngdoc react
- * @name ContentBlock
- * @description Component to hold a single block of content
- */
-export const ContentBlock = ({children, className, padSmall, flex, noPadding}) => (
-    <div
-        className={classNames(
-            'side-panel__content-block',
-            className,
-            {
-                'side-panel__content-block--pad-small': padSmall,
-                'side-panel__content-block--flex': flex,
-                'side-panel__content-block--no-padding': noPadding,
-            }
-        )}
-    >
-        {children}
-    </div>
-);
+interface IProps {
+    className?: string;
+    padSmall?: boolean;
+    flex?: boolean;
+    noPadding?: boolean;
+    navbar?: boolean;
+    content?: boolean;
+    onScroll?(event: React.UIEvent<HTMLDivElement>): void;
+}
 
-ContentBlock.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    padSmall: PropTypes.bool,
-    flex: PropTypes.bool,
-    noPadding: PropTypes.bool,
-};
-
-ContentBlock.defaultProps = {
-    padSmall: false,
-    flex: false,
-};
+export class ContentBlock extends React.PureComponent<IProps> {
+    render() {
+        return (
+            <div
+                className={classNames(
+                    'side-panel__content-block',
+                    this.props.className,
+                    {
+                        'side-panel__content-block--pad-small': this.props.padSmall,
+                        'side-panel__content-block--flex': this.props.flex,
+                        'side-panel__content-block--no-padding': this.props.noPadding,
+                        'side-panel__content-block--navbar': this.props.navbar,
+                        'side-panel__content-block--content': this.props.content,
+                    }
+                )}
+                onScroll={this.props.onScroll}
+            >
+                {this.props.children}
+            </div>
+        );
+    }
+}

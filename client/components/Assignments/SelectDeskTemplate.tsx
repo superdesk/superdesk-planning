@@ -4,6 +4,7 @@ import {Modal} from '../';
 import {Button} from '../UI';
 import {get} from 'lodash';
 import {KEYCODES} from '../../constants';
+import {gettext} from '../../utils';
 
 export class SelectDeskTemplate extends React.Component {
     constructor(props) {
@@ -58,10 +59,10 @@ export class SelectDeskTemplate extends React.Component {
         return (
             <Modal show={true} onHide={handleHide}>
                 <Modal.Header>
-                    <a className="close" onClick={this.handleCancel}>
+                    <h3 className="modal__heading">{gettext('Select template')}</h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.handleCancel}>
                         <i className="icon-close-small" />
                     </a>
-                    <h3>{gettext('Select template')}</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <form>

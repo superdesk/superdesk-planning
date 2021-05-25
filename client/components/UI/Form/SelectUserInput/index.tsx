@@ -1,20 +1,40 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
+import {IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../../superdeskApi';
+import {KEYCODES} from '../../constants';
+
+import {onEventCapture} from '../../utils';
 
 import {Row, LineInput, Label, Input} from '../';
 import {UserAvatar} from '../../../';
 import {SelectUserPopup} from './SelectUserPopup';
-import {KEYCODES} from '../../constants';
-import {onEventCapture} from '../../utils';
+
+interface IProps {
+    field: string;
+    label?: string;
+    placeholder?: string;
+    value: any;
+    users: Array<IUser>;
+    readOnly?: boolean;
+    hideInactiveDisabled?: boolean; // defaults to `true`
+    inline?: boolean;
+    onChange(field: string, value?: IUser): void;
+    popupContainer?(): HTMLElement;
+}
+
+interface IState {
+    filteredUserList: Array<IUser>;
+    searchText?: string;
+    openFilterList?: boolean;
+}
 
 /**
  * @ngdoc react
  * @name SelectUserInput
  * @description Component to select users from a list
  */
-export class SelectUserInput extends React.Component {
+export class SelectUserInput extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -74,7 +94,7 @@ export class SelectUserInput extends React.Component {
     }
 
     getUsersToDisplay(list = []) {
-        if (!this.props.hideInactiveDisabled) {
+        if (!(this.props.hideInactiveDisabled ?? true)) {
             return list;
         } else {
             return list.filter((u) => u.is_active && u.is_enabled && !u.needs_activation);
@@ -124,7 +144,7 @@ export class SelectUserInput extends React.Component {
                                 value={this.state.searchText}
                                 onChange={this.filterUserList}
                                 onClick={this.openPopup}
-                                placeholder={gettext('Search')}
+                                placeholder={this.props.placeholder ?? gettext('Search')}
                                 onKeyDown={(event) => {
                                     if (event.keyCode === KEYCODES.ENTER ||
                                     event.keyCode === KEYCODES.DOWN) {
@@ -151,20 +171,3 @@ export class SelectUserInput extends React.Component {
         );
     }
 }
-
-SelectUserInput.propTypes = {
-    field: PropTypes.string,
-    label: PropTypes.string,
-    value: PropTypes.object,
-    onChange: PropTypes.func,
-    users: PropTypes.array,
-    popupContainer: PropTypes.func,
-    readOnly: PropTypes.bool,
-    hideInactiveDisabled: PropTypes.bool,
-    inline: PropTypes.bool,
-};
-
-SelectUserInput.defaultProps = {
-    hideInactiveDisabled: true,
-    inline: false,
-};

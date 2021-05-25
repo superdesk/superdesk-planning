@@ -242,15 +242,13 @@ describe('actions.planning.api', () => {
                     expect(item).toEqual(data.plannings[0]);
 
                     expect(planningApis.planning.getById.callCount).toBe(1);
-                    expect(planningApis.planning.getById.args[0]).toEqual(['p1']);
+                    expect(planningApis.planning.getById.args[0]).toEqual([
+                        'p1',
+                        true,
+                    ]);
 
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(1);
                     expect(planningApi.fetchPlanningsEvents.args[0]).toEqual([
-                        [data.plannings[0]],
-                    ]);
-
-                    expect(planningApi.receivePlannings.callCount).toBe(1);
-                    expect(planningApi.receivePlannings.args[0]).toEqual([
                         [data.plannings[0]],
                     ]);
 
@@ -264,15 +262,13 @@ describe('actions.planning.api', () => {
                     expect(item).toEqual(data.plannings[0]);
 
                     expect(planningApis.planning.getById.callCount).toBe(1);
-                    expect(planningApis.planning.getById.args[0]).toEqual(['p1']);
+                    expect(planningApis.planning.getById.args[0]).toEqual([
+                        'p1',
+                        true,
+                    ]);
 
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(1);
                     expect(planningApi.fetchPlanningsEvents.args[0]).toEqual([
-                        [data.plannings[0]],
-                    ]);
-
-                    expect(planningApi.receivePlannings.callCount).toBe(1);
-                    expect(planningApi.receivePlannings.args[0]).toEqual([
                         [data.plannings[0]],
                     ]);
 

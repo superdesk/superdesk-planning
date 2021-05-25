@@ -1,22 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
+
 import {ICON_COLORS} from '../../../constants';
-import {StateLabel} from '../..';
+import {onEventCapture, editorMenuUtils} from '../../../utils';
+
 import {ItemIcon} from '../../index';
-import {Item, Column, Row, ActionMenu, Border} from '../../UI/List';
-import {CollapseBox} from '../../UI/CollapseBox';
-import {planningUtils, onEventCapture, editorMenuUtils} from '../../../utils';
-import {PlanningPreviewContent} from '../../Planning/PlanningPreviewContent';
-import {AgendaNameList} from '../../Agendas';
-import {CoverageIcon} from '../../Coverages/';
+import {Item, Column, Row} from '../../UI/List';
+import {CollapseBox} from '../../UI';
+import {PlanningPreviewContent} from '../../Planning';
+import {RelatedPlanningListItem} from './RelatedPlanningListItem';
 
 export const PlanningMetaData = (
     {
         plan,
         scrollInView,
         tabEnabled,
-        lockedItems,
         onEditPlanning,
         noOpen,
         onClick,
@@ -24,13 +22,10 @@ export const PlanningMetaData = (
         active,
         showIcon,
         showBorder,
-        users,
-        desks,
         field,
-        contentTypes,
+        noBg,
     }
 ) => {
-    const isItemLocked = lockedItems ? planningUtils.isPlanningLocked(plan, lockedItems) : false;
     const editPlanningComponent = onEditPlanning ?
         (
             <button
@@ -45,53 +40,15 @@ export const PlanningMetaData = (
             </button>
         ) : null;
 
-
     const planningListView = (
-        <Item noBg={!active} activated={active}>
-            {showBorder && isItemLocked && <Border state="locked" />}
-            <div className="sd-list-item__border" />
-            {showIcon && (
-                <Column>
-                    <ItemIcon
-                        item={plan}
-                        color={ICON_COLORS.DARK_BLUE_GREY}
-                    />
-                </Column>
-            )}
-            <Column grow={true} border={false}>
-                <Row>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        <span className="sd-list-item__text-strong">{plan.slugline}</span>
-                    </span>
-                </Row>
-                <Row>
-                    <span className="no-padding">
-                        <span className="sd-list-item__text-label">agenda:</span>
-                        <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
-                            <AgendaNameList agendas={plan._agendas} />
-                        </span>
-                    </span>
-                </Row>
-            </Column>
-            <Column>
-                <Row>
-                    <span className="sd-no-wrap">
-                        {get(plan, 'coverages.length', 0) > 0 && plan.coverages.map((coverage, i) => (
-                            <CoverageIcon
-                                key={i}
-                                coverage={coverage}
-                                users={users}
-                                desks={desks}
-                                contentTypes={contentTypes}
-                            />
-                        )
-                        )}
-                    </span>
-                </Row>
-                <StateLabel item={plan} verbose={true} className="pull-right" />
-            </Column>
-            {editPlanningComponent && <ActionMenu>{editPlanningComponent}</ActionMenu>}
-        </Item>
+        <RelatedPlanningListItem
+            item={plan}
+            active={active}
+            noBg={noBg}
+            showBorder={showBorder}
+            showIcon={showIcon}
+            editPlanningComponent={editPlanningComponent}
+        />
     );
 
     const planningInDetailTopBar = (
@@ -152,13 +109,10 @@ PlanningMetaData.propTypes = {
     noOpen: PropTypes.bool,
     navigation: PropTypes.object,
     active: PropTypes.bool,
-    lockedItems: PropTypes.object,
     showIcon: PropTypes.bool,
     showBorder: PropTypes.bool,
-    users: PropTypes.array,
-    desks: PropTypes.array,
     field: PropTypes.string,
-    contentTypes: PropTypes.array,
+    noBg: PropTypes.bool,
 };
 
 
