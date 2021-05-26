@@ -4,9 +4,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [
-    "/dist"
-  ],
   "main": "dist/planning-extension/src/extension.js",
   "scripts": {
     "compile": "tsc -p src",
