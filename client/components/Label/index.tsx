@@ -3,10 +3,11 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import './style.scss';
 
-export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick, id}) => {
+export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick, id, className}) => {
     const labelClasses = classNames(
         'label',
         `label--${iconType}`,
+        className,
         {
             'label--hollow': isHollow,
             'label--clickable': !!onClick,
@@ -49,6 +50,7 @@ Label.propTypes = {
     tooltip: PropTypes.object,
     verbose: PropTypes.string,
     onClick: PropTypes.func,
+    className: PropTypes.string,
 };
 
 Label.defaultProps = {

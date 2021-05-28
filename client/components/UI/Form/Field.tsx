@@ -1,15 +1,40 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {Row} from './Row';
+
+interface IProps {
+    component: any;
+    field: string;
+    profileName: string;
+    label: string;
+    item: any;
+    diff: any;
+    onChange(field: string | {[key: string]: any}, value: any): void;
+    defaultValue: any;
+    formProfile: any;
+    errors?: {[key: string]: any};
+    error?: string;
+    row?: boolean; // defaults to true
+    enabled?: boolean; // defaults to true
+    showErrors?: boolean;
+    value: any;
+    onFocus?(): void;
+    scheme?: string;
+    testId?: string;
+}
+
+interface IState {
+    dirty: boolean;
+}
 
 /**
  * @ngdoc react
  * @name Field
  * @description Component to encapsulate an input component in a form as a Field
  */
-export class Field extends React.Component {
+export class Field extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -20,7 +45,7 @@ export class Field extends React.Component {
         const {field, formProfile} = this.props;
 
         // If this field is disabled, then no need to perform checks
-        if (!nextProps.enabled || !get(formProfile, `editor.${field}.enabled`, true)) {
+        if (!(nextProps.enabled ?? true) || !get(formProfile, `editor.${field}.enabled`, true)) {
             return;
         }
 
@@ -48,11 +73,12 @@ export class Field extends React.Component {
             formProfile,
             errors,
             error,
-            row,
-            enabled,
+            row = true,
+            enabled = true,
             showErrors,
             value,
             onFocus,
+            testId,
             ...props
         } = this.props;
 
@@ -88,34 +114,39 @@ export class Field extends React.Component {
             />
         );
 
-        return row ? <Row id={`form-row-${field}`}>{child}</Row> : child;
+        return !row ? child : (
+            <Row
+                id={`form-row-${field}`}
+                data-test-id={testId}
+            >{child}</Row>
+        );
     }
 }
 
-Field.propTypes = {
-    component: PropTypes.func.isRequired,
-    field: PropTypes.string.isRequired,
-    profileName: PropTypes.string,
-    label: PropTypes.string,
-    item: PropTypes.object,
-    diff: PropTypes.object,
-    onChange: PropTypes.func.isRequired,
-    defaultValue: PropTypes.any,
-    formProfile: PropTypes.object,
-    errors: PropTypes.object,
-    error: PropTypes.string,
-    row: PropTypes.bool,
-    enabled: PropTypes.bool,
-    showErrors: PropTypes.bool,
-    value: PropTypes.any,
-    onFocus: PropTypes.func,
-    scheme: PropTypes.string,
-};
-
-Field.defaultProps = {
-    defaultValue: '',
-    row: true,
-    enabled: true,
-    showErrors: false,
-    scheme: '',
-};
+// Field.propTypes = {
+//     component: PropTypes.func.isRequired,
+//     field: PropTypes.string.isRequired,
+//     profileName: PropTypes.string,
+//     label: PropTypes.string,
+//     item: PropTypes.object,
+//     diff: PropTypes.object,
+//     onChange: PropTypes.func.isRequired,
+//     defaultValue: PropTypes.any,
+//     formProfile: PropTypes.object,
+//     errors: PropTypes.object,
+//     error: PropTypes.string,
+//     row: PropTypes.bool,
+//     enabled: PropTypes.bool,
+//     showErrors: PropTypes.bool,
+//     value: PropTypes.any,
+//     onFocus: PropTypes.func,
+//     scheme: PropTypes.string,
+// };
+//
+// Field.defaultProps = {
+//     defaultValue: '',
+//     row: true,
+//     enabled: true,
+//     showErrors: false,
+//     scheme: '',
+// };

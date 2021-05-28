@@ -115,6 +115,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                         <NavButton
                             icon="filter-large"
                             onClick={this.props.toggleFilterPanel}
+                            text={gettext('Toggle advanced Filters')}
                             type={this.props.filtersOpen === true ?
                                 'primary' :
                                 'default'
@@ -124,7 +125,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                     <FiltersBox showFilters={this.props.showFilters ?? true} />
                     <ButtonGroup align="right">
                         <Dropdown items={this.viewOptions}>
-                            <button className="sd-navbtn">
+                            <button className="sd-navbtn" aria-label={gettext('Change view')}>
                                 <i className={listViewIcon} />
                             </button>
                         </Dropdown>

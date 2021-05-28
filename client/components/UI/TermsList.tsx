@@ -1,4 +1,5 @@
 import React from 'react';
+import {gettext} from 'superdesk-core/scripts/core/utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
 type Term = {[key: string]: any};
@@ -41,10 +42,10 @@ export default class TermsList extends React.PureComponent<IProps> {
                                 null
                             }
                         >
-                            {!clickEnabled ? null : (
-                                <i className="icon-close-small" />
-                            )}
                             {getVocabularyItemFieldTranslated(term, displayField, language) || term}
+                            {!clickEnabled ? null : (
+                                <i className="icon-close-small" role="button" aria-label={gettext('Remove')} />
+                            )}
                         </li>
                     ))}
                 </ul>

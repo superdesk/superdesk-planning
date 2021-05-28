@@ -124,6 +124,7 @@ export class Dropdown extends React.Component<IProps, IState> {
         return (
             <button
                 className={buttonClassName}
+                aria-label={this.props.tooltip}
                 onClick={this.props.disableSelection ?
                     this.props.defaultAction :
                     this.toggle

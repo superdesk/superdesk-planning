@@ -1,34 +1,36 @@
 import {Editor} from '../../common/editor';
 import {CoverageEditor} from './coverageEditor';
-import {Input, SelectMetaTerms, UrgencyInput, ToggleInput} from '../../common/inputs';
-import {Popup} from '../../common/ui';
+import {Input, SelectMetaTerms, UrgencyInput, ToggleInput, Popup} from '../../common';
 
 /**
  * Wrapper class around Superdesk's Planning editor component
  * @extends Editor
  */
 export class PlanningEditor extends Editor {
+    fields: {[key: string]: any};
+
     constructor() {
         super('.icon-calendar.icon--2x.icon--light-blue', 'planning');
+        const getParent = () => this.element;
 
         this.fields = {
-            name: new Input(() => this.element, 'input[name="name"]'),
-            slugline: new Input(() => this.element, 'input[name="slugline"]'),
-            headline: new Input(() => this.element, 'input[name="headline"]'),
+            name: new Input(getParent, '[data-test-id=field-name] input'),
+            slugline: new Input(getParent, '[data-test-id=field-slugline] input'),
+            headline: new Input(getParent, '[data-test-id=field-headline] input'),
             planning_date: {
-                date: new Input(() => this.element, 'input[name="planning_date.date"]'),
-                time: new Input(() => this.element, 'input[name="planning_date.time"]'),
+                date: new Input(getParent, '[data-test-id=field-planning_date] input[name="planning_date.date"]'),
+                time: new Input(getParent, '[data-test-id=field-planning_date] input[name="planning_date.time"]'),
             },
-            description_text: new Input(() => this.element, 'textarea[name="description_text"]'),
-            internal_note: new Input(() => this.element, 'textarea[name="internal_note"]'),
-            ednote: new Input(() => this.element, 'textarea[name="ednote"]'),
-            anpa_category: new SelectMetaTerms(() => this.element, '#form-row-anpa_category'),
-            subject: new SelectMetaTerms(() => this.element, '#form-row-subject'),
-            urgency: new UrgencyInput(() => this.element, '#form-row-urgency'),
+            description_text: new Input(getParent, '[data-test-id=field-description_text] textarea'),
+            internal_note: new Input(getParent, '[data-test-id=field-internal_note] textarea'),
+            ednote: new Input(getParent, '[data-test-id=field-ednote] textarea'),
+            anpa_category: new SelectMetaTerms(getParent, '[data-test-id=field-anpa_category]'),
+            subject: new SelectMetaTerms(getParent, '[data-test-id=field-subject]'),
+            urgency: new UrgencyInput(getParent, '[data-test-id=field-urgency]'),
             flags: {
                 marked_for_not_publication: new ToggleInput(
-                    () => this.element,
-                    'button[name="flags.marked_for_not_publication"]'
+                    getParent,
+                    '[data-test-id="field-flags.marked_for_not_publication"] > :first-child'
                 ),
             },
         };
@@ -39,7 +41,8 @@ export class PlanningEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get coveragesContainer() {
-        return this.element.find('.coverages__array');
+        // return this.element.find('.coverages__array');
+        return this.element.find('[data-test-id="field-coverages"]');
     }
 
     /**
@@ -47,7 +50,13 @@ export class PlanningEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get addCoverageButton() {
-        return this.coveragesContainer.find('.sd-create-btn');
+        return this.coveragesContainer
+            .should('exist')
+            .find('.sd-create-btn')
+            .should('exist');
+        // return this.element.find('[data-test-id="field-coverages"] .sd-create-btn');
+        // return this.coveragesContainer.find('.sd-create-btn');
+        // return this.coveragesContainer.find('.sd-create-btn');
     }
 
     /**

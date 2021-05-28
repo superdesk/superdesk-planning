@@ -42,7 +42,7 @@ export class PreviewFieldFilterScheduleComponent extends React.PureComponent<IPr
                                 {this.props.editSchedule == null ? null : (
                                     <IconButton
                                         icon="pencil"
-                                        ariaValue={gettext('edit schedule')}
+                                        ariaValue={gettext('Edit schedule')}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             this.props.editSchedule(this.props.item);
@@ -52,7 +52,7 @@ export class PreviewFieldFilterScheduleComponent extends React.PureComponent<IPr
                                 {this.props.deleteSchedule == null ? null : (
                                     <IconButton
                                         icon="trash"
-                                        ariaValue={gettext('delete schedule')}
+                                        ariaValue={gettext('Delete schedule')}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             this.props.deleteSchedule(this.props.item);

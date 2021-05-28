@@ -43,6 +43,7 @@ export class ActionsMenuPopup extends React.PureComponent {
                                 {gettext('Actions')}
                                 <button
                                     className="dropdown__menu-close"
+                                    aria-label={gettext('Close')}
                                     onClick={closeMenu}
                                 >
                                     <i className="icon-close-small" />

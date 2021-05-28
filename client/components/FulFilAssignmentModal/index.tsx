@@ -73,12 +73,12 @@ class FulFilAssignmentComponent extends React.Component {
                 fill={true}
             >
                 <Modal.Header>
+                    <h3 className="modal__heading">{title || gettext('Select an Assignment')}</h3>
                     {actionInProgress ? null : (
-                        <a className="close" onClick={this.handleCancel}>
+                        <a className="icn-btn" aria-label={gettext('Close')} onClick={this.handleCancel}>
                             <i className="icon-close-small" />
                         </a>
                     )}
-                    <h3>{title || gettext('Select an Assignment')}</h3>
                 </Modal.Header>
 
                 <Modal.Body

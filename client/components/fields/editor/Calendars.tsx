@@ -20,14 +20,19 @@ export class EditorFieldCalendarsComponent extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldVocabulary
+                {...this.props}
                 field={this.props.field ?? 'calendars'}
                 label={this.props.label ?? gettext('Calendars')}
                 options={this.props.calendars}
                 defaultValue={[]}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldCalendars = connect(mapStateToProps)(EditorFieldCalendarsComponent);
+export const EditorFieldCalendars = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldCalendarsComponent);

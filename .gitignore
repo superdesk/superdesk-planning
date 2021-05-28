@@ -31,3 +31,6 @@ _build_html
 coverage/
 .coverage*
 htmlcov
+.history/
+.DS_Store
+.vscode

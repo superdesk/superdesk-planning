@@ -16,8 +16,10 @@ export const Group = ({
     onScroll,
     refNode,
     shadow,
+    testId,
 }) => (
     <div
+        data-test-id={testId}
         className={classNames(
             className,
             'sd-list-item-group',
@@ -44,6 +46,7 @@ Group.propTypes = {
     onScroll: PropTypes.func,
     refNode: PropTypes.func,
     shadow: PropTypes.oneOf([1, 2, 3, 4]),
+    testId: PropTypes.string,
 };
 
 Group.defaultProps = {

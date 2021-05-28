@@ -1,74 +1,103 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment-timezone';
 import {get} from 'lodash';
+
 import {SelectMetaTermsInput, Row} from './';
+
 import './style.scss';
 
-/**
- * @ngdoc react
- * @name TimeZoneInput
- * @description Component to choose timezone
- */
-export const TimeZoneInput = ({field, label, value, onChange, invalid, required, halfWidth, ...props}) => {
-    const onChangeHandler = (field, val) => {
-        if (val.length > 1) {
-            onChange(field, get(val.find((v) => get(v, 'qcode') !== value), 'qcode'));
+interface IProps {
+    field: string;
+    label?: string;
+    value: string;
+    readOnly?: boolean;
+    onChange(field: string, value: string): void;
+    noMargin?: boolean;
+    invalid?: boolean;
+    required?: boolean;
+    halfWidth?: boolean;
+    testId?: string;
+    marginLeftAuto?: boolean;
+    noPadding?: boolean;
+}
+
+interface IState {
+    timeZones: Array<{
+        qcode: string;
+        name: string;
+    }>
+}
+
+export class TimeZoneInput extends React.Component<IProps, IState> {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            timeZones: moment.tz.names().map((t) => ({
+                qcode: t,
+                name: t,
+            })),
+        };
+
+        this.onChange = this.onChange.bind(this);
+    }
+
+    onChange(field: string, value: IState['timeZones']) {
+        if (value.length > 1) {
+            this.props.onChange(
+                field,
+                get(value.find((v) => get(v, 'qcode') !== this.props.value), 'qcode')
+            );
         } else {
-            onChange(field, get(val, '[0].qcode'));
+            this.props.onChange(
+                field,
+                value?.[0]?.qcode
+            );
         }
-    };
+    }
 
-    const timeZones = moment.tz.names().map((t) => ({
-        qcode: t,
-        name: t,
-    }));
+    render() {
+        const {
+            field,
+            label,
+            value,
+            invalid,
+            required,
+            halfWidth,
+            testId,
+            marginLeftAuto,
+            noPadding,
+            ...props
+        } = this.props;
 
-    return (
-        <Row
-            flex={true}
-            halfWidth={halfWidth}
-            className={{
-                'date-time-input__row': true,
-                'date-time-input__row--required': required,
-                'date-time-input__row--invalid': invalid,
-            }}
-        >
+        return (
+            <Row
+                testId={testId}
+                flex={true}
+                halfWidth={halfWidth}
+                noPadding={noPadding}
+                className={{
+                    'sd-margin-l--auto': marginLeftAuto,
+                    'date-time-input__row': true,
+                    'date-time-input__row--required': required,
+                    'date-time-input__row--invalid': invalid,
+                }}
+            >
 
-            <SelectMetaTermsInput
-                label={label}
-                {...props}
-                invalid={invalid}
-                required={required}
-                field={field}
-                options={timeZones}
-                onChange={onChangeHandler}
-                value={value ? [{
-                    qcode: value,
-                    name: value,
-                }] : []}
-            />
-        </Row>
-    );
-};
-
-TimeZoneInput.propTypes = {
-    field: PropTypes.string,
-    label: PropTypes.string,
-    value: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.object,
-        PropTypes.string,
-    ]),
-    readOnly: PropTypes.bool,
-    onChange: PropTypes.func,
-    noMargin: PropTypes.bool,
-    invalid: PropTypes.bool,
-    required: PropTypes.bool,
-    halfWidth: PropTypes.bool,
-};
-
-TimeZoneInput.defaultProps = {
-    invalid: false,
-    required: false,
-};
+                <SelectMetaTermsInput
+                    label={label}
+                    {...props}
+                    invalid={invalid}
+                    required={required}
+                    field={field}
+                    options={this.state.timeZones}
+                    onChange={this.onChange}
+                    value={value ? [{
+                        qcode: value,
+                        name: value,
+                    }] : []}
+                />
+            </Row>
+        );
+    }
+}

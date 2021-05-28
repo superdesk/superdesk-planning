@@ -1,54 +1,121 @@
 import {AUTOSAVE, ITEM_TYPE, MAIN} from '../constants';
 import {createReducer} from './createReducer';
-import {eventUtils, planningUtils, getItemId, getItemType} from '../utils';
-import {get, set, cloneDeep} from 'lodash';
+import {eventUtils, getItemId, getItemType, planningUtils} from '../utils';
+import {cloneDeep, get, set} from 'lodash';
+import {EDITOR_TYPE, IEditorFormState, IFormState} from '../interfaces';
 
-const initialState = {
+const initialState: IFormState = {
     profiles: {},
     autosaves: {
         event: {},
         planning: {},
     },
     editors: {
-        panel: {
+        [EDITOR_TYPE.INLINE]: {
             itemId: null,
             itemType: null,
             action: null,
             initialValues: null,
             itemHistory: [],
+            groups: {},
+            activeBookmarkId: null,
+            diff: {},
         },
-        modal: {
+        [EDITOR_TYPE.POPUP]: {
             itemId: null,
             itemType: null,
             action: null,
             initialValues: null,
             itemHistory: [],
+            groups: {},
+            activeBookmarkId: null,
+            diff: {},
         },
     },
 };
 
-const updateEditor = (state, modal, updates) => {
+function updateEditor(
+    state: IFormState,
+    modal: boolean,
+    updates: DeepPartial<IFormState>['editors']['panel']
+): IFormState {
     const newState = cloneDeep(state);
 
     if (modal) {
-        newState.editors.modal = {
-            ...newState.editors.modal,
+        newState.editors[EDITOR_TYPE.POPUP] = {
+            ...newState.editors[EDITOR_TYPE.POPUP],
             ...updates,
         };
     } else {
-        newState.editors.panel = {
-            ...newState.editors.panel,
+        newState.editors[EDITOR_TYPE.INLINE] = {
+            ...newState.editors[EDITOR_TYPE.INLINE],
             ...updates,
         };
     }
 
     return newState;
-};
+}
+
+function updateFormGroups(action: string, state: IFormState, payload: any): IFormState {
+    const newState = cloneDeep(state);
+    const editor: IEditorFormState = newState.editors[payload.editor];
+
+    switch (action) {
+    case MAIN.ACTIONS.FORMS_GROUP_SET:
+        editor.groups = payload.groups;
+        break;
+    case MAIN.ACTIONS.FORMS_GROUP_CLEAR:
+        editor.groups = {};
+        break;
+    case MAIN.ACTIONS.FORMS_GROUP_DELETE:
+        delete editor.groups[payload.groupId];
+        break;
+    case MAIN.ACTIONS.FORMS_GROUP_UPDATE:
+        editor.groups[payload.group.id] = {
+            ...editor.groups[payload.group.id],
+            ...payload.updates,
+        };
+        break;
+    }
+
+    return newState;
+}
+
+function updateFormBookmarks(action: string, state: IFormState, payload: any): IFormState {
+    const newState = cloneDeep(state);
+    const editor: IEditorFormState = newState.editors[payload.editor];
+
+    switch (action) {
+    case MAIN.ACTIONS.FORMS_BOOKMARKS_SET:
+        editor.bookmarks = payload.bookmarks;
+        break;
+    case MAIN.ACTIONS.FORMS_BOOKMARKS_CLEAR:
+        editor.bookmarks = {};
+        editor.activeBookmarkId = null;
+        break;
+    case MAIN.ACTIONS.FORMS_BOOKMARKS_DELETE:
+        delete editor.bookmarks[payload.bookmarkId];
+
+        if (payload.bookmarkId === editor.activeBookmarkId) {
+            editor.activeBookmarkId = null;
+        }
+
+        break;
+    case MAIN.ACTIONS.FORMS_BOOKMARKS_UPDATE:
+        editor.bookmarks[payload.bookmark.id] = {
+            ...editor.bookmarks[payload.bookmark.id],
+            ...payload.updates,
+        };
+        break;
+    }
+
+    return newState;
+}
 
 const formsReducer = createReducer(initialState, {
-    [MAIN.ACTIONS.OPEN_FOR_EDIT]: (state, payload) => (
+    [MAIN.ACTIONS.OPEN_FOR_EDIT]: (state: IFormState, payload: any) => (
         updateEditor(state, payload.modal, {
-            itemId: getItemId(payload.item) || null,
+            itemId: getItemId(payload.item) ?? null,
             itemType: getItemType(payload.item) || null,
             itemHistory: [],
             action: payload.action,
@@ -129,6 +196,32 @@ const formsReducer = createReducer(initialState, {
             itemHistory: payload.items,
         })
     ),
+
+    [MAIN.ACTIONS.SET_FORM_DIFF]: (state: IFormState, payload) => (
+        updateEditor(
+            state,
+            payload.editor === EDITOR_TYPE.POPUP,
+            {diff: payload.diff}
+        )
+    ),
+
+    [MAIN.ACTIONS.FORMS_GROUP_SET]: updateFormGroups.bind(null, MAIN.ACTIONS.FORMS_GROUP_SET),
+    [MAIN.ACTIONS.FORMS_GROUP_UPDATE]: updateFormGroups.bind(null, MAIN.ACTIONS.FORMS_GROUP_UPDATE),
+    [MAIN.ACTIONS.FORMS_GROUP_DELETE]: updateFormGroups.bind(null, MAIN.ACTIONS.FORMS_GROUP_DELETE),
+    [MAIN.ACTIONS.FORMS_GROUP_CLEAR]: updateFormGroups.bind(null, MAIN.ACTIONS.FORMS_GROUP_CLEAR),
+
+    [MAIN.ACTIONS.FORMS_BOOKMARKS_SET]: updateFormBookmarks.bind(null, MAIN.ACTIONS.FORMS_BOOKMARKS_SET),
+    [MAIN.ACTIONS.FORMS_BOOKMARKS_UPDATE]: updateFormBookmarks.bind(null, MAIN.ACTIONS.FORMS_BOOKMARKS_UPDATE),
+    [MAIN.ACTIONS.FORMS_BOOKMARKS_DELETE]: updateFormBookmarks.bind(null, MAIN.ACTIONS.FORMS_BOOKMARKS_DELETE),
+    [MAIN.ACTIONS.FORMS_BOOKMARKS_CLEAR]: updateFormBookmarks.bind(null, MAIN.ACTIONS.FORMS_BOOKMARKS_CLEAR),
+
+    [MAIN.ACTIONS.FORMS_BOOKMARKS_SET_ACTIVE_ID]: (state, payload) => {
+        const newState = cloneDeep(state);
+
+        newState.editors[payload.editor].activeBookmarkId = payload.bookmarkId;
+
+        return newState;
+    },
 });
 
 export default formsReducer;

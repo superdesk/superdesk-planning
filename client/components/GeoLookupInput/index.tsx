@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {AddGeoLookupInput} from './AddGeoLookupInput';
+import {AddGeoLookupInput, GeoLookupInputComponent} from './AddGeoLookupInput';
 
 import {LineInput, Label} from '../UI/Form';
 import {ILocation} from '../../interfaces';
@@ -17,6 +17,8 @@ interface IProps {
     readOnly?: boolean;
     boxed?: boolean;
     noMargin?: boolean;
+    refNode?: React.RefObject<GeoLookupInputComponent>;
+    language?: string;
     onChange(field: string, value?: Partial<ILocation>): void;
     onFocus?(): void;
     popupContainer?(): HTMLElement;
@@ -34,19 +36,28 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
             value,
             field,
             readOnly,
+            language,
             onFocus,
             popupContainer,
+            refNode,
             ...props
         } = this.props;
 
         return (
-            <LineInput {...props} readOnly={readOnly}>
+            <LineInput
+                {...props}
+                readOnly={readOnly}
+                className="addgeolookup2"
+                noMargin={true}
+            >
                 <Label text={label} />
                 <AddGeoLookupInput
+                    ref={refNode}
                     field={field}
                     onChange={onChange}
                     initialValue={value}
                     readOnly={readOnly}
+                    language={language}
                     disableSearch={disableSearch}
                     disableAddLocation={disableAddLocation ?? true}
                     onFocus={onFocus}

@@ -80,10 +80,10 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
         return (
             <Modal xLarge={true} show={true} onHide={handleHide}>
                 <Modal.Header>
-                    <a className="close" onClick={handleHide}>
+                    <h3 className="modal__heading">{gettext('Manage Event Templates')}</h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={handleHide}>
                         <i className="icon-close-small" />
                     </a>
-                    <h3 className="modal__heading">{gettext('Manage Event Templates')}</h3>
                 </Modal.Header>
                 <Modal.Body noPadding={true}>
                     <EventTemplatesComponent

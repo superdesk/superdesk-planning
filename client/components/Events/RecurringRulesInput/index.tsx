@@ -1,15 +1,32 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get, range} from 'lodash';
+import moment from 'moment';
+
+import {IEventItem} from '../../../interfaces';
+import {superdeskApi} from '../../../superdeskApi';
 
 import {Row, LineInput, Label, Select, DateInput, Input} from '../../UI/Form';
 import {DaysOfWeekInput} from './DaysOfWeekInput';
 
-import {gettext} from '../../../utils';
+interface IProps {
+    schedule: Partial<IEventItem['dates']>;
+    readOnly?: boolean;
+    errors?: {[key: string]: any};
+    onlyUpdateRepetitions?: boolean;
+    testId?: string;
+    onChange(field: string, value: any): void;
+    popupContainer(): HTMLElement;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
 
-export class RecurringRulesInput extends React.Component {
+export class RecurringRulesInput extends React.PureComponent<IProps> {
+    repeatChoices: Array<{label: string, key: string}>;
+    endsChoices: Array<{label: string, key: string}>;
+
     constructor(props) {
         super(props);
+        const {gettext} = superdeskApi.localization;
 
         this.repeatChoices = [
             {label: gettext('Day(s)'), key: 'DAILY'},
@@ -52,8 +69,8 @@ export class RecurringRulesInput extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
-            schedule,
             onChange,
             readOnly,
             errors,
@@ -63,52 +80,59 @@ export class RecurringRulesInput extends React.Component {
             onPopupClose,
         } = this.props;
 
-        const frequency = get(schedule, 'recurring_rule.frequency');
-        const endRepeatMode = get(schedule, 'recurring_rule.endRepeatMode');
-        const until = get(schedule, 'recurring_rule.until');
-        const count = get(schedule, 'recurring_rule.count');
-        const byDay = get(schedule, 'recurring_rule.byday');
-        const interval = get(schedule, 'recurring_rule.interval');
+        const {
+            frequency,
+            endRepeatMode,
+            until,
+            count,
+            byday,
+            interval,
+        } = this.props.schedule?.recurring_rule ?? {};
 
         return (
-            <div className="recurring-rules">
+            <div
+                className="recurring-rules"
+                data-test-id={this.props.testId}
+            >
                 <Row noPadding>
                     <div className="flex-grid">
-                        {!onlyUpdateRepetitions && <Label row text={gettext('Every')} noMinWidth padding />}
-                        {!onlyUpdateRepetitions && (
-                            <LineInput
-                                {...this.props}
-                                isSelect={true}
-                                readOnly={readOnly}
-                                noMargin={true}
-                                className="form__row form__row--max-width-35"
-                            >
-                                <Select
-                                    field="dates.recurring_rule.interval"
-                                    options={range(0, 30).map((n) => ({key: n + 1, label: n + 1}))}
-                                    onChange={this.onIntervalChange}
-                                    value={interval}
+                        {onlyUpdateRepetitions ? null : (
+                            <React.Fragment>
+                                <Label row text={gettext('Every')} noMinWidth padding />
+                                <LineInput
+                                    {...this.props}
+                                    isSelect={true}
                                     readOnly={readOnly}
-                                />
-                            </LineInput>
-                        )}
-
-                        {!onlyUpdateRepetitions && (
-                            <LineInput
-                                {...this.props}
-                                isSelect={true}
-                                readOnly={readOnly}
-                                noMargin={frequency === 'WEEKLY'}
-                                className="form__row form__row--max-width-80"
-                            >
-                                <Select
-                                    field="dates.recurring_rule.frequency"
-                                    options={[...this.repeatChoices]}
-                                    onChange={this.onFrequencyChange}
-                                    value={frequency}
+                                    noMargin={true}
+                                    className="form__row form__row--max-width-35"
+                                >
+                                    <Select
+                                        field="dates.recurring_rule.interval"
+                                        options={range(0, 30).map((n) => ({
+                                            key: n + 1,
+                                            label: (n + 1).toString(10),
+                                        }))}
+                                        onChange={this.onIntervalChange}
+                                        value={interval}
+                                        readOnly={readOnly}
+                                    />
+                                </LineInput>
+                                <LineInput
+                                    {...this.props}
+                                    isSelect={true}
                                     readOnly={readOnly}
-                                />
-                            </LineInput>
+                                    noMargin={frequency === 'WEEKLY'}
+                                    className="form__row form__row--max-width-80"
+                                >
+                                    <Select
+                                        field="dates.recurring_rule.frequency"
+                                        options={[...this.repeatChoices]}
+                                        onChange={this.onFrequencyChange}
+                                        value={frequency}
+                                        readOnly={readOnly}
+                                    />
+                                </LineInput>
+                            </React.Fragment>
                         )}
                         <Label
                             row={true}
@@ -132,11 +156,11 @@ export class RecurringRulesInput extends React.Component {
                                 readOnly={readOnly}
                             />
                         </LineInput>
-                        {endRepeatMode === 'until' && (
+                        {endRepeatMode !== 'until' ? null : (
                             <DateInput
                                 field="dates.recurring_rule.until"
                                 placeholder=""
-                                value={until}
+                                value={until != null ? moment(until) : null}
                                 onChange={onChange}
                                 readOnly={readOnly}
                                 invalid={!!get(errors, 'until')}
@@ -147,7 +171,7 @@ export class RecurringRulesInput extends React.Component {
                                 onPopupClose={onPopupClose}
                             />
                         )}
-                        {endRepeatMode === 'count' && (
+                        {endRepeatMode !== 'count' ? null : (
                             <div className="form__row form__row--flex">
                                 <LineInput
                                     {...this.props}
@@ -171,7 +195,7 @@ export class RecurringRulesInput extends React.Component {
                     {frequency === 'WEEKLY' && (
                         <Row>
                             <DaysOfWeekInput
-                                value={byDay}
+                                value={byday}
                                 onChange={onChange}
                                 readOnly={readOnly}
                                 invalid={!!get(errors, 'byday', false)}
@@ -185,17 +209,3 @@ export class RecurringRulesInput extends React.Component {
         );
     }
 }
-
-RecurringRulesInput.propTypes = {
-    onChange: PropTypes.func.isRequired,
-    schedule: PropTypes.object.isRequired,
-    readOnly: PropTypes.bool,
-    errors: PropTypes.object,
-    popupContainer: PropTypes.func,
-    hideFrequency: PropTypes.bool,
-    onlyUpdateRepetitions: PropTypes.bool,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-};
-
-RecurringRulesInput.defaultProps = {readOnly: false};

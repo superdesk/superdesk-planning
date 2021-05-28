@@ -10,10 +10,10 @@ export class EditorFieldIncludeScheduledUpdates extends React.PureComponent<IEdi
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'include_scheduled_updates'}
                 label={this.props.label ?? gettext('Include Scheduled Updates')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }

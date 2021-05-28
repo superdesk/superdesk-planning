@@ -14,6 +14,7 @@ Object.assign(superdeskApi, {
             _meta: {},
         })),
         findOne: sinon.stub().returns(Promise.resolve({})),
+        create: sinon.stub().callsFake((resource, item) => Promise.resolve({...item}))
     },
     browser: {
         location: {

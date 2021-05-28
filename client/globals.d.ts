@@ -38,10 +38,6 @@ declare const xit: any;
 
 declare const fail: any;
 
-// Most browsers have it implemented, but the standard's state is still "Editor's Draft".
-// https://github.com/Microsoft/TypeScript/issues/28502
-declare const ResizeObserver: any;
-
 // globals
 // tslint:disable-next-line: interface-name
 interface Window {
@@ -101,3 +97,50 @@ declare module '*.html';
 
 type Dictionary<K, V> = {[key: string]: V};
 type valueof<T> = T[keyof T];
+type DeepPartial<T> = {
+    [K in keyof T]?: DeepPartial<T[K]>;
+}
+
+// ResizeObserver types aren't available in the version of Typescript we use
+// see: https://github.com/Microsoft/TypeScript/issues/28502
+// The following is copied from https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/948
+interface ResizeObserverOptions {
+    box?: ResizeObserverBoxOptions;
+}
+
+interface ResizeObserver {
+    disconnect(): void;
+    observe(target: Element, options?: ResizeObserverOptions): void;
+    unobserve(target: Element): void;
+}
+
+declare var ResizeObserver: {
+    prototype: ResizeObserver;
+    new(callback: ResizeObserverCallback): ResizeObserver;
+};
+
+interface ResizeObserverEntry {
+    readonly borderBoxSize: ReadonlyArray<ResizeObserverSize>;
+    readonly contentBoxSize: ReadonlyArray<ResizeObserverSize>;
+    readonly contentRect: DOMRectReadOnly;
+    readonly target: Element;
+}
+
+declare var ResizeObserverEntry: {
+    prototype: ResizeObserverEntry;
+    new(): ResizeObserverEntry;
+};
+
+interface ResizeObserverSize {
+    readonly blockSize: number;
+    readonly inlineSize: number;
+}
+
+declare var ResizeObserverSize: {
+    prototype: ResizeObserverSize;
+    new(): ResizeObserverSize;
+};
+
+interface ResizeObserverCallback {
+    (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
+}

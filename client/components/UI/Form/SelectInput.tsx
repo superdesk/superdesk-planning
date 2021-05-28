@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {LineInput, Label, Select} from './';
-import {get} from 'lodash';
+import {get, uniqueId} from 'lodash';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 
 /**
@@ -59,11 +59,13 @@ export const SelectInput = ({
         onChange(field, value);
     };
 
+    const selectId = id || uniqueId('select-');
+
     return (
         <LineInput {...props} isSelect={true} readOnly={readOnly}>
-            <Label text={label} />
+            <Label htmlFor={selectId} text={label} />
             <Select
-                id={id}
+                id={selectId}
                 field={field}
                 value={key}
                 onChange={onChangeHandler}

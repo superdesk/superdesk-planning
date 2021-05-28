@@ -1,12 +1,17 @@
+import * as React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
+
+import {EDITOR_TYPE, IPlanningAppState} from '../../interfaces';
+
 import * as selectors from '../../selectors';
+import {editorSelectors} from '../../selectors/editors';
 import * as actions from '../../actions';
 import {actionUtils} from '../../utils';
 
 import {EditorComponent} from './ItemEditor';
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state: IPlanningAppState) => ({
     item: selectors.forms.currentItem(state),
     itemId: selectors.forms.currentItemId(state),
     itemType: selectors.forms.currentItemType(state),
@@ -28,6 +33,8 @@ const mapStateToProps = (state) => ({
     defaultCalendar: selectors.events.defaultCalendarValue(state),
     defaultPlace: selectors.general.defaultPlaceList(state),
     currentAgenda: selectors.planning.currentAgenda(state),
+    groups: editorSelectors[EDITOR_TYPE.INLINE].getEditorGroupsSorted(state),
+    editorType: EDITOR_TYPE.INLINE,
 });
 
 const mapStateToPropsModal = (state) => ({
@@ -53,8 +60,9 @@ const mapStateToPropsModal = (state) => ({
     defaultCalendar: selectors.events.defaultCalendarValue(state),
     defaultPlace: selectors.general.defaultPlaceList(state),
     currentAgenda: selectors.planning.currentAgenda(state),
+    groups: editorSelectors[EDITOR_TYPE.POPUP].getEditorGroupsSorted(state),
+    editorType: EDITOR_TYPE.POPUP,
 });
-
 
 const mapDispatchToProps = (dispatch) => ({
     dispatch: dispatch,
@@ -62,6 +70,7 @@ const mapDispatchToProps = (dispatch) => ({
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
     notifyValidationErrors: (errors) => dispatch(actions.main.notifyValidationErrors(errors)),
+    saveDiffToStore: (diff) => dispatch(actions.editors.setFormDiff(EDITOR_TYPE.INLINE, diff)),
 });
 
 const mapDispatchToPropsModal = (dispatch) => ({
@@ -70,8 +79,13 @@ const mapDispatchToPropsModal = (dispatch) => ({
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
     notifyValidationErrors: (errors) => dispatch(actions.main.notifyValidationErrors(errors)),
+    saveDiffToStore: (diff) => dispatch(actions.editors.setFormDiff(EDITOR_TYPE.POPUP, diff)),
 });
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);
-export const EditorModal = connect(mapStateToPropsModal, mapDispatchToPropsModal, null,
-    {forwardRef: true})(EditorComponent);
+export const EditorModal = connect(
+    mapStateToPropsModal,
+    mapDispatchToPropsModal,
+    null,
+    {forwardRef: true}
+)(EditorComponent);

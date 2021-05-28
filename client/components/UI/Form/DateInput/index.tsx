@@ -1,32 +1,69 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {isEqual} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {superdeskApi} from '../../../../superdeskApi';
+import {KEYCODES} from '../../constants';
+
+import {onEventCapture} from '../../utils';
+import {timeUtils} from '../../../../utils';
 
 import {LineInput, Label, Input} from '../';
 import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
-import {KEYCODES} from '../../constants';
-import {onEventCapture} from '../../utils';
-import {timeUtils} from '../../../../utils';
-import {gettext} from '../../../../utils/gettext';
+
 import './style.scss';
+
+interface IProps {
+    field: string;
+    label?: string;
+    value?: moment.Moment;
+    placeholder?: string;
+    className?: string;
+    hint?: string;
+    message?: string;
+    required?: boolean;
+    invalid?: boolean;
+    readOnly?: boolean;
+    boxed?: boolean;
+    noMargin?: boolean;
+    remoteTimeZone?: string;
+    isLocalTimeZoneDifferent?: boolean;
+    inputAsLabel?: boolean;
+
+    onChange(field: string, value: moment.Moment): void;
+    popupContainer(): HTMLElement;
+    onFocus?(): void;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+    refNode?(node: HTMLElement): void;
+}
+
+interface IState {
+    openDatePicker: boolean;
+    invalid: boolean;
+    viewValue: string;
+    previousValidValue?: moment.Moment;
+}
 
 /**
  * @ngdoc react
  * @name DateInput
  * @description Component to pick dates in calendar view
  */
-export class DateInput extends React.Component {
+export class DateInput extends React.Component<IProps, IState> {
+    dom: {inputField: any};
+
     constructor(props) {
         super(props);
         this.state = {
             openDatePicker: false,
             invalid: false,
-            viewValue: '',
-            previousValidValue: '',
+            viewValue: this.props.value != null && moment.isMoment(this.props.value) ?
+                this.props.value.format(appConfig.planning.dateformat) :
+                '',
+            previousValidValue: null,
         };
         this.dom = {inputField: null};
 
@@ -50,15 +87,6 @@ export class DateInput extends React.Component {
                 previousValidValue: value,
             });
         }
-    }
-
-    componentDidMount() {
-        // After first render, set value
-        const {value} = this.props;
-        const viewValue = value && moment.isMoment(value) ?
-            value.format(appConfig.planning.dateformat) : '';
-
-        this.setState({viewValue});
     }
 
     /**
@@ -132,6 +160,7 @@ export class DateInput extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             field,
             label,
@@ -164,7 +193,13 @@ export class DateInput extends React.Component {
         }
 
         return (
-            <LineInput {...props} readOnly={readOnly} message={message} invalid={invalid}>
+            <LineInput
+                {...props}
+                readOnly={readOnly}
+                message={message}
+                invalid={invalid}
+                boxed={true}
+            >
                 <Label text={label} />
                 {!inputAsLabel && (
                     <IconButton
@@ -172,6 +207,7 @@ export class DateInput extends React.Component {
                         icon="icon-calendar"
                         onFocus={onFocus}
                         onClick={readOnly ? undefined : this.toggleOpenDatePicker}
+                        aria-label={gettext('Date picker')}
                     />
                 )}
                 {inputAsLabel && value &&
@@ -218,41 +254,3 @@ export class DateInput extends React.Component {
         );
     }
 }
-
-DateInput.propTypes = {
-    field: PropTypes.string.isRequired,
-    label: PropTypes.string,
-    value: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.instanceOf(moment),
-    ]),
-    onChange: PropTypes.func.isRequired,
-    placeholder: PropTypes.string,
-    className: PropTypes.string,
-
-    hint: PropTypes.string,
-    message: PropTypes.string,
-    required: PropTypes.bool,
-    invalid: PropTypes.bool,
-    readOnly: PropTypes.bool,
-    boxed: PropTypes.bool,
-    noMargin: PropTypes.bool,
-    popupContainer: PropTypes.func,
-    onFocus: PropTypes.func,
-    remoteTimeZone: PropTypes.string,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    isLocalTimeZoneDifferent: PropTypes.bool,
-    inputAsLabel: PropTypes.bool,
-    refNode: PropTypes.func,
-};
-
-DateInput.defaultProps = {
-    required: false,
-    invalid: false,
-    readOnly: false,
-    boxed: false,
-    noMargin: false,
-    hideIcon: false,
-    inputAsLabel: false,
-};

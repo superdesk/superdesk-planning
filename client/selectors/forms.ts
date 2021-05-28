@@ -113,6 +113,13 @@ export const currentItemAction = (state) => get(state, 'forms.editors.panel.acti
 export const initialValues = (state) => get(state, 'forms.editors.panel.initialValues', null);
 export const editorItemHistory = (state) => get(state, 'forms.editors.panel.itemHistory', []);
 
+export const currentAutosave = createSelector(
+    [autosaves, currentItemId],
+    (autosaveItems, itemId) => (
+        autosaveItems.event[itemId] ?? autosaveItems.planning[itemId]
+    )
+);
+
 const storedEvents = (state) => get(state, 'events.events', {});
 const storedPlannings = (state) => get(state, 'planning.plannings', {});
 
@@ -135,6 +142,13 @@ export const currentItemModal = createSelector(
     (itemId, itemType, events, plannings, values) => (
         getcurrentItem(itemId, itemType, events, plannings, values, true)
     ));
+
+export const currentAutosaveModal = createSelector(
+    [autosaves, currentItemIdModal],
+    (autosaveItems, itemId) => (
+        autosaveItems.event[itemId] ?? autosaveItems.planning[itemId]
+    )
+);
 
 export const getPlanningAllowScheduledUpdates = createSelector(
     [coverageProfile],

@@ -14,7 +14,7 @@ interface IProps extends IEditorFieldProps {
     clearable?: boolean;
 }
 
-const mapStatToProps = (state) => ({
+const mapStateToProps = (state) => ({
     templates: getTemplates(state),
 });
 
@@ -77,16 +77,21 @@ export class EditorFieldContentTemplateComponent extends React.PureComponent<IPr
 
         return (
             <EditorFieldSelect
+                {...this.props}
                 field={this.getFieldName()}
                 label={this.props.label ?? gettext('Content Template')}
                 options={templates}
                 labelField="template_name"
                 keyField="_id"
                 valueAsString={true}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldContentTemplate = connect(mapStatToProps)(EditorFieldContentTemplateComponent);
+export const EditorFieldContentTemplate = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldContentTemplateComponent);

@@ -7,7 +7,6 @@
 
 .addgeolookup {
     width: 100%;
-    padding-top: 3px;
 
     &__popup {
         max-height: 200px;
@@ -82,7 +81,7 @@
 
             .dot2 {
                 top: auto;
-                bottom: 0px;
+                bottom: 0;
                 -webkit-animation-delay: -1.0s;
                 animation-delay: -1.0s;
             }

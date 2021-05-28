@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Modal} from '../../index';
+import {gettext} from '../../../utils';
 
 import * as ContactFormComponents from 'superdesk-core/scripts/apps/contacts/components/Form';
 import ng from 'superdesk-core/scripts/core/services/ng';
@@ -79,10 +80,10 @@ export class ContactEditor extends React.Component {
                 show={this.state.showModal}
             >
                 <Modal.Header>
-                    <a className="close" onClick={this.handleCancel}>
+                    <h3 className="modal__heading">{gettext('Add Contact')}</h3>
+                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.handleCancel}>
                         <i className="icon-close-small" />
                     </a>
-                    <h3 className="modal__heading">{gettext('Add Contact')}</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <ContactFormContainer

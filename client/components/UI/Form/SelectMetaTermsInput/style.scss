@@ -64,7 +64,7 @@
             white-space: nowrap;
         }
 		&:hover {
-			background: $sd-hover;	
+			background: $sd-hover;
 		}
 
 		&--active {
@@ -136,13 +136,21 @@
         border-bottom: 1px solid rgba(0, 0, 0, 0.15);
         height: auto;
         min-height: 3rem;
-        padding-left: 2.8rem;
+        padding-left: 2.8rem !important;
+    }
+
+    .sd-line-input__plus-btn {
+      margin: 3px !important;
     }
 
     &--disabled {
         div.sd-line-input__input {
             padding-left: 0;
         }
+    }
+
+    .terms-list {
+        padding-top: 3px;
     }
 }
 

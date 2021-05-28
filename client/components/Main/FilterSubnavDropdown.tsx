@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 
 import {superdeskApi, planningApi} from '../../superdeskApi';
 import {FILTER_TYPE, IAgenda, ICalendar, ISearchFilter} from '../../interfaces';
+import {SUBNAV_VIEW_SIZE} from '../../apps/Planning/PlanningListSubNav';
 
 import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN} from '../../constants';
 
@@ -23,6 +24,8 @@ interface IProps {
     currentCalendarId: ICalendar['qcode'];
     currentAgendaId: IAgenda['_id'];
     currentFilterId: ISearchFilter['_id'];
+
+    viewSize: SUBNAV_VIEW_SIZE;
 }
 
 const mapStateToProps = (state) => ({
@@ -250,22 +253,29 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         const items = this.getItems();
         const buttonProps = this.getButtonProps();
         const filters = this.getSearchFilters();
+        let buttonLabelClassName = '';
+
+        if (buttonProps.disabled) {
+            buttonLabelClassName = 'dropdown__menu-item--disabled ';
+        }
+
+        if (this.props.viewSize === 'compact') {
+            buttonLabelClassName += 'sd-padding-x--1';
+        }
 
         if (filters.length) {
             items.push(...filters);
         }
 
         return (
-            <React.Fragment>
-                <Dropdown
-                    buttonLabelClassName={buttonProps.disabled ? 'dropdown__menu-item--disabled' : ''}
-                    buttonLabel={buttonProps.label}
-                    items={items}
-                    scrollable={true}
-                    searchable={true}
-                    group={true}
-                />
-            </React.Fragment>
+            <Dropdown
+                buttonLabelClassName={buttonLabelClassName}
+                buttonLabel={buttonProps.label}
+                items={items}
+                scrollable={true}
+                searchable={true}
+                group={true}
+            />
         );
     }
 }
