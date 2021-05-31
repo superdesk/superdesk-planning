@@ -2,18 +2,14 @@
   "name": "superdesk",
   "license": "GPL-3.0",
   "dependencies": {
-    "@superdesk/planning-extension": "^1.0.6",
-    "react-geolookup": "github:superdesk/react-geolookup",
     "superdesk-core": "github:superdesk/superdesk-client-core#develop",
     "superdesk-planning": "file:../"
   },
   "devDependencies": {
-    "@superdesk/build-tools": "^1.0.4",
+    "@superdesk/build-tools": "^1.0.14",
     "cypress": "~6.6.0",
     "cypress-terminal-report": "^2.4.0",
     "extract-text-webpack-plugin": "3.0.2",
-    "gettext.js": "0.9.0",
-    "grunt": "1.0.2",
     "lodash": "^4.17.15",
     "moment": "2.20.1",
     "moment-timezone": "0.5.14"

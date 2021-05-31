@@ -1,10 +1,7 @@
 {
-  "name": "@superdesk/planning-extension",
-  "version": "1.0.6",
-  "publishConfig": {
-    "access": "public"
-  },
-  "main": "dist/planning-extension/src/extension.js",
+  "private": true,
+  "name": "superdesk-planning-extension",
+  "main": "dist/extension.js",
   "scripts": {
     "compile": "tsc -p src",
     "compile-e2e": "echo 'No end-to-end tests defined'",
