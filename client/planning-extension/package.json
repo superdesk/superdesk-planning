@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "superdesk-planning-extension",
-  "main": "dist/extension.js",
+  "main": "dist/planning-extension/src/extension.js",
   "scripts": {
     "compile": "tsc -p src",
     "compile-e2e": "echo 'No end-to-end tests defined'",
