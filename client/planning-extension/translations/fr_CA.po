@@ -4323,3 +4323,6 @@ msgstr ""
 #: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:148
 msgid "{{action}} {{type}}"
 msgstr ""
+
+msgid "test-whether-translations-from-extensions-are-being-picked-up"
+msgstr "result"
