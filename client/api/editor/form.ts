@@ -10,7 +10,6 @@ import {planningApi} from '../../superdeskApi';
 import {isItemReadOnly} from '../../utils';
 import {editorSelectors} from '../../selectors/editors';
 import * as actions from '../../actions';
-// import {showPopupForm, hidePopupForm} from '../../actions/editor';
 
 export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
     function setState(newState: Partial<IEditorState>) {
