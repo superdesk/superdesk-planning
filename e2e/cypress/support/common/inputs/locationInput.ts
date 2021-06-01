@@ -13,6 +13,18 @@ export class LocationInput extends Input {
         return cy.get('.addgeolookup__popup');
     }
 
+    get addNewButton() {
+        return cy.get('[data-test-id="location-search__create-new"]')
+            .should('exist')
+            .should('be.enabled');
+    }
+
+    search(value: string) {
+        cy.log('Common.LocationInput.search');
+        this.inputElement.type(value);
+        this.popup.should('exist');
+    }
+
     type(value: string) {
         cy.log('Common.LocationInput.type');
         this.inputElement.type(value);

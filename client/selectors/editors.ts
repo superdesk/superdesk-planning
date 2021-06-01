@@ -1,4 +1,6 @@
+import * as React from 'react';
 import {createSelector} from 'reselect';
+
 import {
     BOOKMARK_TYPE,
     EDITOR_TYPE,
@@ -17,6 +19,8 @@ interface IEditorSelectors {
     getActiveBookmarkId(state: IPlanningAppState): IEditorBookmark['id'] | null;
     getEditorDiff(state: IPlanningAppState): DeepPartial<IEventOrPlanningItem>;
     getFirstBookmarkGroup(state: IPlanningAppState): IEditorBookmarkGroup;
+    getPopupFormComponent(state: IPlanningAppState): React.ComponentClass;
+    getPopupFormProps(state: IPlanningAppState): any;
 }
 
 function createSelectorsForEditor(editorType: EDITOR_TYPE): IEditorSelectors {
@@ -87,6 +91,14 @@ function createSelectorsForEditor(editorType: EDITOR_TYPE): IEditorSelectors {
             )[0] as IEditorBookmarkGroup;
     }
 
+    function getPopupFormComponent(state: IPlanningAppState): React.ComponentClass {
+        return state.forms.editors[editorType].popupFormComponent;
+    }
+
+    function getPopupFormProps(state: IPlanningAppState): any {
+        return state.forms.editors[editorType].popupFormProps;
+    }
+
     return {
         getEditorGroups,
         getEditorGroupsSorted,
@@ -95,6 +107,8 @@ function createSelectorsForEditor(editorType: EDITOR_TYPE): IEditorSelectors {
         getActiveBookmarkId,
         getEditorDiff,
         getFirstBookmarkGroup,
+        getPopupFormComponent,
+        getPopupFormProps,
     };
 }
 

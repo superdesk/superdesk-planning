@@ -100,3 +100,25 @@ export function updateActiveBookmarkId(editor: EDITOR_TYPE, bookmarkId: IEditorB
         },
     };
 }
+
+export function showPopupForm(editor: EDITOR_TYPE, component: React.ComponentClass, props: any) {
+    return {
+        type: MAIN.ACTIONS.FORMS_SET_POPUP_FORM,
+        payload: {
+            editor: editor,
+            component: component,
+            props: props,
+        },
+    };
+}
+
+export function hidePopupForm(editor: EDITOR_TYPE) {
+    return {
+        type: MAIN.ACTIONS.FORMS_SET_POPUP_FORM,
+        payload: {
+            editor: editor,
+            component: null,
+            props: null,
+        },
+    };
+}
