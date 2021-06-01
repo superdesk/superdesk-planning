@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 import {EditorFieldCategories} from './Categories';
 import {EditorFieldCoverageType} from './CoverageType';
 import {EditorFieldEndDateTime} from './EndDateTime';
@@ -157,3 +159,6 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     scheduled_updates: EditorFieldScheduledUpdates,
     custom_vocabularies: EditorFieldCustomVocabularies,
 };
+
+// Import resource fields so that registration happens after the above
+import '../resources/index';

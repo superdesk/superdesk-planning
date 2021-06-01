@@ -1450,6 +1450,8 @@ export interface IEditorFormState {
     bookmarks?: {[key: string]: IEditorBookmark};
     activeBookmarkId?: IEditorBookmark['id'];
     diff?: DeepPartial<IEventOrPlanningItem>;
+    popupFormComponent?: React.ComponentClass;
+    popupFormProps?: any;
 }
 
 export interface IFormState {
@@ -1785,11 +1787,14 @@ export interface IEditorAPI {
         ): Promise<void>;
 
         scrollToTop(): void;
-        scrollToBookmarkGroup(bookmark: IEditorBookmarkGroup): void;
+        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id']): void;
         waitForScroll(): Promise<void>;
 
         getAction(): IEditorAction;
         isReadOnly(): boolean;
+
+        showPopupForm(component: React.ComponentClass, props: any): Promise<any>;
+        closePopupForm(): void;
     };
     manager?: IFormItemManager; // Older Form API
     autosave?: IFormAutosave; // Form Autosave
