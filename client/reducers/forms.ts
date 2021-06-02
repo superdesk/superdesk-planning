@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 import {AUTOSAVE, ITEM_TYPE, MAIN} from '../constants';
 import {createReducer} from './createReducer';
 import {eventUtils, getItemId, getItemType, planningUtils} from '../utils';
@@ -20,6 +22,8 @@ const initialState: IFormState = {
             groups: {},
             activeBookmarkId: null,
             diff: {},
+            popupFormComponent: null,
+            popupFormProps: null,
         },
         [EDITOR_TYPE.POPUP]: {
             itemId: null,
@@ -30,6 +34,8 @@ const initialState: IFormState = {
             groups: {},
             activeBookmarkId: null,
             diff: {},
+            popupFormComponent: null,
+            popupFormProps: null,
         },
     },
 };
@@ -112,6 +118,20 @@ function updateFormBookmarks(action: string, state: IFormState, payload: any): I
     return newState;
 }
 
+function setPopupForm(state: IFormState, payload: {
+    editor: EDITOR_TYPE,
+    component: React.ComponentClass,
+    props: any,
+}): IFormState {
+    const newState = cloneDeep(state);
+    const editor: IEditorFormState = newState.editors[payload.editor];
+
+    editor.popupFormComponent = payload.component;
+    editor.popupFormProps = payload.props;
+
+    return newState;
+}
+
 const formsReducer = createReducer(initialState, {
     [MAIN.ACTIONS.OPEN_FOR_EDIT]: (state: IFormState, payload: any) => (
         updateEditor(state, payload.modal, {
@@ -136,6 +156,11 @@ const formsReducer = createReducer(initialState, {
             itemHistory: [],
             action: null,
             initialValues: null,
+            groups: {},
+            activeBookmarkId: null,
+            diff: {},
+            popupFormComponent: null,
+            popupFormProps: null,
         })
     ),
 
@@ -222,6 +247,8 @@ const formsReducer = createReducer(initialState, {
 
         return newState;
     },
+
+    [MAIN.ACTIONS.FORMS_SET_POPUP_FORM]: setPopupForm,
 });
 
 export default formsReducer;

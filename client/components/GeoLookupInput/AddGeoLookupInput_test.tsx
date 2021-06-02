@@ -3,7 +3,7 @@ import {mount} from 'enzyme';
 import sinon from 'sinon';
 
 import {planningApis} from '../../api';
-import {GeoLookupInputComponent} from './AddGeoLookupInput';
+import {AddGeoLookupInput} from './AddGeoLookupInput';
 import * as helpers from '../tests/helpers';
 import {restoreSinonStub} from '../../utils/testUtils';
 
@@ -42,14 +42,12 @@ describe('<AddGeoLookupInput />', () => {
 
     const setWrapper = () => {
         wrapper = mount(
-            <GeoLookupInputComponent
+            <AddGeoLookupInput
                 field="location"
                 initialValue={initialValue}
                 onChange={onChange}
-                users={[]}
-                regions={[]}
-                countries={[]}
                 language="en"
+                showAddLocationForm={() => Promise.resolve(undefined)}
             />
         );
         return wrapper;
@@ -69,8 +67,7 @@ describe('<AddGeoLookupInput />', () => {
         wrapper.update();
 
         const popup = new helpers.ui.Popup(wrapper);
-        const searchTab = popup.find('.nav-tabs').childAt(1);
-        const searchBtn = searchTab.find('.btn');
+        const searchBtn = popup.find('.sd-nav-tabs').childAt(1);
 
         searchBtn.simulate('click');
         expect(planningApis.locations.searchExternal.callCount).toBe(2);
@@ -88,22 +85,20 @@ describe('<AddGeoLookupInput />', () => {
 
     it('external search button can be controlled by disableSearch prop', () => {
         wrapper = mount(
-            <GeoLookupInputComponent
+            <AddGeoLookupInput
                 field="location"
                 initialValue={initialValue}
                 onChange={onChange}
                 disableSearch={true}
-                users={[]}
-                regions={[]}
-                countries={[]}
+                showAddLocationForm={() => Promise.resolve(undefined)}
             />
         );
         wrapper.instance().handleInputChange(inputText);
         wrapper.update();
 
         const popup = new helpers.ui.Popup(wrapper);
-        const searchTab = popup.find('.nav-tabs').childAt(1);
+        const searchTab = popup.find('.sd-nav-tabs');
 
-        expect(searchTab.length).toBe(0);
+        expect(searchTab.length).toBe(1);
     });
 });

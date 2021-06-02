@@ -10,6 +10,10 @@
 
     &__popup {
         max-height: 200px;
+
+        .sd-nav-tabs__content {
+            padding: 0;
+        }
     }
 
     &__suggestItemLabel {

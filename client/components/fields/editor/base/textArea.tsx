@@ -9,6 +9,9 @@ interface IProps extends IEditorFieldProps {
     maxLength?: number;
     schema?: IProfileSchemaTypeString;
     multiLine?: boolean;
+    autoHeight?: boolean;
+    rows?: number;
+    labelIcon?: string;
 }
 
 export class EditorFieldTextArea extends React.PureComponent<IProps> {

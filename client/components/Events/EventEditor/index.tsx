@@ -8,7 +8,9 @@ import {
     IEventFormProfile,
     IFile,
     IPlanningItem,
-    IFormItemManager, EDITOR_TYPE
+    IFormItemManager,
+    EDITOR_TYPE,
+    ILocation,
 } from '../../../interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 
@@ -19,6 +21,7 @@ import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
 import {ContentBlock} from '../../UI/SidePanel';
 import {EventScheduleSummary} from '../EventScheduleSummary';
+import {CreateNewGeoLookup} from '../../GeoLookupInput/CreateNewGeoLookup';
 
 interface IProps {
     original?: IEventItem;
@@ -58,6 +61,13 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 class EventEditorComponent extends React.PureComponent<IProps> {
+    constructor(props) {
+        super(props);
+
+        this.showAddLocationForm = this.showAddLocationForm.bind(this);
+        this.onCloseAddNewLocation = this.onCloseAddNewLocation.bind(this);
+    }
+
     componentDidMount() {
         this.props.fetchEventFiles({
             ...this.props.item,
@@ -87,6 +97,24 @@ class EventEditorComponent extends React.PureComponent<IProps> {
         return this.props.plannings?.filter(
             (plan) => plan.event_item === this.props.item?._id
         );
+    }
+
+    showAddLocationForm(props: any): Promise<ILocation | undefined> {
+        const editor = planningApi.editor(this.props.editorType);
+
+        return editor.form.showPopupForm(CreateNewGeoLookup, props)
+            .finally(() => {
+                // Re-focus the location text input
+                const editor = planningApi.editor(this.props.editorType);
+
+                editor.form.scrollToBookmarkGroup('location');
+            });
+    }
+
+    onCloseAddNewLocation() {
+        const editor = planningApi.editor(this.props.editorType);
+
+        editor.form.closePopupForm();
     }
 
     renderHeader() {
@@ -151,6 +179,9 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                     },
                     location: {
                         enableExternalSearch: true,
+                        showAddLocationForm: this.showAddLocationForm,
+                        onPopupClose: this.onCloseAddNewLocation,
+                        onCancel: this.onCloseAddNewLocation,
                     },
                     name: {
                         label: gettext('Event Name'),
