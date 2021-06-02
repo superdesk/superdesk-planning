@@ -13,7 +13,7 @@ msgstr ""
 msgid "'not scheduled yet'"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:187
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:229
 msgid "(advanced mode)"
 msgstr ""
 
@@ -29,120 +29,120 @@ msgstr ""
 msgid "108h"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:43
+#: client/components/fields/editor/ScheduleMonthDay.tsx:44
 #: client/utils/filters.ts:64
 msgid "10th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:44
+#: client/components/fields/editor/ScheduleMonthDay.tsx:45
 #: client/utils/filters.ts:66
 msgid "11th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:45
+#: client/components/fields/editor/ScheduleMonthDay.tsx:46
 #: client/utils/filters.ts:68
 msgid "12th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:46
+#: client/components/fields/editor/ScheduleMonthDay.tsx:47
 #: client/utils/filters.ts:70
 msgid "13th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:47
+#: client/components/fields/editor/ScheduleMonthDay.tsx:48
 #: client/utils/filters.ts:72
 msgid "14th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:48
+#: client/components/fields/editor/ScheduleMonthDay.tsx:49
 #: client/utils/filters.ts:74
 msgid "15th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:49
+#: client/components/fields/editor/ScheduleMonthDay.tsx:50
 #: client/utils/filters.ts:76
 msgid "16th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:50
+#: client/components/fields/editor/ScheduleMonthDay.tsx:51
 msgid "17th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:51
+#: client/components/fields/editor/ScheduleMonthDay.tsx:52
 msgid "18th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:52
+#: client/components/fields/editor/ScheduleMonthDay.tsx:53
 #: client/utils/filters.ts:82
 msgid "19th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:53
+#: client/components/fields/editor/ScheduleMonthDay.tsx:54
 #: client/utils/filters.ts:84
 msgid "20th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:54
+#: client/components/fields/editor/ScheduleMonthDay.tsx:55
 #: client/utils/filters.ts:86
 msgid "21st"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:55
+#: client/components/fields/editor/ScheduleMonthDay.tsx:56
 #: client/utils/filters.ts:88
 msgid "22nd"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:56
+#: client/components/fields/editor/ScheduleMonthDay.tsx:57
 #: client/utils/filters.ts:90
 msgid "23rd"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:57
+#: client/components/fields/editor/ScheduleMonthDay.tsx:58
 #: client/utils/filters.ts:92
 msgid "24th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:58
+#: client/components/fields/editor/ScheduleMonthDay.tsx:59
 #: client/utils/filters.ts:94
 msgid "25th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:59
+#: client/components/fields/editor/ScheduleMonthDay.tsx:60
 #: client/utils/filters.ts:96
 msgid "26th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:60
+#: client/components/fields/editor/ScheduleMonthDay.tsx:61
 #: client/utils/filters.ts:98
 msgid "27th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:61
+#: client/components/fields/editor/ScheduleMonthDay.tsx:62
 #: client/utils/filters.ts:100
 msgid "28th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:35
+#: client/components/fields/editor/ScheduleMonthDay.tsx:36
 #: client/utils/filters.ts:48
 msgid "2nd"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:36
+#: client/components/fields/editor/ScheduleMonthDay.tsx:37
 #: client/utils/filters.ts:50
 msgid "3rd"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:37
+#: client/components/fields/editor/ScheduleMonthDay.tsx:38
 #: client/utils/filters.ts:52
 msgid "4th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:38
+#: client/components/fields/editor/ScheduleMonthDay.tsx:39
 #: client/utils/filters.ts:54
 msgid "5th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:39
+#: client/components/fields/editor/ScheduleMonthDay.tsx:40
 #: client/utils/filters.ts:56
 msgid "6th"
 msgstr ""
@@ -151,29 +151,27 @@ msgstr ""
 msgid "70th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:40
+#: client/components/fields/editor/ScheduleMonthDay.tsx:41
 #: client/utils/filters.ts:58
 msgid "7th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:41
+#: client/components/fields/editor/ScheduleMonthDay.tsx:42
 #: client/utils/filters.ts:60
 msgid "8th"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:42
+#: client/components/fields/editor/ScheduleMonthDay.tsx:43
 #: client/utils/filters.ts:62
 msgid "9th"
 msgstr ""
 
-#: client/api/locations.ts:29
+#: client/api/locations.ts:30
 msgid "A location matching this one already exists"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:98
-#: client/components/Events/EventEditor/index.tsx:463
-#: client/components/Planning/PlanningEditor/index.tsx:761
-#: client/components/fields/editor/Categories.tsx:24
+#: client/components/fields/editor/Categories.tsx:25
 msgid "ANPA Category"
 msgstr ""
 
@@ -203,11 +201,12 @@ msgstr ""
 #: client/components/ItemActionsMenu/index.tsx:53
 #: client/components/Main/ActionsSubnavDropdown.tsx:47
 #: client/components/Main/ActionsSubnavDropdown.tsx:50
+#: client/components/Main/ActionsSubnavDropdown.tsx:51
 #: client/constants/tooltips.ts:34
 msgid "Actions"
 msgstr ""
 
-#: client/components/fields/editor/AdHocPlanning.tsx:14
+#: client/components/fields/editor/AdHocPlanning.tsx:15
 #: client/components/fields/preview/index.ts:37
 msgid "Ad Hoc Planning"
 msgstr ""
@@ -216,12 +215,22 @@ msgstr ""
 msgid "Add As Event"
 msgstr ""
 
-#: client/components/Contacts/ContactEditor/index.tsx:85
-#: client/components/Contacts/ContactField.tsx:117
+#: client/components/Contacts/ContactEditor/index.tsx:83
+#: client/components/Contacts/ContactField.tsx:133
 msgid "Add Contact"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:185
+#: client/components/Editor/bookmarks/AddCoverageBookmark.tsx:58
+#: client/components/Editor/bookmarks/AddCoverageBookmark.tsx:95
+msgid "Add Coverage"
+msgstr ""
+
+#: client/components/fields/editor/EventRelatedPlannings/AddNewCoverages.tsx:250
+msgid "Add Coverage(s)"
+msgstr ""
+
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:227
+#: client/components/fields/editor/EventRelatedPlannings/AddNewCoverages.tsx:205
 msgid "Add Coverages"
 msgstr ""
 
@@ -229,23 +238,29 @@ msgstr ""
 msgid "Add New Agenda"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:142
+#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:128
 msgid "Add New Event Location"
 msgstr ""
 
-#: client/components/EventsPlanningFilters/ManageFiltersModal.tsx:184
+#: client/components/EventsPlanningFilters/ManageFiltersModal.tsx:181
 msgid "Add New Filter"
 msgstr ""
 
-#: client/components/Events/EventEditor/index.tsx:568
-msgid "Add a link"
+#: client/components/Editor/bookmarks/AddPlanningBookmark.tsx:33
+msgid "Add Planning Item"
 msgstr ""
 
-#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:242
+#: client/components/Coverages/CoverageArrayInput.tsx:166
+#: client/components/fields/editor/Coverages.tsx:72
+msgid "Add a coverage"
+msgstr ""
+
+#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:226
 msgid "Add a new location"
 msgstr ""
 
 #: client/components/Planning/PlanningItem.tsx:260
+#: client/components/Planning/PlanningItem.tsx:266
 msgid "Add as coverage"
 msgstr ""
 
@@ -254,8 +269,12 @@ msgstr ""
 msgid "Add coverage"
 msgstr ""
 
-#: client/components/Events/EventEditor/index.tsx:301
+#: client/components/fields/editor/EventLinks.tsx:87
 msgid "Add link"
+msgstr ""
+
+#: client/components/Editor/bookmarks/AddPlanningBookmark.tsx:46
+msgid "Add planning item"
 msgstr ""
 
 #: client/actions/agenda.ts:161
@@ -266,7 +285,8 @@ msgstr ""
 msgid "Add this event to the planning list?"
 msgstr ""
 
-#: client/components/Planning/FeaturedPlanning/FeaturedPlanningItem.tsx:113
+#: client/components/Planning/FeaturedPlanning/FeaturedPlanningItem.tsx:114
+#: client/components/Planning/FeaturedPlanning/FeaturedPlanningItem.tsx:120
 msgid "Add to Feature Stories"
 msgstr ""
 
@@ -278,8 +298,8 @@ msgstr ""
 msgid "Add to featured stories"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/index.tsx:87
-#: client/components/Coverages/ScheduledUpdate/index.tsx:69
+#: client/components/Coverages/CoverageEditor/index.tsx:151
+#: client/components/Coverages/ScheduledUpdate/index.tsx:70
 msgid "Add to workflow"
 msgstr ""
 
@@ -287,29 +307,29 @@ msgstr ""
 msgid "Added to featured stories"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:159
 #: client/components/Locations/LocationsEditor.tsx:227
 #: client/components/Locations/LocationsList.tsx:108
 #: client/components/Locations/OpenStreetMapPreviewList.tsx:49
+#: client/components/fields/resources/locations.ts:24
 msgid "Address"
 msgstr ""
 
-#: client/components/Main/SearchPanel.tsx:112
+#: client/components/Main/SearchPanel.tsx:113
 #: client/components/Main/ToggleFiltersButton.tsx:14
+#: client/components/Main/ToggleFiltersButton.tsx:15
 msgid "Advanced filters"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddButton/CoveragesMenuPopup.tsx:52
+#: client/components/Coverages/CoverageAddButton/CoveragesMenuPopup.tsx:66
 msgid "Advanced mode"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:23
+#: client/components/Events/RecurringRulesInput/index.tsx:40
 msgid "After"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:23
 #: client/components/ItemActionConfirmation/forms/createPlanningForm.tsx:47
-#: client/components/Planning/PlanningEditor/index.tsx:729
 msgid "Agenda"
 msgstr ""
 
@@ -321,8 +341,12 @@ msgstr ""
 msgid "Agenda assigned to the planning item."
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:175
-#: client/components/fields/editor/Agendas.tsx:41
+#: client/components/RelatedPlannings/PlanningMetaData/RelatedPlanningListItem.tsx:80
+msgid "Agenda:"
+msgstr ""
+
+#: client/components/Main/FilterSubnavDropdown.tsx:178
+#: client/components/fields/editor/Agendas.tsx:42
 #: client/components/fields/preview/index.ts:42
 msgid "Agendas"
 msgstr ""
@@ -331,7 +355,8 @@ msgstr ""
 msgid "All Coverage has been cancelled"
 msgstr ""
 
-#: client/components/Events/EventScheduleInput/index.tsx:379
+#: client/components/Events/EventScheduleInput/index.tsx:402
+#: client/components/fields/editor/EventSchedule.tsx:263
 msgid "All Day"
 msgstr ""
 
@@ -339,19 +364,19 @@ msgstr ""
 msgid "All Desks"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:220
-#: client/components/Main/FilterSubnavDropdown.tsx:97
+#: client/components/Main/FilterSubnavDropdown.tsx:100
+#: client/components/Main/FilterSubnavDropdown.tsx:223
 #: client/constants/events.ts:174
 msgid "All Events"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:213
-#: client/components/Main/FilterSubnavDropdown.tsx:85
+#: client/components/Main/FilterSubnavDropdown.tsx:216
+#: client/components/Main/FilterSubnavDropdown.tsx:88
 msgid "All Events & Planning"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:151
-#: client/components/Main/FilterSubnavDropdown.tsx:235
+#: client/components/Main/FilterSubnavDropdown.tsx:154
+#: client/components/Main/FilterSubnavDropdown.tsx:238
 msgid "All Planning Items"
 msgstr ""
 
@@ -385,8 +410,8 @@ msgstr ""
 msgid "Are you sure you want to mark this event as complete?"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:168
 #: client/components/Locations/LocationsEditor.tsx:236
+#: client/components/fields/resources/locations.ts:32
 msgid "Area"
 msgstr ""
 
@@ -398,12 +423,12 @@ msgstr ""
 msgid "Article was created."
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:105
+#: client/apps/Planning/PlanningListSubNav.tsx:152
 #: client/components/OrderBar/OrderDirectionIcon.tsx:16
 msgid "Ascending"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:76
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:106
 msgid "Assign"
 msgstr ""
 
@@ -423,7 +448,7 @@ msgstr ""
 msgid "Assign to calendar"
 msgstr ""
 
-#: client/utils/index.ts:370
+#: client/utils/index.ts:371
 msgid "Assigned"
 msgstr ""
 
@@ -453,15 +478,15 @@ msgstr ""
 msgid "Assignee"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:116
-#: client/components/Coverages/CoverageItem.tsx:224
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:146
+#: client/components/Coverages/CoverageItem.tsx:262
 msgid "Assignee:"
 msgstr ""
 
 #: client/apps/Assignments/AssignmentPreview.tsx:39
 #: client/components/Assignments/AssignmentHistory.tsx:78
 #: client/components/Assignments/AssignmentHistory.tsx:83
-#: client/utils/index.ts:569
+#: client/utils/index.ts:570
 msgid "Assignment"
 msgstr ""
 
@@ -500,11 +525,12 @@ msgstr ""
 msgid "Assignments"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:459
+#: client/components/fields/editor/XMPFile.tsx:54
 msgid "Associate an XMP file"
 msgstr ""
 
-#: client/components/Planning/PlanningEditor/index.tsx:870
+#: client/api/editor/item_planning.ts:150
+#: client/api/editor/item_planning.ts:151
 #: client/components/Planning/PlanningMenuPanel/index.tsx:40
 #: client/components/Planning/PlanningPreviewContent.tsx:177
 msgid "Associated Event"
@@ -518,15 +544,12 @@ msgstr ""
 msgid "Associated an event"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:535
-msgid "Attach files"
-msgstr ""
-
-#: client/components/Events/EventEditor/index.tsx:524
-#: client/components/Events/EventMetadata/index.tsx:189
-#: client/components/Planning/PlanningEditor/index.tsx:838
+#: client/api/editor/item_planning.ts:141
+#: client/api/editor/item_planning.ts:142
+#: client/components/Events/EventMetadata/index.tsx:178
 #: client/components/Planning/PlanningPreviewContent.tsx:154
 #: client/components/UI/FileReadOnlyList.tsx:73
+#: client/components/fields/editor/EventAttachments.tsx:96
 msgid "Attached Files"
 msgstr ""
 
@@ -534,11 +557,13 @@ msgstr ""
 msgid "Attached files"
 msgstr ""
 
+#: client/api/editor/item_events.ts:146
+#: client/api/editor/item_events.ts:147
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:122
 msgid "Attachments"
 msgstr ""
 
-#: client/utils/index.ts:581
+#: client/utils/index.ts:582
 msgid "Audio"
 msgstr ""
 
@@ -576,9 +601,8 @@ msgstr ""
 msgid "Calendar:"
 msgstr ""
 
-#: client/components/Events/EventEditor/index.tsx:394
-#: client/components/Main/FilterSubnavDropdown.tsx:122
-#: client/components/fields/editor/Calendars.tsx:24
+#: client/components/Main/FilterSubnavDropdown.tsx:125
+#: client/components/fields/editor/Calendars.tsx:25
 msgid "Calendars"
 msgstr ""
 
@@ -589,14 +613,14 @@ msgstr ""
 #: client/components/Agendas/EditAgenda.tsx:104
 #: client/components/Assignments/AssignmentPopup/index.tsx:78
 #: client/components/Assignments/EditCoverageAssignmentModal.tsx:101
-#: client/components/Assignments/SelectDeskTemplate.tsx:105
+#: client/components/Assignments/SelectDeskTemplate.tsx:106
 #: client/components/ConfirmationModal.tsx:75
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:289
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:334
 #: client/components/EventsPlanningFilters/EditFilter.tsx:194
 #: client/components/EventsPlanningFilters/EditFilterSchedule.tsx:143
 #: client/components/ExportAsArticleModal.tsx:220
 #: client/components/FulFilAssignmentModal/index.tsx:97
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:118
+#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:174
 #: client/components/IgnoreCancelSaveModal.tsx:165
 #: client/components/ItemActionConfirmation/modal.tsx:192
 #: client/components/Locations/LocationsEditor.tsx:197
@@ -607,6 +631,7 @@ msgstr ""
 #: client/components/UI/Form/TimeInput/TimeInputPopup.tsx:161
 #: client/components/UI/SubNav/SlidingToolBar.tsx:34
 #: client/components/UI/SubNav/SlidingToolBar.tsx:39
+#: client/components/fields/editor/EventRelatedPlannings/AddNewCoverages.tsx:244
 #: client/constants/events.ts:159
 msgid "Cancel"
 msgstr ""
@@ -625,7 +650,7 @@ msgstr ""
 msgid "Cancel Planning"
 msgstr ""
 
-#: client/components/Coverages/ScheduledUpdate/index.tsx:61
+#: client/components/Coverages/ScheduledUpdate/index.tsx:62
 #: client/components/ItemActionConfirmation/modal.tsx:162
 #: client/components/ItemActionConfirmation/modal.tsx:164
 msgid "Cancel Scheduled Update"
@@ -649,8 +674,8 @@ msgstr ""
 
 #: client/components/fields/editor/WorkflowState.tsx:31
 #: client/components/fields/preview/base/converters.ts:197
-#: client/utils/index.ts:359
-#: client/utils/index.ts:407
+#: client/utils/index.ts:360
+#: client/utils/index.ts:408
 msgid "Cancelled"
 msgstr ""
 
@@ -658,25 +683,29 @@ msgstr ""
 msgid "Cannot end with \".\""
 msgstr ""
 
-#: client/actions/main.ts:799
+#: client/actions/main.ts:807
 msgid "Cannot load more data as filter type is not selected."
 msgstr ""
 
-#: client/actions/main.ts:820
+#: client/actions/main.ts:828
 msgid "Cannot load more data. Failed to run the query."
 msgstr ""
 
-#: client/actions/main.ts:841
+#: client/actions/main.ts:849
 msgid "Cannot search as filter type is not selected."
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:184
+#: client/apps/Planning/PlanningSubNav.tsx:128
+msgid "Change view"
+msgstr ""
+
 #: client/components/Locations/LocationsEditor.tsx:252
 #: client/components/Locations/LocationsList.tsx:114
+#: client/components/fields/resources/locations.ts:48
 msgid "City/Town"
 msgstr ""
 
-#: client/components/Main/SearchPanel.tsx:133
+#: client/components/Main/SearchPanel.tsx:134
 msgid "Clear"
 msgstr ""
 
@@ -685,29 +714,51 @@ msgstr ""
 msgid "Clear Filters"
 msgstr ""
 
-#: client/components/UI/Form/DateTimeInput/index.tsx:111
+#: client/components/UI/Form/DateTimeInput/index.tsx:113
 msgid "Clear date and time"
 msgstr ""
 
-#: client/components/Agendas/ManageAgendasModal.tsx:128
+#: client/components/Agendas/ManageAgendasModal.tsx:129
+#: client/components/Agendas/ManageAgendasModal.tsx:78
+#: client/components/Assignments/EditCoverageAssignmentModal.tsx:77
+#: client/components/Assignments/SelectDeskTemplate.tsx:63
+#: client/components/ConfirmationModal.tsx:102
+#: client/components/Contacts/ContactEditor/index.tsx:84
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:231
 #: client/components/Events/ManageEventTemplatesModal.tsx:100
+#: client/components/Events/ManageEventTemplatesModal.tsx:84
+#: client/components/EventsPlanningFilters/ManageFiltersModal.tsx:158
 #: client/components/EventsPlanningFilters/PreviewFilter.tsx:46
+#: client/components/FulFilAssignmentModal/index.tsx:78
+#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:132
+#: client/components/ItemActionsMenu/ActionsMenuPopup.tsx:46
 #: client/components/Locations/LocationsEditor.tsx:196
 #: client/components/Main/ItemEditor/EditorHeader.tsx:275
 #: client/components/Main/ItemEditor/EditorHeader.tsx:291
+#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:175
+#: client/components/Main/SearchPanel.tsx:109
+#: client/components/ModalWithForm/index.tsx:107
 #: client/components/ModalWithForm/index.tsx:128
+#: client/components/NotificationModal.tsx:45
+#: client/components/Planning/FeaturedPlanning/FeaturedPlanningModal.tsx:407
 #: client/components/Planning/FeaturedPlanning/FeaturedPlanningModal.tsx:417
 #: client/components/Planning/FeaturedPlanning/FeaturedPlanningModal.tsx:478
+#: client/components/Planning/FeaturedPlanning/UnlockFeaturedPlanning.tsx:67
+#: client/components/SelectItemModal.tsx:30
 #: client/components/Tooltips.tsx:11
 #: client/constants/tooltips.ts:25
 msgid "Close"
 msgstr ""
 
-#: client/components/fields/editor/ItemType.tsx:17
+#: client/components/UI/CollapseBox.tsx:175
+msgid "Collapse"
+msgstr ""
+
+#: client/components/fields/editor/ItemType.tsx:18
 msgid "Combined"
 msgstr ""
 
-#: client/components/fields/index.tsx:162
+#: client/components/fields/index.tsx:173
 msgid "Common"
 msgstr ""
 
@@ -717,11 +768,11 @@ msgstr ""
 
 #: client/components/Assignments/AssignmentHistory.tsx:66
 #: client/constants/assignments.ts:163
-#: client/utils/index.ts:387
+#: client/utils/index.ts:388
 msgid "Completed"
 msgstr ""
 
-#: client/utils/index.ts:579
+#: client/utils/index.ts:580
 msgid "Composite"
 msgstr ""
 
@@ -733,25 +784,26 @@ msgstr ""
 msgid "Confirm Availability"
 msgstr ""
 
-#: client/components/ConfirmationModal.tsx:104
+#: client/components/ConfirmationModal.tsx:101
 msgid "Confirmation"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:94
-#: client/components/Events/EventEditor/index.tsx:430
 #: client/components/Events/EventMenuPanel/index.tsx:36
+#: client/components/fields/editor/Contacts.tsx:19
+#: client/components/fields/editor/CoverageContact.tsx:34
 #: client/components/fields/preview/Contacts.tsx:25
 msgid "Contacts"
 msgstr ""
 
 #: client/apps/Assignments/AssignmentPreview.tsx:47
 #: client/components/Assignments/AssignmentHistory.tsx:91
-#: client/components/Main/ItemEditor/Editor.tsx:50
+#: client/components/Main/ItemEditor/Editor.tsx:52
 #: client/components/Main/ItemPreview/PreviewPanel.tsx:34
 msgid "Content"
 msgstr ""
 
-#: client/components/fields/editor/ContentTemplate.tsx:81
+#: client/components/fields/editor/ContentTemplate.tsx:82
 msgid "Content Template"
 msgstr ""
 
@@ -788,7 +840,7 @@ msgstr ""
 msgid "Converted to recurring event"
 msgstr ""
 
-#: client/components/UI/Form/LinkInput.tsx:24
+#: client/components/UI/Form/LinkInput.tsx:43
 msgid "Could not load title"
 msgstr ""
 
@@ -802,7 +854,7 @@ msgstr ""
 msgid "Could not obtain lock on the planning item."
 msgstr ""
 
-#: client/actions/main.ts:1489
+#: client/actions/main.ts:1500
 msgid "Could not save the item."
 msgstr ""
 
@@ -810,13 +862,13 @@ msgstr ""
 msgid "Could not unlock the assignment."
 msgstr ""
 
-#: client/actions/main.ts:1485
+#: client/actions/main.ts:1496
 msgid "Could not unlock the item."
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:221
 #: client/components/Locations/LocationsEditor.tsx:288
 #: client/components/Locations/LocationsList.tsx:132
+#: client/components/fields/resources/locations.ts:84
 msgid "Country"
 msgstr ""
 
@@ -824,7 +876,7 @@ msgstr ""
 msgid "Coverage"
 msgstr ""
 
-#: client/components/Assignments/EditCoverageAssignmentModal.tsx:80
+#: client/components/Assignments/EditCoverageAssignmentModal.tsx:75
 msgid "Coverage Assignment Details"
 msgstr ""
 
@@ -837,26 +889,29 @@ msgid "Coverage Provider"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.tsx:128
-#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:128
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:158
 #: client/components/Coverages/CoveragePreview/CoveragePreviewTopBar.tsx:60
 msgid "Coverage Provider:"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:555
 #: client/components/Coverages/CoveragePreview/index.tsx:183
 #: client/components/Coverages/ScheduledUpdate/ScheduledUpdateForm.tsx:128
-#: client/components/Coverages/ScheduledUpdate/index.tsx:160
+#: client/components/Coverages/ScheduledUpdate/index.tsx:161
+#: client/components/fields/editor/NewsCoverageStatus.tsx:32
 msgid "Coverage Status"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddButton/CoveragesMenuPopup.tsx:37
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:427
-#: client/components/fields/editor/CoverageType.tsx:24
+#: client/components/Coverages/CoverageAddButton/CoveragesMenuPopup.tsx:51
+#: client/components/fields/editor/CoverageType.tsx:34
 msgid "Coverage Type"
 msgstr ""
 
 #: client/components/fields/preview/index.ts:62
 msgid "Coverage Type:"
+msgstr ""
+
+#: client/components/fields/editor/EventRelatedPlannings/AddNewCoverages.tsx:216
+msgid "Coverage Types"
 msgstr ""
 
 #: client/components/Coverages/CoverageHistory.tsx:85
@@ -920,9 +975,11 @@ msgstr ""
 msgid "Coverage removed"
 msgstr ""
 
-#: client/components/Coverages/CoverageArrayInput.tsx:97
+#: client/components/Coverages/CoverageArrayInput.tsx:205
+#: client/components/Editor/bookmarks/CoveragesBookmark.tsx:122
 #: client/components/Planning/PlanningMenuPanel/index.tsx:54
 #: client/components/Planning/PlanningPreviewContent.tsx:192
+#: client/components/fields/editor/EventRelatedPlannings/RelatedPlanningItem.tsx:116
 msgid "Coverages"
 msgstr ""
 
@@ -932,7 +989,7 @@ msgstr ""
 #: client/components/ItemActionConfirmation/modal.tsx:127
 #: client/components/Locations/LocationsEditor.tsx:203
 #: client/components/Main/ItemEditor/EditorHeader.tsx:340
-#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:150
+#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:168
 msgid "Create"
 msgstr ""
 
@@ -940,8 +997,16 @@ msgstr ""
 msgid "Create & Post"
 msgstr ""
 
+#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:179
+msgid "Create Location"
+msgstr ""
+
 #: client/components/Locations/LocationsEditor.tsx:189
 msgid "Create New Location"
+msgstr ""
+
+#: client/components/Editor/EditorBookmarksBar.tsx:64
+msgid "Create Planning"
 msgstr ""
 
 #: client/constants/events.ts:157
@@ -954,6 +1019,7 @@ msgid "Create Scheduled Export"
 msgstr ""
 
 #: client/components/Locations/LocationsSubNav.tsx:49
+#: client/components/Locations/LocationsSubNav.tsx:50
 msgid "Create a new location"
 msgstr ""
 
@@ -966,11 +1032,12 @@ msgstr ""
 msgid "Create new"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddButton/index.tsx:81
+#: client/components/Coverages/CoverageAddButton/index.tsx:56
 msgid "Create new coverage"
 msgstr ""
 
 #: client/components/Main/CreateNewSubnavDropdown.tsx:67
+#: client/components/Main/CreateNewSubnavDropdown.tsx:71
 msgid "Create new item"
 msgstr ""
 
@@ -979,6 +1046,7 @@ msgid "Create new items or change your search filters"
 msgstr ""
 
 #: client/components/Main/CreateNewSubnavDropdown.tsx:66
+#: client/components/Main/CreateNewSubnavDropdown.tsx:70
 msgid "Create new planning item"
 msgstr ""
 
@@ -987,7 +1055,7 @@ msgid "Create planning"
 msgstr ""
 
 #: client/components/Assignments/FiltersBar.tsx:70
-#: client/components/AuditInformation/index.tsx:48
+#: client/components/AuditInformation/index.tsx:110
 #: client/components/Events/EventHistory.tsx:23
 #: client/components/Planning/PlanningHistory.tsx:20
 msgid "Created"
@@ -1046,12 +1114,12 @@ msgstr ""
 msgid "Daily @ {{ time }} to {{ desk }}"
 msgstr ""
 
-#: client/components/UI/Form/DateInput/index.tsx:183
+#: client/components/UI/Form/DateInput/index.tsx:219
 msgid "Date"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:114
-#: client/apps/Planning/PlanningListSubNav.tsx:67
+#: client/apps/Planning/PlanningListSubNav.tsx:161
+#: client/apps/Planning/PlanningListSubNav.tsx:82
 msgid "Date Created"
 msgstr ""
 
@@ -1060,12 +1128,12 @@ msgid "Date Filter:"
 msgstr ""
 
 #: client/components/EventsPlanningFilters/PreviewFilter.tsx:108
-#: client/components/fields/editor/RelativeDate.tsx:15
+#: client/components/fields/editor/RelativeDate.tsx:16
 msgid "Date Filters"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:117
-#: client/apps/Planning/PlanningListSubNav.tsx:70
+#: client/apps/Planning/PlanningListSubNav.tsx:164
+#: client/apps/Planning/PlanningListSubNav.tsx:85
 msgid "Date Updated"
 msgstr ""
 
@@ -1073,28 +1141,33 @@ msgstr ""
 msgid "Date is in the past"
 msgstr ""
 
+#: client/apps/Planning/SubNavDatePicker.tsx:71
+#: client/components/UI/Form/DateInput/index.tsx:210
+msgid "Date picker"
+msgstr ""
+
 #: client/components/Events/EventScheduleSummary/index.tsx:55
 msgid "Date:"
 msgstr ""
 
-#: client/components/fields/index.tsx:171
+#: client/components/fields/index.tsx:182
 msgid "Dates"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:53
-#: client/apps/Planning/PlanningListSubNav.tsx:94
+#: client/apps/Planning/PlanningListSubNav.tsx:141
+#: client/apps/Planning/PlanningListSubNav.tsx:68
 msgid "Day"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:28
+#: client/components/fields/editor/ScheduleMonthDay.tsx:29
 msgid "Day of the Month"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:15
+#: client/components/Events/RecurringRulesInput/index.tsx:32
 msgid "Day(s)"
 msgstr ""
 
-#: client/components/Assignments/SelectDeskTemplate.tsx:71
+#: client/components/Assignments/SelectDeskTemplate.tsx:72
 msgid "Default Template"
 msgstr ""
 
@@ -1116,7 +1189,8 @@ msgstr ""
 msgid "Delete Scheduled Export"
 msgstr ""
 
-#: client/components/UI/Form/LinkInput.tsx:197
+#: client/components/UI/Form/LinkInput.tsx:228
+#: client/components/UI/Form/LinkInput.tsx:229
 msgid "Delete link"
 msgstr ""
 
@@ -1124,15 +1198,23 @@ msgstr ""
 msgid "Delete of {{ type }} assignment '{{ slugline }}' failed"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:106
+#: client/components/fields/common/PreviewFilterSchedule.tsx:55
+msgid "Delete schedule"
+msgstr ""
+
+#: client/apps/Planning/PlanningListSubNav.tsx:153
 #: client/components/OrderBar/OrderDirectionIcon.tsx:20
 msgid "Descending"
 msgstr ""
 
+#: client/api/editor/item_events.ts:119
+#: client/api/editor/item_events.ts:120
+#: client/api/editor/item_planning.ts:123
+#: client/api/editor/item_planning.ts:124
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:37
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:53
-#: client/components/Events/EventEditor/index.tsx:377
-#: client/components/Planning/PlanningEditor/index.tsx:699
+#: client/components/fields/editor/DefinitionShort.tsx:22
+#: client/components/fields/editor/DescriptionText.tsx:22
 msgid "Description"
 msgstr ""
 
@@ -1148,7 +1230,7 @@ msgstr ""
 #: client/components/Assignments/AssignmentEditor.tsx:254
 #: client/components/Coverages/CoveragePreview/CoveragePreviewTopBar.tsx:45
 #: client/components/ExportAsArticleModal.tsx:183
-#: client/components/fields/editor/DeskId.tsx:40
+#: client/components/fields/editor/DeskId.tsx:41
 msgid "Desk"
 msgstr ""
 
@@ -1156,16 +1238,17 @@ msgstr ""
 msgid "Desk Assignments"
 msgstr ""
 
-#: client/components/Assignments/SelectDeskTemplate.tsx:78
+#: client/components/Assignments/SelectDeskTemplate.tsx:79
 msgid "Desk Templates"
 msgstr ""
 
 #: client/components/Assignments/AssignmentItem/fields/Desk.tsx:14
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.tsx:91
-#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:105
-#: client/components/Coverages/CoverageItem.tsx:192
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:135
+#: client/components/Coverages/CoverageItem.tsx:230
 #: client/components/ItemActionConfirmation/forms/editPriorityForm.tsx:91
 #: client/components/ItemActionConfirmation/forms/updateAssignmentForm.tsx:129
+#: client/components/fields/editor/EventRelatedPlannings/EmbeddedCoverageForm.tsx:78
 msgid "Desk:"
 msgstr ""
 
@@ -1177,9 +1260,13 @@ msgstr ""
 msgid "Destination"
 msgstr ""
 
-#: client/components/Events/EventEditor/index.tsx:451
-#: client/components/Planning/PlanningEditor/index.tsx:741
-#: client/components/fields/index.tsx:180
+#: client/api/editor/item_events.ts:137
+#: client/api/editor/item_events.ts:138
+#: client/api/editor/item_events.ts:62
+#: client/api/editor/item_planning.ts:132
+#: client/api/editor/item_planning.ts:133
+#: client/api/editor/item_planning.ts:55
+#: client/components/fields/index.tsx:191
 msgid "Details"
 msgstr ""
 
@@ -1192,20 +1279,20 @@ msgstr ""
 msgid "Disable confirmation"
 msgstr ""
 
-#: client/utils/planning.ts:850
+#: client/utils/planning.ts:852
 msgid "Disabled"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:190
+#: client/components/Main/FilterSubnavDropdown.tsx:193
 msgid "Disabled Agendas"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:137
+#: client/components/Main/FilterSubnavDropdown.tsx:140
 msgid "Disabled Calendars"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:585
 #: client/components/Coverages/CoveragePreview/index.tsx:197
+#: client/components/fields/editor/NoContentLinking.tsx:15
 msgid "Do not link content updates"
 msgstr ""
 
@@ -1240,18 +1327,18 @@ msgstr ""
 
 #: client/components/fields/editor/WorkflowState.tsx:19
 #: client/components/fields/preview/base/converters.ts:189
-#: client/utils/index.ts:326
+#: client/utils/index.ts:327
 msgid "Draft"
 msgstr ""
 
-#: client/components/UI/Form/FileInput.tsx:152
+#: client/components/UI/Form/FileInput.tsx:199
 msgid "Drag files here or"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:567
 #: client/components/Coverages/CoveragePreview/index.tsx:189
 #: client/components/Coverages/ScheduledUpdate/ScheduledUpdateForm.tsx:140
-#: client/components/Coverages/ScheduledUpdate/index.tsx:164
+#: client/components/Coverages/ScheduledUpdate/index.tsx:165
+#: client/components/fields/editor/CoverageSchedule.tsx:27
 msgid "Due"
 msgstr ""
 
@@ -1269,14 +1356,14 @@ msgstr ""
 msgid "Due: {{ date }}"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:263
-#: client/components/Coverages/CoverageEditor/index.tsx:67
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:308
+#: client/components/Coverages/CoverageEditor/index.tsx:131
 #: client/constants/events.ts:156
 #: client/constants/planning.ts:136
 msgid "Duplicate"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/index.tsx:72
+#: client/components/Coverages/CoverageEditor/index.tsx:136
 msgid "Duplicate As"
 msgstr ""
 
@@ -1321,15 +1408,13 @@ msgstr ""
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:118
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:111
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:59
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:504
-#: client/components/Events/EventEditor/index.tsx:516
-#: client/components/Planning/PlanningEditor/index.tsx:753
+#: client/components/fields/editor/Ednote.tsx:22
 msgid "Ed Note"
 msgstr ""
 
 #: client/components/EventsPlanningFilters/PreviewFilter.tsx:42
 #: client/components/Main/ItemEditor/EditorHeader.tsx:358
-#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:150
+#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:168
 #: client/components/Tooltips.tsx:10
 #: client/constants/events.ts:166
 #: client/constants/planning.ts:140
@@ -1342,7 +1427,7 @@ msgstr ""
 msgid "Edit Agenda"
 msgstr ""
 
-#: client/components/Contacts/ContactMetaData/index.tsx:28
+#: client/components/Contacts/ContactMetaData/index.tsx:66
 msgid "Edit Contact"
 msgstr ""
 
@@ -1364,11 +1449,16 @@ msgstr ""
 msgid "Edit Scheduled Export"
 msgstr ""
 
-#: client/components/Main/ItemEditor/EditorHeader.tsx:419
+#: client/components/Main/ItemEditor/EditorHeader.tsx:420
+#: client/components/Main/ItemEditor/EditorHeader.tsx:422
 #: client/constants/events.ts:167
 #: client/constants/planning.ts:141
 #: client/constants/tooltips.ts:32
 msgid "Edit in popup"
+msgstr ""
+
+#: client/components/fields/common/PreviewFilterSchedule.tsx:45
+msgid "Edit schedule"
 msgstr ""
 
 #: client/components/Events/EventHistory.tsx:27
@@ -1399,9 +1489,9 @@ msgstr ""
 #: client/components/Assignments/AssignmentPreviewContainer/index.tsx:163
 #: client/components/ItemIcon.tsx:23
 #: client/components/Main/CreateNewSubnavDropdown.tsx:39
-#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:151
+#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:169
 #: client/utils/history.tsx:75
-#: client/utils/index.ts:565
+#: client/utils/index.ts:566
 msgid "Event"
 msgstr ""
 
@@ -1415,20 +1505,25 @@ msgid "Event Cancelled:"
 msgstr ""
 
 #: client/components/Events/EventItem.tsx:204
-#: client/components/Planning/PlanningEditor/PlanningEditorHeader.tsx:46
+#: client/components/Planning/PlanningEditor/PlanningEditorHeader.tsx:61
 #: client/components/Planning/PlanningItem.tsx:219
 #: client/components/Planning/PlanningPreviewContent.tsx:134
 #: client/components/StateLabel/index.tsx:61
 msgid "Event Completed"
 msgstr ""
 
-#: client/components/Main/ItemEditor/Editor.tsx:144
+#: client/components/Main/ItemEditor/Editor.tsx:150
 #: client/components/Main/ItemPreview/PreviewPanel.tsx:76
 msgid "Event Details"
 msgstr ""
 
-#: client/components/Events/EventScheduleInput/index.tsx:356
+#: client/components/Events/EventScheduleInput/index.tsx:379
+#: client/components/fields/editor/EventSchedule.tsx:248
 msgid "Event Ends"
+msgstr ""
+
+#: client/components/Events/EventEditor/index.tsx:187
+msgid "Event Name"
 msgstr ""
 
 #: client/components/Events/EventHistory.tsx:47
@@ -1453,7 +1548,8 @@ msgstr ""
 msgid "Event Rescheduled:"
 msgstr ""
 
-#: client/components/Events/EventScheduleInput/index.tsx:334
+#: client/components/Events/EventScheduleInput/index.tsx:357
+#: client/components/fields/editor/EventSchedule.tsx:237
 msgid "Event Starts"
 msgstr ""
 
@@ -1478,7 +1574,6 @@ msgid "Event has been rescheduled"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:31
-#: client/components/Events/EventEditor/index.tsx:367
 msgid "Event name"
 msgstr ""
 
@@ -1510,8 +1605,8 @@ msgstr ""
 msgid "Event will be changed to a multi-day event!"
 msgstr ""
 
-#: client/components/fields/editor/ItemType.tsx:20
-#: client/components/fields/index.tsx:174
+#: client/components/fields/editor/ItemType.tsx:21
+#: client/components/fields/index.tsx:185
 #: client/utils/eventsplanning.ts:17
 #: client/utils/eventsplanning.ts:19
 msgid "Events"
@@ -1521,11 +1616,15 @@ msgstr ""
 msgid "Events & Planning"
 msgstr ""
 
+#: client/apps/PageContent.tsx:124
+msgid "Events and Planning content"
+msgstr ""
+
 #: client/components/Main/FiltersBox.tsx:31
 msgid "Events only"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:77
+#: client/components/Events/RecurringRulesInput/index.tsx:101
 msgid "Every"
 msgstr ""
 
@@ -1534,23 +1633,23 @@ msgstr ""
 msgid "Every Hour"
 msgstr ""
 
-#: client/utils/events.ts:952
+#: client/utils/events.ts:953
 msgid "Every {{interval}} day(s)"
 msgstr ""
 
-#: client/utils/events.ts:945
+#: client/utils/events.ts:946
 msgid "Every {{interval}} month(s) on day {{day}}"
 msgstr ""
 
-#: client/utils/events.ts:955
+#: client/utils/events.ts:956
 msgid "Every {{interval}} week(s)"
 msgstr ""
 
-#: client/utils/events.ts:938
+#: client/utils/events.ts:939
 msgid "Every {{interval}} year(s) on {{date}}"
 msgstr ""
 
-#: client/components/fields/editor/ExcludeRescheduledAndCancelled.tsx:14
+#: client/components/fields/editor/ExcludeRescheduledAndCancelled.tsx:15
 msgid "Exclude Rescheduled And Cancelled"
 msgstr ""
 
@@ -1563,12 +1662,12 @@ msgid "Exclude Spike"
 msgstr ""
 
 #: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:164
-msgid "Existing locations"
+msgid "Existing Locations"
 msgstr ""
 
 #: client/components/Events/EventItem.tsx:184
 #: client/components/Planning/PlanningItem.tsx:211
-#: client/utils/index.ts:415
+#: client/utils/index.ts:416
 msgid "Expired"
 msgstr ""
 
@@ -1578,7 +1677,7 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: client/components/fields/editor/ExportTemplate.tsx:47
+#: client/components/fields/editor/ExportTemplate.tsx:48
 msgid "Export Template"
 msgstr ""
 
@@ -1586,13 +1685,13 @@ msgstr ""
 msgid "Export as article"
 msgstr ""
 
-#: client/components/Events/EventEditor/index.tsx:553
-#: client/components/Events/EventMetadata/index.tsx:214
+#: client/components/Events/EventMetadata/index.tsx:203
 #: client/components/Events/EventPreviewContent.tsx:114
+#: client/components/fields/editor/EventLinks.tsx:60
 msgid "External Links"
 msgstr ""
 
-#: client/components/Events/EventEditor/index.tsx:385
+#: client/components/Events/EventEditor/index.tsx:175
 msgid "External Reference"
 msgstr ""
 
@@ -1621,7 +1720,7 @@ msgstr ""
 msgid "Failed to create an archive item."
 msgstr ""
 
-#: client/api/locations.ts:32
+#: client/api/locations.ts:33
 msgid "Failed to create the location"
 msgstr ""
 
@@ -1629,7 +1728,7 @@ msgstr ""
 msgid "Failed to create/update Events and Planning view filter"
 msgstr ""
 
-#: client/api/locations.ts:90
+#: client/api/locations.ts:91
 msgid "Failed to delete the location"
 msgstr ""
 
@@ -1663,7 +1762,7 @@ msgstr ""
 msgid "Failed to get the autosave entry"
 msgstr ""
 
-#: client/actions/main.ts:1367
+#: client/actions/main.ts:1378
 msgid "Failed to get the queue item"
 msgstr ""
 
@@ -1683,7 +1782,7 @@ msgstr ""
 msgid "Failed to load {{ itemType }} autosaves."
 msgstr ""
 
-#: client/actions/planning/api.ts:582
+#: client/actions/planning/api.ts:575
 #: client/actions/planning/featuredPlanning.ts:246
 #: client/actions/planning/ui.ts:279
 msgid "Failed to lock featured story action!"
@@ -1697,11 +1796,11 @@ msgstr ""
 msgid "Failed to lock the item."
 msgstr ""
 
-#: client/actions/main.ts:392
+#: client/actions/main.ts:400
 msgid "Failed to post the {{ itemType }}"
 msgstr ""
 
-#: client/actions/main.ts:367
+#: client/actions/main.ts:375
 msgid "Failed to post, could not find the item type!"
 msgstr ""
 
@@ -1718,11 +1817,11 @@ msgstr ""
 msgid "Failed to remove planning item as featured story"
 msgstr ""
 
-#: client/actions/events/api.ts:693
+#: client/actions/events/api.ts:691
 msgid "Failed to remove the file from event."
 msgstr ""
 
-#: client/actions/planning/api.ts:735
+#: client/actions/planning/api.ts:728
 msgid "Failed to remove the file from planning."
 msgstr ""
 
@@ -1734,11 +1833,11 @@ msgstr ""
 msgid "Failed to revert the assignment."
 msgstr ""
 
-#: client/actions/main.ts:790
+#: client/actions/main.ts:798
 msgid "Failed to run the query"
 msgstr ""
 
-#: client/actions/main.ts:880
+#: client/actions/main.ts:888
 msgid "Failed to run the query.."
 msgstr ""
 
@@ -1754,15 +1853,15 @@ msgstr ""
 msgid "Failed to save the assignment."
 msgstr ""
 
-#: client/actions/events/api.ts:746
+#: client/actions/events/api.ts:744
 msgid "Failed to save the event template"
 msgstr ""
 
-#: client/actions/main.ts:271
+#: client/actions/main.ts:279
 msgid "Failed to save the {{itemType}}!"
 msgstr ""
 
-#: client/actions/main.ts:213
+#: client/actions/main.ts:221
 msgid "Failed to save, could not find the item {{itemType}}!"
 msgstr ""
 
@@ -1771,7 +1870,7 @@ msgstr ""
 msgid "Failed to spike the event(s)"
 msgstr ""
 
-#: client/actions/planning/api.ts:650
+#: client/actions/planning/api.ts:643
 msgid "Failed to unlock featured story action!"
 msgstr ""
 
@@ -1783,11 +1882,11 @@ msgstr ""
 msgid "Failed to unlock the item. Lock not found!"
 msgstr ""
 
-#: client/actions/main.ts:328
+#: client/actions/main.ts:336
 msgid "Failed to unpost the {{ itemType }}"
 msgstr ""
 
-#: client/actions/main.ts:305
+#: client/actions/main.ts:313
 msgid "Failed to unpost, could not find the item type!"
 msgstr ""
 
@@ -1795,12 +1894,16 @@ msgstr ""
 msgid "Failed to update Event repetitions"
 msgstr ""
 
-#: client/api/locations.ts:68
+#: client/api/locations.ts:69
 msgid "Failed to update location"
 msgstr ""
 
 #: client/actions/events/ui.ts:499
 msgid "Failed to update the Event time!"
+msgstr ""
+
+#: client/components/fields/editor/EventAttachments.tsx:62
+msgid "Failed to upload files"
 msgstr ""
 
 #: client/components/fields/preview/base/converters.ts:34
@@ -1809,11 +1912,11 @@ msgid "False"
 msgstr ""
 
 #: client/components/Planning/FeaturedPlanning/FeatureLabel.tsx:9
-#: client/components/fields/editor/Featured.tsx:14
+#: client/components/fields/editor/Featured.tsx:15
 msgid "Featured"
 msgstr ""
 
-#: client/components/Planning/FeaturedPlanning/UnlockFeaturedPlanning.tsx:69
+#: client/components/Planning/FeaturedPlanning/UnlockFeaturedPlanning.tsx:66
 msgid "Featured Stories Locked"
 msgstr ""
 
@@ -1821,7 +1924,7 @@ msgstr ""
 msgid "Featured Stories Unlocked"
 msgstr ""
 
-#: client/components/Planning/FeaturedPlanning/FeaturedPlanningModal.tsx:406
+#: client/components/Planning/FeaturedPlanning/FeaturedPlanningModal.tsx:403
 msgid "Featured Stories based on timezone: {{tz}}"
 msgstr ""
 
@@ -1841,7 +1944,7 @@ msgstr ""
 msgid "Files"
 msgstr ""
 
-#: client/components/UI/SubNav/Dropdown.tsx:232
+#: client/components/UI/SubNav/Dropdown.tsx:233
 msgid "Filter"
 msgstr ""
 
@@ -1866,19 +1969,21 @@ msgstr ""
 msgid "First"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:34
+#: client/components/fields/editor/ScheduleMonthDay.tsx:35
 msgid "First Day"
 msgstr ""
 
-#: client/components/Events/EventScheduleInput/index.tsx:356
+#: client/components/Events/EventScheduleInput/index.tsx:379
+#: client/components/fields/editor/EventSchedule.tsx:247
 msgid "First Event Ends"
 msgstr ""
 
-#: client/components/Events/EventScheduleInput/index.tsx:334
+#: client/components/Events/EventScheduleInput/index.tsx:357
+#: client/components/fields/editor/EventSchedule.tsx:236
 msgid "First Event Starts"
 msgstr ""
 
-#: client/components/Planning/PlanningEditor/index.tsx:826
+#: client/components/fields/editor/OverrideAutoAssignToWorkflow.tsx:15
 msgid "Forward Planning"
 msgstr ""
 
@@ -1886,7 +1991,7 @@ msgstr ""
 msgid "Fr"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleFrequency.tsx:15
+#: client/components/fields/editor/ScheduleFrequency.tsx:16
 msgid "Frequency"
 msgstr ""
 
@@ -1894,13 +1999,13 @@ msgstr ""
 msgid "Fri"
 msgstr ""
 
-#: client/utils/events.ts:1008
+#: client/utils/events.ts:1009
 msgid "Friday"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:44
 #: client/components/ItemActionConfirmation/forms/updateTimeForm.tsx:238
-#: client/components/fields/editor/StartDateTime.tsx:18
+#: client/components/fields/editor/StartDateTime.tsx:27
 msgid "From"
 msgstr ""
 
@@ -1926,10 +2031,10 @@ msgid "Future Assignments"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:108
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:480
 #: client/components/Coverages/CoveragePreview/index.tsx:163
 #: client/components/Coverages/ScheduledUpdate/ScheduledUpdateForm.tsx:106
-#: client/components/Coverages/ScheduledUpdate/index.tsx:150
+#: client/components/Coverages/ScheduledUpdate/index.tsx:151
+#: client/components/fields/editor/Genre.tsx:26
 msgid "Genre"
 msgstr ""
 
@@ -1945,12 +2050,12 @@ msgstr ""
 msgid "Go-To"
 msgstr ""
 
-#: client/utils/index.ts:577
+#: client/utils/index.ts:578
 msgid "Graphic"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:41
-#: client/components/Planning/PlanningEditor/index.tsx:668
+#: client/components/fields/editor/Headline.tsx:20
 msgid "Headline"
 msgstr ""
 
@@ -1962,16 +2067,16 @@ msgstr ""
 msgid "Hide"
 msgstr ""
 
-#: client/components/Main/ItemEditor/Editor.tsx:52
+#: client/components/Main/ItemEditor/Editor.tsx:54
 #: client/components/Main/ItemPreview/PreviewPanel.tsx:42
 msgid "History"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleHour.tsx:40
+#: client/components/fields/editor/ScheduleHour.tsx:41
 msgid "Hour"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleFrequency.tsx:19
+#: client/components/fields/editor/ScheduleFrequency.tsx:20
 msgid "Hourly"
 msgstr ""
 
@@ -1983,7 +2088,7 @@ msgstr ""
 msgid "Hours"
 msgstr ""
 
-#: client/components/AddToPlanningModal/index.tsx:83
+#: client/components/AddToPlanningModal/index.tsx:85
 #: client/components/ConfirmationModal.tsx:93
 #: client/components/FulFilAssignmentModal/index.tsx:104
 #: client/components/IgnoreCancelSaveModal.tsx:168
@@ -1995,15 +2100,15 @@ msgid "In 2 days"
 msgstr ""
 
 #: client/constants/assignments.ts:160
-#: client/utils/index.ts:375
+#: client/utils/index.ts:376
 msgid "In Progress"
 msgstr ""
 
-#: client/utils/index.ts:320
+#: client/utils/index.ts:321
 msgid "Inactive"
 msgstr ""
 
-#: client/components/fields/editor/IncludeKilled.tsx:14
+#: client/components/fields/editor/IncludeKilled.tsx:15
 msgid "Include Killed"
 msgstr ""
 
@@ -2011,7 +2116,7 @@ msgstr ""
 msgid "Include Killed:"
 msgstr ""
 
-#: client/components/fields/editor/IncludeScheduledUpdates.tsx:14
+#: client/components/fields/editor/IncludeScheduledUpdates.tsx:15
 #: client/components/fields/preview/index.ts:87
 msgid "Include Scheduled Updates"
 msgstr ""
@@ -2020,32 +2125,30 @@ msgstr ""
 msgid "Include Spike"
 msgstr ""
 
-#: client/components/fields/editor/SpikeState.tsx:30
+#: client/components/fields/editor/SpikeState.tsx:31
 msgid "Include Spiked"
-msgstr ""
-
-#: client/components/AuditInformation/index.tsx:31
-msgid "Ingest"
 msgstr ""
 
 #: client/components/fields/preview/index.ts:91
 msgid "Ingest Source:"
 msgstr ""
 
+#: client/components/AuditInformation/index.tsx:49
+msgid "Ingest: {{ name }}"
+msgstr ""
+
 #: client/components/Events/EventHistory.tsx:19
 #: client/components/fields/editor/WorkflowState.tsx:22
 #: client/components/fields/preview/base/converters.ts:191
-#: client/utils/index.ts:336
+#: client/utils/index.ts:337
 msgid "Ingested"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:123
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:65
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:526
 #: client/components/Coverages/ScheduledUpdate/ScheduledUpdateForm.tsx:118
-#: client/components/Coverages/ScheduledUpdate/index.tsx:154
-#: client/components/Events/EventEditor/index.tsx:508
-#: client/components/Planning/PlanningEditor/index.tsx:707
+#: client/components/Coverages/ScheduledUpdate/index.tsx:155
+#: client/components/fields/editor/InternalNote.tsx:22
 msgid "Internal Note"
 msgstr ""
 
@@ -2054,11 +2157,11 @@ msgstr ""
 msgid "Internal Note:"
 msgstr ""
 
-#: client/components/UI/Form/DateInput/index.tsx:163
+#: client/components/UI/Form/DateInput/index.tsx:192
 msgid "Invalid Date"
 msgstr ""
 
-#: client/components/UI/Form/TimeInput/index.tsx:255
+#: client/components/UI/Form/TimeInput/index.tsx:256
 msgid "Invalid time"
 msgstr ""
 
@@ -2070,7 +2173,7 @@ msgstr ""
 msgid "Invalid value for longitude"
 msgstr ""
 
-#: client/utils/index.ts:583
+#: client/utils/index.ts:584
 msgid "Item"
 msgstr ""
 
@@ -2078,7 +2181,7 @@ msgstr ""
 msgid "Item History"
 msgstr ""
 
-#: client/components/fields/editor/ItemType.tsx:14
+#: client/components/fields/editor/ItemType.tsx:15
 msgid "Item Type"
 msgstr ""
 
@@ -2086,7 +2189,7 @@ msgstr ""
 msgid "Item Type:"
 msgstr ""
 
-#: client/actions/main.ts:1304
+#: client/actions/main.ts:1315
 #: client/controllers/AddToPlanningController.tsx:183
 #: client/controllers/FulfilAssignmentController.tsx:161
 msgid "Item Unlocked"
@@ -2103,7 +2206,7 @@ msgstr ""
 msgid "Item already locked."
 msgstr ""
 
-#: client/actions/main.ts:1498
+#: client/actions/main.ts:1509
 msgid "Item has changed since it was opened. Please close and reopen the item to continue. Regrettably, your changes cannot be saved."
 msgstr ""
 
@@ -2111,12 +2214,17 @@ msgstr ""
 msgid "Item not linked to a Planning item."
 msgstr ""
 
+#: client/components/UI/SidePanel/Header.tsx:22
+msgid "Item preview"
+msgstr ""
+
 #: client/components/Main/JumpToDropdown.tsx:48
+#: client/components/Main/JumpToDropdown.tsx:54
 msgid "Jump to specific date"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:113
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:513
+#: client/components/fields/editor/Keywords.tsx:25
 msgid "Keywords"
 msgstr ""
 
@@ -2126,15 +2234,12 @@ msgstr ""
 
 #: client/components/fields/editor/WorkflowState.tsx:28
 #: client/components/fields/preview/base/converters.ts:195
-#: client/utils/index.ts:348
+#: client/utils/index.ts:349
 msgid "Killed"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:82
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:445
-#: client/components/Events/EventEditor/index.tsx:344
-#: client/components/Planning/PlanningEditor/index.tsx:646
-#: client/components/fields/editor/Language.tsx:24
+#: client/components/fields/editor/Language.tsx:32
 msgid "Language"
 msgstr ""
 
@@ -2147,7 +2252,7 @@ msgstr ""
 msgid "Last"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleMonthDay.tsx:62
+#: client/components/fields/editor/ScheduleMonthDay.tsx:63
 msgid "Last Day"
 msgstr ""
 
@@ -2155,6 +2260,8 @@ msgstr ""
 msgid "Latitude"
 msgstr ""
 
+#: client/api/editor/item_events.ts:155
+#: client/api/editor/item_events.ts:156
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:135
 #: client/components/Events/EventMenuPanel/EventLinks.tsx:20
 msgid "Links"
@@ -2169,19 +2276,20 @@ msgstr ""
 msgid "Loading"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:193
 #: client/components/Locations/LocationsEditor.tsx:260
+#: client/components/fields/resources/locations.ts:56
 msgid "Locality"
 msgstr ""
 
+#: client/api/editor/item_events.ts:128
+#: client/api/editor/item_events.ts:129
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:73
-#: client/components/Events/EventEditor/index.tsx:420
-#: client/components/fields/editor/Location.tsx:18
+#: client/components/fields/editor/Location.tsx:24
 #: client/components/fields/preview/Location.tsx:17
 msgid "Location"
 msgstr ""
 
-#: client/api/locations.ts:85
+#: client/api/locations.ts:86
 msgid "Location deleted"
 msgstr ""
 
@@ -2193,18 +2301,18 @@ msgstr ""
 msgid "Locations"
 msgstr ""
 
-#: client/components/fields/editor/LockState.tsx:14
+#: client/components/fields/editor/LockState.tsx:15
 #: client/components/fields/preview/index.ts:109
 msgid "Lock State"
 msgstr ""
 
-#: client/components/fields/editor/LockState.tsx:17
+#: client/components/fields/editor/LockState.tsx:18
 #: client/components/fields/preview/base/converters.ts:140
 msgid "Locked"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:88
-#: client/components/Events/EventEditor/index.tsx:500
+#: client/components/fields/editor/DefinitionLong.tsx:22
 msgid "Long Description"
 msgstr ""
 
@@ -2220,7 +2328,7 @@ msgstr ""
 msgid "M"
 msgstr ""
 
-#: client/components/Agendas/ManageAgendasModal.tsx:80
+#: client/components/Agendas/ManageAgendasModal.tsx:77
 msgid "Manage Agendas"
 msgstr ""
 
@@ -2228,11 +2336,11 @@ msgstr ""
 msgid "Manage Event & Planning Filters"
 msgstr ""
 
-#: client/components/Events/ManageEventTemplatesModal.tsx:86
+#: client/components/Events/ManageEventTemplatesModal.tsx:83
 msgid "Manage Event Templates"
 msgstr ""
 
-#: client/components/EventsPlanningFilters/ManageFiltersModal.tsx:162
+#: client/components/EventsPlanningFilters/ManageFiltersModal.tsx:156
 msgid "Manage Events & Planning Filters"
 msgstr ""
 
@@ -2266,7 +2374,8 @@ msgstr ""
 msgid "Metadata"
 msgstr ""
 
-#: client/components/Main/ItemEditor/EditorHeader.tsx:411
+#: client/components/Main/ItemEditor/EditorHeader.tsx:412
+#: client/components/Main/ItemEditor/EditorHeader.tsx:413
 #: client/constants/tooltips.ts:33
 msgid "Minimise"
 msgstr ""
@@ -2287,25 +2396,29 @@ msgstr ""
 msgid "Mon"
 msgstr ""
 
-#: client/utils/events.ts:1004
+#: client/utils/events.ts:1005
 msgid "Monday"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:100
-#: client/apps/Planning/PlanningListSubNav.tsx:59
+#: client/apps/Planning/PlanningListSubNav.tsx:147
+#: client/apps/Planning/PlanningListSubNav.tsx:74
 msgid "Month"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:17
+#: client/components/Events/RecurringRulesInput/index.tsx:34
 msgid "Month(s)"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleFrequency.tsx:25
+#: client/components/fields/editor/ScheduleFrequency.tsx:26
 msgid "Monthly"
 msgstr ""
 
 #: client/utils/filters.ts:34
 msgid "Monthly on the {{ day }} day @ {{ time }} to {{ desk }}"
+msgstr ""
+
+#: client/components/ItemActionsMenu/index.tsx:54
+msgid "More actions"
 msgstr ""
 
 #: client/validators/events.ts:121
@@ -2333,13 +2446,12 @@ msgstr ""
 msgid "My Assignments"
 msgstr ""
 
-#: client/components/Assignments/SelectDeskTemplate.tsx:91
+#: client/components/Assignments/SelectDeskTemplate.tsx:92
 msgid "My Templates"
 msgstr ""
 
 #: client/components/Agendas/EditAgenda.tsx:127
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:47
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:149
 #: client/components/IgnoreCancelSaveModal.tsx:50
 #: client/components/ItemActionConfirmation/forms/assignCalendarForm.tsx:75
 #: client/components/ItemActionConfirmation/forms/cancelEventForm.tsx:120
@@ -2355,8 +2467,8 @@ msgstr ""
 #: client/components/ItemActionConfirmation/forms/updateRecurringEventsForm.tsx:91
 #: client/components/ItemActionConfirmation/forms/updateTimeForm.tsx:213
 #: client/components/Locations/LocationsEditor.tsx:218
-#: client/components/Planning/PlanningEditor/index.tsx:676
-#: client/components/fields/editor/Name.tsx:14
+#: client/components/fields/editor/Name.tsx:25
+#: client/components/fields/resources/locations.ts:16
 msgid "Name"
 msgstr ""
 
@@ -2368,14 +2480,14 @@ msgstr ""
 msgid "Name:"
 msgstr ""
 
-#: client/components/fields/editor/RelativeDate.tsx:28
+#: client/components/fields/editor/RelativeDate.tsx:29
 #: client/components/fields/preview/base/converters.ts:155
 msgid "Next Week"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:156
-#: client/components/Main/FilterSubnavDropdown.tsx:233
-#: client/components/fields/editor/NoAgendaAssigned.tsx:14
+#: client/components/Main/FilterSubnavDropdown.tsx:159
+#: client/components/Main/FilterSubnavDropdown.tsx:236
+#: client/components/fields/editor/NoAgendaAssigned.tsx:15
 msgid "No Agenda Assigned"
 msgstr ""
 
@@ -2387,9 +2499,9 @@ msgstr ""
 msgid "No Agenda Assigned:"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:102
-#: client/components/Main/FilterSubnavDropdown.tsx:218
-#: client/components/fields/editor/NoCalendarAssigned.tsx:14
+#: client/components/Main/FilterSubnavDropdown.tsx:105
+#: client/components/Main/FilterSubnavDropdown.tsx:221
+#: client/components/fields/editor/NoCalendarAssigned.tsx:15
 #: client/components/fields/preview/index.ts:124
 msgid "No Calendar Assigned"
 msgstr ""
@@ -2411,7 +2523,7 @@ msgstr ""
 msgid "No agendas assigned."
 msgstr ""
 
-#: client/components/Events/EventMetadata/index.tsx:210
+#: client/components/Events/EventMetadata/index.tsx:199
 #: client/components/Planning/PlanningPreviewContent.tsx:172
 #: client/components/UI/FileReadOnlyList.tsx:65
 msgid "No attached files added."
@@ -2430,7 +2542,7 @@ msgid "No calendars assigned."
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:151
-#: client/components/Events/EventMetadata/index.tsx:228
+#: client/components/Events/EventMetadata/index.tsx:217
 #: client/components/Events/EventPreviewContent.tsx:127
 msgid "No external links added."
 msgstr ""
@@ -2438,6 +2550,10 @@ msgstr ""
 #: client/components/UI/Form/SelectMetaTermsInput/SelectFieldPopup.tsx:376
 #: client/components/UI/Form/SelectMetaTermsInput/SelectFieldPopup.tsx:468
 msgid "No items found"
+msgstr ""
+
+#: client/components/fields/editor/EventRelatedPlannings/EventRelatedPlannings.tsx:48
+msgid "No related Planning yet"
 msgstr ""
 
 #: client/components/Events/EventPreviewContent.tsx:147
@@ -2448,8 +2564,8 @@ msgstr ""
 msgid "No result"
 msgstr ""
 
-#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:199
-#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:228
+#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:190
+#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:217
 msgid "No results found"
 msgstr ""
 
@@ -2477,12 +2593,12 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: client/components/UI/List/PubStatus.tsx:24
+#: client/components/fields/editor/NotForPublication.tsx:15
 #: client/constants/tooltips.ts:31
 msgid "Not For Publication"
 msgstr ""
 
-#: client/components/fields/editor/LockState.tsx:20
+#: client/components/fields/editor/LockState.tsx:21
 #: client/components/fields/preview/base/converters.ts:141
 msgid "Not Locked"
 msgstr ""
@@ -2495,7 +2611,6 @@ msgstr ""
 msgid "Not enough {{ name }}"
 msgstr ""
 
-#: client/components/Planning/PlanningEditor/index.tsx:814
 #: client/components/fields/preview/Flags.tsx:19
 msgid "Not for Publication"
 msgstr ""
@@ -2504,15 +2619,19 @@ msgstr ""
 msgid "Not scheduled"
 msgstr ""
 
-#: client/components/Coverages/CoverageItem.tsx:111
+#: client/components/Coverages/CoverageItem.tsx:149
 #: client/components/Coverages/CoveragePreview/index.tsx:74
-#: client/utils/planning.ts:1098
+#: client/utils/planning.ts:1113
 msgid "Not scheduled yet"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:234
 #: client/components/Locations/LocationsEditor.tsx:319
+#: client/components/fields/resources/locations.ts:96
 msgid "Notes"
+msgstr ""
+
+#: client/components/NotificationModal.tsx:44
+msgid "Notification"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPopup/index.tsx:72
@@ -2521,7 +2640,7 @@ msgid "OK"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:116
-#: client/components/Events/EventEditor/index.tsx:442
+#: client/components/fields/editor/EventOccurenceStatus.tsx:30
 msgid "Occurrence Status"
 msgstr ""
 
@@ -2533,19 +2652,19 @@ msgstr ""
 msgid "Ok"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:22
+#: client/components/Events/RecurringRulesInput/index.tsx:39
 msgid "On"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:179
+#: client/components/Events/RecurringRulesInput/index.tsx:203
 msgid "On Days"
 msgstr ""
 
-#: client/components/fields/editor/OnlyPosted.tsx:14
+#: client/components/fields/editor/OnlyPosted.tsx:15
 msgid "Only Posted"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:275
+#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:273
 msgid "Only one XMP files are accepted"
 msgstr ""
 
@@ -2557,7 +2676,8 @@ msgstr ""
 msgid "Open Coverage"
 msgstr ""
 
-#: client/components/UI/Form/LinkInput.tsx:188
+#: client/components/UI/Form/LinkInput.tsx:218
+#: client/components/UI/Form/LinkInput.tsx:219
 msgid "Open link"
 msgstr ""
 
@@ -2570,6 +2690,7 @@ msgid "Order By: {{ name }}"
 msgstr ""
 
 #: client/components/UI/Form/SelectInputWithFreeText.tsx:70
+#: client/components/fields/editor/base/selectWithFreeText.tsx:170
 msgid "Other"
 msgstr ""
 
@@ -2590,7 +2711,7 @@ msgstr ""
 msgid "Past Events"
 msgstr ""
 
-#: client/components/UI/Form/LinkInput.tsx:163
+#: client/components/UI/Form/LinkInput.tsx:193
 msgid "Paste link"
 msgstr ""
 
@@ -2598,14 +2719,12 @@ msgstr ""
 msgid "Personal Workspace"
 msgstr ""
 
-#: client/utils/index.ts:573
+#: client/utils/index.ts:574
 msgid "Picture"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:93
-#: client/components/Events/EventEditor/index.tsx:407
-#: client/components/Planning/PlanningEditor/index.tsx:715
-#: client/components/fields/editor/Place.tsx:24
+#: client/components/fields/editor/Place.tsx:25
 msgid "Place"
 msgstr ""
 
@@ -2617,9 +2736,9 @@ msgstr ""
 #: client/components/Assignments/AssignmentPreviewContainer/index.tsx:144
 #: client/components/ItemIcon.tsx:30
 #: client/components/ItemIcon.tsx:37
-#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:151
-#: client/components/fields/editor/ItemType.tsx:23
-#: client/components/fields/index.tsx:177
+#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:169
+#: client/components/fields/editor/ItemType.tsx:24
+#: client/components/fields/index.tsx:188
 #: client/controllers/PlanningController.tsx:38
 #: client/index.ts:66
 #: client/index.ts:67
@@ -2639,7 +2758,7 @@ msgstr ""
 
 #: client/components/ItemActionConfirmation/forms/spikePlanningForm.tsx:46
 #: client/components/ItemActionConfirmation/forms/unspikePlanningForm.tsx:44
-#: client/components/Planning/PlanningEditor/index.tsx:684
+#: client/components/fields/editor/PlanningDateTime.tsx:29
 msgid "Planning Date"
 msgstr ""
 
@@ -2647,14 +2766,14 @@ msgstr ""
 msgid "Planning Date:"
 msgstr ""
 
-#: client/components/Main/ItemEditor/Editor.tsx:145
+#: client/components/Main/ItemEditor/Editor.tsx:151
 #: client/components/Main/ItemPreview/PreviewPanel.tsx:77
 #: client/index.ts:75
 msgid "Planning Details"
 msgstr ""
 
 #: client/components/Main/CreateNewSubnavDropdown.tsx:29
-#: client/utils/index.ts:567
+#: client/utils/index.ts:568
 msgid "Planning Item"
 msgstr ""
 
@@ -2703,6 +2822,10 @@ msgstr ""
 msgid "Planning only"
 msgstr ""
 
+#: client/components/Editor/bookmarks/AssociatedPlanningsBookmark.tsx:58
+msgid "Planning: {{ name }}"
+msgstr ""
+
 #: client/components/ItemActionConfirmation/modal.tsx:119
 #: client/components/ItemActionConfirmation/modal.tsx:122
 #: client/components/Main/ItemEditor/EditorHeader.tsx:302
@@ -2711,9 +2834,9 @@ msgstr ""
 msgid "Post"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:213
 #: client/components/Locations/LocationsEditor.tsx:280
 #: client/components/Locations/LocationsList.tsx:126
+#: client/components/fields/resources/locations.ts:76
 msgid "Post Code"
 msgstr ""
 
@@ -2725,11 +2848,10 @@ msgstr ""
 msgid "Post all recurring events or just this one?"
 msgstr ""
 
-#: client/components/AuditInformation/index.tsx:66
+#: client/components/AuditInformation/index.tsx:132
 #: client/components/Tooltips.tsx:14
-#: client/components/UI/List/PubStatus.tsx:21
 #: client/constants/tooltips.ts:28
-#: client/utils/index.ts:400
+#: client/utils/index.ts:401
 msgid "Posted"
 msgstr ""
 
@@ -2751,7 +2873,7 @@ msgstr ""
 
 #: client/components/fields/editor/WorkflowState.tsx:37
 #: client/components/fields/preview/base/converters.ts:201
-#: client/utils/index.ts:364
+#: client/utils/index.ts:365
 msgid "Postponed"
 msgstr ""
 
@@ -2773,7 +2895,7 @@ msgstr ""
 msgid "Priority: {{ name }}"
 msgstr ""
 
-#: client/components/Coverages/CoverageItem.tsx:232
+#: client/components/Coverages/CoverageItem.tsx:270
 #: client/components/ItemActionConfirmation/forms/editPriorityForm.tsx:107
 msgid "Provider:"
 msgstr ""
@@ -2838,7 +2960,7 @@ msgstr ""
 msgid "Reason for rescheduling this event:"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:149
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:179
 #: client/constants/assignments.ts:149
 msgid "Reassign"
 msgstr ""
@@ -2855,7 +2977,7 @@ msgstr ""
 msgid "Recurring Event(s)"
 msgstr ""
 
-#: client/components/fields/editor/Reference.tsx:14
+#: client/components/fields/editor/Reference.tsx:20
 msgid "Reference"
 msgstr ""
 
@@ -2863,16 +2985,20 @@ msgstr ""
 msgid "Reference:"
 msgstr ""
 
-#: client/components/Events/EventEditor/index.tsx:579
 #: client/components/Events/EventPreviewContent.tsx:132
 msgid "Related Planning Items"
 msgstr ""
 
+#: client/components/Editor/bookmarks/AssociatedPlanningsBookmark.tsx:99
 #: client/components/Events/EventMenuPanel/index.tsx:55
+#: client/components/fields/editor/EventRelatedPlannings/EventRelatedPlannings.tsx:29
 msgid "Related Plannings"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:160
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:191
+#: client/components/UI/Form/FileInput.tsx:117
+#: client/components/UI/Form/FileInput.tsx:154
+#: client/components/UI/TermsList.tsx:47
 msgid "Remove"
 msgstr ""
 
@@ -2880,7 +3006,7 @@ msgstr ""
 msgid "Remove Assignment"
 msgstr ""
 
-#: client/components/Contacts/ContactMetaData/index.tsx:43
+#: client/components/Contacts/ContactMetaData/index.tsx:78
 msgid "Remove Contact"
 msgstr ""
 
@@ -2888,15 +3014,16 @@ msgstr ""
 msgid "Remove Location"
 msgstr ""
 
-#: client/components/Coverages/ScheduledUpdate/index.tsx:77
+#: client/components/Coverages/ScheduledUpdate/index.tsx:78
 msgid "Remove Scheduled Update"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/index.tsx:95
+#: client/components/Coverages/CoverageEditor/index.tsx:159
 msgid "Remove coverage"
 msgstr ""
 
 #: client/components/Planning/FeaturedPlanning/FeaturedPlanningItem.tsx:61
+#: client/components/Planning/FeaturedPlanning/FeaturedPlanningItem.tsx:68
 msgid "Remove from Feature Stories"
 msgstr ""
 
@@ -2912,6 +3039,10 @@ msgstr ""
 msgid "Removed from featured stories"
 msgstr ""
 
+#: client/components/Events/RecurringRulesInput/DaysOfWeekInput.tsx:98
+msgid "Repeat On"
+msgstr ""
+
 #: client/components/Events/RepeatEventSummary/index.tsx:15
 msgid "Repeat Summary"
 msgstr ""
@@ -2920,8 +3051,9 @@ msgstr ""
 msgid "Repeating Event"
 msgstr ""
 
-#: client/components/Events/EventScheduleInput/index.tsx:311
-#: client/components/Events/RecurringRulesInput/index.tsx:167
+#: client/components/Events/EventScheduleInput/index.tsx:334
+#: client/components/Events/RecurringRulesInput/index.tsx:191
+#: client/components/fields/editor/EventRecurringRules.tsx:53
 msgid "Repeats"
 msgstr ""
 
@@ -2955,11 +3087,11 @@ msgstr ""
 
 #: client/components/fields/editor/WorkflowState.tsx:34
 #: client/components/fields/preview/base/converters.ts:199
-#: client/utils/index.ts:354
+#: client/utils/index.ts:355
 msgid "Rescheduled"
 msgstr ""
 
-#: client/utils/index.ts:308
+#: client/utils/index.ts:309
 msgid "Rescheduled Event"
 msgstr ""
 
@@ -2967,7 +3099,6 @@ msgstr ""
 msgid "Revert Availability"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:595
 #: client/components/Coverages/CoveragePreview/index.tsx:203
 msgid "SCHEDULED UPDATES"
 msgstr ""
@@ -2992,16 +3123,15 @@ msgstr ""
 msgid "Sat"
 msgstr ""
 
-#: client/utils/events.ts:1009
+#: client/utils/events.ts:1010
 msgid "Saturday"
 msgstr ""
 
 #: client/components/Agendas/EditAgenda.tsx:113
 #: client/components/Agendas/EditAgenda.tsx:69
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:298
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:343
 #: client/components/EventsPlanningFilters/EditFilter.tsx:205
 #: client/components/EventsPlanningFilters/EditFilterSchedule.tsx:154
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:124
 #: client/components/IgnoreCancelSaveModal.tsx:119
 #: client/components/IgnoreCancelSaveModal.tsx:124
 #: client/components/ItemActionConfirmation/modal.tsx:53
@@ -3066,7 +3196,7 @@ msgstr ""
 msgid "Save changes before rescheduling the Event?"
 msgstr ""
 
-#: client/actions/main.ts:1417
+#: client/actions/main.ts:1428
 msgid "Save changes before spiking ?"
 msgstr ""
 
@@ -3090,11 +3220,15 @@ msgstr ""
 msgid "Saved Featured Stories record"
 msgstr ""
 
+#: client/api/editor/item_events.ts:110
+#: client/api/editor/item_events.ts:111
+#: client/api/editor/item_planning.ts:114
+#: client/api/editor/item_planning.ts:115
 #: client/apps/Planning/PlanningSubNav.tsx:64
 msgid "Schedule"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:621
+#: client/components/fields/editor/ScheduledUpdates.tsx:89
 msgid "Schedule an update"
 msgstr ""
 
@@ -3103,13 +3237,13 @@ msgstr ""
 #: client/components/fields/editor/WorkflowState.tsx:25
 #: client/components/fields/preview/base/converters.ts:193
 #: client/constants/tooltips.ts:30
-#: client/utils/index.ts:341
 #: client/utils/index.ts:342
+#: client/utils/index.ts:343
 msgid "Scheduled"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:111
-#: client/apps/Planning/PlanningListSubNav.tsx:64
+#: client/apps/Planning/PlanningListSubNav.tsx:158
+#: client/apps/Planning/PlanningListSubNav.tsx:79
 msgid "Scheduled Date"
 msgstr ""
 
@@ -3125,6 +3259,10 @@ msgstr ""
 msgid "Scheduled Upates should have a date/time."
 msgstr ""
 
+#: client/components/fields/editor/ScheduledUpdates.tsx:60
+msgid "Scheduled Updates"
+msgstr ""
+
 #: client/components/fields/common/PreviewFilterSchedule.tsx:40
 msgid "Scheduled export: {{ description }}"
 msgstr ""
@@ -3135,22 +3273,22 @@ msgstr ""
 
 #: client/components/Locations/LocationsSubNav.tsx:38
 #: client/components/Locations/LocationsSubNav.tsx:39
-#: client/components/Main/SearchPanel.tsx:138
-#: client/components/UI/Form/SelectUserInput/index.tsx:127
+#: client/components/Main/SearchPanel.tsx:139
+#: client/components/UI/Form/SelectUserInput/index.tsx:147
 #: client/components/UI/SearchBar/index.tsx:84
 #: client/components/UI/SearchField/index.tsx:72
 msgid "Search"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:75
+#: client/components/Main/FilterSubnavDropdown.tsx:78
 msgid "Search Filters"
 msgstr ""
 
-#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:177
+#: client/components/GeoLookupInput/AddGeoLookupResultsPopUp.tsx:169
 msgid "Search OpenStreetMap"
 msgstr ""
 
-#: client/components/fields/editor/FullText.tsx:14
+#: client/components/fields/editor/FullText.tsx:15
 msgid "Search Text"
 msgstr ""
 
@@ -3162,7 +3300,7 @@ msgstr ""
 msgid "Search for a contact"
 msgstr ""
 
-#: client/components/GeoLookupInput/AddGeoLookupInput.tsx:300
+#: client/components/GeoLookupInput/AddGeoLookupInput.tsx:288
 msgid "Search for a location"
 msgstr ""
 
@@ -3175,11 +3313,15 @@ msgstr ""
 msgid "Search provider contacts"
 msgstr ""
 
+#: client/components/fields/editor/EventRelatedPlannings/EmbeddedCoverageForm.tsx:103
+msgid "Search users"
+msgstr ""
+
 #: client/components/Locations/LocationsSubNav.tsx:31
 msgid "Search/Browse Locations"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:241
+#: client/components/Main/FilterSubnavDropdown.tsx:244
 msgid "Select Agenda"
 msgstr ""
 
@@ -3191,7 +3333,7 @@ msgstr ""
 msgid "Select Assignments From:"
 msgstr ""
 
-#: client/components/Main/FilterSubnavDropdown.tsx:226
+#: client/components/Main/FilterSubnavDropdown.tsx:229
 msgid "Select Calendar"
 msgstr ""
 
@@ -3199,15 +3341,15 @@ msgstr ""
 msgid "Select all"
 msgstr ""
 
-#: client/components/FulFilAssignmentModal/index.tsx:81
+#: client/components/FulFilAssignmentModal/index.tsx:76
 msgid "Select an Assignment"
 msgstr ""
 
-#: client/components/AddToPlanningModal/index.tsx:68
+#: client/components/AddToPlanningModal/index.tsx:64
 msgid "Select an existing Planning Item or create a new one"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:214
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:259
 msgid "Select desk"
 msgstr ""
 
@@ -3215,11 +3357,15 @@ msgstr ""
 msgid "Select either Search or Browse the locations"
 msgstr ""
 
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:243
+#: client/components/SelectItemModal.tsx:29
+msgid "Select item"
+msgstr ""
+
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:288
 msgid "Select status"
 msgstr ""
 
-#: client/components/Assignments/SelectDeskTemplate.tsx:64
+#: client/components/Assignments/SelectDeskTemplate.tsx:62
 msgid "Select template"
 msgstr ""
 
@@ -3255,8 +3401,6 @@ msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:87
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:34
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:494
-#: client/components/Events/EventEditor/index.tsx:357
 #: client/components/IgnoreCancelSaveModal.tsx:43
 #: client/components/IgnoreCancelSaveModal.tsx:80
 #: client/components/ItemActionConfirmation/forms/assignCalendarForm.tsx:68
@@ -3272,8 +3416,7 @@ msgstr ""
 #: client/components/ItemActionConfirmation/forms/updateEventRepetitionsForm.tsx:94
 #: client/components/ItemActionConfirmation/forms/updateRecurringEventsForm.tsx:84
 #: client/components/ItemActionConfirmation/forms/updateTimeForm.tsx:206
-#: client/components/Planning/PlanningEditor/index.tsx:659
-#: client/components/fields/editor/Slugline.tsx:14
+#: client/components/fields/editor/Slugline.tsx:22
 msgid "Slugline"
 msgstr ""
 
@@ -3287,7 +3430,7 @@ msgstr ""
 msgid "Slugline: {{ slugline }}"
 msgstr ""
 
-#: client/planning-extension/dist/extension.js:26
+#: client/planning-extension/dist/planning-extension/src/extension.js:27
 #: client/planning-extension/src/extension.ts:37
 msgid "Some items are linked to in-progress planning coverage."
 msgstr ""
@@ -3296,11 +3439,11 @@ msgstr ""
 msgid "Some selected items have not yet been posted. All selections must be visible to subscribers."
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:133
+#: client/apps/Planning/PlanningListSubNav.tsx:192
 msgid "Sort by:"
 msgstr ""
 
-#: client/components/fields/editor/IngestSource.tsx:24
+#: client/components/fields/editor/IngestSource.tsx:25
 msgid "Source"
 msgstr ""
 
@@ -3343,7 +3486,7 @@ msgstr ""
 #: client/components/Planning/PlanningHistory.tsx:32
 #: client/components/fields/editor/WorkflowState.tsx:40
 #: client/components/fields/preview/base/converters.ts:203
-#: client/utils/index.ts:331
+#: client/utils/index.ts:332
 msgid "Spiked"
 msgstr ""
 
@@ -3359,14 +3502,18 @@ msgstr ""
 msgid "Start date is in the past"
 msgstr ""
 
-#: client/components/fields/editor/WorkflowState.tsx:52
+#: client/components/fields/editor/WorkflowState.tsx:53
 msgid "State"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:201
 #: client/components/Locations/LocationsEditor.tsx:268
 #: client/components/Locations/LocationsList.tsx:120
+#: client/components/fields/resources/locations.ts:64
 msgid "State/Province/Region"
+msgstr ""
+
+#: client/components/fields/editor/EventRelatedPlannings/EmbeddedCoverageForm.tsx:116
+msgid "Status:"
 msgstr ""
 
 #: client/components/Coverages/CoverageIcon.tsx:42
@@ -3382,9 +3529,7 @@ msgid "Su"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.tsx:103
-#: client/components/Events/EventEditor/index.tsx:477
-#: client/components/Planning/PlanningEditor/index.tsx:775
-#: client/components/fields/editor/Subjects.tsx:25
+#: client/components/fields/editor/Subjects.tsx:26
 msgid "Subject"
 msgstr ""
 
@@ -3393,12 +3538,12 @@ msgstr ""
 msgid "Subjects:"
 msgstr ""
 
-#: client/utils/index.ts:381
+#: client/utils/index.ts:382
 msgid "Submitted"
 msgstr ""
 
-#: client/components/GeoLookupInput/CreateNewGeoLookup.tsx:176
 #: client/components/Locations/LocationsEditor.tsx:244
+#: client/components/fields/resources/locations.ts:40
 msgid "Suburb"
 msgstr ""
 
@@ -3406,16 +3551,16 @@ msgstr ""
 msgid "Sun"
 msgstr ""
 
-#: client/utils/events.ts:1010
+#: client/utils/events.ts:1011
 msgid "Sunday"
 msgstr ""
 
 #: client/components/Coverages/CoverageIcon.tsx:47
 #: client/components/UI/DateTime.tsx:19
 #: client/constants/index.ts:161
-#: client/utils/index.ts:889
-#: client/utils/planning.ts:1083
-#: client/utils/planning.ts:861
+#: client/utils/index.ts:896
+#: client/utils/planning.ts:1098
+#: client/utils/planning.ts:863
 msgid "TBC"
 msgstr ""
 
@@ -3427,17 +3572,17 @@ msgstr ""
 msgid "Tags"
 msgstr ""
 
-#: client/actions/events/api.ts:755
+#: client/actions/events/api.ts:753
 msgid "Template already exists. Do you want to overwrite it?"
 msgstr ""
 
-#: client/actions/events/api.ts:727
+#: client/actions/events/api.ts:725
 #: client/components/Events/ManageEventTemplatesModal.tsx:31
 msgid "Template name"
 msgstr ""
 
-#: client/components/Coverages/CoverageItem.tsx:99
-#: client/utils/index.ts:571
+#: client/components/Coverages/CoverageItem.tsx:137
+#: client/utils/index.ts:572
 msgid "Text"
 msgstr ""
 
@@ -3445,7 +3590,7 @@ msgstr ""
 msgid "Th"
 msgstr ""
 
-#: client/actions/main.ts:1305
+#: client/actions/main.ts:1316
 msgid "The  you were editing was unlocked by"
 msgstr ""
 
@@ -3538,27 +3683,27 @@ msgstr ""
 msgid "The item was unlocked by \"{{ username }}\""
 msgstr ""
 
-#: client/api/locations.ts:23
+#: client/api/locations.ts:24
 msgid "The location has been created"
 msgstr ""
 
-#: client/api/locations.ts:61
+#: client/api/locations.ts:62
 msgid "The location has been updated"
 msgstr ""
 
-#: client/actions/main.ts:379
+#: client/actions/main.ts:387
 msgid "The {{ itemType }} has been posted"
 msgstr ""
 
-#: client/actions/main.ts:238
+#: client/actions/main.ts:246
 msgid "The {{ itemType }} has been saved"
 msgstr ""
 
-#: client/actions/main.ts:316
+#: client/actions/main.ts:324
 msgid "The {{ itemType }} has been unposted"
 msgstr ""
 
-#: client/components/ItemActionsMenu/ActionsMenuPopup.tsx:77
+#: client/components/ItemActionsMenu/ActionsMenuPopup.tsx:78
 msgid "There are no actions available."
 msgstr ""
 
@@ -3590,7 +3735,7 @@ msgstr ""
 msgid "There are no future assignments"
 msgstr ""
 
-#: client/components/Agendas/AgendaList.tsx:25
+#: client/components/Agendas/AgendaList.tsx:26
 msgid "There are no {{ status }} agendas"
 msgstr ""
 
@@ -3622,7 +3767,7 @@ msgstr ""
 msgid "This Event is scheduled to occur after the end date of its recurring cycle!"
 msgstr ""
 
-#: client/components/fields/editor/RelativeDate.tsx:25
+#: client/components/fields/editor/RelativeDate.tsx:26
 #: client/components/fields/preview/base/converters.ts:153
 msgid "This Week"
 msgstr ""
@@ -3654,7 +3799,7 @@ msgstr ""
 msgid "This field is required"
 msgstr ""
 
-#: client/planning-extension/dist/extension.js:10
+#: client/planning-extension/dist/planning-extension/src/extension.js:11
 #: client/planning-extension/src/extension.ts:20
 msgid "This item is linked to in-progress planning coverage."
 msgstr ""
@@ -3703,12 +3848,12 @@ msgstr ""
 msgid "Thu"
 msgstr ""
 
-#: client/utils/events.ts:1007
+#: client/utils/events.ts:1008
 msgid "Thursday"
 msgstr ""
 
 #: client/components/UI/DateTime.tsx:19
-#: client/components/UI/Form/TimeInput/index.tsx:273
+#: client/components/UI/Form/TimeInput/index.tsx:282
 msgid "Time"
 msgstr ""
 
@@ -3716,19 +3861,30 @@ msgstr ""
 msgid "Time TBC"
 msgstr ""
 
-#: client/components/Events/EventScheduleInput/index.tsx:388
+#: client/components/UI/Form/TimeInput/index.tsx:275
+msgid "Time picker"
+msgstr ""
+
+#: client/components/Events/EventScheduleInput/index.tsx:411
+#: client/components/fields/editor/EventSchedule.tsx:271
 msgid "Timezone"
+msgstr ""
+
+#: client/api/editor/item_planning.ts:105
+#: client/api/editor/item_planning.ts:106
+msgid "Title"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/EventPreview.tsx:58
 #: client/components/ItemActionConfirmation/forms/updateTimeForm.tsx:258
-#: client/components/fields/editor/EndDateTime.tsx:18
+#: client/components/fields/editor/EndDateTime.tsx:27
 msgid "To"
 msgstr ""
 
-#: client/components/UI/Form/TimeInput/index.tsx:219
-#: client/components/UI/Form/TimeInput/index.tsx:42
-#: client/components/UI/Form/TimeInput/index.tsx:71
+#: client/components/UI/Form/TimeInput/index.tsx:284
+#: client/components/UI/Form/TimeInput/index.tsx:305
+#: client/components/UI/Form/TimeInput/index.tsx:52
+#: client/components/UI/Form/TimeInput/index.tsx:74
 msgid "To Be Confirmed"
 msgstr ""
 
@@ -3740,10 +3896,10 @@ msgstr ""
 msgid "To:"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:167
+#: client/apps/Planning/PlanningListSubNav.tsx:229
 #: client/components/Main/CalendarNavigation.tsx:25
 #: client/components/UI/Form/DateInput/DateInputPopup.tsx:189
-#: client/components/fields/editor/RelativeDate.tsx:19
+#: client/components/fields/editor/RelativeDate.tsx:20
 #: client/components/fields/preview/base/converters.ts:149
 msgid "Today"
 msgstr ""
@@ -3752,8 +3908,12 @@ msgstr ""
 msgid "Todays Assignments"
 msgstr ""
 
+#: client/apps/Planning/PlanningSubNav.tsx:118
+msgid "Toggle advanced Filters"
+msgstr ""
+
 #: client/components/UI/Form/DateInput/DateInputPopup.tsx:193
-#: client/components/fields/editor/RelativeDate.tsx:22
+#: client/components/fields/editor/RelativeDate.tsx:23
 #: client/components/fields/preview/base/converters.ts:151
 msgid "Tomorrow"
 msgstr ""
@@ -3784,7 +3944,7 @@ msgstr ""
 msgid "Tue"
 msgstr ""
 
-#: client/utils/events.ts:1005
+#: client/utils/events.ts:1006
 msgid "Tuesday"
 msgstr ""
 
@@ -3798,8 +3958,8 @@ msgid "Type: {{type}}"
 msgstr ""
 
 #: client/components/Assignments/AssignmentItem/index.tsx:154
-#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:68
-#: client/components/Coverages/CoverageItem.tsx:185
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.tsx:98
+#: client/components/Coverages/CoverageItem.tsx:223
 msgid "Unassigned"
 msgstr ""
 
@@ -3901,7 +4061,7 @@ msgid "Update time of {{event}}"
 msgstr ""
 
 #: client/components/Assignments/FiltersBar.tsx:71
-#: client/components/AuditInformation/index.tsx:57
+#: client/components/AuditInformation/index.tsx:121
 #: client/utils/history.tsx:117
 #: client/utils/history.tsx:95
 msgid "Updated"
@@ -3912,8 +4072,7 @@ msgid "Updated Fields:"
 msgstr ""
 
 #: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.tsx:72
-#: client/components/Planning/PlanningEditor/index.tsx:798
-#: client/components/fields/editor/Urgency.tsx:24
+#: client/components/fields/editor/Urgency.tsx:25
 #: client/components/fields/preview/Urgency.tsx:33
 #: client/services/PlanningStoreService.ts:236
 msgid "Urgency"
@@ -3935,7 +4094,7 @@ msgstr ""
 msgid "User: {{ user }}"
 msgstr ""
 
-#: client/utils/index.ts:575
+#: client/utils/index.ts:576
 msgid "Video"
 msgstr ""
 
@@ -3953,7 +4112,7 @@ msgstr ""
 
 #: client/components/Events/EventHistory.tsx:165
 #: client/components/Events/EventHistory.tsx:189
-#: client/utils/index.ts:310
+#: client/utils/index.ts:311
 msgid "View original event"
 msgstr ""
 
@@ -3970,7 +4129,7 @@ msgstr ""
 msgid "View rescheduled event"
 msgstr ""
 
-#: client/components/fields/index.tsx:165
+#: client/components/fields/index.tsx:176
 msgid "Vocabularies"
 msgstr ""
 
@@ -3986,24 +4145,24 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
-#: client/utils/events.ts:1006
+#: client/utils/events.ts:1007
 msgid "Wednesday"
 msgstr ""
 
-#: client/apps/Planning/PlanningListSubNav.tsx:56
-#: client/apps/Planning/PlanningListSubNav.tsx:97
+#: client/apps/Planning/PlanningListSubNav.tsx:144
+#: client/apps/Planning/PlanningListSubNav.tsx:71
 msgid "Week"
 msgstr ""
 
-#: client/components/fields/editor/Days.tsx:31
+#: client/components/fields/editor/Days.tsx:32
 msgid "Week Days"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:16
+#: client/components/Events/RecurringRulesInput/index.tsx:33
 msgid "Week(s)"
 msgstr ""
 
-#: client/components/fields/editor/ScheduleFrequency.tsx:22
+#: client/components/fields/editor/ScheduleFrequency.tsx:23
 msgid "Weekly"
 msgstr ""
 
@@ -4011,15 +4170,7 @@ msgstr ""
 msgid "Weekly @ {{ time }} to {{ desk }}"
 msgstr ""
 
-#: client/components/Planning/PlanningEditor/index.tsx:632
-msgid "When active, assigned coverages for the Planning item will not be automatically added to workflow"
-msgstr ""
-
-#: client/components/Planning/PlanningEditor/index.tsx:817
-msgid "When active, the Planning item will not be publishable"
-msgstr ""
-
-#: client/components/fields/editor/NoCoverage.tsx:14
+#: client/components/fields/editor/NoCoverage.tsx:15
 msgid "Without Coverage"
 msgstr ""
 
@@ -4035,11 +4186,11 @@ msgstr ""
 msgid "Workflow State:"
 msgstr ""
 
-#: client/components/fields/index.tsx:168
+#: client/components/fields/index.tsx:179
 msgid "Workflow States"
 msgstr ""
 
-#: client/components/Events/RecurringRulesInput/index.tsx:18
+#: client/components/Events/RecurringRulesInput/index.tsx:35
 msgid "Year(s)"
 msgstr ""
 
@@ -4047,7 +4198,7 @@ msgstr ""
 msgid "You are currently managing featured story in another session"
 msgstr ""
 
-#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:261
+#: client/components/Coverages/CoverageEditor/CoverageForm.tsx:259
 msgid "You can associate only one XMP file"
 msgstr ""
 
@@ -4072,10 +4223,6 @@ msgstr ""
 msgid "added to workflow"
 msgstr ""
 
-#: client/components/Agendas/AgendaList.tsx:29
-msgid "agendas"
-msgstr ""
-
 #: client/components/ItemActionConfirmation/modal.tsx:103
 #: client/components/ItemActionConfirmation/modal.tsx:120
 #: client/components/ItemActionConfirmation/modal.tsx:73
@@ -4094,14 +4241,14 @@ msgstr ""
 msgid "and '{{ user }}'"
 msgstr ""
 
-#: client/components/UI/Form/FileInput.tsx:153
+#: client/components/UI/Form/FileInput.tsx:204
 msgid "browse"
 msgstr ""
 
 #: client/components/Assignments/AssignmentHistory.tsx:43
-#: client/components/AuditInformation/index.tsx:48
-#: client/components/AuditInformation/index.tsx:57
-#: client/components/AuditInformation/index.tsx:66
+#: client/components/AuditInformation/index.tsx:110
+#: client/components/AuditInformation/index.tsx:121
+#: client/components/AuditInformation/index.tsx:132
 #: client/components/Events/EventHistory.tsx:60
 #: client/utils/history.tsx:64
 msgid "by"
@@ -4132,10 +4279,6 @@ msgstr ""
 msgid "created by"
 msgstr ""
 
-#: client/components/fields/common/PreviewFilterSchedule.tsx:55
-msgid "delete schedule"
-msgstr ""
-
 #: client/components/Agendas/ManageAgendasModal.tsx:112
 #: client/components/UserAvatar/index.tsx:27
 msgid "disabled"
@@ -4145,11 +4288,7 @@ msgstr ""
 msgid "due"
 msgstr ""
 
-#: client/components/fields/common/PreviewFilterSchedule.tsx:45
-msgid "edit schedule"
-msgstr ""
-
-#: client/components/Events/RecurringRulesInput/index.tsx:115
+#: client/components/Events/RecurringRulesInput/index.tsx:139
 msgid "ends"
 msgstr ""
 
@@ -4165,7 +4304,7 @@ msgstr ""
 msgid "foo"
 msgstr ""
 
-#: client/utils/events.ts:978
+#: client/utils/events.ts:979
 msgid "for"
 msgstr ""
 
@@ -4173,7 +4312,7 @@ msgstr ""
 msgid "for '{{ desk }}'"
 msgstr ""
 
-#: client/utils/events.ts:978
+#: client/utils/events.ts:979
 msgid "for {{ repeatCount }} repeats"
 msgstr ""
 
@@ -4213,15 +4352,15 @@ msgstr ""
 msgid "loading more items..."
 msgstr ""
 
-#: client/components/Coverages/CoverageAddAdvancedModal.tsx:287
+#: client/components/Coverages/CoverageAddAdvancedModal.tsx:332
 msgid "make this mode the default"
 msgstr ""
 
-#: client/utils/events.ts:1017
+#: client/utils/events.ts:1018
 msgid "on"
 msgstr ""
 
-#: client/utils/events.ts:993
+#: client/utils/events.ts:994
 msgid "on all week (including weekends)"
 msgstr ""
 
@@ -4229,7 +4368,7 @@ msgstr ""
 msgid "on assignment by"
 msgstr ""
 
-#: client/utils/events.ts:990
+#: client/utils/events.ts:991
 msgid "on week days"
 msgstr ""
 
@@ -4285,7 +4424,7 @@ msgstr ""
 msgid "unposted"
 msgstr ""
 
-#: client/utils/events.ts:963
+#: client/utils/events.ts:964
 msgid "until {{until}}"
 msgstr ""
 
@@ -4303,7 +4442,7 @@ msgstr ""
 msgid "{{ count }} {{ type }} selected"
 msgstr ""
 
-#: client/actions/main.ts:245
+#: client/actions/main.ts:253
 msgid "{{ itemType }} created"
 msgstr ""
 
@@ -4328,6 +4467,10 @@ msgstr ""
 msgid "{{ name }} is too short"
 msgstr ""
 
+#: client/components/Agendas/AgendaList.tsx:30
+msgid "{{ status }} agendas"
+msgstr ""
+
 #: client/actions/assignments/notifications.ts:336
 msgid "{{ type }} assignment '{{ slugline }}' is deleted"
 msgstr ""
@@ -4336,6 +4479,6 @@ msgstr ""
 msgid "{{action}} {{event}}"
 msgstr ""
 
-#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:148
+#: client/components/Main/ItemEditorModal/EditorModalPanel.tsx:166
 msgid "{{action}} {{type}}"
 msgstr ""
