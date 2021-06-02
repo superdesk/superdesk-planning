@@ -41,12 +41,6 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
 });
 
-function getCoverageIconName(type: IG2ContentType): string {
-    const name = planningUtils.getCoverageIcon(type['content item type'] || type.qcode, null);
-
-    return name.substr(5); // remove `icon-` from the name
-}
-
 class AddNewCoveragesComponent extends React.Component<IProps, IState> {
     editForm: React.RefObject<HTMLDivElement>;
 
@@ -76,9 +70,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                 (type) => ({
                     id: generateTempId(),
                     enabled: false,
-                    qcode: type.qcode,
-                    name: type.name,
-                    icon: getCoverageIconName(type),
+                    type: type,
                     desk: null,
                     filteredDesks: this.props.desks,
                     user: null,
@@ -114,10 +106,10 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
 
         this.state.coverages.forEach(
             (coverage) => {
-                if (counts[coverage.qcode] == null) {
-                    counts[coverage.qcode] = 1;
+                if (counts[coverage.type.qcode] == null) {
+                    counts[coverage.type.qcode] = 1;
                 } else {
-                    counts[coverage.qcode] += 1;
+                    counts[coverage.type.qcode] += 1;
                 }
             }
         );
@@ -127,12 +119,10 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
 
     duplicateCoverage(index: number, coverage: ICoverageDetails) {
         const coverages = Array.from(this.state.coverages);
-        const newCoverage = {
+        const newCoverage: ICoverageDetails = {
             id: generateTempId(),
             enabled: false,
-            qcode: coverage.qcode,
-            name: coverage.name,
-            icon: coverage.icon,
+            type: coverage.type,
             desk: null,
             user: null,
             popupContainer: null,
@@ -160,7 +150,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                     this.props.newsCoverageStatus,
                     this.props.item,
                     this.props.event,
-                    coverage.qcode
+                    coverage.type.qcode
                 );
 
                 newCoverage.assigned_to = {
@@ -225,11 +215,11 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                                 key={coverage.id}
                                 coverage={coverage}
                                 index={index}
-                                typeCount={typeCounts[coverage.qcode]}
+                                typeCount={typeCounts[coverage.type.qcode]}
+                                language={this.props.event.language}
                                 update={this.updateCoverage}
                                 duplicate={this.duplicateCoverage}
                                 remove={this.removeCoverage}
-                                newsCoverageStatus={this.props.newsCoverageStatus}
                                 desks={this.props.desks}
                                 users={this.props.users}
                             />

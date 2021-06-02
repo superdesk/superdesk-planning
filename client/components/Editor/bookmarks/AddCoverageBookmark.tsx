@@ -50,6 +50,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
                 createCoverage={this.createCoverage}
                 onAdd={this.onAdd}
                 target="icon-plus-sign"
+                language={this.props.item.language}
                 button={({toggleMenu}) => (
                     <OverlayTrigger
                         placement="right"

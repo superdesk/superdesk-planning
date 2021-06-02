@@ -198,6 +198,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
         );
 
         const {desks, users, coverageAddAdvancedMode, setCoverageAddAdvancedMode} = this.props;
+        const language = this.props.item.language;
 
         return (
             <InputArray
@@ -224,6 +225,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     users,
                     coverageAddAdvancedMode,
                     setCoverageAddAdvancedMode,
+                    language,
                 }}
                 element={CoverageEditor}
                 defaultElement={createCoverage}
