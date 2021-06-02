@@ -3,7 +3,7 @@ import {startApp} from 'superdesk-core/scripts/index';
 setTimeout(() => {
     startApp(
         [{
-            id: 'planning',
+            id: 'superdesk-planning',
             load: () => import('superdesk-planning/client/planning-extension'),
         }],
         {}
