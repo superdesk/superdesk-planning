@@ -1,4 +1,5 @@
 import {createRef} from 'react';
+import {cloneDeep} from 'lodash';
 
 import {
     BOOKMARK_TYPE,
@@ -183,12 +184,25 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
     function addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>) {
         const editor = planningApi.editor(type);
         const diff = editor.manager.getState().diff as DeepPartial<IPlanningItem>;
-        const existingCoverages = diff.coverages;
+        const updatedCoverages: DeepPartial<IPlanningItem['coverages']> = cloneDeep(diff.coverages);
 
-        editor.form.changeField('coverages', [
-            ...existingCoverages,
-            ...coverages,
-        ]);
+        coverages.forEach((newCoverage) => {
+            const index = updatedCoverages.findIndex(
+                (coverage) => coverage.coverage_id === newCoverage.coverage_id
+            );
+
+            if (index >= 0) {
+                // This coverage is an existing coverage
+                // so update the coverage at `index`
+                updatedCoverages[index] = newCoverage;
+            } else {
+                // This is a new coverage
+                // so append to the array
+                updatedCoverages.push(newCoverage);
+            }
+        });
+
+        editor.form.changeField('coverages', updatedCoverages);
         editor.autosave.flushAutosave();
     }
 
