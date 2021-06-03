@@ -1,7 +1,11 @@
 import * as React from 'react';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {IG2ContentType, IPlanningNewsCoverageStatus} from '../../../../interfaces';
+
+import {planningUtils} from '../../../../utils';
+import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
 
 import {Checkbox, IconButton, IconLabel} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
@@ -10,9 +14,7 @@ import {EmbeddedCoverageForm} from './EmbeddedCoverageForm';
 export interface ICoverageDetails {
     id: string;
     enabled: boolean;
-    qcode: IG2ContentType['qcode'];
-    name: IG2ContentType['name'];
-    icon: string;
+    type: IG2ContentType;
     desk?: IDesk;
     filteredDesks: Array<IDesk>;
     user?: IUser;
@@ -25,12 +27,18 @@ interface IProps {
     coverage: ICoverageDetails;
     index: number;
     typeCount: number;
+    language?: string;
     update(original: ICoverageDetails, updates: Partial<ICoverageDetails>): void;
     duplicate(index: number, coverage: ICoverageDetails): void;
     remove(index: number): void;
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     desks: Array<IDesk>;
     users: Array<IUser>;
+}
+
+function getCoverageIconName(type: IG2ContentType): string {
+    const name = planningUtils.getCoverageIcon(type['content item type'] || type.qcode, null);
+
+    return name.substr(5); // remove `icon-` from the name
 }
 
 export class CoverageRowForm extends React.PureComponent<IProps> {
@@ -88,8 +96,12 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
                     >
                         <List.Row>
                             <IconLabel
-                                text={this.props.coverage.name}
-                                icon={this.props.coverage.icon}
+                                text={getVocabularyItemFieldTranslated(
+                                    this.props.coverage.type,
+                                    'name',
+                                    this.props.language ?? getUserInterfaceLanguage()
+                                )}
+                                icon={getCoverageIconName(this.props.coverage.type)}
                             />
                         </List.Row>
                     </List.Column>
@@ -111,7 +123,7 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
                 {!this.props.coverage.enabled ? null : (
                     <EmbeddedCoverageForm
                         coverage={this.props.coverage}
-                        newsCoverageStatus={this.props.newsCoverageStatus}
+                        language={this.props.language}
                         desks={this.props.desks}
                         users={this.props.users}
                         update={this.update}

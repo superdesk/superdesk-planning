@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {isEqual} from 'lodash';
+import {memoize} from 'lodash';
 
 import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
@@ -19,6 +19,7 @@ interface IProps {
     value: Array<DeepPartial<IPlanningCoverageItem>>;
     target: string;
     button: React.ComponentType<{toggleMenu: (event: React.MouseEvent<HTMLButtonElement>) => void}>;
+    language?: string;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
@@ -52,7 +53,6 @@ interface ICoverageTypeEntry {
 interface IState {
     isOpen: boolean;
     advanced: boolean;
-    coverageTypes: Array<ICoverageTypeEntry>;
 }
 
 const mapStateToProps = (state) => ({
@@ -69,10 +69,14 @@ const mapDispatchToProps = (dispatch) => ({
     setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });
 
-function getCoverageTypesFromProps(props: IProps): Array<ICoverageTypeEntry> {
-    const language = getUserInterfaceLanguage();
-
-    return props.contentTypes.map((type) => ({
+function getCoverageTypesFromProps(
+    language: IProps['language'],
+    contentTypes: IProps['contentTypes'],
+    onAdd: IProps['onAdd'],
+    defaultDesk: IProps['defaultDesk'],
+    preferredCoverageDesks: IProps['preferredCoverageDesks']
+): Array<ICoverageTypeEntry> {
+    return contentTypes.map((type) => ({
         id: `coverage-menu-add-${type.qcode}`,
         qcode: type.qcode,
         label: getVocabularyItemFieldTranslated(
@@ -81,23 +85,24 @@ function getCoverageTypesFromProps(props: IProps): Array<ICoverageTypeEntry> {
             language
         ),
         icon: planningUtils.getCoverageIcon(type['content item type'] || type.qcode),
-        callback: props.onAdd.bind(
+        callback: onAdd.bind(
             null,
             type.qcode,
-            props.defaultDesk,
-            props.preferredCoverageDesks
+            defaultDesk,
+            preferredCoverageDesks
         )
     }));
 }
 
 class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
+    getOptions = memoize(getCoverageTypesFromProps);
+
     constructor(props) {
         super(props);
 
         this.state = {
             isOpen: false,
             advanced: false,
-            coverageTypes: getCoverageTypesFromProps(this.props),
         };
 
         this.closeMenu = this.closeMenu.bind(this);
@@ -105,19 +110,6 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
         this.openAdvanced = this.openAdvanced.bind(this);
         this.closeAdvanced = this.closeAdvanced.bind(this);
         this.toggleMenu = this.toggleMenu.bind(this);
-    }
-
-    static getDerivedStateFromProps(props: IProps, state: IState) {
-        const prevQcodes = state.coverageTypes.map((type) => type.qcode);
-        const currentQcodes = props.contentTypes.map((type) => type.qcode);
-
-        if (!isEqual(prevQcodes, currentQcodes)) {
-            return {
-                coverageTypes: getCoverageTypesFromProps(props),
-            };
-        }
-
-        return null;
     }
 
     closeMenu(event: React.MouseEvent) {
@@ -161,6 +153,13 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
 
     render() {
         const Button = this.props.button;
+        const coverageTypes = this.getOptions(
+            this.props.language || getUserInterfaceLanguage(),
+            this.props.contentTypes,
+            this.props.onAdd,
+            this.props.defaultDesk,
+            this.props.preferredCoverageDesks,
+        );
 
         return (
             <React.Fragment>
@@ -168,7 +167,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
                 {!this.state.isOpen ? null : (
                     <CoveragesMenuPopup
                         closeMenu={this.closeMenu}
-                        actions={this.state.coverageTypes}
+                        actions={coverageTypes}
                         target={this.props.target}
                         onPopupOpen={this.props.onPopupOpen}
                         onPopupClose={this.props.onPopupClose}

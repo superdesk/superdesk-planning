@@ -10,10 +10,11 @@ import {getDesksForUser, getUsersForDesk} from '../../../../utils';
 import {Select, Option} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
 import {Row, SelectUserInput} from '../../../UI/Form';
+import {EditorFieldNewsCoverageStatus} from '../NewsCoverageStatus';
 
 interface IProps {
     coverage: ICoverageDetails;
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    language?: string;
     desks: Array<IDesk>;
     users: Array<IUser>;
 
@@ -42,12 +43,8 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
         this.props.update(updates);
     }
 
-    onStatusChange(statusId: IPlanningNewsCoverageStatus['qcode']) {
-        const newStatus = this.props.newsCoverageStatus.find(
-            (status) => status.qcode === statusId
-        );
-
-        this.props.update({status: newStatus});
+    onStatusChange(status: IPlanningNewsCoverageStatus) {
+        this.props.update({status: status});
     }
 
     onUserChange(field: string, user?: IUser) {
@@ -108,27 +105,13 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
                         </Row>
                     </List.Row>
                     <List.Row>
-                        <Row
-                            testId="status"
-                            noPadding={true}
-                        >
-                            <Select
-                                label={gettext('Status:')}
-                                value={coverage.status.qcode}
-                                onChange={this.onStatusChange}
-                            >
-                                {this.props.newsCoverageStatus.map(
-                                    (status) => (
-                                        <Option
-                                            key={status.qcode}
-                                            value={status.qcode}
-                                        >
-                                            {status.name}
-                                        </Option>
-                                    )
-                                )}
-                            </Select>
-                        </Row>
+                        <EditorFieldNewsCoverageStatus
+                            item={coverage}
+                            field="status"
+                            label={gettext('Status:')}
+                            onChange={this.onStatusChange}
+                            language={this.props.language}
+                        />
                     </List.Row>
                 </List.Column>
             </List.Item>

@@ -12,6 +12,7 @@ interface IProps {
     value: Array<IPlanningCoverageItem>;
     className?: string;
     buttonClass?: string;
+    language?: string;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
@@ -33,7 +34,8 @@ export class CoverageAddButton extends React.Component<IProps> {
         const nextIds = (nextProps.value ?? []).map((coverage) => coverage.coverage_id);
 
         return this.props.field !== nextProps.field ||
-            !isEqual(prevIds, nextIds);
+            !isEqual(prevIds, nextIds) ||
+            this.props.language !== nextProps.language;
     }
 
     render() {
