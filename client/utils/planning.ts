@@ -473,6 +473,11 @@ const getPlanningActions = ({
 export const modifyForClient = (plan) => {
     sanitizeItemFields(plan);
 
+    // The `_status` field is available when the item comes from a POST/PATCH request
+    if (plan._status != null) {
+        delete plan._status;
+    }
+
     if (get(plan, 'planning_date')) {
         plan.planning_date = moment(plan.planning_date);
     }

@@ -775,6 +775,11 @@ const getEventsByDate = (events, startDate, endDate) => {
 const modifyForClient = (event) => {
     sanitizeItemFields(event);
 
+    // The `_status` field is available when the item comes from a POST/PATCH request
+    if (event._status != null) {
+        delete event._status;
+    }
+
     if (get(event, 'dates.start')) {
         event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
         event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
