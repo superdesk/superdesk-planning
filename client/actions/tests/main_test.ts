@@ -559,7 +559,7 @@ describe('actions.main', () => {
 
                     expect(actionCallback.callCount).toBe(1);
                     expect(actionCallback.args[0]).toEqual([
-                        data.events[0],
+                        modifyForClient(data.events[0]),
                         store.initialState.locks.event.e1,
                         false,
                         false,
@@ -577,7 +577,7 @@ describe('actions.main', () => {
 
                     expect(actionCallback.callCount).toBe(2);
                     expect(actionCallback.args[1]).toEqual([
-                        data.events[0],
+                        modifyForClient(data.events[0]),
                         store.initialState.locks.event.e1,
                         false,
                         false,
