@@ -207,9 +207,17 @@ export const createStore = (params = {}, app = planningApp) => {
     let _compose = compose;
 
     if (process.env.NODE_ENV !== 'production') {
-        // activate logs actions for non production instances.
-        // (this should always be the last middleware)
-        middlewares.push(createLogger());
+        const devtools = localStorage.getItem('devtools');
+        const reduxLoggerEnabled =
+            devtools == null
+                ? false
+                : JSON.parse(devtools).includes('redux-logger');
+
+        if (reduxLoggerEnabled) {
+            // activate logs actions for non production instances.
+            // (this should always be the last middleware)
+            middlewares.push(createLogger());
+        }
 
         // activate redux devtools for non production instances,
         // if it's available in the browser

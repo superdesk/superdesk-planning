@@ -185,6 +185,15 @@ Below sections include the config options that can be defined in settings.py.
     * Otherwise only the content types in the list are allowed to be linked to a coverage
     * This includes fulfilment of an Assignment
 
+### Development tools config
+
+**redux-logger**
+
+To enable, create a local storage entry called "devtools" with a value `'["redux-logger"]'`. It can be done by running the following command in the console:
+
+    localStorage.setItem('devtools', '["redux-logger"]')
+
+
 ## Slack Integration
 There are a couple of steps to take to enable slack for assignment notifications.
 

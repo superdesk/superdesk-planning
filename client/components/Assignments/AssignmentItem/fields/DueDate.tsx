@@ -1,28 +1,25 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import {get} from 'lodash';
 import {assignmentUtils, gettext} from '../../../../utils';
 import {AbsoluteDate} from '../../../AbsoluteDate';
 import {TO_BE_CONFIRMED_FIELD} from '../../../../constants';
+import {IAssignmentItem} from 'interfaces';
+import classNames from 'classnames';
 
 interface IProps {
-    assignment: any;
+    assignment: IAssignmentItem;
 }
 
 export const DueDateComponent = ({assignment}: IProps) => {
     const isOverdue = assignmentUtils.isDue(assignment);
-    const clockIconClass = isOverdue
-        ? 'label-icon label-icon--warning'
-        : 'label-icon';
     const assignedToProvider = assignmentUtils.isAssignedToProvider(assignment);
     const planningSchedule = get(assignment, 'planning.scheduled');
 
     return (
         <span
-            data-sd-tooltip={gettext('Due Date')}
-            data-flow="right"
-            className={clockIconClass}
+            title={gettext('Due Date')}
+            className={classNames('assignment--due-date', 'label-icon', {'label-icon--warning': isOverdue})}
         >
             {assignedToProvider && <i className="icon-ingest" />}
             <i className="icon-time" />

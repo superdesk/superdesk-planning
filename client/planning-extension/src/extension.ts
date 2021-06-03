@@ -9,6 +9,8 @@ import {
 import {IPlanningAssignmentService} from './interfaces';
 import {IPlanningConfig} from '../../interfaces';
 import {getAssignmentService} from './utils';
+import {AssignmentsList} from './assignments-overview';
+import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -99,21 +101,29 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
 
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
-        const result: IExtensionActivationResult = {
-            contributions: {
-                entities: {
-                    article: {
-                        onSpike: (item: IArticle) => onSpike(superdesk, item),
-                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                    },
-                },
-            },
-        };
+        const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
 
-        return Promise.resolve(result);
+        return superdesk.privileges.getOwnPrivileges().then((privileges) => {
+            const displayTopbarWidget = privileges['planning_assignments_view'] === 1
+                && extensionConfig?.assignmentsTopBarWidget === true;
+
+            const result: IExtensionActivationResult = {
+                contributions: {
+                    entities: {
+                        article: {
+                            onSpike: (item: IArticle) => onSpike(superdesk, item),
+                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                        },
+                    },
+                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+                },
+            };
+
+            return result;
+        });
     },
 };
 

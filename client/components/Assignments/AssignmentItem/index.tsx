@@ -5,12 +5,11 @@ import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {
-    planningUtils,
     assignmentUtils,
     gettext,
-    stringUtils,
 } from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
+import {getAssignmentTypeInfo} from '../../../utils/assignments';
 
 import {UserAvatar, ItemActionsMenu} from '../../';
 import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
@@ -65,21 +64,7 @@ export class AssignmentItem extends React.Component {
 
     renderContentTypeColumn() {
         const {assignment, contentTypes} = this.props;
-
-        const tooltip = gettext('Type: {{type}}', {
-            type: stringUtils.firstCharUpperCase(
-                get(assignment, 'planning.g2_content_type', '').replace(
-                    '_',
-                    ' '
-                )
-            ),
-        });
-
-        const className = planningUtils.getCoverageIcon(
-            planningUtils.getCoverageContentType(assignment, contentTypes) ||
-                get(assignment, 'planning.g2_content_type'),
-            assignment
-        );
+        const {tooltip, className} = getAssignmentTypeInfo(assignment, contentTypes);
 
         return (
             <Column>

@@ -1,12 +1,13 @@
 import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
-import {gettext} from './index';
+import {gettext, planningUtils, stringUtils} from './index';
 
 import {IAssignmentItem, ISession, IPrivileges, ASSIGNMENT_STATE} from '../interfaces';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
+import {IVocabularyItem} from 'superdesk-api';
 
 const isNotLockRestricted = (assignment, session) => (
     !get(assignment, 'lock_user') ||
@@ -228,7 +229,7 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
 
     actions.forEach((action) => {
         if (actionsValidator[action.actionName] &&
-                !actionsValidator[action.actionName](assignment, session)) {
+                !actionsValidator[action.actionName]()) {
             return;
         }
 
@@ -359,6 +360,21 @@ const getCurrentSelectedDesk = (desks, state) => {
 
     return get(desks.deskLookup, deskId) || null;
 };
+
+export function getAssignmentTypeInfo(assignment: IAssignmentItem, contentTypes: Array<IVocabularyItem>) {
+    const tooltip = gettext('Type: {{type}}', {
+        type: stringUtils.firstCharUpperCase(
+            (assignment?.planning?.g2_content_type ?? '').replace('_', ' ')
+        ),
+    });
+
+    const className = planningUtils.getCoverageIcon(
+        planningUtils.getCoverageContentType(assignment, contentTypes) || assignment?.planning?.g2_content_type,
+        assignment
+    );
+
+    return {tooltip, className};
+}
 
 // eslint-disable-next-line consistent-this
 const self = {

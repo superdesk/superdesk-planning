@@ -14,6 +14,10 @@ import {appConfig, extensions} from 'appConfig';
 import {updateConfigAfterLoad} from './config';
 import {assignConstantLabelTranslations} from './constants';
 
+import {extensionBridge} from './extension_bridge';
+
+window['extension_bridge'] = extensionBridge;
+
 export default angular.module('superdesk-planning', [])
     .directive('sdPlanning',
         () => ({
@@ -52,6 +56,7 @@ export default angular.module('superdesk-planning', [])
     .service('assignments', svc.AssignmentsService)
     .config(['workspaceMenuProvider', (workspaceMenuProvider) => {
         workspaceMenuProvider.item({
+            id: 'MENU_ITEM_PLANNING_ASSIGNMENTS',
             href: '/workspace/assignments',
             icon: 'tasks',
             label: gettext('Assignments'),
