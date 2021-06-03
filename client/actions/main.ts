@@ -490,6 +490,18 @@ const openActionModalFromEditor = (original, title, action) => (
         const isOpenInEditor = selectors.forms.currentItemId(getState()) === itemId;
         const isOpenInModal = selectors.forms.currentItemIdModal(getState()) === itemId;
 
+        // Unlock the item and change the Editor to read-only (if it's currently open)
+        // This helps to clear the Editor states before performing the action
+        const unlockAndSetEditorReadOnly = (itemToUnlock) => (
+            Promise.all([
+                dispatch(locks.unlock(itemToUnlock)),
+                (isOpenInEditor || isOpenInModal) ?
+                    dispatch(self.changeEditorAction('read', isOpenInModal)) :
+                    Promise.resolve(),
+            ])
+                .then((results) => modifyForClient(results[0]))
+        );
+
         if (!itemLock) {
             return action(original, itemLock, isOpenInEditor, isOpenInModal);
         } else if (!autosaveData || isItemSameAsAutosave(
@@ -498,9 +510,9 @@ const openActionModalFromEditor = (original, title, action) => (
             selectors.events.storedEvents(getState()),
             selectors.planning.storedPlannings(getState())
         )) {
-            return dispatch(locks.unlock(original))
+            return unlockAndSetEditorReadOnly(original)
                 .then((unlockedItem) => action(
-                    eventUtils.modifyForClient(unlockedItem),
+                    unlockedItem,
                     itemLock,
                     isOpenInEditor,
                     isOpenInModal
@@ -516,7 +528,7 @@ const openActionModalFromEditor = (original, title, action) => (
         }));
 
         const unlockAndRunAction = (updatedItem, removeAutosave = false) => (
-            dispatch(locks.unlock(updatedItem))
+            unlockAndSetEditorReadOnly(updatedItem)
                 .then((unlockedItem) => {
                     if (autosaveData && removeAutosave) {
                         dispatch(autosave.remove(autosaveData));
@@ -524,7 +536,7 @@ const openActionModalFromEditor = (original, title, action) => (
 
                     dispatch(hideModal());
                     return action(
-                        eventUtils.modifyForClient(unlockedItem),
+                        unlockedItem,
                         itemLock,
                         isOpenInEditor,
                         isOpenInModal
