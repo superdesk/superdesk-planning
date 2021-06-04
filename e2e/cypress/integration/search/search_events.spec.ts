@@ -73,14 +73,6 @@ describe('Search.Events: searching events', () => {
             expectedCount: 2,
             clearAfter: true,
         }, {
-            params: {calendars: ['Finance']},
-            expectedCount: 0,
-            clearAfter: true,
-        }, {
-            params: {calendars: ['Sport']},
-            expectedCount: 1,
-            clearAfter: true,
-        }, {
             params: {no_calendar_assigned: true},
             expectedCount: 0,
         }, {
