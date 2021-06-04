@@ -21,6 +21,20 @@ import {PanelInfo} from '../UI';
 import {Item, Column, Group} from '../UI/List';
 import './style.scss';
 
+/**
+ * Used for implementing WAI-ARIA Listbox
+ */
+export interface IAccessibleListBox {
+    containerProps: {
+        role: 'listbox';
+        'aria-activedescendant': string;
+        tabIndex: number;
+    };
+
+    groupId: string;
+    getChildId(index: number): void;
+}
+
 
 interface IProps {
     groups: Array<{
@@ -296,14 +310,27 @@ export class ListPanel extends React.Component<IProps, IState> {
                         onScroll={this.handleScroll}
                         ref={(node) => this.dom.list = node}
                         onKeyDown={this.handleKeyDown}
-                        tabIndex={0}
                     >
-                        {groups.map((group) => {
+                        {groups.map((group, i) => {
                             const propsForNestedListItems = {
                                 navigateDown: this.state.navigateDown, // tells the direction of navigation
                                 navigateList: this.navigateListWorker, // transfer navigation control to this component
                                 onItemActivate: this.onItemActivate, // prop to preview nested item on activation
                                 previewItem: previewItem, // prop to tell if item is being previewed currently
+                            };
+
+                            const listBoxGroupId = `list-panel-${i}`;
+                            const getChildId = (childIndex) => `${listBoxGroupId}--${childIndex}`;
+                            const activeDescendantIndex = this.state.activeItemIndex - 1; // zero-based index needed
+
+                            const listBoxGroupProps: IAccessibleListBox = {
+                                containerProps: {
+                                    role: 'listbox',
+                                    tabIndex: 0,
+                                    'aria-activedescendant': getChildId(activeDescendantIndex),
+                                },
+                                groupId: listBoxGroupId,
+                                getChildId: getChildId,
                             };
 
                             let listGroupProps: {[key: string]: any} = {
@@ -333,6 +360,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 contacts: contacts,
                                 listViewType: listViewType,
                                 sortField: sortField,
+                                listBoxGroupProps: listBoxGroupProps,
                                 ...propsForNestedListItems,
                             };
 

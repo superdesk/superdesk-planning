@@ -7,35 +7,42 @@ import classNames from 'classnames';
  * @name Group
  * @description Component to group a list of items
  */
-export const Group = ({
-    className,
-    children,
-    spaceBetween,
-    verticalScroll,
-    style,
-    onScroll,
-    refNode,
-    shadow,
-    testId,
-}) => (
-    <div
-        data-test-id={testId}
-        className={classNames(
-            className,
-            'sd-list-item-group',
-            shadow ? `sd-shadow--z${shadow}` : null,
-            {
-                'sd-list-item-group--space-between-items': spaceBetween,
-                'sd-list-item-group--vertical-scroll': verticalScroll,
-            }
-        )}
-        style={style}
-        onScroll={onScroll}
-        ref={refNode}
-    >
-        {children}
-    </div>
-);
+export const Group = (props) => {
+    const {
+        className,
+        children,
+        spaceBetween,
+        verticalScroll,
+        style,
+        onScroll,
+        refNode,
+        shadow,
+        testId,
+        listBoxGroupProps,
+    } = props;
+
+    return (
+        <div
+            aria-labelledby={props['aria-labelledby']}
+            data-test-id={testId}
+            className={classNames(
+                className,
+                'sd-list-item-group',
+                shadow ? `sd-shadow--z${shadow}` : null,
+                {
+                    'sd-list-item-group--space-between-items': spaceBetween,
+                    'sd-list-item-group--vertical-scroll': verticalScroll,
+                }
+            )}
+            style={style}
+            onScroll={onScroll}
+            ref={refNode}
+            {...(listBoxGroupProps?.containerProps ?? {})}
+        >
+            {children}
+        </div>
+    );
+};
 
 Group.propTypes = {
     className: PropTypes.string,
@@ -47,6 +54,8 @@ Group.propTypes = {
     refNode: PropTypes.func,
     shadow: PropTypes.oneOf([1, 2, 3, 4]),
     testId: PropTypes.string,
+    listBoxGroupProps: PropTypes.object,
+    'aria-labelledby': PropTypes.string,
 };
 
 Group.defaultProps = {
