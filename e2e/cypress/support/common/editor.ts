@@ -43,6 +43,10 @@ export class Editor {
         return this.element.find('#post');
     }
 
+    get unpostButton() {
+        return this.element.find('#unpost');
+    }
+
     /**
      * Returns the dom node for the close button
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
