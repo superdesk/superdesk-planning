@@ -69,7 +69,7 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
     }
 
     renderItemActions() {
-        if (!this.state.hover) {
+        if (!this.state.hover && !this.props.active) {
             return null;
         }
 
