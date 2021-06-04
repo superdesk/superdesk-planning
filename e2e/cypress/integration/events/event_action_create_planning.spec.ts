@@ -68,6 +68,32 @@ describe('Planning.Events: create planning action', () => {
         editors.planning.expect(expectedValues);
     }
 
+    function canEditPlanningAfterwards() {
+        // Test that we can edit the Planning item
+        editors.planning.type({
+            internal_note: 'Created from Event',
+        });
+
+        // Test that we can save the Planning item
+        editors.planning.waitForAutosave();
+        editors.planning.saveButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Wait for save to be completed
+        editors.planning.closeButton
+            .should('exist')
+            .should('be.enabled');
+        editors.planning.waitForAutosave();
+
+        editors.planning.closeButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+        editors.planning.waitTillClosed();
+    }
+
     function doubleClickPlanningItem() {
         list.nestedItem(0)
             .find('.sd-list-item-nested__childs')
@@ -110,12 +136,14 @@ describe('Planning.Events: create planning action', () => {
         expectListItemText();
         doubleClickPlanningItem();
         expectEditorValues();
+        canEditPlanningAfterwards();
     });
 
     it('can create and open from the list', () => {
         list.clickAction(0, 'Create and Open Planning Item');
         expectEditorValues();
         expectListItemText();
+        canEditPlanningAfterwards();
     });
 
     it('can create from preview', () => {
@@ -123,12 +151,14 @@ describe('Planning.Events: create planning action', () => {
         expectListItemText();
         doubleClickPlanningItem();
         expectEditorValues();
+        canEditPlanningAfterwards();
     });
 
     it('can create and open from preview', () => {
         createFromPreview(true);
         expectEditorValues();
         expectListItemText();
+        canEditPlanningAfterwards();
     });
 
     it('can create from the editor', () => {
@@ -140,11 +170,13 @@ describe('Planning.Events: create planning action', () => {
         expectListItemText();
         doubleClickPlanningItem();
         expectEditorValues();
+        canEditPlanningAfterwards();
     });
 
     it('can create and open from the editor', () => {
         createFromEditor(true);
         expectListItemText();
         expectEditorValues();
+        canEditPlanningAfterwards();
     });
 });
