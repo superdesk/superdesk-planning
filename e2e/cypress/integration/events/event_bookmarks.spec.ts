@@ -126,13 +126,30 @@ describe('Planning.Events: editor bookmarks', () => {
 
         // Test enabling & disabling a coverage type
         // and associated input fields shown only when enabled
+
+        // Test metadata inputs are hidden when Coverage is disabled
         addCoverageForm.fields.desk.element.should('not.exist');
+        addCoverageForm.fields.user.element.should('not.exist');
+        addCoverageForm.fields.status.element.should('not.exist');
+        addCoverageForm.fields.enabled.element.should('exist');
+
+        // Enable the Coverage, and test metadata inputs are visible
         addCoverageForm.fields.enabled.type('enabled');
         addCoverageForm.fields.desk.element
             .should('exist')
             .should('be.visible');
+        addCoverageForm.fields.user.element
+            .should('exist')
+            .should('be.visible');
+        addCoverageForm.fields.status.element
+            .should('exist')
+            .should('be.visible');
+
+        // Disable the Coverage again, and re-test metadata inputs are hidden
         addCoverageForm.fields.enabled.type('disabled');
         addCoverageForm.fields.desk.element.should('not.exist');
+        addCoverageForm.fields.user.element.should('not.exist');
+        addCoverageForm.fields.status.element.should('not.exist');
 
         // Enable Text coverage
         addCoverageForm.fields.enabled.type('enabled');
@@ -144,6 +161,7 @@ describe('Planning.Events: editor bookmarks', () => {
         addCoverageForm.fields.enabled.type('enabled');
         addCoverageForm.fields.desk.type('Politic Desk');
         addCoverageForm.fields.user.type('first name last name');
+        addCoverageForm.fields.status.type('On merit');
 
         // Add the coverage to the Planning item
         addCoverageForm.addButton.click();
@@ -260,6 +278,7 @@ describe('Planning.Events: editor bookmarks', () => {
         addCoverageForm.fields.enabled.type('enabled');
         addCoverageForm.fields.desk.type('Politic Desk');
         addCoverageForm.fields.user.type('first name last name');
+        addCoverageForm.fields.status.type('On request');
 
         addCoverageForm.addButton.click();
 

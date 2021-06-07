@@ -49,6 +49,7 @@ export class EmbeddedCoverage {
             enabled: new NewCheckboxInput(getParent, '[data-test-id="enabled"]'),
             desk: new SelectInput(getParent, '[data-test-id="desk"] select'),
             user: new UserSelectInput(getParent, '[data-test-id="user"]'),
+            status: new SelectInput(getParent, '[data-test-id="status"] select'),
         };
     }
 
