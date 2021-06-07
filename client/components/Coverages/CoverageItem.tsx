@@ -2,6 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {IContactItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../interfaces';
 
@@ -12,9 +13,9 @@ import {
     getCreator,
     getItemInArrayById,
     gettext,
-    stringUtils,
     planningUtils,
 } from '../../utils';
+import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../components';
@@ -96,7 +97,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
         }
     }
 
-    updateViewAttributes(props) {
+    updateViewAttributes(props: IProps) {
         const {
             isPreview,
             coverage,
@@ -104,9 +105,15 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             desks,
             workflowStateReasonPrefix,
             index,
+            item,
         } = props;
-        const genre = stringUtils.firstCharUpperCase(
-            get(coverage, 'planning.genre.name', '')
+        const language = coverage.planning?.language ??
+            item.language ??
+            getUserInterfaceLanguage();
+        const genre = getVocabularyItemFieldTranslated(
+            coverage.planning?.genre,
+            'name',
+            language,
         );
         const coverageDate = get(coverage, 'planning.scheduled');
 
@@ -128,22 +135,17 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             desks,
             get(coverage, 'assigned_to.desk')
         );
-
-        let displayContentType = [
-            stringUtils.firstCharUpperCase(
-                get(
-                    coverage,
-                    'planning.g2_content_type',
-                    gettext('Text')
-                ).replace('_', ' ')
+        newState.displayContentType = getVocabularyItemFieldTranslated(
+            this.props.contentTypes.find(
+                (type) => type.qcode === coverage.planning?.g2_content_type,
             ),
-        ];
+            'name',
+            language,
+        ) ?? '';
 
         if (genre) {
-            displayContentType.push(`/${genre}`);
+            newState.displayContentType += `/${genre}`;
         }
-
-        newState.displayContentType = displayContentType.join('');
 
         newState.coverageDateText = !coverageDate ?
             gettext('Not scheduled yet') :
