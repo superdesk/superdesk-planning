@@ -125,11 +125,16 @@ export type IWorkflowState =
     | 'spiked';
 
 export type IPlanningAssignedTo = {
-    assignment_id: string;
-    state: string;
-    contact: string;
+    assignment_id: IAssignmentItem['_id'];
+    state: IPlanningWorkflowStatus;
+    contact: IContactItem['_id'];
     user: IUser['_id'];
     desk: IDesk['_id'];
+    coverage_provider: {
+        qcode: string;
+        name: string;
+        contact_type: string;
+    };
 };
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
