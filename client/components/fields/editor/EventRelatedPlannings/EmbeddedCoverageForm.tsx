@@ -43,7 +43,7 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
         this.props.update(updates);
     }
 
-    onStatusChange(status: IPlanningNewsCoverageStatus) {
+    onStatusChange(field: string, status: IPlanningNewsCoverageStatus) {
         this.props.update({status: status});
     }
 
@@ -106,6 +106,7 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
                     </List.Row>
                     <List.Row>
                         <EditorFieldNewsCoverageStatus
+                            testId="status"
                             item={coverage}
                             field="status"
                             label={gettext('Status:')}
