@@ -95,6 +95,7 @@ export const ListGroup = ({
                 spaceBetween={listViewType === LIST_VIEW_TYPE.SCHEDULE}
                 listBoxGroupProps={listBoxGroupProps}
                 aria-labelledby={headingId}
+                indexFrom={indexFrom}
             >
                 {items.map((item, index) => {
                     let itemProps = {

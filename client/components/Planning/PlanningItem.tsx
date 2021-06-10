@@ -1,6 +1,7 @@
 import React from 'react';
 import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {Menu} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../superdeskApi';
 import {
@@ -11,11 +12,10 @@ import {
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {Label} from '../';
-import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
+import {Item, Border, ItemType, PubStatus, Column, Row} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
 import Icon from '../UI/IconMix';
 import {EventDateTime} from '../Events';
-import {ItemActionsMenu} from '../index';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 
 import {
@@ -112,7 +112,7 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
         const event = get(item, 'event');
 
         const itemActions = hideItemActions ? [] :
-            planningUtils.getPlanningActions({
+            planningUtils.getPlanningActionsForUiFrameworkMenu({
                 item: item,
                 event: event,
                 session: session,
@@ -127,9 +127,25 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
         }
 
         return (
-            <ActionMenu>
-                <ItemActionsMenu actions={itemActions} />
-            </ActionMenu>
+            <Menu items={itemActions}>
+                {
+                    (toggle) => (
+                        <div
+                            style={{display: 'flex', height: '100%'}}
+                            className="sd-list-item__action-menu sd-list-item__action-menu--direction-row"
+                        >
+                            <button
+                                className="icn-btn dropdown__toggle"
+                                onClick={(e) => {
+                                    toggle(e);
+                                }}
+                            >
+                                <i className="icon-dots-vertical" />
+                            </button>
+                        </div>
+                    )
+                }
+            </Menu>
         );
     }
 
@@ -164,12 +180,20 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
         const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS);
+        const {querySelectorParent} = superdeskApi.utilities;
 
         return (
             <Item
                 shadow={1}
                 activated={multiSelected || active}
-                onClick={() => onItemClick(item)}
+                onClick={(e) => {
+                    // don't trigger preview if click went to a three dot menu or other button inside the list item
+                    if (querySelectorParent(e.target, 'button', {self: true})) {
+                        return;
+                    }
+
+                    onItemClick(item);
+                }}
                 disabled={isExpired}
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}

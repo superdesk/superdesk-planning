@@ -19,12 +19,14 @@ export const Group = (props) => {
         shadow,
         testId,
         listBoxGroupProps,
+        indexFrom,
     } = props;
 
     return (
         <div
             aria-labelledby={props['aria-labelledby']}
             data-test-id={testId}
+            data-index-from={indexFrom}
             className={classNames(
                 className,
                 'sd-list-item-group',
@@ -56,6 +58,13 @@ Group.propTypes = {
     testId: PropTypes.string,
     listBoxGroupProps: PropTypes.object,
     'aria-labelledby': PropTypes.string,
+
+    /**
+     * Active item index is shared between groups.
+     * When focus goes to another group, active index needs to be set accordingly.
+     * indexFrom indicates global index of the first item in a given group.
+     */
+    indexFrom: PropTypes.number,
 };
 
 Group.defaultProps = {

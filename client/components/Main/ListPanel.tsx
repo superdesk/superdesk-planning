@@ -81,6 +81,13 @@ interface IProps {
 interface IState {
     isNextPageLoading: boolean;
     scrollTop: number;
+
+    /**
+     * This index is shared between groups.
+     * If there are 2 groups with 5 items each,
+     * and second item of the second group is focused,
+     * activeItemIndex will be 6
+     */
     activeItemIndex: number;
     navigateDown: boolean;
 }
@@ -136,6 +143,11 @@ export class ListPanel extends React.Component<IProps, IState> {
     }
 
     handleKeyDown(event) {
+        // Prevent list navigation actions if events are triggered inside a child widget.
+        if (event.target.getAttribute('role') !== 'listbox') {
+            return;
+        }
+
         if (this.isNestedItem(this.state.activeItemIndex)) {
             return;
         }
@@ -155,7 +167,22 @@ export class ListPanel extends React.Component<IProps, IState> {
             }
         }
 
-        this.navigateListWorker(get(event, 'keyCode') === KEYCODES.DOWN);
+        const {target} = event;
+        const activeId = target.getAttribute('aria-activedescendant');
+        const activeElement = target.querySelector(`#${activeId}`);
+        const children = Array.from(target.children);
+        const itemCount = children.length;
+        const activeIndex = children.indexOf(activeElement);
+
+        const increment = get(event, 'keyCode') === KEYCODES.DOWN;
+
+        const wouldGoToItemOutsideThisGroup = increment
+            ? activeIndex >= itemCount - 1
+            : activeIndex <= 0;
+
+        if (!wouldGoToItemOutsideThisGroup) {
+            this.navigateListWorker(increment);
+        }
     }
 
     // Function to navigate active index on the list and preview if needed
@@ -310,6 +337,14 @@ export class ListPanel extends React.Component<IProps, IState> {
                         onScroll={this.handleScroll}
                         ref={(node) => this.dom.list = node}
                         onKeyDown={this.handleKeyDown}
+                        onBlur={(event) => {
+                            const focusTo = event.relatedTarget as HTMLElement | null;
+
+                            // adjust active index when navigating to another group
+                            if (focusTo?.getAttribute('role') === 'listbox') {
+                                this.setState({activeItemIndex: parseInt(focusTo.getAttribute('data-index-from'), 10)});
+                            }
+                        }}
                     >
                         {groups.map((group, i) => {
                             const propsForNestedListItems = {
@@ -321,7 +356,7 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             const listBoxGroupId = `list-panel-${i}`;
                             const getChildId = (childIndex) => `${listBoxGroupId}--${childIndex}`;
-                            const activeDescendantIndex = this.state.activeItemIndex - 1; // zero-based index needed
+                            const activeDescendantIndex = this.state.activeItemIndex - indexFrom;
 
                             const listBoxGroupProps: IAccessibleListBox = {
                                 containerProps: {
