@@ -23,7 +23,7 @@ interface IProps {
 
 interface IState {
     params: ISearchParams;
-    key?: string;
+    key: string;
 }
 
 const mapStateToProps = (state) => ({
