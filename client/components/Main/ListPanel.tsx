@@ -152,20 +152,11 @@ export class ListPanel extends React.Component<IProps, IState> {
             return;
         }
 
-        if (![KEYCODES.UP, KEYCODES.DOWN, KEYCODES.ENTER].includes(get(event, 'keyCode'))) {
+        if (![KEYCODES.UP, KEYCODES.DOWN].includes(get(event, 'keyCode'))) {
             return;
         }
 
         onEventCapture(event);
-
-        // If we have an item selected and 'enter' was pressed, lets preview it
-        if (get(event, 'keyCode') === KEYCODES.ENTER && this.state.activeItemIndex >= 0) {
-            const item = this.getItemFromGroups(this.state.activeItemIndex);
-
-            if (item) {
-                this.props.onItemClick(item);
-            }
-        }
 
         const {target} = event;
         const activeId = target.getAttribute('aria-activedescendant');
