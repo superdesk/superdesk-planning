@@ -366,6 +366,13 @@ class EventsService(superdesk.Service):
             print(lock_user, str_user_id)
             raise SuperdeskApiError.forbiddenError('The item was locked by another user')
 
+        # If only the `recurring_rule` was provided, then fill in the rest from the original
+        # This can happen, for example, when converting a single Event to a series of Recurring Events
+        if list(updates.get('dates') or {}) == ['recurring_rule']:
+            new_dates = deepcopy(original['dates'])
+            new_dates.update(updates['dates'])
+            updates['dates'] = new_dates
+
         # validate event
         self.validate_event(updates, original)
 
