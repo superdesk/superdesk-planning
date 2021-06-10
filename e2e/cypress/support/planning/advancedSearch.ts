@@ -235,6 +235,7 @@ export class AdvancedSearch {
 
         if (run.clearAfter) {
             this.clickClear();
+            this.openAllToggleBoxes();
         }
     }
 
