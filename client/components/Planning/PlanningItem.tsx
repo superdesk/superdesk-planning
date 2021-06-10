@@ -29,6 +29,7 @@ import {
     getItemWorkflowState,
 } from '../../utils';
 import {renderFields} from '../fields';
+import {gettext} from 'superdesk-core/scripts/core/utils';
 
 interface IState {
     hover: boolean;
@@ -135,7 +136,8 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
                             className="sd-list-item__action-menu sd-list-item__action-menu--direction-row"
                         >
                             <button
-                                className="icn-btn dropdown__toggle"
+                                className="icn-btn dropdown__toggle actions-menu-button"
+                                aria-label={gettext('Actions')}
                                 onClick={(e) => {
                                     toggle(e);
                                 }}

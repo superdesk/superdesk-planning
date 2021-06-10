@@ -152,27 +152,31 @@ export class ListPanel extends React.Component<IProps, IState> {
             return;
         }
 
-        if (![KEYCODES.UP, KEYCODES.DOWN].includes(get(event, 'keyCode'))) {
+        if (![KEYCODES.UP, KEYCODES.DOWN, KEYCODES.ENTER, KEYCODES.SPACE].includes(get(event, 'keyCode'))) {
             return;
         }
 
         onEventCapture(event);
 
-        const {target} = event;
-        const activeId = target.getAttribute('aria-activedescendant');
-        const activeElement = target.querySelector(`#${activeId}`);
-        const children = Array.from(target.children);
-        const itemCount = children.length;
-        const activeIndex = children.indexOf(activeElement);
+        if (event.keyCode === KEYCODES.ENTER || event.keyCode === KEYCODES.SPACE) {
+            event.target.querySelector('.actions-menu-button').click();
+        } else if (event.keyCode === KEYCODES.UP || event.keyCode === KEYCODES.DOWN) {
+            const {target} = event;
+            const activeId = target.getAttribute('aria-activedescendant');
+            const activeElement = target.querySelector(`#${activeId}`);
+            const children = Array.from(target.children);
+            const itemCount = children.length;
+            const activeIndex = children.indexOf(activeElement);
 
-        const increment = get(event, 'keyCode') === KEYCODES.DOWN;
+            const increment = get(event, 'keyCode') === KEYCODES.DOWN;
 
-        const wouldGoToItemOutsideThisGroup = increment
-            ? activeIndex >= itemCount - 1
-            : activeIndex <= 0;
+            const wouldGoToItemOutsideThisGroup = increment
+                ? activeIndex >= itemCount - 1
+                : activeIndex <= 0;
 
-        if (!wouldGoToItemOutsideThisGroup) {
-            this.navigateListWorker(increment);
+            if (!wouldGoToItemOutsideThisGroup) {
+                this.navigateListWorker(increment);
+            }
         }
     }
 
@@ -330,9 +334,13 @@ export class ListPanel extends React.Component<IProps, IState> {
                         onKeyDown={this.handleKeyDown}
                         onBlur={(event) => {
                             const focusTo = event.relatedTarget as HTMLElement | null;
+                            const blurFrom = event.target as HTMLElement | null;
 
                             // adjust active index when navigating to another group
-                            if (focusTo?.getAttribute('role') === 'listbox') {
+                            if (
+                                focusTo?.getAttribute('role') === 'listbox'
+                                && blurFrom?.getAttribute('role') === 'listbox'
+                            ) {
                                 this.setState({activeItemIndex: parseInt(focusTo.getAttribute('data-index-from'), 10)});
                             }
                         }}
