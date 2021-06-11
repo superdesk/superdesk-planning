@@ -44,6 +44,8 @@ interface IProps<SubnavProps = {}, EditorProps = {}, FilterProps = {}, ListProps
     splitView?: boolean;
     fullPreview?: boolean;
     fullPreviewOpen?: boolean;
+
+    ariaTitle?: string;
 }
 
 interface IState {
@@ -121,7 +123,9 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
         return (
             <div className={sectionClassName}>
                 <div className={mainClassName} aria-labelledby="planning-heading">
-                    <h2 id="planning-heading" className="a11y-only">{gettext('Events and Planning content')}</h2>
+                    <h2 id="planning-heading" className="a11y-only">
+                        {this.props.ariaTitle ?? gettext('Events and Planning content')}
+                    </h2>
                     {SubNavPanel && (
                         <SubNavPanel
                             filtersOpen={this.state.filtersOpen}

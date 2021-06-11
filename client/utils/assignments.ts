@@ -362,7 +362,9 @@ const getCurrentSelectedDesk = (desks, state) => {
 };
 
 export function getAssignmentTypeInfo(assignment: IAssignmentItem, contentTypes: Array<IVocabularyItem>) {
-    const tooltip = gettext('Type: {{type}}', {
+    // TODO: Add translations here
+    // using getVocabularyItemTranslated and assignment.planning.language ?? getUserInterfaceLanguage
+    const tooltip = gettext('Article Type: {{type}}', {
         type: stringUtils.firstCharUpperCase(
             (assignment?.planning?.g2_content_type ?? '').replace('_', ' ')
         ),

@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+import {get, throttle} from 'lodash';
+
+import {superdeskApi} from '../../superdeskApi';
 
 import {UI} from '../../constants';
 import * as selectors from '../../selectors';
@@ -13,6 +15,10 @@ import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
 import {assignmentsViewRequiresArchiveItems} from './AssignmentItem/fields';
 
+const focusElement = throttle((element: HTMLElement) => {
+    element.focus();
+}, 250, {leading: true});
+
 class AssignmentGroupListComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -20,6 +26,7 @@ class AssignmentGroupListComponent extends React.Component {
         this.dom = {list: null};
 
         this.handleScroll = this.handleScroll.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.changeAssignmentListSingleGroupView = this.changeAssignmentListSingleGroupView.bind(this);
         this.changeListOrder = this.changeListOrder.bind(this);
     }
@@ -36,7 +43,7 @@ class AssignmentGroupListComponent extends React.Component {
         }
     }
 
-    handleScroll(event) {
+    handleScroll(event: React.UIEvent) {
         if (this.state.isNextPageLoading) {
             return;
         }
@@ -50,6 +57,76 @@ class AssignmentGroupListComponent extends React.Component {
 
                 loadMoreAssignments(groupKey)
                     .finally(() => this.setState({isNextPageLoading: false}));
+            }
+        }
+    }
+
+    handleKeyDown(event: React.KeyboardEvent<HTMLUListElement>) {
+        const {querySelectorParent} = superdeskApi.utilities;
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+            const nextElement = document.activeElement.nextElementSibling;
+
+            if (nextElement instanceof HTMLElement) {
+                // Don't scroll the list. The list will be scrolled automatically
+                // when an item is focused that is outside of the viewport
+                event.preventDefault();
+
+                focusElement(nextElement);
+            }
+        } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+            const previousElement = document.activeElement.previousElementSibling;
+
+            if (previousElement instanceof HTMLElement) {
+                // Don't scroll the list. The list will be scrolled automatically
+                // when an item is focused that is outside of the viewport
+                event.preventDefault();
+
+                focusElement(previousElement);
+            }
+        } else if (event.key === 'Home') {
+            const firstElement = document.activeElement.parentElement.firstElementChild;
+
+            if (firstElement instanceof HTMLElement) {
+                // Don't scroll the list. The list will be scrolled automatically
+                // when an item is focused that is outside of the viewport
+                event.preventDefault();
+
+                firstElement.focus();
+            }
+        } else if (event.key === 'End') {
+            const lastElement = document.activeElement.parentElement.lastElementChild;
+
+            if (lastElement instanceof HTMLElement) {
+                // Don't scroll the list. The list will be scrolled automatically
+                // when an item is focused that is outside of the viewport
+                event.preventDefault();
+
+                lastElement.focus();
+            }
+        } else if (event.key === 'PageUp') {
+            if (document.activeElement instanceof HTMLElement) {
+                const ele = querySelectorParent(
+                    document.activeElement,
+                    '[data-test-id="assignment-group__list"]'
+                );
+
+                if (ele?.previousElementSibling instanceof HTMLElement) {
+                    event.preventDefault();
+                    ele.previousElementSibling.querySelector('.sd-list-item-group > [tabindex="0"]')?.focus();
+                }
+            }
+        } else if (event.key === 'PageDown') {
+            if (document.activeElement instanceof HTMLElement) {
+                const ele = querySelectorParent(
+                    document.activeElement,
+                    '[data-test-id="assignment-group__list"]'
+                );
+
+                if (ele?.nextElementSibling instanceof HTMLElement) {
+                    event.preventDefault();
+                    ele.nextElementSibling.querySelector('.sd-list-item-group > [tabindex="0"]')?.focus();
+                }
             }
         }
     }
@@ -124,6 +201,7 @@ class AssignmentGroupListComponent extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             assignments,
             totalCount,
@@ -138,25 +216,28 @@ class AssignmentGroupListComponent extends React.Component {
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
 
         return (
-            <div>
+            <div data-test-id="assignment-group__list">
                 {!assignmentListSingleGroupView ? (
                     <Header>
                         {changeAssignmentListSingleGroupView ? (
-                            <a
-                                className="sd-list-header__name sd-list-header__name--cursorPointer"
-                                onClick={this.changeAssignmentListSingleGroupView}
-                            >
-                                <span>{groupLabel}</span>
-                            </a>
+                            <h3 className="sd-list-header__name sd-list-header__name--cursorPointer">
+                                <a
+                                    onClick={this.changeAssignmentListSingleGroupView}
+                                    tabIndex={0}
+                                >{groupLabel}</a>
+                            </h3>
                         ) : (
-                            <span className="sd-list-header__name">{groupLabel}</span>
+                            <h3 className="sd-list-header__name">{groupLabel}</h3>
                         )}
 
                         {showCount && (
                             <div className="sd-list-header__number sd-flex-grow">
+                                <span className="a11y-only">{gettext(
+                                    'Number of Assignments: ',
+                                    {count: totalCount}
+                                )}</span>
                                 <span className="badge">{totalCount}</span>
                             </div>
-
                         )}
 
                         <OrderDirectionIcon
@@ -179,6 +260,7 @@ class AssignmentGroupListComponent extends React.Component {
                     shadow={2}
                     style={listStyle}
                     onScroll={this.handleScroll}
+                    onKeyDown={this.handleKeyDown}
                     refNode={(assignmentsList) => this.dom.list = assignmentsList}
                 >
                     {get(assignments, 'length', 0) > 0 ? (

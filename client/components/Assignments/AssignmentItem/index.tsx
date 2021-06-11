@@ -4,10 +4,9 @@ import moment from 'moment';
 import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-import {
-    assignmentUtils,
-    gettext,
-} from '../../../utils';
+import {superdeskApi} from '../../../superdeskApi';
+
+import {assignmentUtils} from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 import {getAssignmentTypeInfo} from '../../../utils/assignments';
 
@@ -17,6 +16,8 @@ import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
 import {getComponentForField, getAssignmentsListView} from './fields';
 
 export class AssignmentItem extends React.Component {
+    private mouseDown: boolean;
+
     constructor(props) {
         super(props);
 
@@ -32,6 +33,18 @@ export class AssignmentItem extends React.Component {
         this.renderContentColumn = this.renderContentColumn.bind(this);
         this.renderAvatar = this.renderAvatar.bind(this);
         this.renderActionsMenu = this.renderActionsMenu.bind(this);
+        this.onFocus = this.onFocus.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+    }
+
+    setMouseDown(mouseDown: boolean) {
+        this.mouseDown = mouseDown;
+    }
+
+    onFocus() {
+        if (this.mouseDown !== true) {
+            this.props.onClick(this.props.assignment);
+        }
     }
 
     onSingleClick() {
@@ -68,6 +81,7 @@ export class AssignmentItem extends React.Component {
 
         return (
             <Column>
+                <span className="a11y-only">{tooltip}</span>
                 <OverlayTrigger
                     placement="right"
                     overlay={<Tooltip id="content_type">{tooltip}</Tooltip>}
@@ -106,6 +120,7 @@ export class AssignmentItem extends React.Component {
     }
 
     renderAvatar() {
+        const {gettext} = superdeskApi.localization;
         const {
             assignedUser,
             isCurrentUser,
@@ -214,9 +229,26 @@ export class AssignmentItem extends React.Component {
 
         return itemActions.length < 1 ? null : (
             <ActionMenu>
-                <ItemActionsMenu actions={itemActions} />
+                <ItemActionsMenu
+                    field={assignment._id}
+                    actions={itemActions}
+                />
             </ActionMenu>
         );
+    }
+
+    handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+        if (event.key === ' ') {
+            // Display item actions menu when space is pressed
+            const element = event.target?.querySelector('.dropdown__toggle');
+
+            if (typeof element?.click === 'function') {
+                event.preventDefault();
+                element.click();
+            }
+        } else if (event.key === 'Enter' && this.props.onDoubleClick != null) {
+            this.props.onDoubleClick(this.props.assignment);
+        }
     }
 
     render() {
@@ -233,6 +265,10 @@ export class AssignmentItem extends React.Component {
                 activated={get(assignment, '_id') === currentAssignmentId}
                 onClick={this.handleSingleAndDoubleClick}
                 className="AssignmentItem"
+                onFocus={this.onFocus}
+                onKeyDown={this.handleKeyDown}
+                onMouseDown={this.setMouseDown.bind(this, true)}
+                onMouseUp={this.setMouseDown.bind(this, false)}
             >
                 <Border state={borderState} />
                 {this.renderContentTypeColumn()}
