@@ -192,6 +192,7 @@ export class FileInput extends React.PureComponent<IProps> {
                         ref={this.dom.container}
                         onDrop={this.onDrop}
                         onDragEnter={this.onDragEnter}
+                        onDragOver={(e) => e.preventDefault()}
                         className="basic-drag-block"
                         onKeyDown={this.handleKeyDown}
                     >
