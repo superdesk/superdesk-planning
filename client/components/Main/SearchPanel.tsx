@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {set, get, cloneDeep, isEqual, uniqueId} from 'lodash';
+import {set, get, cloneDeep, isEqual} from 'lodash';
 
 import {superdeskApi, planningApi} from '../../superdeskApi';
 import {ISearchParams, PLANNING_VIEW} from '../../interfaces';
@@ -23,7 +23,6 @@ interface IProps {
 
 interface IState {
     params: ISearchParams;
-    key: string;
 }
 
 const mapStateToProps = (state) => ({
@@ -40,10 +39,7 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
         this.onChangeMultiple = this.onChangeMultiple.bind(this);
         this.onClear = this.onClear.bind(this);
         this.search = this.search.bind(this);
-        this.state = {
-            params: cloneDeep(this.props.currentParams),
-            key: uniqueId(),
-        };
+        this.state = {params: cloneDeep(this.props.currentParams)};
     }
 
     onClear() {
@@ -51,10 +47,7 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
             return;
         }
 
-        this.setState({
-            params: {},
-            key: uniqueId()
-        });
+        this.setState({params: {}});
         planningApi.ui.list.clearSearch();
     }
 
@@ -124,7 +117,6 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
                     <ContentBlock>
                         <ContentBlockInner>
                             <AdvancedSearch
-                                key={this.state.key}
                                 params={this.state.params}
                                 onChange={this.onChangeHandler}
                                 onChangeMultiple={this.onChangeMultiple}
