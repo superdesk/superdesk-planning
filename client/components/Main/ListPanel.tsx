@@ -350,13 +350,20 @@ export class ListPanel extends React.Component<IProps, IState> {
                              * Remove item selection.
                              * New selection will be set in a few miliseconds by a function
                              * triggered by a mouse/keyboard event.
+                             *
                              * For accessibility purposes, no items should be selected when the group
                              * gets focused. Otherwise, screen readers repeat the same information twice.
+                             *
+                             * EXCEPTION: keep active item, if focus was triggered by returning from actions menu.
                              */
                             if (
                                 focusTo?.getAttribute('role') === 'listbox'
                             ) {
-                                this.setState({activeItemIndex: -1});
+                                const relatedTarget = event?.relatedTarget as HTMLElement | null;
+
+                                if (relatedTarget?.getAttribute('role') !== 'menuitem') {
+                                    this.setState({activeItemIndex: -1});
+                                }
                             }
                         }}
                     >
