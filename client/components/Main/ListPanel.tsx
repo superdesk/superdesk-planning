@@ -163,19 +163,30 @@ export class ListPanel extends React.Component<IProps, IState> {
         } else if (event.keyCode === KEYCODES.UP || event.keyCode === KEYCODES.DOWN) {
             const {target} = event;
             const activeId = target.getAttribute('aria-activedescendant');
-            const activeElement = target.querySelector(`#${activeId}`);
-            const children = Array.from(target.children);
-            const itemCount = children.length;
-            const activeIndex = children.indexOf(activeElement);
 
-            const increment = get(event, 'keyCode') === KEYCODES.DOWN;
+            if (activeId != null) {
+                const activeElement = target.querySelector(`#${activeId}`);
+                const children = Array.from(target.children);
+                const itemCount = target.children.length;
+                const activeIndex = children.indexOf(activeElement);
 
-            const wouldGoToItemOutsideThisGroup = increment
-                ? activeIndex >= itemCount - 1
-                : activeIndex <= 0;
+                const increment = get(event, 'keyCode') === KEYCODES.DOWN;
 
-            if (!wouldGoToItemOutsideThisGroup) {
-                this.navigateListWorker(increment);
+                const wouldGoToItemOutsideThisGroup = increment
+                    ? activeIndex >= itemCount - 1
+                    : activeIndex <= 0;
+
+                if (!wouldGoToItemOutsideThisGroup) {
+                    this.navigateListWorker(increment);
+                }
+            } else {
+                /**
+                 * If there is no item currently active,
+                 * it should focus the first item in the group that triggered the event.
+                 */
+                this.setState({activeItemIndex: parseInt(target.getAttribute('data-index-from'), 10) - 1}, () => {
+                    this.navigateListWorker(true);
+                });
             }
         }
     }
@@ -332,16 +343,20 @@ export class ListPanel extends React.Component<IProps, IState> {
                         onScroll={this.handleScroll}
                         ref={(node) => this.dom.list = node}
                         onKeyDown={this.handleKeyDown}
-                        onBlur={(event) => {
-                            const focusTo = event.relatedTarget as HTMLElement | null;
-                            const blurFrom = event.target as HTMLElement | null;
+                        onFocus={(event) => {
+                            const focusTo = event.target as HTMLElement | null;
 
-                            // adjust active index when navigating to another group
+                            /**
+                             * Remove item selection.
+                             * New selection will be set in a few miliseconds by a function
+                             * triggered by a mouse/keyboard event.
+                             * For accessibility purposes, no items should be selected when the group
+                             * gets focused. Otherwise, screen readers repeat the same information twice.
+                             */
                             if (
                                 focusTo?.getAttribute('role') === 'listbox'
-                                && blurFrom?.getAttribute('role') === 'listbox'
                             ) {
-                                this.setState({activeItemIndex: parseInt(focusTo.getAttribute('data-index-from'), 10)});
+                                this.setState({activeItemIndex: -1});
                             }
                         }}
                     >
@@ -354,6 +369,8 @@ export class ListPanel extends React.Component<IProps, IState> {
                             };
 
                             const listBoxGroupId = `list-panel-${i}`;
+                            const activeItemInThisGroup = this.state.activeItemIndex >= indexFrom
+                                && this.state.activeItemIndex < indexFrom + group.events.length;
                             const getChildId = (childIndex) => `${listBoxGroupId}--${childIndex}`;
                             const activeDescendantIndex = this.state.activeItemIndex - indexFrom;
 
@@ -361,7 +378,8 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 containerProps: {
                                     role: 'listbox',
                                     tabIndex: 0,
-                                    'aria-activedescendant': getChildId(activeDescendantIndex),
+                                    'aria-activedescendant':
+                                        activeItemInThisGroup ? getChildId(activeDescendantIndex) : undefined,
                                 },
                                 groupId: listBoxGroupId,
                                 getChildId: getChildId,
@@ -402,7 +420,9 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 listGroupProps.activeItemIndex = this.state.activeItemIndex;
                                 listGroupProps.indexItems = true;
                                 listGroupProps.indexFrom = indexFrom;
-                                indexFrom = indexFrom + get(group, 'events.length', 0);
+
+                                // increment each iteration
+                                indexFrom = indexFrom + group.events.length ?? 0;
                             }
 
                             return (
