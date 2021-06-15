@@ -49,6 +49,7 @@ import {
 } from './index';
 import {getUsersDefaultLanguage} from './users';
 import * as selectors from '../selectors';
+import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -469,6 +470,51 @@ const getPlanningActions = ({
         lockedItems
     );
 };
+
+/**
+ * Converts output from `getPlanningActions` to `Array<IMenuItem>`
+ */
+export function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
+    return actions
+        .filter((item, index) => {
+            // Trim dividers. Menu should not start or end with a divider.
+            if (
+                (index === 0 && item.label === 'Divider')
+                || (index === actions.length - 1 && item.label === 'Divider')
+            ) {
+                return false;
+            } else {
+                return true;
+            }
+        })
+        .map((p) => {
+            const {label, icon, callback} = p;
+
+            if (Array.isArray(callback)) {
+                var menuBranch: IMenuItem = {
+                    label: label,
+                    icon: icon,
+                    children: toUIFrameworkInterface(callback),
+                };
+
+                return menuBranch;
+            } else if (label === 'Divider') {
+                var menuSeparator: IMenuItem = {
+                    separator: true,
+                };
+
+                return menuSeparator;
+            } else {
+                var menuLeaf: IMenuItem = {
+                    label: label,
+                    icon: icon,
+                    onClick: callback,
+                };
+
+                return menuLeaf;
+            }
+        });
+}
 
 export const modifyForClient = (plan) => {
     sanitizeItemFields(plan);
@@ -1277,6 +1323,7 @@ const self = {
     getPlanningFiles,
     showXMPFileUIControl,
     duplicateCoverage,
+    toUIFrameworkInterface,
 };
 
 export default self;

@@ -12,13 +12,13 @@ interface IProps {
     disabled?: boolean;
     refNode?: any;
 
-    onClick?(): void;
+    onClick?(event: React.MouseEvent<HTMLLIElement>): void;
     onMouseEnter?(): void;
     onMouseLeave?(): void;
-    onMouseDown?(event: React.MouseEvent<HTMLDivElement>): void;
-    onMouseUp?(event: React.MouseEvent<HTMLDivElement>): void;
-    onFocus?(event: React.FocusEvent<HTMLDivElement>): void;
-    onKeyDown?(event: React.KeyboardEvent<HTMLDivElement>): void;
+    onMouseDown?(event: React.MouseEvent<HTMLLIElement>): void;
+    onMouseUp?(event: React.MouseEvent<HTMLLIElement>): void;
+    onFocus?(event: React.FocusEvent<HTMLLIElement>): void;
+    onKeyDown?(event: React.KeyboardEvent<HTMLLIElement>): void;
 }
 
 export class Item extends React.PureComponent<IProps> {
