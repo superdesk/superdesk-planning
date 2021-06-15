@@ -1,35 +1,10 @@
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../../support/common';
+import {TEST_PLANNINGS} from '../../fixtures/planning';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue, addItems} from '../../support/common';
 import {PlanningList, PlanningEditor} from '../../support/planning';
+import {TIME_STRINGS} from '../../support/utils/time';
 
 describe('Planning.Planning: list view accessibility', () => {
-    const editor = new PlanningEditor();
-    const subnav = new SubNavBar();
     const list = new PlanningList();
-
-    function createPlanningItem(date, time, slugline) {
-        subnav.createPlanning();
-        editor.waitTillOpen();
-
-        const plan = {
-            slugline: slugline,
-            'planning_date.date': date,
-            'planning_date.time': time,
-            description_text: 'desc 1',
-        };
-
-        editor.type(plan);
-        editor.waitForAutosave();
-
-        editor.createButton
-            .should('exist')
-            .click();
-
-        editor.waitLoadingComplete();
-
-        editor.closeButton.should('exist').click();
-
-        editor.waitTillClosed();
-    }
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -38,13 +13,44 @@ describe('Planning.Planning: list view accessibility', () => {
 
         waitForPageLoad.planning();
 
-        createPlanningItem('12/12/2045', '12:13', 'group 1, item 1');
-        createPlanningItem('12/12/2045', '12:14', 'group 1, item 2');
-        createPlanningItem('12/12/2045', '12:15', 'group 1, item 3');
-
-        createPlanningItem('13/12/2045', '12:16', 'group 2, item 1');
-        createPlanningItem('13/12/2045', '12:17', 'group 2, item 2');
-        createPlanningItem('13/12/2045', '12:18', 'group 2, item 3');
+        addItems('planning', [
+            {
+                type: 'planning',
+                state: 'draft',
+                slugline: 'group 1, item 1',
+                planning_date: '2045-02-03' + TIME_STRINGS[0],
+            },
+            {
+                type: 'planning',
+                state: 'draft',
+                slugline: 'group 1, item 2',
+                planning_date: '2045-02-03' + TIME_STRINGS[1],
+            },
+            {
+                type: 'planning',
+                state: 'draft',
+                slugline: 'group 1, item 3',
+                planning_date: '2045-02-03' + TIME_STRINGS[2],
+            },
+            {
+                type: 'planning',
+                state: 'draft',
+                slugline: 'group 2, item 1',
+                planning_date: '2045-02-04' + TIME_STRINGS[0],
+            },
+            {
+                type: 'planning',
+                state: 'draft',
+                slugline: 'group 2, item 2',
+                planning_date: '2045-02-04' + TIME_STRINGS[1],
+            },
+            {
+                type: 'planning',
+                state: 'draft',
+                slugline: 'group 2, item 3',
+                planning_date: '2045-02-04' + TIME_STRINGS[2],
+            },
+        ]);
 
         list.expectItemCount(6);
     });
