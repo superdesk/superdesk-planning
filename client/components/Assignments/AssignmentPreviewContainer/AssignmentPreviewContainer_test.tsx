@@ -1,5 +1,5 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, ReactWrapper} from 'enzyme';
 import {Provider} from 'react-redux';
 import sinon from 'sinon';
 
@@ -96,7 +96,7 @@ describe('<AssignmentPreviewContainer />', () => {
         it('renders icons, labels and menu items', () => {
             assignment.priority = 1;
             assignment.assigned_to.state = 'assigned';
-            const wrapper = getWrapper();
+            const wrapper: ReactWrapper = getWrapper();
             const topTools = wrapper.find('.side-panel__top-tools');
             const audit = wrapper.find('.AssignmentPreview__audit');
 
@@ -110,15 +110,7 @@ describe('<AssignmentPreviewContainer />', () => {
             )).toBe(true);
 
             // Renders Assignment Priority
-            expect(topTools.contains(
-                <span
-                    className="priority-label priority-label--1 sd-list-item__inline-icon"
-                    data-sd-tooltip="Priority: {{ name }}"
-                    data-flow="right"
-                >
-                    {1}
-                </span>
-            )).toBe(true);
+            expect(topTools.find('.priority-label--1').exists()).toBe(true);
 
             // Renders Assignment State label
             expect(topTools.contains(
