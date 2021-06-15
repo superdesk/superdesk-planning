@@ -214,11 +214,12 @@ class AssignmentGroupListComponent extends React.Component {
             orderDirection,
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
+        const headingId = `heading--${this.props.groupKey}`;
 
         return (
             <div data-test-id="assignment-group__list">
                 {!assignmentListSingleGroupView ? (
-                    <Header>
+                    <Header id={headingId}>
                         {changeAssignmentListSingleGroupView ? (
                             <h3 className="sd-list-header__name sd-list-header__name--cursorPointer">
                                 <a
@@ -246,7 +247,7 @@ class AssignmentGroupListComponent extends React.Component {
                         />
                     </Header>
                 ) : (
-                    <Header>
+                    <Header id={headingId}>
                         <div className="sd-flex-grow sd-list-header__name" />
                         <OrderDirectionIcon
                             direction={orderDirection}
@@ -261,6 +262,7 @@ class AssignmentGroupListComponent extends React.Component {
                     style={listStyle}
                     onScroll={this.handleScroll}
                     onKeyDown={this.handleKeyDown}
+                    aria-labelledby={headingId}
                     refNode={(assignmentsList) => this.dom.list = assignmentsList}
                 >
                     {get(assignments, 'length', 0) > 0 ? (

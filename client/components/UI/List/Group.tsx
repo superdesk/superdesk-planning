@@ -1,5 +1,4 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 interface IProps {
@@ -10,6 +9,7 @@ interface IProps {
     refNode?: any;
     shadow?: number;
     testId?: string;
+    'aria-labelledby'?: string;
 
     onScroll?(event: React.UIEvent): void;
     onKeyDown?(event: React.KeyboardEvent<HTMLUListElement>): void;
@@ -32,6 +32,7 @@ export class Group extends React.PureComponent<IProps> {
 
         return (
             <ul
+                aria-labelledby={this.props['aria-labelledby']}
                 data-test-id={testId}
                 className={classNames(
                     className,
