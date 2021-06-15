@@ -479,6 +479,69 @@ Feature: Events Recurring
         Then we get list with 4 items
 
     @auth
+    Scenario: Convert a single event to a recurring event with only recurring_rules in the patch
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z"
+            }
+        }]
+        """
+        Then we get OK response
+        And we store "EVENT_ID" with value "#events._id#" to context
+        When we post to "/events/#events._id#/lock" with success
+        """
+        {"lock_action": "convert_recurring"}
+        """
+        And we patch "/events/#EVENT_ID#"
+        """
+        {
+            "dates": {
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        And we store "NEW_RECURRING" from patch
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T14:00:00+0000"
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000"
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-12-06T12:00:00+0000",
+                    "end": "2019-12-06T14:00:00+0000"
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            }
+        ]}
+        """
+
+    @auth
     Scenario: Spike single event from recurring series
         When we post to "events"
         """

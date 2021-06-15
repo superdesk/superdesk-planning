@@ -12,7 +12,7 @@ import {planningApi, superdeskApi} from '../superdeskApi';
 import {EVENTS, TEMP_ID_PREFIX} from '../constants';
 
 import {convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
-import {eventUtils} from '../utils';
+import {eventUtils, planningUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
 import * as actions from '../actions';
 
@@ -143,7 +143,12 @@ function createOrUpdatePlannings(
                         ))
             )
         )
-    );
+    )
+        .then((newOrUpdatedItems) => {
+            newOrUpdatedItems.forEach(planningUtils.modifyForClient);
+
+            return newOrUpdatedItems;
+        });
 }
 
 function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {

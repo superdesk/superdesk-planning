@@ -119,13 +119,13 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                     ),
                 },
                 agendas: {
-                    enabled: !this.props.params.no_agenda_assigned,
+                    enabled: !this.props.params.no_agenda_assigned && this.props.enabledField !== 'search_enabled',
                 },
                 g2_content_type: {
                     enabled: !this.props.params.no_coverage,
                 },
                 calendars: {
-                    enabled: !this.props.params.no_calendar_assigned,
+                    enabled: !this.props.params.no_calendar_assigned && this.props.enabledField !== 'search_enabled',
                 },
                 include_killed: {
                     enabled: !this.props.params.state?.length,

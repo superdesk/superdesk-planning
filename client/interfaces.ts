@@ -125,11 +125,16 @@ export type IWorkflowState =
     | 'spiked';
 
 export type IPlanningAssignedTo = {
-    assignment_id: string;
-    state: string;
-    contact: string;
+    assignment_id: IAssignmentItem['_id'];
+    state: IPlanningWorkflowStatus;
+    contact: IContactItem['_id'];
     user: IUser['_id'];
     desk: IDesk['_id'];
+    coverage_provider: {
+        qcode: string;
+        name: string;
+        contact_type: string;
+    };
 };
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
@@ -1845,7 +1850,7 @@ export interface IPlanningAPI {
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IPlanningItem>>;
-        getById(planId: IPlanningItem['_id'], saveToStore?: boolean): Promise<IPlanningItem>;
+        getById(planId: IPlanningItem['_id'], saveToStore?: boolean, force?: boolean): Promise<IPlanningItem>;
         getByIds(planIds: Array<IPlanningItem['_id']>): Promise<Array<IPlanningItem>>;
         getLocked(): Promise<Array<IPlanningItem>>;
         getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;

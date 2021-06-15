@@ -124,4 +124,52 @@ describe('Planning.Events: edit metadata', () => {
             .find('.label--success')
             .should('contain.text', 'Scheduled');
     });
+
+    it('SDESK-5982: Post updates the initial values', () => {
+        // Enter minimum Event metadata
+        editor.expectItemType();
+        editor.type({
+            'dates.start.date': '12/12/2045',
+            'dates.allDay': true,
+            slugline: 'slugline of the event',
+            name: 'name of the event',
+        });
+
+        // Create the Event item
+        editor.waitForAutosave();
+        editor.createButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+        editor.waitLoadingComplete();
+
+        // Post the Event item
+        editor.postButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Make sure POST button changes to UNPOST
+        editor.waitForAutosave();
+        editor.postButton.should('not.exist');
+        editor.unpostButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Make sure the UNPOST button changes to POST
+        editor.waitForAutosave();
+        editor.unpostButton.should('not.exist');
+        editor.postButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Once more, make sure the UNPOST button changes back to POST
+        editor.waitForAutosave();
+        editor.postButton.should('not.exist');
+        editor.unpostButton
+            .should('exist')
+            .should('be.enabled');
+    });
 });

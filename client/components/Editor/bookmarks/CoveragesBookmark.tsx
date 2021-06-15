@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import classNames from 'classnames';
 
 import {
@@ -17,12 +16,11 @@ import {IDesk, IUser} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
-import {planningUtils} from '../../../utils';
 
 import {Icon} from 'superdesk-ui-framework/react';
 import {Row} from '../../UI/Form';
 import * as List from '../../UI/List';
-import {CoverageEditor, CoverageItem} from '../../Coverages';
+import {CoverageEditor, CoverageItem, CoverageIcon} from '../../Coverages';
 
 interface IProps extends IBookmarkProps {
     users: Array<IUser>;
@@ -67,40 +65,34 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
         this.setState({showCoverages: !this.state.showCoverages});
     }
 
-    getCoverageIcon(coverage: DeepPartial<IPlanningCoverageItem>) {
-        return planningUtils.getCoverageIcon(
-            planningUtils.getCoverageContentType(coverage, this.props.contentTypes),
-            coverage
-        ).substr(5); // remove `icon-` from the name
-    }
-
     renderForPanel() {
         return (this.props.item?.coverages ?? []).map((coverage) => (
-            <OverlayTrigger
+            <CoverageIcon
                 key={coverage.coverage_id}
-                placement="right"
-                overlay={(
-                    <Tooltip id="coverage_links">
-                        Coverage Links
-                    </Tooltip>
+                coverage={coverage}
+                users={this.props.users}
+                desks={this.props.desks}
+                contentTypes={this.props.contentTypes}
+                contacts={this.props.contacts}
+                tooltipDirection="right"
+                iconWrapper={(icons) => (
+                    <button
+                        type="button"
+                        className={classNames(
+                            'sd-navbtn sd-navbtn--default',
+                            'editor-bookmark',
+                            {active: this.props.active}
+                        )}
+                        tabIndex={0}
+                        aria-label={this.props.bookmark.id}
+                        onClick={() => {
+                            this.onClick(coverage);
+                        }}
+                    >
+                        {icons}
+                    </button>
                 )}
-            >
-                <button
-                    type="button"
-                    className={classNames(
-                        'sd-navbtn sd-navbtn--default',
-                        'editor-bookmark',
-                        {active: this.props.active}
-                    )}
-                    tabIndex={0}
-                    aria-label={this.props.bookmark.id}
-                    onClick={() => {
-                        this.onClick(coverage);
-                    }}
-                >
-                    <Icon name={this.getCoverageIcon(coverage)} />
-                </button>
-            </OverlayTrigger>
+            />
         ));
     }
 

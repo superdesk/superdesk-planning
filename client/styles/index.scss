@@ -36,12 +36,12 @@
     vertical-align: text-top;
     padding-left: 0!important;
   }
-  
+
   &.label-icon--warning {
     .sd-list-item__time__schedule {
         color: $orange !important;
     }
-  
+
     .label {
         margin-left: 0.8rem;
     }
@@ -111,4 +111,9 @@
   .subnav + .subnav {
     z-index: 1002 !important;
   }
+}
+
+// Fix react-bootstrap OverlayTrigger's Tooltip inside Modals
+.tooltip {
+    z-index: 10000 !important;
 }

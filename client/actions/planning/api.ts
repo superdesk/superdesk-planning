@@ -216,23 +216,12 @@ const fetchPlanningsEvents = (plannings) => (
  * @return Promise
  */
 const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} = {}) => (
-    (dispatch, getState) => {
-        // Test if the Planning item is already loaded into the store
-        // If so, return that instance instead
-        const storedPlannings = selectors.planning.storedPlannings(getState());
-        let promise;
-
+    (dispatch) => {
         if (isPublishedItemId(pid)) {
             return Promise.resolve({});
         }
 
-        if (has(storedPlannings, pid) && !force) {
-            promise = Promise.resolve(storedPlannings[pid]);
-        } else {
-            promise = planningApi.planning.getById(pid, saveToStore);
-        }
-
-        return promise.then((item) => {
+        return planningApi.planning.getById(pid, saveToStore, force).then((item) => {
             if (loadEvents) {
                 return dispatch(self.fetchPlanningsEvents([item]))
                     .then(

@@ -64,11 +64,15 @@ export function searchPlanningGetAll(params: ISearchParams): Promise<Array<IPlan
     });
 }
 
-export function getPlanningById(planId: IPlanningItem['_id'], saveToStore: boolean = true): Promise<IPlanningItem> {
+export function getPlanningById(
+    planId: IPlanningItem['_id'],
+    saveToStore: boolean = true,
+    force: boolean = false
+): Promise<IPlanningItem> {
     const {getState, dispatch} = planningApi.redux.store;
     const storedPlannings = selectors.planning.storedPlannings(getState());
 
-    return storedPlannings[planId] != null ?
+    return (storedPlannings[planId] != null && !force) ?
         Promise.resolve(storedPlannings[planId]) :
         superdeskApi.dataApi
             .findOne<IPlanningItem>('planning', planId)

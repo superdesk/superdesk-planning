@@ -130,7 +130,7 @@ describe('Planning.Planning: edit metadata', () => {
             subject: ['sports awards'],
         });
         editor.waitForAutosave();
-        editor.waitTillOpen()
+        editor.waitTillOpen();
         editor.postButton.should('not.exist');
 
         editor.type({
@@ -140,7 +140,54 @@ describe('Planning.Planning: edit metadata', () => {
             ednote: 'Other Ed. Note',
         });
         editor.waitForAutosave();
-        editor.waitTillOpen()
+        editor.waitTillOpen();
         editor.postButton.should('exist');
+    });
+
+    it('SDESK-5982: Post updates the initial values', () => {
+        // Enter minimum Planning metadata
+        editor.expectItemType();
+        editor.type({
+            slugline: 'slugline of the planning',
+            'planning_date.date': '12/12/2045',
+            'planning_date.time': '12:13',
+        });
+
+        // Create the Planning item
+        editor.waitForAutosave();
+        editor.createButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+        editor.waitLoadingComplete();
+
+        // Post the Planning item
+        editor.postButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Make sure POST button changes to UNPOST
+        editor.waitForAutosave();
+        editor.postButton.should('not.exist');
+        editor.unpostButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Make sure the UNPOST button changes to POST
+        editor.waitForAutosave();
+        editor.unpostButton.should('not.exist');
+        editor.postButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Once more, make sure the UNPOST button changes back to POST
+        editor.waitForAutosave();
+        editor.postButton.should('not.exist');
+        editor.unpostButton
+            .should('exist')
+            .should('be.enabled');
     });
 });
