@@ -42,9 +42,13 @@ class SearchBox extends React.Component<IProps, IState> {
     }
 
     componentDidMount() {
-        if (this.props.focusOnMount && this.inputElement.current != null) {
-            this.inputElement.current.focus();
+        if (this.props.focusOnMount) {
+            this.focus();
         }
+    }
+
+    focus() {
+        this.inputElement.current?.focus();
     }
 
     componentWillReceiveProps(nextProps) {

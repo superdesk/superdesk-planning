@@ -16,6 +16,22 @@ interface IProps {
 }
 
 export class SubNavBar extends React.PureComponent<IProps> {
+    searchBox: React.RefObject<SearchBox>;
+
+    constructor(props) {
+        super(props);
+
+        this.searchBox = React.createRef();
+    }
+
+    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<{}>, snapshot?: any) {
+        // When changing the view type (displaying single group)
+        // then make sure the search box is focused (the default focus item on load)
+        if (this.props.assignmentListSingleGroupView !== prevProps.assignmentListSingleGroupView) {
+            this.searchBox.current?.focus();
+        }
+    }
+
     render() {
         const {
             searchQuery,
@@ -52,6 +68,7 @@ export class SubNavBar extends React.PureComponent<IProps> {
                     )}
                 </h3>
                 <SearchBox
+                    ref={this.searchBox}
                     label={gettext('Search Assignments')}
                     value={searchQuery}
                     search={changeSearchQuery}

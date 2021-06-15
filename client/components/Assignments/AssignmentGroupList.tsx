@@ -5,7 +5,7 @@ import {get, throttle} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
 
-import {UI} from '../../constants';
+import {UI, KEYCODES} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {assignmentUtils} from '../../utils';
@@ -27,6 +27,7 @@ class AssignmentGroupListComponent extends React.Component {
 
         this.handleScroll = this.handleScroll.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleHeaderNameKeyDown = this.handleHeaderNameKeyDown.bind(this);
         this.changeAssignmentListSingleGroupView = this.changeAssignmentListSingleGroupView.bind(this);
         this.changeListOrder = this.changeListOrder.bind(this);
     }
@@ -131,6 +132,14 @@ class AssignmentGroupListComponent extends React.Component {
         }
     }
 
+    handleHeaderNameKeyDown(event: React.KeyboardEvent<HTMLAnchorElement>) {
+        if (this.props.changeAssignmentListSingleGroupView &&
+            [KEYCODES.ENTER, KEYCODES.SPACE].includes(event.keyCode)
+        ) {
+            this.props.changeAssignmentListSingleGroupView(this.props.groupKey);
+        }
+    }
+
     changeAssignmentListSingleGroupView() {
         if (this.props.changeAssignmentListSingleGroupView) {
             this.props.changeAssignmentListSingleGroupView(this.props.groupKey);
@@ -224,6 +233,8 @@ class AssignmentGroupListComponent extends React.Component {
                             <h3 className="sd-list-header__name sd-list-header__name--cursorPointer">
                                 <a
                                     onClick={this.changeAssignmentListSingleGroupView}
+                                    onKeyDown={this.handleHeaderNameKeyDown}
+                                    role="button"
                                     tabIndex={0}
                                 >{groupLabel}</a>
                             </h3>
