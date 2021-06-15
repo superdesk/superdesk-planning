@@ -141,6 +141,7 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
                                 onClick={(e) => {
                                     toggle(e);
                                 }}
+                                data-test-id="menu-button"
                             >
                                 <i className="icon-dots-vertical" />
                             </button>
