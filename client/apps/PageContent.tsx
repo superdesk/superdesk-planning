@@ -3,7 +3,6 @@ import classNames from 'classnames';
 
 import {WorkqueueContainer, ModalsContainer} from '../components';
 import {PopupEditorPortal} from '../components/Main/ItemEditorModal';
-import {superdeskApi} from '../superdeskApi';
 
 import './style.scss';
 
@@ -45,7 +44,7 @@ interface IProps<SubnavProps = {}, EditorProps = {}, FilterProps = {}, ListProps
     fullPreview?: boolean;
     fullPreviewOpen?: boolean;
 
-    ariaTitle?: string;
+    ariaTitle: string;
 }
 
 interface IState {
@@ -118,13 +117,11 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
             'sd-page-content__content-block--30-slide'
         );
 
-        const {gettext} = superdeskApi.localization;
-
         return (
             <div className={sectionClassName}>
                 <div className={mainClassName} aria-labelledby="planning-heading">
                     <h2 id="planning-heading" className="a11y-only">
-                        {this.props.ariaTitle ?? gettext('Events and Planning content')}
+                        {this.props.ariaTitle}
                     </h2>
                     {SubNavPanel && (
                         <SubNavPanel
@@ -163,7 +160,7 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
                         )}
                     </div>
                 </div>
-                { mountEditorInMainPage && (
+                {mountEditorInMainPage && (
                     <div className={slideInClassName}>
                         <EditorPanel
                             toggleFilterPanel={this.toggleFilterPanel}

@@ -1,5 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+
+import {superdeskApi} from '../../superdeskApi';
+
 import {PageContent} from '../PageContent';
 import {AssignmentList} from './AssignmentList';
 import {AssignmentPreview} from './AssignmentPreview';
@@ -7,6 +10,7 @@ import {AssignmentsSubNav} from './AssignmentsSubNav';
 
 export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
     <PageContent
+        ariaTitle={superdeskApi.localization.gettext('Assignments Content')}
         showModals={false}
         showWorkqueue={false}
         marginBottom={false}
