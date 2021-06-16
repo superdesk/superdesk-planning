@@ -1,5 +1,44 @@
 # Superdesk Planning Changelog
 
+## [2.3.0-rc.1] 2020-06-16
+### Features
+- [SDNTB-673] Support filtering/sorting by created/updated (#1555)
+- [SDESK-5906] ingest of json event format (#1566)
+- [SDESK-5905] Editor Bookmarks and embedded coverage form (#1570)
+- [SDNTB-674] Assignments widget in the toolbar (#1565)
+
+### Improvements
+- chore(typescript): Rename js(x) to ts(x) (#1564)
+- [SDESK-5791] Location should not be created from within search form (#1573)
+- [SDNTB-673] Improve Planning subnav on smaller screens (#1575)
+- [SDCP-534] Pass Item or Profile language to OpenStreetMaps (#1579)
+- Accessibility enhancements (#1580)
+- [SDESK-5973] Improve Events embedded Location popup form (#1581)
+- [SDCP-526] Improve translations (#1585)
+- [SDCP-550] chore: update translations (#1604)
+
+### Fixes
+- [SDESK-5726] fix(post): Posting Planning item doesnt update etag (#1554)
+- [SDESK-5831] fix(unit_tests): Update contact_state in tests (#1562)
+- [SDESK-5821] Use debounce for Autosave (#1559)
+- [SDCP-492] fix(actions): Incorrect state logic for Mark As Completed (#1563)
+- fix(e2e): Calculate times to fix daylight savings changes (#1569)
+- [SDCP-529] Fix various UI translations (#1571)
+- fix(e2e): Fix loading extension (#1574)
+- [SDESK-5896] fix(authoring-widget): Prevent Assignments view being cleared (#1578)
+- [SDCP-528] fix: Select dropdowns failed to re-render on language change (#1582)
+- fix(e2e): Use build-tools to compile front-end (#1586)
+- [SDCP-528] fix(i18n): Pass language to Coverage popups/forms (#1587)
+- [SDESK-5985] fix: Remove _status from POST/PATCH responses (#1588)
+- [SDESK-6008] fix: Duplicate coverages from advanced mode (#1590)
+- [SDESK-5987] fix: Set Editor to read-only before performing action (#1589)
+- [SDESK-5982] fix: Force fetch Planning from API after POST (#1591)
+- [SDESK-5977] Remove calendar/agenda from advanceSearch panel (#1592)
+- [SDCP-528] fix(i18n): Use language in CoverageItem (#1593)
+- [SDESK-6016] fix: Incorrect icon and tooltip in CoverageBookmarks (#1594)
+- [SDESK-5985] fix: Unable to assign Coverage Status from Event form (#1595)
+- [SDESK-5455] Allow patching Events with just dates.recurring_rules defined (#1596)
+
 ## [2.2.1] 2021-05-21
 ### Fixes
 - [SDESK-5961] fix: While creating new location from event, save button is not activated (#1576)
