@@ -275,6 +275,7 @@ class AssignmentGroupListComponent extends React.Component {
                     onKeyDown={this.handleKeyDown}
                     aria-labelledby={headingId}
                     refNode={(assignmentsList) => this.dom.list = assignmentsList}
+                    tabIndex={-1}
                 >
                     {get(assignments, 'length', 0) > 0 ? (
                         assignments.map((assignment, index) => this.rowRenderer(index))

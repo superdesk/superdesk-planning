@@ -10,6 +10,7 @@ interface IProps {
     shadow?: number;
     testId?: string;
     'aria-labelledby'?: string;
+    tabIndex?: number;
 
     onScroll?(event: React.UIEvent): void;
     onKeyDown?(event: React.KeyboardEvent<HTMLUListElement>): void;
@@ -28,6 +29,7 @@ export class Group extends React.PureComponent<IProps> {
             shadow,
             testId,
             onKeyDown,
+            tabIndex,
         } = this.props;
 
         return (
@@ -46,8 +48,8 @@ export class Group extends React.PureComponent<IProps> {
                 style={style}
                 onScroll={onScroll}
                 ref={refNode}
-                tabIndex={-1}
                 onKeyDown={onKeyDown}
+                tabIndex={tabIndex}
             >
                 {children}
             </ul>
