@@ -1,5 +1,4 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 import 'whatwg-fetch';
 import {get} from 'lodash';
 
@@ -234,21 +233,3 @@ export class LinkInput extends React.Component<IProps, IState> {
         );
     }
 }
-
-// LinkInput.propTypes = {
-//     remove: PropTypes.func,
-//     field: PropTypes.string,
-//     value: PropTypes.string,
-//     label: PropTypes.string,
-//     onChange: PropTypes.func,
-//     readOnly: PropTypes.bool,
-//     message: PropTypes.string,
-//     onFocus: PropTypes.func,
-//     noMargin: PropTypes.bool,
-// };
-//
-// LinkInput.defaultProps = {
-//     readOnly: false,
-//     value: '',
-//     noMargin: true,
-// };
