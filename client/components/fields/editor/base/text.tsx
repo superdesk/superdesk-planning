@@ -13,16 +13,42 @@ interface IProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeString;
 }
 
-export class EditorFieldText extends React.PureComponent<IProps> {
+interface IState {
+    key: string;
+}
+
+export class EditorFieldText extends React.Component<IProps, IState> {
     node: React.RefObject<HTMLDivElement>;
-    lastKey: string;
 
     constructor(props) {
         super(props);
 
         this.onChange = this.onChange.bind(this);
         this.node = React.createRef();
-        this.lastKey = uniqueId();
+
+        this.state = {
+            key: uniqueId(),
+        };
+    }
+
+    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>, snapshot?: any) {
+        if (get(prevProps.item, prevProps.field) !== get(this.props.item, this.props.field)) {
+            this.onPropValueChanged();
+        }
+    }
+
+    onPropValueChanged() {
+        // If the value on the provided item has changed
+        // Check this new value against the value in the `input` element directly
+        // If these two differ, then force a re-mount/render of the `input` element
+        // Using the React `key` attribute
+
+        const node = this.getInputElement();
+        const propValue = get(this.props.item, this.props.field);
+
+        if (node != null && node.value !== propValue) {
+            this.setState({key: uniqueId()});
+        }
     }
 
     onChange(newValue) {
@@ -41,10 +67,6 @@ export class EditorFieldText extends React.PureComponent<IProps> {
         const field = this.props.field;
         const value = get(this.props.item, field, this.props.defaultValue);
         const error = get(this.props.errors ?? {}, field);
-        const node = this.getInputElement();
-        const key = (node != null && node.value !== value) ?
-            uniqueId() :
-            this.lastKey;
 
         return (
             <Row
@@ -53,7 +75,7 @@ export class EditorFieldText extends React.PureComponent<IProps> {
             >
                 <Input
                     value={value}
-                    key={key}
+                    key={this.state.key}
                     label={this.props.label}
                     required={this.props.required ?? this.props.schema?.required}
                     disabled={this.props.disabled}
