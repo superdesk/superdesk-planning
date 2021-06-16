@@ -21,9 +21,10 @@ export class ToggleInput extends Input {
      */
     expect(value) {
         cy.log('Common.ToggleInput.expect');
-        this.element.should(
-            value ? 'have.class' : 'not.have.class',
-            'checked'
-        );
+        this.element.find('[role="checkbox"]')
+            .should(
+                value ? 'have.class' : 'not.have.class',
+                'checked'
+            );
     }
 }
