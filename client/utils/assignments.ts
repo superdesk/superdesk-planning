@@ -1,13 +1,15 @@
 import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
-import {gettext, planningUtils, stringUtils} from './index';
 
+import {getUserInterfaceLanguage} from 'appConfig';
+import {IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, ISession, IPrivileges, ASSIGNMENT_STATE} from '../interfaces';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
-import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
-import {IVocabularyItem} from 'superdesk-api';
+
+import {gettext, planningUtils, lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
+import {getVocabularyItemFieldTranslated} from './vocabularies';
 
 const isNotLockRestricted = (assignment, session) => (
     !get(assignment, 'lock_user') ||
@@ -362,16 +364,17 @@ const getCurrentSelectedDesk = (desks, state) => {
 };
 
 export function getAssignmentTypeInfo(assignment: IAssignmentItem, contentTypes: Array<IVocabularyItem>) {
-    // TODO: Add translations here
-    // using getVocabularyItemTranslated and assignment.planning.language ?? getUserInterfaceLanguage
-    const tooltip = gettext('Article Type: {{type}}', {
-        type: stringUtils.firstCharUpperCase(
-            (assignment?.planning?.g2_content_type ?? '').replace('_', ' ')
+    const g2ContentType = assignment.planning?.g2_content_type;
+    const contentTypeName = getVocabularyItemFieldTranslated(
+        contentTypes.find(
+            (type) => type.qcode === g2ContentType
         ),
-    });
-
+        'name',
+        assignment.planning?.language || getUserInterfaceLanguage()
+    );
+    const tooltip = gettext('Article Type: {{type}}', {type: contentTypeName});
     const className = planningUtils.getCoverageIcon(
-        planningUtils.getCoverageContentType(assignment, contentTypes) || assignment?.planning?.g2_content_type,
+        planningUtils.getCoverageContentType(assignment, contentTypes) || g2ContentType,
         assignment
     );
 
