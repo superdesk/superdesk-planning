@@ -29,7 +29,6 @@ import {
     getItemWorkflowState,
 } from '../../utils';
 import {renderFields} from '../fields';
-import {gettext} from 'superdesk-core/scripts/core/utils';
 
 interface IState {
     hover: boolean;
@@ -74,6 +73,7 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
             return null;
         }
 
+        const {gettext} = superdeskApi.localization;
         const {session, privileges, item, lockedItems, hideItemActions, agendas, contentTypes} = this.props;
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
