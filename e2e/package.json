@@ -2,7 +2,7 @@
   "name": "superdesk",
   "license": "GPL-3.0",
   "dependencies": {
-    "superdesk-core": "github:tomaskikutis/superdesk-client-core#ui-framework-2.4.5",
+    "superdesk-core": "github:superdesk/superdesk-client-core#release/2.3",
     "superdesk-planning": "file:../"
   },
   "devDependencies": {
