@@ -222,13 +222,13 @@ msgstr "Permission d'annuler la planification d'une élément de planification"
 
 #: server/planning/planning/__init__.py:150
 msgid "Planning - Featured Stories"
-msgstr "Planification - Articles prévus"
+msgstr "Planification - Articles à la une"
 
 #: server/planning/planning/__init__.py:151
 msgid ""
 "Ability to create and modify a featured stories list from planning items"
 msgstr ""
-"Permission de créer et modifier une liste des articles prévus tirée des "
+"Permission de créer et modifier une liste des articles à la une tirée des "
 "éléments de planification"
 
 #: server/planning/search/__init__.py:36

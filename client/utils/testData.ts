@@ -403,7 +403,7 @@ export const vocabularies = {
     languages: [
         {qcode: 'en', name: 'en'},
         {qcode: 'fr', name: 'fr'},
-    ]
+    ],
 };
 
 export const subjects = [
