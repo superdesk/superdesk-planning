@@ -1,5 +1,28 @@
 # Superdesk Planning Changelog
 
+## [2.2.1] 2021-05-21
+### Fixes
+- [SDESK-5961] fix: While creating new location from event, save button is not activated (#1576)
+- fix(data-update): Location update fails if CV items is empty (#1577)
+
+## * Release v2.2.0 - 2021-05-13
+
+## [2.2.0-rc.2] 2021-05-06
+### Fixes
+- [SDCP-519] fix: Default Event/Planning language from CV (#1572)
+- [SDCP-499] fix mapping of Address from OpenStreetMaps to local DB (#1561)
+
+## [2.2.0-rc.1] 2021-03-18
+### Improvements
+- [SDBELGA-448] As a newsroom manager I want some users to see only 'my assignments.' (#1543)
+- [SDCP-464] Unify rendering of preview fields (#1549)
+
+### Fixes
+- [SDESK-5776] fix: Planning: Create action in the popup editor closes the popup unexpectedly. (#1548)
+- [SDBELGA-448] fix: Only the my assignment button should display in the dropdown if user doesn't have the desk privilege. (#1550)
+- [SDESK-5680] fix(react-redux): Replace deprecated withRef attribute with forwardRef (#1553)
+- [SDESK-5750] use lazy_gettext for user preferences (#1521)
+
 ## [2.1.4] 2021-05-06
 ### Fixes
 - [SDCP-518] fix(unpost): References all Events if recurrence_id==null (#1568)

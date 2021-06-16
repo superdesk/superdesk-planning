@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {get} from 'lodash';
+import {get, uniqueId} from 'lodash';
 
 import {IEditorFieldProps, IProfileSchemaTypeString} from '../../../../interfaces';
 
@@ -13,7 +13,11 @@ interface IProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeString;
 }
 
-export class EditorFieldText extends React.PureComponent<IProps> {
+interface IState {
+    key: string;
+}
+
+export class EditorFieldText extends React.Component<IProps, IState> {
     node: React.RefObject<HTMLDivElement>;
 
     constructor(props) {
@@ -21,16 +25,42 @@ export class EditorFieldText extends React.PureComponent<IProps> {
 
         this.onChange = this.onChange.bind(this);
         this.node = React.createRef();
+
+        this.state = {
+            key: uniqueId(),
+        };
+    }
+
+    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>, snapshot?: any) {
+        if (get(prevProps.item, prevProps.field) !== get(this.props.item, this.props.field)) {
+            this.onPropValueChanged();
+        }
+    }
+
+    onPropValueChanged() {
+        // If the value on the provided item has changed
+        // Check this new value against the value in the `input` element directly
+        // If these two differ, then force a re-mount/render of the `input` element
+        // Using the React `key` attribute
+
+        const node = this.getInputElement();
+        const propValue = get(this.props.item, this.props.field);
+
+        if (node != null && node.value !== propValue) {
+            this.setState({key: uniqueId()});
+        }
     }
 
     onChange(newValue) {
         this.props.onChange(this.props.field, newValue);
     }
 
+    getInputElement(): HTMLInputElement | undefined {
+        return this.node.current?.getElementsByTagName('input')[0];
+    }
+
     focus() {
-        if (this.node.current != null) {
-            this.node.current.getElementsByTagName('input')[0]?.focus();
-        }
+        this.getInputElement()?.focus();
     }
 
     render() {
@@ -45,6 +75,7 @@ export class EditorFieldText extends React.PureComponent<IProps> {
             >
                 <Input
                     value={value}
+                    key={this.state.key}
                     label={this.props.label}
                     required={this.props.required ?? this.props.schema?.required}
                     disabled={this.props.disabled}
