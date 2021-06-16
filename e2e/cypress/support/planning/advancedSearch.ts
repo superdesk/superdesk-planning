@@ -37,15 +37,15 @@ export class AdvancedSearch {
             state: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-state]'),
             only_posted: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-posted] .sd-toggle'
+                '[data-test-id=field-posted] .sd-switch__wrapper'
             ),
             include_killed: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-include_killed] .sd-toggle'
+                '[data-test-id=field-include_killed] .sd-switch__wrapper'
             ),
             spike_state: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-spike_state] .sd-toggle'
+                '[data-test-id=field-spike_state] .sd-switch__wrapper'
             ),
             lock_state: new SelectInput(
                 getSearchPanel,
@@ -64,13 +64,13 @@ export class AdvancedSearch {
             date_filter: new RadioInputs(getSearchPanel, '[data-test-id=field-date_filter]'),
             no_calendar_assigned: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-no_calendar_assigned] .sd-toggle'
+                '[data-test-id=field-no_calendar_assigned] .sd-switch__wrapper'
             ),
             source: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-source]'),
             location: new LocationInput(getSearchPanel, '[data-test-id=field-location]'),
             featured: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-featured] .sd-toggle'
+                '[data-test-id=field-featured] .sd-switch__wrapper'
             ),
             urgency: new UrgencyInput(getSearchPanel, '[data-test-id=field-urgency]'),
             g2_content_type: new SelectInput(
@@ -79,19 +79,19 @@ export class AdvancedSearch {
             ),
             no_agenda_assigned: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-no_agenda_assigned] .sd-toggle'
+                '[data-test-id=field-no_agenda_assigned] .sd-switch__wrapper'
             ),
             ad_hoc_planning: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-ad_hoc_planning] .sd-toggle'
+                '[data-test-id=field-ad_hoc_planning] .sd-switch__wrapper'
             ),
             no_coverage: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-no_coverage] .sd-toggle'
+                '[data-test-id=field-no_coverage] .sd-switch__wrapper'
             ),
             include_scheduled_updates: new ToggleInput(
                 getSearchPanel,
-                '[data-test-id=field-include_scheduled_updates] .sd-toggle'
+                '[data-test-id=field-include_scheduled_updates] .sd-switch__wrapper'
             ),
             filter_name: new Input(
                 getSearchPanel,
