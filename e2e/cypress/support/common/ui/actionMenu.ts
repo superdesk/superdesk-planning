@@ -58,3 +58,28 @@ export class ActionMenu {
             this.popup.element.contains(label);
     }
 }
+
+/**
+ * Only works with `Menu` component from UI framework
+ */
+export function getMenuItem(
+    parent: Cypress.Chainable<JQuery<HTMLElement>>,
+    ...actions // multiple arguments can be passed to get a nested item
+) {
+    parent.get('[data-test-id="menu-button"]').click();
+    parent.get('[data-test-id="menu"]').should('be.visible');
+
+    let item: Cypress.Chainable<JQuery<HTMLElement>>;
+
+    for (let i = 0; i < actions.length; i++) {
+        const isLast = i === actions.length - 1;
+
+        item = cy.get(`[data-test-id="menu"] [role="menuitem"]:contains("${actions[i]}")`);
+
+        if (isLast !== true) {
+            item.realHover(); // open submenu
+        }
+    }
+
+    return item;
+}

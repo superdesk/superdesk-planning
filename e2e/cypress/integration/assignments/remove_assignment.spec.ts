@@ -1,5 +1,6 @@
 import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal} from '../../support/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../../support/planning';
+import {getMenuItem} from '../../support/common/ui/actionMenu';
 
 describe('Planning.Assignment: remove assignment', () => {
     const editor = new PlanningEditor();
@@ -58,7 +59,11 @@ describe('Planning.Assignment: remove assignment', () => {
         list.expectItemCount(1, 180000);
         list.expectItemText(0, 'Slugline');
 
-        list.clickAction(0, 'Remove Assignment');
+        list.item(0).click();
+        getMenuItem(list.item(0), 'Remove Assignment')
+            .should('exist')
+            .click();
+
         modal.waitTillOpen(30000);
         modal.element.find('.btn--primary')
             .click();

@@ -1,5 +1,6 @@
 import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal, UrgencyInput} from '../../support/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../../support/planning';
+import {getMenuItem} from '../../support/common/ui/actionMenu';
 
 describe('Planning.Assignment: edit assignment priority', () => {
     const editor = new PlanningEditor();
@@ -62,7 +63,11 @@ describe('Planning.Assignment: edit assignment priority', () => {
             .find('.priority-label--2')
             .should('exist');
 
-        list.clickAction(0, 'Edit Priority');
+        list.item(0).click();
+        getMenuItem(list.item(0), 'Edit Priority')
+            .should('exist')
+            .click();
+
         modal.waitTillOpen(30000);
         priorityInput.type('High');
         modal.element.find('.btn--primary')

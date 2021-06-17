@@ -1,5 +1,6 @@
 import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal} from '../../support/common';
 import {PlanningList, PlanningEditor, AssignmentEditor, AssignmentPreview} from '../../support/planning';
+import {getMenuItem} from '../../support/common/ui/actionMenu';
 
 describe('Planning.Assignment: reassign assignment', () => {
     const editor = new PlanningEditor();
@@ -59,7 +60,11 @@ describe('Planning.Assignment: reassign assignment', () => {
         list.expectItemCount(1, 180000);
         list.expectItemText(0, 'Slugline');
 
-        list.clickAction(0, 'Reassign');
+        list.item(0).click();
+        getMenuItem(list.item(0), 'Reassign')
+            .should('exist')
+            .click();
+
         modal.waitTillOpen(30000);
         assignmentEditor.type({
             user: 'first name last name',
