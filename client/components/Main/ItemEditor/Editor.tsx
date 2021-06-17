@@ -364,8 +364,18 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             return null;
         }
 
+        const testId = (() => {
+            if (this.props.itemType === 'planning') {
+                return 'planning-editor';
+            } else if (this.props.itemType === 'event') {
+                return 'event-editor';
+            } else {
+                return undefined;
+            }
+        })();
+
         return (
-            <SidePanel shadowRight={true} bg00={true} className={this.props.className}>
+            <SidePanel shadowRight={true} bg00={true} className={this.props.className} testId={testId}>
                 <EditorHeader
                     diff={this.state.diff}
                     initialValues={this.state.initialValues}

@@ -77,18 +77,26 @@ export const ListGroup = ({
     contacts,
     listViewType,
     sortField,
+    listBoxGroupProps,
 }) => {
     const flattenMultiday = (eventId, all, multi) => {
         onMultiSelectClick(eventId, all, multi, name);
     };
     const minTimeWidth = getMinTimeWidth(items, listViewType, sortField);
 
+    const headingId = `heading--${listBoxGroupProps['groupId']}`;
+
     return (
         <div className="ListGroup">
             {name == null ? null : (
-                <Header title={moment(name).format('dddd LL')} />
+                <Header title={moment(name).format('dddd LL')} id={headingId} />
             )}
-            <Group spaceBetween={listViewType === LIST_VIEW_TYPE.SCHEDULE}>
+            <Group
+                spaceBetween={listViewType === LIST_VIEW_TYPE.SCHEDULE}
+                listBoxGroupProps={listBoxGroupProps}
+                aria-labelledby={headingId}
+                indexFrom={indexFrom}
+            >
                 {items.map((item, index) => {
                     let itemProps = {
                         date: name,
@@ -129,7 +137,19 @@ export const ListGroup = ({
                         itemProps.active = (activeItemIndex === itemProps.index);
                     }
 
-                    return (<ListGroupItem key={item._id} {...itemProps} />);
+                    const id = listBoxGroupProps.getChildId(index);
+                    const selectedId = listBoxGroupProps.containerProps['aria-activedescendant'];
+
+                    return (
+                        <div
+                            id={id}
+                            role="option"
+                            aria-selected={id === selectedId ? true : undefined}
+                            key={item._id}
+                        >
+                            <ListGroupItem {...itemProps} />
+                        </div>
+                    );
                 })}
             </Group>
         </div>
@@ -171,6 +191,7 @@ ListGroup.propTypes = {
     contacts: PropTypes.object,
     listViewType: PropTypes.string,
     sortField: PropTypes.string,
+    listBoxGroupProps: PropTypes.object,
 };
 
 ListGroup.defaultProps = {
