@@ -3,7 +3,6 @@ export const KEYCODES = {
     ENTER: 13,
     SPACE: 32,
     ESCAPE: 27,
-    SPACE: 32,
     LEFT: 37,
     UP: 38,
     RIGHT: 39,
