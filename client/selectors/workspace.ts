@@ -1,3 +1,3 @@
 import {get} from 'lodash';
 
-export const workQueueOpen = (state) => get(state, 'workspace.workqueue', false);
+export const mainMenuOpen = (state) => get(state, 'workspace.mainMenuOpen', false);

@@ -4,7 +4,7 @@ const initialState = {
     currentDeskId: null,
     currentStageId: null,
     currentWorkspace: null,
-    workqueue: null,
+    mainMenuOpen: null,
 };
 
 const workspace = (state = initialState, action) => {
@@ -27,7 +27,7 @@ const workspace = (state = initialState, action) => {
     case 'MENU_OPEN':
         return {
             ...state,
-            workqueue: action.payload,
+            mainMenuOpen: action.payload,
         };
     default:
         return state;
