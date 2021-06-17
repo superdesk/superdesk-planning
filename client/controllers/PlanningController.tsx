@@ -26,6 +26,7 @@ export class PlanningController {
         this.loadWorkspace = this.loadWorkspace.bind(this);
         this.onDestroy = this.onDestroy.bind(this);
         this.onRouteChange = this.onRouteChange.bind(this);
+        this.onMenuChange = this.onMenuChange.bind(this);
 
         this.store = null;
         this.rendered = false;
@@ -39,9 +40,19 @@ export class PlanningController {
 
         $scope.$on('$destroy', this.onDestroy);
         $scope.$watch(() => $route.current, this.onRouteChange);
+        $scope.$watch(() => superdeskFlags.flags.menu, this.onMenuChange);
 
         return sdPlanningStore.initWorkspace(WORKSPACE.PLANNING, this.loadWorkspace)
             .then(this.render);
+    }
+
+    onMenuChange(menuChanged) {
+        if (this.store) {
+            this.store.dispatch({
+                type: 'MENU_OPEN',
+                payload: menuChanged
+            });
+        }
     }
 
     render() {

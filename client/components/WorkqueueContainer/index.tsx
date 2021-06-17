@@ -16,8 +16,9 @@ export const WorkqueueComponent = ({
     unlockAndCloseEditor,
     openEditForm,
     openConfirmationModal,
+    workQueueOpen,
 }) => (
-    <div className="opened-articles-bar">
+    <div className={!workQueueOpen ? "opened-articles-bar" : "opened-articles-bar menu-open"}>
         <button className="opened-articles-bar__quick-actions">
             <Icon icon="icon-th-large" color={ICON_COLORS.WHITE} />
         </button>
@@ -47,11 +48,13 @@ WorkqueueComponent.propTypes = {
     unlockAndCloseEditor: PropTypes.func,
     openEditForm: PropTypes.func,
     openConfirmationModal: PropTypes.func,
+    workQueueOpen: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
     workqueueItems: selectors.locks.workqueueItems(state),
     currentEditId: selectors.forms.currentItemId(state),
+    workQueueOpen: selectors.workspace.workQueueOpen(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
