@@ -32,6 +32,9 @@ interface IState {
     inEditMode: boolean;
     coverages: Array<ICoverageDetails>;
     dirty: boolean;
+    errors: Dictionary<ICoverageDetails['id'], {desk?: string;}>;
+    invalid?: boolean;
+    submitted?: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -66,6 +69,9 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
         return {
             inEditMode: false,
             dirty: false,
+            errors: {},
+            invalid: false,
+            submitted: false,
             coverages: this.props.contentTypes.map(
                 (type) => ({
                     id: generateTempId(),
@@ -87,17 +93,25 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
     }
 
     updateCoverage(original: ICoverageDetails, updates: Partial<ICoverageDetails>) {
+        const {gettext} = superdeskApi.localization;
+        const errors: IState['errors'] = {};
         const coverages = this.state.coverages.map((coverage) => {
-            if (original.id === coverage.id) {
-                return Object.assign({}, coverage, updates);
+            const updatedCoverage = original.id === coverage.id ?
+                Object.assign({}, coverage, updates) :
+                coverage;
+
+            if (updatedCoverage.enabled && updatedCoverage.desk == null) {
+                errors[updatedCoverage.id] = {desk: gettext('Desk is required')};
             }
 
-            return coverage;
+            return updatedCoverage;
         });
 
         this.setState({
             coverages: coverages,
             dirty: true,
+            errors: errors,
+            invalid: Object.keys(errors).length > 0,
         });
     }
 
@@ -143,6 +157,13 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
     }
 
     save() {
+        if (this.state.invalid) {
+            // If any coverages are invalid, then set `submitted` to true
+            // This will then display error messages in the coverage form
+            this.setState({submitted: true});
+            return;
+        }
+
         const coverages: Array<DeepPartial<IPlanningCoverageItem>> = this.state.coverages
             .filter((coverage) => coverage.enabled)
             .map((coverage) => {
@@ -217,6 +238,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                                 index={index}
                                 typeCount={typeCounts[coverage.type.qcode]}
                                 language={this.props.event.language}
+                                errors={!this.state.submitted ? {} : this.state.errors[coverage.id]}
                                 update={this.updateCoverage}
                                 duplicate={this.duplicateCoverage}
                                 remove={this.removeCoverage}
