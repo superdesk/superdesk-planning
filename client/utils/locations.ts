@@ -2,8 +2,6 @@ import {
     IEventLocation,
     ILocation,
     INominatimItem,
-    INominatimLocalityFields,
-    INominatimAreaFields,
 } from '../interfaces';
 
 const nominatimToAddressMap: {[key: string]: Array<keyof INominatimItem['address']>} = {
@@ -11,6 +9,7 @@ const nominatimToAddressMap: {[key: string]: Array<keyof INominatimItem['address
         'city',
         'town',
         'village',
+        'county',
     ],
     state: [
         'state',
