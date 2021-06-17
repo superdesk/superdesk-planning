@@ -354,14 +354,21 @@ export class ListPanel extends React.Component<IProps, IState> {
                              * For accessibility purposes, no items should be selected when the group
                              * gets focused. Otherwise, screen readers repeat the same information twice.
                              *
-                             * EXCEPTION: keep active item, if focus was triggered by returning from actions menu.
+                             * EXCEPTION: keep active item, if focus was triggered by returning from actions menu
+                             * or any interactive element inside the list item.
                              */
                             if (
                                 focusTo?.getAttribute('role') === 'listbox'
                             ) {
-                                const relatedTarget = event?.relatedTarget as HTMLElement | null;
+                                const blurFrom = event?.relatedTarget as HTMLElement | null;
 
-                                if (relatedTarget?.getAttribute('role') !== 'menuitem') {
+                                const activedescendant = focusTo.getAttribute('aria-activedescendant');
+                                const activeListItem = document.querySelector(`#${activedescendant}`);
+
+                                const returningFromMenuItem = blurFrom?.getAttribute('role') === 'menuitem';
+                                const returningFromElementInsideListItem = activeListItem?.contains(blurFrom) === true;
+
+                                if (!returningFromMenuItem && !returningFromElementInsideListItem) {
                                     this.setState({activeItemIndex: -1});
                                 }
                             }

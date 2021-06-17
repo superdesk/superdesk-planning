@@ -114,6 +114,31 @@ describe('Planning.Planning: list view accessibility', () => {
         cy.get('@group').should('have.attr', 'aria-activedescendant', 'list-panel-0--2');
     });
 
+    it('maintains focus after returning from actions button to the list', () => {
+        cy.get('.sd-list-item-group')
+            .first()
+            .as('group');
+
+        cy.get('@group').focus();
+
+        cy.realPress('{downarrow}'); // group 1, item 1
+        cy.realPress('{downarrow}'); // group 1, item 2
+
+        cy.realPress('Tab'); // focus actions button
+
+        cy.focused().should('have.attr', 'data-test-id', 'menu-button');
+
+        cy.realPress(['Shift', 'Tab']); // returns to group 1 item 2
+
+        cy.realPress('{enter}'); // opens actions menu
+
+        // select edit option (due to cypress issues it doesn't work to trigger it via keyboard)
+        cy.focused().realClick();
+
+        cy.get('[data-test-id="planning-editor"] [data-test-id="field-slugline"] input')
+            .should('have.value', 'group 1, item 2');
+    });
+
     it('can switch groups using tab key when an item is selected', () => {
         cy.get('.sd-list-item-group')
             .eq(0)
@@ -135,6 +160,9 @@ describe('Planning.Planning: list view accessibility', () => {
         cy.get('@group2').should('not.have.focus');
 
         cy.realPress('Tab'); // focus on menu
+
+        cy.focused().should('have.attr', 'data-test-id', 'menu-button');
+
         cy.realPress('Tab'); // focus on next group
 
         cy.get('@group1').should('not.have.focus');
