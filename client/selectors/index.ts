@@ -10,6 +10,7 @@ import * as vocabs from './vocabs';
 import * as featuredPlanning from './featuredPlanning';
 import * as locations from './locations';
 import * as editors from './editors';
+import * as workspace from './workspace';
 
 export * from './assignments';
 
@@ -26,4 +27,5 @@ export {
     featuredPlanning,
     locations,
     editors,
+    workspace,
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
+import {IAccessibleListBox} from 'components/Main/ListPanel';
 
 interface IProps {
     className?: string;
@@ -11,6 +12,15 @@ interface IProps {
     testId?: string;
     'aria-labelledby'?: string;
     tabIndex?: number;
+
+    /**
+     * Active item index is shared between groups.
+     * When focus goes to another group, active index needs to be set accordingly.
+     * indexFrom indicates global index of the first item in a given group.
+     */
+    indexFrom?: number;
+
+    listBoxGroupProps: IAccessibleListBox;
 
     onScroll?(event: React.UIEvent): void;
     onKeyDown?(event: React.KeyboardEvent<HTMLUListElement>): void;
@@ -30,12 +40,15 @@ export class Group extends React.PureComponent<IProps> {
             testId,
             onKeyDown,
             tabIndex,
+            indexFrom,
+            listBoxGroupProps,
         } = this.props;
 
         return (
             <ul
                 aria-labelledby={this.props['aria-labelledby']}
                 data-test-id={testId}
+                data-index-from={indexFrom}
                 className={classNames(
                     className,
                     'sd-list-item-group',
@@ -49,7 +62,8 @@ export class Group extends React.PureComponent<IProps> {
                 onScroll={onScroll}
                 ref={refNode}
                 onKeyDown={onKeyDown}
-                tabIndex={tabIndex}
+                {...(listBoxGroupProps?.containerProps ?? {})}
+                tabIndex={listBoxGroupProps?.containerProps?.tabIndex ?? tabIndex}
             >
                 {children}
             </ul>

@@ -1,6 +1,7 @@
 export const KEYCODES = {
     BACKSPACE: 8,
     ENTER: 13,
+    SPACE: 32,
     ESCAPE: 27,
     SPACE: 32,
     LEFT: 37,

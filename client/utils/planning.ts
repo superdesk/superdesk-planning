@@ -516,6 +516,10 @@ export function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
         });
 }
 
+function getPlanningActionsForUiFrameworkMenu(data): Array<IMenuItem> {
+    return toUIFrameworkInterface(getPlanningActions(data));
+}
+
 export const modifyForClient = (plan) => {
     sanitizeItemFields(plan);
 
@@ -1289,6 +1293,7 @@ const self = {
     getCoverageReadOnlyFields,
     isPlanMultiDay,
     getPlanningActions,
+    getPlanningActionsForUiFrameworkMenu,
     isNotForPublication,
     getPlanningByDate,
     createNewPlanningFromNewsItem,
