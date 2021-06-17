@@ -18,7 +18,7 @@ export const WorkqueueComponent = ({
     openConfirmationModal,
     workQueueOpen,
 }) => (
-    <div className={!workQueueOpen ? "opened-articles-bar" : "opened-articles-bar menu-open"}>
+    <div className={!workQueueOpen ? 'opened-articles-bar' : 'opened-articles-bar menu-open'}>
         <button className="opened-articles-bar__quick-actions">
             <Icon icon="icon-th-large" color={ICON_COLORS.WHITE} />
         </button>
