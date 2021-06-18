@@ -11,12 +11,14 @@ import {showModal} from '../../actions/modal';
 import {MODALS} from '../../constants/modals';
 
 const ActionsSubnavDropdownComponent = (props) => {
-    let items = [
-        {
+    let items = [];
+
+    if (props.privileges[PRIVILEGES.AGENDA_MANAGEMENT]) {
+        items.push({
             label: gettext('Manage agendas'),
             action: props.openAgendas,
-        },
-    ];
+        });
+    }
 
     if (appConfig.event_templates_enabled === true && props.privileges[PRIVILEGES.EVENT_TEMPLATES]) {
         items.push({
@@ -42,14 +44,18 @@ const ActionsSubnavDropdownComponent = (props) => {
     }
 
     return (
-        <Dropdown
-            icon="icon-dots-vertical"
-            label={gettext('Actions')}
-            items={items}
-            alignRight={true}
-            tooltip={gettext('Actions')}
-            aria-label={gettext('Actions')}
-        />
+        <React.Fragment>
+            {items.length == 0 ? null : (
+                <Dropdown
+                    icon="icon-dots-vertical"
+                    label={gettext('Actions')}
+                    items={items}
+                    alignRight={true}
+                    tooltip={gettext('Actions')}
+                    aria-label={gettext('Actions')}
+                />
+            )}
+        </React.Fragment>
     );
 };
 
