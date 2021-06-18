@@ -47,6 +47,7 @@ export class PriorityLabel extends React.PureComponent<IProps> {
             'name',
             getUserInterfaceLanguage()
         );
+        const tooltip = gettext('Priority: {{ name }}', {name: priorityName});
 
         return (
             <span
@@ -56,9 +57,10 @@ export class PriorityLabel extends React.PureComponent<IProps> {
                     {'sd-list-item__inline-icon': inline},
                     className
                 )}
-                data-sd-tooltip={gettext('Priority: {{ name }}', {name: priorityName})}
+                data-sd-tooltip={tooltip}
                 data-flow={tooltipFlow}
             >
+                <span className="a11y-only">{tooltip}</span>
                 {priority.qcode}
             </span>
         );

@@ -143,10 +143,6 @@ export class InputArray extends React.PureComponent<IProps> {
                         key={index}
                         ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
                         testId={`${testId}[${index}]`}
-                        // ref={this.props.assignRef == null ? undefined : (node) => {
-                        //     this.props.assignRef(val, node);
-                        // }}
-                        // ref={this.props.refs != null ? this.props.refs[index] : undefined}
                         index={index}
                         field={`${field}[${index}]`}
                         onChange={onChange}

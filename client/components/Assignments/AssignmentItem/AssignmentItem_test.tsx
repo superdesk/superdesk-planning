@@ -48,6 +48,7 @@ describe('assignments', () => {
                             onClick={onClick}
                             onDoubleClick={onDoubleClick}
                             assignment={assignment}
+                            currentAssignmentId={assignment._id}
                             lockedItems={lockedItems}
                             priorities={
                                 store.getState().vocabularies
@@ -145,7 +146,7 @@ describe('assignments', () => {
             it('ActionMenu executes prop functions', () => {
                 const executeItemAction = (actionLabel) => {
                     const wrapper = getMountedWrapper();
-                    const menu = new helpers.actionMenu(wrapper);
+                    const menu = new helpers.actionMenu(wrapper, true);
 
                     menu.invokeAction(actionLabel);
                 };

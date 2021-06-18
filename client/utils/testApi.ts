@@ -1,7 +1,11 @@
-import {superdeskApi, planningApi} from '../superdeskApi';
 import {cloneDeep} from 'lodash';
-import {initialState} from './testData';
 import sinon from 'sinon';
+
+import {querySelectorParent} from 'superdesk-core/scripts/core/helpers/dom/querySelectorParent';
+import {superdeskApi, planningApi} from '../superdeskApi';
+
+
+import {initialState} from './testData';
 
 Object.assign(superdeskApi, {
     localization: {
@@ -23,6 +27,9 @@ Object.assign(superdeskApi, {
                 setString: () => undefined,
             }
         }
+    },
+    utilities: {
+        querySelectorParent: querySelectorParent,
     },
 });
 

@@ -1,6 +1,4 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
-
 import {get, remove} from 'lodash';
 
 import {Row, LineInput, Label, Input} from '../';
@@ -217,28 +215,3 @@ export class SelectTagInput extends React.Component<IProps, IState> {
         );
     }
 }
-
-// SelectTagInput.propTypes = {
-//     field: PropTypes.string,
-//     label: PropTypes.string,
-//     value: PropTypes.arrayOf(PropTypes.string),
-//     onChange: PropTypes.func,
-//     options: PropTypes.array,
-//     labelKey: PropTypes.string,
-//     valueKey: PropTypes.string,
-//     searchKey: PropTypes.string,
-//     allowCustom: PropTypes.bool,
-//     readOnly: PropTypes.bool,
-//     invalid: PropTypes.bool,
-//     required: PropTypes.bool,
-//     onFocus: PropTypes.func,
-// };
-//
-// SelectTagInput.defaultProps = {
-//     labelKey: 'name',
-//     valueKey: 'qcode',
-//     searchKey: 'name',
-//     allowCustom: true,
-//     readOnly: false,
-//     required: false,
-// };

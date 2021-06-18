@@ -217,3 +217,16 @@ textarea.sd-line-input__input {
         background-color: var(--color-input-bg--focus) !important;
     }
 }
+
+// Make dropdown-toggle/search button/checkboxes visibly focusable
+.dropdown-toggle:focus {
+    box-shadow: 0 0 0 3px rgba(94, 169, 200, 0.30);
+}
+
+.sd-searchbar__search-btn:focus {
+    box-shadow: 0 0 0 3px rgba(94, 169, 200, 0.70);
+}
+
+.sd-check__wrapper:focus {
+    box-shadow: 0 0 0 3px rgba(94, 169, 200, 0.30);
+}

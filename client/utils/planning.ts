@@ -474,7 +474,7 @@ const getPlanningActions = ({
 /**
  * Converts output from `getPlanningActions` to `Array<IMenuItem>`
  */
-function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
+export function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
     return actions
         .filter((item, index) => {
             // Trim dividers. Menu should not start or end with a divider.
@@ -1328,6 +1328,7 @@ const self = {
     getPlanningFiles,
     showXMPFileUIControl,
     duplicateCoverage,
+    toUIFrameworkInterface,
 };
 
 export default self;

@@ -1,26 +1,69 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
-import {get, debounce} from 'lodash';
+import {get, debounce, Cancelable} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
+import {superdeskApi} from '../../../superdeskApi';
+import {IUser, IDesk} from 'superdesk-api';
 import {
-    assignmentUtils,
-    gettext,
-} from '../../../utils';
+    IAssignmentItem,
+    IAssignmentPriority,
+    IContactItem,
+    IG2ContentType,
+    ILockedItems,
+    IPrivileges,
+    ISession
+} from '../../../interfaces';
+
+import {assignmentUtils, planningUtils} from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 import {getAssignmentTypeInfo} from '../../../utils/assignments';
 
-import {UserAvatar, ItemActionsMenu} from '../../';
-import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
+import {Menu} from 'superdesk-ui-framework/react';
+import {UserAvatar} from '../../';
+import {Item, Border, Column, Row} from '../../UI/List';
 
 import {getComponentForField, getAssignmentsListView} from './fields';
 
-export class AssignmentItem extends React.Component {
+interface IProps {
+    assignment: IAssignmentItem;
+    lockedItems: ILockedItems;
+    isCurrentUser: boolean;
+    currentAssignmentId?: IAssignmentItem['_id'];
+    session: ISession;
+    privileges: IPrivileges;
+    priorities: Array<IAssignmentPriority>;
+    hideItemActions?: boolean;
+    contentTypes: Array<IG2ContentType>;
+    assignedUser?: IUser;
+    assignedDesk?: IDesk;
+    contacts: {[key: string]: IContactItem};
+
+    onClick(assignment: IAssignmentItem): void;
+    onDoubleClick(assignment: IAssignmentItem): void;
+    reassign(assignment: IAssignmentItem): void;
+    completeAssignment(assignment: IAssignmentItem): void;
+    editAssignmentPriority(assignment: IAssignmentItem): void;
+    startWorking(assignment: IAssignmentItem): void;
+    removeAssignment(assignment: IAssignmentItem): void;
+    revertAssignment(assignment: IAssignmentItem): void;
+}
+
+interface IState {
+    clickedOnce: boolean;
+    hover: boolean;
+}
+
+export class AssignmentItem extends React.Component<IProps, IState> {
+    private _delayedClick: (() => void) & Cancelable | undefined;
+
     constructor(props) {
         super(props);
 
-        this.state = {clickedOnce: false};
+        this.state = {
+            clickedOnce: false,
+            hover: false,
+        };
         this._delayedClick = undefined;
 
         this.onSingleClick = this.onSingleClick.bind(this);
@@ -32,6 +75,27 @@ export class AssignmentItem extends React.Component {
         this.renderContentColumn = this.renderContentColumn.bind(this);
         this.renderAvatar = this.renderAvatar.bind(this);
         this.renderActionsMenu = this.renderActionsMenu.bind(this);
+        this.onFocus = this.onFocus.bind(this);
+        this.onItemHoverOn = this.onItemHoverOn.bind(this);
+        this.onItemHoverOff = this.onItemHoverOff.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+    }
+
+    onFocus(event: React.FocusEvent<HTMLLIElement>) {
+        const {querySelectorParent} = superdeskApi.utilities;
+
+        if (!querySelectorParent(event.target, 'button', {self: true})) {
+            // Don't trigger click event if focus went through menu or button inside the list item
+            this.props.onClick(this.props.assignment);
+        }
+    }
+
+    onItemHoverOn() {
+        this.setState({hover: true});
+    }
+
+    onItemHoverOff() {
+        this.setState({hover: false});
     }
 
     onSingleClick() {
@@ -43,7 +107,16 @@ export class AssignmentItem extends React.Component {
         this.props.onDoubleClick(this.props.assignment);
     }
 
-    handleSingleAndDoubleClick() {
+    handleSingleAndDoubleClick(event: React.MouseEvent<HTMLLIElement>) {
+        const {querySelectorParent} = superdeskApi.utilities;
+
+        if (event.target instanceof HTMLElement &&
+            querySelectorParent(event.target, 'button', {self: true})
+        ) {
+            // Don't trigger click events if event went through menu or button inside the list item
+            return;
+        }
+
         if (this.props.onClick && !this.props.onDoubleClick) {
             return this.onSingleClick();
         }
@@ -68,6 +141,7 @@ export class AssignmentItem extends React.Component {
 
         return (
             <Column>
+                <span className="a11y-only">{tooltip}</span>
                 <OverlayTrigger
                     placement="right"
                     overlay={<Tooltip id="content_type">{tooltip}</Tooltip>}
@@ -81,6 +155,7 @@ export class AssignmentItem extends React.Component {
     renderField(field) {
         const FieldComponent = getComponentForField(field);
 
+        // @ts-ignore
         return <FieldComponent {...this.props} key={field} />;
     }
 
@@ -106,6 +181,7 @@ export class AssignmentItem extends React.Component {
     }
 
     renderAvatar() {
+        const {gettext} = superdeskApi.localization;
         const {
             assignedUser,
             isCurrentUser,
@@ -154,6 +230,11 @@ export class AssignmentItem extends React.Component {
     }
 
     renderActionsMenu() {
+        if (!this.state.hover && this.props.assignment._id !== this.props.currentAssignmentId) {
+            return null;
+        }
+
+        const {gettext} = superdeskApi.localization;
         const {
             assignment,
             session,
@@ -213,10 +294,40 @@ export class AssignmentItem extends React.Component {
             : [];
 
         return itemActions.length < 1 ? null : (
-            <ActionMenu>
-                <ItemActionsMenu actions={itemActions} />
-            </ActionMenu>
+            <Menu items={planningUtils.toUIFrameworkInterface(itemActions)}>
+                {(toggle) => (
+                    <div
+                        style={{display: 'flex', height: '100%'}}
+                        className="sd-list-item__action-menu sd-list-item__action-menu--direction-row"
+                    >
+                        <button
+                            className="icn-btn dropdown__toggle actions-menu-button"
+                            aria-label={gettext('Actions')}
+                            onClick={(e) => {
+                                toggle(e);
+                            }}
+                            data-test-id="menu-button"
+                        >
+                            <i className="icon-dots-vertical" />
+                        </button>
+                    </div>
+                )}
+            </Menu>
         );
+    }
+
+    handleKeyDown(event: React.KeyboardEvent<HTMLLIElement>) {
+        if (event.key === ' ' && event.target instanceof HTMLElement) {
+            // Display item actions menu when space is pressed
+            const element = event.target?.querySelector('.dropdown__toggle');
+
+            if (element instanceof HTMLElement && typeof element?.click === 'function') {
+                event.preventDefault();
+                element.click();
+            }
+        } else if (event.key === 'Enter' && this.props.onDoubleClick != null) {
+            this.props.onDoubleClick(this.props.assignment);
+        }
     }
 
     render() {
@@ -233,6 +344,11 @@ export class AssignmentItem extends React.Component {
                 activated={get(assignment, '_id') === currentAssignmentId}
                 onClick={this.handleSingleAndDoubleClick}
                 className="AssignmentItem"
+                onFocus={this.onFocus}
+                onMouseLeave={this.onItemHoverOff}
+                onMouseEnter={this.onItemHoverOn}
+                onKeyDown={this.handleKeyDown}
+                tabIndex={0}
             >
                 <Border state={borderState} />
                 {this.renderContentTypeColumn()}
@@ -248,26 +364,3 @@ export class AssignmentItem extends React.Component {
         );
     }
 }
-
-AssignmentItem.propTypes = {
-    assignment: PropTypes.object.isRequired,
-    onClick: PropTypes.func,
-    onDoubleClick: PropTypes.func,
-    assignedUser: PropTypes.object,
-    lockedItems: PropTypes.object,
-    isCurrentUser: PropTypes.bool,
-    currentAssignmentId: PropTypes.string,
-    reassign: PropTypes.func,
-    completeAssignment: PropTypes.func,
-    editAssignmentPriority: PropTypes.func,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    startWorking: PropTypes.func,
-    priorities: PropTypes.array,
-    removeAssignment: PropTypes.func,
-    revertAssignment: PropTypes.func,
-    hideItemActions: PropTypes.bool,
-    contentTypes: PropTypes.array,
-    assignedDesk: PropTypes.object,
-    contacts: PropTypes.object,
-};
