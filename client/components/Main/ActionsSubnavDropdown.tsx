@@ -44,18 +44,16 @@ const ActionsSubnavDropdownComponent = (props) => {
     }
 
     return (
-        <React.Fragment>
-            {items.length == 0 ? null : (
-                <Dropdown
-                    icon="icon-dots-vertical"
-                    label={gettext('Actions')}
-                    items={items}
-                    alignRight={true}
-                    tooltip={gettext('Actions')}
-                    aria-label={gettext('Actions')}
-                />
-            )}
-        </React.Fragment>
+        items.length > 0 && (
+            <Dropdown
+                icon="icon-dots-vertical"
+                label={gettext('Actions')}
+                items={items}
+                alignRight={true}
+                tooltip={gettext('Actions')}
+                aria-label={gettext('Actions')}
+            />
+        )
     );
 };
 
