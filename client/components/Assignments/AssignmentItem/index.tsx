@@ -348,6 +348,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
                 onKeyDown={this.handleKeyDown}
+                tabIndex={0}
             >
                 <Border state={borderState} />
                 {this.renderContentTypeColumn()}

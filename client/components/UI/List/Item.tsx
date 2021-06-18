@@ -10,6 +10,7 @@ interface IProps {
     margin?: boolean;
     disabled?: boolean;
     refNode?: any;
+    tabIndex?: number;
 
     onClick?(event: React.MouseEvent<HTMLLIElement>): void;
     onMouseEnter?(): void;
@@ -39,6 +40,7 @@ export class Item extends React.PureComponent<IProps> {
             onMouseDown,
             onMouseUp,
             refNode,
+            tabIndex,
         } = this.props;
 
         return (
@@ -63,7 +65,7 @@ export class Item extends React.PureComponent<IProps> {
                 onFocus={onFocus}
                 onKeyDown={onKeyDown}
                 ref={refNode}
-                tabIndex={0}
+                tabIndex={tabIndex}
             >
                 {children}
             </li>
