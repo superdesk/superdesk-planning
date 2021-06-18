@@ -1,5 +1,18 @@
 # Superdesk Planning Changelog
 
+## [2.3.0-rc.2] 2020-06-18
+### Improvements
+- [SDCP-545] Improve accessibility in Planning page (#1598)
+- [SDCP-548] Improve accessibility in Assignments page (#1609)
+
+### Fixes
+- fix(e2e): Due to changes in UI Framework Switch component (#1605)
+- [SDESK-6018] fix: Clear button does not clear the advance search (#1601)
+- chore(fireq): Use release/2.3 branch
+- [SDESK-5833] fix: About link not accessible from planning section (#1611)
+- [SDCP-549] fix(locations): Fallback to county if city isn't defined (#1610)
+- [SDESK-6017] fix: Validate CoverageForm in Event Editor (#1606)
+
 ## [2.3.0-rc.1] 2020-06-16
 ### Features
 - [SDNTB-673] Support filtering/sorting by created/updated (#1555)
