@@ -31,6 +31,7 @@ from .queries.planning import PLANNING_PARAMS, PLANNING_SEARCH_FILTERS
 from .queries.events import EVENT_PARAMS, EVENT_SEARCH_FILTERS
 from .queries.combined import COMBINED_PARAMS, COMBINED_SEARCH_FILTERS, construct_combined_view_data_query
 from .queries.common import construct_search_query
+from .queries.elastic import ElasticQuery, field_exists
 
 
 logger = logging.getLogger(__name__)
@@ -276,6 +277,41 @@ class EventsPlanningService(Service):
         req.max_results = page_size or self.default_page_size
         return self.get(req=req, lookup=None)
 
+    def search_raw(self, repo, query, sort=None, page=1, page_size=None, projections=None):
+        """Send raw elasticsearch query to `planning_search` service
+
+        :param repo: Comma separated list of repos to search, defaults to ``events,planning``
+        :param query: Elasticsearch query to send
+        :param sort: Elasticsearch sort param, defaults to use the event/planning schedule
+        :param page: The page to retrieve, defaults to ``1``
+        :param page_size: The page size to use, defaults to ``100``
+        :param projections: List of fields to retrieve, default to return all fields
+        :rtype `eve_elastic.elastic.ElasticCursor`
+        :return: A cursor containing the list of items from the Elasticsearch query
+        """
+
+        page = page or 1
+        page_size = page_size or self.default_page_size
+
+        req = ParsedRequest()
+        req.args = MultiDict()
+
+        if repo is not None:
+            req.args['repo'] = repo
+
+        req.args['source'] = json.dumps({
+            'query': query,
+            'sort': sort or self._get_sort(),
+            'size': page_size,
+            'from': (page - 1) * page_size
+        })
+        req.page = page
+        req.max_results = page_size
+        if projections is not None:
+            req.args['projections'] = json.dumps(projections)
+
+        return get_resource_service('planning_search').get(req=req, lookup=None)
+
     def search_by_filter_id(self, filter_id, args=None, page=1, page_size=None, projections=None):
         search_filter = get_resource_service('events_planning_filters').find_one(req=None, _id=filter_id)
 
@@ -293,6 +329,35 @@ class EventsPlanningService(Service):
             page,
             page_size,
             projections
+        )
+
+    def get_locked_items(self, repo=None, page=None, page_size=None, projections=None):
+        """Return the list of locked items in the provided ``repo``
+
+        :param repo: Comma separated list of repos to search, defaults to ``events,planning``
+        :param page: The page to retrieve, defaults to ``1``
+        :param page_size: The page size to use, defaults to ``1000``
+        :param projections: List of fields to retrieve, default to return all fields
+        :rtype `eve_elastic.elastic.ElasticCursor`
+        :return: A cursor containing the list of locked items in the provided ``repo``
+        """
+
+        query = ElasticQuery()
+        query.must.append(field_exists('lock_session'))
+        return self.search_raw(
+            repo=repo,
+            query=query.build(),
+            page=page or 1,
+            page_size=page_size or 1000,
+            sort={
+                '_planning_schedule.scheduled': {
+                    'order': 'desc',
+                    'nested': {
+                        'path': '_planning_schedule'
+                    }
+                }
+            },
+            projections=projections
         )
 
 
