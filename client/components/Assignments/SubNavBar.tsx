@@ -1,53 +1,82 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+
+import {superdeskApi} from '../../superdeskApi';
 
 import {ASSIGNMENTS} from '../../constants';
-import {gettext} from '../../utils';
 
-import {SubNav} from '../UI/SubNav';
-import {SearchBar} from '../UI';
+import {SubNav, ButtonGroup, NavButton, Tooltip, Badge} from 'superdesk-ui-framework/react';
+import {SearchBox} from '../UI';
 
-export const SubNavBar = ({
-    searchQuery,
-    changeSearchQuery,
-    assignmentListSingleGroupView,
-    changeAssignmentListSingleGroupView,
-    totalCountInListView,
-}) => (
-    <SubNav>
-        {assignmentListSingleGroupView && (
-            <div className="Assignments-list-container__header__backButton">
-                <div className="navbtn" title="Back to group list view">
-                    <button
-                        type="button"
-                        className="backlink"
-                        onClick={changeAssignmentListSingleGroupView}
-                    />
-                </div>
-            </div>
-        )}
-        <SearchBar
-            value={searchQuery}
-            onSearch={changeSearchQuery}
-        />
-        <h3 className="subnav__page-title">
-            <span>
-                <span>{gettext('Assignments')}</span>
+interface IProps {
+    searchQuery?: string;
+    changeSearchQuery(value?: string): void;
+    assignmentListSingleGroupView?: string;
+    changeAssignmentListSingleGroupView(view?: string): void;
+    totalCountInListView?: number;
+}
+
+export class SubNavBar extends React.PureComponent<IProps> {
+    searchBox: React.RefObject<SearchBox>;
+
+    constructor(props) {
+        super(props);
+
+        this.searchBox = React.createRef();
+    }
+
+    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<{}>, snapshot?: any) {
+        // When changing the view type (displaying single group)
+        // then make sure the search box is focused (the default focus item on load)
+        if (this.props.assignmentListSingleGroupView !== prevProps.assignmentListSingleGroupView) {
+            this.searchBox.current?.focus();
+        }
+    }
+
+    render() {
+        const {
+            searchQuery,
+            changeSearchQuery,
+            assignmentListSingleGroupView,
+            changeAssignmentListSingleGroupView,
+            totalCountInListView,
+        } = this.props;
+
+        const {gettext} = superdeskApi.localization;
+
+        return (
+            <SubNav zIndex={3}>
                 {assignmentListSingleGroupView && (
-                    <span>
-                        <span>{'/' + ASSIGNMENTS.LIST_GROUPS[assignmentListSingleGroupView].label}</span>
-                        <span className="badge">{totalCountInListView}</span>
-                    </span>
+                    <ButtonGroup align="left">
+                        <Tooltip
+                            text={gettext('Back to group list view')}
+                            flow="right"
+                        >
+                            <NavButton
+                                icon="arrow-left"
+                                onClick={changeAssignmentListSingleGroupView}
+                            />
+                        </Tooltip>
+                    </ButtonGroup>
                 )}
-            </span>
-        </h3>
-    </SubNav>
-);
-
-SubNavBar.propTypes = {
-    searchQuery: PropTypes.string,
-    changeSearchQuery: PropTypes.func,
-    assignmentListSingleGroupView: PropTypes.string,
-    changeAssignmentListSingleGroupView: PropTypes.func,
-    totalCountInListView: PropTypes.number,
-};
+                <h3 className="subnav__page-title sd-flex-no-grow">
+                    <span>{gettext('Assignments')}</span>
+                    {!assignmentListSingleGroupView ? null : (
+                        <span>
+                            <span>{'/' + ASSIGNMENTS.LIST_GROUPS[assignmentListSingleGroupView].label}</span>
+                            <Badge text={(totalCountInListView ?? 0).toString()} />
+                        </span>
+                    )}
+                </h3>
+                <SearchBox
+                    ref={this.searchBox}
+                    label={gettext('Search Assignments')}
+                    value={searchQuery}
+                    search={changeSearchQuery}
+                    allowRemove={true}
+                    focusOnMount={true}
+                    border="l"
+                />
+            </SubNav>
+        );
+    }
+}

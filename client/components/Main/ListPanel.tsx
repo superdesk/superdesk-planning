@@ -21,6 +21,20 @@ import {PanelInfo} from '../UI';
 import {Item, Column, Group} from '../UI/List';
 import './style.scss';
 
+/**
+ * Used for implementing WAI-ARIA Listbox
+ */
+export interface IAccessibleListBox {
+    containerProps: {
+        role: 'listbox';
+        'aria-activedescendant': string;
+        tabIndex: number;
+    };
+
+    groupId: string;
+    getChildId(index: number): void;
+}
+
 
 interface IProps {
     groups: Array<{
@@ -67,6 +81,13 @@ interface IProps {
 interface IState {
     isNextPageLoading: boolean;
     scrollTop: number;
+
+    /**
+     * This index is shared between groups.
+     * If there are 2 groups with 5 items each,
+     * and second item of the second group is focused,
+     * activeItemIndex will be 6
+     */
     activeItemIndex: number;
     navigateDown: boolean;
 }
@@ -122,26 +143,52 @@ export class ListPanel extends React.Component<IProps, IState> {
     }
 
     handleKeyDown(event) {
+        // Prevent list navigation actions if events are triggered inside a child widget.
+        if (event.target.getAttribute('role') !== 'listbox') {
+            return;
+        }
+
         if (this.isNestedItem(this.state.activeItemIndex)) {
             return;
         }
 
-        if (![KEYCODES.UP, KEYCODES.DOWN, KEYCODES.ENTER].includes(get(event, 'keyCode'))) {
+        if (![KEYCODES.UP, KEYCODES.DOWN, KEYCODES.ENTER, KEYCODES.SPACE].includes(get(event, 'keyCode'))) {
             return;
         }
 
         onEventCapture(event);
 
-        // If we have an item selected and 'enter' was pressed, lets preview it
-        if (get(event, 'keyCode') === KEYCODES.ENTER && this.state.activeItemIndex >= 0) {
-            const item = this.getItemFromGroups(this.state.activeItemIndex);
+        if (event.keyCode === KEYCODES.ENTER || event.keyCode === KEYCODES.SPACE) {
+            event.target.querySelector('.actions-menu-button').click();
+        } else if (event.keyCode === KEYCODES.UP || event.keyCode === KEYCODES.DOWN) {
+            const {target} = event;
+            const activeId = target.getAttribute('aria-activedescendant');
 
-            if (item) {
-                this.props.onItemClick(item);
+            if (activeId != null) {
+                const activeElement = target.querySelector(`#${activeId}`);
+                const children = Array.from(target.children);
+                const itemCount = target.children.length;
+                const activeIndex = children.indexOf(activeElement);
+
+                const increment = get(event, 'keyCode') === KEYCODES.DOWN;
+
+                const wouldGoToItemOutsideThisGroup = increment
+                    ? activeIndex >= itemCount - 1
+                    : activeIndex <= 0;
+
+                if (!wouldGoToItemOutsideThisGroup) {
+                    this.navigateListWorker(increment);
+                }
+            } else {
+                /**
+                 * If there is no item currently active,
+                 * it should focus the first item in the group that triggered the event.
+                 */
+                this.setState({activeItemIndex: parseInt(target.getAttribute('data-index-from'), 10) - 1}, () => {
+                    this.navigateListWorker(true);
+                });
             }
         }
-
-        this.navigateListWorker(get(event, 'keyCode') === KEYCODES.DOWN);
     }
 
     // Function to navigate active index on the list and preview if needed
@@ -296,14 +343,60 @@ export class ListPanel extends React.Component<IProps, IState> {
                         onScroll={this.handleScroll}
                         ref={(node) => this.dom.list = node}
                         onKeyDown={this.handleKeyDown}
-                        tabIndex={0}
+                        onFocus={(event) => {
+                            const focusTo = event.target as HTMLElement | null;
+
+                            /**
+                             * Remove item selection.
+                             * New selection will be set in a few miliseconds by a function
+                             * triggered by a mouse/keyboard event.
+                             *
+                             * For accessibility purposes, no items should be selected when the group
+                             * gets focused. Otherwise, screen readers repeat the same information twice.
+                             *
+                             * EXCEPTION: keep active item, if focus was triggered by returning from actions menu
+                             * or any interactive element inside the list item.
+                             */
+                            if (
+                                focusTo?.getAttribute('role') === 'listbox'
+                            ) {
+                                const blurFrom = event?.relatedTarget as HTMLElement | null;
+
+                                const activedescendant = focusTo.getAttribute('aria-activedescendant');
+                                const activeListItem = document.querySelector(`#${activedescendant}`);
+
+                                const returningFromMenuItem = blurFrom?.getAttribute('role') === 'menuitem';
+                                const returningFromElementInsideListItem = activeListItem?.contains(blurFrom) === true;
+
+                                if (!returningFromMenuItem && !returningFromElementInsideListItem) {
+                                    this.setState({activeItemIndex: -1});
+                                }
+                            }
+                        }}
                     >
-                        {groups.map((group) => {
+                        {groups.map((group, i) => {
                             const propsForNestedListItems = {
                                 navigateDown: this.state.navigateDown, // tells the direction of navigation
                                 navigateList: this.navigateListWorker, // transfer navigation control to this component
                                 onItemActivate: this.onItemActivate, // prop to preview nested item on activation
                                 previewItem: previewItem, // prop to tell if item is being previewed currently
+                            };
+
+                            const listBoxGroupId = `list-panel-${i}`;
+                            const activeItemInThisGroup = this.state.activeItemIndex >= indexFrom
+                                && this.state.activeItemIndex < indexFrom + group.events.length;
+                            const getChildId = (childIndex) => `${listBoxGroupId}--${childIndex}`;
+                            const activeDescendantIndex = this.state.activeItemIndex - indexFrom;
+
+                            const listBoxGroupProps: IAccessibleListBox = {
+                                containerProps: {
+                                    role: 'listbox',
+                                    tabIndex: 0,
+                                    'aria-activedescendant':
+                                        activeItemInThisGroup ? getChildId(activeDescendantIndex) : undefined,
+                                },
+                                groupId: listBoxGroupId,
+                                getChildId: getChildId,
                             };
 
                             let listGroupProps: {[key: string]: any} = {
@@ -333,6 +426,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 contacts: contacts,
                                 listViewType: listViewType,
                                 sortField: sortField,
+                                listBoxGroupProps: listBoxGroupProps,
                                 ...propsForNestedListItems,
                             };
 
@@ -340,7 +434,9 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 listGroupProps.activeItemIndex = this.state.activeItemIndex;
                                 listGroupProps.indexItems = true;
                                 listGroupProps.indexFrom = indexFrom;
-                                indexFrom = indexFrom + get(group, 'events.length', 0);
+
+                                // increment each iteration
+                                indexFrom = indexFrom + group.events.length ?? 0;
                             }
 
                             return (

@@ -58,4 +58,5 @@ export function getTimeStringForHour(hour: number): string {
 export const TIME_STRINGS = {
     0: getTimeStringForHour(0),
     1: getTimeStringForHour(1),
+    2: getTimeStringForHour(2),
 };
