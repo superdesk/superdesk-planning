@@ -22,9 +22,19 @@ import {getSearchDateRange} from '../utils';
 export const getCurrentListViewType = (state?: IPlanningAppState) => (
     state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE
 );
-export const activeFilter = (state: IPlanningAppState) => (
-    state?.main?.filter ?? PLANNING_VIEW.COMBINED
-);
+export const activeFilter = (state: IPlanningAppState) => {
+    const privileges = get(state, 'privileges', '');
+
+    if (privileges?.planning_event_management && privileges?.planning_planning_management) {
+        return state?.main?.filter ?? PLANNING_VIEW.COMBINED;
+    } else if (privileges?.planning_event_management) {
+        return state?.main?.filter ?? PLANNING_VIEW.EVENTS;
+    } else if (privileges?.planning_planning_management) {
+        return state?.main?.filter ?? PLANNING_VIEW.PLANNING;
+    } else {
+        return null;
+    }
+};
 export const isEventsPlanningView = (state) =>
     get(state, 'main.filter', '') === MAIN.FILTERS.COMBINED;
 export const isEventsView = (state) =>
