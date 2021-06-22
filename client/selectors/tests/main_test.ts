@@ -15,6 +15,10 @@ describe('main selectors', () => {
                         [MAIN.FILTERS.PLANNING]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
                     },
                 },
+                privileges: {
+                    planning_event_management: 1,
+                    planning_planning_management: 1,
+                },
             };
         });
 
