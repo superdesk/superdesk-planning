@@ -9,13 +9,14 @@ import {
     IProfileSchema,
     IPlanningAppState,
 } from '../../interfaces';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {EditorGroup} from './EditorGroup';
 import {ContentBlock, ContentBlockInner} from '../UI/SidePanel';
 import {EditorBookmarksBar} from './EditorBookmarksBar';
 
 import {editorSelectors} from '../../selectors/editors';
+import * as actions from '../../actions';
 
 interface IProps {
     defaultGroup: IEditorFormGroup['id'];
@@ -38,7 +39,18 @@ class EditorFormComponent extends React.PureComponent<IProps> {
 
     constructor(props) {
         super(props);
+        const dispatch = planningApi.redux.store.dispatch;
 
+        if (!superdeskApi.privileges.hasPrivilege('planning_planning_management')) {
+            const groupsById: {[key: string]: IEditorFormGroup} = {};
+
+            this.props.groups.forEach((group) => {
+                if (group.id != 'add-planning') {
+                    groupsById[group.id] = group;
+                }
+            });
+            dispatch(actions.editors.setFormGroups(this.props.editorType, groupsById));
+        }
         this.editorApi = planningApi.editor(this.props.editorType);
     }
 
