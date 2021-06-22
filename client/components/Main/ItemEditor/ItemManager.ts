@@ -48,6 +48,7 @@ export class ItemManager {
 
         this.post = this.post.bind(this);
         this.unpost = this.unpost.bind(this);
+        this.afterPostOrUnpost = this.afterPostOrUnpost.bind(this);
         this.save = this.save.bind(this);
         this.saveAndPost = this.saveAndPost.bind(this);
         this.saveAndUnpost = this.saveAndUnpost.bind(this);
@@ -487,25 +488,7 @@ export class ItemManager {
                 actions.main.post(this.state.initialValues)
             ))
             .then(
-                (updatedItem) => {
-                    this.setState(!updatedItem ?
-                        // updatedItem === undefined if the user clicks 'Cancel'
-                        // from an 'Ignore/Cancel/Save' dialog
-                        {submitting: false} :
-                        {
-                            submitting: false,
-                            dirty: false,
-                            initialValues: updatedItem,
-                            diff: removeAutosaveFields(
-                                cloneDeep(updatedItem),
-                                true,
-                                true
-                            ),
-                        }, null, true);
-                    if (!appConfig.planning_auto_close_popup_editor) {
-                        return this.editor.closeEditor();
-                    }
-                },
+                this.afterPostOrUnpost,
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
@@ -529,25 +512,7 @@ export class ItemManager {
                 actions.main.unpost(this.state.initialValues)
             ))
             .then(
-                (updatedItem) => {
-                    this.setState(!updatedItem ?
-                    // updatedItem === undefined if the user clicks 'Cancel'
-                    // from an 'Ignore/Cancel/Save' dialog
-                        {submitting: false} :
-                        {
-                            submitting: false,
-                            dirty: false,
-                            initialValues: updatedItem,
-                            diff: removeAutosaveFields(
-                                cloneDeep(updatedItem),
-                                true,
-                                true
-                            ),
-                        }, null, true);
-                    if (!appConfig.planning_auto_close_popup_editor) {
-                        return this.editor.closeEditor();
-                    }
-                },
+                this.afterPostOrUnpost,
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
@@ -559,6 +524,33 @@ export class ItemManager {
                     return this.setState({submitting: false});
                 }
             );
+    }
+
+    afterPostOrUnpost(updatedItem?: DeepPartial<IEventOrPlanningItem>) {
+        // updatedItem == undefined if the user clicks 'Cancel'
+        // from an 'Ignore/Cancel/Save' dialog
+        let newState: Partial<IEditorState> = updatedItem == null ?
+            {submitting: false} :
+            {
+                submitting: false,
+                dirty: false,
+                initialValues: updatedItem,
+                diff: removeAutosaveFields(
+                    cloneDeep(updatedItem),
+                    true,
+                    true
+                ),
+            };
+
+        if (updatedItem != null) {
+            this.editorApi.events.onItemUpdated(newState);
+        }
+
+        this.setState(newState, null, true);
+
+        if (!appConfig.planning_auto_close_popup_editor) {
+            return this.editor.closeEditor();
+        }
     }
 
     save(

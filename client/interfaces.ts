@@ -1633,7 +1633,7 @@ export interface IEditorState {
     partialSave: boolean;
     itemReady: boolean;
     loading: boolean;
-    initialValues: Partial<IEventOrPlanningItem>;
+    initialValues: DeepPartial<IEventOrPlanningItem>;
 
     // Sidebar navigation
     activeNav?: string; // is this used anymore?
