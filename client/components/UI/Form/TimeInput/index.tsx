@@ -233,6 +233,7 @@ export class TimeInput extends React.Component {
             ...props
         } = this.props;
 
+        const {gettext} = superdeskApi.localization;
         let {invalid, errors, message} = this.props;
         let displayDateString;
 
