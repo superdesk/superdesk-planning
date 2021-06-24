@@ -70,7 +70,8 @@ export default angular.module('superdesk-planning', [])
             icon: 'calendar',
             label: gettext('Planning'),
             group: gettext('Planning'),
-            if: 'workspaceConfig.planning && privileges.planning',
+            if: `workspaceConfig.planning && privileges.planning
+                && (privileges.planning_event_management || privileges.planning_planning_management)`,
             order: 1100,
             shortcut: 'ctrl+alt+p',
         });
