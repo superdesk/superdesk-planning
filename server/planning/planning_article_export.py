@@ -112,7 +112,7 @@ def group_items_by_agenda(items):
         item_agendas_ids = item.get('agendas', [])
         item_agendas = []
         for agenda_id in item_agendas_ids:
-            agenda_in_array = [a for a in agendas if a['_id'] == agenda_id]
+            agenda_in_array = [a for a in agendas if a['_id'] == ObjectId(agenda_id)]
             if len(agenda_in_array) > 0:
                 item_agendas.append(agenda_in_array[0])
         item['agendas'] = item_agendas
