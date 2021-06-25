@@ -233,7 +233,7 @@ describe('Planning.Events: embedded coverage', () => {
             .should('exist');
     });
 
-    it.only('SDESK-6022: planning items should stay after post/unpost', () => {
+    it('SDESK-6022: planning items should stay after post/unpost', () => {
         addItems('events', [{
             type: 'event',
             occur_status: {
@@ -291,6 +291,86 @@ describe('Planning.Events: embedded coverage', () => {
             .click();
         editor.waitForAutosave();
         embeddedCoverages.getPlanningItem(0)
+            .should('exist');
+    });
+
+    it('SDESK-6071: update new Planning when event dates changes', () => {
+        subnav.createEvent();
+        editor.waitTillOpen();
+        editor.openAllToggleBoxes();
+
+        // Fill in some fields (excluding date/times)
+        editor.type({
+            slugline: 'slugline of the event',
+            name: 'name of the event',
+            definition_short: 'Desc.',
+            occur_status: 'Planned, occurence planned only',
+        });
+
+        // Add a Planning item to the Event
+        editor.clickBookmark('add_planning');
+        editor.element
+            .find('[data-test-id="editor--planning-item__0"]')
+            .should('exist');
+        embeddedCoverages.getAddCoverageForm(0)
+            .should('exist')
+            .should('be.visible');
+
+        // Add a text coverage to the Planning item
+        let addCoverageForm = embeddedCoverages.getCoverageEntry(0, 0);
+
+        addCoverageForm.fields.enabled.type('enabled');
+        addCoverageForm.fields.desk.type('Sports Desk');
+        addCoverageForm.fields.user.type('first name2 last name2');
+        addCoverageForm.addButton.click();
+
+        // Attempt to create the Event & Planning item
+        // knowing that it will error out
+        editor.waitForAutosave();
+        editor.createButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Make sure validation failed
+        editor.fields.dates.start.date.expectError('This field is required');
+        editor.createButton
+            .should('exist')
+            .should('be.enabled');
+
+        // Fill in the dates (which should also update the Planning/Coverage dates)
+        editor.type({
+            'dates.start.date': '12/12/2045',
+            'dates.allDay': true,
+        });
+
+        // Make sure the date has been updated for the Coverage
+        embeddedCoverages.getRelatedCoverage(0, 0)
+            .should('exist')
+            .should('contain.text', '12/12/2045 @ 00:00');
+
+        // Now create the Event & Planning item
+        editor.waitForAutosave();
+        editor.createButton
+            .should('exist')
+            .should('be.enabled')
+            .click();
+
+        // Make sure the item is created
+        editor.createButton.should('not.exist');
+        editor.postButton
+            .should('exist')
+            .should('be.enabled');
+        list.expectItemCount(1);
+        list.expectItemText(0, 'slugline of the event');
+
+        // Make sure the Text coverage was created as well
+        list.toggleAssociatedPlanning(0);
+        list.nestedItem(0)
+            .find('[data-test-id="coverage-icons"]')
+            .should('exist');
+        list.nestedPlanningItem(0, 0)
+            .find('[data-test-id="coverage-icons"] .icon-text')
             .should('exist');
     });
 });

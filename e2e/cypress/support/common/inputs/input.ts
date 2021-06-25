@@ -54,4 +54,9 @@ export class Input {
         cy.log('Common.Input.clear');
         this.element.clear();
     }
+
+    expectError(message) {
+        this.parent.find(this.selector + ' ~ .sd-line-input__message')
+            .should('have.text', message);
+    }
 }
