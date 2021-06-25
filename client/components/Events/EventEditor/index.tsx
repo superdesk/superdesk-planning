@@ -39,7 +39,7 @@ interface IProps {
     inModalView?: boolean;
     editorType: EDITOR_TYPE;
 
-    onChangeHandler(field: string | {[key: string]: any}, value: any): void;
+    onChangeHandler(field: string | {[key: string]: any}, value?: any): void;
     onPopupOpen(): void;
     onPopupClose(): void;
     fetchEventFiles(event: IEventItem): void;
@@ -66,6 +66,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
 
         this.showAddLocationForm = this.showAddLocationForm.bind(this);
         this.onCloseAddNewLocation = this.onCloseAddNewLocation.bind(this);
+        this.onDatesChanged = this.onDatesChanged.bind(this);
     }
 
     componentDidMount() {
@@ -115,6 +116,18 @@ class EventEditorComponent extends React.PureComponent<IProps> {
         const editor = planningApi.editor(this.props.editorType);
 
         editor.form.closePopupForm();
+    }
+
+    onDatesChanged(value: {[key: string]: any}) {
+        const editor = planningApi.editor(this.props.editorType);
+
+        editor.item.events.onEventDatesChanged({
+            start: value['dates.start'],
+            end: value['dates.end'],
+            tz: value['dates.tz'],
+        });
+
+        this.props.onChangeHandler(value);
     }
 
     renderHeader() {
@@ -167,6 +180,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                         showAllDay: true,
                         showTimeZone: true,
                         enabled: !this.props.itemExists,
+                        onChange: this.onDatesChanged,
                     },
                     language: {
                         clearable: false,

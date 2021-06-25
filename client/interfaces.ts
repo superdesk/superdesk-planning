@@ -1820,6 +1820,7 @@ export interface IEditorAPI {
                 updates: DeepPartial<IPlanningItem>,
                 scrollOnChange: boolean
             ): void;
+            onEventDatesChanged(updates: Partial<IEventItem['dates']>): void;
         };
         planning: {
             getGroupsForItem(item: Partial<IPlanningItem>): {
