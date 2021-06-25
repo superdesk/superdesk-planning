@@ -287,7 +287,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             plans.forEach(
                 (plan) => {
                     // If this Planning item was created before the Event has a start date
-                    // then the `planning_date` will not defined. Set it to `dates.start`
+                    // then the `planning_date` will not be defined. Set it to `dates.start`
                     // and set `planning.scheduled` to `dates.start` for every coverage
                     if (plan.planning_date == null) {
                         updateAssociatedPlannings = true;
