@@ -46,7 +46,8 @@ class EventJsonFeedParser(FileFeedParser):
         superdesk_event['_created'] = utcnow()
         superdesk_event['_updated'] = utcnow()
         superdesk_event['state'] = WORKFLOW_STATE.INGESTED
-        superdesk_event['versioncreated'] = self.datetime(superdesk_event['versioncreated'])
+        # superdesk_event['versioncreated'] = self.datetime(superdesk_event['versioncreated'])
+        superdesk_event['versioncreated'] = utcnow()
 
         superdesk_event = self.assign_from_local_cv(superdesk_event)
         superdesk_event = self.add_to_local_db(superdesk_event)
@@ -137,6 +138,9 @@ class EventJsonFeedParser(FileFeedParser):
                     ).find_one(req=None, _id=item.get('_id'))
                     if not field_in_database:
                         get_resource_service(add_to_local_db[field]).post([item])
+
+                    if field == 'event_contact_info':
+                        superdesk_event[field] = [item["_id"] for item in superdesk_event[field]]
 
         return superdesk_event
 
