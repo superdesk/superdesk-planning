@@ -105,36 +105,44 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
     }
 
     onChangeHandler(field, value, updateDirtyFlag = true, saveAutosave = true) {
-        // If field (name) is passed, it will replace that field
-        // Else, entire object will be replaced
-        const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
-        const newState: Partial<IEditorState> = {diff};
-
-        if (field) {
-            updateFormValues(diff, field, value);
-        }
-
-        this.itemManager.validate(this.props, newState, this.state);
-
-        if (updateDirtyFlag) {
-            newState.dirty = this.isDirty(
-                this.state.initialValues,
-                diff
-            );
-        }
-
+        // Use a callback to `this.setState` so we get the state value at the exact point when updating.
+        // This allows consecutive updates to the state, while allowing React to batch these updates.
+        // Otherwise only the last call to onChangeHandler will be applied to state per React batch update
         return new Promise((resolve) => {
-            this.setState(newState, resolve);
+            this.setState<'diff'>((prevState: Readonly<IEditorState>) => {
+                // If field (name) is passed, it will replace that field
+                // Else, entire object will be replaced
+                const diff = field ? Object.assign({}, prevState.diff) : cloneDeep(value);
+                const newState: Pick<IEditorState, 'diff' | 'dirty'> = {
+                    diff: diff,
+                    dirty: prevState.dirty
+                };
 
-            if (this.props.onChange) {
-                this.props.onChange(diff);
-            }
+                if (field) {
+                    updateFormValues(diff, field, value);
+                }
 
-            if (saveAutosave) {
-                this.autoSave.saveAutosave(this.props, diff);
-            }
+                this.itemManager.validate(this.props, newState, this.state);
+
+                if (updateDirtyFlag) {
+                    newState.dirty = this.isDirty(
+                        this.state.initialValues,
+                        diff
+                    );
+                }
+
+                if (this.props.onChange) {
+                    this.props.onChange(diff);
+                }
+
+                return newState;
+            }, resolve);
         })
             .then(() => {
+                if (saveAutosave) {
+                    this.autoSave.saveAutosave(this.props, this.state.diff);
+                }
+
                 this.props.saveDiffToStore(this.state.diff);
             });
     }
