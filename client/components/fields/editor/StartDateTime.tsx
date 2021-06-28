@@ -7,6 +7,7 @@ import {EditorFieldDateTime} from './base/dateTime';
 interface IProps extends IEditorFieldProps {
     canClear?: boolean;
     timeField?: string;
+    showToBeConfirmed?: boolean;
 }
 
 export class EditorFieldStartDateTime extends React.PureComponent<IProps> {

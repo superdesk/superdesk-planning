@@ -25,6 +25,7 @@ export class EditorFieldCoverageSchedule extends React.PureComponent<IProps> {
                 {...props}
                 field={field ?? 'scheduled'}
                 label={label ?? gettext('Due')}
+                showToBeConfirmed
             />
         );
     }
