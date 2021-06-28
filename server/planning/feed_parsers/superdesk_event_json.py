@@ -139,8 +139,8 @@ class EventJsonFeedParser(FileFeedParser):
                     if not field_in_database:
                         get_resource_service(add_to_local_db[field]).post([item])
 
-                    if field == 'event_contact_info':
-                        superdesk_event[field] = [item["_id"] for item in superdesk_event[field]]
+            if field == 'event_contact_info':
+                superdesk_event[field] = [item["_id"] for item in superdesk_event[field]]
 
         return superdesk_event
 
