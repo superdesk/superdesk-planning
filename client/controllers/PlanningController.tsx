@@ -74,7 +74,12 @@ export class PlanningController {
         if (!workspaceChanged) {
             return Promise.resolve();
         }
-
+        if (this.store) {
+            this.store.dispatch({
+                type: 'MENU_OPEN',
+                payload: false
+            });
+        }
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         return Promise.all([
