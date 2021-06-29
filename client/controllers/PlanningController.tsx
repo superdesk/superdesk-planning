@@ -76,7 +76,7 @@ export class PlanningController {
         }
 
         // To keep the workQueue menu closed while switching to planning
-        this.onMenuChange(false)
+        this.onMenuChange(false);
 
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
