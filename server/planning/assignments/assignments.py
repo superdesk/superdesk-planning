@@ -21,14 +21,14 @@ from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
 from apps.duplication.archive_move import ITEM_MOVE
-from apps.publish.enqueue import ITEM_PUBLISH
+from apps.publish.enqueue import ITEM_PUBLISH, ITEM_CORRECT, ITEM_KILL, ITEM_TAKEDOWN, ITEM_UNPUBLISH
 from eve.utils import config, ParsedRequest
 from superdesk.utc import utcnow
 from planning.planning import coverage_schema
 from planning.planning.planning import planning_schema
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
-from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
+from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION, LOCK_SESSION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, get_related_items, \
@@ -678,67 +678,83 @@ class AssignmentsService(superdesk.Service):
                                                                         assignment_update_data.get('assignment'))
 
     def update_assignment_on_archive_operation(self, updates, original, operation=None):
-        if operation == ITEM_MOVE:
-            assignment_update_data = \
-                self._get_assignment_data_on_archive_update(updates, original)
+        # Only continue processing for operations we handle
+        if operation not in [ITEM_MOVE, ITEM_PUBLISH, ITEM_CORRECT, ITEM_KILL, ITEM_TAKEDOWN, ITEM_UNPUBLISH]:
+            return
 
-            if assignment_update_data.get('assignment') and \
-                assignment_update_data['assignment'].get('assigned_to')['desk'] != \
+        # Get the Assignment item, if none is found then no need to continue processing this operation
+        assignment_update_data = self._get_assignment_data_on_archive_update(updates, original)
+        assignment = assignment_update_data.get('assignment')
+        if not assignment:
+            return
+
+        if operation == ITEM_MOVE:
+            if assignment.get('assigned_to')['desk'] != \
                     assignment_update_data.get('item_desk_id'):
-                updated_assignment = self._set_user_for_assignment(assignment_update_data['assignment'], None,
+                updated_assignment = self._set_user_for_assignment(assignment, None,
                                                                    assignment_update_data.get('item_user_id'))
                 updated_assignment.get('assigned_to')['desk'] = assignment_update_data.get('item_desk_id')
                 updated_assignment.get('assigned_to')['assignor_user'] = assignment_update_data.get('item_user_id')
                 updated_assignment.get('assigned_to')['state'] = \
                     get_next_assignment_status(updated_assignment, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED)
 
-                self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
+                self._update_assignment_and_notify(updated_assignment, assignment)
                 get_resource_service('assignments_history').on_item_updated(updated_assignment,
-                                                                            assignment_update_data.get('assignment'),
+                                                                            assignment,
                                                                             ASSIGNMENT_HISTORY_ACTIONS.SUBMITTED)
         elif operation == ITEM_PUBLISH:
-            assignment = self._get_assignment_data_on_archive_update(updates, original).get('assignment')
-            if assignment:
-                updated_assignment = self._get_empty_updates_for_assignment(assignment)
-                if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
-                    if updated_assignment.get('assigned_to')['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                        updated_assignment.get('assigned_to')['state'] = \
-                            get_next_assignment_status(updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED)
-                        self._update_assignment_and_notify(updated_assignment, assignment)
-                        get_resource_service('assignments_history').on_item_complete(
-                            updated_assignment, assignment)
+            updated_assignment = self._get_empty_updates_for_assignment(assignment)
+            if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
+                if updated_assignment.get('assigned_to')['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                    updated_assignment.get('assigned_to')['state'] = \
+                        get_next_assignment_status(updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED)
 
-                    # Update delivery record here
-                    delivery_service = get_resource_service('delivery')
-                    delivery = delivery_service.find_one(req=None, item_id=original[config.ID_FIELD])
-                    if delivery and delivery.get('item_state') != CONTENT_STATE.PUBLISHED:
-                        delivery_service.patch(delivery[config.ID_FIELD], {
-                            'item_state': CONTENT_STATE.PUBLISHED,
-                            'sequence_no': original.get('rewrite_sequence') or 0,
-                            'publish_time': get_delivery_publish_time(updates, original)
-                        })
+                    # Remove lock information as the archive item is unlocked when publishing
+                    remove_lock_information(updated_assignment)
 
-                    # publish planning
-                    self.publish_planning(assignment.get('planning_item'))
+                    # Update the Assignment and send websocket notification
+                    self._update_assignment_and_notify(updated_assignment, assignment)
+                    get_resource_service('assignments_history').on_item_complete(
+                        updated_assignment, assignment)
 
-                    assigned_to_user = get_resource_service('users').find_one(req=None,
-                                                                              _id=get_user().get(config.ID_FIELD, ''))
-                    assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
-                    target_user = assignment.get('assigned_to', {}).get('assignor_desk')
+                # Update delivery record here
+                delivery_service = get_resource_service('delivery')
+                delivery = delivery_service.find_one(req=None, item_id=original[config.ID_FIELD])
+                if delivery and delivery.get('item_state') != CONTENT_STATE.PUBLISHED:
+                    delivery_service.patch(delivery[config.ID_FIELD], {
+                        'item_state': CONTENT_STATE.PUBLISHED,
+                        'sequence_no': original.get('rewrite_sequence') or 0,
+                        'publish_time': get_delivery_publish_time(updates, original)
+                    })
 
-                    if not original.get('rewrite_of'):
-                        PlanningNotifications().notify_assignment(target_user=target_user,
-                                                                  message='assignment_complete_msg',
-                                                                  assignee=assignee,
-                                                                  coverage_type=get_coverage_type_name(
-                                                                      original.get('planning', {}).get(
-                                                                          'g2_content_type', '')),
-                                                                  slugline=original.get('slugline'),
-                                                                  omit_user=True,
-                                                                  assignment_id=assignment['_id'],
-                                                                  is_link=True,
-                                                                  no_email=True
-                                                                  )
+                # publish planning
+                self.publish_planning(assignment.get('planning_item'))
+
+                assigned_to_user = get_resource_service('users').find_one(req=None,
+                                                                          _id=get_user().get(config.ID_FIELD, ''))
+                assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
+                target_user = assignment.get('assigned_to', {}).get('assignor_desk')
+
+                if not original.get('rewrite_of'):
+                    PlanningNotifications().notify_assignment(target_user=target_user,
+                                                              message='assignment_complete_msg',
+                                                              assignee=assignee,
+                                                              coverage_type=get_coverage_type_name(
+                                                                  original.get('planning', {}).get(
+                                                                      'g2_content_type', '')),
+                                                              slugline=original.get('slugline'),
+                                                              omit_user=True,
+                                                              assignment_id=assignment['_id'],
+                                                              is_link=True,
+                                                              no_email=True
+                                                              )
+        elif operation in [ITEM_CORRECT, ITEM_KILL, ITEM_TAKEDOWN, ITEM_UNPUBLISH]:
+            # Make sure to unlock the Assignment on any of the above operations
+            # As the `publish` service(s) unlocks the archive item on update
+            user_id = assignment_update_data.get('item_user_id')
+            if assignment.get(LOCK_SESSION) and user_id:
+                lock_service = get_component(LockService)
+                lock_service.unlock(assignment, user_id, get_auth()['_id'], 'assignments')
 
     def on_events_updated(self, updates, original):
         """Send assignment notifications if any relevant Event metadata has changed"""
