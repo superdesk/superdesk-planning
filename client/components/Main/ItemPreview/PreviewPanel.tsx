@@ -125,6 +125,7 @@ export class PreviewPanelComponent extends React.Component {
         return (
             <SidePanel shadowRight={true} bg00={true}>
                 <Header darkBlue={isEvent} darker={!isEvent}>
+                    <h3 className="a11y-only">{gettext('Item preview')}</h3>
                     <Tools tools={this.tools} />
                     <Tabs
                         tabs={this.tabs}
