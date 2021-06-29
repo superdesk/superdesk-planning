@@ -18,4 +18,8 @@
     .search-handler {
         height: 47px !important;
     }
+
+    .search-handler:focus {
+        border: 1px solid blue;
+    }
 }

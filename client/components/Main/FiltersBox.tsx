@@ -8,10 +8,12 @@ import {StretchBar} from '../UI/SubNav';
 import {PLANNING_VIEW} from '../../interfaces';
 import {activeFilter as getCurrentView} from '../../selectors/main';
 import {planningApi} from '../../superdeskApi';
+import {PRIVILEGES} from '../../constants';
 
 interface IProps {
     showFilters?: boolean; // defaults to true
     currentView: PLANNING_VIEW;
+    privileges: {[key: string]: number};
 }
 
 const mapStateToProps = (state) => ({
@@ -20,22 +22,29 @@ const mapStateToProps = (state) => ({
 
 class FiltersBoxComponent extends React.PureComponent<IProps> {
     render() {
+        const privileges = this.props.privileges;
+        let filter_items = [];
+
+        if (privileges[PRIVILEGES.EVENT_MANAGEMENT] && privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
+            filter_items.push({
+                label: gettext('Events & Planning'),
+                filter: PLANNING_VIEW.COMBINED,
+            });
+        }
+        if (privileges[PRIVILEGES.EVENT_MANAGEMENT]) {
+            filter_items.push({
+                label: gettext('Events only'),
+                filter: PLANNING_VIEW.EVENTS,
+            });
+        }
+        if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
+            filter_items.push({
+                label: gettext('Planning only'),
+                filter: PLANNING_VIEW.PLANNING,
+            });
+        }
         const filters = !(this.props.showFilters ?? true) ?
-            [] :
-            [
-                {
-                    label: gettext('Events & Planning'),
-                    filter: PLANNING_VIEW.COMBINED,
-                },
-                {
-                    label: gettext('Events only'),
-                    filter: PLANNING_VIEW.EVENTS,
-                },
-                {
-                    label: gettext('Planning only'),
-                    filter: PLANNING_VIEW.PLANNING,
-                },
-            ];
+            [] : filter_items;
 
         return (
             <StretchBar>

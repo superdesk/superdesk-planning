@@ -1,15 +1,32 @@
 import React from 'react';
-import {ItemActionsMenu} from '../../ItemActionsMenu';
 import {map} from 'lodash';
+import {ReactWrapper} from 'enzyme';
+
+import {Menu} from 'superdesk-ui-framework/react';
+import {ItemActionsMenu} from '../../ItemActionsMenu';
 
 export default class actionMenu {
-    constructor(element) {
-        this.element = element.find(ItemActionsMenu).first();
+    usesNewMenu: boolean;
+    isMounted: boolean;
+    element: ReactWrapper;
+
+    constructor(element: ReactWrapper, newMenu = false) {
+        this.usesNewMenu = newMenu;
+        this.element = this.usesNewMenu ?
+            element.find(Menu).first() :
+            element.find(ItemActionsMenu).first();
+
         this.isMounted = this.element.exists();
     }
 
-    actions() {
-        return this.isMounted ? this.element.prop('actions') : [];
+    actions(): Array<any> {
+        if (this.isMounted) {
+            return this.usesNewMenu ?
+                (this.element.prop('items') || []) :
+                (this.element.prop('actions') || []);
+        }
+
+        return [];
     }
 
     actionLabels() {
@@ -37,7 +54,11 @@ export default class actionMenu {
     invokeAction(actionLabel) {
         const action = this.actions().find((a) => a.label === actionLabel);
 
-        action.callback();
+        if (action?.callback != null) {
+            action.callback();
+        } else if (action?.onClick != null) {
+            action.onClick();
+        }
     }
 
     toggleMenu() {

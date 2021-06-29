@@ -66,7 +66,7 @@ export default class SearchBar extends React.Component {
 
         return (
             <div className={'SearchBar flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
-                <div className="search-handler">
+                <div className="search-handler" tabIndex={0}>
                     <label
                         htmlFor={uniqueId}
                         className="trigger-icon"

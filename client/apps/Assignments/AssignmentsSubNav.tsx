@@ -122,7 +122,7 @@ export class AssignmentsSubNavComponent extends React.Component {
         const showDeskAssignmentView = !!privileges.planning_assignments_desk;
 
         return (
-            <div>
+            <React.Fragment>
                 {withArchiveItem && <ArchiveItem item={archiveItem} />}
                 <SubNavBar
                     searchQuery={searchQuery}
@@ -145,7 +145,7 @@ export class AssignmentsSubNavComponent extends React.Component {
                     changeSortField={this.changeSortField}
                     showDeskAssignmentView={showDeskAssignmentView}
                 />
-            </div>
+            </React.Fragment>
         );
     }
 }

@@ -15,6 +15,7 @@ import {EditorFieldNewsCoverageStatus} from '../NewsCoverageStatus';
 interface IProps {
     coverage: ICoverageDetails;
     language?: string;
+    errors?: {desk?: string};
     desks: Array<IDesk>;
     users: Array<IUser>;
 
@@ -75,6 +76,9 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
                                 label={gettext('Desk:')}
                                 value={coverage.desk?._id}
                                 onChange={this.onDeskChange}
+                                required={true}
+                                invalid={this.props.errors?.desk != null}
+                                error={this.props.errors?.desk}
                             >
                                 <Option />
                                 {coverage.filteredDesks.map(

@@ -1,13 +1,13 @@
 import {setup, addItems, login, waitForPageLoad, Modal} from '../../support/common';
 import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, PlanningEditor, PlanningPreview} from '../../support/planning';
+import {getMenuItem} from '../../support/common/ui/actionMenu';
 
 describe('Planning.Planning: cancel planning item', () => {
     const editor = new PlanningEditor();
     const modal = new Modal();
     const preview = new PlanningPreview();
     const list = new PlanningList();
-    let menu;
     let reason;
 
     beforeEach(() => {
@@ -28,10 +28,9 @@ describe('Planning.Planning: cancel planning item', () => {
 
         // Make sure 'Cancel Planning' is not available on
         // Planning items that haven't been published
-        menu = list.getActionMenu(0);
-        menu.open();
-        menu.getAction('Cancel Planning', false)
-            .should('not.exist');
+
+        getMenuItem(list.item(0), 'Cancel Planning').should('not.exist');
+
 
         // Post the Planning item
         list.item(0)
@@ -60,10 +59,9 @@ describe('Planning.Planning: cancel planning item', () => {
         // and cancel the item
         list.item(0)
             .click();
-        menu = list.getActionMenu(0);
-        menu.open();
-        menu.getAction('Cancel Planning')
-            .click();
+
+        getMenuItem(list.item(0), 'Cancel Planning').realClick();
+
         modal.waitTillOpen(30000);
 
         // Make sure the item is locked at this point in time

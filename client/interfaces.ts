@@ -1633,7 +1633,7 @@ export interface IEditorState {
     partialSave: boolean;
     itemReady: boolean;
     loading: boolean;
-    initialValues: Partial<IEventOrPlanningItem>;
+    initialValues: DeepPartial<IEventOrPlanningItem>;
 
     // Sidebar navigation
     activeNav?: string; // is this used anymore?
@@ -1820,6 +1820,7 @@ export interface IEditorAPI {
                 updates: DeepPartial<IPlanningItem>,
                 scrollOnChange: boolean
             ): void;
+            onEventDatesChanged(updates: Partial<IEventItem['dates']>): void;
         };
         planning: {
             getGroupsForItem(item: Partial<IPlanningItem>): {

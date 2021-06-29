@@ -1,5 +1,7 @@
 import React from 'react';
 
+import {superdeskApi} from '../../superdeskApi';
+
 import {MAIN, WORKFLOW_STATE} from '../../constants';
 import {getWorkFlowStateAsOptions} from '../../utils';
 
@@ -18,6 +20,7 @@ interface IProps {
 
 export class AddToPlanningUi extends React.PureComponent<IProps> {
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             addNewsItemToPlanning,
             editorOpen,
@@ -28,6 +31,7 @@ export class AddToPlanningUi extends React.PureComponent<IProps> {
 
         return (
             <PageContent
+                ariaTitle={gettext('Events and Planning content')}
                 showModals={false}
                 showWorkqueue={false}
                 marginBottom={false}

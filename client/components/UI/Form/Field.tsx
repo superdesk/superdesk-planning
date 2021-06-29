@@ -1,5 +1,4 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {Row} from './Row';
@@ -122,31 +121,3 @@ export class Field extends React.Component<IProps, IState> {
         );
     }
 }
-
-// Field.propTypes = {
-//     component: PropTypes.func.isRequired,
-//     field: PropTypes.string.isRequired,
-//     profileName: PropTypes.string,
-//     label: PropTypes.string,
-//     item: PropTypes.object,
-//     diff: PropTypes.object,
-//     onChange: PropTypes.func.isRequired,
-//     defaultValue: PropTypes.any,
-//     formProfile: PropTypes.object,
-//     errors: PropTypes.object,
-//     error: PropTypes.string,
-//     row: PropTypes.bool,
-//     enabled: PropTypes.bool,
-//     showErrors: PropTypes.bool,
-//     value: PropTypes.any,
-//     onFocus: PropTypes.func,
-//     scheme: PropTypes.string,
-// };
-//
-// Field.defaultProps = {
-//     defaultValue: '',
-//     row: true,
-//     enabled: true,
-//     showErrors: false,
-//     scheme: '',
-// };

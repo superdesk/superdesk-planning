@@ -15,6 +15,7 @@ from datetime import datetime
 from flask import current_app as app
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
+from superdesk import get_resource_service
 from superdesk.utc import get_timezone_offset, utcnow
 from superdesk.errors import SuperdeskApiError
 from superdesk.default_settings import strtobool as _strtobool
@@ -195,14 +196,79 @@ def search_language(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
     if len(params.get('lock_state') or ''):
+        search_service = get_resource_service('events_planning_search')
+        ids = set()
+        event_items = set()
+        recurrence_ids = set()
+        locked_items = search_service.get_locked_items(projections=['_id', 'type', 'recurrence_id', 'event_item'])
+
+        if not locked_items.count():
+            # If there are no locked items there is no need to perform logic
+            # for the relationships between locked items
+            # Simply apply generic `field_exists` query to the original query
+            if params['lock_state'] == 'locked':
+                query.must.append(
+                    elastic.field_exists('lock_session')
+                )
+            elif params['lock_state'] == 'unlocked':
+                query.must_not.append(
+                    elastic.field_exists('lock_session')
+                )
+            return
+
+        for item in locked_items:
+            if item.get('recurrence_id'):
+                # This item is associated with a recurring series of events
+                # Add `recurrence_id` to the query (common field to both events & planning)
+                recurrence_ids.add(item['recurrence_id'])
+            elif item.get('event_item'):
+                # This is a Planning item associated with an event
+                # Add queries for `event_item` and `_id` with the ID of the Event
+                event_items.add(item['event_item'])
+                ids.add(item['event_item'])
+            else:
+                # This item is locked, add query for it's ID
+                ids.add(item['_id'])
+
+                if item.get('type') == 'event':
+                    # This is an Event, add another query for any associated Planning items
+                    event_items.add(item['_id'])
+
+        terms = list()
+        if len(ids):
+            # Add query for the IDs of Event/Planning items directly locked
+            terms.append(
+                elastic.terms(
+                    field='_id',
+                    values=list(ids)
+                )
+            )
+
+        if len(event_items):
+            # Add query for associated Planning items of a locked Event
+            terms.append(
+                elastic.terms(
+                    field='event_item',
+                    values=list(event_items)
+                )
+            )
+
+        if len(recurrence_ids):
+            # Add query for any Event or Planning in a locked recurring series of events
+            terms.append(
+                elastic.terms(
+                    field='recurrence_id',
+                    values=list(recurrence_ids)
+                )
+            )
+
+        # Generate the query for the main query of this request
+        # Using `elastic.bool_or` enforces that at least one of the above queries
+        # must match the documents for it to be included in the results
         if params['lock_state'] == 'locked':
-            query.must.append(
-                elastic.field_exists('lock_session')
-            )
+            query.must.append(elastic.bool_or(terms))
         elif params['lock_state'] == 'unlocked':
-            query.must_not.append(
-                elastic.field_exists('lock_session')
-            )
+            query.must_not.append(elastic.bool_or(terms))
 
 
 def search_recurrence_id(params: Dict[str, Any], query: elastic.ElasticQuery):

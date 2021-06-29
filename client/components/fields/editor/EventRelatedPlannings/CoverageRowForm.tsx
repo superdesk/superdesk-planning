@@ -28,6 +28,7 @@ interface IProps {
     index: number;
     typeCount: number;
     language?: string;
+    errors?: {desk?: string};
     update(original: ICoverageDetails, updates: Partial<ICoverageDetails>): void;
     duplicate(index: number, coverage: ICoverageDetails): void;
     remove(index: number): void;
@@ -124,6 +125,7 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
                     <EmbeddedCoverageForm
                         coverage={this.props.coverage}
                         language={this.props.language}
+                        errors={this.props.errors}
                         desks={this.props.desks}
                         users={this.props.users}
                         update={this.update}

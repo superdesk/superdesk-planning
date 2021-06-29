@@ -88,6 +88,7 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         featured: params.featured ?? params.advancedSearch?.featured,
         include_scheduled_updates: params.includeScheduledUpdates,
         no_agenda_assigned: params.noAgendaAssigned,
+        agendas: params.agendas,
     };
 }
 
