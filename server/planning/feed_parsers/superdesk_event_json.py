@@ -46,7 +46,6 @@ class EventJsonFeedParser(FileFeedParser):
         superdesk_event['_created'] = utcnow()
         superdesk_event['_updated'] = utcnow()
         superdesk_event['state'] = WORKFLOW_STATE.INGESTED
-        # superdesk_event['versioncreated'] = self.datetime(superdesk_event['versioncreated'])
         superdesk_event['versioncreated'] = utcnow()
 
         superdesk_event = self.assign_from_local_cv(superdesk_event)
