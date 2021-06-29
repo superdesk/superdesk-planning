@@ -238,6 +238,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     }
                     timeField="_startTime"
                     onChange={this.changeSchedule}
+                    showToBeConfirmed
                 />
                 <EditorFieldEndDateTime
                     {...props}
@@ -249,6 +250,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     }
                     timeField="_endTime"
                     onChange={this.changeSchedule}
+                    showToBeConfirmed
                 />
                 <Row
                     flex={true}
