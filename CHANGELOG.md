@@ -1,5 +1,17 @@
 # Superdesk Planning Changelog
 
+## [2.3.0-rc.3] 2020-06-29
+### Fixes
+- [SDESK-6047] fix(search): Agenda filter not working from subnav (#1613)
+- [SDESK-6022] fix: Embedded coverages disappear after posting Event (#1615)
+- [SDCP-526] fix(translations): missing gettext definition (#1619)
+- [SDCP-536] fix(exports): Use ObjectId when comparing Agenda IDs (#1620)
+- [SDESK-6071] fix: Make sure embedded coverages have a date (#1621)
+- fix file ingest when there is no parse_file method (#1624)
+- [SDCP-526] Enable date field option showToBeConfirmed in events and coverages (#1625)
+- [SDESK-6074] fix(locks): Unlock Assignment on Archive Publish actions (#1626)
+- [SDESK-5833] fix: workqueue left padding remains when navigating from monitoring (#1622)
+
 ## [2.3.0-rc.2] 2020-06-18
 ### Improvements
 - [SDCP-545] Improve accessibility in Planning page (#1598)
