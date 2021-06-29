@@ -71,7 +71,7 @@ class EventFileFeedingService(FileFeedingService):
                     if self.is_latest_content(last_updated, provider.get('last_updated')):
                         parser = self.get_feed_parser(provider, file_path)
                         logger.info('Ingesting events with {} parser'.format(parser.__class__.__name__))
-                        if getattr(parser, 'parse_file'):
+                        if hasattr(parser, 'parse_file'):
                             with open(file_path, 'rb') as f:
                                 item = parser.parse_file(f, provider)
                         else:
