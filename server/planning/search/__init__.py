@@ -36,3 +36,9 @@ def init_app(app):
         label=lazy_gettext('Planning - Events & Planning View Filters Management'),
         description=lazy_gettext('Create/Update/Delete Events & Planning View Filters'),
     )
+
+    superdesk.privilege(
+        name='planning_global_filters',
+        label=lazy_gettext('Planning - Global Filters'),
+        description=lazy_gettext('Ability to view global Events/Planning items')
+    )

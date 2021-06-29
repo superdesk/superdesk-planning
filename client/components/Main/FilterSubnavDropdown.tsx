@@ -2,24 +2,20 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {superdeskApi, planningApi} from '../../superdeskApi';
-import {FILTER_TYPE, IAgenda, ICalendar, ISearchFilter} from '../../interfaces';
+import {FILTER_TYPE, IAgenda, ICalendar, IPrivileges, ISearchFilter} from '../../interfaces';
 import {SUBNAV_VIEW_SIZE} from '../../apps/Planning/PlanningListSubNav';
 
-import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN} from '../../constants';
-
-import {activeFilter, currentSearchFilterId} from '../../selectors/main';
-import {calendars, currentCalendarId} from '../../selectors/events';
-import {agendas, currentAgendaId} from '../../selectors/planning';
-import {combinedViewFilters} from '../../selectors/eventsplanning';
+import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN, PRIVILEGES} from '../../constants';
+import * as selectors from '../../selectors';
 
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
-import {ButtonGroup} from 'superdesk-ui-framework/react';
 
 interface IProps {
     currentView: 'COMBINED' | 'EVENTS' | 'PLANNING';
     calendars: Array<ICalendar>;
     agendas: Array<IAgenda>;
     filters: Array<ISearchFilter>;
+    privileges: IPrivileges;
 
     currentCalendarId: ICalendar['qcode'];
     currentAgendaId: IAgenda['_id'];
@@ -29,17 +25,22 @@ interface IProps {
 }
 
 const mapStateToProps = (state) => ({
-    currentView: activeFilter(state),
-    calendars: calendars(state),
-    agendas: agendas(state),
-    filters: combinedViewFilters(state),
+    currentView: selectors.main.activeFilter(state),
+    calendars: selectors.events.calendars(state),
+    agendas: selectors.planning.agendas(state),
+    filters: selectors.eventsPlanning.combinedViewFilters(state),
+    privileges: selectors.general.privileges(state),
 
-    currentCalendarId: currentCalendarId(state),
-    currentAgendaId: currentAgendaId(state),
-    currentFilterId: currentSearchFilterId(state),
+    currentCalendarId: selectors.events.currentCalendarId(state),
+    currentAgendaId: selectors.planning.currentAgendaId(state),
+    currentFilterId: selectors.main.currentSearchFilterId(state),
 });
 
 class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
+    hasGlobalFiltersPrivilege() {
+        return this.props.privileges[PRIVILEGES.GLOBAL_FILTERS] === 1;
+    }
+
     getItems(): Array<IDropdownItem> {
         switch (this.props.currentView) {
         case MAIN.FILTERS.COMBINED:
@@ -64,6 +65,10 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
     }
 
     getSearchFilters(): Array<IDropdownItem> {
+        if (!this.hasGlobalFiltersPrivilege()) {
+            return [];
+        }
+
         const {gettext} = superdeskApi.localization;
         const filterType = this.getCurrentFilterType();
 
@@ -85,7 +90,9 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         return [
             {
                 id: 'all',
-                label: gettext('All Events & Planning'),
+                label: this.hasGlobalFiltersPrivilege() ?
+                    gettext('All Events & Planning') :
+                    gettext('My Events & Planning'),
                 action: () => planningApi.ui.list.changeFilterId(EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING),
                 group: '',
             }
@@ -97,7 +104,9 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
 
         const items: Array<IDropdownItem> = [{
             id: 'all',
-            label: gettext('All Events'),
+            label: this.hasGlobalFiltersPrivilege() ?
+                gettext('All Events') :
+                gettext('My Events'),
             action: () => planningApi.ui.list.changeCalendarId(EVENTS.FILTER.ALL_CALENDARS),
             group: '',
         }, {
@@ -151,7 +160,9 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
 
         const items: Array<IDropdownItem> = [{
             id: 'all',
-            label: gettext('All Planning Items'),
+            label: this.hasGlobalFiltersPrivilege() ?
+                gettext('All Planning Items') :
+                gettext('My Planning'),
             action: () => planningApi.ui.list.changeAgendaId(AGENDA.FILTER.ALL_PLANNING),
             group: '',
         }, {
@@ -204,6 +215,7 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         const filterType = this.getCurrentFilterType();
         let label;
         let disabled = false;
+        const hasGlobalFiltersPrivilege = this.hasGlobalFiltersPrivilege();
 
         const currentFilter = this.props.filters.find(
             (filter) => (
@@ -213,14 +225,21 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         );
 
         if (this.props.currentView === MAIN.FILTERS.COMBINED) {
-            label = currentFilter?.name ?? gettext('All Events & Planning');
+            label = currentFilter?.name ?? (hasGlobalFiltersPrivilege ?
+                gettext('All Events & Planning') :
+                gettext('My Events & Planning')
+            );
         } else if (this.props.currentView === MAIN.FILTERS.EVENTS) {
             if (currentFilter?.name != undefined) {
                 label = currentFilter.name;
             } else if (this.props.currentCalendarId === EVENTS.FILTER.NO_CALENDAR_ASSIGNED) {
                 label = gettext('No Calendar Assigned');
-            } else if (this.props.currentCalendarId === EVENTS.FILTER.ALL_CALENDARS) {
-                label = gettext('All Events');
+            } else if (this.props.currentCalendarId === EVENTS.FILTER.ALL_CALENDARS ||
+                this.props.currentCalendarId == null
+            ) {
+                label = hasGlobalFiltersPrivilege ?
+                    gettext('All Events') :
+                    gettext('My Events');
             } else {
                 const currentCalendar = this.props.calendars.find(
                     (calendar) => calendar.qcode === this.props.currentCalendarId
@@ -235,7 +254,9 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
             } else if (this.props.currentAgendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED) {
                 label = gettext('No Agenda Assigned');
             } else if (this.props.currentAgendaId === AGENDA.FILTER.ALL_PLANNING) {
-                label = gettext('All Planning Items');
+                label = hasGlobalFiltersPrivilege ?
+                    gettext('All Planning Items') :
+                    gettext('My Planning');
             } else {
                 const currentAgenda = this.props.agendas.find(
                     (agenda) => agenda._id === this.props.currentAgendaId

@@ -18,4 +18,5 @@ export const PRIVILEGES = {
     FEATURED_STORIES: 'planning_planning_featured',
     EVENTS_PLANNING_FILTERS_MANAGEMENT: 'planning_eventsplanning_filters_management',
     LOCATIONS_MANAGEMENT: 'planning_locations_management',
+    GLOBAL_FILTERS: 'planning_global_filters',
 };
