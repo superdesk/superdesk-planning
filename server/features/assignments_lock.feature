@@ -619,3 +619,120 @@ Feature: Assignments Locking
             }
         }
         """
+
+    @auth
+    Scenario: Publishing archive item unlocks assignment
+        Given the "validators"
+        """
+        [
+        {
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }
+        ]
+        """
+        And "desks"
+        """
+        [{
+            "name": "Sports",
+            "content_expiry": 60,
+            "members": [ {"user": "#CONTEXT_USER_ID#"} ]
+        }]
+        """
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        When we post to "/archive/#archive._id#/lock"
+        """
+        { "lock_action": "edit" }
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }
+        """
+        When we patch "/archive/#archive._id#"
+        """
+        {"slugline": "test"}
+        """
+        Then we get OK response
+        When we publish "#archive._id#" with "publish" type and "published" state
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
+        }
+        """
