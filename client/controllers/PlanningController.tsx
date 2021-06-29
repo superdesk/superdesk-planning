@@ -74,12 +74,10 @@ export class PlanningController {
         if (!workspaceChanged) {
             return Promise.resolve();
         }
-        if (this.store) {
-            this.store.dispatch({
-                type: 'MENU_OPEN',
-                payload: false
-            });
-        }
+
+        // To keep the workQueue menu closed while switching to planning
+        this.onMenuChange(false)
+
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         return Promise.all([
