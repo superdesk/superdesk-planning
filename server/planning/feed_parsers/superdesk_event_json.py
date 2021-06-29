@@ -28,7 +28,7 @@ class EventJsonFeedParser(FileFeedParser):
         try:
             with open(file_path, 'r') as f:
                 superdesk_event = json.load(f)
-                if superdesk_event.get('guid'):
+                if superdesk_event.get('type') == 'event' and superdesk_event.get('guid'):
                     return True
         except Exception:
             pass
