@@ -43,8 +43,9 @@ class EventJsonFeedParser(FileFeedParser):
             events_service = get_resource_service('events')
             existing_event = events_service.find_one(req=None, guid=superdesk_event.get('guid'))
             if existing_event:
-                raise ParserError.parseMessageError('An event already exists with exact same Id. Updating events is not supported yet.')
-
+                raise ParserError.parseMessageError(
+                    "An event already exists with exact same Id. Updating events is not supported yet."
+                )
         self.items.append(self._transform_from_superdesk_event(superdesk_event))
         return self.items
 
