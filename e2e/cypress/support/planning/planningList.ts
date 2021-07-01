@@ -1,4 +1,5 @@
 import {ActionMenu} from '../common/ui';
+import {getMenuItem} from '../common/ui/actionMenu';
 
 /**
  * Wrapper class around the Superdesk Planning module's list panel
@@ -80,11 +81,10 @@ export class PlanningList {
      */
     clickAction(index, label) {
         cy.log('Planning.List.clickAction');
+
         this.item(index).click();
-        this.getActionMenu(index)
-            .open()
-            .getAction(label)
-            .click();
+
+        getMenuItem(this.item(index), label).click();
     }
 
     /**
