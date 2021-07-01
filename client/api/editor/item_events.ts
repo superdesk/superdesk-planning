@@ -1,4 +1,6 @@
 import {createRef} from 'react';
+import moment from 'moment';
+import {cloneDeep} from 'lodash';
 
 import {
     BOOKMARK_TYPE,
@@ -196,7 +198,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
     function addPlanningItem() {
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
-        const plans = Array.from(event.associated_plannings || []);
+        const plans = cloneDeep(event.associated_plannings || []);
         const id = generateTempId();
 
         plans.push({
@@ -256,7 +258,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
     ) {
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
-        const plans = Array.from(event.associated_plannings);
+        const plans = cloneDeep(event.associated_plannings || []);
         const index = plans.findIndex(
             (plan) => plan._id === original._id
         );
@@ -279,11 +281,46 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             });
     }
 
+    function onEventDatesChanged(updates: Partial<IEventItem['dates']>) {
+        const editor = planningApi.editor(type);
+        const original = editor.form.getDiff<IEventItem>();
+        const originalDates = original.dates as Partial<IEventItem['dates']>;
+
+        // If `dates.start` is to be changed, then we may need to update
+        // associated Planning item's scheduled dates as well
+        if (!moment(originalDates?.start).isSame(moment(updates.start))) {
+            const plans = cloneDeep(original.associated_plannings || []);
+            let updateAssociatedPlannings = false;
+
+            plans.forEach(
+                (plan) => {
+                    // If this Planning item was created before the Event has a start date
+                    // then the `planning_date` will not be defined. Set it to `dates.start`
+                    // and set `planning.scheduled` to `dates.start` for every coverage
+                    if (plan.planning_date == null) {
+                        updateAssociatedPlannings = true;
+                        plan.planning_date = updates.start;
+                        (plan.coverages || []).forEach(
+                            (coverage) => {
+                                coverage.planning.scheduled = plan.planning_date;
+                            }
+                        );
+                    }
+                }
+            );
+
+            if (updateAssociatedPlannings) {
+                editor.form.changeField('associated_plannings', plans);
+            }
+        }
+    }
+
     return {
         getGroupsForItem,
         getRelatedPlanningDomRef,
         addPlanningItem,
         removePlanningItem,
         updatePlanningItem,
+        onEventDatesChanged,
     };
 }
