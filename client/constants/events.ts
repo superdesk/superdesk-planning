@@ -125,7 +125,7 @@ export const EVENTS = {
         PREVIEW: {
             label: 'Preview',
             icon: 'icon-preview-mode',
-            actionName: 'onPreview',
+            actionName: 'onEventPreview',
         },
     },
     FILTER: {

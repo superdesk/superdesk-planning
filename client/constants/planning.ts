@@ -97,7 +97,7 @@ export const PLANNING = {
         PREVIEW: {
             label: 'Preview',
             icon: 'icon-preview-mode',
-            actionName: 'onPreview',
+            actionName: 'onPlanningPreview',
         },
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {
