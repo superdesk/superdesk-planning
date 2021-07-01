@@ -1,6 +1,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
+import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
 
@@ -54,10 +55,11 @@ class EventItemComponent extends React.Component<IProps, IState> {
     }
 
     renderItemActions() {
-        if (!this.state.hover) {
+        if (!this.state.hover && !this.props.active) {
             return null;
         }
 
+        const {gettext} = superdeskApi.localization;
         const {session, privileges, item, lockedItems, calendars} = this.props;
         const callBacks = {
             [EVENTS.ITEM_ACTIONS.PREVIEW.actionName]:
@@ -97,7 +99,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
             [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName].bind(null, item),
         };
-        const itemActions = eventUtils.getEventActions({
+        const itemActions = eventUtils.getEventActionsForUiFrameworkMenu({
             item,
             session,
             privileges,
@@ -111,14 +113,34 @@ class EventItemComponent extends React.Component<IProps, IState> {
         }
 
         return (
-            <ActionMenu>
-                <ItemActionsMenu actions={itemActions} wide={true} />
-            </ActionMenu>
+            <Menu items={itemActions}>
+                {
+                    (toggle) => (
+                        <div
+                            style={{display: 'flex', height: '100%'}}
+                            className="sd-list-item__action-menu sd-list-item__action-menu--direction-row"
+                        >
+                            <button
+                                className="icn-btn dropdown__toggle actions-menu-button"
+                                aria-label={gettext('Actions')}
+                                onClick={(e) => {
+                                    toggle(e);
+                                }}
+                                data-test-id="menu-button"
+                            >
+                                <i className="icon-dots-vertical" />
+                            </button>
+                        </div>
+                    )
+                }
+            </Menu>
         );
     }
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const {querySelectorParent} = superdeskApi.utilities;
+
         const {
             item,
             onItemClick,
@@ -157,7 +179,14 @@ class EventItemComponent extends React.Component<IProps, IState> {
             <Item
                 shadow={1}
                 activated={this.props.multiSelected || active}
-                onClick={() => onItemClick(item)}
+                onClick={(e) => {
+                    // don't trigger preview if click went to a three dot menu or other button inside the list item
+                    if (e.target instanceof HTMLElement && querySelectorParent(e.target, 'button', {self: true})) {
+                        return;
+                    }
+
+                    onItemClick(item);
+                }}
                 disabled={isExpired}
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
