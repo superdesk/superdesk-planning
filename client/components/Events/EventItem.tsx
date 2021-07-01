@@ -8,8 +8,7 @@ import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '..
 import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {Label} from '../';
-import {ActionMenu, Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
-import {ItemActionsMenu} from '../index';
+import {Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
 import {
     eventUtils,
     getItemWorkflowState,
