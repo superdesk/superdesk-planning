@@ -2,6 +2,7 @@ import logging
 
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
+from superdesk.errors import ParserError
 from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
 from planning.common import WORKFLOW_STATE
@@ -28,7 +29,7 @@ class EventJsonFeedParser(FileFeedParser):
         try:
             with open(file_path, 'r') as f:
                 superdesk_event = json.load(f)
-                if superdesk_event.get('guid'):
+                if superdesk_event.get('type') == 'event' and superdesk_event.get('guid'):
                     return True
         except Exception:
             pass
@@ -38,6 +39,13 @@ class EventJsonFeedParser(FileFeedParser):
         self.items = []
         with open(file_path, 'r') as f:
             superdesk_event = json.load(f)
+
+            events_service = get_resource_service('events')
+            existing_event = events_service.find_one(req=None, guid=superdesk_event.get('guid'))
+            if existing_event:
+                raise ParserError.parseMessageError(
+                    "An event already exists with exact same Id. Updating events is not supported yet."
+                )
         self.items.append(self._transform_from_superdesk_event(superdesk_event))
         return self.items
 
@@ -46,7 +54,7 @@ class EventJsonFeedParser(FileFeedParser):
         superdesk_event['_created'] = utcnow()
         superdesk_event['_updated'] = utcnow()
         superdesk_event['state'] = WORKFLOW_STATE.INGESTED
-        superdesk_event['versioncreated'] = self.datetime(superdesk_event['versioncreated'])
+        superdesk_event['versioncreated'] = utcnow()
 
         superdesk_event = self.assign_from_local_cv(superdesk_event)
         superdesk_event = self.add_to_local_db(superdesk_event)
@@ -137,6 +145,9 @@ class EventJsonFeedParser(FileFeedParser):
                     ).find_one(req=None, _id=item.get('_id'))
                     if not field_in_database:
                         get_resource_service(add_to_local_db[field]).post([item])
+
+            if field == 'event_contact_info':
+                superdesk_event[field] = [item["_id"] for item in superdesk_event[field]]
 
         return superdesk_event
 
