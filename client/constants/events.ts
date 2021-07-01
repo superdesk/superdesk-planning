@@ -122,6 +122,11 @@ export const EVENTS = {
             actionName: 'onMarkEventCompleted',
             lock_action: 'mark_completed',
         },
+        PREVIEW: {
+            label: 'Preview',
+            icon: 'icon-preview-mode',
+            actionName: 'onPreview',
+        },
     },
     FILTER: {
         NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',
@@ -168,6 +173,7 @@ export function assignEventConstantTranslations() {
     EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label = gettext('Assign to calendar');
     EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.label = gettext('Save event as a template');
     EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.label = gettext('Mark as completed');
+    EVENTS.ITEM_ACTIONS.PREVIEW.label = gettext('Preview');
 
     EVENTS.UPDATE_METHODS[0].name = gettext('This event only');
     EVENTS.UPDATE_METHODS[1].name = gettext('This and all future events');

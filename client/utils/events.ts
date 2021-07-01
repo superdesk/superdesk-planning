@@ -606,6 +606,7 @@ const getEventActions = ({
     let actions = [];
     const isExpired = isItemExpired(item);
     let alllowedCallBacks = [
+        EVENTS.ITEM_ACTIONS.PREVIEW.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
         EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,

@@ -125,7 +125,6 @@ export class PreviewPanelComponent extends React.Component {
         return (
             <SidePanel shadowRight={true} bg00={true}>
                 <Header darkBlue={isEvent} darker={!isEvent}>
-                    <h3 className="a11y-only">{gettext('Item preview')}</h3>
                     <Tools tools={this.tools} />
                     <Tabs
                         tabs={this.tabs}
@@ -143,11 +142,15 @@ export class PreviewPanelComponent extends React.Component {
                                 showUnlock={this.props.showUnlock}
                             />
                         )}
-                        <RenderTab
-                            item={this.props.item}
-                            hideRelatedItems={this.props.hideRelatedItems}
-                            hideEditIcon={this.props.hideEditIcon}
-                        />
+                        <div tabIndex={-1} id="preview-content">
+                            <h3 className="a11y-only">{gettext('Item preview')}</h3>
+
+                            <RenderTab
+                                item={this.props.item}
+                                hideRelatedItems={this.props.hideRelatedItems}
+                                hideEditIcon={this.props.hideEditIcon}
+                            />
+                        </div>
                     </Content>
                 )}
             </SidePanel>
