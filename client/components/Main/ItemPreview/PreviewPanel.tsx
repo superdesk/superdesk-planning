@@ -24,7 +24,16 @@ export class PreviewPanelComponent extends React.Component {
         this.tools = [
             {
                 icon: 'icon-close-small',
-                onClick: this.props.closePreview,
+                onClick: (event) => {
+                    this.props.closePreview();
+
+                    document.dispatchEvent(
+                        new CustomEvent(
+                            'superdesk-planning.close-preview',
+                            {...event, detail: {itemId: this.props.itemId}},
+                        ),
+                    );
+                },
                 title: gettext(TOOLTIPS.close),
             },
         ];
