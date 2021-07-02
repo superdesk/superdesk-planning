@@ -7,7 +7,7 @@ import {showModal} from './index';
 import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
 import planningUi from './planning/ui';
-import {getItemType, gettext, planningUtils, eventUtils, getItemInArrayById} from '../utils';
+import {getItemType, gettext, planningUtils, eventUtils, getItemInArrayById, getErrorMessage} from '../utils';
 
 /**
  * Action Dispatcher to select an/all Event(s)
@@ -268,8 +268,13 @@ const exportAsArticle = (items = [], download) => (
                         } else {
                             dispatch(self.deSelectEvents(null, true));
                         }
-                    }, () => {
-                        notify.error(gettext('There was an error when exporting.'));
+                    }, (error) => {
+                        notify.error(
+                            getErrorMessage(
+                                error,
+                                gettext('There was an error when exporting.')
+                            )
+                        );
                     });
             }
         };
