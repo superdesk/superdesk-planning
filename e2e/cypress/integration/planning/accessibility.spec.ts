@@ -52,7 +52,26 @@ describe('Planning.Planning: list view accessibility', () => {
             },
         ]);
 
-        list.expectItemCount(6);
+        addItems('events', [{
+            type: 'event',
+            occur_status: {
+                name: 'Planned, occurs certainly',
+                label: 'Confirmed',
+                qcode: 'eocstat:eos5',
+            },
+            dates: {
+                start: '2045-02-03' + TIME_STRINGS[3],
+                end: '2045-02-03' + TIME_STRINGS[4],
+                tz: 'Australia/Sydney',
+            },
+            calendars: [],
+            state: 'draft',
+            place: [],
+            name: 'Test',
+            slugline: 'group 2, item 4',
+        }]);
+
+        list.expectItemCount(7);
     });
 
     it('can navigate a list using arrow up/down keys', () => {
@@ -231,5 +250,36 @@ describe('Planning.Planning: list view accessibility', () => {
 
         cy.get('@group1').should('not.have.focus');
         cy.get('@group2').should('have.focus');
+    });
+
+    it.only('returns focus to the list item after preview is closed', () => {
+        cy.get('.sd-list-item-group')
+            .first()
+            .as('group');
+
+        cy.get('@group').focus();
+
+        // Test on event. It's 4th in the list
+        cy.realPress('{downarrow}'); // group 1, item 1
+        cy.realPress('{downarrow}'); // group 1, item 2
+        cy.realPress('{downarrow}'); // group 1, item 3
+        cy.realPress('{downarrow}'); // group 1, item 4
+
+        cy.get('@group').should('have.attr', 'aria-activedescendant', 'list-panel-0--3');
+
+        cy.realPress('{enter}'); // opens actions menu
+
+        // select preview option (due to cypress issues it doesn't work to trigger it via keyboard)
+        cy.focused().realClick();
+
+        cy.get('.sd-preview-panel [data-test-id="field-slugline"]').should('contain.text', 'group 2, item 4');
+
+        cy.get('.sd-preview-panel .side-panel__header button[aria-label="Close"]').click();
+
+        cy.get('@group').should('have.attr', 'aria-activedescendant', 'list-panel-0--3');
+
+        cy.realPress('{uparrow}'); // group 1, item 3
+
+        cy.get('@group').should('have.attr', 'aria-activedescendant', 'list-panel-0--2');
     });
 });
