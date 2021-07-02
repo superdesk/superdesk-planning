@@ -1,6 +1,7 @@
 import {setup, login, addItems, waitForPageLoad, Modal} from '../../support/common';
 import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, EventEditor, PlanningPreview} from '../../support/planning';
+import {getMenuItem} from '../../support/common/ui/actionMenu';
 
 describe('Planning.Events: event cancel action', () => {
     const editor = new EventEditor();
@@ -48,6 +49,17 @@ describe('Planning.Events: event cancel action', () => {
             .click();
     }
 
+    function cancelEventFromListView(listItem) {
+        getMenuItem(listItem, 'Cancel').click();
+
+        modal.waitTillOpen(30000);
+        modal.element
+            .find('textarea[name="reason"]')
+            .type(reason);
+        modal.getFooterButton('Cancel Event')
+            .click();
+    }
+
     function expectCancelledInPreview() {
         preview.waitTillOpen();
         preview.element
@@ -78,17 +90,14 @@ describe('Planning.Events: event cancel action', () => {
             .click();
 
         // 1.b Open the 'Cancel Event' modal, then close it
-        menu = list.getActionMenu(0);
-        menu.open();
-        menu.getAction('Cancel')
-            .click();
+        getMenuItem(list.item(0), 'Cancel').click();
         modal.waitTillOpen(30000);
         modal.getFooterButton('Cancel')
             .click();
         modal.waitTillClosed();
 
         // 1.c Open the 'Cancel Event' modal again, and cancel the Event
-        cancelEvent();
+        cancelEventFromListView(list.item(0));
         list.item(0)
             .find('.label--yellow2')
             .should('contain.text', 'Cancelled');

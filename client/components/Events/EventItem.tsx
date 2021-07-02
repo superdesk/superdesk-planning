@@ -1,14 +1,14 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import {get} from 'lodash';
+import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
 
 import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {Label} from '../';
-import {ActionMenu, Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
-import {EventDateTime} from './';
-import {ItemActionsMenu} from '../index';
+import {Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
 import {
     eventUtils,
     getItemWorkflowState,
@@ -20,12 +20,17 @@ import {
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 import {EventDateTimeColumn} from './EventDateTimeColumn';
+import * as actions from '../../actions';
 
 interface IState {
     hover: boolean;
 }
 
-export class EventItem extends React.Component<IEventListItemProps, IState> {
+interface IProps extends IEventListItemProps {
+    dispatch(action: any): void;
+}
+
+class EventItemComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {hover: false};
@@ -34,7 +39,7 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
         this.renderItemActions = this.renderItemActions.bind(this);
     }
 
-    shouldComponentUpdate(nextProps: Readonly<IEventListItemProps>, nextState: Readonly<IState>) {
+    shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
             this.props.minTimeWidth !== nextProps.minTimeWidth;
@@ -49,12 +54,17 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
     }
 
     renderItemActions() {
-        if (!this.state.hover) {
+        if (!this.state.hover && !this.props.active) {
             return null;
         }
 
+        const {gettext} = superdeskApi.localization;
         const {session, privileges, item, lockedItems, calendars} = this.props;
         const callBacks = {
+            [EVENTS.ITEM_ACTIONS.PREVIEW.actionName]:
+                () => {
+                    this.props.dispatch(actions.main.openPreview(item, true));
+                },
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item, true),
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
@@ -88,7 +98,7 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
             [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName].bind(null, item),
         };
-        const itemActions = eventUtils.getEventActions({
+        const itemActions = eventUtils.getEventActionsForUiFrameworkMenu({
             item,
             session,
             privileges,
@@ -102,14 +112,34 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
         }
 
         return (
-            <ActionMenu>
-                <ItemActionsMenu actions={itemActions} wide={true} />
-            </ActionMenu>
+            <Menu items={itemActions}>
+                {
+                    (toggle) => (
+                        <div
+                            style={{display: 'flex', height: '100%'}}
+                            className="sd-list-item__action-menu sd-list-item__action-menu--direction-row"
+                        >
+                            <button
+                                className="icn-btn dropdown__toggle actions-menu-button"
+                                aria-label={gettext('Actions')}
+                                onClick={(e) => {
+                                    toggle(e);
+                                }}
+                                data-test-id="menu-button"
+                            >
+                                <i className="icon-dots-vertical" />
+                            </button>
+                        </div>
+                    )
+                }
+            </Menu>
         );
     }
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const {querySelectorParent} = superdeskApi.utilities;
+
         const {
             item,
             onItemClick,
@@ -148,7 +178,14 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
             <Item
                 shadow={1}
                 activated={this.props.multiSelected || active}
-                onClick={() => onItemClick(item)}
+                onClick={(e) => {
+                    // don't trigger preview if click went to a three dot menu or other button inside the list item
+                    if (e.target instanceof HTMLElement && querySelectorParent(e.target, 'button', {self: true})) {
+                        return;
+                    }
+
+                    onItemClick(item);
+                }}
                 disabled={isExpired}
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
@@ -251,3 +288,5 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
         );
     }
 }
+
+export const EventItem = connect()(EventItemComponent);

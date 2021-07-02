@@ -24,7 +24,16 @@ export class PreviewPanelComponent extends React.Component {
         this.tools = [
             {
                 icon: 'icon-close-small',
-                onClick: this.props.closePreview,
+                onClick: (event) => {
+                    this.props.closePreview();
+
+                    document.dispatchEvent(
+                        new CustomEvent(
+                            'superdesk-planning.close-preview',
+                            {...event, detail: {itemId: this.props.itemId}},
+                        ),
+                    );
+                },
                 title: gettext(TOOLTIPS.close),
             },
         ];
@@ -142,11 +151,15 @@ export class PreviewPanelComponent extends React.Component {
                                 showUnlock={this.props.showUnlock}
                             />
                         )}
-                        <RenderTab
-                            item={this.props.item}
-                            hideRelatedItems={this.props.hideRelatedItems}
-                            hideEditIcon={this.props.hideEditIcon}
-                        />
+                        <div tabIndex={-1} id="preview-content">
+                            <h3 className="a11y-only">{gettext('Item preview')}</h3>
+
+                            <RenderTab
+                                item={this.props.item}
+                                hideRelatedItems={this.props.hideRelatedItems}
+                                hideEditIcon={this.props.hideEditIcon}
+                            />
+                        </div>
                     </Content>
                 )}
             </SidePanel>
