@@ -10,7 +10,7 @@ export class LinkInput extends Input {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get addButton() {
-        return this.parent.find('.link-input__add-btn');
+        return this.parent.find('[data-test-id="event-links__add-new-button"]');
     }
 
     /**

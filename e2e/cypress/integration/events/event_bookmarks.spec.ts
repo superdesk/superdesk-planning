@@ -43,7 +43,7 @@ describe('Planning.Events: editor bookmarks', () => {
 
         editor.clickBookmark('links');
         editor.getFormGroup('links')
-            .find('.link-input__add-btn')
+            .find('[data-test-id="event-links__add-new-button"]')
             .should('be.visible')
             .should('be.focused');
 
