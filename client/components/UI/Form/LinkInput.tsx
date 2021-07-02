@@ -6,8 +6,8 @@ import {appConfig} from 'appConfig';
 
 import {superdeskApi} from '../../../superdeskApi';
 
+import {IconButton, Tooltip} from 'superdesk-ui-framework/react';
 import {Row, LineInput, Label, TextArea} from './';
-import {IconButton} from '../';
 
 import './style.scss';
 
@@ -162,7 +162,7 @@ export class LinkInput extends React.Component<IProps, IState> {
 
         return readOnly ? (
             <Row>
-                <LineInput noMargin={noMargin}>
+                <LineInput noMargin={noMargin} noLabel={true}>
                     <Label text={this.state.title} />
                     <a
                         href={this.getAbsoulteURL(value)}
@@ -208,25 +208,29 @@ export class LinkInput extends React.Component<IProps, IState> {
                         </a>
                     )}
 
-                    <span className="sd-line-input__icon-right">
-                        {showLink && (
-                            <IconButton
-                                href={this.getAbsoulteURL(value)}
-                                target="_blank"
-                                icon="icon-link"
-                                tooltip={gettext('Open link')}
-                                aria-label={gettext('Open link')}
-                            />
+                    <span
+                        className="sd-line-input__icon-right"
+                        style={{top: '1.6rem'}}
+                    >
+                        {!showLink ? null : (
+                            <Tooltip text={gettext('Open link')}>
+                                <IconButton
+                                    icon="link"
+                                    ariaValue={gettext('Open link')}
+                                    onClick={() => {
+                                        window.open(this.getAbsoulteURL(value), '_blank');
+                                    }}
+                                />
+                            </Tooltip>
                         )}
 
-                        <IconButton
-                            onClick={remove}
-                            tabIndex={0}
-                            icon="icon-trash"
-                            enterKeyIsClick={true}
-                            tooltip={gettext('Delete link')}
-                            aria-label={gettext('Delete link')}
-                        />
+                        <Tooltip text={gettext('Delete link')}>
+                            <IconButton
+                                onClick={remove}
+                                icon="trash"
+                                ariaValue={gettext('Delete link')}
+                            />
+                        </Tooltip>
                     </span>
                 </LineInput>
             </Row>
