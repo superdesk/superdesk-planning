@@ -1,12 +1,12 @@
 # Superdesk Planning Changelog
 
-## [2.3.0-rc.4] 2020-07-02
+## [2.3.0-rc.4] 2021-07-02
 ### Fixes
 - [SDESK-5906] fix(ingest): Unable to create event after ingestion (#1623)
 - [SDCP-526] fix: Accessibility improvements for preview (#1629)
 - [SDCP-536] fix(export): Show server error on failure (#1630)
 
-## [2.3.0-rc.3] 2020-06-29
+## [2.3.0-rc.3] 2021-06-29
 ### Fixes
 - [SDESK-6047] fix(search): Agenda filter not working from subnav (#1613)
 - [SDESK-6022] fix: Embedded coverages disappear after posting Event (#1615)
@@ -18,7 +18,7 @@
 - [SDESK-6074] fix(locks): Unlock Assignment on Archive Publish actions (#1626)
 - [SDESK-5833] fix: workqueue left padding remains when navigating from monitoring (#1622)
 
-## [2.3.0-rc.2] 2020-06-18
+## [2.3.0-rc.2] 2021-06-18
 ### Improvements
 - [SDCP-545] Improve accessibility in Planning page (#1598)
 - [SDCP-548] Improve accessibility in Assignments page (#1609)
@@ -31,7 +31,7 @@
 - [SDCP-549] fix(locations): Fallback to county if city isn't defined (#1610)
 - [SDESK-6017] fix: Validate CoverageForm in Event Editor (#1606)
 
-## [2.3.0-rc.1] 2020-06-16
+## [2.3.0-rc.1] 2021-06-16
 ### Features
 - [SDNTB-673] Support filtering/sorting by created/updated (#1555)
 - [SDESK-5906] ingest of json event format (#1566)
