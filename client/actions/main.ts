@@ -976,11 +976,23 @@ const closeEditor = (modal = false) => (
  * Action to open the preview panel and update the URL
  * @param {object} item - The item to open. Must have _id and type attributes
  */
-const openPreview = (item) => (
+const openPreview = (item, focusPreview?: boolean) => (
     (dispatch, getState, {$timeout, $location}) => {
         const currentPreviewId = selectors.main.previewId(getState());
+        const maybeFocusPreview = () => {
+            if (focusPreview !== true) {
+                return;
+            }
+
+            const el = document.querySelector('#preview-content');
+
+            if (el instanceof HTMLElement) {
+                el.focus();
+            }
+        };
 
         if (currentPreviewId === item._id) {
+            maybeFocusPreview();
             return;
         }
 
@@ -997,6 +1009,8 @@ const openPreview = (item) => (
             // Update the URL
             $timeout(() => $location.search('preview', JSON.stringify({id: item._id, type: item.type})));
         }
+
+        setTimeout(maybeFocusPreview, 200);
     }
 );
 

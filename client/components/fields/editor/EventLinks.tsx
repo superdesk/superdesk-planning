@@ -4,7 +4,8 @@ import {get} from 'lodash';
 import {IEditorFieldProps} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {ToggleBox, IconButton} from '../../UI';
+import {Button} from 'superdesk-ui-framework/react';
+import {ToggleBox} from '../../UI';
 import {Row, LinkInput} from '../../UI/Form';
 
 export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps> {
@@ -43,10 +44,13 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
         );
     }
 
+    getFirstFocusableElement(): HTMLTextAreaElement | HTMLButtonElement | null {
+        return this.node.current?.querySelector('textarea[name="links[0]"]') ??
+            this.node.current?.querySelector('[data-test-id="event-links__add-new-button"]');
+    }
+
     onOpen() {
-        if (this.node.current != null) {
-            this.node.current.getElementsByTagName('a')[0]?.focus();
-        }
+        this.getFirstFocusableElement()?.focus();
     }
 
     render() {
@@ -81,14 +85,14 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
                     ))}
 
                     {this.props.disabled ? null : (
-                        <IconButton
+                        <Button
+                            text={gettext('Add link')}
+                            data-test-id="event-links__add-new-button"
+                            type="primary"
+                            style="hollow"
+                            expand={true}
+                            icon="plus-sign"
                             onClick={this.addLink}
-                            icon="icon-plus-sign"
-                            label={gettext('Add link')}
-                            useDefaultClass={false}
-                            className="text-link cursor-pointer link-input__add-btn"
-                            tabIndex={0}
-                            enterKeyIsClick={true}
                         />
                     )}
                 </Row>

@@ -350,6 +350,7 @@ const getPlanningActions = ({
     let eventActions = [GENERIC_ITEM_ACTIONS.DIVIDER];
     const isExpired = isItemExpired(item);
     let alllowedCallBacks = [
+        PLANNING.ITEM_ACTIONS.PREVIEW.actionName,
         PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName,
         PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName,
         PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName,
@@ -362,6 +363,7 @@ const getPlanningActions = ({
         PLANNING.ITEM_ACTIONS.SPIKE.actionName,
         PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName,
         PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName,
+        EVENTS.ITEM_ACTIONS.PREVIEW.actionName,
         EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,

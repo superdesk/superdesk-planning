@@ -343,36 +343,6 @@ export class ListPanel extends React.Component<IProps, IState> {
                         onScroll={this.handleScroll}
                         ref={(node) => this.dom.list = node}
                         onKeyDown={this.handleKeyDown}
-                        onFocus={(event) => {
-                            const focusTo = event.target as HTMLElement | null;
-
-                            /**
-                             * Remove item selection.
-                             * New selection will be set in a few miliseconds by a function
-                             * triggered by a mouse/keyboard event.
-                             *
-                             * For accessibility purposes, no items should be selected when the group
-                             * gets focused. Otherwise, screen readers repeat the same information twice.
-                             *
-                             * EXCEPTION: keep active item, if focus was triggered by returning from actions menu
-                             * or any interactive element inside the list item.
-                             */
-                            if (
-                                focusTo?.getAttribute('role') === 'listbox'
-                            ) {
-                                const blurFrom = event?.relatedTarget as HTMLElement | null;
-
-                                const activedescendant = focusTo.getAttribute('aria-activedescendant');
-                                const activeListItem = document.querySelector(`#${activedescendant}`);
-
-                                const returningFromMenuItem = blurFrom?.getAttribute('role') === 'menuitem';
-                                const returningFromElementInsideListItem = activeListItem?.contains(blurFrom) === true;
-
-                                if (!returningFromMenuItem && !returningFromElementInsideListItem) {
-                                    this.setState({activeItemIndex: -1});
-                                }
-                            }
-                        }}
                     >
                         {groups.map((group, i) => {
                             const propsForNestedListItems = {

@@ -90,6 +90,8 @@ describe('Planning.Planning: list view accessibility', () => {
 
         cy.realPress('{enter}'); // opens actions menu
 
+        cy.realPress('{downarrow}'); // "edit" is second option in the menu
+
         // select edit option (due to cypress issues it doesn't work to trigger it via keyboard)
         cy.focused().realClick();
 
@@ -133,6 +135,7 @@ describe('Planning.Planning: list view accessibility', () => {
         cy.realPress('{enter}'); // opens actions menu
 
         // select edit option (due to cypress issues it doesn't work to trigger it via keyboard)
+        cy.realPress('{downarrow}'); // "edit" is second option in the menu
         cy.focused().realClick();
 
         cy.get('[data-test-id="planning-editor"] [data-test-id="field-slugline"] input')

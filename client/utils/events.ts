@@ -1,6 +1,7 @@
 import moment from 'moment';
 import RRule from 'rrule';
 import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {appConfig} from 'appConfig';
 import {IEventItem} from '../interfaces';
@@ -40,6 +41,7 @@ import {
     sanitizeItemFields,
 } from './index';
 import {getUsersDefaultLanguage} from './users';
+import {toUIFrameworkInterface} from './planning';
 
 
 /**
@@ -606,6 +608,7 @@ const getEventActions = ({
     let actions = [];
     const isExpired = isItemExpired(item);
     let alllowedCallBacks = [
+        EVENTS.ITEM_ACTIONS.PREVIEW.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
         EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
@@ -683,6 +686,9 @@ const getEventActions = ({
     );
 };
 
+function getEventActionsForUiFrameworkMenu(data): Array<IMenuItem> {
+    return toUIFrameworkInterface(getEventActions(data));
+}
 
 /*
  * Groups the events by date
@@ -1110,6 +1116,7 @@ const self = {
     isEventRecurring,
     getDateStringForEvent,
     getEventActions,
+    getEventActionsForUiFrameworkMenu,
     getEventsByDate,
     duplicateEvent,
     shouldLockEventForEdit,
