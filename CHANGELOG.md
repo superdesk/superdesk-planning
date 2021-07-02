@@ -1,5 +1,11 @@
 # Superdesk Planning Changelog
 
+## [2.3.0-rc.4] 2020-07-02
+### Fixes
+- [SDESK-5906] fix(ingest): Unable to create event after ingestion (#1623)
+- [SDCP-526] fix: Accessibility improvements for preview (#1629)
+- [SDCP-536] fix(export): Show server error on failure (#1630)
+
 ## [2.3.0-rc.3] 2020-06-29
 ### Fixes
 - [SDESK-6047] fix(search): Agenda filter not working from subnav (#1613)
