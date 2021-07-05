@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment-timezone';
 import {ListGroupItem} from './';
 import {Group, Header} from '../UI/List';
@@ -43,158 +42,192 @@ function getMinTimeWidth(
         TIME_COLUMN_MIN_WIDTH.WITH_DATE;
 }
 
-export const ListGroup = ({
-    name,
-    items,
-    lockedItems,
-    agendas,
-    session,
-    privileges,
-    calendars,
-    activeFilter,
-    showRelatedPlannings,
-    relatedPlanningsInList,
-    onItemClick,
-    onDoubleClick,
-    onAddCoverageClick,
-    onMultiSelectClick,
-    selectedEventIds,
-    selectedPlanningIds,
-    itemActions,
-    users,
-    desks,
-    showAddCoverage,
-    hideItemActions,
-    listFields,
-    activeItemIndex,
-    indexItems,
-    indexFrom,
-    navigateDown,
-    navigateList,
-    onItemActivate,
-    previewItem,
-    contentTypes,
-    contacts,
-    listViewType,
-    sortField,
-    listBoxGroupProps,
-}) => {
-    const flattenMultiday = (eventId, all, multi) => {
-        onMultiSelectClick(eventId, all, multi, name);
-    };
-    const minTimeWidth = getMinTimeWidth(items, listViewType, sortField);
+interface IProps {
+    name?: string;
+    items?: Array<any>;
+    users?: Array<any>;
+    desks?: Array<any>;
+    onItemClick(): void;
+    onDoubleClick?(): void;
+    editItem?: {};
+    previewItem?: string;
+    lockedItems: {};
+    agendas: Array<any>;
+    session?: {};
+    privileges?: {};
+    calendars?: Array<any>;
+    activeFilter?: string;
+    showRelatedPlannings?(): void;
+    relatedPlanningsInList?: {};
+    onAddCoverageClick?(): void;
+    onMultiSelectClick?(eventId, all, multi, name): void;
+    selectedEventIds?: Array<any>;
+    selectedPlanningIds?: Array<any>;
+    itemActions?: {};
+    showAddCoverage?: boolean;
+    hideItemActions?: boolean;
+    listFields?: {};
+    activeItemIndex?: number;
+    indexItems?: boolean;
+    indexFrom?: number;
+    navigateDown?: boolean;
+    navigateList?(): void;
+    onItemActivate?(): void;
+    contentTypes?: Array<any>;
+    contacts?: {};
+    listViewType?: string;
+    sortField?: string;
+    listBoxGroupProps: {};
+}
 
-    const headingId = `heading--${listBoxGroupProps['groupId']}`;
+export class ListGroup extends React.Component<IProps> {
+    private refUl: HTMLElement | null;
 
-    return (
-        <div className="ListGroup">
-            {name == null ? null : (
-                <Header title={moment(name).format('dddd LL')} id={headingId} />
-            )}
-            <Group
-                spaceBetween={listViewType === LIST_VIEW_TYPE.SCHEDULE}
-                listBoxGroupProps={listBoxGroupProps}
-                aria-labelledby={headingId}
-                indexFrom={indexFrom}
-            >
-                {items.map((item, index) => {
-                    let itemProps = {
-                        date: name,
-                        item: item,
-                        onItemClick: onItemClick,
-                        onDoubleClick: onDoubleClick,
-                        onAddCoverageClick: onAddCoverageClick.bind(null, item),
-                        lockedItems: lockedItems,
-                        agendas: agendas,
-                        session: session,
-                        privileges: privileges,
-                        activeFilter: activeFilter,
-                        showRelatedPlannings: showRelatedPlannings,
-                        relatedPlanningsInList: relatedPlanningsInList,
-                        onMultiSelectClick: flattenMultiday,
-                        selectedEventIds: selectedEventIds,
-                        selectedPlanningIds: selectedPlanningIds,
-                        itemActions: itemActions,
-                        users: users,
-                        desks: desks,
-                        showAddCoverage: showAddCoverage,
-                        hideItemActions: hideItemActions,
-                        calendars: calendars,
-                        listFields: listFields,
-                        navigateDown: navigateDown,
-                        navigateList: navigateList,
-                        onItemActivate: onItemActivate,
-                        previewItem: previewItem,
-                        contentTypes: contentTypes,
-                        contacts: contacts,
-                        listViewType: listViewType,
-                        sortField: sortField,
-                        minTimeWidth: minTimeWidth,
-                    };
+    constructor(props: IProps) {
+        super(props);
 
-                    if (indexItems) {
-                        itemProps.index = indexFrom + index;
-                        itemProps.active = (activeItemIndex === itemProps.index);
-                    }
+        this.handlePreviewClose = this.handlePreviewClose.bind(this);
+    }
 
-                    const id = listBoxGroupProps.getChildId(index);
-                    const selectedId = listBoxGroupProps.containerProps['aria-activedescendant'];
+    handlePreviewClose(event) {
+        const id = event?.detail?.itemId;
 
-                    return (
-                        <div
-                            id={id}
-                            role="option"
-                            aria-selected={id === selectedId ? true : undefined}
-                            key={item._id}
-                        >
-                            <ListGroupItem {...itemProps} />
-                        </div>
-                    );
-                })}
-            </Group>
-        </div>
-    );
-};
+        if (id == null) {
+            return;
+        }
 
-ListGroup.propTypes = {
-    name: PropTypes.string,
-    items: PropTypes.array,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    onItemClick: PropTypes.func.isRequired,
-    onDoubleClick: PropTypes.func,
-    editItem: PropTypes.object,
-    previewItem: PropTypes.string,
-    lockedItems: PropTypes.object.isRequired,
-    agendas: PropTypes.array.isRequired,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    calendars: PropTypes.array,
-    activeFilter: PropTypes.string,
-    showRelatedPlannings: PropTypes.func,
-    relatedPlanningsInList: PropTypes.object,
-    onAddCoverageClick: PropTypes.func,
-    onMultiSelectClick: PropTypes.func,
-    selectedEventIds: PropTypes.array,
-    selectedPlanningIds: PropTypes.array,
-    itemActions: PropTypes.object,
-    showAddCoverage: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    listFields: PropTypes.object,
-    activeItemIndex: PropTypes.number,
-    indexItems: PropTypes.bool,
-    indexFrom: PropTypes.number,
-    navigateDown: PropTypes.bool,
-    navigateList: PropTypes.func,
-    onItemActivate: PropTypes.func,
-    contentTypes: PropTypes.array,
-    contacts: PropTypes.object,
-    listViewType: PropTypes.string,
-    sortField: PropTypes.string,
-    listBoxGroupProps: PropTypes.object,
-};
+        const idInGroup = this.props.items.find((item) => item._id === id) != null;
 
-ListGroup.defaultProps = {
-    indexItems: false,
-    indexFrom: 0,
-};
+        if (idInGroup) {
+            this.refUl?.focus();
+        }
+    }
+
+    componentDidMount() {
+        document.addEventListener('superdesk-planning.close-preview', this.handlePreviewClose);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('superdesk-planning.close-preview', this.handlePreviewClose);
+    }
+
+    render() {
+        const {
+            name,
+            items,
+            lockedItems,
+            agendas,
+            session,
+            privileges,
+            calendars,
+            activeFilter,
+            showRelatedPlannings,
+            relatedPlanningsInList,
+            onItemClick,
+            onDoubleClick,
+            onAddCoverageClick,
+            onMultiSelectClick,
+            selectedEventIds,
+            selectedPlanningIds,
+            itemActions,
+            users,
+            desks,
+            showAddCoverage,
+            hideItemActions,
+            listFields,
+            activeItemIndex,
+            navigateDown,
+            navigateList,
+            onItemActivate,
+            previewItem,
+            contentTypes,
+            contacts,
+            listViewType,
+            sortField,
+            listBoxGroupProps,
+        } = this.props;
+
+        // with defaults
+        const indexItems = this.props.indexItems ?? false;
+        const indexFrom = this.props.indexFrom ?? 0;
+
+        const flattenMultiday = (eventId, all, multi) => {
+            onMultiSelectClick(eventId, all, multi, name);
+        };
+        const minTimeWidth = getMinTimeWidth(items, listViewType, sortField);
+
+        const headingId = `heading--${listBoxGroupProps['groupId']}`;
+
+        return (
+            <div className="ListGroup">
+                {name == null ? null : (
+                    <Header title={moment(name).format('dddd LL')} id={headingId} />
+                )}
+                <Group
+                    spaceBetween={listViewType === LIST_VIEW_TYPE.SCHEDULE}
+                    listBoxGroupProps={listBoxGroupProps}
+                    aria-labelledby={headingId}
+                    indexFrom={indexFrom}
+                    refNode={(el) => {
+                        this.refUl = el;
+                    }}
+                >
+                    {items.map((item, index) => {
+                        let itemProps = {
+                            date: name,
+                            item: item,
+                            onItemClick: onItemClick,
+                            onDoubleClick: onDoubleClick,
+                            onAddCoverageClick: onAddCoverageClick.bind(null, item),
+                            lockedItems: lockedItems,
+                            agendas: agendas,
+                            session: session,
+                            privileges: privileges,
+                            activeFilter: activeFilter,
+                            showRelatedPlannings: showRelatedPlannings,
+                            relatedPlanningsInList: relatedPlanningsInList,
+                            onMultiSelectClick: flattenMultiday,
+                            selectedEventIds: selectedEventIds,
+                            selectedPlanningIds: selectedPlanningIds,
+                            itemActions: itemActions,
+                            users: users,
+                            desks: desks,
+                            showAddCoverage: showAddCoverage,
+                            hideItemActions: hideItemActions,
+                            calendars: calendars,
+                            listFields: listFields,
+                            navigateDown: navigateDown,
+                            navigateList: navigateList,
+                            onItemActivate: onItemActivate,
+                            previewItem: previewItem,
+                            contentTypes: contentTypes,
+                            contacts: contacts,
+                            listViewType: listViewType,
+                            sortField: sortField,
+                            minTimeWidth: minTimeWidth,
+                        };
+
+                        if (indexItems) {
+                            itemProps.index = indexFrom + index;
+                            itemProps.active = (activeItemIndex === itemProps.index);
+                        }
+
+                        const id = listBoxGroupProps.getChildId(index);
+                        const selectedId = listBoxGroupProps.containerProps['aria-activedescendant'];
+
+                        return (
+                            <div
+                                id={id}
+                                role="option"
+                                aria-selected={id === selectedId ? true : undefined}
+                                key={item._id}
+                            >
+                                <ListGroupItem {...itemProps} />
+                            </div>
+                        );
+                    })}
+                </Group>
+            </div>
+        );
+    }
+}

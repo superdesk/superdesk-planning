@@ -39,7 +39,7 @@ const IconButton = ({
     };
 
     return (
-        <a
+        <button
             className={classNames(
                 {'icn-btn': useDefaultClass},
                 className
@@ -54,7 +54,7 @@ const IconButton = ({
         >
             <Icon icon={icon} />
             {label}
-        </a>
+        </button>
     );
 };
 

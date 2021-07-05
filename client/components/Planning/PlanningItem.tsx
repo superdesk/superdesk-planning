@@ -1,4 +1,5 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {Menu} from 'superdesk-ui-framework/react';
@@ -29,12 +30,17 @@ import {
     getItemWorkflowState,
 } from '../../utils';
 import {renderFields} from '../fields';
+import * as actions from '../../actions';
 
 interface IState {
     hover: boolean;
 }
 
-export class PlanningItem extends React.Component<IPlanningListItemProps, IState> {
+interface IProps extends IPlanningListItemProps {
+    dispatch(action: any): void;
+}
+
+class PlanningItemComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {hover: false};
@@ -50,7 +56,7 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
         this.props.onAddCoverageClick();
     }
 
-    shouldComponentUpdate(nextProps: Readonly<IPlanningListItemProps>, nextState: Readonly<IState>) {
+    shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
             !isEqual(
@@ -76,6 +82,10 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
         const {gettext} = superdeskApi.localization;
         const {session, privileges, item, lockedItems, hideItemActions, agendas, contentTypes} = this.props;
         const itemActionsCallBack = {
+            [PLANNING.ITEM_ACTIONS.PREVIEW.actionName]:
+                () => {
+                    this.props.dispatch(actions.main.openPreview(item, true));
+                },
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName]:
@@ -304,3 +314,5 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
         );
     }
 }
+
+export const PlanningItem = connect()(PlanningItemComponent);

@@ -238,6 +238,11 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     }
                     timeField="_startTime"
                     onChange={this.changeSchedule}
+                    showToBeConfirmed
+                    onToBeConfirmed={() => {
+                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
+                    }}
+                    toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                 />
                 <EditorFieldEndDateTime
                     {...props}
@@ -249,6 +254,11 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     }
                     timeField="_endTime"
                     onChange={this.changeSchedule}
+                    showToBeConfirmed
+                    onToBeConfirmed={() => {
+                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
+                    }}
+                    toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                 />
                 <Row
                     flex={true}
