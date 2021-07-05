@@ -252,7 +252,7 @@ describe('Planning.Planning: list view accessibility', () => {
         cy.get('@group2').should('have.focus');
     });
 
-    it.only('returns focus to the list item after preview is closed', () => {
+    it('returns focus to the list item after preview is closed', () => {
         cy.get('.sd-list-item-group')
             .first()
             .as('group');
