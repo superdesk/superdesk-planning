@@ -5,8 +5,7 @@ import {querySelectorParent} from 'superdesk-core/scripts/core/helpers/dom/query
 import {superdeskApi, planningApi} from '../superdeskApi';
 
 
-import {initialState} from './testData';
-
+import {initialState, privileges} from './testData';
 Object.assign(superdeskApi, {
     localization: {
         gettext: (text) => text,
@@ -31,6 +30,9 @@ Object.assign(superdeskApi, {
     utilities: {
         querySelectorParent: querySelectorParent,
     },
+    privileges: {
+        hasPrivilege: (privilege: string) => privileges[privilege] === 1
+    }
 });
 
 Object.assign(planningApi, {

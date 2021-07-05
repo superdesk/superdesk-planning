@@ -18,7 +18,6 @@ import {ItemManager} from '../ItemManager';
 
 
 describe('components.Main.ItemManager', () => {
-    let privileges;
     let editor;
     let manager;
     let newEvent;
@@ -26,9 +25,6 @@ describe('components.Main.ItemManager', () => {
     let states;
 
     beforeEach(() => {
-        privileges = {
-            planning_planning_management: 1,
-        },
         newEvent = {
             _id: 'tempId-e5',
             type: 'event',
