@@ -116,7 +116,7 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
                                         readOnly={readOnly}
                                     />
                                 );
-                            } else if (bookmark.type === BOOKMARK_TYPE.custom) {
+                            } else if (bookmark.type === BOOKMARK_TYPE.custom && !bookmark.disabled) {
                                 const Component = bookmark.component;
 
                                 return (
