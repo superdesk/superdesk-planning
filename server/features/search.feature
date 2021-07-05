@@ -187,7 +187,7 @@ Feature: Search Feature
         """
 
 
-    @auth @wip
+    @auth
     Scenario: Search events and planning using calendars and agenda
         Given "agenda"
         """

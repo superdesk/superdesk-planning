@@ -628,7 +628,7 @@ Feature: Planning Search
         ]}
         """
 
-    @auth @wip
+    @auth
     Scenario: Users can only see their planning items without the planning_global_filters privilege
         Given "planning"
         """
