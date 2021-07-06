@@ -59,4 +59,6 @@ export const TIME_STRINGS = {
     0: getTimeStringForHour(0),
     1: getTimeStringForHour(1),
     2: getTimeStringForHour(2),
+    3: getTimeStringForHour(3),
+    4: getTimeStringForHour(4),
 };
