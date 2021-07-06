@@ -29,6 +29,7 @@ interface IProps<SubnavProps = {}, EditorProps = {}, FilterProps = {}, ListProps
     filterProps?: FilterProps;
 
     ListPanel?: React.ComponentType<IListPanelProps & ListProps>;
+    listPanelFlex?: boolean;
     listProps?: ListProps;
 
     PreviewPanel?: React.ComponentType<PreviewProps>;
@@ -142,7 +143,15 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
                         )}
 
                         {ListPanel && (
-                            <div className="sd-column-box__main-column sd-column-box__main-column__listpanel">
+                            <div
+                                className={classNames(
+                                    'sd-column-box__main-column',
+                                    'sd-column-box__main-column__listpanel',
+                                    {
+                                        'sd-column-box__main-column--flex': this.props.listPanelFlex
+                                    }
+                                )}
+                            >
                                 <ListPanel
                                     previewOpen={previewOpen}
                                     toggleFilterPanel={this.toggleFilterPanel}
