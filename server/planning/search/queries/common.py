@@ -19,6 +19,10 @@ from superdesk import get_resource_service
 from superdesk.utc import get_timezone_offset, utcnow
 from superdesk.errors import SuperdeskApiError
 from superdesk.default_settings import strtobool as _strtobool
+from superdesk.users.services import current_user_has_privilege
+
+from apps.auth import get_user_id
+
 from planning.search.queries import elastic
 from planning.common import POST_STATE, WORKFLOW_STATE
 
@@ -464,6 +468,22 @@ def get_params_from_search_filter(search_filter: Dict[str, Any]) -> Dict[str, An
     return filter_params
 
 
+def search_original_creator(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if len(params.get('original_creator') or ''):
+        query.must.append(
+            elastic.term(
+                field='original_creator',
+                value=params['original_creator']
+            )
+        )
+
+
+def restrict_items_to_user_only(_params: Dict[str, Any], query: elastic.ElasticQuery):
+    user_id = get_user_id(required=False)
+    if user_id and not current_user_has_privilege('planning_global_filters'):
+        search_original_creator({'original_creator': str(user_id)}, query)
+
+
 COMMON_SEARCH_FILTERS = [
     search_item_ids,
     search_name,
@@ -476,6 +496,8 @@ COMMON_SEARCH_FILTERS = [
     search_locked,
     search_recurrence_id,
     append_states_query_for_advanced_search,
+    restrict_items_to_user_only,
+    search_original_creator,
 ]
 
 
@@ -506,5 +528,6 @@ COMMON_PARAMS = [
     'filter_id',
     'projections',
     'sort_order',
-    'sort_field'
+    'sort_field',
+    'original_creator',
 ]

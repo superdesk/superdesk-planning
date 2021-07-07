@@ -627,3 +627,58 @@ Feature: Planning Search
             {"_id": "planning_4"}
         ]}
         """
+
+    @auth
+    Scenario: Users can only see their planning items without the planning_global_filters privilege
+        Given "planning"
+        """
+        [{
+            "guid": "user_1_plan_1",
+            "headline": "plan1 for user 1",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "user_1"
+        }, {
+            "guid": "user_1_plan_2",
+            "headline": "plan2 for user 1",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "user_1"
+        }, {
+            "guid": "user_2_plan_1",
+            "headline": "plan1 for user 2",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "#CONTEXT_USER_ID#"
+        }, {
+            "guid": "user_2_plan_2",
+            "headline": "plan2 for user 2",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "#CONTEXT_USER_ID#"
+        }]
+        """
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_global_filters": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we get "/events_planning_search?repo=planning&only_future=false"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "user_2_plan_1"},
+            {"_id": "user_2_plan_2"}
+        ]}
+        """
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_global_filters": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we get "/events_planning_search?repo=planning&only_future=false"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {"_id": "user_1_plan_1"},
+            {"_id": "user_1_plan_2"},
+            {"_id": "user_2_plan_1"},
+            {"_id": "user_2_plan_2"}
+        ]}
+        """

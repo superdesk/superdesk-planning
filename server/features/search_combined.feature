@@ -117,3 +117,87 @@ Feature: Search Events and Planning
             {"_id": "planning_1", "type": "planning", "slugline": "__no_value__"}
         ]}
         """
+
+    @auth
+    Scenario: Users can only see their events without the planning_global_filters privilege
+        Given "events"
+        """
+        [{
+            "guid": "user_1_event_1",
+            "name": "event1 for user 1",
+            "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
+            "original_creator": "user_1"
+        }, {
+            "guid": "user_1_event_2",
+            "name": "event2 for user 1",
+            "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
+            "original_creator": "user_1"
+        }, {
+            "guid": "user_2_event_1",
+            "name": "event1 for user 2",
+            "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
+            "original_creator": "#CONTEXT_USER_ID#"
+        }, {
+            "guid": "user_2_event_2",
+            "name": "event2 for user 2",
+            "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-03T00:00:00+0000"},
+            "original_creator": "#CONTEXT_USER_ID#"
+        }]
+        """
+        And "planning"
+        """
+        [{
+            "guid": "user_1_plan_1",
+            "headline": "plan1 for user 1",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "user_1",
+            "event_item": "user_1_event_1"
+        }, {
+            "guid": "user_1_plan_2",
+            "headline": "plan2 for user 1",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "user_1"
+        }, {
+            "guid": "user_2_plan_1",
+            "headline": "plan1 for user 2",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "#CONTEXT_USER_ID#",
+            "event_item": "user_2_event_2"
+        }, {
+            "guid": "user_2_plan_2",
+            "headline": "plan2 for user 2",
+            "planning_date": "2016-01-01T12:00:00+0000",
+            "original_creator": "#CONTEXT_USER_ID#"
+        }]
+        """
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_global_filters": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we get "/events_planning_search?only_future=false"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {"_id": "user_2_event_1"},
+            {"_id": "user_2_event_2"},
+            {"_id": "user_2_plan_2"}
+        ]}
+        """
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_global_filters": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we get "/events_planning_search?only_future=false"
+        Then we get list with 6 items
+        """
+        {"_items": [
+            {"_id": "user_1_event_1"},
+            {"_id": "user_1_event_2"},
+            {"_id": "user_2_event_1"},
+            {"_id": "user_2_event_2"},
+            {"_id": "user_1_plan_2"},
+            {"_id": "user_2_plan_2"}
+        ]}
+        """
