@@ -489,10 +489,10 @@ export function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
                 return true;
             }
         })
-        .map((p) => {
-            const {label, icon, callback} = p;
+        .map((menuItemOrGroup) => {
+            if (Array.isArray(menuItemOrGroup.callback)) {
+                const {label, icon, callback} = menuItemOrGroup;
 
-            if (Array.isArray(callback)) {
                 var menuBranch: IMenuItem = {
                     label: label,
                     icon: icon,
@@ -500,17 +500,20 @@ export function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
                 };
 
                 return menuBranch;
-            } else if (label === 'Divider') {
+            } else if (menuItemOrGroup.label === 'Divider') {
                 var menuSeparator: IMenuItem = {
                     separator: true,
                 };
 
                 return menuSeparator;
             } else {
+                const {label, icon, callback, inactive} = menuItemOrGroup;
+
                 var menuLeaf: IMenuItem = {
                     label: label,
                     icon: icon,
                     onClick: callback,
+                    disabled: inactive,
                 };
 
                 return menuLeaf;
