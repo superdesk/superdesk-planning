@@ -327,9 +327,12 @@ export class ListPanel extends React.Component<IProps, IState> {
         let indexFrom = 0;
 
         return (
-            <div>
-                {loadingIndicator &&
-                <div className="loading-indicator">{gettext('Loading')}</div>}
+            <React.Fragment>
+                {!loadingIndicator ? null : (
+                    <div className="loading-indicator">
+                        {gettext('Loading')}
+                    </div>
+                )}
                 {!loadingIndicator && groups.length <= 0 && (
                     <PanelInfo
                         heading={gettext('No Event or Planning items found')}
@@ -433,7 +436,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                         )}
                     </div>
                 )}
-            </div>
+            </React.Fragment>
         );
     }
 }
