@@ -24,6 +24,7 @@ export class PlanningUi extends React.PureComponent<IProps> {
                 SubNavPanel={PlanningSubNav}
                 FilterPanel={SearchPanel}
                 ListPanel={PlanningList}
+                listPanelFlex={true}
                 PreviewPanel={PreviewPanel}
                 EditorPanel={Editor}
             />

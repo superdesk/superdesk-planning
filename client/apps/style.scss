@@ -57,7 +57,6 @@
     .sd-column-box__main-column__items {
         overflow: auto !important;
         width: 100%;
-        height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
 
         &--featured {
             // 68px = for featured list header including overlapping margin of header and list
@@ -66,6 +65,7 @@
     }
     .loading-indicator{
         top: calc(#{$nav-height} + #{$subnav-height});
+        z-index: 1002;
     }
 }
 
