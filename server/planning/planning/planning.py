@@ -29,7 +29,8 @@ from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_covera
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
     get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, \
     get_planning_xmp_assignment_mapping, sanitize_input_data, get_planning_xmp_slugline_mapping, \
-    get_planning_use_xmp_for_pic_slugline, get_planning_use_xmp_for_pic_assignments
+    get_planning_use_xmp_for_pic_slugline, get_planning_use_xmp_for_pic_assignments, \
+    sync_assignment_details_to_coverages
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -47,60 +48,10 @@ class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
     def generate_related_assignments(self, docs):
-        def _enhance_coverage_entities(coverage_entities, lookup_field='coverage_item'):
-            if not coverage_entities:
-                return
-
-            ids = list(coverage_entities.keys())
-
-            assignments = list(get_resource_service('assignments').get_from_mongo(req=None,
-                                                                                  lookup={lookup_field: {'$in': ids}}))
-
-            for coverage_id, coverage in coverage_entities.items():
-                if not coverage.get('assigned_to'):
-                    coverage['assigned_to'] = {}
-                else:
-                    try:
-                        assignment = [a for a in assignments if str(a.get('_id')) ==
-                                      str(coverage['assigned_to'].get('assignment_id'))][0]
-                    except IndexError:
-                        continue
-
-                    coverage['assigned_to']['assignment_id'] = assignment.get(config.ID_FIELD)
-                    coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
-                    coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
-                    coverage['assigned_to']['contact'] = assignment.get('assigned_to', {}).get('contact')
-                    coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
-                    coverage['assigned_to']['assignor_user'] = assignment.get('assigned_to', {}).get('assignor_user')
-                    coverage['assigned_to']['assignor_desk'] = assignment.get('assigned_to', {}).get('assignor_desk')
-                    coverage['assigned_to']['assigned_date_desk'] = \
-                        assignment.get('assigned_to', {}).get('assigned_date_desk')
-                    coverage['assigned_to']['assigned_date_user'] = \
-                        assignment.get('assigned_to', {}).get('assigned_date_user')
-                    coverage['assigned_to']['coverage_provider'] = \
-                        assignment.get('assigned_to', {}).get('coverage_provider')
-                    coverage['assigned_to']['priority'] = assignment.get('priority')
-
-        coverages = {}
         for doc in docs:
             doc.pop('_planning_schedule', None)
             doc.pop('_updates_schedule', None)
-
-            if not doc.get('coverages'):
-                doc['coverages'] = []
-
-            for cov in (doc.get('coverages') or []):
-                scheduled_updates = {}
-                coverages[cov.get('coverage_id')] = cov
-
-                if not cov.get('scheduled_updates'):
-                    cov['scheduled_updates'] = []
-
-                for s in cov.get('scheduled_updates'):
-                    scheduled_updates[s.get('scheduled_update_id')] = s
-
-                _enhance_coverage_entities(coverages)
-                _enhance_coverage_entities(scheduled_updates, lookup_field='scheduled_update_id')
+            sync_assignment_details_to_coverages(doc)
 
     def on_fetched(self, docs):
         self.generate_related_assignments(docs.get(config.ITEMS))
