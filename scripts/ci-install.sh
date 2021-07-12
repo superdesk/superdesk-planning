@@ -17,6 +17,10 @@ if [ "$INSTALL_PY_MODULES" == "true" ]; then
     cd ..
 fi
 
+if [ "$INSTALL_PY_EDITABLE" == "true" ]; then
+    pip install -e .
+fi
+
 if [ "$E2E" == "true" ]; then
     cd e2e/server
     pip install -r requirements.txt

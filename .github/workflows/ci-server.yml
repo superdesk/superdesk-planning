@@ -3,11 +3,46 @@ name: "CI-Server"
 on: [push, pull_request]
 
 jobs:
-  server:
+  server-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - run: pip install flake8
+      - run: flake8
+        working-directory: ./server
+  server-nose:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.6, 3.8]
+    env:
+      INSTALL_PY_MODULES: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip
+            ${{ runner.os }}-
+      - name: Setup Environment
+        run: ./scripts/ci-install.sh
+      - name: Nosetests
+        working-directory: ./server
+        run: nosetests --logging-level=ERROR
+  server-behave:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.6, 3.8 ]
     env:
       INSTALL_PY_MODULES: true
       RUN_SERVICES: true
@@ -30,12 +65,38 @@ jobs:
         run: ./scripts/ci-install.sh
       - name: Start Services
         run: ./scripts/ci-start-services.sh
-      - name: Flake8
-        working-directory: ./server
-        run: flake8
-      - name: Nosetests
-        working-directory: ./server
-        run: nosetests --logging-level=ERROR
       - name: Behave
         working-directory: ./server
         run: behave --format progress2 --logging-level=ERROR
+
+  prodapi:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.6, 3.8 ]
+    env:
+      INSTALL_PY_MODULES: true
+      INSTALL_PY_EDITABLE: true
+      RUN_SERVICES: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip
+            ${{ runner.os }}-
+      - name: Setup Environment
+        run: ./scripts/ci-install.sh
+      - name: Start Services
+        run: ./scripts/ci-start-services.sh
+      - name: Pytest
+        working-directory: ./server/tests/prod_api
+        run: pytest
