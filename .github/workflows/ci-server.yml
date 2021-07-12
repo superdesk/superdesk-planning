@@ -18,6 +18,7 @@ jobs:
         python-version: [3.6, 3.8]
     env:
       INSTALL_PY_MODULES: true
+      RUN_SERVICES: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -35,6 +36,8 @@ jobs:
             ${{ runner.os }}-
       - name: Setup Environment
         run: ./scripts/ci-install.sh
+      - name: Start Services
+        run: ./scripts/ci-start-services.sh
       - name: Nosetests
         working-directory: ./server
         run: nosetests --logging-level=ERROR
