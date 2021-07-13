@@ -641,7 +641,7 @@ def is_content_link_to_coverage_allowed(archive_item):
         archive_item['type'] in allowed_coverage_link_types
 
 
-def _sync_coverage_assigned_to(coverages, lookup_field='coverage_item'):
+def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
     if not coverages:
         return
 
@@ -652,7 +652,7 @@ def _sync_coverage_assigned_to(coverages, lookup_field='coverage_item'):
             lookup={
                 lookup_field: {
                     '$in': [
-                        coverage['coverage_id']
+                        coverage[id_field]
                         for coverage in coverages
                     ]
                 }
@@ -686,8 +686,16 @@ def _sync_coverage_assigned_to(coverages, lookup_field='coverage_item'):
 
 def sync_assignment_details_to_coverages(doc):
     doc.setdefault('coverages', [])
-    _sync_coverage_assigned_to(doc['coverages'])
+    _sync_coverage_assigned_to(
+        doc['coverages'],
+        lookup_field='coverage_item',
+        id_field='coverage_id'
+    )
 
     for coverage in doc['coverages']:
         coverage.setdefault('scheduled_updates', [])
-        _sync_coverage_assigned_to(coverage['scheduled_updates'], lookup_field='scheduled_update_id')
+        _sync_coverage_assigned_to(
+            coverage['scheduled_updates'],
+            lookup_field='scheduled_update_id',
+            id_field='scheduled_update_id'
+        )
