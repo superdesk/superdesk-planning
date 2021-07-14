@@ -639,3 +639,63 @@ def is_content_link_to_coverage_allowed(archive_item):
 
     return True if not len(allowed_coverage_link_types) else \
         archive_item['type'] in allowed_coverage_link_types
+
+
+def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
+    if not coverages:
+        return
+
+    assignments = {
+        str(assignment[config.ID_FIELD]): assignment
+        for assignment in get_resource_service('assignments').get_from_mongo(
+            req=None,
+            lookup={
+                lookup_field: {
+                    '$in': [
+                        coverage[id_field]
+                        for coverage in coverages
+                    ]
+                }
+            }
+        )
+    }
+
+    for coverage in coverages:
+        if not coverage.get('assigned_to'):
+            coverage['assigned_to'] = {}
+            continue
+
+        assignment = assignments.get(str(coverage['assigned_to'].get('assignment_id')))
+
+        if not assignment:
+            continue
+
+        assignment.setdefault('assigned_to', {})
+        coverage['assigned_to']['assignment_id'] = assignment[config.ID_FIELD]
+        coverage['assigned_to']['desk'] = assignment['assigned_to'].get('desk')
+        coverage['assigned_to']['user'] = assignment['assigned_to'].get('user')
+        coverage['assigned_to']['contact'] = assignment['assigned_to'].get('contact')
+        coverage['assigned_to']['state'] = assignment['assigned_to'].get('state')
+        coverage['assigned_to']['assignor_user'] = assignment['assigned_to'].get('assignor_user')
+        coverage['assigned_to']['assignor_desk'] = assignment['assigned_to'].get('assignor_desk')
+        coverage['assigned_to']['assigned_date_desk'] = assignment['assigned_to'].get('assigned_date_desk')
+        coverage['assigned_to']['assigned_date_user'] = assignment['assigned_to'].get('assigned_date_user')
+        coverage['assigned_to']['coverage_provider'] = assignment['assigned_to'].get('coverage_provider')
+        coverage['assigned_to']['priority'] = assignment.get('priority')
+
+
+def sync_assignment_details_to_coverages(doc):
+    doc.setdefault('coverages', [])
+    _sync_coverage_assigned_to(
+        doc['coverages'],
+        lookup_field='coverage_item',
+        id_field='coverage_id'
+    )
+
+    for coverage in doc['coverages']:
+        coverage.setdefault('scheduled_updates', [])
+        _sync_coverage_assigned_to(
+            coverage['scheduled_updates'],
+            lookup_field='scheduled_update_id',
+            id_field='scheduled_update_id'
+        )
