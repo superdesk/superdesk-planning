@@ -1,5 +1,7 @@
 # Superdesk Planning Changelog
 
+## * Release v2.3.0 - 2021-07-16
+
 ## [2.3.0-rc.4] 2021-07-02
 ### Fixes
 - [SDESK-5906] fix(ingest): Unable to create event after ingestion (#1623)
