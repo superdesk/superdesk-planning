@@ -336,6 +336,27 @@ class AssignmentsService(superdesk.Service):
         else:
             event_item = None
 
+        CRLF = '\r\n'
+        scheduled_time = assignment['planning']['scheduled']
+        UID = str(assignment['_id'])
+
+        description = 'Test description'
+        location = 'Test location'
+        summary = assignment['name']
+        priority = str(assignment['priority'])
+        created = assignment['_created']
+        updated = assignment['_updated']
+        url = client_url + '#/workspace/assignments?assignment=' + UID
+
+        ical = 'BEGIN:VCALENDAR' + CRLF + 'PRODID:-//Superdesk//NTB//EN' + CRLF + 'VERSION:2.0' + CRLF
+        ical += 'BEGIN:VEVENT' + CRLF + 'CLASS:PUBLIC' + CRLF + 'DTSTART:' + str(scheduled_time) + CRLF
+        ical += 'DTEND:' + str(scheduled_time) + CRLF + 'UID:' + UID + CRLF + 'SUMMARY;LANGUAGE=EN-US:' + summary + CRLF
+        ical += 'DESCRIPTION:' + description + CRLF + 'PRIORITY:' + priority + CRLF + 'LOCATION:' + location + CRLF
+        ical += 'CREATED:' + str(created) + CRLF + 'LAST-MODIFIED:' + str(updated) + CRLF + 'STATUS:assgined' + CRLF
+        ical += 'URL:' + url + CRLF + 'END:VEVENT' + CRLF + 'END:VCALENDAR' + CRLF
+
+        assignment['planning']['ics_data'] = ical
+
         # The assignment is to an external contact or a user
         if assigned_to.get('contact') or assigned_to.get('user'):
             # If it is a reassignment

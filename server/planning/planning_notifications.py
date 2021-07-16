@@ -299,6 +299,11 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
                                                                                   data['assignment'][
                                                                                       'assignment_id']))
 
+    if data.get('assignment') and (data['assignment'].get('planning', {})).get('ics_data'):
+        ics = data['assignment']['planning']['ics_data']
+        if ics:
+            attachments.append(Attachment(filename="testing1file", content_type="text/calendar", data=ics))
+
     send_email(subject=data['subject'],
                sender=admins[0],
                recipients=[email_address],
