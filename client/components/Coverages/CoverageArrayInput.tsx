@@ -2,13 +2,8 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {isEmpty} from 'lodash';
 
-import {ContentBlock} from '../UI/SidePanel';
-import {InputArray} from '../UI/Form';
-import {CoverageEditor} from './CoverageEditor';
-import {CoverageAddButton} from './CoverageAddButton';
-
-import {planningUtils} from '../../utils';
 import {
+    EDITOR_TYPE,
     IAssignmentPriority,
     ICoverageFormProfile,
     ICoverageProvider, ICoverageScheduledUpdate, IEventItem, IFile,
@@ -19,8 +14,15 @@ import {
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
-import * as selectors from '../../selectors';
 import {superdeskApi} from '../../superdeskApi';
+
+import {planningUtils} from '../../utils';
+import * as selectors from '../../selectors';
+
+import {InputArray} from '../UI/Form';
+import {CoverageEditor} from './CoverageEditor';
+import {CoverageAddButton} from './CoverageAddButton';
+
 
 interface IProps {
     field: string;
@@ -39,6 +41,7 @@ interface IProps {
     preferredCoverageDesks: {[key: string]: string};
     getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
     testId?: string;
+    editorType: EDITOR_TYPE;
 
     // Redux state
     users: Array<IUser>;
@@ -182,6 +185,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             useLocalNavigation,
             event,
             testId,
+            editorType,
             ...props
         } = this.props;
 
@@ -226,6 +230,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     coverageAddAdvancedMode,
                     setCoverageAddAdvancedMode,
                     language,
+                    editorType,
                 }}
                 element={CoverageEditor}
                 defaultElement={createCoverage}
@@ -248,6 +253,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 openCoverageIds={this.state.openCoverageIds}
                 preferredCoverageDesks={preferredCoverageDesks}
                 getRef={this.props.getRef}
+                editorType={editorType}
                 {...props}
             />
         );

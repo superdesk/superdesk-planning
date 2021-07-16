@@ -2,6 +2,7 @@ import React from 'react';
 import {get} from 'lodash';
 
 import {
+    EDITOR_TYPE,
     IAssignmentPriority,
     ICoverageProvider,
     IG2ContentType,
@@ -48,6 +49,7 @@ interface IProps {
     openCoverageIndex: number;
     openCoverageIds: Array<IPlanningCoverageItem['coverage_id']>;
     includeScheduledUpdates?: boolean;
+    editorType: EDITOR_TYPE;
 
     onChange(field: string, value: any): void;
     remove(): void;
