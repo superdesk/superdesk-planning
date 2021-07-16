@@ -1,9 +1,9 @@
 import React from 'react';
 import {isEqual} from 'lodash';
 
-import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
+import {EDITOR_TYPE, IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
-import {superdeskApi} from '../../../superdeskApi';
+import {superdeskApi, planningApi} from '../../../superdeskApi';
 
 import {AddCoveragesWrapper} from './AddCoveragesWrapper';
 
@@ -13,6 +13,7 @@ interface IProps {
     className?: string;
     buttonClass?: string;
     language?: string;
+    editorType: EDITOR_TYPE;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
@@ -27,6 +28,12 @@ interface IProps {
 }
 
 export class CoverageAddButton extends React.Component<IProps> {
+    constructor(props) {
+        super(props);
+
+        this.onChange = this.onChange.bind(this);
+    }
+
     shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<{}>, nextContext: any): boolean {
         // For some reason this component get's re-rendered (which causes problems with e2e tests)
         // Make sure to only re-render if Coverage ID's change
@@ -36,6 +43,10 @@ export class CoverageAddButton extends React.Component<IProps> {
         return this.props.field !== nextProps.field ||
             !isEqual(prevIds, nextIds) ||
             this.props.language !== nextProps.language;
+    }
+
+    onChange(field: string, coverages: Array<DeepPartial<IPlanningCoverageItem>>) {
+        planningApi.editor(this.props.editorType).item.planning.addCoverages(coverages);
     }
 
     render() {
@@ -49,6 +60,7 @@ export class CoverageAddButton extends React.Component<IProps> {
         return (
             <AddCoveragesWrapper
                 {...props}
+                onChange={this.onChange}
                 target="icon-plus-large"
                 button={({toggleMenu}) => (
                     <div className={className}>
