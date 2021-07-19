@@ -461,6 +461,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         this.props.itemExists
                     ),
                     profile: this.props.formProfile,
+                    editorType: this.props.editorType,
                 }}
                 schema={this.props.formProfile.schema}
                 fieldProps={{

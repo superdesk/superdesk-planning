@@ -167,6 +167,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                     disabled: this.props.readOnly,
                     showErrors: this.props.submitFailed,
                     profile: this.props.formProfile,
+                    editorType: this.props.editorType,
                 }}
                 schema={this.props.formProfile.schema}
                 fieldProps={{
