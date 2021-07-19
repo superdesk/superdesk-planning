@@ -340,8 +340,10 @@ class AssignmentsService(superdesk.Service):
         scheduled_time = assignment['planning']['scheduled']
         UID = str(assignment['_id'])
 
-        description = 'Test description'
-        location = 'Test location'
+        description = assignment['description_text']
+        if event_item and event_item['location']:
+            location = event_item['location']
+
         summary = assignment['name']
         priority = str(assignment['priority'])
         created = assignment['_created']
@@ -351,7 +353,9 @@ class AssignmentsService(superdesk.Service):
         ical = 'BEGIN:VCALENDAR' + CRLF + 'PRODID:-//Superdesk//NTB//EN' + CRLF + 'VERSION:2.0' + CRLF
         ical += 'BEGIN:VEVENT' + CRLF + 'CLASS:PUBLIC' + CRLF + 'DTSTART:' + str(scheduled_time) + CRLF
         ical += 'DTEND:' + str(scheduled_time) + CRLF + 'UID:' + UID + CRLF + 'SUMMARY;LANGUAGE=EN-US:' + summary + CRLF
-        ical += 'DESCRIPTION:' + description + CRLF + 'PRIORITY:' + priority + CRLF + 'LOCATION:' + location + CRLF
+        ical += 'DESCRIPTION:' + description + CRLF + 'PRIORITY:' + priority + CRLF
+        if location:
+            ical += 'LOCATION:' + location + CRLF
         ical += 'CREATED:' + str(created) + CRLF + 'LAST-MODIFIED:' + str(updated) + CRLF + 'STATUS:assgined' + CRLF
         ical += 'URL:' + url + CRLF + 'END:VEVENT' + CRLF + 'END:VCALENDAR' + CRLF
 
