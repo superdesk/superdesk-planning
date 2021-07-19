@@ -1338,6 +1338,7 @@ export interface IEditorFieldProps {
     refNode?: React.RefObject<any & IEditorRefComponent>;
     schema?: IProfileSchemaType;
     showErrors?: boolean;
+    editorType: EDITOR_TYPE;
 
     onChange(field: string | {[key: string]: any}, value: any): void;
     popupContainer?(): HTMLElement;

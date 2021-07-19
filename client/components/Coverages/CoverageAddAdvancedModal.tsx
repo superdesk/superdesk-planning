@@ -74,28 +74,34 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
     componentDidMount() {
         const {value, contentTypes, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
-        const savedCoverages = value.map((coverage) => {
-            const contentType = contentTypes.find((type) => type.qcode === coverage.planning.g2_content_type);
-            const icon = planningUtils.getCoverageIcon(
-                get(contentType, 'content item type') ||
-                contentType.qcode
-            );
+        const savedCoverages = value
+            // Filter coverages that are in workflow
+            // as these are to be managed from the Assignments page only
+            .filter((coverage) => coverage.workflow_status === 'draft')
+            .map((coverage) => {
+                const contentType = contentTypes.find(
+                    (type) => type.qcode === coverage.planning.g2_content_type
+                );
+                const icon = planningUtils.getCoverageIcon(
+                    get(contentType, 'content item type') ||
+                    contentType.qcode
+                );
 
-            return {
-                id: this.id++,
-                enabled: true,
-                qcode: contentType.qcode,
-                name: this.getContentTypeName(contentType),
-                icon: icon,
-                desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
-                user: users.find((user) => user._id === coverage.assigned_to.user),
-                status: coverage.news_coverage_status,
-                popupContainer: null,
-                filteredDesks: desks,
-                filteredUsers: users,
-                coverage_id: coverage.coverage_id,
-            };
-        });
+                return {
+                    id: this.id++,
+                    enabled: true,
+                    qcode: contentType.qcode,
+                    name: this.getContentTypeName(contentType),
+                    icon: icon,
+                    desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
+                    user: users.find((user) => user._id === coverage.assigned_to.user),
+                    status: coverage.news_coverage_status,
+                    popupContainer: null,
+                    filteredDesks: desks,
+                    filteredUsers: users,
+                    coverage_id: coverage.coverage_id,
+                };
+            });
 
         contentTypes.forEach((contentType) => {
             const presentInSavedCoverages = savedCoverages.find((coverage) => coverage.qcode === contentType.qcode);

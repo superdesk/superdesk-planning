@@ -7,6 +7,7 @@ import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../../superdeskApi';
 import {IArticle, IDesk} from 'superdesk-api';
 import {
+    EDITOR_TYPE,
     ICoverageFormProfile,
     ICoverageScheduledUpdate,
     IPlanningCoverageItem,
@@ -46,6 +47,7 @@ interface IProps {
     defaultDesk: IDesk;
     files: Array<IFile>;
     includeScheduledUpdates?: boolean;
+    editorType: EDITOR_TYPE;
 
     // Functions
     onChange(field: string, value: any): void;
@@ -440,6 +442,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             errors: this.props.errors,
             readOnly: this.props.readOnly,
             disabled: this.props.readOnly,
+            editorType: this.props.editorType,
         };
 
         if (!this.props.includeScheduledUpdates) {
