@@ -34,8 +34,10 @@ from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state
     is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, get_related_items, \
     enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time, \
     TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, update_assignment_on_link_unlink
+from icalendar import Calendar
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
+from planning.common import format_address, get_assginment_name
 from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
@@ -336,30 +338,52 @@ class AssignmentsService(superdesk.Service):
         else:
             event_item = None
 
-        CRLF = '\r\n'
-        scheduled_time = assignment['planning']['scheduled']
+        # Create the ICS file to be added to the email usable in google calendar.
+        ical = Calendar()
+        ical.add('BEGIN', 'VCALENDAR')
+        ical.add('PRODID', '-//Superdesk//NTB//EN')
+        ical.add('VERSION', '2.0')
+        ical.add('BEGIN', 'VEVENT')
+        ical.add('CLASS', 'PUBLIC')
+
+        if assignment['planning']['scheduled']:
+            scheduled_time = assignment['planning']['scheduled']
+            ical.add('DTSTART', scheduled_time)
+            ical.add('DTEND', scheduled_time)
+
         UID = str(assignment['_id'])
-
-        description = assignment['description_text']
-        if event_item and event_item['location']:
-            location = event_item['location']
-
-        summary = assignment['name']
-        priority = str(assignment['priority'])
+        url = client_url + '#/workspace/assignments?assignment=' + UID
+        summary = get_assginment_name(assignment)
+        priority = assignment['priority']
         created = assignment['_created']
         updated = assignment['_updated']
-        url = client_url + '#/workspace/assignments?assignment=' + UID
 
-        ical = 'BEGIN:VCALENDAR' + CRLF + 'PRODID:-//Superdesk//NTB//EN' + CRLF + 'VERSION:2.0' + CRLF
-        ical += 'BEGIN:VEVENT' + CRLF + 'CLASS:PUBLIC' + CRLF + 'DTSTART:' + str(scheduled_time) + CRLF
-        ical += 'DTEND:' + str(scheduled_time) + CRLF + 'UID:' + UID + CRLF + 'SUMMARY;LANGUAGE=EN-US:' + summary + CRLF
-        ical += 'DESCRIPTION:' + description + CRLF + 'PRIORITY:' + priority + CRLF
-        if location:
-            ical += 'LOCATION:' + location + CRLF
-        ical += 'CREATED:' + str(created) + CRLF + 'LAST-MODIFIED:' + str(updated) + CRLF + 'STATUS:assgined' + CRLF
-        ical += 'URL:' + url + CRLF + 'END:VEVENT' + CRLF + 'END:VCALENDAR' + CRLF
+        ical.add('UID', UID)
+        ical.add('SUMMARY;LANGUAGE=EN-US', summary)
+        ical.add('DESCRIPTION', assignment.get('description_text', ''))
+        ical.add('PRIORITY', priority)
 
-        assignment['planning']['ics_data'] = ical
+        if event_item:
+            if len(event_item.get('location', [])) > 0:
+                location = event_item['location'][0]
+                format_address(location)
+                formatted_location = (
+                    location.get('name')
+                    if not location.get('formatted_address')
+                    else '{0}, {1}'.format(
+                        location.get('name'), location['formatted_address']
+                    )
+                )
+                ical.add('LOCATION', formatted_location)
+
+        ical.add('CREATED', created)
+        ical.add('LAST-MODIFIED', updated)
+        ical.add('STATUS', 'assgined')
+        ical.add('URL', url)
+        ical.add('END', 'VEVENT')
+        ical.add('END', 'VCALENDAR')
+
+        assignment['planning']['ics_data'] = ical.to_ical()
 
         # The assignment is to an external contact or a user
         if assigned_to.get('contact') or assigned_to.get('user'):

@@ -699,3 +699,15 @@ def sync_assignment_details_to_coverages(doc):
             lookup_field='scheduled_update_id',
             id_field='scheduled_update_id'
         )
+
+
+def get_assginment_name(assignment):
+    assignment.setdefault('planning', {})
+    if assignment.get('name'):
+        return assignment['name']
+    elif assignment['planning'].get('headline'):
+        return assignment['planning']['headline']
+    elif assignment['planning'].get('slugline'):
+        return assignment['planning']['slugline']
+    else:
+        return assignment.get('description_text') or ''
