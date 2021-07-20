@@ -316,7 +316,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
 
     isReadOnly() {
         return this.props.currentSearchDate.isBefore(
-            moment().tz(appConfig.defaultTimezone),
+            moment().tz(appConfig.default_timezone),
             'day'
         );
     }
@@ -402,7 +402,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
                 <Modal.Header>
                     <h3 className="modal__heading">{gettext(
                         'Featured Stories based on timezone: {{tz}}',
-                        {tz: gettext(appConfig.defaultTimezone)}
+                        {tz: gettext(appConfig.default_timezone)}
                     )}</h3>
                     {<a className="icn-btn" aria-label={gettext('Close')} onClick={this.onCloseModal}>
                         <i className="icon-close-small" />
@@ -422,7 +422,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
                             <JumpToDropdown
                                 currentStartFilter={currentSearchDate}
                                 setStartFilter={this.onDateChange}
-                                defaultTimeZone={appConfig.defaultTimezone}
+                                defaultTimeZone={appConfig.default_timezone}
                                 dateFormat="dddd LL"
                                 noBorderNoPadding
                             />

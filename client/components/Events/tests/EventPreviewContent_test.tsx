@@ -92,7 +92,7 @@ describe('<EventPreviewContent />', () => {
     };
 
     beforeEach(() => {
-        sinon.stub(timeUtils, 'localTimeZone').returns(appConfig.defaultTimezone);
+        sinon.stub(timeUtils, 'localTimeZone').returns(appConfig.default_timezone);
     });
 
     afterEach(() => {

@@ -20,7 +20,7 @@ export const currentSearchDate = (state) =>
     get(
         state,
         'featuredPlanning.currentSearch.start_date',
-        momentTz.tz(moment(), appConfig.defaultTimezone)
+        momentTz.tz(moment(), appConfig.default_timezone)
     );
 export const total = (state) => get(state, 'featuredPlanning.total', false);
 export const loading = (state) => get(state, 'featuredPlanning.loading', false);
@@ -56,7 +56,7 @@ export const orderedFeaturedPlanningList = createSelector(
         };
         const dateRange = getSearchDateRange(search, appConfig.start_of_week);
         const group = planningUtils.getPlanningByDate(
-            plansInList, null, dateRange.startDate, dateRange.endDate, appConfig.defaultTimezone, true);
+            plansInList, null, dateRange.startDate, dateRange.endDate, appConfig.default_timezone, true);
 
         if (group.length > 0) {
             const featuredPlansForDate = group.find((g) => g.date === date.format('YYYY-MM-DD'));

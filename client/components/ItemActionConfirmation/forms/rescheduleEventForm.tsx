@@ -111,7 +111,7 @@ export class RescheduleEventComponent extends React.Component {
 
         if (typeof diff.dates === 'object' && !diff.dates.tz) {
             // if no timezone use default one
-            diff.dates.tz = appConfig.defaultTimezone;
+            diff.dates.tz = appConfig.default_timezone;
         }
 
         if (field === 'dates.recurring_rule' && !val) {
@@ -179,7 +179,7 @@ export class RescheduleEventComponent extends React.Component {
         const afterUntil = moment.isMoment(get(original, 'dates.recurring_rule.until')) &&
             moment.isMoment(get(this.state, 'diff.dates.start')) &&
             this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
-        const timeZone = get(original, 'dates.tz') || appConfig.defaultTimezone;
+        const timeZone = get(original, 'dates.tz') || appConfig.default_timezone;
         const dateFormat = appConfig.planning.dateformat;
         const timeFormat = appConfig.planning.timeformat;
 

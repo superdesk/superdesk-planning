@@ -129,7 +129,7 @@ const receivePlannings = (plannings, append = false) => (
  */
 function loadFeaturedPlanningsData(date) {
     return (dispatch, getState, {notify}) => {
-        let startDate = momentTz.tz(date ? date : moment(), appConfig.defaultTimezone);
+        let startDate = momentTz.tz(date ? date : moment(), appConfig.default_timezone);
         const params: ISearchParams = {
             featured: true,
             start_date: startDate,
@@ -139,7 +139,7 @@ function loadFeaturedPlanningsData(date) {
             exclude_rescheduled_and_cancelled: true,
             include_scheduled_updates: true,
             tz_offset: getTimeZoneOffset(
-                momentTz.tz(startDate, appConfig.defaultTimezone)
+                momentTz.tz(startDate, appConfig.default_timezone)
             ),
         };
 
@@ -376,14 +376,14 @@ const onPlanningUpdatedNotification = (planningId) => (
                 const currentSearchDate = selectors.featuredPlanning.currentSearchDate(getState());
                 const currentFeaturedPlannings = selectors.featuredPlanning.storedPlannings(getState());
                 const planningsForDate = get(planningUtils.getPlanningByDate([item], null,
-                    momentTz.tz(moment(currentSearchDate.format('YYYY-MM-DD')), appConfig.defaultTimezone),
+                    momentTz.tz(moment(currentSearchDate.format('YYYY-MM-DD')), appConfig.default_timezone),
                     momentTz.tz(moment(currentSearchDate).set({
                         [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
                         [TIME_COMPARISON_GRANULARITY.MINUTE]: 59,
                         [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
                         [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
-                    }), appConfig.defaultTimezone),
-                    appConfig.defaultTimezone),
+                    }), appConfig.default_timezone),
+                    appConfig.default_timezone),
                 '[0].events', []).map((p) => p._id);
 
                 if (!(planningId in currentFeaturedPlannings) && !planningsForDate.includes(planningId)) {

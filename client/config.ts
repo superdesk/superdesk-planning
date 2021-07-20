@@ -27,8 +27,8 @@ if (appConfig.long_event_duration_threshold == null) {
     appConfig.long_event_duration_threshold = -1;
 }
 
-if (appConfig.defaultTimezone == null) {
-    appConfig.defaultTimezone = moment.tz.guess();
+if (appConfig.default_timezone == null) {
+    appConfig.default_timezone = moment.tz.guess();
 }
 
 if (appConfig.max_multi_day_event_duration == null) {

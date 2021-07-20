@@ -76,7 +76,7 @@ module.exports = function() {
             keywords: true
         },
 
-        defaultTimezone: 'Australia/Sydney',
+        default_timezone: 'Australia/Sydney',
         shortDateFormat: 'DD/MM',
         ArchivedDateFormat: 'D/MM/YYYY',
         ArchivedDateOnCalendarYear: 1,

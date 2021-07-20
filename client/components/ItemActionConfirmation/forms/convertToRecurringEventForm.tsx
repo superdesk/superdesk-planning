@@ -56,7 +56,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
         if (typeof diff.dates === 'object' && !diff.dates.tz) {
             // if no timezone use default one
-            diff.dates.tz = appConfig.defaultTimezone;
+            diff.dates.tz = appConfig.default_timezone;
         }
 
         if (field === 'dates.recurring_rule' && !val) {
@@ -115,7 +115,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
     render() {
         const {original} = this.props;
-        const timeZone = get(original, 'dates.tz') || appConfig.defaultTimezone;
+        const timeZone = get(original, 'dates.tz') || appConfig.default_timezone;
 
         return (
             <div className="MetadataView">

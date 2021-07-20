@@ -17,7 +17,7 @@ Object.assign(appConfig, {
     },
     model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
-    defaultTimezone: 'Australia/Sydney',
+    default_timezone: 'Australia/Sydney',
     profileLanguages: ['en', 'fr_CA'],
 });
 

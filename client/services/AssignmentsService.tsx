@@ -28,7 +28,7 @@ export class AssignmentsService {
 
     getAssignmentQuery(slugline, contentType) {
         return actions.assignments.api.constructQuery({
-            systemTimezone: appConfig.defaultTimezone,
+            systemTimezone: appConfig.default_timezone,
             searchQuery: `planning.slugline.phrase:("${slugline}")`,
             states: ['assigned'],
             type: contentType,
