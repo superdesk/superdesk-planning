@@ -124,7 +124,7 @@ export class UpdateTimeComponent extends React.Component {
 
         if (diff.dates != null && !diff.dates.tz) {
             // if no timezone use default one
-            diff.dates.tz = appConfig.defaultTimezone;
+            diff.dates.tz = appConfig.default_timezone;
         }
 
         diff[TO_BE_CONFIRMED_FIELD] = false;

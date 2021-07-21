@@ -176,7 +176,7 @@ const query = ({
 
         const baseQuery = selectors.getBaseAssignmentQuery(getState());
         const query = constructQuery({
-            systemTimezone: appConfig.defaultTimezone,
+            systemTimezone: appConfig.default_timezone,
             baseQuery: baseQuery,
             searchQuery: searchQuery,
             deskId: deskId,

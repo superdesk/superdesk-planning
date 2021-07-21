@@ -15,7 +15,7 @@ Object.assign(appConfig, {
     server: {url: 'http://server.com'},
     model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
-    defaultTimezone: 'Australia/Sydney',
+    default_timezone: 'Australia/Sydney',
 });
 
 export const getTestActionStore = () => {

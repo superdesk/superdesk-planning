@@ -43,7 +43,7 @@ describe('actions.events.api', () => {
         );
 
         sinon.stub(timeUtils, 'localTimeZone').callsFake(
-            () => appConfig.defaultTimezone
+            () => appConfig.default_timezone
         );
 
         sinon.stub(planningApis.events, 'search').callsFake(

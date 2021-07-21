@@ -140,7 +140,7 @@ describe('components.Main.ItemManager', () => {
         manager.mounted = true;
 
         sinon.stub(main, 'openEditorAction');
-        sinon.stub(timeUtils, 'localTimeZone').returns(appConfig.defaultTimezone);
+        sinon.stub(timeUtils, 'localTimeZone').returns(appConfig.default_timezone);
     });
 
     afterEach(() => {
