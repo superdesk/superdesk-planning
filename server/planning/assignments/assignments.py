@@ -34,7 +34,7 @@ from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state
     is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, get_related_items, \
     enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time, \
     TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, update_assignment_on_link_unlink
-from icalendar import Calendar
+from icalendar import Calendar, Event
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
@@ -340,16 +340,11 @@ class AssignmentsService(superdesk.Service):
 
         # Create the ICS file to be added to the email usable in google calendar.
         ical = Calendar()
-        ical.add('BEGIN', 'VCALENDAR')
-        ical.add('PRODID', '-//Superdesk//NTB//EN')
+        app_name = app.config['APPLICATION_NAME']
+        org_name = app.config.get('ORGANIZATION_NAME_ABBREVIATION') or app.config['ORGANIZATION_NAME']
+        language = app.config['DEFAULT_LANGUAGE'].upper()
+        ical.add('PRODID', f'-//{app_name}//{org_name}//{language}')
         ical.add('VERSION', '2.0')
-        ical.add('BEGIN', 'VEVENT')
-        ical.add('CLASS', 'PUBLIC')
-
-        if assignment['planning']['scheduled']:
-            scheduled_time = assignment['planning']['scheduled']
-            ical.add('DTSTART', scheduled_time)
-            ical.add('DTEND', scheduled_time)
 
         UID = str(assignment['_id'])
         url = client_url + '#/workspace/assignments?assignment=' + UID
@@ -357,11 +352,17 @@ class AssignmentsService(superdesk.Service):
         priority = assignment['priority']
         created = assignment['_created']
         updated = assignment['_updated']
+        scheduled_time = assignment['planning']['scheduled']
 
-        ical.add('UID', UID)
-        ical.add('SUMMARY;LANGUAGE=EN-US', summary)
-        ical.add('DESCRIPTION', assignment.get('description_text', ''))
-        ical.add('PRIORITY', priority)
+        # Add an event to the ICS file
+        event = Event()
+        event['UID'] = UID
+        event['CLASS'] = 'PUBLIC'
+        event['DTSTART'] = scheduled_time
+        event['DTEND'] = scheduled_time
+        event[f'SUMMARY;LANGUAGE={language}'] = summary
+        event['DESCRIPTION'] = assignment.get('description_text', '')
+        event['PRIORITY'] = priority
 
         if event_item:
             if len(event_item.get('location', [])) > 0:
@@ -374,14 +375,14 @@ class AssignmentsService(superdesk.Service):
                         location.get('name'), location['formatted_address']
                     )
                 )
-                ical.add('LOCATION', formatted_location)
+                event['LOCATION'] = formatted_location
 
-        ical.add('CREATED', created)
-        ical.add('LAST-MODIFIED', updated)
-        ical.add('STATUS', 'assgined')
-        ical.add('URL', url)
-        ical.add('END', 'VEVENT')
-        ical.add('END', 'VCALENDAR')
+        event['CREATED'] = created
+        event['LAST-MODIFIED'] = updated
+        event['STATUS'] = 'assgined'
+        event['URL'] = url
+
+        ical.add_component(event)
 
         assignment['planning']['ics_data'] = ical.to_ical()
 
