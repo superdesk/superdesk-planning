@@ -338,53 +338,59 @@ class AssignmentsService(superdesk.Service):
         else:
             event_item = None
 
-        # Create the ICS file to be added to the email usable in google calendar.
-        ical = Calendar()
-        app_name = app.config['APPLICATION_NAME']
-        org_name = app.config.get('ORGANIZATION_NAME_ABBREVIATION') or app.config['ORGANIZATION_NAME']
-        language = app.config['DEFAULT_LANGUAGE'].upper()
-        ical.add('PRODID', f'-//{app_name}//{org_name}//{language}')
-        ical.add('VERSION', '2.0')
+        # Allow to create the ICS object only if there is scheduled time in the assignment.
+        # This situation won't be applicable in the production but only for the test cases.
+        if not assignment['planning'].get('scheduled'):
+            logger.error('Assignment has no scheduled date, cannot create an ICS file')
+        else:
+            # Create the ICS object to be added to the email usable in google calendar.
+            ical = Calendar()
+            scheduled_time = assignment['planning']['scheduled']
+            app_name = app.config['APPLICATION_NAME']
+            org_name = app.config.get('ORGANIZATION_NAME_ABBREVIATION') or app.config['ORGANIZATION_NAME']
+            language = app.config['DEFAULT_LANGUAGE'].upper()
+            ical.add('PRODID', f'-//{app_name}//{org_name}//{language}')
+            ical.add('VERSION', '2.0')
 
-        UID = str(assignment['_id'])
-        url = client_url + '#/workspace/assignments?assignment=' + UID
-        summary = get_assginment_name(assignment)
-        priority = assignment['priority']
-        created = assignment['_created']
-        updated = assignment['_updated']
-        scheduled_time = assignment['planning']['scheduled']
+            UID = str(assignment['_id'])
+            url = client_url + '#/workspace/assignments?assignment=' + UID
+            summary = get_assginment_name(assignment)
+            priority = assignment['priority']
+            created = assignment['_created']
+            updated = assignment['_updated']
 
-        # Add an event to the ICS file
-        event = Event()
-        event['UID'] = UID
-        event['CLASS'] = 'PUBLIC'
-        event['DTSTART'] = scheduled_time
-        event['DTEND'] = scheduled_time
-        event[f'SUMMARY;LANGUAGE={language}'] = summary
-        event['DESCRIPTION'] = assignment.get('description_text', '')
-        event['PRIORITY'] = priority
+            # Add an event to the ICS file
+            event = Event()
+            event['UID'] = UID
+            event['CLASS'] = 'PUBLIC'
+            event['DTSTART'] = scheduled_time
+            event['DTEND'] = scheduled_time
+            event[f'SUMMARY;LANGUAGE={language}'] = summary
+            event['DESCRIPTION'] = assignment.get('description_text', '')
+            event['PRIORITY'] = priority
 
-        if event_item:
-            if len(event_item.get('location', [])) > 0:
-                location = event_item['location'][0]
-                format_address(location)
-                formatted_location = (
-                    location.get('name')
-                    if not location.get('formatted_address')
-                    else '{0}, {1}'.format(
-                        location.get('name'), location['formatted_address']
+            if event_item:
+                if len(event_item.get('location', [])) > 0:
+                    location = event_item['location'][0]
+                    format_address(location)
+                    formatted_location = (
+                        location.get('name')
+                        if not location.get('formatted_address')
+                        else '{0}, {1}'.format(
+                            location.get('name'), location['formatted_address']
+                        )
                     )
-                )
-                event['LOCATION'] = formatted_location
+                    event['LOCATION'] = formatted_location
 
-        event['CREATED'] = created
-        event['LAST-MODIFIED'] = updated
-        event['STATUS'] = 'assgined'
-        event['URL'] = url
+            event['CREATED'] = created
+            event['LAST-MODIFIED'] = updated
+            event['STATUS'] = assigned_to['state']
+            event['URL'] = url
 
-        ical.add_component(event)
+            ical.add_component(event)
 
-        assignment['planning']['ics_data'] = ical.to_ical()
+            # Add the ICS object to the assignment
+            assignment['planning']['ics_data'] = ical.to_ical()
 
         # The assignment is to an external contact or a user
         if assigned_to.get('contact') or assigned_to.get('user'):
