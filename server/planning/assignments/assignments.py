@@ -34,8 +34,10 @@ from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state
     is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, get_related_items, \
     enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time, \
     TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, update_assignment_on_link_unlink
+from icalendar import Calendar, Event
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
+from planning.common import format_address, get_assginment_name
 from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
@@ -335,6 +337,60 @@ class AssignmentsService(superdesk.Service):
                 event_item['event_contact_info'] = contacts
         else:
             event_item = None
+
+        # Allow to create the ICS object only if there is scheduled time in the assignment.
+        # This situation won't be applicable in the production but only for the test cases.
+        if not assignment['planning'].get('scheduled'):
+            logger.error('Assignment has no scheduled date, cannot create an ICS file')
+        else:
+            # Create the ICS object to be added to the email usable in google calendar.
+            ical = Calendar()
+            scheduled_time = assignment['planning']['scheduled']
+            app_name = app.config['APPLICATION_NAME']
+            org_name = app.config.get('ORGANIZATION_NAME_ABBREVIATION') or app.config['ORGANIZATION_NAME']
+            language = app.config['DEFAULT_LANGUAGE'].upper()
+            ical.add('PRODID', f'-//{app_name}//{org_name}//{language}')
+            ical.add('VERSION', '2.0')
+
+            UID = str(assignment['_id'])
+            url = client_url + '#/workspace/assignments?assignment=' + UID
+            summary = get_assginment_name(assignment)
+            priority = assignment['priority']
+            created = assignment['_created']
+            updated = assignment['_updated']
+
+            # Add an event to the ICS file
+            event = Event()
+            event['UID'] = UID
+            event['CLASS'] = 'PUBLIC'
+            event['DTSTART'] = scheduled_time
+            event['DTEND'] = scheduled_time
+            event[f'SUMMARY;LANGUAGE={language}'] = summary
+            event['DESCRIPTION'] = assignment.get('description_text', '')
+            event['PRIORITY'] = priority
+
+            if event_item:
+                if len(event_item.get('location', [])) > 0:
+                    location = event_item['location'][0]
+                    format_address(location)
+                    formatted_location = (
+                        location.get('name')
+                        if not location.get('formatted_address')
+                        else '{0}, {1}'.format(
+                            location.get('name'), location['formatted_address']
+                        )
+                    )
+                    event['LOCATION'] = formatted_location
+
+            event['CREATED'] = created
+            event['LAST-MODIFIED'] = updated
+            event['STATUS'] = assigned_to['state']
+            event['URL'] = url
+
+            ical.add_component(event)
+
+            # Add the ICS object to the assignment
+            assignment['planning']['ics_data'] = ical.to_ical()
 
         # The assignment is to an external contact or a user
         if assigned_to.get('contact') or assigned_to.get('user'):

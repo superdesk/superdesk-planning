@@ -21,6 +21,7 @@ from flask import current_app as app, render_template
 from flask_mail import Attachment
 from apps.archive.common import get_user
 from eve.utils import config
+from planning.common import get_assginment_name
 
 try:
     from slackclient import SlackClient
@@ -298,6 +299,12 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
             logger.error('XMP File {} attached to assignment {} not found'.format(data['assignment']['xmp_file'],
                                                                                   data['assignment'][
                                                                                       'assignment_id']))
+
+    if data.get('assignment') and (data['assignment'].get('planning', {})).get('ics_data'):
+        ics = data['assignment']['planning']['ics_data']
+        if ics:
+            name = get_assginment_name(data.get('assignment'))
+            attachments.append(Attachment(filename=name, content_type="text/calendar", data=ics))
 
     send_email(subject=data['subject'],
                sender=admins[0],
