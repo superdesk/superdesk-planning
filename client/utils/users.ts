@@ -39,3 +39,30 @@ export function getUsersDefaultLanguage(useCV: boolean = false, required: boolea
 
     return language;
 }
+
+export function getUserInterfaceLanguageFromCV(): string {
+    const language = getUserInterfaceLanguage();
+    const state = planningApi.redux.store.getState();
+    const languages = getLanguages(state);
+
+    if (languages.findIndex((l) => l.qcode === language) === -1) {
+        // The configured language is not available in the CV
+        // This can happen where 'en-CA' is used instead of 'en'
+        // Return the first entry that starts with `language`
+        const cvLanguage = languages.find(
+            (l) => (
+                l.qcode.startsWith(`${language}_`) ||
+                l.qcode.startsWith(`${language}-`)
+            )
+        )?.qcode;
+
+        // If the language is required and one was not found from the CV
+        // then return the first entry in the CV
+        return cvLanguage == null ?
+            // if languages CV is not defined, then return User's language
+            (languages[0]?.qcode ?? language) :
+            cvLanguage;
+    }
+
+    return language;
+}
