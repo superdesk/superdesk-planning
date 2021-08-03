@@ -14,7 +14,7 @@ import {
 import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {generateTempId} from '../../utils';
-import {filterProfileForEnabledFields} from '../../utils/forms';
+import {getBookmarksFromFormGroups, getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 import {TEMP_ID_PREFIX} from '../../constants';
 
 import {AddPlanningBookmark, AssociatedPlanningsBookmark} from '../../components/Editor/bookmarks';
@@ -22,164 +22,40 @@ import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPl
 
 
 export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events'] {
-    function getGroups() {
-        const {gettext} = superdeskApi.localization;
-        const profile = planningApi.events.getEditorProfile();
-
-        const groups: {[key: string]: IEditorFormGroup} = {
-            schedule: {
-                id: 'schedule',
-                index: 0,
-                fields: filterProfileForEnabledFields(profile, [
-                    'dates.recurring_rules',
-                    'dates',
-                ]),
-            },
-            description: {
-                id: 'description',
-                index: 1,
-                fields: filterProfileForEnabledFields(profile, [
-                    'language',
-                    'slugline',
-                    'name',
-                    'definition_short',
-                    'reference',
-                    'calendars',
-                    'place',
-                    'occur_status',
-                ]),
-            },
-            location: {
-                id: 'location',
-                index: 2,
-                fields: filterProfileForEnabledFields(profile, [
-                    'location',
-                    'event_contact_info',
-                ]),
-            },
-            details: {
-                id: 'details',
-                index: 3,
-                useToggleBox: true,
-                title: gettext('Details'),
-                fields: filterProfileForEnabledFields(profile, [
-                    'anpa_category',
-                    'subject',
-                    'custom_vocabularies',
-                    'definition_long',
-                    'internal_note',
-                    'ednote',
-                ]),
-            },
-            attachments: {
-                id: 'attachments',
-                index: 4,
-                fields: filterProfileForEnabledFields(profile, [
-                    'files',
-                ]),
-            },
-            links: {
-                id: 'links',
-                index: 5,
-                fields: filterProfileForEnabledFields(profile, [
-                    'links',
-                ]),
-            },
-        };
-
-        if (superdeskApi.privileges.hasPrivilege('planning_planning_management')) {
-            groups['add-planning'] = {
-                id: 'add-planning',
-                index: 6,
-                fields: filterProfileForEnabledFields(profile, [
-                    'related_plannings',
-                ]),
-            };
-        }
-
-        return groups;
-    }
-
-    function getGroupsForItem(item: Partial<IEventItem>): {
+    function getGroupsForItem(_item: Partial<IEventItem>): {
         bookmarks: Array<IEditorBookmark>,
         groups: Array<IEditorFormGroup>
     } {
-        const {gettext} = superdeskApi.localization;
-        const groups = getGroups();
-        const canCreatePlanningItems = superdeskApi.privileges.hasPrivilege('planning_planning_management');
+        const {hasPrivilege} = superdeskApi.privileges;
+        const profile = planningApi.contentProfiles.get('event');
+        const groups = getEditorFormGroupsFromProfile(profile);
+
+        if (!hasPrivilege('planning_planning_management')) {
+            delete groups['related_plannings'];
+        }
+
+        const canCreatePlanningItems = hasPrivilege('planning_planning_management');
+        const bookmarks = getBookmarksFromFormGroups(groups);
+        let index = bookmarks.length;
 
         return {
-            bookmarks: [{
-                id: 'schedule',
-                group_id: 'schedule',
-                type: BOOKMARK_TYPE.formGroup,
-                icon: 'time',
-                index: 0,
-                name: gettext('Schedule'),
-                tooltip: gettext('Schedule'),
-                disabled: !groups.schedule.fields.length,
-            }, {
-                id: 'description',
-                group_id: 'description',
-                type: BOOKMARK_TYPE.formGroup,
-                icon: 'align-left',
-                index: 1,
-                name: gettext('Description'),
-                tooltip: gettext('Description'),
-                disabled: !groups.description.fields.length,
-            }, {
-                id: 'location',
-                group_id: 'location',
-                type: BOOKMARK_TYPE.formGroup,
-                icon: 'map-marker',
-                index: 2,
-                name: gettext('Location'),
-                tooltip: gettext('Location'),
-                disabled: !groups.location.fields.length,
-            }, {
-                id: 'details',
-                group_id: 'details',
-                type: BOOKMARK_TYPE.formGroup,
-                icon: 'info-sign',
-                index: 3,
-                name: gettext('Details'),
-                tooltip: gettext('Details'),
-                disabled: !groups.details.fields.length,
-            }, {
-                id: 'attachments',
-                group_id: 'attachments',
-                type: BOOKMARK_TYPE.formGroup,
-                icon: 'attachment',
-                index: 4,
-                name: gettext('Attachments'),
-                tooltip: gettext('Attachments'),
-                disabled: !groups.attachments.fields.length,
-            }, {
-                id: 'links',
-                group_id: 'links',
-                type: BOOKMARK_TYPE.formGroup,
-                icon: 'link',
-                index: 5,
-                name: gettext('Links'),
-                tooltip: gettext('Links'),
-                disabled: !groups.links.fields.length,
-            }, {
+            bookmarks: bookmarks.concat([{
                 id: 'divider-1',
                 type: BOOKMARK_TYPE.divider,
-                index: 6,
+                index: index++,
             }, {
                 id: 'add_planning',
                 type: BOOKMARK_TYPE.custom,
-                index: 7,
+                index: index++,
                 disabled: !canCreatePlanningItems,
                 component: AddPlanningBookmark,
             }, {
                 id: 'associated_plannings',
                 type: BOOKMARK_TYPE.custom,
-                index: 8,
+                index: index++,
                 disabled: !canCreatePlanningItems,
                 component: AssociatedPlanningsBookmark,
-            }],
+            }]),
             groups: Object.values(groups),
         };
     }
