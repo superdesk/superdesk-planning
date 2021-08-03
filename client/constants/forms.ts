@@ -1,0 +1,5 @@
+export const FORMS = {
+    ACTIONS: {
+        UPDATE_CONTENT_PROFILE: 'FORMS__UPDATE_CONTENT_PROFILE',
+    }
+};
