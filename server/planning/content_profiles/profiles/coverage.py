@@ -62,13 +62,9 @@ DEFAULT_COVERAGE_PROFILE = {
             'enabled': True,
             'index': 7,
         },
-        'no_content_linking': {
-            'enabled': True,
-            'index': 8,
-        },
         'scheduled_updates': {
             'enabled': True,
-            'index': 9,
+            'index': 8,
         },
 
         # Fields disabled by default
@@ -78,6 +74,9 @@ DEFAULT_COVERAGE_PROFILE = {
         'headline': {'enabled': False},
         'keyword': {'enabled': False},
         'files': {'enabled': False},
+
+        # Requires `PLANNING_LINK_UPDATES_TO_COVERAGES` enabled in config
+        'no_content_linking': {'enabled': False},
     },
     'schema': dict(CoverageSchema)
 }

@@ -69,17 +69,28 @@ class PlanningTypesService(superdesk.Service):
         # Update schema fields with database schema fields
         default_type = {'schema': {}, 'editor': {}}
         updated_planning_type = deepcopy(default_planning_type or default_type)
-        updated_planning_type['schema'].update(planning_type.get('schema', {}))
 
         updated_planning_type.setdefault('groups', {})
         updated_planning_type['groups'].update(planning_type.get('groups', {}))
 
-        if planning_type.get('name') == 'advanced_search':
+        if planning_type['name'] == 'advanced_search':
+            updated_planning_type['schema'].update(planning_type.get('schema', {}))
             updated_planning_type['editor']['event'].update((planning_type.get('editor') or {}).get('event'))
             updated_planning_type['editor']['planning'].update((planning_type.get('editor') or {}).get('planning'))
             updated_planning_type['editor']['combined'].update((planning_type.get('editor') or {}).get('combined'))
+        elif planning_type['name'] in ['event', 'planning', 'coverage']:
+            for config_type in ['editor', 'schema']:
+                planning_type.setdefault(config_type, {})
+                for field, options in updated_planning_type[config_type].items():
+                    # If this field is none, then it is of type `schema.NoneField()`
+                    # no need to copy any schema
+                    if updated_planning_type[config_type][field]:
+                        updated_planning_type[config_type][field].update(
+                            planning_type[config_type].get(field) or {}
+                        )
         else:
             updated_planning_type['editor'].update(planning_type.get('editor', {}))
+            updated_planning_type['schema'].update(planning_type.get('schema', {}))
 
         planning_type['schema'] = updated_planning_type['schema']
         planning_type['editor'] = updated_planning_type['editor']
