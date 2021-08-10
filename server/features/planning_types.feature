@@ -8,7 +8,7 @@ Feature: Planning Types
       """
       { "_items": [{ "name": "event", "editor": {
           "slugline": {"enabled": true}},"schema": {
-          "slugline": {"minlength": null, "required": false, "type": "string", "maxlength": null}}
+          "slugline": {"required": false, "type": "string"}}
       }
       ,{ "name": "planning", "editor": {
           "slugline": {"enabled": true}}
