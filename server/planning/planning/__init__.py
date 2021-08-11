@@ -19,7 +19,6 @@ from .planning_duplicate import PlanningDuplicateService, PlanningDuplicateResou
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
 from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
-from .planning_types import PlanningTypesService, PlanningTypesResource
 from .planning_autosave import PlanningAutosaveResource, PlanningAutosaveService
 from .planning_featured_lock import PlanningFeaturedLockResource, PlanningFeaturedLockService,\
     PlanningFeaturedUnlockResource, PlanningFeaturedUnlockService
@@ -55,12 +54,6 @@ def init_app(app):
 
     files_service = PlanningFilesService('planning_files', backend=superdesk.get_backend())
     PlanningFilesResource('planning_files', app=app, service=files_service)
-
-    planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name,
-                                                 backend=superdesk.get_backend())
-    PlanningTypesResource(PlanningTypesResource.endpoint_name,
-                          app=app,
-                          service=planning_type_service)
 
     planning_cancel_service = PlanningCancelService(PlanningCancelResource.endpoint_name,
                                                     backend=superdesk.get_backend())

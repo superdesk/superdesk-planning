@@ -35,11 +35,11 @@ export class EventEditor extends Editor {
                 recurring: {
                     enable: new ToggleInput(
                         getParent,
-                        '[data-test-id="field-dates.recurring_rules_toggle"] > :first-child'
+                        '[data-test-id="field-recurring_rules_toggle"] > :first-child'
                     ),
                     until: new Input(
                         getParent,
-                        '[data-test-id="field-dates.recurring_rules_rules"] input[name="dates.recurring_rule.until"]'
+                        '[data-test-id="field-recurring_rules_rules"] input[name="dates.recurring_rule.until"]'
                     ),
                 },
             },

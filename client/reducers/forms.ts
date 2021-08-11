@@ -1,6 +1,8 @@
 import * as React from 'react';
 
-import {AUTOSAVE, ITEM_TYPE, MAIN} from '../constants';
+import {IPlanningContentProfile} from '../interfaces';
+
+import {AUTOSAVE, ITEM_TYPE, MAIN, FORMS} from '../constants';
 import {createReducer} from './createReducer';
 import {eventUtils, getItemId, getItemType, planningUtils} from '../utils';
 import {cloneDeep, get, set} from 'lodash';
@@ -249,6 +251,11 @@ const formsReducer = createReducer(initialState, {
     },
 
     [MAIN.ACTIONS.FORMS_SET_POPUP_FORM]: setPopupForm,
+
+    [FORMS.ACTIONS.UPDATE_CONTENT_PROFILE]: (state, payload: {[key: string]: IPlanningContentProfile}) => ({
+        ...state,
+        profiles: payload,
+    })
 });
 
 export default formsReducer;

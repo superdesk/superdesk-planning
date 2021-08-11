@@ -4,7 +4,7 @@ import {get, forEach} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
-import {superdeskApi} from '../../../superdeskApi';
+import {superdeskApi, planningApi} from '../../../superdeskApi';
 import {IArticle, IDesk} from 'superdesk-api';
 import {
     EDITOR_TYPE,
@@ -22,7 +22,7 @@ import {
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
-import {profileConfigToFormProfile} from '../../../utils/forms';
+
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {getUsersDefaultLanguage} from '../../../utils/users';
@@ -333,108 +333,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             this.props.newsCoverageStatus,
             this.props.addNewsItemToPlanning
         );
-        const {profile, fieldProps} = profileConfigToFormProfile(
-            this.props.formProfile,
-            [
-                ['coverage_contact', 'contact_info'],
-                ['g2_content_type'],
-                ['language'],
-                ['xmp_file'],
-                ['genre'],
-                ['slugline'],
-                ['ednote'],
-                ['keywords', 'keyword'],
-                ['internal_note'],
-                ['files'],
-                ['news_coverage_status'],
-                ['coverage_schedule', 'scheduled'],
-                ['flags.no_content_linking', 'flags'],
-                ['scheduled_updates'],
-            ],
-            {
-                coverage_contact: {
-                    field: 'planning.contact_info',
-                    assignmentField: 'assigned_to.contact',
-                    label: assignmentUtils.getContactLabel(this.props.value),
-                },
-                g2_content_type: {
-                    readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
-                    field: 'planning.g2_content_type',
-                    onChange: this.onContentTypeChange,
-                    clearable: false,
-                    valueAsString: true,
-                    refNode: this.dom.contentType,
-                },
-                language: {
-                    field: 'planning.language',
-                    clearable: false,
-                },
-                xmp_file: {
-                    readOnly: this.props.readOnly || readOnlyFields.xmp_file,
-                    field: 'planning.xmp_file',
-                    enabled: showXmpFileInput,
-                    hideInput: hideXmpFileInput,
-                    createUploadLink: this.props.createUploadLink,
-                    files: this.props.files,
-                    onAddFiles: this.onAddXmpFile,
-                    onRemoveFile: this.onRemoveXmpFile,
-                },
-                genre: {
-                    readOnly: this.props.readOnly || readOnlyFields.genre,
-                    field: 'planning.genre',
-                    defaultValue: contentTypeQcode === 'text' ? defaultGenre : null,
-                    clearable: true,
-                },
-                slugline: {
-                    readOnly: this.props.readOnly || readOnlyFields.slugline,
-                    field: 'planning.slugline',
-                },
-                ednote: {
-                    readOnly: this.props.readOnly || readOnlyFields.ednote,
-                    field: 'planning.ednote',
-                },
-                keywords: {
-                    readOnly: this.props.readOnly || readOnlyFields.keyword,
-                    field: 'planning.keyword',
-                },
-                internal_note: {
-                    readOnly: this.props.readOnly || readOnlyFields.internal_note,
-                    field: 'planning.internal_note',
-                },
-                files: {
-                    readOnly: this.props.readOnly || readOnlyFields.files,
-                    field: 'planning.files',
-                },
-                news_coverage_status: {
-                    readOnly: this.props.readOnly || readOnlyFields.newsCoverageStatus,
-                    field: 'news_coverage_status',
-                },
-                coverage_schedule: {
-                    readOnly: this.props.readOnly || readOnlyFields.scheduled,
-                    field: 'planning.scheduled',
-                    timeField: 'planning._scheduledTime',
-                    toBeConfirmed: this.props.value?._time_to_be_confirmed,
-                    onToBeConfirmed: this.onTimeToBeConfirmed,
-                    onChange: this.onScheduleChanged,
-                },
-                'flags.no_content_linking': {
-                    readOnly: this.props.readOnly || readOnlyFields.flags,
-                    field: 'flags.no_content_linking',
-                },
-                scheduled_updates: {
-                    onRemoveAssignment: this.props.onRemoveAssignment,
-                    setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
-                    onRemoveScheduledUpdate: this.onRemoveScheduledUpdate,
-                    onScheduleChanged: this.onScheduleChanged,
-                    onScheduledUpdateClose: this.onScheduledUpdateClose,
-                    onScheduledUpdateOpen: this.onScheduledUpdateOpen,
-                    onAddScheduledUpdate: this.onAddScheduledUpdate,
-                    canCreateScheduledUpdate: this.props.addNewsItemToPlanning == null &&
-                    !get(this.props.diff, `${this.props.field}.flags.no_content_linking`),
-                },
-            }
-        );
-
         const globalProps = {
             item: this.props.value,
             language: this.props.value.planning?.language ?? getUsersDefaultLanguage(),
@@ -444,10 +342,96 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             disabled: this.props.readOnly,
             editorType: this.props.editorType,
         };
+        const fieldProps = {
+            contact_info: {
+                field: 'planning.contact_info',
+                assignmentField: 'assigned_to.contact',
+                label: assignmentUtils.getContactLabel(this.props.value),
+            },
+            g2_content_type: {
+                readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
+                field: 'planning.g2_content_type',
+                onChange: this.onContentTypeChange,
+                clearable: false,
+                valueAsString: true,
+                refNode: this.dom.contentType,
+            },
+            language: {
+                field: 'planning.language',
+                clearable: false,
+            },
+            xmp_file: {
+                readOnly: this.props.readOnly || readOnlyFields.xmp_file,
+                field: 'planning.xmp_file',
+                enabled: showXmpFileInput,
+                hideInput: hideXmpFileInput,
+                createUploadLink: this.props.createUploadLink,
+                files: this.props.files,
+                onAddFiles: this.onAddXmpFile,
+                onRemoveFile: this.onRemoveXmpFile,
+            },
+            genre: {
+                readOnly: this.props.readOnly || readOnlyFields.genre,
+                field: 'planning.genre',
+                defaultValue: contentTypeQcode === 'text' ? defaultGenre : null,
+                clearable: true,
+            },
+            slugline: {
+                readOnly: this.props.readOnly || readOnlyFields.slugline,
+                field: 'planning.slugline',
+            },
+            headline: {
+                readOnly: this.props.readOnly || readOnlyFields.headline,
+                field: 'planning.headline',
+            },
+            ednote: {
+                readOnly: this.props.readOnly || readOnlyFields.ednote,
+                field: 'planning.ednote',
+            },
+            keyword: {
+                readOnly: this.props.readOnly || readOnlyFields.keyword,
+                field: 'planning.keyword',
+            },
+            internal_note: {
+                readOnly: this.props.readOnly || readOnlyFields.internal_note,
+                field: 'planning.internal_note',
+            },
+            files: {
+                readOnly: this.props.readOnly || readOnlyFields.files,
+                field: 'planning.files',
+            },
+            news_coverage_status: {
+                readOnly: this.props.readOnly || readOnlyFields.newsCoverageStatus,
+                field: 'news_coverage_status',
+            },
+            scheduled: {
+                readOnly: this.props.readOnly || readOnlyFields.scheduled,
+                field: 'planning.scheduled',
+                timeField: 'planning._scheduledTime',
+                toBeConfirmed: this.props.value?._time_to_be_confirmed,
+                onToBeConfirmed: this.onTimeToBeConfirmed,
+                onChange: this.onScheduleChanged,
+            },
+            no_content_linking: {
+                readOnly: this.props.readOnly || readOnlyFields.flags,
+                field: 'flags.no_content_linking',
+            },
+            scheduled_updates: {
+                onRemoveAssignment: this.props.onRemoveAssignment,
+                setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
+                onRemoveScheduledUpdate: this.onRemoveScheduledUpdate,
+                onScheduleChanged: this.onScheduleChanged,
+                onScheduledUpdateClose: this.onScheduledUpdateClose,
+                onScheduledUpdateOpen: this.onScheduledUpdateOpen,
+                onAddScheduledUpdate: this.onAddScheduledUpdate,
+                canCreateScheduledUpdate: this.props.addNewsItemToPlanning == null &&
+                    !get(this.props.diff, `${this.props.field}.flags.no_content_linking`),
+                enabled: this.props.includeScheduledUpdates,
+            },
+        };
 
-        if (!this.props.includeScheduledUpdates) {
-            profile.scheduled_updates.enabled = false;
-        }
+        const editor = planningApi.editor(this.props.editorType);
+        const profile = editor.item.planning.getCoverageFields();
 
         return (
             <div className="coverage-editor">
@@ -455,7 +439,12 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     'editor',
                     profile,
                     globalProps,
-                    fieldProps
+                    fieldProps,
+                    null,
+                    null,
+                    'enabled',
+                    editor.dom.fields,
+                    this.props.formProfile.schema
                 )}
             </div>
         );

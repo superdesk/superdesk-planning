@@ -32,6 +32,7 @@ from .common import (
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
+from planning.content_profiles import init_app as init_content_profiles
 from planning.events import init_app as init_events_app
 from planning.planning import init_app as init_planning_app
 from planning.assignments import init_app as init_assignments_app
@@ -77,6 +78,7 @@ def init_app(app):
 
     register_component(LockService(app))
 
+    init_content_profiles(app)
     init_locations_app(app)
     init_events_app(app)
     init_planning_app(app)

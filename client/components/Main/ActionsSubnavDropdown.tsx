@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {appConfig} from 'appConfig';
+import {planningApi} from '../../superdeskApi';
 
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
@@ -17,6 +18,17 @@ const ActionsSubnavDropdownComponent = (props) => {
         items.push({
             label: gettext('Manage agendas'),
             action: props.openAgendas,
+        });
+    }
+
+    if (props.privileges[PRIVILEGES.MANAGE_CONTENT_PROFILES]) {
+        items.push({
+            label: gettext('Manage planning profiles'),
+            action: planningApi.contentProfiles.showManagePlanningProfileModal,
+        });
+        items.push({
+            label: gettext('Manage event profiles'),
+            action: planningApi.contentProfiles.showManageEventProfileModal,
         });
     }
 

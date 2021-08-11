@@ -8,6 +8,7 @@ interface IProps {
     noPadding?: boolean;
     fullHeight?: boolean;
     noScroll?: boolean;
+    className?: string;
 }
 
 export default class Body extends React.Component<IProps> {
@@ -21,6 +22,7 @@ export default class Body extends React.Component<IProps> {
                 className={classNames(
                     'modal__body',
                     {
+                        [this.props.className]: this.props.className?.length,
                         'modal__body--no-padding': noPadding,
                         'modal__body--full-height': fullHeight,
                         'modal__body--no-scroll': noScroll,

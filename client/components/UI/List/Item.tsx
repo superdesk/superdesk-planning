@@ -11,6 +11,7 @@ interface IProps {
     disabled?: boolean;
     refNode?: any;
     tabIndex?: number;
+    draggable?: boolean;
 
     onClick?(event: React.MouseEvent<HTMLLIElement>): void;
     onMouseEnter?(): void;
@@ -41,6 +42,7 @@ export class Item extends React.PureComponent<IProps> {
             onMouseUp,
             refNode,
             tabIndex,
+            draggable,
         } = this.props;
 
         return (
@@ -55,6 +57,7 @@ export class Item extends React.PureComponent<IProps> {
                         'sd-list-item--activated': activated,
                         [`sd-shadow--z${shadow}`]: shadow,
                         'sd-list-item--disabled': disabled,
+                        'sd-list-item--draggable': draggable,
                     }
                 )}
                 onClick={onClick}
