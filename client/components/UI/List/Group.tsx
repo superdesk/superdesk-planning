@@ -20,7 +20,7 @@ interface IProps {
      */
     indexFrom?: number;
 
-    listBoxGroupProps: IAccessibleListBox;
+    listBoxGroupProps?: IAccessibleListBox;
 
     onScroll?(event: React.UIEvent): void;
     onKeyDown?(event: React.KeyboardEvent<HTMLUListElement>): void;

@@ -1,0 +1,78 @@
+@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
+
+.select-icon__overlay-panel {
+    z-index: 1500 !important;
+    margin-top: 1px;
+}
+
+.select-icon__panel {
+    width: 450px;
+    max-height: 550px;
+    background-color: var(--color-bg-00);
+    display: flex;
+    flex-direction: column;
+}
+
+.select-icon__header {
+    padding: 1rem;
+    box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
+}
+
+.select-icon__body {
+    overflow-y: auto;
+    margin: 0;
+    padding: 1rem;
+}
+
+.select-icon__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: $sd-text;
+
+    &:hover, &:focus {
+        color: $sd-blue;
+        cursor: pointer;
+
+        i {
+            color: $sd-blue;
+        }
+    }
+
+    &:hover {
+        background: $sd-colour-background__menu-item--hover;
+    }
+
+    &:focus {
+        outline: 2px solid $sd-colour-interactive__base;
+        outline-offset: -2px;
+    }
+}
+
+.sd-input--icon-select {
+    .btn {
+        grid-row: 2/3;
+        grid-column: 2/4;
+        background-color: var(--color-input-bg);
+        border-bottom: 1px solid var(--color-input-border);
+        width: 3.2rem;
+    }
+
+    .btn:hover {
+        background-color: var(--color-input-bg--hover);
+        border-color: var(--color-input-border-hover);
+    }
+
+    .btn:focus {
+        background-color: var(--color-input-bg--focus);
+        box-shadow: 0 1px 0 0 $sd-blue;
+    }
+}
+
+.form__item--auto-width {
+    .sd-input--icon-select {
+        .btn {
+            margin-top: 0;
+        }
+    }
+}

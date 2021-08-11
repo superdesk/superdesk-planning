@@ -20,8 +20,9 @@ interface IProps {
     white?: any;
     className?: any;
     fullheight?: any;
-    backdrop: any;
-    draggable: any;
+    backdrop?: any;
+    draggable?: any;
+    removeTabIndexAttribute?: boolean;
 }
 
 class Modal extends React.Component<IProps> {
@@ -31,6 +32,22 @@ class Modal extends React.Component<IProps> {
 
     static propTypes: any;
     static defaultProps: any;
+
+    componentDidMount() {
+        // `tabIndex` attribute causes an issue with Primereact's OverlayPanel component
+        // removing this attribute fixes that
+        // As Bootstrap is the one providing this tabindex, we must use `element.removeAttribute` instead
+        if (this.props.removeTabIndexAttribute) {
+            setTimeout(() => {
+                document.body.querySelectorAll('.modal--remove-tab-index').forEach(
+                    (element) => {
+                        element.removeAttribute('tabindex');
+                    }
+                );
+            },
+            500);
+        }
+    }
 
     render() {
         const {
@@ -46,6 +63,7 @@ class Modal extends React.Component<IProps> {
             fullheight,
             backdrop,
             draggable,
+            removeTabIndexAttribute,
         } = this.props;
 
         const classes = classNames(className, {
@@ -56,6 +74,7 @@ class Modal extends React.Component<IProps> {
             'modal--fullscreen': fullscreen,
             'modal--white': white,
             'modal--x-large': xLarge,
+            'modal--remove-tab-index': removeTabIndexAttribute,
         });
 
         return (
@@ -89,6 +108,7 @@ Modal.propTypes = {
     fullheight: PropTypes.bool,
     backdrop: PropTypes.bool,
     draggable: PropTypes.bool,
+    removeTabIndexAttribute: PropTypes.bool,
 };
 
 Modal.defaultProps = {

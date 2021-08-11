@@ -1,4 +1,7 @@
 import {get} from 'lodash';
+
+import {planningApi} from '../superdeskApi';
+
 import contacts from './contacts';
 
 /**
@@ -16,10 +19,25 @@ const onContactsUpdated = (_e, data) => (
     }
 );
 
+function onResourceCreatedOrUpdated(_e, data) {
+    return () => {
+        if (data.resource === 'planning_types') {
+            planningApi.contentProfiles.updateProfilesInStore();
+        }
+    };
+}
+
 // eslint-disable-next-line consistent-this
-const self = {onContactsUpdated};
+const self = {
+    onContactsUpdated,
+    onResourceCreatedOrUpdated,
+};
 
 // Map of notification name and Action Event to execute
-self.events = {'contacts:update': () => (self.onContactsUpdated)};
+self.events = {
+    'contacts:update': () => self.onContactsUpdated,
+    'resource:updated': () => self.onResourceCreatedOrUpdated,
+    'resource:created': () => self.onResourceCreatedOrUpdated,
+};
 
 export default self;

@@ -24,6 +24,11 @@ export interface IG2ContentType {
     'content item type': string;
 }
 
+export interface ILanguage {
+    qcode: string;
+    name: string;
+}
+
 export interface IGenre {
     qcode: string;
     name: string;
@@ -863,9 +868,10 @@ export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlann
 
 export type ICombinedEventOrPlanningSearchParams = IEventSearchParams | IPlanningSearchParams | ICombinedSearchParams;
 
-interface IProfileEditorField {
+export interface IProfileEditorField {
     enabled: boolean;
     index?: number;
+    group?: string;
 }
 
 interface IProfileEditorDatesField extends IProfileEditorField {
@@ -879,6 +885,8 @@ interface IBaseProfileSchemaType<T> {
     type: T;
     required: boolean;
     validate_on_post?: boolean;
+    minlength?: number;
+    maxlength?: number;
 }
 
 export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
@@ -890,10 +898,7 @@ export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integ
 export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
 export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
 
-export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
-    minlength?: number;
-    maxlength?: number;
-}
+export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {}
 
 export interface IAdvancedSearchFormProfileField {
     enabled: boolean;
@@ -901,11 +906,57 @@ export interface IAdvancedSearchFormProfileField {
     group?: string;
 }
 
-export interface IEditorProfile {
-    editor: {[key: string]: IProfileEditorField};
+export interface IEditorProfileGroup {
+    _id: string;
     name: string;
-    schema: {[key: string]: IProfileSchemaType};
+    index: number;
+    icon: string;
+    useToggleBox?: boolean;
+    showBookmark?: boolean;
+    translations: {
+        name: {[key: string]: string};
+    };
 }
+
+export interface IProfileFieldEntry {
+    name: string;
+    field: IProfileEditorField;
+    schema: IProfileSchemaType;
+}
+
+export interface IEditorProfile {
+    // The name identifies the form in the UI to which the type relates
+    _id?: Readonly<string>;
+    name: Readonly<string>;
+
+    // editor controls which fields are visible in the UI
+    editor: {[key: string]: IProfileEditorField};
+
+    // schema controls the validation of fields at the front end
+    schema: {[key: string]: IProfileSchemaType};
+
+    // postSchema controls the validation of fields when posting.
+    postSchema?: {[key: string]: IProfileSchemaType};
+
+    // list fields config
+    list?: {[key: string]: any};
+
+    // list fields when seeing events/planning when exporting or downloading
+    export_list?: Array<string>;
+
+    // list of groups (and their translations) for grouping of fields in the Editor
+    groups: {[key: string]: IEditorProfileGroup};
+    // groups: Array<IEditorProfileGroup>;
+
+    // Audit Information
+    created_by: Readonly<IUser['_id']>;
+    updated_by: Readonly<IUser['_id']>;
+    firstcreated: Readonly<Date>;
+    versioncreated: Readonly<Date>;
+    init_version: Readonly<number>;
+}
+
+export type IPlanningContentProfile = IBaseRestApiResponse & IEditorProfile;
 
 export interface IEventFormProfile {
     editor: {
@@ -1465,7 +1516,7 @@ export interface IEditorFormState {
 }
 
 export interface IFormState {
-    profiles: {};
+    profiles: {[key: string]: IPlanningContentProfile};
     autosaves: {
         event?: DeepPartial<IEventOrPlanningItem>;
         planning?: DeepPartial<IEventOrPlanningItem>;
@@ -1743,6 +1794,8 @@ export type IEditorBookmark = IEditorBookmarkDivider
 export interface IEditorFormGroup {
     id: string;
     index: number;
+    icon: string;
+    showBookmark?: boolean;
     fields: Array<string>;
     disabled?: boolean;
     useToggleBox?: boolean;
@@ -1832,6 +1885,7 @@ export interface IEditorAPI {
                 bookmarks: Array<IEditorBookmark>;
                 groups: Array<IEditorFormGroup>;
             };
+            getCoverageFields(): ISearchProfile;
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;
         };
@@ -1938,4 +1992,12 @@ export interface IPlanningAPI {
         delete(item: IEventOrPlanningItem): Promise<void>;
     };
     editor(type: EDITOR_TYPE): IEditorAPI;
+    contentProfiles: {
+        getAll(): Promise<Array<IPlanningContentProfile>>;
+        get(contentType: string): IPlanningContentProfile;
+        patch(original: IPlanningContentProfile, updates: IPlanningContentProfile): Promise<IPlanningContentProfile>;
+        showManagePlanningProfileModal(): Promise<void>;
+        showManageEventProfileModal(): Promise<void>;
+        updateProfilesInStore(): Promise<void>;
+    };
 }

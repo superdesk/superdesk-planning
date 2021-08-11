@@ -8,6 +8,7 @@ import {ui} from './ui';
 import {locations} from './locations';
 import {autosave} from './autosave';
 import {editor} from './editor';
+import {contentProfiles} from './contentProfiles';
 
 export const planningApis: Omit<IPlanningAPI, 'redux' | '$location'> = {
     events,
@@ -19,4 +20,5 @@ export const planningApis: Omit<IPlanningAPI, 'redux' | '$location'> = {
     locations,
     autosave,
     editor,
+    contentProfiles,
 };

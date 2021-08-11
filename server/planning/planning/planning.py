@@ -36,7 +36,7 @@ from itertools import chain
 from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
 from datetime import datetime
-from .planning_types import is_field_enabled
+from planning.content_profiles.utils import is_field_enabled
 from superdesk import Resource
 from lxml import etree
 from io import BytesIO

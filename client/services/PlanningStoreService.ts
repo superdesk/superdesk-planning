@@ -182,10 +182,7 @@ export class PlanningStoreService {
             users: this.userList.getAll(),
             desks: this.desks.initialize(),
             all_templates: this.templates.fetchAllTemplates(1, 200, 'create'),
-            formsProfile: this.api('planning_types').query({
-                max_results: 200,
-                page: 1,
-            }),
+            formsProfile: planningApi.contentProfiles.getAll(),
             userDesks: this.desks.fetchCurrentUserDesks(),
             exportTemplates: this.api('planning_export_templates').query({
                 max_results: 200,
@@ -249,7 +246,7 @@ export class PlanningStoreService {
                     genre: genres,
                 });
 
-                data.formsProfile._items.forEach((p) => {
+                data.formsProfile.forEach((p) => {
                     initialState.forms.profiles[p.name] = p;
                 });
 

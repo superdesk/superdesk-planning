@@ -475,10 +475,10 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                     urgency: {
                         valueAsString: true,
                     },
-                    'flags.marked_for_not_publication': {
+                    marked_for_not_publication: {
                         enabled: this.props.diff?.pubstatus == null,
                     },
-                    'flags.overide_auto_assign_to_workflow': {
+                    overide_auto_assign_to_workflow: {
                         enabled: appConfig.planning_auto_assign_to_workflow
                     },
                     files: {

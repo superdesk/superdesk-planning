@@ -1,31 +1,33 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
+import {SortableContainer, SortableElement, arrayMove, SortableContainerProps} from 'react-sortable-hoc';
 
 import './style.scss';
 
-const SortableItem = SortableElement(({item, disabled, getListElement}) =>
-    (
-        <li
-            className={classNames('sortable-list__item',
-                'draggable-list__item',
-                {'sortable-list__item--no-padding': getListElement})}
-        >
-            {getListElement ? getListElement(item) : item.label}
-        </li>
-    )
+const SortableItem = SortableElement(({item, disabled, getListElement, useCustomStyle}) =>
+    useCustomStyle ?
+        getListElement(item) :
+        (
+            <li
+                className={classNames('sortable-list__item',
+                    'draggable-list__item',
+                    {'sortable-list__item--no-padding': getListElement})}
+            >
+                {getListElement ? getListElement(item) : item.label}
+            </li>
+        )
 );
 
-const SortableList = SortableContainer(({items, getListElement}) => (
+const SortableList = SortableContainer(({items, useCustomStyle, getListElement}) => (
     <ul className="sortable-list">
         {(items || []).map((item, index, arr) => (
             <SortableItem
-                key={item.id}
+                key={item.id ?? item._id ?? index}
                 index={index}
                 item={item}
                 disabled={arr.length === 1}
                 getListElement={getListElement}
+                useCustomStyle={useCustomStyle}
             />
         )
         )}
@@ -33,7 +35,16 @@ const SortableList = SortableContainer(({items, getListElement}) => (
 )
 );
 
-class SortItems extends React.Component {
+interface IProps extends SortableContainerProps {
+    items: Array<any>;
+    useCustomStyle?: boolean;
+    onSortChange(items: Array<any>): void;
+    getListElement(item: any): any
+}
+
+class SortItems extends React.PureComponent<IProps> {
+    cursor: string;
+
     constructor(props) {
         super(props);
         this.onSortEnd = this.onSortEnd.bind(this);
@@ -56,21 +67,25 @@ class SortItems extends React.Component {
     }
 
     render() {
+        const {
+            items,
+            onSortChange,
+            getListElement,
+            useCustomStyle,
+            ...props
+        } = this.props;
+
         return (
             <SortableList
-                items={this.props.items}
+                items={items}
                 onSortEnd={this.onSortEnd}
                 onSortStart={this.onSortStart}
-                getListElement={this.props.getListElement}
+                getListElement={getListElement}
+                useCustomStyle={useCustomStyle}
+                {...props}
             />
         );
     }
 }
-
-SortItems.propTypes = {
-    onSortChange: PropTypes.func.isRequired,
-    items: PropTypes.array.isRequired,
-    getListElement: PropTypes.func,
-};
 
 export default SortItems;

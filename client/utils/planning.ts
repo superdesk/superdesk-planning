@@ -732,6 +732,7 @@ const getCoverageReadOnlyFields = (
         // if newsItem is published, schedule is readOnly
         return {
             slugline: true,
+            headline: true,
             ednote: false,
             keyword: true,
             internal_note: readOnly || false,
@@ -758,6 +759,7 @@ const getCoverageReadOnlyFields = (
     case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
         return {
             slugline: readOnly,
+            headline: readOnly,
             ednote: readOnly,
             keyword: readOnly,
             internal_note: readOnly,
@@ -773,6 +775,7 @@ const getCoverageReadOnlyFields = (
     case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
         return {
             slugline: readOnly,
+            headline: readOnly,
             ednote: true,
             keyword: true,
             internal_note: readOnly,
@@ -787,6 +790,7 @@ const getCoverageReadOnlyFields = (
     case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
         return {
             slugline: readOnly,
+            headline: readOnly,
             ednote: readOnly,
             keyword: readOnly,
             internal_note: readOnly,
@@ -801,6 +805,7 @@ const getCoverageReadOnlyFields = (
     case ASSIGNMENTS.WORKFLOW_STATE.CANCELLED:
         return {
             slugline: true,
+            headline: true,
             ednote: true,
             keyword: true,
             internal_note: true,
@@ -816,6 +821,7 @@ const getCoverageReadOnlyFields = (
     default:
         return {
             slugline: readOnly,
+            headline: readOnly,
             ednote: readOnly,
             keyword: readOnly,
             internal_note: readOnly,

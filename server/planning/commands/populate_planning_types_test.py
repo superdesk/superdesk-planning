@@ -27,13 +27,17 @@ class AppPopulatePlanningTypesTest(TestCase):
             "name": "event",
             "editor": {
                 "definition_long": {
-                    "enabled": False
+                    "enabled": False,
+                    "group": "details",
+                    "index": 3
                 }
             },
             "schema": {
                 "definition_long": {
                     "type": "string",
-                    "required": False
+                    "required": False,
+                    "minlength": None,
+                    "maxlength": None
                 }
             }
         }]

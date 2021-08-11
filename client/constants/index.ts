@@ -17,15 +17,15 @@ export {MODALS} from './modals';
 export {UI} from './ui';
 export {AUTOSAVE} from './autosave';
 export {MAIN} from './main';
-export {KEYCODES} from './keycodes';
+export {KEYCODES, KEYBOARD_CODES} from './keycodes';
 export {EVENTS_PLANNING} from './eventsplanning';
 export {COVERAGES} from './coverages';
 export {MULTISELECT} from './multiselect';
 export {CONTACTS} from './contacts';
 export {FEATURED_PLANNING} from './featuredPlanning';
 export {LOCATIONS} from './locations';
-
 export {EVENTS} from './events';
+export {FORMS} from './forms';
 
 export const WS_NOTIFICATION = 'WS_NOTIFICATION';
 export const TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed';
