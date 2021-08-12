@@ -183,7 +183,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
 
     save() {
         const coverages = this.state.coverages
-            .filter((coverage) => coverage.enabled)
+            .filter((coverage) => coverage.enabled || coverage.coverage_id != null)
             .map((coverage) => {
                 const newCoverage: DeepPartial<IPlanningCoverageItem> = coverage.coverage_id == null ?
                     this.props.createCoverage(coverage.qcode) :
@@ -196,13 +196,14 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                     desk: get(coverage, 'desk._id'),
                 };
 
-                if (coverage.status) {
+                if (coverage.coverage_id != null && !coverage.enabled) {
+                    newCoverage.workflow_status = 'spiked';
+                } else if (coverage.status) {
                     newCoverage.news_coverage_status = coverage.status;
                 }
 
                 return newCoverage;
             });
-
 
         // create coverages
         this.props.onChange(this.props.field, coverages);
