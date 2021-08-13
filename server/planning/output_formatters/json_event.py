@@ -48,7 +48,7 @@ class JsonEventFormatter(Formatter):
         output_item['event_contact_info'] = expand_contact_info(item.get('event_contact_info', []))
         if item.get('files'):
             try:
-                output_item['files'] = self._publish_files(item)
+                output_item['files'] = self._get_files_for_publish(item)
             except NotImplementedError:
                 #  Current http_push transmitters only support media publish
                 pass
@@ -57,11 +57,10 @@ class JsonEventFormatter(Formatter):
             output_item.pop(f, None)
         return output_item
 
-    def _publish_files(self, item):
+    def _get_files_for_publish(self, item):
         def publish_file(file_id):
             event_file = superdesk.get_resource_service('events_files').find_one(req=None, _id=file_id)
             media = app.media.get(event_file['media'], resource='events_files')
-            self._publish_media(media)
             return {
                 'media': str(event_file['media']),
                 'name': media.name,
