@@ -9,7 +9,8 @@ Feature: Assignments Locking
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
             },
             "assigned_to": {
                 "desk": "Politic Desk",
@@ -36,7 +37,8 @@ Feature: Assignments Locking
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
             },
             "assigned_to": {
                 "desk": "Politic Desk",
@@ -57,7 +59,8 @@ Feature: Assignments Locking
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
             },
             "assigned_to": {
                 "desk": "Politic Desk",
@@ -94,7 +97,7 @@ Feature: Assignments Locking
         [{
             "item_class": "item class value",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02T14:00:00+0000"
         }]
         """
         Then we get OK response
@@ -148,7 +151,8 @@ Feature: Assignments Locking
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
             },
             "assigned_to": {
                 "desk": "Politic Desk",
@@ -169,7 +173,8 @@ Feature: Assignments Locking
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
             },
             "assigned_to": {
                 "desk": "Politic Desk",
@@ -193,7 +198,8 @@ Feature: Assignments Locking
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "scheduled": "2016-01-02T14:00:00+0000"
             },
             "assigned_to": {
                 "desk": "Politic Desk",
@@ -230,7 +236,7 @@ Feature: Assignments Locking
         [{
             "item_class": "item class value",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02T14:00:00+0000"
         }]
         """
         Then we get OK response
@@ -309,7 +315,7 @@ Feature: Assignments Locking
         [{
             "item_class": "item class value",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02T14:00:00+0000"
         }]
         """
         Then we get OK response
@@ -385,7 +391,7 @@ Feature: Assignments Locking
         [{
             "item_class": "item class value",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02T14:00:00+0000"
         }]
         """
         Then we get OK response
@@ -472,7 +478,7 @@ Feature: Assignments Locking
         [{
             "item_class": "item class value",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02T14:00:00+0000"
         }]
         """
         Then we get OK response
@@ -548,7 +554,7 @@ Feature: Assignments Locking
         [{
             "item_class": "item class value",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02T14:00:00+0000"
         }]
         """
         Then we get OK response
@@ -666,7 +672,7 @@ Feature: Assignments Locking
             "item_class": "item class value",
             "headline": "test headline",
             "slugline": "test slugline",
-            "planning_date": "2016-01-02"
+            "planning_date": "2016-01-02T14:00:00+0000"
         }]
         """
         Then we get OK response
