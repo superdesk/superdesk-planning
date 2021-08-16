@@ -22,30 +22,23 @@ two_days_ago = now - timedelta(hours=96)
 
 
 class DeleteMarkedAssignmentsTest(TestCase):
-    users = [
-        {'_id': ObjectId()},
-        {'_id': ObjectId()}
-    ]
+    users = [{"_id": ObjectId()}, {"_id": ObjectId()}]
 
     auth = [
-        {'_id': ObjectId(), 'user': users[0]['_id']},
-        {'_id': ObjectId(), 'user': users[1]['_id']}
+        {"_id": ObjectId(), "user": users[0]["_id"]},
+        {"_id": ObjectId(), "user": users[1]["_id"]},
     ]
 
     assignments = [
-        {'_id': 'a1', '_to_delete': True, 'planning_item': 'p1', 'coverage_item': 'c1'},
-        {'_id': 'a2', '_to_delete': True, 'planning_item': 'p2', 'coverage_item': 'c1'},
-        {'_id': 'a3', 'planning_item': 'p3'},
+        {"_id": "a1", "_to_delete": True, "planning_item": "p1", "coverage_item": "c1"},
+        {"_id": "a2", "_to_delete": True, "planning_item": "p2", "coverage_item": "c1"},
+        {"_id": "a3", "planning_item": "p3"},
     ]
-    plans = [
-        {'_id': 'p1'},
-        {'_id': 'p2'},
-        {'_id': 'p3'}
-    ]
+    plans = [{"_id": "p1"}, {"_id": "p2"}, {"_id": "p3"}]
 
     def setUp(self):
         super().setUp()
-        self.assignment_service = get_resource_service('assignments')
+        self.assignment_service = get_resource_service("assignments")
 
     def assertAssignmentDeleted(self, assignment_ids, not_deleted=False):
 
@@ -58,15 +51,15 @@ class DeleteMarkedAssignmentsTest(TestCase):
 
     def test_delete_marked_assignments(self):
         with self.app.app_context():
-            self.app.data.insert('users', self.users)
-            self.app.data.insert('auth', self.auth)
-            self.app.data.insert('planning', self.plans)
-            self.app.data.insert('assignments', self.assignments)
+            self.app.data.insert("users", self.users)
+            self.app.data.insert("auth", self.auth)
+            self.app.data.insert("planning", self.plans)
+            self.app.data.insert("assignments", self.assignments)
 
             flask.g.user = self.users[0]
             flask.g.auth = self.auth[0]
 
             DeleteMarkedAssignments().run()
 
-            self.assertAssignmentDeleted(['a1', 'a2'])
-            self.assertAssignmentDeleted(['a3'], True)
+            self.assertAssignmentDeleted(["a1", "a2"])
+            self.assertAssignmentDeleted(["a3"], True)

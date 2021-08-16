@@ -15,26 +15,26 @@ class DateTimeField(schema.SchemaField):
     """Date & Time schema field."""
 
     def __repr__(self):
-        return 'datetime'
+        return "datetime"
 
     def __init__(self, required=False, schema=None):
         """Initialize"""
         super().__init__()
-        self.schema['type'] = 'datetime'
-        self.schema['required'] = required
+        self.schema["type"] = "datetime"
+        self.schema["required"] = required
 
 
 class BooleanField(schema.SchemaField):
     """Boolean schema field"""
 
     def __repr__(self):
-        return 'boolean'
+        return "boolean"
 
     def __init__(self, required=False):
         """Initialize"""
         super().__init__()
-        self.schema['type'] = 'boolean'
-        self.schema['required'] = required
+        self.schema["type"] = "boolean"
+        self.schema["required"] = required
 
 
 class BaseSchema(schema.Schema):
@@ -43,28 +43,32 @@ class BaseSchema(schema.Schema):
 
 class StringRequiredForAction(schema.SchemaField):
     def __repr__(self):
-        return 'string'
+        return "string"
 
     def __init__(self, required=False, dependencies=None):
         """Initialize"""
         super().__init__()
-        self.schema['type'] = 'string'
-        self.schema['required'] = required
-        self.schema['dependencies'] = dependencies
+        self.schema["type"] = "string"
+        self.schema["required"] = required
+        self.schema["dependencies"] = dependencies
 
 
-subjectField = schema.ListField(required=False, mandatory_in_list={'scheme': {}}, schema={
-    'type': 'dict',
-    'schema': {
-        'name': {},
-        'qcode': {},
-        'scheme': {
-            'type': 'string',
-            'required': True,
-            'nullable': True,
-            'allowed': []
+subjectField = schema.ListField(
+    required=False,
+    mandatory_in_list={"scheme": {}},
+    schema={
+        "type": "dict",
+        "schema": {
+            "name": {},
+            "qcode": {},
+            "scheme": {
+                "type": "string",
+                "required": True,
+                "nullable": True,
+                "allowed": [],
+            },
+            "service": {"nullable": True},
+            "parent": {"nullable": True},
         },
-        'service': {'nullable': True},
-        'parent': {'nullable': True}
-    }
-})
+    },
+)

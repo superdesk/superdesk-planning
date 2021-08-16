@@ -22,21 +22,26 @@ class EventHTTPFeedingService(HTTPFeedingServiceBase):
     Feeding Service class which can read events using HTTP
     """
 
-    NAME = 'event_http'
-    label = 'Event HTTP feed'
-    service = 'events'
+    NAME = "event_http"
+    label = "Event HTTP feed"
+    service = "events"
     fields = [
         {
-            'id': 'url', 'type': 'text', 'label': 'Feed URL',
-            'placeholder': 'Feed URL', 'required': True
+            "id": "url",
+            "type": "text",
+            "label": "Feed URL",
+            "placeholder": "Feed URL",
+            "required": True,
         }
     ]
-    ERRORS = [IngestApiError.apiTimeoutError().get_error_description(),
-              IngestApiError.apiRedirectError().get_error_description(),
-              IngestApiError.apiRequestError().get_error_description(),
-              IngestApiError.apiUnicodeError().get_error_description(),
-              IngestApiError.apiParseError().get_error_description(),
-              IngestApiError.apiGeneralError().get_error_description()]
+    ERRORS = [
+        IngestApiError.apiTimeoutError().get_error_description(),
+        IngestApiError.apiRedirectError().get_error_description(),
+        IngestApiError.apiRequestError().get_error_description(),
+        IngestApiError.apiUnicodeError().get_error_description(),
+        IngestApiError.apiParseError().get_error_description(),
+        IngestApiError.apiGeneralError().get_error_description(),
+    ]
     HTTP_AUTH = False
 
     def _update(self, provider, update):
@@ -50,13 +55,13 @@ class EventHTTPFeedingService(HTTPFeedingServiceBase):
         :return: a list of events which can be saved.
         """
 
-        response = self.get_url(self.config['url'])
+        response = self.get_url(self.config["url"])
         parser = self.get_feed_parser(provider)
 
-        logger.info('Ingesting events with {} parser'.format(parser.__class__.__name__))
-        logger.info('Ingesting content: {} ...'.format(str(response.content)[:4000]))
+        logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
+        logger.info("Ingesting content: {} ...".format(str(response.content)[:4000]))
 
-        if hasattr(parser, 'parse_http'):
+        if hasattr(parser, "parse_http"):
             items = parser.parse_http(response.content, provider)
         else:
             items = parser.parse(response.content)

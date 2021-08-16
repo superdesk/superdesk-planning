@@ -25,20 +25,32 @@ class JsonPlanningFeaturedFormatter(Formatter):
         """
         Set format type and no export or preview
         """
-        self.format_type = 'json_planning_featured'
+        self.format_type = "json_planning_featured"
         self.can_preview = False
         self.can_export = False
 
     # fields to be removed from the planning item
-    remove_fields = ('last_posted_time', 'last_posted_by', '_etag', 'version_creator', 'original_creator', 'files')
+    remove_fields = (
+        "last_posted_time",
+        "last_posted_by",
+        "_etag",
+        "version_creator",
+        "original_creator",
+        "files",
+    )
 
     def can_format(self, format_type, article):
-        return format_type == self.format_type and article.get('type') == 'planning_featured'
+        return format_type == self.format_type and article.get("type") == "planning_featured"
 
     def format(self, item, subscriber, codes=None):
-        pub_seq_num = superdesk.get_resource_service('subscribers').generate_sequence_number(subscriber)
+        pub_seq_num = superdesk.get_resource_service("subscribers").generate_sequence_number(subscriber)
         output_item = deepcopy(item)
         for f in self.remove_fields:
             output_item.pop(f, None)
 
-        return [(pub_seq_num, json.dumps(output_item, default=json_serialize_datetime_objectId))]
+        return [
+            (
+                pub_seq_num,
+                json.dumps(output_item, default=json_serialize_datetime_objectId),
+            )
+        ]

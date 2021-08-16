@@ -27,37 +27,46 @@ class EventFileFeedingService(FileFeedingService):
     Feeding Service class which can read the configured local file system for article(s).
     """
 
-    NAME = 'event_file'
+    NAME = "event_file"
     ERRORS = [
         ParserError.IPTC7901ParserError().get_error_description(),
         ParserError.nitfParserError().get_error_description(),
         ParserError.newsmlOneParserError().get_error_description(),
         ProviderError.ingestError().get_error_description(),
-        ParserError.parseFileError().get_error_description()
+        ParserError.parseFileError().get_error_description(),
     ]
 
-    label = 'Event file feed'
+    label = "Event file feed"
 
     """
     Defines the collection service to be used with this ingest feeding service.
     """
-    service = 'events'
+    service = "events"
 
     fields = [
         {
-            'id': 'path', 'type': 'text', 'label': 'Event File Server Folder',
-            'placeholder': 'path to folder', 'required': True,
-            'errors': {3003: 'Path not found on server.', 3004: 'Path should be directory.'}
+            "id": "path",
+            "type": "text",
+            "label": "Event File Server Folder",
+            "placeholder": "path to folder",
+            "required": True,
+            "errors": {
+                3003: "Path not found on server.",
+                3004: "Path should be directory.",
+            },
         }
     ]
 
     def _update(self, provider, update):
         self.provider = provider
-        self.path = provider.get('config', {}).get('path', None)
+        self.path = provider.get("config", {}).get("path", None)
 
         if not self.path:
-            logger.warn('File Feeding Service {} is configured without path. Please check the configuration'
-                        .format(provider['name']))
+            logger.warn(
+                "File Feeding Service {} is configured without path. Please check the configuration".format(
+                    provider["name"]
+                )
+            )
             return []
 
         for filename in get_sorted_files(self.path, sort_by=FileSortAttributes.created):
@@ -68,11 +77,11 @@ class EventFileFeedingService(FileFeedingService):
                     stat = os.lstat(file_path)
                     last_updated = datetime.fromtimestamp(stat.st_mtime, tz=utc)
 
-                    if self.is_latest_content(last_updated, provider.get('last_updated')):
+                    if self.is_latest_content(last_updated, provider.get("last_updated")):
                         parser = self.get_feed_parser(provider, file_path)
-                        logger.info('Ingesting events with {} parser'.format(parser.__class__.__name__))
-                        if hasattr(parser, 'parse_file'):
-                            with open(file_path, 'rb') as f:
+                        logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
+                        if hasattr(parser, "parse_file"):
+                            with open(file_path, "rb") as f:
                                 item = parser.parse_file(f, provider)
                         else:
                             item = parser.parse(file_path, provider)
@@ -89,6 +98,6 @@ class EventFileFeedingService(FileFeedingService):
             except Exception as ex:
                 if last_updated and self.is_old_content(last_updated):
                     self.move_file(self.path, filename, provider=provider, success=False)
-                raise ParserError.parseFileError('{}-{}'.format(provider['name'], self.NAME), filename, ex, provider)
+                raise ParserError.parseFileError("{}-{}".format(provider["name"], self.NAME), filename, ex, provider)
 
-        push_notification('ingest:update')
+        push_notification("ingest:update")

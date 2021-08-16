@@ -13,9 +13,7 @@ from .planning_validate import PlanningValidateResource, PlanningValidateService
 
 
 def init_app(app):
-    """Initialize planning validators.
-
-    """
+    """Initialize planning validators."""
 
     validate_service = PlanningValidateService(PlanningValidateResource.endpoint_name, backend=superdesk.get_backend())
     PlanningValidateResource(PlanningValidateResource.endpoint_name, app=app, service=validate_service)

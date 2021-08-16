@@ -17,30 +17,31 @@ from apps.prepopulate.app_populate import AppPopulateCommand
 
 
 class AppPopulatePlanningTypesTest(TestCase):
-
     def setUp(self):
         super().setUp()
         self.filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), "planning_types.json")
 
-        self.json_data = [{
-            "_id": "event",
-            "name": "event",
-            "editor": {
-                "definition_long": {
-                    "enabled": False,
-                    "group": "details",
-                    "index": 3
-                }
-            },
-            "schema": {
-                "definition_long": {
-                    "type": "string",
-                    "required": False,
-                    "minlength": None,
-                    "maxlength": None
-                }
+        self.json_data = [
+            {
+                "_id": "event",
+                "name": "event",
+                "editor": {
+                    "definition_long": {
+                        "enabled": False,
+                        "group": "details",
+                        "index": 3,
+                    }
+                },
+                "schema": {
+                    "definition_long": {
+                        "type": "string",
+                        "required": False,
+                        "minlength": None,
+                        "maxlength": None,
+                    }
+                },
             }
-        }]
+        ]
 
         with open(self.filename, "w+") as file:
             json.dump(self.json_data, file)
@@ -52,10 +53,10 @@ class AppPopulatePlanningTypesTest(TestCase):
             cmd.run(self.filename)
 
             for item in self.json_data:
-                data = service.find_one(_id=item['_id'], req=None)
+                data = service.find_one(_id=item["_id"], req=None)
                 self.assertEqual(data["_id"], item["_id"])
-                self.assertEqual(data["editor"]['definition_long'], item["editor"]['definition_long'])
-                self.assertDictEqual(data["schema"]['definition_long'], item["schema"]['definition_long'])
+                self.assertEqual(data["editor"]["definition_long"], item["editor"]["definition_long"])
+                self.assertDictEqual(data["schema"]["definition_long"], item["schema"]["definition_long"])
 
     def tearDown(self):
         os.remove(self.filename)

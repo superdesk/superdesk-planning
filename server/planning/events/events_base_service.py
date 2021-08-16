@@ -20,8 +20,14 @@ from superdesk.utc import utcnow
 from apps.auth import get_user_id
 from apps.archive.common import get_auth
 
-from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_post_item, \
-    set_ingested_event_state, is_valid_event_planning_reason
+from planning.common import (
+    UPDATE_SINGLE,
+    WORKFLOW_STATE,
+    get_max_recurrent_events,
+    update_post_item,
+    set_ingested_event_state,
+    is_valid_event_planning_reason,
+)
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 
@@ -34,7 +40,7 @@ class EventsBaseService(BaseService):
     type of event that is being actioned against.
     """
 
-    ACTION = ''
+    ACTION = ""
     REQUIRE_LOCK = True
 
     def on_update(self, updates, original):
@@ -46,12 +52,12 @@ class EventsBaseService(BaseService):
         """
         user_id = get_user_id()
         if user_id:
-            updates['version_creator'] = user_id
+            updates["version_creator"] = user_id
             set_ingested_event_state(updates, original)
 
         # If `skip_on_update` is provided in the updates
         # Then return here so no further processing is performed on this event.
-        if 'skip_on_update' in updates:
+        if "skip_on_update" in updates:
             return
 
         # We only validate the original event,
@@ -68,10 +74,10 @@ class EventsBaseService(BaseService):
 
     @staticmethod
     def get_update_method(event, updates):
-        update_method = updates.pop('update_method', UPDATE_SINGLE)
+        update_method = updates.pop("update_method", UPDATE_SINGLE)
 
         # If the Event is not a recurring series, then we can only update a single event
-        if not event.get('dates', {}).get('recurring_rule', None):
+        if not event.get("dates", {}).get("recurring_rule", None):
             return UPDATE_SINGLE
 
         # Otherwise we return the update_method supplied
@@ -86,11 +92,11 @@ class EventsBaseService(BaseService):
         deleted and a new series is generated
         """
         # If this Event has been deleted, then do not perform the update
-        if '_deleted' in updates:
+        if "_deleted" in updates:
             return
 
-        updates.pop('update_method', None)
-        updates.pop('skip_on_update', None)
+        updates.pop("update_method", None)
+        updates.pop("skip_on_update", None)
         return self.backend.update(self.datasource, id, updates, original)
 
     def on_updated(self, updates, original):
@@ -99,21 +105,17 @@ class EventsBaseService(BaseService):
         # event was the original event.
         if self.is_original_event(original):
             # Send a notification if the LOCK has been removed as a result of the update
-            if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
+            if original.get("lock_user") and "lock_user" in updates and updates.get("lock_user") is None:
                 push_notification(
-                    'events:unlock',
+                    "events:unlock",
                     item=str(original.get(config.ID_FIELD)),
                     user=str(get_user_id()),
-                    lock_session=str(get_auth().get('_id')),
-                    etag=updates.get('_etag'),
-                    recurrence_id=original.get('recurrence_id') or None
+                    lock_session=str(get_auth().get("_id")),
+                    etag=updates.get("_etag"),
+                    recurrence_id=original.get("recurrence_id") or None,
                 )
 
-            self.push_notification(
-                self.ACTION,
-                updates,
-                original
-            )
+            self.push_notification(self.ACTION, updates, original)
 
         update_post_item(updates, original)
 
@@ -135,10 +137,10 @@ class EventsBaseService(BaseService):
             raise SuperdeskApiError.notFoundError()
 
         if not is_valid_event_planning_reason(updates, original):
-            raise SuperdeskApiError.badRequestError(message='Reason is required field.')
+            raise SuperdeskApiError.badRequestError(message="Reason is required field.")
 
-        if original.get('state') == WORKFLOW_STATE.CANCELLED:
-            raise SuperdeskApiError.forbiddenError(message='Aborted. Event is already cancelled')
+        if original.get("state") == WORKFLOW_STATE.CANCELLED:
+            raise SuperdeskApiError.forbiddenError(message="Aborted. Event is already cancelled")
 
         if self.REQUIRE_LOCK:
             user_id = get_user_id()
@@ -149,43 +151,38 @@ class EventsBaseService(BaseService):
             lock_action = original.get(LOCK_ACTION, None)
 
             if not lock_user:
-                raise SuperdeskApiError.forbiddenError(message='The event must be locked')
+                raise SuperdeskApiError.forbiddenError(message="The event must be locked")
             elif str(lock_user) != str(user_id):
-                raise SuperdeskApiError.forbiddenError(message='The event is locked by another user')
+                raise SuperdeskApiError.forbiddenError(message="The event is locked by another user")
             elif str(lock_session) != str(session_id):
-                raise SuperdeskApiError.forbiddenError(message='The event is locked by you in another session')
+                raise SuperdeskApiError.forbiddenError(message="The event is locked by you in another session")
             elif str(lock_action) != self.ACTION:
                 raise SuperdeskApiError.forbiddenError(
-                    message='The lock must be for the `{}` action'.format(self.ACTION.lower().replace('_', ' '))
+                    message="The lock must be for the `{}` action".format(self.ACTION.lower().replace("_", " "))
                 )
 
-        get_resource_service('events').validate_event(updates, original)
+        get_resource_service("events").validate_event(updates, original)
 
     @staticmethod
     def set_planning_schedule(event):
-        if event and event.get('dates') and event['dates'].get('start'):
-            event['_planning_schedule'] = [
-                {'scheduled': event['dates']['start']}
-            ]
+        if event and event.get("dates") and event["dates"].get("start"):
+            event["_planning_schedule"] = [{"scheduled": event["dates"]["start"]}]
 
     @staticmethod
     def push_notification(name, updates, original):
-        session = get_auth().get(config.ID_FIELD, '')
+        session = get_auth().get(config.ID_FIELD, "")
 
         data = {
-            'item': str(original.get(config.ID_FIELD)),
-            'user': str(updates.get('version_creator', '')),
-            'session': str(session)
+            "item": str(original.get(config.ID_FIELD)),
+            "user": str(updates.get("version_creator", "")),
+            "session": str(session),
         }
 
-        if original.get('dates', {}).get('recurring_rule', None):
-            data['recurrence_id'] = str(updates.get('recurrence_id', original.get('recurrence_id', '')))
-            name += ':recurring'
+        if original.get("dates", {}).get("recurring_rule", None):
+            data["recurrence_id"] = str(updates.get("recurrence_id", original.get("recurrence_id", "")))
+            name += ":recurring"
 
-        push_notification(
-            'events:' + name,
-            **data
-        )
+        push_notification("events:" + name, **data)
 
     def get_series(self, query, sort, max_results):
         page = 1
@@ -209,7 +206,14 @@ class EventsBaseService(BaseService):
             for doc in docs:
                 yield doc
 
-    def get_recurring_timeline(self, selected, spiked=False, rescheduled=False, cancelled=False, postponed=False):
+    def get_recurring_timeline(
+        self,
+        selected,
+        spiked=False,
+        rescheduled=False,
+        cancelled=False,
+        postponed=False,
+    ):
         """Utility method to get all events in the series
 
         This splits up the series of events into 3 separate arrays.
@@ -229,34 +233,34 @@ class EventsBaseService(BaseService):
             excluded_states.append(WORKFLOW_STATE.POSTPONED)
 
         query = {
-            '$and': [
-                {'recurrence_id': selected['recurrence_id']},
-                {'_id': {'$ne': selected[config.ID_FIELD]}}
+            "$and": [
+                {"recurrence_id": selected["recurrence_id"]},
+                {"_id": {"$ne": selected[config.ID_FIELD]}},
             ]
         }
 
         if excluded_states:
-            query['$and'].append({'state': {'$nin': excluded_states}})
+            query["$and"].append({"state": {"$nin": excluded_states}})
 
         sort = '[("dates.start", 1)]'
         max_results = get_max_recurrent_events()
-        selected_start = selected.get('dates', {}).get('start', utcnow())
+        selected_start = selected.get("dates", {}).get("start", utcnow())
 
         # Make sure we are working with a datetime instance
         if not isinstance(selected_start, datetime):
-            selected_start = datetime.strptime(selected_start, '%Y-%m-%dT%H:%M:%S%z')
+            selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
 
         historic = []
         past = []
         future = []
 
         for event in self.get_series(query, sort, max_results):
-            event['dates']['end'] = event['dates']['end']
-            event['dates']['start'] = event['dates']['start']
-            for sched in event.get('_planning_schedule', []):
-                sched['scheduled'] = sched['scheduled']
-            end = event['dates']['end']
-            start = event['dates']['start']
+            event["dates"]["end"] = event["dates"]["end"]
+            event["dates"]["start"] = event["dates"]["start"]
+            for sched in event.get("_planning_schedule", []):
+                sched["scheduled"] = sched["scheduled"]
+            end = event["dates"]["end"]
+            start = event["dates"]["start"]
             if end < utcnow():
                 historic.append(event)
             elif start < selected_start:
@@ -268,9 +272,7 @@ class EventsBaseService(BaseService):
 
     @staticmethod
     def get_plannings_for_event(event):
-        return get_resource_service('planning').find(where={
-            'event_item': event[config.ID_FIELD]
-        })
+        return get_resource_service("planning").find(where={"event_item": event[config.ID_FIELD]})
 
     @staticmethod
     def has_planning_items(doc):
@@ -278,7 +280,7 @@ class EventsBaseService(BaseService):
 
     @staticmethod
     def is_event_in_use(event):
-        return EventsBaseService.has_planning_items(event) or (event.get('pubstatus') or '') != ''
+        return EventsBaseService.has_planning_items(event) or (event.get("pubstatus") or "") != ""
 
     @staticmethod
     def is_original_event(original):
@@ -287,24 +289,40 @@ class EventsBaseService(BaseService):
 
     @staticmethod
     def _set_events_planning(events):
-        planning_service = get_resource_service('planning')
+        planning_service = get_resource_service("planning")
 
-        planning_items = list(planning_service.get_from_mongo(
-            req=None, lookup={'event_item': {'$in': list(events.keys())}}
-        ))
+        planning_items = list(
+            planning_service.get_from_mongo(req=None, lookup={"event_item": {"$in": list(events.keys())}})
+        )
 
         for plan in planning_items:
-            event = events[plan['event_item']]
-            if '_plans' not in event:
-                event['_plans'] = []
-            event['_plans'].append(plan)
+            event = events[plan["event_item"]]
+            if "_plans" not in event:
+                event["_plans"] = []
+            event["_plans"].append(plan)
 
     @staticmethod
     def remove_fields(new_event, extra_fields=None):
         """Remove fields not required by new event"""
-        for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time',
-                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus',
-                  'reason', 'duplicate_to', 'duplicate_from', 'reschedule_to', 'actioned_date'}:
+        for f in {
+            "_id",
+            "guid",
+            "unique_name",
+            "unique_id",
+            "lock_user",
+            "lock_time",
+            "lock_session",
+            "lock_action",
+            "_created",
+            "_updated",
+            "_etag",
+            "pubstatus",
+            "reason",
+            "duplicate_to",
+            "duplicate_from",
+            "reschedule_to",
+            "actioned_date",
+        }:
             new_event.pop(f, None)
 
         if extra_fields:

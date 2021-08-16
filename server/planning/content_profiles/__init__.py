@@ -19,17 +19,10 @@ from .service import PlanningTypesService
 
 def init_app(app: Eve):
     superdesk.privilege(
-        name='planning_manage_content_profiles',
-        label=lazy_gettext('Planning - Manage Content Profiles'),
-        description=lazy_gettext('Ability to edit Event/Planning Content Profiles')
+        name="planning_manage_content_profiles",
+        label=lazy_gettext("Planning - Manage Content Profiles"),
+        description=lazy_gettext("Ability to edit Event/Planning Content Profiles"),
     )
 
-    planning_type_service = PlanningTypesService(
-        PlanningTypesResource.endpoint_name,
-        backend=superdesk.get_backend()
-    )
-    PlanningTypesResource(
-        PlanningTypesResource.endpoint_name,
-        app=app,
-        service=planning_type_service
-    )
+    planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name, backend=superdesk.get_backend())
+    PlanningTypesResource(PlanningTypesResource.endpoint_name, app=app, service=planning_type_service)

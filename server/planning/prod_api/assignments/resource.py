@@ -14,15 +14,15 @@ from superdesk.auth_server.scopes import Scope
 
 
 class AssignmentsResource(Resource):
-    url = 'assignments'
-    resource_title = 'Assignment'
+    url = "assignments"
+    resource_title = "Assignment"
     item_url = item_url
-    item_methods = ['GET']
-    resource_methods = ['GET']
+    item_methods = ["GET"]
+    resource_methods = ["GET"]
     allow_unknown = True
     datasource = {
-        'source': 'assignments',
-        'search_backend': 'elastic',
-        'default_sort': [('_updated', -1)]
+        "source": "assignments",
+        "search_backend": "elastic",
+        "default_sort": [("_updated", -1)],
     }
-    privileges = {'GET': Scope.ASSIGNMENTS_READ.name}
+    privileges = {"GET": Scope.ASSIGNMENTS_READ.name}

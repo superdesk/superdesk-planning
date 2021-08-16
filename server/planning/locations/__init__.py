@@ -14,11 +14,11 @@ from .locations_service import LocationsResource, LocationsService
 
 
 def init_app(app):
-    locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
-    LocationsResource('locations', app=app, service=locations_search_service)
+    locations_search_service = LocationsService("locations", backend=superdesk.get_backend())
+    LocationsResource("locations", app=app, service=locations_search_service)
 
     superdesk.privilege(
-        name='planning_locations_management',
-        label=lazy_gettext('Planning - Manage locations'),
-        description=lazy_gettext('Ability to create, edit and delete locations'),
+        name="planning_locations_management",
+        label=lazy_gettext("Planning - Manage locations"),
+        description=lazy_gettext("Ability to create, edit and delete locations"),
     )

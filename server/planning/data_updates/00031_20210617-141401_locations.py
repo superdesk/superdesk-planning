@@ -16,33 +16,33 @@ from superdesk import get_resource_service
 class DataUpdate(BaseDataUpdate):
     """Populate `location.address.city` from Nominatim metadata"""
 
-    resource = 'locations'
+    resource = "locations"
 
     def forwards(self, mongodb_collection, mongodb_database):
         for location in mongodb_collection.find({}) or []:
-            address = location.get('address') or {}
-            external = (address.get('external') or {}).get('nominatim') or {}
+            address = location.get("address") or {}
+            external = (address.get("external") or {}).get("nominatim") or {}
 
-            if address.get('city') or not external.get('address'):
+            if address.get("city") or not external.get("address"):
                 # Skip this location entry if the city is already populated
                 # or there is no associated Nominatim metadata
                 continue
 
-            address['city'] = external['address'].get('city') or \
-                external['address'].get('town') or \
-                external['address'].get('village') or \
-                external['address'].get('county')
+            address["city"] = (
+                external["address"].get("city")
+                or external["address"].get("town")
+                or external["address"].get("village")
+                or external["address"].get("county")
+            )
 
-            if not address['city']:
+            if not address["city"]:
                 # If we still don't have a city, then skip this location too
 
                 continue
 
             # Use service.system_update so Elasticsearch is updated as well
             get_resource_service(self.resource).system_update(
-                location.get(config.ID_FIELD),
-                {'address': address},
-                location
+                location.get(config.ID_FIELD), {"address": address}, location
             )
 
     def backwards(self, mongodb_collection, mongodb_database):

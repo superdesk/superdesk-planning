@@ -30,16 +30,20 @@ class PublishedPlanningService(Service):
         if not req:
             return
 
-        if doc.get('type') == 'event':
+        if doc.get("type") == "event":
             # get the embedded fields from events resources
             fields = resolve_embedded_fields(EventsResource.endpoint_name, req) or []
-            resolve_embedded_documents(doc.get('published_item'), EventsResource.endpoint_name, fields)
-        elif doc.get('type') == 'planning':
+            resolve_embedded_documents(doc.get("published_item"), EventsResource.endpoint_name, fields)
+        elif doc.get("type") == "planning":
             fields = resolve_embedded_fields(PlanningResource.endpoint_name, req) or []
-            resolve_embedded_documents(doc.get('published_item'), PlanningResource.endpoint_name, fields)
-        elif doc.get('type') == 'planning_featured':
+            resolve_embedded_documents(doc.get("published_item"), PlanningResource.endpoint_name, fields)
+        elif doc.get("type") == "planning_featured":
             fields = resolve_embedded_fields(PlanningFeaturedResource.endpoint_name, req) or []
-            resolve_embedded_documents(doc.get('published_item'), PlanningFeaturedResource.endpoint_name, fields)
+            resolve_embedded_documents(
+                doc.get("published_item"),
+                PlanningFeaturedResource.endpoint_name,
+                fields,
+            )
 
     def get(self, req, lookup):
         cursor = super().get(req, lookup)
@@ -60,7 +64,7 @@ class PublishedPlanningService(Service):
         :return:
         """
         req = ParsedRequest()
-        req.sort = '-version'
+        req.sort = "-version"
         return self.find_one(req=req, item_id=item_id)
 
 
@@ -69,32 +73,23 @@ class PublishedPlanningResource(Resource):
     Resource for storing the published versions of planning and events as published
     """
 
-    url = 'published_planning'
+    url = "published_planning"
     schema = {
-        config.ID_FIELD: {
-            'type': 'string',
-            'unique': True
-        },
+        config.ID_FIELD: {"type": "string", "unique": True},
         # Id of the item
-        'item_id': {
-            'type': 'string'
-        },
+        "item_id": {"type": "string"},
         # The version of the item stored
-        'version': {
-            'type': 'integer'
-        },
+        "version": {"type": "integer"},
         # Indicates if the item is a version of a planning item or an event
-        'type': {
-            'type': 'string'
-        },
+        "type": {"type": "string"},
         # The item as published
-        'published_item': {
-            'type': 'dict',
-            'schema': {},
-            'allow_unknown': True,
-        }
+        "published_item": {
+            "type": "dict",
+            "schema": {},
+            "allow_unknown": True,
+        },
     }
 
-    item_methods = ['GET']
-    resource_methods = ['GET']
-    mongo_indexes = {'item_id_1_version_1': [('item_id', 1), ('version', 1)]}
+    item_methods = ["GET"]
+    resource_methods = ["GET"]
+    mongo_indexes = {"item_id_1_version_1": [("item_id", 1), ("version", 1)]}

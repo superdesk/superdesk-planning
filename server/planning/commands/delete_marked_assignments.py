@@ -30,16 +30,16 @@ class DeleteMarkedAssignments(Command):
 
     """
 
-    log_msg = ''
+    log_msg = ""
 
     def run(self):
         now = utcnow()
-        self.log_msg = 'Delete Marked Assignments Time: {}.'.format(now)
-        logger.info('{} Starting to delete marked assignments at.'.format(self.log_msg))
+        self.log_msg = "Delete Marked Assignments Time: {}.".format(now)
+        logger.info("{} Starting to delete marked assignments at.".format(self.log_msg))
 
-        lock_name = get_lock_id('planning', 'delete_assignments')
+        lock_name = get_lock_id("planning", "delete_assignments")
         if not lock(lock_name, expire=610):
-            logger.info('{} Delete marked assignments task is already running'.format(self.log_msg))
+            logger.info("{} Delete marked assignments task is already running".format(self.log_msg))
             return
 
         try:
@@ -49,28 +49,26 @@ class DeleteMarkedAssignments(Command):
 
         unlock(lock_name)
 
-        logger.info('{} Completed deleting marked assignments.'.format(self.log_msg))
+        logger.info("{} Completed deleting marked assignments.".format(self.log_msg))
         remove_locks()
 
     def _delete_marked_assignments(self):
-        logger.info('{} Starting to delete marked assignments'.format(self.log_msg))
-        assignments_service = get_resource_service('assignments')
+        logger.info("{} Starting to delete marked assignments".format(self.log_msg))
+        assignments_service = get_resource_service("assignments")
 
         query = {
-            'query': {
-                'filtered': {
-                    'filter': {
-                        'bool': {
-                            'must': {
-                                'term': {'_to_delete': True}
-                            },
+            "query": {
+                "filtered": {
+                    "filter": {
+                        "bool": {
+                            "must": {"term": {"_to_delete": True}},
                         }
                     }
                 }
             }
         }
         req = ParsedRequest()
-        req.args = {'source': json.dumps(query)}
+        req.args = {"source": json.dumps(query)}
         assignments_to_delete = assignments_service.get(req=req, lookup=None)
         failed_assignments = []
         assignments_deleted = []
@@ -78,33 +76,31 @@ class DeleteMarkedAssignments(Command):
         for assignment in assignments_to_delete:
             assign_id = assignment.get(config.ID_FIELD)
             try:
-                assignments_service.delete_action(lookup={'_id': assign_id})
+                assignments_service.delete_action(lookup={"_id": assign_id})
                 assignments_deleted.append(
                     {
-                        'id': assign_id,
-                        'slugline': assignment.get('planning', {}).get('slugline'),
-                        'type': assignment.get('planning', {}).get('g2_content_type')
+                        "id": assign_id,
+                        "slugline": assignment.get("planning", {}).get("slugline"),
+                        "type": assignment.get("planning", {}).get("g2_content_type"),
                     }
                 )
             except SuperdeskApiError as e:
                 logger.exception(e)
                 failed_assignments.append(assign_id)
 
-        logger.info('{} {} Assignments deleted: {}'.format(self.log_msg,
-                                                           len(assignments_deleted),
-                                                           str(assignments_deleted)))
+        logger.info(
+            "{} {} Assignments deleted: {}".format(self.log_msg, len(assignments_deleted), str(assignments_deleted))
+        )
 
         if len(assignments_deleted) > 0:
-            push_notification(
-                'assignments:delete',
-                items=assignments_deleted
-            )
+            push_notification("assignments:delete", items=assignments_deleted)
 
         if len(failed_assignments) > 0:
             logger.info(
-                '{} {} assignments failed deletion: {}'.format(self.log_msg,
-                                                               len(failed_assignments),
-                                                               str(failed_assignments)))
+                "{} {} assignments failed deletion: {}".format(
+                    self.log_msg, len(failed_assignments), str(failed_assignments)
+                )
+            )
 
 
-command('planning:delete_assignments', DeleteMarkedAssignments())
+command("planning:delete_assignments", DeleteMarkedAssignments())
