@@ -22,24 +22,21 @@ class AutosaveService(Service):
     def on_create(self, docs):
         for doc in docs:
             AutosaveService._validate(doc)
-            doc.pop('expired', None)
+            doc.pop("expired", None)
 
     def on_delete(self, doc):
-        if doc.get(ITEM_TYPE) == 'event':
-            get_resource_service('events').delete_event_files(None, doc)
+        if doc.get(ITEM_TYPE) == "event":
+            get_resource_service("events").delete_event_files(None, doc)
 
     @staticmethod
     def _validate(doc):
         """Validate the autosave to ensure it contains user/session"""
 
-        if 'lock_user' not in doc:
+        if "lock_user" not in doc:
             raise SuperdeskApiError.badRequestError(message="Autosave failed, User not supplied")
 
-        if 'lock_session' not in doc:
+        if "lock_session" not in doc:
             raise SuperdeskApiError.badRequestError(message="Autosave failed, User Session not supplied")
 
     def on_session_end(self, user_id, session_id):
-        self.delete(lookup={
-            'lock_user': str(user_id),
-            'lock_session': str(session_id)
-        })
+        self.delete(lookup={"lock_user": str(user_id), "lock_session": str(session_id)})

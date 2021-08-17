@@ -18,45 +18,50 @@ logger = logging.getLogger(__name__)
 
 class PlanningFilesResource(superdesk.Resource):
     schema = {
-        'media': {'type': 'media'},
-        'mimetype': {'type': 'string'},
-        'filemeta': {'type': 'dict'}
+        "media": {"type": "media"},
+        "mimetype": {"type": "string"},
+        "filemeta": {"type": "dict"},
     }
     datasource = {
-        'source': 'events_files',
-        'projection': {
-            'mimetype': 1,
-            'filemeta': 1,
-            '_created': 1,
-            '_updated': 1,
-            '_etag': 1,
-            'media': 1,
-        }
+        "source": "events_files",
+        "projection": {
+            "mimetype": 1,
+            "filemeta": 1,
+            "_created": 1,
+            "_updated": 1,
+            "_etag": 1,
+            "media": 1,
+        },
     }
-    url = 'planning_files'
-    item_methods = ['GET', 'DELETE']
-    resource_methods = ['GET', 'POST']
-    privileges = {'POST': 'planning_planning_management', 'DELETE': 'planning_planning_management'}
+    url = "planning_files"
+    item_methods = ["GET", "DELETE"]
+    resource_methods = ["GET", "POST"]
+    privileges = {
+        "POST": "planning_planning_management",
+        "DELETE": "planning_planning_management",
+    }
 
 
 class PlanningFilesService(superdesk.Service):
     def on_create(self, docs):
         for doc in docs:
             # save the media id to retrieve the file later
-            doc['filemeta'] = {'media_id': doc['media']}
+            doc["filemeta"] = {"media_id": doc["media"]}
 
     def on_created(self, docs):
         for doc in docs:
             # check if the filename contains a folder, if so just return the file name component
-            if isinstance(doc.get('media'), dict) and '/' in doc.get('media', {}).get('name'):
-                doc['media']['name'] = doc['media']['name'].split('/')[1]
+            if isinstance(doc.get("media"), dict) and "/" in doc.get("media", {}).get("name"):
+                doc["media"]["name"] = doc["media"]["name"].split("/")[1]
 
     def on_delete(self, doc):
         find_clause = {
-            '$or': [{'files': doc.get("_id")},
-                    {'coverages.planning.files': doc.get("_id")},
-                    {'coverages.planning.xmp_file': doc.get("_id")}],
+            "$or": [
+                {"files": doc.get("_id")},
+                {"coverages.planning.files": doc.get("_id")},
+                {"coverages.planning.xmp_file": doc.get("_id")},
+            ],
         }
         plannings_using_file = get_resource_service("planning").find(where=find_clause)
         if plannings_using_file.count() > 0:
-            raise SuperdeskApiError.forbiddenError('Delete failed. File still used by other planning items.')
+            raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other planning items.")

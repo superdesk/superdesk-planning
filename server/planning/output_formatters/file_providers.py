@@ -15,10 +15,9 @@ from superdesk.publish.transmitters.ftp import FTPPublishService
 
 
 def get_event_planning_files_for_transmission(
-    transmitter_name: str,
-    item: Dict[str, Any]
+    transmitter_name: str, item: Dict[str, Any]
 ) -> Dict[str, TransmitterFileEntry]:
-    if item.get('type') not in ['event', 'planning']:
+    if item.get("type") not in ["event", "planning"]:
         # We only want this provider to run for Events/Planning items
         return {}
     elif transmitter_name == FTPPublishService.NAME:
@@ -26,12 +25,12 @@ def get_event_planning_files_for_transmission(
         return {}
 
     return {
-        file['media']: TransmitterFileEntry(
-            media=file['media'],
-            mimetype=file['mimetype'],
-            resource='events_files' if item['type'] == 'event' else 'planning_files'
+        file["media"]: TransmitterFileEntry(
+            media=file["media"],
+            mimetype=file["mimetype"],
+            resource="events_files" if item["type"] == "event" else "planning_files",
         )
-        for file in item.get('files') or []
+        for file in item.get("files") or []
     }
 
 

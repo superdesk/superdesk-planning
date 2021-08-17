@@ -20,10 +20,11 @@ from superdesk.logging import configure_logging
 logger = logging.getLogger(__name__)
 
 
-if os.environ.get('NEW_RELIC_LICENSE_KEY'):
+if os.environ.get("NEW_RELIC_LICENSE_KEY"):
     try:
         import newrelic.agent
-        newrelic.agent.initialize(os.path.abspath(os.path.join(os.path.dirname(__file__), 'newrelic.ini')))
+
+        newrelic.agent.initialize(os.path.abspath(os.path.join(os.path.dirname(__file__), "newrelic.ini")))
     except ImportError:
         pass
 
@@ -37,27 +38,28 @@ def get_app(config=None):
     if config is None:
         config = {}
 
-    config['APP_ABSPATH'] = os.path.abspath(os.path.dirname(__file__))
+    config["APP_ABSPATH"] = os.path.abspath(os.path.dirname(__file__))
 
     for key in dir(settings):
         if key.isupper():
             config.setdefault(key, getattr(settings, key))
 
     media_storage = None
-    if config['AMAZON_CONTAINER_NAME']:
+    if config["AMAZON_CONTAINER_NAME"]:
         from superdesk.storage.amazon.amazon_media_storage import AmazonMediaStorage
+
         media_storage = AmazonMediaStorage
 
-    config['DOMAIN'] = {}
+    config["DOMAIN"] = {}
 
     app = superdesk_app(config, media_storage)
-    configure_logging(config['LOG_CONFIG_FILE'])
+    configure_logging(config["LOG_CONFIG_FILE"])
     return app
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     debug = True
-    host = '0.0.0.0'
-    port = int(os.environ.get('PORT', '5000'))
+    host = "0.0.0.0"
+    port = int(os.environ.get("PORT", "5000"))
     app = get_app()
     app.run(host=host, port=port, debug=debug, use_reloader=debug)

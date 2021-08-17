@@ -1538,7 +1538,8 @@ Feature: Planning
               "ednote": "test coverage, I want 250 words",
               "headline": "test headline",
               "slugline": "test slugline",
-              "g2_content_type" : "text"
+              "g2_content_type" : "text",
+              "scheduled": "2029-11-21T14:00:00.000Z"
           },
           "assigned_to": {
               "desk": "desk_123",

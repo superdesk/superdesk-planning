@@ -8,6 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+
 def is_field_enabled(field, planning_type):
-    editor = planning_type.get('editor', {})
-    return editor.get(field, {}).get('enabled', False)
+    editor = planning_type.get("editor", {})
+    return editor.get(field, {}).get("enabled", False)

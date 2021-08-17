@@ -24,7 +24,13 @@ def test_readonly(prodapi_app_with_data, prodapi_app_with_data_client):
     """
 
     with prodapi_app_with_data.test_request_context():
-        for method, status in (("get", 200), ("post", 405), ("patch", 405), ("put", 405), ("delete", 405)):
+        for method, status in (
+            ("get", 200),
+            ("post", 405),
+            ("patch", 405),
+            ("put", 405),
+            ("delete", 405),
+        ):
             # we send a request
             resp = getattr(prodapi_app_with_data_client, method)(url_for("planning|resource"))
             # we get a response

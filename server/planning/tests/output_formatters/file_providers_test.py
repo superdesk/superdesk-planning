@@ -41,60 +41,64 @@ class TestPlanningMedia(BytesIO):
 
 class FileProvidersTestCase(TestCase):
     event_item = {
-        '_id': 'urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7946',
-        'guid': 'urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7946',
-        'files': [TransmitterFileEntry(
-            media="event_file",
-            mimetype="text/csv",
-        )],
-        'type': 'event',
+        "_id": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7946",
+        "guid": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7946",
+        "files": [
+            TransmitterFileEntry(
+                media="event_file",
+                mimetype="text/csv",
+            )
+        ],
+        "type": "event",
     }
     plan_item = {
-        '_id': 'urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7947',
-        'guid': 'urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7947',
-        'files': [TransmitterFileEntry(
-            media="plan_file",
-            mimetype="text/csv",
-        )],
-        'type': 'planning',
+        "_id": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7947",
+        "guid": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7947",
+        "files": [
+            TransmitterFileEntry(
+                media="plan_file",
+                mimetype="text/csv",
+            )
+        ],
+        "type": "planning",
     }
     text_item = {
-        '_id': 'urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7948',
-        'guid': 'urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7948',
-        'files': [TransmitterFileEntry(
-            media="text_file",
-            mimetype="text/csv",
-        )],
-        'type': 'text',
+        "_id": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7948",
+        "guid": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7948",
+        "files": [
+            TransmitterFileEntry(
+                media="text_file",
+                mimetype="text/csv",
+            )
+        ],
+        "type": "text",
     }
 
     def test_processes_planning_items_only(self):
         self.assertDictEqual(
             get_event_planning_files_for_transmission(HTTPPushService.NAME, self.event_item),
-            {'event_file': TransmitterFileEntry(
-                media="event_file",
-                mimetype="text/csv",
-                resource='events_files',
-            )}
+            {
+                "event_file": TransmitterFileEntry(
+                    media="event_file",
+                    mimetype="text/csv",
+                    resource="events_files",
+                )
+            },
         )
         self.assertDictEqual(
             get_event_planning_files_for_transmission(HTTPPushService.NAME, self.plan_item),
-            {'plan_file': TransmitterFileEntry(
-                media="plan_file",
-                mimetype="text/csv",
-                resource='planning_files',
-            )}
+            {
+                "plan_file": TransmitterFileEntry(
+                    media="plan_file",
+                    mimetype="text/csv",
+                    resource="planning_files",
+                )
+            },
         )
-        self.assertDictEqual(
-            get_event_planning_files_for_transmission(HTTPPushService.NAME, self.text_item),
-            {}
-        )
+        self.assertDictEqual(get_event_planning_files_for_transmission(HTTPPushService.NAME, self.text_item), {})
 
     def test_ignores_ftp_transmitter(self):
-        self.assertDictEqual(
-            get_event_planning_files_for_transmission(FTPPublishService.NAME, self.event_item),
-            {}
-        )
+        self.assertDictEqual(get_event_planning_files_for_transmission(FTPPublishService.NAME, self.event_item), {})
 
     @mock.patch("superdesk.publish.transmitters.http_push.app")
     @mock.patch("superdesk.publish.transmitters.http_push.requests.Session.send", return_value=CreatedResponse)

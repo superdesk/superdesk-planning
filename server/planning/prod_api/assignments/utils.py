@@ -23,44 +23,37 @@ from .resource import AssignmentsResource
 
 def construct_assignment_link(assignment):
     return {
-        'title': AssignmentsResource.resource_title,
-        'href': f'{AssignmentsResource.url}/{assignment[config.ID_FIELD]}',
-        'state': (assignment.get('assigned_to') or {}).get('state'),
-        'scheduled': (assignment.get('planning') or {}).get('scheduled'),
-        'content_type': (assignment.get('planning') or {}).get('g2_content_type'),
+        "title": AssignmentsResource.resource_title,
+        "href": f"{AssignmentsResource.url}/{assignment[config.ID_FIELD]}",
+        "state": (assignment.get("assigned_to") or {}).get("state"),
+        "scheduled": (assignment.get("planning") or {}).get("scheduled"),
+        "content_type": (assignment.get("planning") or {}).get("g2_content_type"),
     }
 
 
 def construct_content_link(content):
     return {
-        'title': ItemsResource.resource_title,
-        'href': f'{ItemsResource.url}/{content[config.ID_FIELD]}',
-        'state': content['state'],
-        'pubstatus': content['pubstatus'],
+        "title": ItemsResource.resource_title,
+        "href": f"{ItemsResource.url}/{content[config.ID_FIELD]}",
+        "state": content["state"],
+        "pubstatus": content["pubstatus"],
     }
 
 
 def construct_assignment_links(assignment_ids: List[ObjectId]):
     req = ParsedRequest()
     req.args = {
-        'source': json.dumps({
-            'query': {
-                'bool': {
-                    'must': [{
-                        'terms': {
-                            '_id': [str(assignment_id) for assignment_id in assignment_ids]
-                        }
-                    }]
+        "source": json.dumps(
+            {
+                "query": {
+                    "bool": {"must": [{"terms": {"_id": [str(assignment_id) for assignment_id in assignment_ids]}}]}
                 }
             }
-        })
+        )
     }
     req.sort = '[("planning.scheduled", 1)]'
-    assignments = get_resource_service('assignments').get(req=req, lookup=None)
-    content_items = {
-        content['assignment_id']: content
-        for content in get_news_items_for_assignments(assignment_ids)
-    }
+    assignments = get_resource_service("assignments").get(req=req, lookup=None)
+    content_items = {content["assignment_id"]: content for content in get_news_items_for_assignments(assignment_ids)}
 
     links = []
     for assignment in assignments:
@@ -70,9 +63,9 @@ def construct_assignment_links(assignment_ids: List[ObjectId]):
 
             if content_item:
                 content_link = construct_content_link(content_item)
-                link['content_href'] = content_link['href']
-                link['content_state'] = content_link['state']
-                link['content_pubstatus'] = content_link['pubstatus']
+                link["content_href"] = content_link["href"]
+                link["content_state"] = content_link["state"]
+                link["content_pubstatus"] = content_link["pubstatus"]
 
         links.append(link)
 
@@ -82,50 +75,35 @@ def construct_assignment_links(assignment_ids: List[ObjectId]):
 def get_news_item_for_assignment(assignment_id: ObjectId) -> ElasticCursor:
     req = ParsedRequest()
     req.args = {
-        'source': json.dumps({
-            'query': {
-                'bool': {
-                    'must': {
-                        'term': {
-                            'assignment_id': str(assignment_id)
-                        }
-                    }
-                }
-            }
-        }),
+        "source": json.dumps({"query": {"bool": {"must": {"term": {"assignment_id": str(assignment_id)}}}}}),
     }
-    return get_resource_service('archive').get(req=req, lookup=None)
+    return get_resource_service("archive").get(req=req, lookup=None)
 
 
 def get_news_items_for_assignments(assignment_ids: List[ObjectId]) -> ElasticCursor:
     req = ParsedRequest()
     req.args = {
-        'source': json.dumps({
-            'query': {
-                'bool': {
-                    'must': [{
-                        'terms': {
-                            'assignment_id': [
-                                str(assignment_id)
-                                for assignment_id in assignment_ids
-                            ]
-                        }
-                    }]
+        "source": json.dumps(
+            {
+                "query": {
+                    "bool": {
+                        "must": [{"terms": {"assignment_id": [str(assignment_id) for assignment_id in assignment_ids]}}]
+                    }
                 }
             }
-        }),
+        ),
     }
-    return get_resource_service('archive').get(req=req, lookup=None)
+    return get_resource_service("archive").get(req=req, lookup=None)
 
 
 def get_assignment_ids_from_planning(item):
     assignment_ids = []
-    for coverage in item.get('coverages') or []:
-        if (coverage.get('assigned_to') or {}).get('assignment_id'):
-            assignment_ids.append(coverage['assigned_to']['assignment_id'])
+    for coverage in item.get("coverages") or []:
+        if (coverage.get("assigned_to") or {}).get("assignment_id"):
+            assignment_ids.append(coverage["assigned_to"]["assignment_id"])
 
-        for coverage_update in coverage.get('scheduled_updates') or []:
-            if (coverage_update.get('assigned_to') or {}).get('assignment_id'):
-                assignment_ids.append(coverage_update['assigned_to']['assignment_id'])
+        for coverage_update in coverage.get("scheduled_updates") or []:
+            if (coverage_update.get("assigned_to") or {}).get("assignment_id"):
+                assignment_ids.append(coverage_update["assigned_to"]["assignment_id"])
 
     return assignment_ids

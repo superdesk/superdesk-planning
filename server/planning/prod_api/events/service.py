@@ -14,7 +14,10 @@ from superdesk import get_resource_service
 from prod_api.service import ProdApiService
 
 from planning.prod_api.common import excluded_lock_fields
-from planning.prod_api.assignments.utils import get_assignment_ids_from_planning, construct_assignment_links
+from planning.prod_api.assignments.utils import (
+    get_assignment_ids_from_planning,
+    construct_assignment_links,
+)
 from planning.prod_api.planning.utils import construct_planning_link
 
 
@@ -24,10 +27,8 @@ class EventsService(ProdApiService):
     def _process_fetched_object(self, doc):
         super()._process_fetched_object(doc)
 
-        planning_service = get_resource_service('planning')
-        plannings = list(planning_service.find(where={
-            'event_item': doc.get('guid')
-        }))
+        planning_service = get_resource_service("planning")
+        plannings = list(planning_service.find(where={"event_item": doc.get("guid")}))
 
         if len(plannings):
             assignment_ids = []
@@ -35,22 +36,19 @@ class EventsService(ProdApiService):
                 assignment_ids.extend(get_assignment_ids_from_planning(plan))
 
             if doc.get(config.LINKS):
-                doc[config.LINKS]['plannings'] = [
-                    construct_planning_link(item[config.ID_FIELD])
-                    for item in plannings
-                ]
+                doc[config.LINKS]["plannings"] = [construct_planning_link(item[config.ID_FIELD]) for item in plannings]
 
                 if len(assignment_ids):
-                    doc[config.LINKS]['assignments'] = construct_assignment_links(assignment_ids)
+                    doc[config.LINKS]["assignments"] = construct_assignment_links(assignment_ids)
 
 
 class EventsHistoryService(ProdApiService):
     excluded_fields = {
-        'update._etag',
-        'update._links',
-        'update._status',
-        'update._updated',
-        'update._created',
+        "update._etag",
+        "update._links",
+        "update._status",
+        "update._updated",
+        "update._created",
     } | ProdApiService.excluded_fields
 
 

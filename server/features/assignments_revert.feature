@@ -3,6 +3,10 @@ Feature: Assignment Revert
   @auth
   @notification
   Scenario: Assignment State goes back to revert_state
+    Given "desks"
+    """
+    [{"_id": "desk123", "name": "Politic Desk"}]
+    """
     Given "assignments"
     """
     [{
@@ -11,7 +15,8 @@ Feature: Assignment Revert
             "ednote": "test coverage, I want 250 words",
             "headline": "test headline",
             "slugline": "test slugline",
-            "g2_content_type": "live_video"
+            "g2_content_type": "live_video",
+            "scheduled": "2016-01-02T14:00:00+0000"
         },
         "assigned_to": {
             "desk": "desk123",
@@ -41,7 +46,8 @@ Feature: Assignment Revert
             "ednote": "test coverage, I want 250 words",
             "headline": "test headline",
             "slugline": "test slugline",
-            "g2_content_type": "live_video"
+            "g2_content_type": "live_video",
+            "scheduled": "2016-01-02T14:00:00+0000"
         },
         "assigned_to": {
             "desk": "desk123",
@@ -76,7 +82,8 @@ Feature: Assignment Revert
             "ednote": "test coverage, I want 250 words",
             "headline": "test headline",
             "slugline": "test slugline",
-            "g2_content_type": "text"
+            "g2_content_type": "text",
+            "scheduled": "2016-01-02T14:00:00+0000"
         },
         "assigned_to": {
             "desk": "desk123",
@@ -111,7 +118,8 @@ Feature: Assignment Revert
             "ednote": "test coverage, I want 250 words",
             "headline": "test headline",
             "slugline": "test slugline",
-            "g2_content_type": "live_video"
+            "g2_content_type": "live_video",
+            "scheduled": "2016-01-02T14:00:00+0000"
         },
         "assigned_to": {
             "desk": "desk123",

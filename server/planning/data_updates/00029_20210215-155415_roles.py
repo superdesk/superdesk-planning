@@ -12,12 +12,12 @@ from superdesk.commands.data_updates import BaseDataUpdate
 
 class DataUpdate(BaseDataUpdate):
 
-    resource = 'roles'
+    resource = "roles"
 
     def forwards(self, mongodb_collection, mongodb_database):
         mongodb_collection.update_many(
             {"privileges.planning_assignments_view": 1},
-            {"$set": {"privileges.planning_assignments_desk": 1}}
+            {"$set": {"privileges.planning_assignments_desk": 1}},
         )
 
     def backwards(self, mongodb_collection, mongodb_database):

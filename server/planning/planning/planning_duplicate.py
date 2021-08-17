@@ -25,23 +25,23 @@ logger = logging.getLogger(__name__)
 
 
 class PlanningDuplicateResource(Resource):
-    endpoint_name = 'planning_duplicate'
+    endpoint_name = "planning_duplicate"
     resource_title = endpoint_name
 
-    url = 'planning/<{0}:item_id>/duplicate'.format(item_url)
+    url = "planning/<{0}:item_id>/duplicate".format(item_url)
 
-    resource_methods = ['POST']
+    resource_methods = ["POST"]
     item_methods = []
 
-    privileges = {'POST': 'planning_planning_management'}
+    privileges = {"POST": "planning_planning_management"}
 
 
 class PlanningDuplicateService(BaseService):
     def create(self, docs, **kwargs):
-        history_service = get_resource_service('planning_history')
-        planning_service = get_resource_service('planning')
+        history_service = get_resource_service("planning_history")
+        planning_service = get_resource_service("planning")
 
-        parent_id = request.view_args['item_id']
+        parent_id = request.view_args["item_id"]
         parent_plan = planning_service.find_one(req=None, _id=parent_id)
         new_plan = self._duplicate_planning(parent_plan)
 
@@ -52,44 +52,59 @@ class PlanningDuplicateService(BaseService):
         history_service.on_duplicate_from(new_plan, parent_id)
         planning_service.on_duplicated(new_plan, parent_id)
 
-        return [new_plan['guid']]
+        return [new_plan["guid"]]
 
     def _duplicate_planning(self, original):
         new_plan = deepcopy(original)
-        if new_plan.get('event_item') and new_plan.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
+        if new_plan.get("event_item") and new_plan.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
             # if the event is cancelled remove the link to the associated event
-            event = get_resource_service('events').find_one(req=None, _id=new_plan.get('event_item'))
+            event = get_resource_service("events").find_one(req=None, _id=new_plan.get("event_item"))
             if event and event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
-                del new_plan['event_item']
+                del new_plan["event_item"]
 
-        if (new_plan.get('expired') and new_plan.get('event_item')) or \
-                new_plan.get(ITEM_STATE) == WORKFLOW_STATE.RESCHEDULED:
+        if (new_plan.get("expired") and new_plan.get("event_item")) or new_plan.get(
+            ITEM_STATE
+        ) == WORKFLOW_STATE.RESCHEDULED:
             # If the Planning item has expired and is associated with an Event
             # then we remove the link to the associated Event as the Event would have
             # been expired also.
             # If associated event is rescheduled then remove the associated event
-            del new_plan['event_item']
+            del new_plan["event_item"]
 
-        for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_planning_schedule'
-                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus', 'expired',
-                  'featured', 'state_reason', '_updates_schedule'):
+        for f in (
+            "_id",
+            "guid",
+            "lock_user",
+            "lock_time",
+            "original_creator",
+            "_planning_schedule" "lock_session",
+            "lock_action",
+            "_created",
+            "_updated",
+            "_etag",
+            "pubstatus",
+            "expired",
+            "featured",
+            "state_reason",
+            "_updates_schedule",
+        ):
             new_plan.pop(f, None)
 
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
-        new_plan['guid'] = generate_guid(type=GUID_NEWSML)
+        new_plan["guid"] = generate_guid(type=GUID_NEWSML)
 
-        planning_datetime = utc_to_local(config.DEFAULT_TIMEZONE, new_plan.get('planning_date'))
+        planning_datetime = utc_to_local(config.DEFAULT_TIMEZONE, new_plan.get("planning_date"))
         local_datetime = utc_to_local(config.DEFAULT_TIMEZONE, utcnow())
         if planning_datetime.date() < local_datetime.date():
-            new_plan['planning_date'] = new_plan['planning_date'] + (local_datetime.date() - planning_datetime.date())
+            new_plan["planning_date"] = new_plan["planning_date"] + (local_datetime.date() - planning_datetime.date())
 
-        for cov in new_plan.get('coverages') or []:
-            cov.pop('assigned_to', None)
-            cov.get('planning', {}).pop('workflow_status_reason', None)
-            cov.pop('scheduled_updates', None)
-            cov.get('planning', {})['scheduled'] = new_plan.get('planning_date')
-            cov['coverage_id'] = TEMP_ID_PREFIX + 'duplicate'
-            cov['workflow_status'] = WORKFLOW_STATE.DRAFT
-            cov['news_coverage_status'] = {'qcode': 'ncostat:int'}
+        for cov in new_plan.get("coverages") or []:
+            cov.pop("assigned_to", None)
+            cov.get("planning", {}).pop("workflow_status_reason", None)
+            cov.pop("scheduled_updates", None)
+            cov.get("planning", {})["scheduled"] = new_plan.get("planning_date")
+            cov["coverage_id"] = TEMP_ID_PREFIX + "duplicate"
+            cov["workflow_status"] = WORKFLOW_STATE.DRAFT
+            cov["news_coverage_status"] = {"qcode": "ncostat:int"}
 
         return new_plan

@@ -17,60 +17,79 @@ from .item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 from superdesk.metadata.item import ITEM_TYPE
 
 
-fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created', '_links', 'version_creator', 'guid',
-                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION, 'planning_ids', '_updates_schedule',
-                    '_planning_schedule', '_planning_date', '_reschedule_from_schedule', 'versioncreated']
+fields_to_remove = [
+    "_id",
+    "_etag",
+    "_current_version",
+    "_updated",
+    "_created",
+    "_links",
+    "version_creator",
+    "guid",
+    LOCK_ACTION,
+    LOCK_USER,
+    LOCK_TIME,
+    LOCK_SESSION,
+    "planning_ids",
+    "_updates_schedule",
+    "_planning_schedule",
+    "_planning_date",
+    "_reschedule_from_schedule",
+    "versioncreated",
+]
 
 
 class HistoryService(Service):
-    """Provide common methods for tracking history of Creation, Updates and Spiking to collections
-    """
+    """Provide common methods for tracking history of Creation, Updates and Spiking to collections"""
 
     def on_item_created(self, items, operation=None):
         for item in items:
-            if not item.get('duplicate_from'):
-                self._save_history({config.ID_FIELD: ObjectId(item[config.ID_FIELD]) if ObjectId.is_valid(
-                    item[config.ID_FIELD]) else str(item[config.ID_FIELD])}, deepcopy(item), operation or 'create')
+            if not item.get("duplicate_from"):
+                self._save_history(
+                    {
+                        config.ID_FIELD: ObjectId(item[config.ID_FIELD])
+                        if ObjectId.is_valid(item[config.ID_FIELD])
+                        else str(item[config.ID_FIELD])
+                    },
+                    deepcopy(item),
+                    operation or "create",
+                )
 
     def on_item_updated(self, updates, original, operation=None):
         item = deepcopy(original)
-        if list(item.keys()) == ['_id']:
+        if list(item.keys()) == ["_id"]:
             diff = updates
         else:
             diff = self._changes(original, updates)
             if updates:
                 item.update(updates)
 
-        self._save_history(item, diff, operation or 'edited')
+        self._save_history(item, diff, operation or "edited")
 
     def on_spike(self, updates, original):
-        self.on_item_updated(updates, original, 'spiked')
+        self.on_item_updated(updates, original, "spiked")
 
     def on_unspike(self, updates, original):
-        self.on_item_updated(updates, original, 'unspiked')
+        self.on_item_updated(updates, original, "unspiked")
 
     def on_cancel(self, updates, original):
-        operation = 'events_cancel' if original.get(ITEM_TYPE) == 'event' else 'planning_cancel'
+        operation = "events_cancel" if original.get(ITEM_TYPE) == "event" else "planning_cancel"
         self.on_item_updated(updates, original, operation)
 
     def on_reschedule(self, updates, original):
-        self.on_item_updated(updates, original, 'reschedule')
+        self.on_item_updated(updates, original, "reschedule")
 
     def on_reschedule_from(self, item):
         new_item = deepcopy(item)
-        self._save_history(
-            {config.ID_FIELD: str(item[config.ID_FIELD])},
-            new_item,
-            'reschedule_from'
-        )
+        self._save_history({config.ID_FIELD: str(item[config.ID_FIELD])}, new_item, "reschedule_from")
 
     def on_postpone(self, updates, original):
-        self.on_item_updated(updates, original, 'postpone')
+        self.on_item_updated(updates, original, "postpone")
 
     def get_user_id(self):
-        user = getattr(g, 'user', None)
+        user = getattr(g, "user", None)
         if user:
-            return user.get('_id')
+            return user.get("_id")
 
     def _changes(self, original, updates):
         """

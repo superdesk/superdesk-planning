@@ -15,30 +15,24 @@ from superdesk.utils import ListCursor
 
 
 class PlanningExportTemplatesResource(superdesk.Resource):
-    endpoint_name = 'planning_export_templates'
+    endpoint_name = "planning_export_templates"
     schema = {
-        'name': {
-            'type': 'string',
-            'iunique': True,
-            'required': True,
-            'nullable': False,
-            'empty': False
+        "name": {
+            "type": "string",
+            "iunique": True,
+            "required": True,
+            "nullable": False,
+            "empty": False,
         },
-        'type': {
-            'type': 'string',
-            'allowed': ['event', 'planning', 'combined']
-        },
-        'data': {'type': 'dict'},
-        'label': {'type': 'string'},
-        'download': {
-            'type': 'boolean',
-            'default': False
-        },
+        "type": {"type": "string", "allowed": ["event", "planning", "combined"]},
+        "data": {"type": "dict"},
+        "label": {"type": "string"},
+        "download": {"type": "boolean", "default": False},
     }
-    resource_methods = ['GET']
+    resource_methods = ["GET"]
 
 
-DEFAULT_PLANNING_ITEM_BODY = '''
+DEFAULT_PLANNING_ITEM_BODY = """
 <p><b>{{ item.name or item.headline or item.slugline }}</b></p>
 {% if item.description_text %}
 <p>{{ item.description_text }}</p>
@@ -54,46 +48,49 @@ DEFAULT_PLANNING_ITEM_BODY = '''
 <p>Planned coverage: {{ item.coverages | join(', ') }}
 {% endif %}
 <p>---</p>
-'''
+"""
 
-DEFAULT_EVENT_ITEM_BODY = '''
+DEFAULT_EVENT_ITEM_BODY = """
 <p><b>{{ item.name }}</b>{% if item.get('location') %}{{ ', ' + item.location[0].name }}
 {% endif %}, {{ item.schedule }}{% if item.assignees|length %} - {{ item.assignees|join(', ') }}{% endif %}</p>
 {% if item.coverages %}
 <p><b>Planned coverage:</b> {{ item.coverages | join(', ') }}</p>
 {% endif %}
 <p>---</p>
-'''
+"""
 
 
-default_export_templates = [{
-    'name': 'default_planning',
-    'label': 'Default Planning Template',
-    'type': 'planning',
-    'data': {
-        'body_html': f'''
+default_export_templates = [
+    {
+        "name": "default_planning",
+        "label": "Default Planning Template",
+        "type": "planning",
+        "data": {
+            "body_html": f"""
 {{% for item in items %}}
 {DEFAULT_PLANNING_ITEM_BODY}
 {{% endfor %}}
-'''
-    }
-}, {
-    'name': 'default_event',
-    'label': 'Default Event Template',
-    'type': 'event',
-    'data': {
-        'body_html': f'''
+"""
+        },
+    },
+    {
+        "name": "default_event",
+        "label": "Default Event Template",
+        "type": "event",
+        "data": {
+            "body_html": f"""
 {{% for item in items %}}
 {DEFAULT_EVENT_ITEM_BODY}
 {{% endfor %}}
-'''
-    }
-}, {
-    'name': 'default_combined',
-    'label': 'Default Combined Template',
-    'type': 'combined',
-    'data': {
-        'body_html': f'''
+"""
+        },
+    },
+    {
+        "name": "default_combined",
+        "label": "Default Combined Template",
+        "type": "combined",
+        "data": {
+            "body_html": f"""
 <h2>Events</h2>
 {{% for item in items if item.type == 'event' %}}
 {DEFAULT_EVENT_ITEM_BODY}
@@ -102,9 +99,10 @@ default_export_templates = [{
 {{% for item in items if item.type == 'planning' %}}
 {DEFAULT_PLANNING_ITEM_BODY}
 {{% endfor %}}
-'''
-    }
-}]
+"""
+        },
+    },
+]
 
 
 class PlanningExportTemplatesService(superdesk.Service):
@@ -122,23 +120,23 @@ class PlanningExportTemplatesService(superdesk.Service):
         :return: dict: A dictionary containing `body_html` attribute
         """
 
-        config_entry = '{}_EXPORT_BODY_TEMPLATE'.format(item_type.upper())
+        config_entry = "{}_EXPORT_BODY_TEMPLATE".format(item_type.upper())
 
         if app.config.get(config_entry):
-            template = {'data': {'body_html': app.config[config_entry]}}
+            template = {"data": {"body_html": app.config[config_entry]}}
         else:
-            template = next((t for t in default_export_templates if t['type'] == item_type), {})
+            template = next((t for t in default_export_templates if t["type"] == item_type), {})
 
-        return template.get('data') if template else None
+        return template.get("data") if template else None
 
     def get_export_template(self, name, type):
         if name:
-            return (self.find_one(req=None, name=name) or {}).get('data')
+            return (self.find_one(req=None, name=name) or {}).get("data")
 
         return self._get_default_template_data(type)
 
     def get_download_template(self, name, type):
         if name:
-            return ((self.find_one(req=None, name=name) or {}).get('data') or {}).get('template_file')
+            return ((self.find_one(req=None, name=name) or {}).get("data") or {}).get("template_file")
 
-        return 'event_download_default.html' if type == 'event' else None
+        return "event_download_default.html" if type == "event" else None

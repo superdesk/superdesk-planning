@@ -17,25 +17,24 @@ logger = logging.getLogger(__name__)
 
 
 class AssignmentsHistoryResource(Resource):
-    endpoint_name = 'assignments_history'
-    resource_methods = ['GET']
-    item_methods = ['GET']
+    endpoint_name = "assignments_history"
+    resource_methods = ["GET"]
+    item_methods = ["GET"]
     schema = {
-        'assignment_id': {'type': 'string'},
-        'user_id': Resource.rel('users', True),
-        'operation': {'type': 'string'},
-        'update': {'type': 'dict', 'nullable': True}
+        "assignment_id": {"type": "string"},
+        "user_id": Resource.rel("users", True),
+        "operation": {"type": "string"},
+        "update": {"type": "dict", "nullable": True},
     }
 
 
 class AssignmentsHistoryService(HistoryService):
-
     def _save_history(self, assignment, update, operation):
         history = {
-            'assignment_id': assignment[config.ID_FIELD],
-            'user_id': self.get_user_id(),
-            'operation': operation,
-            'update': update
+            "assignment_id": assignment[config.ID_FIELD],
+            "user_id": self.get_user_id(),
+            "operation": operation,
+            "update": update,
         }
 
         self.post([history])

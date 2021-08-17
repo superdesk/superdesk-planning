@@ -23,74 +23,64 @@ from copy import deepcopy
 from eve.utils import config
 
 
-CUSTOM_HATEOAS_EVENTS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
+CUSTOM_HATEOAS_EVENTS = {"self": {"title": "Events", "href": "/events/{_id}"}}
 logger = logging.getLogger(__name__)
 
 
 class EventsLockResource(Resource):
-    endpoint_name = 'events_lock'
-    url = 'events/<{0}:item_id>/lock'.format(item_url)
+    endpoint_name = "events_lock"
+    url = "events/<{0}:item_id>/lock".format(item_url)
     schema = deepcopy(events_schema)
-    datasource = {'source': 'events'}
-    resource_methods = ['GET', 'POST']
+    datasource = {"source": "events"}
+    resource_methods = ["GET", "POST"]
     resource_title = endpoint_name
-    privileges = {'POST': 'planning_event_management'}
+    privileges = {"POST": "planning_event_management"}
 
 
 class EventsLockService(BaseService):
-
     def create(self, docs, **kwargs):
-        item_id = request.view_args['item_id']
-        lock_action = docs[0].get('lock_action', 'edit')
+        item_id = request.view_args["item_id"]
+        lock_action = docs[0].get("lock_action", "edit")
         return self.lock_item(item_id, lock_action, docs[0])
 
     def on_created(self, docs):
-        build_custom_hateoas(
-            CUSTOM_HATEOAS_EVENTS,
-            docs[0],
-            _id=str(docs[0][config.ID_FIELD])
-        )
+        build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][config.ID_FIELD]))
 
     def lock_item(self, item_id, action, doc):
-        user_id = get_user(required=True)['_id']
-        session_id = get_auth()['_id']
+        user_id = get_user(required=True)["_id"]
+        session_id = get_auth()["_id"]
         lock_action = action
         lock_service = get_component(LockService)
-        item = get_resource_service('events').find_one(req=None, _id=item_id)
+        item = get_resource_service("events").find_one(req=None, _id=item_id)
 
-        lock_service.validate_relationship_locks(item, 'events')
-        updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'events')
+        lock_service.validate_relationship_locks(item, "events")
+        updated_item = lock_service.lock(item, user_id, session_id, lock_action, "events")
 
         return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_EVENTS)
 
 
 class EventsUnlockResource(Resource):
-    endpoint_name = 'events_unlock'
-    url = 'events/<{0}:item_id>/unlock'.format(item_url)
+    endpoint_name = "events_unlock"
+    url = "events/<{0}:item_id>/unlock".format(item_url)
     schema = deepcopy(events_schema)
-    datasource = {'source': 'events'}
-    resource_methods = ['GET', 'POST']
+    datasource = {"source": "events"}
+    resource_methods = ["GET", "POST"]
     resource_title = endpoint_name
 
 
 class EventsUnlockService(BaseService):
-
     def create(self, docs, **kwargs):
-        item_id = request.view_args['item_id']
+        item_id = request.view_args["item_id"]
         return self.unlock_item(item_id, docs[0])
 
     def on_created(self, docs):
-        build_custom_hateoas(
-            CUSTOM_HATEOAS_EVENTS,
-            docs[0],
-            _id=str(docs[0][config.ID_FIELD])
-        )
+        build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][config.ID_FIELD]))
 
     def unlock_item(self, item_id, doc):
-        user_id = get_user(required=True)['_id']
-        session_id = get_auth()['_id']
+        user_id = get_user(required=True)["_id"]
+        session_id = get_auth()["_id"]
         lock_service = get_component(LockService)
-        resource_service = get_resource_service('events')
+        resource_service = get_resource_service("events")
         item = resource_service.find_one(req=None, _id=item_id)
-        updated_item = lock_service.unlock(item, user_id, session_id, 'events')
+        updated_item = lock_service.unlock(item, user_id, session_id, "events")
         return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_EVENTS)

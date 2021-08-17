@@ -24,74 +24,81 @@ LOCK_ID = "item_lock_planning_featured"
 
 
 class PlanningFeaturedLockResource(Resource):
-    endpoint_name = 'planning_featured_lock'
-    url = 'planning_featured_lock'
-    datasource = {
-        'source': 'planning_featured_lock',
-        'search_backend': 'elastic'
-    }
-    resource_methods = ['GET', 'POST']
-    item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
+    endpoint_name = "planning_featured_lock"
+    url = "planning_featured_lock"
+    datasource = {"source": "planning_featured_lock", "search_backend": "elastic"}
+    resource_methods = ["GET", "POST"]
+    item_methods = ["GET", "PATCH", "PUT", "DELETE"]
     resource_title = endpoint_name
-    privileges = {'POST': 'planning',
-                  'DELETE': 'planning'}
+    privileges = {"POST": "planning", "DELETE": "planning"}
     schema = {
-        'lock_user': metadata_schema['lock_user'],
-        'lock_time': metadata_schema['lock_time'],
-        'lock_session': metadata_schema['lock_session']
+        "lock_user": metadata_schema["lock_user"],
+        "lock_time": metadata_schema["lock_time"],
+        "lock_session": metadata_schema["lock_session"],
     }
 
 
 class PlanningFeaturedLockService(BaseService):
-
     def on_create(self, docs, **kwargs):
-        user_id = get_user(required=True)['_id']
-        session_id = get_auth()['_id']
+        user_id = get_user(required=True)["_id"]
+        session_id = get_auth()["_id"]
 
         existing_locks = list(self.find(where={}))
         for existing_lock in existing_locks:
             if str(existing_lock.get(LOCK_USER)) != str(user_id):
                 raise SuperdeskApiError.forbiddenError(
-                    message="Featured stories already being managed by another user.")
+                    message="Featured stories already being managed by another user."
+                )
             elif str(existing_lock.get(LOCK_SESSION)) != str(session_id):
                 raise SuperdeskApiError.forbiddenError(
-                    message="Featured stories already being managed by you in another session.")
+                    message="Featured stories already being managed by you in another session."
+                )
 
         # get the lock if not raise forbidden exception
         if not lock(LOCK_ID, expire=5):
             raise SuperdeskApiError.forbiddenError(message="Unable to obtain lock on Featured stories.")
 
         for doc in docs:
-            doc['_id'] = generate_guid(type=GUID_NEWSML)
-            lock_updates = {LOCK_USER: user_id, LOCK_SESSION: session_id, LOCK_TIME: utcnow()}
+            doc["_id"] = generate_guid(type=GUID_NEWSML)
+            lock_updates = {
+                LOCK_USER: user_id,
+                LOCK_SESSION: session_id,
+                LOCK_TIME: utcnow(),
+            }
             doc.update(lock_updates)
 
         return docs
 
     def on_created(self, docs):
-        user_id = get_user(required=True)['_id']
-        session_id = get_auth()['_id']
+        user_id = get_user(required=True)["_id"]
+        session_id = get_auth()["_id"]
         unlock(LOCK_ID, remove=True)
-        push_notification('planning_featured_lock:lock', user=str(user_id), lock_session=str(session_id))
+        push_notification(
+            "planning_featured_lock:lock",
+            user=str(user_id),
+            lock_session=str(session_id),
+        )
 
     def on_deleted(self, doc):
-        user_id = get_user(required=True)['_id']
-        session_id = get_auth()['_id']
-        push_notification('planning_featured_lock:unlock', user=str(user_id), lock_session=str(session_id))
+        user_id = get_user(required=True)["_id"]
+        session_id = get_auth()["_id"]
+        push_notification(
+            "planning_featured_lock:unlock",
+            user=str(user_id),
+            lock_session=str(session_id),
+        )
 
 
 class PlanningFeaturedUnlockResource(Resource):
-    endpoint_name = 'planning_featured_unlock'
-    url = 'planning_featured_unlock'
-    resource_methods = ['GET', 'POST']
+    endpoint_name = "planning_featured_unlock"
+    url = "planning_featured_unlock"
+    resource_methods = ["GET", "POST"]
     resource_title = endpoint_name
-    item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
-    privileges = {'POST': 'planning',
-                  'DELETE': 'planning'}
+    item_methods = ["GET", "PATCH", "PUT", "DELETE"]
+    privileges = {"POST": "planning", "DELETE": "planning"}
 
 
 class PlanningFeaturedUnlockService(BaseService):
-
     def create(self, docs, **kwargs):
-        get_resource_service('planning_featured_lock').delete_action(lookup={})
-        return [{'_id': 'feature_unlocked'}]
+        get_resource_service("planning_featured_lock").delete_action(lookup={})
+        return [{"_id": "feature_unlocked"}]

@@ -13,6 +13,6 @@ from .resource import EventsResource
 
 def construct_event_link(event_id: str):
     return {
-        'title': EventsResource.resource_title,
-        'href': f'{EventsResource.url}/{event_id}',
+        "title": EventsResource.resource_title,
+        "href": f"{EventsResource.url}/{event_id}",
     }

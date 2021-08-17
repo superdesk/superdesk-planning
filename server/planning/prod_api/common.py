@@ -10,8 +10,8 @@
 
 
 excluded_lock_fields = {
-    'lock_action',
-    'lock_user',
-    'lock_time',
-    'lock_session',
+    "lock_action",
+    "lock_user",
+    "lock_time",
+    "lock_session",
 }

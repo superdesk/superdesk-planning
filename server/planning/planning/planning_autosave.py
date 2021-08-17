@@ -23,27 +23,27 @@ logger = logging.getLogger(__name__)
 
 
 class PlanningAutosaveResource(Resource):
-    url = 'planning_autosave'
+    url = "planning_autosave"
     item_url = item_url
 
-    resource_methods = ['GET', 'POST']
-    item_methods = ['GET', 'PUT', 'PATCH', 'DELETE']
+    resource_methods = ["GET", "POST"]
+    item_methods = ["GET", "PUT", "PATCH", "DELETE"]
 
     schema = planning_schema
     datasource = {
-        'source': 'planning_autosave',
+        "source": "planning_autosave",
     }
 
     privileges = {
-        'POST': 'planning_planning_management',
-        'PUT': 'planning_planning_management',
-        'PATCH': 'planning_planning_management',
-        'DELETE': 'planning_planning_management'
+        "POST": "planning_planning_management",
+        "PUT": "planning_planning_management",
+        "PATCH": "planning_planning_management",
+        "DELETE": "planning_planning_management",
     }
 
     mongo_indexes = {
-        'planning_autosave_user': ([('lock_user', 1)], {'background': True}),
-        'planning_autosave_session': ([('lock_session', 1)], {'background': True})
+        "planning_autosave_user": ([("lock_user", 1)], {"background": True}),
+        "planning_autosave_session": ([("lock_session", 1)], {"background": True}),
     }
 
     merge_nested_documents = True
@@ -57,30 +57,20 @@ class PlanningAutosaveService(AutosaveService):
             # Item is not currently being edited (No current autosave item)
             return
 
-        coverages = item.get('coverages') or []
-        coverage = next(
-            (c for c in coverages if c.get('coverage_id') == coverage_id),
-            None
-        )
+        coverages = item.get("coverages") or []
+        coverage = next((c for c in coverages if c.get("coverage_id") == coverage_id), None)
 
         if not coverage:
-            logger.warn('Coverage {} not found in autosave for item {}'.format(
-                coverage_id,
-                planning_id
-            ))
+            logger.warn("Coverage {} not found in autosave for item {}".format(coverage_id, planning_id))
             return
 
         # Remove assignment info from the coverage
-        coverage.pop('assigned_to', None)
-        coverage['workflow_status'] = WORKFLOW_STATE.DRAFT
+        coverage.pop("assigned_to", None)
+        coverage["workflow_status"] = WORKFLOW_STATE.DRAFT
 
         # Remove assignment info from any child scheduled_updates
-        for coverage_update in coverage.get('scheduled_updates') or []:
-            coverage_update.pop('assigned_to', None)
-            coverage_update['workflow_status'] = WORKFLOW_STATE.DRAFT
+        for coverage_update in coverage.get("scheduled_updates") or []:
+            coverage_update.pop("assigned_to", None)
+            coverage_update["workflow_status"] = WORKFLOW_STATE.DRAFT
 
-        self.system_update(
-            planning_id,
-            {'coverages': coverages},
-            item
-        )
+        self.system_update(planning_id, {"coverages": coverages}, item)

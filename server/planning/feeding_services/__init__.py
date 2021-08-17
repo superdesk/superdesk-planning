@@ -14,12 +14,6 @@ from .event_http_service import EventHTTPFeedingService
 from .event_email_service import EventEmailFeedingService
 
 
-register_feeding_service(
-    EventFileFeedingService
-)
-register_feeding_service(
-    EventHTTPFeedingService
-)
-register_feeding_service(
-    EventEmailFeedingService
-)
+register_feeding_service(EventFileFeedingService)
+register_feeding_service(EventHTTPFeedingService)
+register_feeding_service(EventEmailFeedingService)

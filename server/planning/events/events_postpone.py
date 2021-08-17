@@ -12,7 +12,12 @@ from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from eve.utils import config
 from apps.archive.common import get_user, get_auth
-from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_information, set_actioned_date_to_event
+from planning.common import (
+    UPDATE_FUTURE,
+    WORKFLOW_STATE,
+    remove_lock_information,
+    set_actioned_date_to_event,
+)
 from copy import deepcopy
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
@@ -20,34 +25,34 @@ from flask import current_app as app
 
 
 event_postpone_schema = deepcopy(events_schema)
-event_postpone_schema['reason'] = {
-    'type': 'string',
-    'nullable': True,
+event_postpone_schema["reason"] = {
+    "type": "string",
+    "nullable": True,
 }
 
 
 class EventsPostponeResource(EventsResource):
-    url = 'events/postpone'
-    resource_title = endpoint_name = 'events_postpone'
+    url = "events/postpone"
+    resource_title = endpoint_name = "events_postpone"
 
-    datasource = {'source': 'events'}
+    datasource = {"source": "events"}
 
     resource_methods = []
-    item_methods = ['PATCH']
-    privileges = {'PATCH': 'planning_event_management'}
+    item_methods = ["PATCH"]
+    privileges = {"PATCH": "planning_event_management"}
 
     schema = event_postpone_schema
 
 
 class EventsPostponeService(EventsBaseService):
-    ACTION = 'postpone'
+    ACTION = "postpone"
 
     def update_single_event(self, updates, original):
         self._set_event_postponed(updates)
         self._postpone_event_plannings(updates, original)
 
     def update(self, id, updates, original):
-        reason = updates.pop('reason', None)
+        reason = updates.pop("reason", None)
         set_actioned_date_to_event(updates, original)
 
         item = super().update(id, updates, original)
@@ -56,16 +61,16 @@ class EventsPostponeService(EventsBaseService):
         # then we can check the lock information of original and updates to check if this
         # event was the original event.
         if self.is_original_event(original):
-            user = get_user(required=True).get(config.ID_FIELD, '')
-            session = get_auth().get(config.ID_FIELD, '')
+            user = get_user(required=True).get(config.ID_FIELD, "")
+            session = get_auth().get(config.ID_FIELD, "")
 
             push_notification(
-                'events:postpone',
+                "events:postpone",
                 item=str(original[config.ID_FIELD]),
                 user=str(user),
                 session=str(session),
                 reason=reason,
-                actioned_date=updates.get('actioned_date')
+                actioned_date=updates.get("actioned_date"),
             )
 
         return item
@@ -79,28 +84,22 @@ class EventsPostponeService(EventsBaseService):
 
     @staticmethod
     def _postpone_event_plannings(updates, original):
-        planning_service = get_resource_service('planning')
-        planning_postpone_service = get_resource_service('planning_postpone')
-        reason = updates.get('reason', None)
+        planning_service = get_resource_service("planning")
+        planning_postpone_service = get_resource_service("planning_postpone")
+        reason = updates.get("reason", None)
 
-        plans = list(planning_service.find(where={'event_item': original[config.ID_FIELD]}))
+        plans = list(planning_service.find(where={"event_item": original[config.ID_FIELD]}))
         for plan in plans:
-            if plan.get('state') != WORKFLOW_STATE.CANCELLED:
-                updated_plan = planning_postpone_service.patch(
-                    plan[config.ID_FIELD],
-                    {'reason': reason}
-                )
-                app.on_updated_planning_postpone(
-                    updated_plan,
-                    plan
-                )
+            if plan.get("state") != WORKFLOW_STATE.CANCELLED:
+                updated_plan = planning_postpone_service.patch(plan[config.ID_FIELD], {"reason": reason})
+                app.on_updated_planning_postpone(updated_plan, plan)
 
     @staticmethod
     def _set_event_postponed(updates):
-        reason = updates.get('reason', None)
+        reason = updates.get("reason", None)
         remove_lock_information(updates)
-        updates['state'] = WORKFLOW_STATE.POSTPONED
-        updates['state_reason'] = reason
+        updates["state"] = WORKFLOW_STATE.POSTPONED
+        updates["state_reason"] = reason
 
     def update_recurring_events(self, updates, original, update_method):
         historic, past, future = self.get_recurring_timeline(original)
@@ -122,10 +121,7 @@ class EventsPostponeService(EventsBaseService):
 
             # Mark the Event as being Postponed
             self._postpone_event_plannings(new_updates, event)
-            new_updates['skip_on_update'] = True
-            self.patch(
-                event[config.ID_FIELD],
-                new_updates
-            )
+            new_updates["skip_on_update"] = True
+            self.patch(event[config.ID_FIELD], new_updates)
 
         self._postpone_event_plannings(updates, original)

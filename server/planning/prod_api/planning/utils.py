@@ -13,6 +13,6 @@ from .resource import PlanningResource
 
 def construct_planning_link(plan_id: str):
     return {
-        'title': PlanningResource.resource_title,
-        'href': f'{PlanningResource.url}/{plan_id}',
+        "title": PlanningResource.resource_title,
+        "href": f"{PlanningResource.url}/{plan_id}",
     }

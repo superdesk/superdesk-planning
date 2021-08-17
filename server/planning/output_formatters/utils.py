@@ -9,16 +9,18 @@ def expand_contact_info(contacts):
     :param item:
     :return: Array of expanded contacts
     """
-    remove_contact_fields = {'_etag', '_type'}
+    remove_contact_fields = {"_etag", "_type"}
     expanded = []
     if not contacts:
         return expanded
 
-    contact_details = get_resource_service('contacts').find(where={
-        '_id': {'$in': [ObjectId(c) for c in contacts]},
-        'public': True,
-        'is_active': True
-    })
+    contact_details = get_resource_service("contacts").find(
+        where={
+            "_id": {"$in": [ObjectId(c) for c in contacts]},
+            "public": True,
+            "is_active": True,
+        }
+    )
 
     if contact_details.count():
         for c_details in contact_details:
@@ -26,8 +28,8 @@ def expand_contact_info(contacts):
                 c_details.pop(f, None)
 
             # Remove any none public contact details
-            c_details['contact_phone'] = [p for p in c_details.get('contact_phone', []) if p.get('public')]
-            c_details['mobile'] = [p for p in c_details.get('mobile', []) if p.get('public')]
+            c_details["contact_phone"] = [p for p in c_details.get("contact_phone", []) if p.get("public")]
+            c_details["mobile"] = [p for p in c_details.get("mobile", []) if p.get("public")]
             expanded.append(c_details)
 
     return expanded

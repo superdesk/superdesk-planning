@@ -17,5 +17,5 @@ from .service import PlanningService
 
 
 def init_app(app: Eve):
-    planning_service = PlanningService(datasource='planning', backend=get_backend())
-    PlanningResource(endpoint_name='planning', app=app, service=planning_service)
+    planning_service = PlanningService(datasource="planning", backend=get_backend())
+    PlanningResource(endpoint_name="planning", app=app, service=planning_service)

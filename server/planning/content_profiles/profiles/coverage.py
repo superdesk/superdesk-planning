@@ -32,51 +32,49 @@ class CoverageSchema(BaseSchema):
 
 
 DEFAULT_COVERAGE_PROFILE = {
-    'name': 'coverage',
-    'editor': {
-        'g2_content_type': {
-            'enabled': True,
-            'index': 1,
+    "name": "coverage",
+    "editor": {
+        "g2_content_type": {
+            "enabled": True,
+            "index": 1,
         },
-        'genre': {
-            'enabled': True,
-            'index': 2,
+        "genre": {
+            "enabled": True,
+            "index": 2,
         },
-        'slugline': {
-            'enabled': True,
-            'index': 3,
+        "slugline": {
+            "enabled": True,
+            "index": 3,
         },
-        'ednote': {
-            'enabled': True,
-            'index': 4,
+        "ednote": {
+            "enabled": True,
+            "index": 4,
         },
-        'internal_note': {
-            'enabled': True,
-            'index': 5,
+        "internal_note": {
+            "enabled": True,
+            "index": 5,
         },
-        'news_coverage_status': {
-            'enabled': True,
-            'index': 6,
+        "news_coverage_status": {
+            "enabled": True,
+            "index": 6,
         },
-        'scheduled': {
-            'enabled': True,
-            'index': 7,
+        "scheduled": {
+            "enabled": True,
+            "index": 7,
         },
-        'scheduled_updates': {
-            'enabled': True,
-            'index': 8,
+        "scheduled_updates": {
+            "enabled": True,
+            "index": 8,
         },
-
         # Fields disabled by default
-        'contact_info': {'enabled': False},
-        'language': {'enabled': False},
-        'xmp_file': {'enabled': False},
-        'headline': {'enabled': False},
-        'keyword': {'enabled': False},
-        'files': {'enabled': False},
-
+        "contact_info": {"enabled": False},
+        "language": {"enabled": False},
+        "xmp_file": {"enabled": False},
+        "headline": {"enabled": False},
+        "keyword": {"enabled": False},
+        "files": {"enabled": False},
         # Requires `PLANNING_LINK_UPDATES_TO_COVERAGES` enabled in config
-        'no_content_linking': {'enabled': False},
+        "no_content_linking": {"enabled": False},
     },
-    'schema': dict(CoverageSchema)
+    "schema": dict(CoverageSchema),  # type: ignore
 }

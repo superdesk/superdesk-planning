@@ -18,35 +18,32 @@ from superdesk.metadata.utils import item_url
 
 
 class EventAutosaveResource(Resource):
-    url = 'event_autosave'
+    url = "event_autosave"
     item_url = item_url
 
-    resource_methods = ['GET', 'POST']
-    item_methods = ['GET', 'PUT', 'PATCH', 'DELETE']
+    resource_methods = ["GET", "POST"]
+    item_methods = ["GET", "PUT", "PATCH", "DELETE"]
 
     schema = deepcopy(events_schema)
-    schema['associated_plannings'] = {
-        'type': 'list',
-        'required': False,
-        'schema': {
-            'type': 'dict',
-            'allow_unknown': True
-        }
+    schema["associated_plannings"] = {
+        "type": "list",
+        "required": False,
+        "schema": {"type": "dict", "allow_unknown": True},
     }
     datasource = {
-        'source': 'event_autosave',
+        "source": "event_autosave",
     }
 
     privileges = {
-        'POST': 'planning_event_management',
-        'PUT': 'planning_event_management',
-        'PATCH': 'planning_event_management',
-        'DELETE': 'planning_event_management'
+        "POST": "planning_event_management",
+        "PUT": "planning_event_management",
+        "PATCH": "planning_event_management",
+        "DELETE": "planning_event_management",
     }
 
     mongo_indexes = {
-        'event_autosave_user': ([('lock_user', 1)], {'background': True}),
-        'event_autosave_session': ([('lock_session', 1)], {'background': True})
+        "event_autosave_user": ([("lock_user", 1)], {"background": True}),
+        "event_autosave_session": ([("lock_session", 1)], {"background": True}),
     }
 
     merge_nested_documents = True
