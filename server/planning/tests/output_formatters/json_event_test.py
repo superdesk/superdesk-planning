@@ -3,7 +3,6 @@ import tempfile
 
 from unittest import mock
 from superdesk.tests import TestCase
-from superdesk.publish import init_app, registered_transmitters
 from planning.output_formatters.json_event import JsonEventFormatter
 from planning.events import init_app
 from eve.methods.common import store_media_files
@@ -136,13 +135,7 @@ class JsonEventTestCase(TestCase):
         destination = {"delivery_type": "http_push"}
         formatter = JsonEventFormatter()
         formatter.set_destination(destination, subscriber)
-        with mock.patch.object(
-            registered_transmitters["http_push"],
-            "_transmit_media",
-            return_value="new-href",
-        ) as push_media:  # noqa
-            output = formatter.format(item, subscriber)[0]
-            push_media.assert_called_once_with(mock.ANY, destination)
+        output = formatter.format(item, subscriber)[0]
 
         output_item = json.loads(output[1])
         self.assertEqual(1, len(output_item["files"]))

@@ -95,8 +95,14 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
 
             if (index >= 0) {
                 // This coverage is an existing coverage
-                // so update the coverage at `index`
-                updatedCoverages[index] = newCoverage;
+                if (newCoverage.workflow_status === 'spiked') {
+                    // This coverage is marked for deletion
+                    // Remove it from the coverages array at `index`
+                    updatedCoverages.splice(index, 1);
+                } else {
+                    // Update the coverage at `index`
+                    updatedCoverages[index] = newCoverage;
+                }
             } else {
                 // This is a new coverage
                 // so append to the array
