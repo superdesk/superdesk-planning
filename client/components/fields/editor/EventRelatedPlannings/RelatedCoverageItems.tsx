@@ -2,6 +2,7 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {
+    EDITOR_TYPE,
     IAssignmentPriority,
     ICoverageProvider,
     IG2ContentType, IGenre,
@@ -29,6 +30,7 @@ interface IProps {
     coverageProviders: Array<ICoverageProvider>;
     priorities: Array<IAssignmentPriority>;
     keywords: Array<string>;
+    editorType: EDITOR_TYPE;
 
     updateCoverage(field: string, value: any): void;
     removeCoverage(coverage: DeepPartial<IPlanningCoverageItem>): void;
@@ -84,6 +86,7 @@ class RelatedCoverageItemsComponent extends React.PureComponent<IProps> {
                         onDuplicateCoverage={this.props.duplicateCoverage}
                         setCoverageDefaultDesk={() => this.props.setCoverageDefaultDesk(coverage)}
                         openCoverageIds={[]}
+                        editorType={this.props.editorType}
                     />
                 ))}
             </List.Group>
