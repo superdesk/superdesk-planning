@@ -155,6 +155,19 @@ def search_language(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
     if len(params.get("lock_state") or ""):
+
+        def add_field_exist_query():
+            if params["lock_state"] == "locked":
+                query.must.append(elastic.field_exists("lock_session"))
+            elif params["lock_state"] == "unlocked":
+                query.must_not.append(elastic.field_exists("lock_session"))
+
+        if strtobool(params.get("directly_locked", False)):
+            # This request wants only the items that have a lock directly on them
+            # Therefore we do not include any associated Items
+            add_field_exist_query()
+            return
+
         search_service = get_resource_service("events_planning_search")
         ids = set()
         event_items = set()
@@ -165,10 +178,7 @@ def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
             # If there are no locked items there is no need to perform logic
             # for the relationships between locked items
             # Simply apply generic `field_exists` query to the original query
-            if params["lock_state"] == "locked":
-                query.must.append(elastic.field_exists("lock_session"))
-            elif params["lock_state"] == "unlocked":
-                query.must_not.append(elastic.field_exists("lock_session"))
+            add_field_exist_query()
             return
 
         for item in locked_items:
@@ -414,6 +424,7 @@ COMMON_PARAMS: List[str] = [
     "start_of_week",
     "slugline",
     "lock_state",
+    "directly_locked",
     "recurrence_id",
     "repo",
     "max_results",

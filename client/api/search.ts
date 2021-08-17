@@ -34,6 +34,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         start_of_week: params.start_of_week,
         slugline: params.slugline,
         lock_state: params.lock_state,
+        directly_locked: params.directly_locked,
         page: params.page ?? 1,
         max_results: params.max_results ?? 50,
         recurrence_id: params.recurrence_id,

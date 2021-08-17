@@ -13,11 +13,8 @@ const loadAllLocks = () => (
     (dispatch) => (
         Promise.all([
             planningApi.events.getLocked(),
-            // dispatch(events.api.queryLockedEvents()),
             planningApi.planning.getLocked(),
             planningApi.planning.getLockedFeatured(),
-            // dispatch(planning.api.queryLockedPlanning()),
-            // dispatch(planning.api.queryLockedPlanning({featureLock: true})),
         ])
             .then((data) => {
                 const payload = {

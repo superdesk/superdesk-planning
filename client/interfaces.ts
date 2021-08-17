@@ -824,6 +824,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     spikeState?: ISearchSpikeState;
     filter_id?: ISearchFilter['_id'];
     lock_state?: LOCK_STATE;
+    directly_locked?: boolean;
     timezoneOffset?: string;
     advancedSearch?: ICommonAdvancedSearchParams;
     sortOrder?: SORT_ORDER;
@@ -1236,6 +1237,7 @@ export interface ISearchParams {
     start_of_week?: number;
     slugline?: string;
     lock_state?: LOCK_STATE;
+    directly_locked?: boolean;
     recurrence_id?: string; // Both Events and Planning have recurrence_id
     filter_id?: ISearchFilter['_id'];
     sort_order?: SORT_ORDER;
@@ -1291,6 +1293,7 @@ export interface ISearchAPIParams {
     start_of_week?: number;
     slugline?: string;
     lock_state?: LOCK_STATE;
+    directly_locked?: boolean;
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
 
