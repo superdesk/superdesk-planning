@@ -40,7 +40,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
-from superdesk.utc import utcnow
+from superdesk.utc import get_date, utcnow
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 from superdesk.users.services import current_user_has_privilege
@@ -190,6 +190,8 @@ class EventsService(superdesk.Service):
 
             # generates events based on recurring rules
             if event["dates"].get("recurring_rule", None):
+                event["dates"]["start"] = get_date(event["dates"]["start"])
+                event["dates"]["end"] = get_date(event["dates"]["end"])
                 recurring_events = generate_recurring_events(event)
                 generated_events.extend(recurring_events)
                 # remove the event that contains the recurring rule. We don't need it anymore
@@ -772,7 +774,7 @@ def generate_recurring_dates(
             pass
         start = start.astimezone(tz).replace(tzinfo=None)
         if until:
-            until = until.astimezone(tz).replace(tzinfo=None)
+            until = get_date(until).astimezone(tz).replace(tzinfo=None)
 
     if frequency == "DAILY":
         byday = None
