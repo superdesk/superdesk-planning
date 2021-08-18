@@ -59,6 +59,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                             removePlan={this.props.removePlanningItem}
                             updatePlanningItem={this.props.updatePlanningItem}
                             disabled={this.props.disabled}
+                            editorType={this.props.editorType}
                         />
                     ))
                 )}
