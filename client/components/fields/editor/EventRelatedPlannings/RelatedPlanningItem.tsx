@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {set} from 'lodash';
 
-import {IEventItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../../../interfaces';
+import {EDITOR_TYPE, IEventItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
 
 import {TEMP_ID_PREFIX} from '../../../../constants';
@@ -18,6 +18,7 @@ interface IProps {
     item: DeepPartial<IPlanningItem>;
     index: number;
     disabled: boolean;
+    editorType: EDITOR_TYPE;
     removePlan(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
@@ -120,6 +121,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         item={this.props.item}
                         coverages={this.props.item.coverages}
                         disabled={this.props.disabled}
+                        editorType={this.props.editorType}
                         updateCoverage={this.updateCoverage}
                         removeCoverage={this.removeCoverage}
                         duplicateCoverage={this.duplicateCoverage}
