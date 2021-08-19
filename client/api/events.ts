@@ -112,6 +112,7 @@ export function getEventByIds(
 export function getLockedEvents(): Promise<Array<IEventItem>> {
     return searchEvents({
         lock_state: LOCK_STATE.LOCKED,
+        directly_locked: true,
         only_future: false,
     })
         .then(modifyResponseForClient)
