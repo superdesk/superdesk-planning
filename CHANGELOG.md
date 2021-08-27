@@ -1,5 +1,14 @@
 # Superdesk Planning Changelog
 
+## [2.3.1-rc.1] 2021-08-27
+### Fixes
+- [SDCP-545] add e2e test - returns focus to the list item after preview is closed (#1631)
+- [SDESK-6004] fix(ui): Use flex for Planning lists (#1632)
+- SDESK-6090 implement disabled items in accessible menu (#1633)
+- [SDESK-6107] fix: Only show draft coverages in AdvancedModal (#1635)
+- [SDESK-6014] fix: Draft coverages cant be removed from AdvancedCoverages modal (#1640)
+- [SDESK-6135] fix: App crashes when opening coverage in Event Editor (#1644)
+
 ## * Release v2.3.0 - 2021-07-16
 
 ## [2.3.0-rc.4] 2021-07-02
