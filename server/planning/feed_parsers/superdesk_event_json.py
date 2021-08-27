@@ -2,6 +2,7 @@ import logging
 
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
+from superdesk.errors import ParserError
 from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
 from planning.common import WORKFLOW_STATE
