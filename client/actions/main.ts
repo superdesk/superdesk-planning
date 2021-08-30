@@ -6,6 +6,9 @@ import {planningApi as planningApis, superdeskApi} from '../superdeskApi';
 import {
     EDITOR_TYPE,
     ICombinedEventOrPlanningSearchParams,
+    IEditorAction,
+    IEventOrPlanningItem,
+    IItemUrlParams,
     ISearchFilter,
     ISearchParams,
     LIST_VIEW_TYPE,
@@ -92,11 +95,26 @@ const openForEdit = (item, updateUrl = true, modal = false) => (
     }
 );
 
-const openEditorAction = (item, action, updateUrl = true, modal = false) => (
-    (dispatch, getState, {$timeout, $location}) => {
+function openEditorAction(
+    item: IEventOrPlanningItem,
+    action: IEditorAction,
+    updateUrl: boolean = true,
+    modal: boolean = false
+) {
+    return (dispatch, getState) => {
         const state = getState();
         const itemId = getItemId(item);
         const itemType = getItemType(item);
+
+        const currentItemId = modal ?
+            selectors.forms.currentItemIdModal(state) :
+            selectors.forms.currentItemId(state);
+        const currentItemType = modal ?
+            selectors.forms.currentItemTypeModal(state) :
+            selectors.forms.currentItemType(state);
+        const currentAction = modal ?
+            selectors.forms.currentItemActionModal(state) :
+            selectors.forms.currentItemAction(state);
 
         // If the item being edited is currently opened in the Preview panel
         // then close the preview panel
@@ -106,7 +124,11 @@ const openEditorAction = (item, action, updateUrl = true, modal = false) => (
 
         // If the panel editor is currently open, then close it
         // This reset's the Editor's states, bookmarks, groups and DOM refs
-        if (selectors.forms.currentItemId(state) != null || selectors.forms.currentItemType(state) != null) {
+        if (!modal && (
+            currentItemId !== itemId ||
+            currentItemType !== itemType ||
+            currentAction !== action
+        )) {
             dispatch(closeEditor());
         }
 
@@ -121,13 +143,15 @@ const openEditorAction = (item, action, updateUrl = true, modal = false) => (
             }
         } else if (updateUrl) {
             // Update the URL
-            $timeout(() => $location.search('edit', JSON.stringify({
+            const {urlParams} = superdeskApi.browser.location;
+
+            urlParams.setJson<IItemUrlParams>('edit', {
                 id: itemId,
                 type: itemType,
-            })));
+            });
         }
-    }
-);
+    };
+}
 
 const changeEditorAction = (action, modal = false) => ({
     type: MAIN.ACTIONS.CHANGE_EDITOR_ACTION,
