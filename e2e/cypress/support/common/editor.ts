@@ -190,6 +190,9 @@ export class Editor {
     waitLoadingComplete() {
         cy.log('Common.Editor.waitLoadingComplete');
         this.element
+            .find('.sd-loader')
+            .should('not.exist');
+        this.element
             .find('.side-panel__content-tab-nav', {timeout: 30000})
             .should('exist');
     }

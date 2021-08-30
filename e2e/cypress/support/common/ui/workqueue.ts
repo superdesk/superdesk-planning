@@ -1,3 +1,9 @@
+interface IExpectItem {
+    title?: string;
+    icon?: string;
+    active?: boolean;
+}
+
 /**
  * Wrapper class around Superdesk's Workqueue components used in most pages of the app
  */
@@ -15,7 +21,7 @@ export class Workqueue {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get items() {
-        return this.panel.find('.opened-articles-bar__item');
+        return this.panel.find('[data-test-id="workqueue-item"]');
     }
 
     /**
@@ -33,7 +39,9 @@ export class Workqueue {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     getItem(index) {
-        return this.items.eq(index).find('a');
+        return this.items
+            .eq(index)
+            .find('[data-test-id="workqueue-item--title"]');
     }
 
     /**
@@ -43,9 +51,55 @@ export class Workqueue {
      */
     expectTitle(index, title) {
         cy.log('Common.UI.Workqueue.expectTitle');
-        cy.log('UI.Workqueue.expectTitle');
         this.getItem(index)
             .find('span')
             .should('contain.text', title);
+    }
+
+    expectIcon(index: number, icon: string) {
+        cy.log('Common.UI.Workqueue.expectIcon');
+        this.getItem(index)
+            .find(icon)
+            .should('exist');
+    }
+
+    expectActive(index: number) {
+        cy.log('Common.UI.Workqueue.expectActive');
+        this.items
+            .eq(index)
+            .should('have.attr', 'data-active', 'true');
+    }
+
+    expectNotActive(index: number) {
+        cy.log('Common.UI.Workqueue.expectNotActive');
+        this.items
+            .eq(index)
+            .should('not.have.attr', 'data-active', 'true');
+    }
+
+    expectItems(items: Array<IExpectItem>) {
+        cy.log('Common.UI.Workqueue.expectItems');
+        items.forEach((item, index) => {
+            if (item.title != null) {
+                this.expectTitle(index, item.title);
+            }
+            if (item.icon != null) {
+                this.expectIcon(index, item.icon);
+            }
+            if (item.active != null) {
+                item.active ?
+                    this.expectActive(index) :
+                    this.expectNotActive(index);
+            }
+        });
+    }
+
+    closeItem(index) {
+        cy.log('Common.UI.Workqueue.closeItem');
+        this.items
+            .eq(index)
+            .find('[data-test-id="close-icon"]')
+            .should('exist')
+            .click();
     }
 }
