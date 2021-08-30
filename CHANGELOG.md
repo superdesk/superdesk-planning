@@ -1,5 +1,7 @@
 # Superdesk Planning Changelog
 
+## * Release v2.3.1 - 2021-08-30
+
 ## [2.3.1-rc.1] 2021-08-27
 ### Fixes
 - [SDCP-545] add e2e test - returns focus to the list item after preview is closed (#1631)
