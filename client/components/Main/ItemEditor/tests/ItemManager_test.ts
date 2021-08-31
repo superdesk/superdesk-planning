@@ -1048,7 +1048,7 @@ describe('components.Main.ItemManager', () => {
             editor.setState({errorMessages: ['something bad']});
 
             manager._save()
-                .then(done.fail, () => {
+                .then(() => {
                     expect(main.save.callCount).toBe(0);
                     expect(editor.state.submitFailed).toBeTruthy();
                     expect(editor.props.notifyValidationErrors.callCount).toBe(1);
@@ -1057,7 +1057,7 @@ describe('components.Main.ItemManager', () => {
                     ]);
 
                     done();
-                })
+                }, done.fail)
                 .catch(done.fail);
         });
 
