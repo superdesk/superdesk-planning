@@ -1273,8 +1273,8 @@ function duplicateCoverage(
         newCoverage.planning.workflow_status_reason = null;
     }
 
-    if (duplicateAs) {
-        newCoverage.planning.genre = null;
+    if (coverage.planning.genre) {
+        newCoverage.planning.genre = coverage.planning.genre;
     }
 
     let diffCoverages: Array<DeepPartial<IPlanningCoverageItem>> = cloneDeep(item.coverages);
