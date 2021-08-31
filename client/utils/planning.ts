@@ -1275,6 +1275,8 @@ function duplicateCoverage(
 
     if (duplicateAs) {
         newCoverage.planning.genre = null;
+    } else {
+        newCoverage.planning.genre = coverage.planning.genre;
     }
 
     let diffCoverages: Array<DeepPartial<IPlanningCoverageItem>> = cloneDeep(item.coverages);
