@@ -498,7 +498,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                     {!this.state.saving ? null : (
                         <div className="sd-loader" />
                     )}
-                    <form className="planning-profile-form">
+                    <form className="planning-profile-form" onSubmit={(e) => e.preventDefault()}>
                         <Tabs onClick={this.changeTab}>
                             {tabLabels}
                         </Tabs>
