@@ -104,6 +104,11 @@ export type IFile = {
     };
 };
 
+export interface IItemUrlParams {
+    id: IEventOrPlanningItem['_id'];
+    type: IEventOrPlanningItem['type'];
+}
+
 export enum JUMP_INTERVAL {
     DAY = 'DAY',
     WEEK = 'WEEK',
