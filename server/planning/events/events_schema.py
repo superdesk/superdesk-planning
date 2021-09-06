@@ -116,6 +116,7 @@ events_schema = {
                     "byday": {"type": "string", "nullable": True},
                     "byhour": {"type": "string", "nullable": True},
                     "byminute": {"type": "string", "nullable": True},
+                    "_created_externally": {"type": "boolean", "nullable": True, "default": False},
                 },
                 "nullable": True,
             },

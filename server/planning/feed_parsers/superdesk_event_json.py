@@ -58,6 +58,9 @@ class EventJsonFeedParser(FileFeedParser):
         superdesk_event = self.assign_from_local_cv(superdesk_event)
         superdesk_event = self.add_to_local_db(superdesk_event)
 
+        if superdesk_event["dates"].get("recurring_rule"):
+            superdesk_event["dates"]["recurring_rule"]["_created_externally"] = True
+
         if superdesk_event.get("subject"):
             subject_code_items = get_subjectcodeitems()
 
