@@ -643,8 +643,6 @@ export class ItemManager {
             })
                 .then(() => {
                     this.props.notifyValidationErrors(this.state.errorMessages);
-
-                    return Promise.reject();
                 });
         }
 
