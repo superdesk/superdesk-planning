@@ -189,24 +189,23 @@ class EventsService(superdesk.Service):
             self.validate_event(event)
 
             # generates events based on recurring rules
-            if event["dates"].get("recurring_rule", None):
+            # If _created_externally is true, generate_recurring_events is restricted.
+            if event["dates"].get("recurring_rule", None) and not event["dates"]["recurring_rule"].get("_created_externally", False):
                 event["dates"]["start"] = get_date(event["dates"]["start"])
                 event["dates"]["end"] = get_date(event["dates"]["end"])
 
-                # If _created_externally is true, generate_recurring_events is restricted.
-                if event["dates"]["recurring_rule"].get("_created_externally", None) and not event["dates"]["recurring_rule"]["_created_externally"]:
-                    recurring_events = generate_recurring_events(event)
-                    generated_events.extend(recurring_events)
-                    # remove the event that contains the recurring rule. We don't need it anymore
-                    docs.remove(event)
+                recurring_events = generate_recurring_events(event)
+                generated_events.extend(recurring_events)
+                # remove the event that contains the recurring rule. We don't need it anymore
+                docs.remove(event)
 
-                    # Set the current Event to the first Event in the new series
-                    # This will make sure the ID of the Event can be used when
-                    # using 'event' from here on, such as when linking to a Planning item
-                    event = recurring_events[0]
-                    # And set the Planning Item from the original
-                    # (generate_recurring_events removes this field)
-                    event["_planning_item"] = planning_item
+                # Set the current Event to the first Event in the new series
+                # This will make sure the ID of the Event can be used when
+                # using 'event' from here on, such as when linking to a Planning item
+                event = recurring_events[0]
+                # And set the Planning Item from the original
+                # (generate_recurring_events removes this field)
+                event["_planning_item"] = planning_item
 
             if event["state"] == "ingested":
                 events_history = get_resource_service("events_history")
