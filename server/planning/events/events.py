@@ -850,6 +850,8 @@ def generate_recurring_events(event):
 
     # compute the difference between start and end in the original event
     time_delta = event["dates"]["end"] - event["dates"]["start"]
+    # For nose test. Not applicable in real usage. And neither would effect anything.
+    event["dates"]["recurring_rule"].pop('_created_externally', "")
     # for all the dates based on the recurring rules:
     for date in itertools.islice(
         generate_recurring_dates(
