@@ -209,6 +209,7 @@ class EventPlanningSchedule(TestCase):
                         "interval": 1,
                         "count": 3,
                         "endRepeatMode": "count",
+                        "_created_externally": False,
                     },
                 },
             }
@@ -231,6 +232,7 @@ class EventPlanningSchedule(TestCase):
                         "interval": 1,
                         "count": 3,
                         "endRepeatMode": "count",
+                        "_created_externally": False,
                     },
                 },
             }
@@ -299,6 +301,7 @@ class EventPlanningSchedule(TestCase):
                         "interval": 1,
                         "count": 3,
                         "endRepeatMode": "count",
+                        "_created_externally": False,
                     },
                 },
             }
@@ -350,6 +353,7 @@ class EventPlanningSchedule(TestCase):
                     "interval": 1,
                     "count": 3,
                     "endRepeatMode": "count",
+                    "_created_externally": False,
                 },
             },
         }
@@ -402,6 +406,7 @@ class EventPlanningSchedule(TestCase):
             "interval": 1,
             "count": 3,
             "endRepeatMode": "count",
+            "_created_externally": False,
         }
 
         service.patch(events[0].get("_id"), {"_id": events[0].get("_id"), "dates": schedule})
