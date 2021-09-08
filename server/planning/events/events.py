@@ -190,7 +190,9 @@ class EventsService(superdesk.Service):
 
             # generates events based on recurring rules
             # If _created_externally is true, generate_recurring_events is restricted.
-            if event["dates"].get("recurring_rule", None) and not event["dates"]["recurring_rule"].get("_created_externally", False):
+            if event["dates"].get("recurring_rule", None) and not event["dates"]["recurring_rule"].get(
+                "_created_externally", False
+            ):
                 event["dates"]["start"] = get_date(event["dates"]["start"])
                 event["dates"]["end"] = get_date(event["dates"]["end"])
 
