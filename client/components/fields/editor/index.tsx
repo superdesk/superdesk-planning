@@ -7,13 +7,10 @@ import {EditorFieldFeatured} from './Featured';
 import {EditorFieldIngestSource} from './IngestSource';
 import {EditorFieldItemType} from './ItemType';
 import {EditorFieldLocation} from './Location';
-import {EditorFieldName} from './Name';
 import {EditorFieldNoCoverage} from './NoCoverage';
 import {EditorFieldOnlyPosted} from './OnlyPosted';
 import {EditorFieldPlace} from './Place';
-import {EditorFieldReference} from './Reference';
 import {EditorFieldRelativeDate} from './RelativeDate';
-import {EditorFieldSlugline} from './Slugline';
 import {EditorFieldSpikeState} from './SpikeState';
 import {EditorFieldStartDateTime} from './StartDateTime';
 import {EditorFieldSubjects} from './Subjects';
@@ -39,13 +36,11 @@ import {EditorFieldScheduleHour} from './ScheduleHour';
 import {EditorFieldScheduleMonthDay} from './ScheduleMonthDay';
 import {EditorFieldEventRecurringRules} from './EventRecurringRules';
 import {EditorFieldEventSchedule} from './EventSchedule';
-import {EditorFieldDefinitionShort} from './DefinitionShort';
 import {EditorFieldContacts} from './Contacts';
 import {EditorFieldEventOccurenceStatus} from './EventOccurenceStatus';
 import {EditorFieldEventAttachments} from './EventAttachments';
 import {EditorFieldEventLinks} from './EventLinks';
 import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlannings';
-import {EditorFieldHeadline} from './Headline';
 import {EditorFieldPlanningDateTime} from './PlanningDateTime';
 import {EditorFieldNotForPublication} from './NotForPublication';
 import {EditorFieldOverrideAutoAssignToWorkflow} from './OverrideAutoAssignToWorkflow';
@@ -60,20 +55,13 @@ import {EditorFieldCoverageContact} from './CoverageContact';
 import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
-import {EditorFieldDefinitionLong} from './DefinitionLong';
-import {EditorFieldEdnote} from './Ednote';
-import {EditorFieldDescriptionText} from './DescriptionText';
-import {EditorFieldInternalNote} from './InternalNote';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
     featured: EditorFieldFeatured,
     source: EditorFieldIngestSource,
     location: EditorFieldLocation,
-    name: EditorFieldName,
     place: EditorFieldPlace,
-    reference: EditorFieldReference,
-    slugline: EditorFieldSlugline,
     subject: EditorFieldSubjects,
     urgency: EditorFieldUrgency,
     state: EditorFieldWorkflowState,
@@ -133,18 +121,12 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     'dates.recurring_rules': EditorFieldEventRecurringRules,
     recurring_rules: EditorFieldEventRecurringRules,
     dates: EditorFieldEventSchedule,
-    definition_short: EditorFieldDefinitionShort,
-    definition_long: EditorFieldDefinitionLong,
-    internal_note: EditorFieldInternalNote,
-    ednote: EditorFieldEdnote,
-    description_text: EditorFieldDescriptionText,
     contacts: EditorFieldContacts,
     event_contact_info: EditorFieldContacts,
     occur_status: EditorFieldEventOccurenceStatus,
     files: EditorFieldEventAttachments,
     links: EditorFieldEventLinks,
     related_plannings: EditorFieldEventRelatedPlannings,
-    headline: EditorFieldHeadline,
     planning_date: EditorFieldPlanningDateTime,
     'flags.marked_for_not_publication': EditorFieldNotForPublication,
     marked_for_not_publication: EditorFieldNotForPublication,

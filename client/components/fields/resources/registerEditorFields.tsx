@@ -8,6 +8,7 @@ interface IEditorHocOptions<S extends IEditorFieldProps> {
     Component: React.ComponentClass<S>;
     props?(currentProps: S): Partial<S>;
     mapStateToProps?: (state: IPlanningAppState) => Partial<S>;
+    forwardRef?: boolean;
 }
 
 function editorHoc<S extends IEditorFieldProps>(options: IEditorHocOptions<S>) {
@@ -23,11 +24,14 @@ function editorHoc<S extends IEditorFieldProps>(options: IEditorHocOptions<S>) {
                 ...currentProps,
             };
 
+            if (options.forwardRef) {
+                props.refNode = refNode;
+            } else {
+                props.ref = refNode;
+            }
+
             return (
-                <Component
-                    ref={refNode}
-                    {...props}
-                />
+                <Component {...props} />
             );
         }
     }
@@ -43,11 +47,13 @@ export function registerEditorField<S extends IEditorFieldProps>(
     field: string,
     Component: React.ComponentClass<S>,
     props?: (currentProps: S) => Partial<S>,
-    mapStateToProps?: (state: IPlanningAppState) => Partial<S>
+    mapStateToProps?: (state: IPlanningAppState) => Partial<S>,
+    forwardRef?: boolean
 ) {
     FIELD_TO_EDITOR_COMPONENT[field] = editorHoc({
         Component,
         props,
         mapStateToProps,
+        forwardRef,
     });
 }
