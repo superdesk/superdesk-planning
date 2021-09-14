@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, DateTimeField, subjectField, BooleanField
+from .fields import BaseSchema, DateTimeField, subjectField, BooleanField, TextField, TextFieldType
 
 
 class PlanningSchema(BaseSchema):
@@ -20,13 +20,13 @@ class PlanningSchema(BaseSchema):
 
     agendas = schema.ListField()
     anpa_category = schema.ListField()
-    description_text = schema.StringField()
-    ednote = schema.StringField()
+    description_text = TextField(field_type=TextFieldType.MULTI_LINE)
+    ednote = TextField(field_type=TextFieldType.MULTI_LINE)
     files = schema.ListField()
     marked_for_not_publication = BooleanField()
     overide_auto_assign_to_workflow = BooleanField()
     headline = schema.StringField()
-    internal_note = schema.StringField()
+    internal_note = TextField(field_type=TextFieldType.MULTI_LINE, expandable=True)
     language = schema.StringField()
     name = schema.StringField()
     place = schema.ListField()

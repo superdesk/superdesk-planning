@@ -8,6 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from typing import NamedTuple, Optional, List, Union, Literal
+from enum import Enum
+
 import superdesk.schema as schema
 
 
@@ -51,6 +54,36 @@ class StringRequiredForAction(schema.SchemaField):
         self.schema["type"] = "string"
         self.schema["required"] = required
         self.schema["dependencies"] = dependencies
+
+
+class TextFieldType(Enum):
+    SINGLE_LINE: str = "single_line"
+    MULTI_LINE: str = "multi_line"
+    EDITOR_3: str = "editor_3"
+
+
+TextFieldTypes = Union[
+    Literal[TextFieldType.SINGLE_LINE], Literal[TextFieldType.MULTI_LINE], Literal[TextFieldType.EDITOR_3]
+]
+
+
+class TextField(schema.StringField):
+    def __init__(
+        self,
+        required: bool = False,
+        maxlength: Optional[int] = None,
+        minlength: Optional[int] = None,
+        field_type: TextFieldTypes = TextFieldType.SINGLE_LINE,
+        expandable: Optional[bool] = None,
+        format_options: Optional[List[str]] = None,
+    ):
+        super().__init__(required=required, maxlength=maxlength, minlength=minlength)
+        self.schema["field_type"] = field_type
+
+        if field_type == TextFieldType.MULTI_LINE and expandable:
+            self.schema["expandable"] = expandable
+        elif field_type == TextFieldType.EDITOR_3 and format_options is not None:
+            self.schema["format_options"] = format_options
 
 
 subjectField = schema.ListField(

@@ -10,17 +10,17 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, DateTimeField, BooleanField
+from .fields import BaseSchema, DateTimeField, BooleanField, TextField, TextFieldType
 
 
 class CoverageSchema(BaseSchema):
     contact_info = schema.StringField()
-    ednote = schema.StringField()
+    ednote = TextField(field_type=TextFieldType.MULTI_LINE)
     files = schema.ListField()
     g2_content_type = schema.ListField(required=True)
     genre = schema.ListField()
     headline = schema.StringField()
-    internal_note = schema.StringField()
+    internal_note = TextField(field_type=TextFieldType.MULTI_LINE, expandable=True)
     keyword = schema.ListField()
     language = schema.StringField()
     news_coverage_status = schema.ListField()
