@@ -8,7 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple, Optional, List, Union, Literal
+from typing import Optional, List, Union
+from typing_extensions import Literal
 from enum import Enum
 
 import superdesk.schema as schema
