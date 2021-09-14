@@ -117,3 +117,12 @@
 .tooltip {
     z-index: 10000 !important;
 }
+
+.html-preview {
+    p {
+        font-size: 15px;
+        line-height: 140%;
+        font-weight: 300;
+        word-break: break-word;
+    }
+}

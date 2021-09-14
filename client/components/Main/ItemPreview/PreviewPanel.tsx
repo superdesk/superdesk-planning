@@ -132,7 +132,11 @@ export class PreviewPanelComponent extends React.Component {
         const isEvent = this.props.itemType === ITEM_TYPE.EVENT;
 
         return (
-            <SidePanel shadowRight={true} bg00={true}>
+            <SidePanel
+                className="content"
+                shadowRight={true}
+                bg00={true}
+            >
                 <Header darkBlue={isEvent} darker={!isEvent}>
                     <Tools tools={this.tools} />
                     <Tabs
@@ -143,7 +147,7 @@ export class PreviewPanelComponent extends React.Component {
                     />
                 </Header>
                 {!this.props.previewLoading && this.props.item && (
-                    <Content>
+                    <Content className="core-content">
                         {currentTab.label !== 'History' && (
                             <PreviewHeader
                                 item={this.props.item}
