@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {get} from 'lodash';
+import {get, set} from 'lodash';
 
 import {IEditorFieldProps} from '../../../../interfaces';
 import {SelectMetaTermsInput, Row} from '../../../UI/Form';
@@ -11,13 +11,50 @@ interface IProps extends IEditorFieldProps {
     searchKey?: string;
     groupField?: string;
     noMargin?: boolean; // defaults to true
+    valueAsString?: boolean;
 }
 
 export class EditorFieldVocabulary extends React.PureComponent<IProps> {
+    static defaultProps = {
+        valueKey: 'qcode',
+        labelKey: 'name',
+        searchKey: 'name',
+        noMargin: true,
+        valueAsString: false,
+    }
+
+    constructor(props: IProps) {
+        super(props);
+
+        this.onChange = this.onChange.bind(this);
+    }
+
+    onChange(field: string, value: Array<any>) {
+        this.props.onChange(
+            field,
+            !this.props.valueAsString ?
+                value :
+                value.map((val) => get(val, this.props.valueKey))
+        );
+    }
+
     render() {
         const field = this.props.field;
-        const value = get(this.props.item, field, this.props.defaultValue);
+        const defaultValue = this.props.defaultValue ?? [];
+        let value = get(this.props.item, field) || defaultValue;
         const error = get(this.props.errors ?? {}, field);
+
+        if (this.props.valueAsString) {
+            const item = {};
+            const values = value.map(
+                (value) => this.props.options.find(
+                    (option) => get(option, this.props.valueKey) === value
+                )
+            );
+
+            set(item, field, values);
+            value = values;
+        }
 
         return (
             <Row testId={this.props.testId}>
@@ -25,7 +62,7 @@ export class EditorFieldVocabulary extends React.PureComponent<IProps> {
                     ref={this.props.refNode}
                     {...this.props}
                     field={field}
-                    defaultValue={this.props.defaultValue ?? []}
+                    defaultValue={defaultValue}
                     value={value}
                     message={error}
                     invalid={error?.length > 0 && this.props.invalid}
@@ -35,6 +72,7 @@ export class EditorFieldVocabulary extends React.PureComponent<IProps> {
                     noMargin={this.props.noMargin ?? true}
                     readOnly={this.props.disabled}
                     required={this.props.required ?? this.props.schema?.required}
+                    onChange={this.onChange}
                 />
             </Row>
         );
