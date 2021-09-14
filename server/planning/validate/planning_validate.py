@@ -46,6 +46,30 @@ class SchemaValidator(Validator):
         # Ignore this profile as it's to control logic of client side input of Event date range
         pass
 
+    def _validate_field_type(self, field_type, field, value):
+        """
+        {'type': 'string', 'nullable': True, 'required': False}
+        """
+
+        # Ignore this profile as it's for the front-end editor
+        pass
+
+    def _validate_expandable(self, expandable, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+
+        # Ignore this profile as it's for the front-end editor
+        pass
+
+    def _validate_format_options(self, format_options, field, value):
+        """
+        {'type': 'list', 'nullable': True}
+        """
+
+        # Ignore this profile as it's for the front-end editor
+        pass
+
 
 class PlanningValidateResource(Resource):
     endpoint_name = "planning_validator"

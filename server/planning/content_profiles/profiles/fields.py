@@ -79,7 +79,7 @@ class TextField(schema.StringField):
         format_options: Optional[List[str]] = None,
     ):
         super().__init__(required=required, maxlength=maxlength, minlength=minlength)
-        self.schema["field_type"] = field_type
+        self.schema["field_type"] = str(field_type)
 
         if field_type == TextFieldType.MULTI_LINE and expandable:
             self.schema["expandable"] = expandable

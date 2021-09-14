@@ -38,6 +38,7 @@ class AppPopulatePlanningTypesTest(TestCase):
                         "required": False,
                         "minlength": None,
                         "maxlength": None,
+                        "field_type": "multi_line",
                     }
                 },
             }
