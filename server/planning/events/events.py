@@ -754,6 +754,7 @@ def generate_recurring_dates(
     count=5,
     tz=None,
     date_only=False,
+    _created_externally=False,
 ):
     """
 
