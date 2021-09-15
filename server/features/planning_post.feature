@@ -53,6 +53,7 @@ Feature: Post Planning
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
+            "is_active": true,
             "destinations": [{"name":"planning", "format": "json_planning", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
