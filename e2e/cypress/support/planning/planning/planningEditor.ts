@@ -30,7 +30,7 @@ export class PlanningEditor extends Editor {
             flags: {
                 marked_for_not_publication: new ToggleInput(
                     getParent,
-                    '[data-test-id="field-marked_for_not_publication"] > :first-child'
+                    '[data-test-id="field-marked_for_not_publication"]'
                 ),
             },
         };
