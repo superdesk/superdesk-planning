@@ -14,6 +14,7 @@ Feature: Publish
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
+            "is_active": true,
             "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
@@ -128,6 +129,7 @@ Feature: Publish
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
+            "is_active": true,
             "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
@@ -210,6 +212,7 @@ Feature: Publish
         "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
         "products": ["#products._id#"],
         "codes": "xyz, abc",
+        "is_active": true,
         "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
     }
     """
@@ -266,6 +269,7 @@ Feature: Publish
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
+            "is_active": true,
             "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
@@ -331,6 +335,7 @@ Feature: Publish
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
+            "is_active": true,
             "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
