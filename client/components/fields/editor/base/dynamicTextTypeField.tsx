@@ -7,8 +7,8 @@ import {EditorFieldTextArea} from './textArea';
 import {EditorFieldExpandableTextArea} from './expandableTextArea';
 import {EditorFieldTextEditor3} from './textEditor3';
 
-export function getTextFieldComponent(schema: IProfileSchemaTypeString) {
-    switch (schema.field_type) {
+export function getTextFieldComponent(schema?: IProfileSchemaTypeString) {
+    switch (schema?.field_type) {
     case 'single_line':
         return EditorFieldText;
     case 'multi_line':
@@ -23,7 +23,7 @@ export function getTextFieldComponent(schema: IProfileSchemaTypeString) {
 }
 
 interface IProps extends IEditorFieldProps {
-    schema: IProfileSchemaTypeString;
+    schema?: IProfileSchemaTypeString;
 }
 
 export class EditorFieldDynamicTextType extends React.PureComponent<IProps> {
