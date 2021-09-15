@@ -1268,6 +1268,7 @@ Feature: Assignments
         {
         "name":"Channel 1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
         "products": ["#products._id#"],
+        "is_active": true,
         "destinations":[{"name":"Test","format": "nitf", "delivery_type":"email","config":{"recipients":"test@test.com"}}]
         }
         """
@@ -1276,6 +1277,7 @@ Feature: Assignments
         {
         "name":"Channel 2","media_type":"media", "subscriber_type": "wire", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
         "products": ["#products._id#"],
+        "is_active": true,
         "destinations":[{"name":"Test","format": "nitf", "delivery_type":"email","config":{"recipients":"test@test.com"}}],
         "api_products": ["#products._id#"]
         }

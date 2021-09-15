@@ -118,6 +118,7 @@ Feature: Post Featured Planning
         {
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
+            "is_active": true,
             "codes": "xyz, abc",
             "destinations": [{"name":"events", "format": "json_planning_featured", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
