@@ -188,8 +188,10 @@ class EventsService(superdesk.Service):
             # validate event
             self.validate_event(event)
 
-            # generates events based on recurring rules
-            if event["dates"].get("recurring_rule", None):
+            # If _created_externally is true, generate_recurring_events is restricted.
+            if event["dates"].get("recurring_rule", None) and not event["dates"]["recurring_rule"].get(
+                "_created_externally", False
+            ):
                 event["dates"]["start"] = get_date(event["dates"]["start"])
                 event["dates"]["end"] = get_date(event["dates"]["end"])
                 recurring_events = generate_recurring_events(event)
@@ -750,6 +752,7 @@ def generate_recurring_dates(
     count=5,
     tz=None,
     date_only=False,
+    _created_externally=False,
 ):
     """
 
