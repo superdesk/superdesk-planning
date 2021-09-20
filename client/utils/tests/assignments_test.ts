@@ -42,7 +42,7 @@ describe('can edit assignment', () => {
         assignment, session, privileges
     );
 
-    const canRemoveAssignment = () => utils.assignmentUtils.canEditAssignment(
+    const canRemoveAssignment = () => utils.assignmentUtils.canRemoveAssignment(
         assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT
     );
 
@@ -50,10 +50,10 @@ describe('can edit assignment', () => {
         assignment
     );
 
-    const canReassign = () => utils.assignmentUtils.canEditAssignment(
+    const canReassign = () => utils.assignmentUtils.canEditPriorityOrReassignAssignment(
         assignment, session, privileges, PRIVILEGES.ARCHIVE
     );
-    const canEditPriority = () => utils.assignmentUtils.canEditAssignment(
+    const canEditPriority = () => utils.assignmentUtils.canEditPriorityOrReassignAssignment(
         assignment, session, privileges, PRIVILEGES.ARCHIVE
     );
     const canConfirmAvailability = () => utils.assignmentUtils.canConfirmAvailability(
