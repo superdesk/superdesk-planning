@@ -5,7 +5,8 @@ import {superdeskApi} from '../../../superdeskApi';
 
 import {getFieldNameTranslated} from '../../../utils/contentProfiles';
 
-import {Button, ButtonGroup, Checkbox, Input, Alert} from 'superdesk-ui-framework/react';
+import {Button, ButtonGroup, Checkbox, Alert} from 'superdesk-ui-framework/react';
+import {renderFieldsForPanel} from '../../fields';
 
 interface IProps {
     item: IProfileFieldEntry;
@@ -15,7 +16,7 @@ interface IProps {
     systemRequired: boolean;
     closeEditor(): void;
     saveField(): void;
-    updateFieldSchema(field: string, value: number | boolean): void;
+    updateFieldSchema(field: string, value: string | number | boolean | Array<string>): void;
 }
 
 export class FieldEditor extends React.PureComponent<IProps> {
@@ -25,6 +26,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
         super(props);
 
         this.containerRef = React.createRef();
+        this.onChange = this.onChange.bind(this);
     }
 
     componentDidMount() {
@@ -32,18 +34,30 @@ export class FieldEditor extends React.PureComponent<IProps> {
         this.containerRef.current?.querySelector('input')?.focus();
     }
 
-    changeBoolean(field: string, value: boolean) {
-        this.props.updateFieldSchema(field, value);
-    }
-
-    changeNumber(field: string, value: string) {
-        this.props.updateFieldSchema(field, parseInt(value, 10) || null);
+    onChange(field: string, value: string | number | boolean | Array<string>) {
+        this.props.updateFieldSchema(field.replace('schema.', ''), value);
     }
 
     render() {
         const {gettext} = superdeskApi.localization;
         const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema.type);
-        const noOptionsAvailable = disableMinMax && this.props.disableRequired;
+        const fieldType = this.props.item.schema?.type !== 'string' ?
+            null :
+            this.props.item.schema.field_type;
+
+        const fieldProps = {
+            'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
+            'schema.field_type': {enabled: fieldType != null},
+            'schema.minlength': {enabled: !disableMinMax},
+            'schema.maxlength': {enabled: !disableMinMax},
+            'schema.expandable': {enabled: fieldType === 'multi_line'},
+            'schema.format_options': {enabled: fieldType === 'editor_3'},
+        };
+        const noOptionsAvailable = !(
+            Object.values(fieldProps)
+                .filter((fieldProp) => fieldProp.enabled)
+                .length
+        );
 
         return (
             <div className="side-panel side-panel--right">
@@ -105,39 +119,21 @@ export class FieldEditor extends React.PureComponent<IProps> {
                                             </div>
                                         </React.Fragment>
                                     )}
-
-                                    {(this.props.disableRequired || this.props.systemRequired) ? null : (
-                                        <div className="form__group">
-                                            <div className="form__row">
-                                                <Checkbox
-                                                    checked={this.props.item.schema.required}
-                                                    label={{text: gettext('Required')}}
-                                                    onChange={this.changeBoolean.bind(this, 'required')}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                    {disableMinMax ? null : (
-                                        <React.Fragment>
-                                            <div className="form__group">
-                                                <div className="form__row">
-                                                    <Input
-                                                        label={gettext('Min')}
-                                                        onChange={this.changeNumber.bind(this, 'minlength')}
-                                                        value={this.props.item.schema.minlength?.toString()}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="form__group">
-                                                <div className="form__row">
-                                                    <Input
-                                                        label={gettext('Max')}
-                                                        onChange={this.changeNumber.bind(this, 'maxlength')}
-                                                        value={this.props.item.schema.maxlength?.toString()}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </React.Fragment>
+                                    {renderFieldsForPanel(
+                                        'editor',
+                                        {
+                                            'schema.required': {enabled: true, index: 1},
+                                            'schema.field_type': {enabled: true, index: 2},
+                                            'schema.expandable': {enabled: true, index: 3},
+                                            'schema.minlength': {enabled: true, index: 4},
+                                            'schema.maxlength': {enabled: true, index: 5},
+                                            'schema.format_options': {enabled: true, index: 6},
+                                        },
+                                        {
+                                            item: this.props.item,
+                                            onChange: this.onChange,
+                                        },
+                                        fieldProps
                                     )}
                                 </React.Fragment>
                             )}

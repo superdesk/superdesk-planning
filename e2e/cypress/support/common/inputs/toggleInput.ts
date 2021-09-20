@@ -12,6 +12,7 @@ export class ToggleInput extends Input {
     type(value) {
         cy.log('Common.ToggleInput.type');
         this.element
+            .find('[role="checkbox"]')
             .click();
     }
 

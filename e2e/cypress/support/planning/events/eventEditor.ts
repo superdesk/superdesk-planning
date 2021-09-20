@@ -31,11 +31,11 @@ export class EventEditor extends Editor {
                     date: new Input(getParent, '[data-test-id="field-dates_end"] input[name="dates.end.date"]'),
                     time: new Input(getParent, '[data-test-id="field-dates_end"] input[name="_endTime"]'),
                 },
-                allDay: new ToggleInput(getParent, '[data-test-id="field-dates_all_day"] > :first-child'),
+                allDay: new ToggleInput(getParent, '[data-test-id="field-dates_all_day"]'),
                 recurring: {
                     enable: new ToggleInput(
                         getParent,
-                        '[data-test-id="field-recurring_rules_toggle"] > :first-child'
+                        '[data-test-id="field-recurring_rules_toggle"]'
                     ),
                     until: new Input(
                         getParent,

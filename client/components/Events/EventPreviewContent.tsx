@@ -98,6 +98,7 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                         item: item,
                         language: getUserInterfaceLanguage(),
                         renderEmpty: true,
+                        schema: formProfile.schema,
                     },
                     {},
                 )}

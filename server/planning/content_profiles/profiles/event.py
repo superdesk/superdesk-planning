@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, subjectField
+from .fields import BaseSchema, subjectField, TextField
 
 
 class EventSchema(BaseSchema):
@@ -21,12 +21,13 @@ class EventSchema(BaseSchema):
     anpa_category = schema.ListField()
     calendars = schema.ListField()
     dates = schema.DictField(required=True)
-    definition_long = schema.StringField()
-    definition_short = schema.StringField()
-    ednote = schema.StringField()
+
+    definition_long = TextField(field_type="multi_line")
+    definition_short = TextField(field_type="multi_line")
+    ednote = TextField(field_type="multi_line")
     event_contact_info = schema.ListField()
     files = schema.ListField()
-    internal_note = schema.StringField()
+    internal_note = TextField(field_type="multi_line", expandable=True)
     language = schema.StringField()
     links = schema.ListField()
     location = schema.StringField()

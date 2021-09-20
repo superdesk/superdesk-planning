@@ -8,6 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from typing import Optional, List
+from typing_extensions import Literal
+
 import superdesk.schema as schema
 
 
@@ -51,6 +54,28 @@ class StringRequiredForAction(schema.SchemaField):
         self.schema["type"] = "string"
         self.schema["required"] = required
         self.schema["dependencies"] = dependencies
+
+
+TextFieldTypes = Literal["single_line", "multi_line", "editor_3"]
+
+
+class TextField(schema.StringField):
+    def __init__(
+        self,
+        required: bool = False,
+        maxlength: Optional[int] = None,
+        minlength: Optional[int] = None,
+        field_type: TextFieldTypes = "single_line",
+        expandable: Optional[bool] = None,
+        format_options: Optional[List[str]] = None,
+    ):
+        super().__init__(required=required, maxlength=maxlength, minlength=minlength)
+        self.schema["field_type"] = field_type
+
+        if field_type == "multi_line" and expandable:
+            self.schema["expandable"] = expandable
+        elif field_type == "editor_3" and format_options is not None:
+            self.schema["format_options"] = format_options
 
 
 subjectField = schema.ListField(

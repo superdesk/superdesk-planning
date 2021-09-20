@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {IListFieldProps} from '../../../../interfaces';
+import {IListFieldProps, IProfileSchemaType} from '../../../../interfaces';
 
 export interface IBasePreviewProps {
     label?: string;
@@ -16,6 +16,7 @@ export interface IBasePreviewProps {
     style?: 'normal' | 'strong' | 'light' | 'italic' | 'serif' | 'slugline'; // defaults to normal
     convertNewlineToBreak?: boolean;
     expandable?: boolean;
+    schema?: IProfileSchemaType;
 }
 
 export interface IPreviewHocOptions<S = {}> {
@@ -45,6 +46,7 @@ export function previewHoc<S = {}>(
                     light={true}
                     {...props}
                     {...this.props}
+                    schema={this.props.schema?.[field]}
                 />
             );
         }

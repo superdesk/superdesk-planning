@@ -6,7 +6,7 @@ import {IEditorFieldProps, IProfileSchemaTypeString} from '../../../../interface
 import {Input} from 'superdesk-ui-framework/react';
 import {Row} from '../../../UI/Form';
 
-interface IProps extends IEditorFieldProps {
+export interface IEditorFieldTextProps extends IEditorFieldProps {
     maxLength?: number;
     info?: string;
     inlineLabel?: boolean;
@@ -17,7 +17,7 @@ interface IState {
     key: string;
 }
 
-export class EditorFieldText extends React.Component<IProps, IState> {
+export class EditorFieldText extends React.Component<IEditorFieldTextProps, IState> {
     node: React.RefObject<HTMLDivElement>;
 
     constructor(props) {
@@ -31,7 +31,7 @@ export class EditorFieldText extends React.Component<IProps, IState> {
         };
     }
 
-    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<IState>, snapshot?: any) {
+    componentDidUpdate(prevProps: Readonly<IEditorFieldTextProps>, prevState: Readonly<IState>, snapshot?: any) {
         if (get(prevProps.item, prevProps.field) !== get(this.props.item, this.props.field)) {
             this.onPropValueChanged();
         }

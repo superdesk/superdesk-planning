@@ -7,6 +7,7 @@ import {
     IDesk,
     IContentProfile,
     IArticle,
+    RICH_FORMATTING_OPTION,
 } from 'superdesk-api';
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
@@ -878,6 +879,7 @@ export interface IProfileEditorField {
     enabled: boolean;
     index?: number;
     group?: string;
+    formatOptions?: Array<string>;
 }
 
 interface IProfileEditorDatesField extends IProfileEditorField {
@@ -904,7 +906,11 @@ export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integ
 export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
 export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
 
-export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {}
+export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
+    field_type: 'single_line' | 'multi_line' | 'editor_3';
+    format_options?: Array<RICH_FORMATTING_OPTION>;
+    expandable?: boolean;
+}
 
 export interface IAdvancedSearchFormProfileField {
     enabled: boolean;
@@ -1389,7 +1395,7 @@ export interface ISearchFilter extends IBaseRestApiResponse {
 export interface IEditorFieldProps {
     item: any;
     field: string;
-    label: string;
+    label?: string;
     required?: boolean;
     disabled?: boolean;
     defaultValue?: any;
@@ -1400,6 +1406,7 @@ export interface IEditorFieldProps {
     testId?: string;
     refNode?: React.RefObject<any & IEditorRefComponent>;
     schema?: IProfileSchemaType;
+    editor?: IProfileEditorField;
     showErrors?: boolean;
     editorType: EDITOR_TYPE;
 
@@ -1411,6 +1418,7 @@ export interface IListFieldProps {
     item: any;
     field?: string;
     language?: string;
+    schema?: IProfileSchemaType;
 }
 
 export type IRenderPanelType =

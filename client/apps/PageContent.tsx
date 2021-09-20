@@ -108,6 +108,7 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
 
         const previewClassName = classNames(
             'sd-preview-panel',
+            'content-item-preview',
             {'sd-preview-panel--width-560px': widePreviewPanel}
         );
 

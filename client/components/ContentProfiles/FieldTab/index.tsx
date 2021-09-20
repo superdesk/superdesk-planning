@@ -129,6 +129,21 @@ export class FieldTab extends React.Component<IProps, IState> {
         // otherwise the field order may change on save
         const currentIndex = this.props.profile.editor[updatedField.name].index;
 
+        if (updatedField.schema.type === 'string' && updatedField.schema.field_type != null) {
+            switch (updatedField.schema.field_type) {
+            case 'single_line':
+                delete updatedField.schema.expandable;
+                delete updatedField.schema.format_options;
+                break;
+            case 'multi_line':
+                delete updatedField.schema.format_options;
+                break;
+            case 'editor_3':
+                delete updatedField.schema.expandable;
+                break;
+            }
+        }
+
         this.props.updateField({
             ...updatedField,
             field: {
