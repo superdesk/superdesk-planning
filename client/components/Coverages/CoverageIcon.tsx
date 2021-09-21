@@ -99,7 +99,7 @@ export class CoverageIcon extends React.PureComponent<IProps> {
 
         return (
             <OverlayTrigger
-                placement={this.props.tooltipDirection ?? 'right'}
+                placement={this.props.tooltipDirection ?? 'top'}
                 overlay={(
                     <Tooltip id={this.props.coverage.coverage_id} className="tooltip--text-left">
                         {!contentType?.length ? null : (
