@@ -94,7 +94,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                         search={this.search}
                         activeFilter={this.props.currentView}
                     />
-                    {this.props.fullText && (
+                    {(this.props.fullText || this.props.isViewFiltered) && (
                         <Button
                             text={gettext('Clear Filters')}
                             className="btn__clear-filters"
