@@ -28,12 +28,16 @@ const isPictureAssignment = (assignment, contentTypes = []) => {
     return get(contentType, 'content item type', get(contentType, 'qcode')) === 'picture';
 };
 
-const canEditAssignment = (assignment, session, privileges, privilege, contentTypes) => (
-    !!privileges[privilege] &&
+function canEditPriorityOrReassignAssignment(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    privilege: string,
+) {
+    return !!privileges[privilege] &&
         self.isNotLockRestricted(assignment, session) &&
-        self.isAssignmentInEditableState(assignment) &&
-        !self.isPictureAssignment(assignment, contentTypes)
-);
+        self.isAssignmentInEditableState(assignment);
+}
 
 const canRemoveAssignment = (assignment, session, privileges, privilege) => (
     !!privileges[privilege] &&
@@ -212,11 +216,11 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
 
     const actionsValidator = {
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
+            self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
         [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName]: () =>
             self.canCompleteAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
+            self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: () =>
             self.canStartWorking(assignment, session, privileges, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName]: () =>
@@ -384,7 +388,7 @@ export function getAssignmentTypeInfo(assignment: IAssignmentItem, contentTypes:
 // eslint-disable-next-line consistent-this
 const self = {
     isNotLockRestricted,
-    canEditAssignment,
+    canEditPriorityOrReassignAssignment,
     canCompleteAssignment,
     canRemoveAssignment,
     isAssignmentInEditableState,
