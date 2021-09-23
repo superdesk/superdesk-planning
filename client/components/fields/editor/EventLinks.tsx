@@ -59,44 +59,33 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
         const links = this.getValue();
 
         return (
-            <ToggleBox
-                ref={this.props.refNode}
-                title={this.props.label ?? gettext('External Links')}
-                isOpen={false}
-                onOpen={this.onOpen}
-                scrollInView={true}
-                hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                invalid={false}
-                forceScroll={false}
-                paddingTop={false}
-                badgeValue={links?.length > 0 ? links.length : null}
-                testId={this.props.testId}
-            >
-                <Row refNode={this.node}>
-                    {links.map((link, index) => (
-                        <LinkInput
-                            key={index}
-                            field={`${field}[${index}]`}
-                            onChange={this.props.onChange}
-                            value={link}
-                            remove={this.removeLink.bind(this, index)}
-                            readOnly={this.props.disabled}
-                        />
-                    ))}
+            <Row refNode={this.node}>
+                <label className="InputArray__label side-panel__heading side-panel__heading--big">
+                    {gettext('Links')}
+                </label>
+                {links.map((link, index) => (
+                    <LinkInput
+                        key={index}
+                        field={`${field}[${index}]`}
+                        onChange={this.props.onChange}
+                        value={link}
+                        remove={this.removeLink.bind(this, index)}
+                        readOnly={this.props.disabled}
+                    />
+                ))}
 
-                    {this.props.disabled ? null : (
-                        <Button
-                            text={gettext('Add link')}
-                            data-test-id="event-links__add-new-button"
-                            type="primary"
-                            style="hollow"
-                            expand={true}
-                            icon="plus-sign"
-                            onClick={this.addLink}
-                        />
-                    )}
-                </Row>
-            </ToggleBox>
+                {this.props.disabled ? null : (
+                    <Button
+                        text={gettext('Add link')}
+                        data-test-id="event-links__add-new-button"
+                        type="primary"
+                        style="hollow"
+                        expand={true}
+                        icon="plus-sign"
+                        onClick={this.addLink}
+                    />
+                )}
+            </Row>
         );
     }
 }

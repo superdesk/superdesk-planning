@@ -91,34 +91,23 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         const value = get(this.props.item, field, this.props.defaultValue ?? []);
 
         return (
-            <ToggleBox
-                ref={this.props.refNode}
-                title={this.props.label ?? gettext('Attached Files')}
-                isOpen={false}
-                onOpen={this.onOpen}
-                scrollInView={true}
-                hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                invalid={false}
-                forceScroll={false}
-                paddingTop={false}
-                badgeValue={value?.length > 0 ? value.length : null}
-                testId={this.props.testId}
-            >
-                <div className={this.state.uploading ? 'sd-loader' : ''}>
-                    {this.state.uploading ? null : (
-                        <FileInput
-                            ref={this.node}
-                            field={field}
-                            value={value}
-                            files={this.props.files}
-                            createLink={getFileDownloadURL}
-                            onAddFiles={this.onAddFiles}
-                            onRemoveFile={this.onRemoveFile}
-                            readOnly={this.props.disabled}
-                        />
-                    )}
-                </div>
-            </ToggleBox>
+            <div className={this.state.uploading ? 'sd-loader' : ''}>
+                <label className="InputArray__label side-panel__heading side-panel__heading--big">
+                    {gettext('Attached Files')}
+                </label>
+                {this.state.uploading ? null : (
+                    <FileInput
+                        ref={this.node}
+                        field={field}
+                        value={value}
+                        files={this.props.files}
+                        createLink={getFileDownloadURL}
+                        onAddFiles={this.onAddFiles}
+                        onRemoveFile={this.onRemoveFile}
+                        readOnly={this.props.disabled}
+                    />
+                )}
+            </div>
         );
     }
 }
