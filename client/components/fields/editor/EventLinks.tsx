@@ -5,7 +5,6 @@ import {IEditorFieldProps} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
 import {Button} from 'superdesk-ui-framework/react';
-import {ToggleBox} from '../../UI';
 import {Row, LinkInput} from '../../UI/Form';
 
 export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps> {
@@ -17,7 +16,6 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
         this.node = React.createRef();
 
         this.addLink = this.addLink.bind(this);
-        this.onOpen = this.onOpen.bind(this);
     }
 
     getValue(): Array<string> {
@@ -49,18 +47,14 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
             this.node.current?.querySelector('[data-test-id="event-links__add-new-button"]');
     }
 
-    onOpen() {
-        this.getFirstFocusableElement()?.focus();
-    }
-
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'links';
         const links = this.getValue();
 
         return (
-            <Row refNode={this.node}>
-                <label className="InputArray__label side-panel__heading side-panel__heading--big">
+            <Row ref={this.props.refNode}>
+                <label className="form-label">
                     {gettext('Links')}
                 </label>
                 {links.map((link, index) => (

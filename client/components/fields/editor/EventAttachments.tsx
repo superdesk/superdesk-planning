@@ -7,8 +7,7 @@ import {superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
 
-import {ToggleBox} from '../../UI';
-import {FileInput} from '../../UI/Form';
+import {Row, FileInput} from '../../UI/Form';
 
 import {getFileDownloadURL} from '../../../utils';
 
@@ -39,7 +38,6 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
 
         this.onAddFiles = this.onAddFiles.bind(this);
         this.onRemoveFile = this.onRemoveFile.bind(this);
-        this.onOpen = this.onOpen.bind(this);
     }
 
     onAddFiles(fileList: FileList) {
@@ -79,35 +77,31 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         });
     }
 
-    onOpen() {
-        if (this.node.current != null) {
-            this.node.current.focus();
-        }
-    }
-
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'files';
         const value = get(this.props.item, field, this.props.defaultValue ?? []);
 
         return (
-            <div className={this.state.uploading ? 'sd-loader' : ''}>
-                <label className="InputArray__label side-panel__heading side-panel__heading--big">
-                    {gettext('Attached Files')}
-                </label>
-                {this.state.uploading ? null : (
-                    <FileInput
-                        ref={this.node}
-                        field={field}
-                        value={value}
-                        files={this.props.files}
-                        createLink={getFileDownloadURL}
-                        onAddFiles={this.onAddFiles}
-                        onRemoveFile={this.onRemoveFile}
-                        readOnly={this.props.disabled}
-                    />
-                )}
-            </div>
+            <Row ref={this.props.refNode}>
+                <div className={this.state.uploading ? 'sd-loader' : ''}>
+                    <label className="form-label">
+                        {gettext('Attached Files')}
+                    </label>
+                    {this.state.uploading ? null : (
+                        <FileInput
+                            ref={this.node}
+                            field={field}
+                            value={value}
+                            files={this.props.files}
+                            createLink={getFileDownloadURL}
+                            onAddFiles={this.onAddFiles}
+                            onRemoveFile={this.onRemoveFile}
+                            readOnly={this.props.disabled}
+                        />
+                    )}
+                </div>
+            </Row>
         );
     }
 }
