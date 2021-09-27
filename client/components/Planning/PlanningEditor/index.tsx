@@ -516,6 +516,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                             planningApi.editor(this.props.editorType)
                                 .item.planning.getCoverageFieldDomRef(value.coverage_id)
                         ),
+                        includeScheduledUpdates: true,
                     },
                 }}
             />

@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {IPlanningCoverageItem} from '../../../interfaces';
+import {IPlanningCoverageItem, ICoverageScheduledUpdate} from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
 
 import {getCreator, getItemInArrayById, gettext, planningUtils, onEventCapture} from '../../../utils';
@@ -14,7 +14,7 @@ import * as actions from '../../../actions';
 
 interface IProps {
     field: string;
-    value: IPlanningCoverageItem;
+    value: IPlanningCoverageItem | ICoverageScheduledUpdate;
     users: Array<IUser>;
     desks: Array<IDesk>;
     readOnly?: boolean;
@@ -22,15 +22,15 @@ interface IProps {
     onChange(field: string, value: any): void;
     onFocus?(): void;
     onRemoveAssignment?(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+    setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     showEditCoverageAssignmentModal(props: {
         field: string;
-        value: IPlanningCoverageItem;
+        value: IPlanningCoverageItem | ICoverageScheduledUpdate;
         disableDeskSelection: boolean;
         disableUserSelection: boolean;
         priorityPrefix: string;
         onChange(field: string, value: any): void;
-        setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+        setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     }): void;
 }
 
