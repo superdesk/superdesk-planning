@@ -7,9 +7,7 @@ import {superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
 
-import {ToggleBox} from '../../UI';
-import {FileInput} from '../../UI/Form';
-
+import {Row, FileInput} from '../../UI/Form';
 import {getFileDownloadURL} from '../../../utils';
 
 interface IProps extends IEditorFieldProps{
@@ -91,20 +89,11 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         const value = get(this.props.item, field, this.props.defaultValue ?? []);
 
         return (
-            <ToggleBox
-                ref={this.props.refNode}
-                title={this.props.label ?? gettext('Attached Files')}
-                isOpen={false}
-                onOpen={this.onOpen}
-                scrollInView={true}
-                hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                invalid={false}
-                forceScroll={false}
-                paddingTop={false}
-                badgeValue={value?.length > 0 ? value.length : null}
-                testId={this.props.testId}
-            >
+            <Row>
                 <div className={this.state.uploading ? 'sd-loader' : ''}>
+                    <label className="form-label">
+                        {gettext('Attached Files')}
+                    </label>
                     {this.state.uploading ? null : (
                         <FileInput
                             ref={this.node}
@@ -118,7 +107,7 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
                         />
                     )}
                 </div>
-            </ToggleBox>
+            </Row>
         );
     }
 }
