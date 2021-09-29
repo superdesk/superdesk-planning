@@ -617,8 +617,8 @@ const modifyCoverageForClient = (coverage) => {
         if (s.planning.scheduled) {
             s.planning.scheduled = moment(s.planning.scheduled);
             s.planning._scheduledTime = moment(s.planning.scheduled);
-            modifyGenre(s);
         }
+        modifyGenre(s);
     });
 
     return coverage;

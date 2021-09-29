@@ -1,4 +1,6 @@
 import {isNil, zipObject, get, isEmpty} from 'lodash';
+
+import {appConfig} from 'appConfig';
 import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
@@ -250,6 +252,32 @@ export class PlanningStoreService {
                 });
 
                 data.formsProfile._items.forEach((p) => {
+                    // temporary workaround for 2.3.x
+                    // (fixed in 2.4.x, not required in <=2.2.x)
+                    if (p.name === 'coverage') {
+                        if (p.schema.scheduled_updates == null) {
+                            p.schema.scheduled_updates = {
+                                type: 'list',
+                                required: false,
+                                minlength: null,
+                                maxlength: null,
+                            };
+                        }
+
+                        if (appConfig.planning_allow_scheduled_updates) {
+                            if (p.editor.scheduled_updates == null) {
+                                p.editor.scheduled_updates = {enabled: true};
+                            }
+
+                            if (p.editor.scheduled_updates.enabled) {
+                                p.editor.flags = {enabled: true};
+                            }
+                        } else {
+                            p.editor.scheduled_updates = {enabled: false};
+                            p.editor.flags = {enabled: false};
+                        }
+                    }
+
                     initialState.forms.profiles[p.name] = p;
                 });
 
