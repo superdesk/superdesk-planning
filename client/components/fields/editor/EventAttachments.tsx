@@ -89,7 +89,7 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         const value = get(this.props.item, field, this.props.defaultValue ?? []);
 
         return (
-            <Row>
+            <Row ref={this.props.refNode}>
                 <div className={this.state.uploading ? 'sd-loader' : ''}>
                     <label className="form-label">
                         {gettext('Attached Files')}
