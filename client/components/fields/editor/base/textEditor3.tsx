@@ -113,6 +113,7 @@ export class EditorFieldTextEditor3 extends React.PureComponent<IProps> {
                         readOnly={this.props.disabled}
                         value={value}
                         onChange={this.onChange}
+                        scrollContainer={`[data-reference-id="form-container--${this.props.editorType}"]`}
                     />
                     {error == null ? null : (
                         <div className="sd-line-input__message">
