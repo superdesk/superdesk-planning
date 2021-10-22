@@ -63,6 +63,7 @@ class EditorFormComponent extends React.PureComponent<IProps> {
                     className="side-panel__content-body"
                     ref={formContainerRefNode}
                     onScroll={!isPanelEditor ? undefined : this.editorApi.events.onScroll}
+                    data-reference-id={`form-container--${EDITOR_TYPE.INLINE}`}
                 >
                     {this.props.header}
                     <ContentBlock>

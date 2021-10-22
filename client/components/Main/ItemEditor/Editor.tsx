@@ -321,6 +321,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                 withSidebar={currentTab.render !== HistoryTab && !this.props.inModalView}
                 withTabs={existingItem}
                 refNode={formContainerRefNode}
+                data-reference-id={`form-container--${EDITOR_TYPE.POPUP}`}
             >
                 {!existingItem ? null : (
                     <NavTabs
