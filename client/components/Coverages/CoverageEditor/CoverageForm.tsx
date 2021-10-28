@@ -61,6 +61,12 @@ interface IProps {
         scheduledUpdate: any,
         scheduledUpdateIndex: number
     ): void;
+    onCancelCoverage(
+        coverage: IPlanningCoverageItem,
+        index: number,
+        scheduledUpdate?: ICoverageScheduledUpdate,
+        scheduledUpdateIndex?: number
+    ): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     createUploadLink(file: IFile): void;
     removeFile(file: IFile): Promise<void>;
@@ -80,7 +86,7 @@ interface IProps {
 }
 
 interface IState {
-    openScheduledUpdates: Array<any>;
+    openScheduledUpdates: Array<ICoverageScheduledUpdate['scheduled_update_id']>;
     uploading: boolean;
 }
 
@@ -424,9 +430,18 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 onScheduledUpdateClose: this.onScheduledUpdateClose,
                 onScheduledUpdateOpen: this.onScheduledUpdateOpen,
                 onAddScheduledUpdate: this.onAddScheduledUpdate,
-                canCreateScheduledUpdate: this.props.addNewsItemToPlanning == null &&
-                    !get(this.props.diff, `${this.props.field}.flags.no_content_linking`),
-                enabled: this.props.includeScheduledUpdates,
+                canCreateScheduledUpdate: (
+                    this.props.addNewsItemToPlanning == null &&
+                    !get(this.props.diff, `${this.props.field}.flags.no_content_linking`)
+                ),
+                onCancelCoverage: this.props.onCancelCoverage,
+                index: this.props.index,
+                openScheduledUpdates: this.state.openScheduledUpdates,
+                planning: this.props.diff,
+                enabled: (
+                    this.props.includeScheduledUpdates &&
+                    this.props.value.planning?.g2_content_type === 'text'
+                ),
             },
         };
 

@@ -3,12 +3,14 @@ import {connect} from 'react-redux';
 import {get} from 'lodash';
 import moment from 'moment';
 
+import {IDesk, IUser} from 'superdesk-api';
 import {
     ICoverageScheduledUpdate,
     IEditorFieldProps,
     IG2ContentType,
     IGenre,
     IPlanningCoverageItem,
+    IPlanningItem,
     IPlanningNewsCoverageStatus
 } from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
@@ -25,14 +27,23 @@ interface IProps extends IEditorFieldProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
     genres: Array<IGenre>;
-    openScheduledUpdates: Array<any>;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    openScheduledUpdates: Array<ICoverageScheduledUpdate['scheduled_update_id']>;
     canCreateScheduledUpdate?: boolean;
+    planning: IPlanningItem;
 
     onRemoveAssignment(
         coverage: IPlanningCoverageItem,
         index: number,
         scheduledUpdate: any,
         scheduledUpdateIndex: number
+    ): void;
+    onCancelCoverage(
+        coverage: IPlanningCoverageItem,
+        index: number,
+        scheduledUpdate?: ICoverageScheduledUpdate,
+        scheduledUpdateIndex?: number
     ): void;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     onRemoveScheduledUpdate(indexToRemove: number): void;
@@ -46,6 +57,8 @@ const mapStateToProps = (state) => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     contentTypes: selectors.general.contentTypes(state),
     genres: state.genres,
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
 });
 
 class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
@@ -53,6 +66,10 @@ class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'scheduled_updates';
         const value = get(this.props.item, field, []);
+
+        if (!this.props.canCreateScheduledUpdate && !value.length) {
+            return null;
+        }
 
         return (
             <Row testId={this.props.testId}>
@@ -64,7 +81,8 @@ class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
                         {...this.props}
                         testId={`${this.props.testId}[${index}]`}
                         diff={this.props.item}
-                        key={index}
+                        planning={this.props.planning}
+                        key={s.scheduled_update_id}
                         value={s}
                         field={field}
                         coverageIndex={this.props.index}

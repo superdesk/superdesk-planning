@@ -6,8 +6,8 @@ interface IProps {
     flex?: boolean;
     withSidebar?: boolean;
     withTabs?: boolean;
-    refNode: React.RefObject<HTMLDivElement>;
-    // refNode?(ref: HTMLDivElement): void;
+    refNode?: React.RefObject<HTMLDivElement>;
+    'data-reference-id'?: string;
 }
 
 export class Content extends React.PureComponent<IProps> {
@@ -24,6 +24,7 @@ export class Content extends React.PureComponent<IProps> {
                     this.props.className
                 )}
                 ref={this.props.refNode}
+                data-reference-id={this.props['data-reference-id']}
             >
                 {this.props.children}
             </div>
