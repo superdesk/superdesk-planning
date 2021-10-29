@@ -89,28 +89,23 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         const value = get(this.props.item, field, this.props.defaultValue ?? []);
 
         return (
-            <Row
-                ref={this.props.refNode}
-                testId={this.props.testId}
-            >
-                <div className={this.state.uploading ? 'sd-loader' : ''}>
-                    <label className="form-label">
-                        {gettext('Attached Files')}
-                    </label>
-                    {this.state.uploading ? null : (
-                        <FileInput
-                            ref={this.node}
-                            field={field}
-                            value={value}
-                            files={this.props.files}
-                            createLink={getFileDownloadURL}
-                            onAddFiles={this.onAddFiles}
-                            onRemoveFile={this.onRemoveFile}
-                            readOnly={this.props.disabled}
-                        />
-                    )}
-                </div>
-            </Row>
+            <div className={this.state.uploading ? 'sd-loader' : ''}>
+                <label className="form-label">
+                    {gettext('Attached Files')}
+                </label>
+                {this.state.uploading ? null : (
+                    <FileInput
+                        ref={this.node}
+                        field={field}
+                        value={value}
+                        files={this.props.files}
+                        createLink={getFileDownloadURL}
+                        onAddFiles={this.onAddFiles}
+                        onRemoveFile={this.onRemoveFile}
+                        readOnly={this.props.disabled}
+                    />
+                )}
+            </div>
         );
     }
 }
