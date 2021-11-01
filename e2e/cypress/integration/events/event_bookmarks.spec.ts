@@ -37,7 +37,8 @@ describe('Planning.Events: editor bookmarks', () => {
 
         editor.clickBookmark('attachments');
         editor.getFormGroup('attachments')
-            .find('.div.basic-drag-block')
+            .find('.basic-drag-block')
+            .click()
             .should('be.visible')
             .should('be.focused');
 
