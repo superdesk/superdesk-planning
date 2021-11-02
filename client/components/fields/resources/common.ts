@@ -3,6 +3,7 @@ import {registerEditorField} from './registerEditorFields';
 import {superdeskApi} from '../../../superdeskApi';
 
 import {EditorFieldDynamicTextType} from '../editor/base/dynamicTextTypeField';
+import {EditorFieldEventAttachments} from '../editor/EventAttachments';
 
 registerEditorField(
     'ednote',
@@ -46,4 +47,15 @@ registerEditorField(
     }),
     null,
     true
+);
+
+registerEditorField(
+    'files',
+    EditorFieldEventAttachments,
+    () => ({
+        label: superdeskApi.localization.gettext('Attached Files'),
+        field: 'files',
+    }),
+    null,
+    false
 );

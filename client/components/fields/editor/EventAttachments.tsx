@@ -7,12 +7,11 @@ import {superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
 
-import {ToggleBox} from '../../UI';
-import {FileInput} from '../../UI/Form';
+import {Row, FileInput} from '../../UI/Form';
 
 import {getFileDownloadURL} from '../../../utils';
 
-interface IProps extends IEditorFieldProps{
+interface IProps extends IEditorFieldProps {
     files: Array<IFile>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     removeFile(file: IFile): Promise<void>;
@@ -39,7 +38,6 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
 
         this.onAddFiles = this.onAddFiles.bind(this);
         this.onRemoveFile = this.onRemoveFile.bind(this);
-        this.onOpen = this.onOpen.bind(this);
     }
 
     onAddFiles(fileList: FileList) {
@@ -79,7 +77,7 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         });
     }
 
-    onOpen() {
+    focus() {
         if (this.node.current != null) {
             this.node.current.focus();
         }
@@ -91,20 +89,11 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         const value = get(this.props.item, field, this.props.defaultValue ?? []);
 
         return (
-            <ToggleBox
-                ref={this.props.refNode}
-                title={this.props.label ?? gettext('Attached Files')}
-                isOpen={false}
-                onOpen={this.onOpen}
-                scrollInView={true}
-                hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                invalid={false}
-                forceScroll={false}
-                paddingTop={false}
-                badgeValue={value?.length > 0 ? value.length : null}
-                testId={this.props.testId}
-            >
+            <Row>
                 <div className={this.state.uploading ? 'sd-loader' : ''}>
+                    <label className="form-label">
+                        {this.props.label ?? gettext('Attached Files')}
+                    </label>
                     {this.state.uploading ? null : (
                         <FileInput
                             ref={this.node}
@@ -118,9 +107,14 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
                         />
                     )}
                 </div>
-            </ToggleBox>
+            </Row>
         );
     }
 }
 
-export const EditorFieldEventAttachments = connect(mapStateToProps)(EditorFieldEventAttachmentsComponent);
+export const EditorFieldEventAttachments = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldEventAttachmentsComponent);

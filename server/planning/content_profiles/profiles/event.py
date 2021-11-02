@@ -211,7 +211,7 @@ DEFAULT_EVENT_PROFILE = {
             "index": 5,
             "showBookmark": True,
             "icon": "attachment",
-            "useToggleBox": False,
+            "useToggleBox": True,
             "translations": {
                 "name": {},
             },
@@ -222,7 +222,7 @@ DEFAULT_EVENT_PROFILE = {
             "index": 6,
             "showBookmark": True,
             "icon": "link",
-            "useToggleBox": False,
+            "useToggleBox": True,
             "translations": {
                 "name": {},
             },

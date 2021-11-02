@@ -3,6 +3,7 @@ import {registerEditorField} from './registerEditorFields';
 import {superdeskApi} from '../../../superdeskApi';
 
 import {EditorFieldDynamicTextType} from '../editor/base/dynamicTextTypeField';
+import {EditorFieldEventLinks} from '../editor/EventLinks';
 
 registerEditorField(
     'definition_long',
@@ -35,4 +36,15 @@ registerEditorField(
     }),
     null,
     true
+);
+
+registerEditorField(
+    'links',
+    EditorFieldEventLinks,
+    () => ({
+        label: superdeskApi.localization.gettext('Links'),
+        field: 'links',
+    }),
+    null,
+    false
 );
