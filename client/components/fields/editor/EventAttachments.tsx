@@ -11,7 +11,7 @@ import {Row, FileInput} from '../../UI/Form';
 
 import {getFileDownloadURL} from '../../../utils';
 
-interface IProps extends IEditorFieldProps{
+interface IProps extends IEditorFieldProps {
     files: Array<IFile>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     removeFile(file: IFile): Promise<void>;
@@ -77,16 +77,22 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         });
     }
 
+    focus() {
+        if (this.node.current != null) {
+            this.node.current.focus();
+        }
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'files';
         const value = get(this.props.item, field, this.props.defaultValue ?? []);
 
         return (
-            <Row ref={this.props.refNode}>
+            <Row>
                 <div className={this.state.uploading ? 'sd-loader' : ''}>
                     <label className="form-label">
-                        {gettext('Attached Files')}
+                        {this.props.label ?? gettext('Attached Files')}
                     </label>
                     {this.state.uploading ? null : (
                         <FileInput
@@ -106,4 +112,9 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
     }
 }
 
-export const EditorFieldEventAttachments = connect(mapStateToProps)(EditorFieldEventAttachmentsComponent);
+export const EditorFieldEventAttachments = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldEventAttachmentsComponent);

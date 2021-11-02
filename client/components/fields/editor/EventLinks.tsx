@@ -47,13 +47,17 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
             this.node.current?.querySelector('[data-test-id="event-links__add-new-button"]');
     }
 
+    focus() {
+        this.getFirstFocusableElement()?.focus();
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'links';
         const links = this.getValue();
 
         return (
-            <Row ref={this.props.refNode}>
+            <Row refNode={this.node}>
                 <label className="form-label">
                     {gettext('Links')}
                 </label>

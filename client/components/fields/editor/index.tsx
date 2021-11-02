@@ -38,8 +38,6 @@ import {EditorFieldEventRecurringRules} from './EventRecurringRules';
 import {EditorFieldEventSchedule} from './EventSchedule';
 import {EditorFieldContacts} from './Contacts';
 import {EditorFieldEventOccurenceStatus} from './EventOccurenceStatus';
-import {EditorFieldEventAttachments} from './EventAttachments';
-import {EditorFieldEventLinks} from './EventLinks';
 import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlannings';
 import {EditorFieldPlanningDateTime} from './PlanningDateTime';
 import {EditorFieldNotForPublication} from './NotForPublication';
@@ -124,8 +122,6 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     contacts: EditorFieldContacts,
     event_contact_info: EditorFieldContacts,
     occur_status: EditorFieldEventOccurenceStatus,
-    files: EditorFieldEventAttachments,
-    links: EditorFieldEventLinks,
     related_plannings: EditorFieldEventRelatedPlannings,
     planning_date: EditorFieldPlanningDateTime,
     'flags.marked_for_not_publication': EditorFieldNotForPublication,
