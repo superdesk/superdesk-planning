@@ -242,7 +242,7 @@ Feature: Event Content Profiles
                 "index": 5,
                 "showBookmark": true,
                 "icon": "attachment",
-                "useToggleBox": false,
+                "useToggleBox": true,
                 "translations": {"name": {}}
             },
             "links": {
@@ -251,7 +251,7 @@ Feature: Event Content Profiles
                 "index": 6,
                 "showBookmark": true,
                 "icon": "link",
-                "useToggleBox": false,
+                "useToggleBox": true,
                 "translations": {"name": {}}
             },
             "related_plannings": {
