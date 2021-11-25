@@ -31,7 +31,7 @@ export const AssignmentListContainer = ({
     };
 
     return (
-        <div className="sd-column-box__main-column__items">
+        <div className="sd-column-box__main-column__items sd-column-box__main-column__items--assignment">
             {isNil(assignmentListSingleGroupView) ? (
                 listGroups.map((groupKey) => (
                     <AssignmentGroupList
