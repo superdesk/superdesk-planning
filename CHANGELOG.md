@@ -1,5 +1,9 @@
 # Superdesk Planning Changelog
 
+## [2.2.2] 2021-12-08
+### Fixes
+- [SDESK-6074] fix(locks): Unlock Assignment on Archive Publish actions (#1626)
+
 ## [2.2.1] 2021-05-21
 ### Fixes
 - [SDESK-5961] fix: While creating new location from event, save button is not activated (#1576)
