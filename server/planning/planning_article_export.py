@@ -154,10 +154,14 @@ def _enhance_assigned_provider(coverage, item, assigned_to):
     if assigned_to.get('contact'):
         provider_contact = get_resource_service('contacts').find_one(req=None,
                                                                      _id=assigned_to.get('contact'))
-
-        assignee_str = "{0} - {1} {2} ".format(assigned_to['coverage_provider']['name'],
-                                               provider_contact.get('first_name', ''),
-                                               provider_contact.get('last_name', ''))
+        if (coverage.get('planning', {})).get('slugline', ''):
+            slug_str = '({0}) - '.format((coverage.get('planning', {})).get('slugline', ''))
+        else:
+            slug_str = ''
+        assignee_str = "{0}{1} - {2} {3} ".format(slug_str,
+                                                  assigned_to['coverage_provider']['name'],
+                                                  provider_contact.get('first_name', ''),
+                                                  provider_contact.get('last_name', ''))
         phone_number = [n.get('number') for n in provider_contact.get('mobile', []) +
                         provider_contact.get('contact_phone', [])]
         if len(phone_number):
@@ -215,10 +219,11 @@ def enhance_coverage(planning, item, users, desks, text_users, text_desks):
                     internal_note = (c.get('planning') or {}).get('internal_note') or ''
                     text_users.append({
                         'user': user,
-                        'note': internal_note if internal_note != item.get('internal_note') else None
+                        'note': internal_note if internal_note != item.get('internal_note') else None,
+                        'slugline': (c.get('planning') or {}).get('slugline') or ''
                     })
                 else:
-                    text_desks.append(desk)
+                    text_desks.append({'desk': desk, 'slugline': (c.get('planning', {})).get('slugline', '')})
 
     item['contacts'] = get_contacts_from_item(item)
 
@@ -245,26 +250,29 @@ def generate_text_item(items, template_name, resource_type):
             for p in (item.get('plannings') or []):
                 enhance_coverage(p, item, users, desks, text_users, text_desks)
 
-        users = get_resource_service('users').find(where={
+        users = list(get_resource_service('users').find(where={
             '_id': {'$in': users}
-        })
+        }))
 
-        desks = get_resource_service('desks').find(where={
+        desks = list(get_resource_service('desks').find(where={
             '_id': {'$in': desks}
-        })
+        }))
 
-        for u in users:
-            name = u.get('display_name', "{0} {1}".format(u.get('first_name'), u.get('last_name')))
-            item['assignees'].append(name)
-            text_user = next((_i for _i in text_users if _i['user'] == str(u.get('_id'))) or [], None)
-            if text_user:
+        for u in text_users:
+            user = next((_i for _i in users if str(_i.get('_id')) == u['user']) or [], None)
+            if user:
+                name = user.get('display_name', "{0} {1}".format(user.get('first_name'), user.get('last_name')))
+                item['assignees'].append(name)
+                ta_str = '({0}) - '.format(u.get('slugline')) if u.get('slugline') else ''
+                ta_str = ta_str + ('{0} ({1})'.format(name, u.get('note')) if u.get('note') else '{0}'.format(name))
+                item['text_assignees'].append(ta_str)
+
+        for d in text_desks:
+            desk = next((_i for _i in desks if str(_i.get('_id')) == d.get('desk')) or [], None)
+            if desk:
+                item['assignees'].append(desk['name'])
                 item['text_assignees'].append(
-                    '{0} ({1})'.format(name, text_user.get('note')) if text_user.get('note') else '{0}'.format(name))
-
-        for d in desks:
-            item['assignees'].append(d['name'])
-            if str(d['_id']) in text_desks:
-                item['text_assignees'].append(d['name'])
+                    '({0}) - {1}'.format(d.get('slugline'), desk['name']) if d.get('slugline') else desk['name'])
 
         set_item_place(item)
 
