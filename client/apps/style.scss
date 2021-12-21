@@ -62,6 +62,10 @@
             // 68px = for featured list header including overlapping margin of header and list
             height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px + 68px));
         }
+
+        &--assignment {
+            height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
+        }
     }
     .loading-indicator{
         top: calc(#{$nav-height} + #{$subnav-height});
