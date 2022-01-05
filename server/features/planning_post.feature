@@ -39,7 +39,7 @@ Feature: Post Planning
             "planning_date": "2016-01-02"
         }
         """
-        And we save etag
+        Then we save etag
         Then we get OK response
         When we post to "/products" with success
         """
