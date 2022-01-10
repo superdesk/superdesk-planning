@@ -24,10 +24,25 @@ function convertNewlineToBreak(string?: string) {
             ));
 }
 
+function convertHtmlToPlainText(html?: string): string {
+    if (html == null || html.length === 0) {
+        return '';
+    } else if (html[0] !== '<') {
+        // No need to convert if the string doesn't start with a tag
+        return html;
+    }
+
+    const node = document.createElement('div');
+
+    node.innerHTML = html;
+    return node.textContent;
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     convertNewlineToBreak,
     firstCharUpperCase,
+    convertHtmlToPlainText,
 };
 
 export default self;
