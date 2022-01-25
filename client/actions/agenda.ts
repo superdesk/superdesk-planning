@@ -5,7 +5,7 @@ import {Moment} from 'moment';
 import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext, planningUtils} from '../utils';
+import {getErrorMessage, gettext, planningUtils, stringUtils} from '../utils';
 import {planning, showModal, main} from './index';
 
 const openAgenda = () => (
@@ -252,15 +252,45 @@ const createPlanningFromEvent = (
     (dispatch) => (
         dispatch(planning.api.save({}, {
             event_item: event._id,
-            slugline: event.slugline,
+            slugline: stringUtils.convertStringFieldForProfileFieldType(
+                'event',
+                'planning',
+                'slugline',
+                'slugline',
+                event.slugline
+            ),
             planning_date: planningDate || event._sortDate || event.dates.start,
-            internal_note: event.internal_note,
-            name: event.name,
+            internal_note: stringUtils.convertStringFieldForProfileFieldType(
+                'event',
+                'planning',
+                'internal_note',
+                'internal_note',
+                event.internal_note
+            ),
+            name: stringUtils.convertStringFieldForProfileFieldType(
+                'event',
+                'planning',
+                'name',
+                'name',
+                event.name
+            ),
             place: event.place,
             subject: event.subject,
             anpa_category: event.anpa_category,
-            description_text: event.definition_short,
-            ednote: event.ednote,
+            description_text: stringUtils.convertStringFieldForProfileFieldType(
+                'event',
+                'planning',
+                'definition_short',
+                'description_text',
+                event.definition_short
+            ),
+            ednote: stringUtils.convertStringFieldForProfileFieldType(
+                'event',
+                'planning',
+                'ednote',
+                'ednote',
+                event.ednote
+            ),
             agendas: agendas,
             language: event.language,
         }))
