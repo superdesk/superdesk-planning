@@ -26,6 +26,12 @@ function convertNewlineToBreak(string?: string) {
             ));
 }
 
+const SHIFT_OUT_REGEXP = new RegExp(String.fromCharCode(14), 'g');
+
+function formatHTML(html) {
+    return html.replace(SHIFT_OUT_REGEXP, html.indexOf('<pre>') === -1 ? '<br>' : '\n');
+}
+
 function convertHtmlToPlainText(html?: string): string {
     if (html == null || html.length === 0) {
         return '';
@@ -34,10 +40,41 @@ function convertHtmlToPlainText(html?: string): string {
         return html;
     }
 
-    const node = document.createElement('div');
+    const div = document.createElement('div');
 
-    node.innerHTML = html;
-    return node.textContent;
+    div.innerHTML = formatHTML(html);
+
+    const tree = document.createTreeWalker(div, NodeFilter.SHOW_TEXT, null, false);
+    const text = [];
+
+    while (tree.nextNode()) {
+        text.push(tree.currentNode.textContent);
+        if (tree.currentNode.nextSibling) {
+            switch (tree.currentNode.nextSibling.nodeName) {
+            case 'BR':
+            case 'HR':
+                text.push('\n');
+            }
+
+            continue;
+        }
+
+        switch (tree.currentNode.parentNode.nodeName) {
+        case 'P':
+        case 'LI':
+        case 'H1':
+        case 'H2':
+        case 'H3':
+        case 'H4':
+        case 'H5':
+        case 'DIV':
+        case 'TABLE':
+        case 'BLOCKQUOTE':
+            text.push('\n');
+        }
+    }
+
+    return text.join('');
 }
 
 function convertStringFieldForProfileFieldType(
