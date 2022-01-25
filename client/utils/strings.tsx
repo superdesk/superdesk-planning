@@ -51,10 +51,10 @@ function convertStringFieldForProfileFieldType(
         return undefined;
     }
 
-    const srcProfile = planningApi.contentProfiles.get(srcItemType).schema[srcField];
-    const destProfile = planningApi.contentProfiles.get(destItemType).schema[destField];
+    const srcProfile = planningApi.contentProfiles.get(srcItemType)?.schema?.[srcField];
+    const destProfile = planningApi.contentProfiles.get(destItemType)?.schema?.[destField];
 
-    if (srcProfile.type !== 'string' || destProfile.type !== 'string') {
+    if (srcProfile?.type !== 'string' || destProfile?.type !== 'string') {
         console.error(`Cannot convert ${srcItemType}.${srcField} to ${destItemType}.${destField}, incompatible types`);
         return value;
     }
