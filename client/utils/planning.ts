@@ -46,6 +46,7 @@ import {
     getDateTimeString,
     sortBasedOnTBC,
     sanitizeItemFields,
+    stringUtils,
 } from './index';
 import {getUsersDefaultLanguage} from './users';
 import * as selectors from '../selectors';
@@ -1036,9 +1037,27 @@ const defaultCoverageValues = (
     let newCoverage: DeepPartial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),
         planning: {
-            slugline: planningItem?.slugline,
-            internal_note: planningItem?.internal_note,
-            ednote: planningItem?.ednote,
+            slugline: stringUtils.convertStringFieldForProfileFieldType(
+                'planning',
+                'coverage',
+                'slugline',
+                'slugline',
+                planningItem?.slugline
+            ),
+            internal_note: stringUtils.convertStringFieldForProfileFieldType(
+                'planning',
+                'coverage',
+                'internal_note',
+                'internal_note',
+                planningItem?.internal_note
+            ),
+            ednote: stringUtils.convertStringFieldForProfileFieldType(
+                'planning',
+                'coverage',
+                'ednote',
+                'ednote',
+                planningItem?.ednote
+            ),
             scheduled: planningItem?.planning_date || moment(),
             g2_content_type: g2contentType,
             language: planningItem?.language ?? eventItem?.language,
