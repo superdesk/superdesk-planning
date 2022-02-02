@@ -405,6 +405,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             files: {
                 readOnly: this.props.readOnly || readOnlyFields.files,
                 field: 'planning.files',
+                uploadFiles: this.props.uploadFiles,
+                removeFile: this.props.removeFile,
+                files: this.props.files,
             },
             news_coverage_status: {
                 readOnly: this.props.readOnly || readOnlyFields.newsCoverageStatus,
