@@ -3,7 +3,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "react-geolookup": "github:superdesk/react-geolookup",
-    "superdesk-core": "github:superdesk/superdesk-client-core#master",
+    "superdesk-core": "github:superdesk/superdesk-client-core#support/2.2",
     "superdesk-planning": "file:../"
   },
   "devDependencies": {
