@@ -9,6 +9,7 @@ import {getItemType, getItemId} from '../../utils';
 
 import {WorkqueueItem} from './WorkqueueItem';
 import {Icon} from '../UI';
+import {gettext} from '../../utils';
 
 export const WorkqueueComponent = ({
     workqueueItems,
@@ -19,9 +20,13 @@ export const WorkqueueComponent = ({
     mainMenuOpen,
 }) => (
     <div className={mainMenuOpen ? 'opened-articles-bar menu-open' : 'opened-articles-bar'}>
-        <button className="opened-articles-bar__quick-actions">
+        <button
+            className="opened-articles-bar__quick-actions"
+            aria-label={gettext('All open planning items')}
+        >
             <Icon icon="icon-th-large" color={ICON_COLORS.WHITE} />
         </button>
+
         <ul className="opened-articles-bar__list">
             {workqueueItems.map((openedItem, index) => (
                 <WorkqueueItem
