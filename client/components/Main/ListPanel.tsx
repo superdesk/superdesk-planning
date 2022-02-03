@@ -148,10 +148,6 @@ export class ListPanel extends React.Component<IProps, IState> {
             return;
         }
 
-        if (this.isNestedItem(this.state.activeItemIndex)) {
-            return;
-        }
-
         if (![KEYCODES.UP, KEYCODES.DOWN, KEYCODES.ENTER, KEYCODES.SPACE].includes(get(event, 'keyCode'))) {
             return;
         }

@@ -230,3 +230,8 @@ textarea.sd-line-input__input {
 .sd-check__wrapper:focus {
     box-shadow: 0 0 0 3px rgba(94, 169, 200, 0.30);
 }
+
+// nested list item view
+.sd-list-item-group .sd-list-item-nested {
+    margin-top: 0;
+}
