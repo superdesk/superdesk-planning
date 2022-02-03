@@ -123,6 +123,8 @@ export class SelectMetaTermsInput extends React.Component {
                     {'select__meta-terms--disabled': readOnly}
                 )}
             >
+                <Label text={label} />
+
                 {!readOnly && (
                     <button
                         className={classNames(
@@ -135,8 +137,6 @@ export class SelectMetaTermsInput extends React.Component {
                         ref={this.addBtn}
                     />
                 )}
-
-                <Label text={label} />
 
                 <div className="sd-line-input__input">
                     <TermsList

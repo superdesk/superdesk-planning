@@ -140,7 +140,9 @@
     }
 
     .sd-line-input__plus-btn {
-      margin: 3px !important;
+        margin: 0!important;
+        margin-left: 2px !important;
+        margin-top: -1px !important;
     }
 
     &--disabled {
