@@ -22,7 +22,7 @@ export const WorkqueueComponent = ({
     <div className={mainMenuOpen ? 'opened-articles-bar menu-open' : 'opened-articles-bar'}>
         <button
             className="opened-articles-bar__quick-actions"
-            aria-label={gettext('All open planning items')}
+            aria-label={gettext('All open items')}
         >
             <Icon icon="icon-th-large" color={ICON_COLORS.WHITE} />
         </button>

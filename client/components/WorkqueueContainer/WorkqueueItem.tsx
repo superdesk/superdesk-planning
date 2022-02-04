@@ -18,7 +18,6 @@ export const WorkqueueItem = ({
 }) => {
     const {gettext} = superdeskApi.localization;
     const isActive = getItemId(item) === currentEditId;
-    const label = item.headline || item.slugline || item.name || 'Untitled';
 
     return (
         <li
