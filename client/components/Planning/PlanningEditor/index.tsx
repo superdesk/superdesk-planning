@@ -123,7 +123,10 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
             this.handleAddToPlanningLoading();
         }
 
-        this.props.fetchPlanningFiles(this.props.item);
+        this.props.fetchPlanningFiles({
+            ...this.props.item,
+            ...this.props.diff,
+        });
 
         if (this.props.event != null) {
             this.props.fetchEventFiles(this.props.event);
@@ -508,7 +511,9 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         onAddScheduledUpdateToWorkflow: this.onAddScheduledUpdateToWorkflow,
                         onRemoveAssignment: this.onRemoveAssignment,
                         defaultValue: [],
+                        files: this.props.files,
                         uploadFiles: this.props.uploadFiles,
+                        removeFile: this.props.removeFile,
                         notifyValidationErrors: this.props.notifyValidationErrors,
                         onPopupOpen: this.props.onPopupOpen,
                         onPopupClose: this.props.onPopupClose,
