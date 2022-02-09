@@ -58,15 +58,11 @@ class PlanningArticleExportResource(Resource):
 
 
 def get_items(ids, resource_type):
-    items = list(
-        get_resource_service("events_planning_search").search_repos(
-            resource_type,
-            {
-                "item_ids": ",".join(str(item_id) for item_id in ids),
-                "only_future": False,
-            },
-        )
+    ids_string = [str(item_id) for item_id in ids]
+    items = get_resource_service("events_planning_search").search_repos(
+        resource_type, {"item_ids": ",".join(ids_string), "only_future": False}
     )
+    items = sorted(items, key=lambda i: ids_string.index(str(i.get("_id"))))
 
     events_service = get_resource_service("events")
     for item in items:
