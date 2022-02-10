@@ -1,5 +1,16 @@
 # Superdesk Planning Changelog
 
+## [2.4.0-rc.2] 2022-02-10
+### Improvements
+[SDCP-605] Planning accessibility feb2022 #1671
+
+### Fixes
+[SDESK-6231] fix: Show description as plain text in list view (#1666)
+[SDESK-6367] fix: Convert between Editor3 and plain text when copying metadata (#1668)
+[SDESK-6347] fix: coverage file attachments not working (#1669)
+[SDESK-6347] fix: Unable to upload multiple files to coverage (#1672)
+[SDNTB-749] fix: Export items to article in supplied order (#1673)
+
 ## [2.4.0-rc.1] 2021-12-13
 ### Features
 - [SDBELGA-544] New Global Filters privilege (#1627)
