@@ -1,5 +1,51 @@
 # Superdesk Planning Changelog
 
+## [2.4.0-rc.2] 2022-02-10
+### Improvements
+[SDCP-605] Planning accessibility feb2022 #1671
+
+### Fixes
+[SDESK-6231] fix: Show description as plain text in list view (#1666)
+[SDESK-6367] fix: Convert between Editor3 and plain text when copying metadata (#1668)
+[SDESK-6347] fix: coverage file attachments not working (#1669)
+[SDESK-6347] fix: Unable to upload multiple files to coverage (#1672)
+[SDNTB-749] fix: Export items to article in supplied order (#1673)
+
+## [2.4.0-rc.1] 2021-12-13
+### Features
+- [SDBELGA-544] New Global Filters privilege (#1627)
+- [SDNTB-690] Ability to edit planning_types from the front-end (#1638)
+
+### Improvements
+- [SDBELGA-547] Show Planning Views only where those privileges are enabled (#1617)
+- [SDNTB-685] Move Planning ProdAPI out of core (#1634)
+- [SDNTB-687] Export assignments in an ICS file usable in google calendar (#1636)
+- [SDESK-6121] Move file publishing from json formatter to registered callback (#1642)
+- [SDESK-6133] Enable static analysis and type checking in CI (#1643)
+- [SDNTB-688] Add Editor3 input type to ContentProfiles (#1652)
+
+### Fixes
+- [SDBELGA-546] fix: Don't show manage agenda action if user does not have privileges (#1612)
+- [SDESK-6019] fix(search): Lock queries did not include associated items (#1614)
+- [SDBELGA-548] Don't allow user to create coverages from an event if they do not have privileges (#1618)
+- [SDBELGA-545] chore(data-update): Add planning_global_filers privilege to roles (#1628)
+- [SDESK-6073] use server config for default timezone (#1637)
+- fix(behave): Remove min/max legnth from profile response (#1641)
+- [SDNTB-700] fix: Updated event json blocks new events to be ingested on FTP (#1639)
+- [SDESK-6122] fix: JSON event ingest does not work for recurring events. (#1646)
+- [SDESK-6137] fix: Lock store should not include associated items (#1645)
+- [SDESK-6136] fix: Page unexpectedly goes blank then reloads when accessing event and planning profiles (#1649)
+- [SDESK-4559] fix: When duplicating coverage,the genre is not retained (#1650)
+- [SDESK-6142] fix: Dont reload Editor if item/action hasnt changed (#1647)
+- [SDESK-6178] fix(behave): Add is_active when creating subscribers (#1653)
+- [SDESK-6122] fix: Ingestion of recurring events is causing the events to compound (#1655)
+- [SDESK-6113] fix: Planning items coverage tooltips are not completely visible (#1656)
+- [SDESK-6183] Allow Reassign or Edit Priority of Picture Assignments (#1658)
+- [SDESK-6110] fix: Clear filter button not appearing in search in planning (#1657)
+- [SDESK-6174] fix(ui): Planning goes blank after adding scheduled update (#1662)
+- [SDESK-6201] Fix Editor3 sticky bar not working (#1663)
+- [SDESK-6173] fix: Redundant attachment section when adding attachment field in planning profile (#1659)
+
 ## * Release v2.3.1 - 2021-08-30
 
 ## [2.3.1-rc.1] 2021-08-27

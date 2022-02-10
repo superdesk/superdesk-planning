@@ -43,13 +43,15 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
     onAddFiles(fileList: FileList) {
         this.setState({uploading: true});
         const files = Array.from(fileList).map((file) => [file]);
+        const field = this.props.field ?? 'files';
+        const existingFiles = get(this.props.item, field, this.props.defaultValue ?? []);
 
         this.props.uploadFiles(files)
             .then((newFiles) => {
                 this.props.onChange(
-                    this.props.field ?? 'files',
+                    field,
                     [
-                        ...this.props.item?.files ?? [],
+                        ...existingFiles,
                         ...newFiles.map((file) => file._id),
                     ]
                 );
@@ -65,14 +67,17 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
     }
 
     onRemoveFile(file: IFile) {
+        const field = this.props.field ?? 'files';
+        const existingFiles = get(this.props.item, field, this.props.defaultValue ?? []);
+
         (
-            !(this.props.item.files ?? []).includes(file._id) ?
+            !existingFiles.includes(file._id) ?
                 this.props.removeFile(file) :
                 Promise.resolve()
         ).then(() => {
             this.props.onChange(
-                this.props.field ?? 'files',
-                (this.props.item?.files ?? []).filter((f) => f !== file._id)
+                field,
+                existingFiles.filter((f) => f !== file._id)
             );
         });
     }

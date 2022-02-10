@@ -20,6 +20,7 @@ import {
     timeUtils,
     getItemId,
     isItemPublic,
+    stringUtils,
 } from '../../utils';
 
 /**
@@ -745,12 +746,38 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
                     .add(defaultDurationOnChange, 'h'),
                 tz: moment.tz.guess(),
             },
-            name: plan.name || plan.slugline,
+            name: plan.name?.length ?
+                stringUtils.convertStringFieldForProfileFieldType(
+                    'planning',
+                    'event',
+                    'name',
+                    'name',
+                    plan.name
+                ) :
+                stringUtils.convertStringFieldForProfileFieldType(
+                    'planning',
+                    'event',
+                    'slugline',
+                    'name',
+                    plan.slugline
+                ),
             subject: plan.subject,
             anpa_category: plan.anpa_category,
-            definition_short: plan.description_text,
+            definition_short: stringUtils.convertStringFieldForProfileFieldType(
+                'planning',
+                'event',
+                'description_text',
+                'definition_short',
+                plan.description_text
+            ),
             calendars: [],
-            internal_note: plan.internal_note,
+            internal_note: stringUtils.convertStringFieldForProfileFieldType(
+                'planning',
+                'event',
+                'internal_note',
+                'internal_note',
+                plan.internal_note
+            ),
             place: plan.place,
             occur_status: unplannedStatus,
             _planning_item: plan._id,
@@ -758,7 +785,13 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
         };
 
         if (get(eventProfile, 'editor.slugline.enabled', false)) {
-            newEvent.slugline = plan.slugline;
+            newEvent.slugline = stringUtils.convertStringFieldForProfileFieldType(
+                'planning',
+                'event',
+                'slugline',
+                'slugline',
+                plan.slugline
+            );
         }
 
         return Promise.all([
