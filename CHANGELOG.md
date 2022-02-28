@@ -46,6 +46,18 @@
 - [SDESK-6201] Fix Editor3 sticky bar not working (#1663)
 - [SDESK-6173] fix: Redundant attachment section when adding attachment field in planning profile (#1659)
 
+## [2.3.2] 2022-02-28
+### Improvements
+- Add assignment sluglines and assignee details to outlook export (#1665)
+
+### Fixes
+- [SDESK-6174] fix(ui): Planning goes blank after adding scheduled update (#1660)
+- FIX: scrollbar missing in assignements view. [SDESK-6308] (#1664)
+- fix(build): Use master branch for fireq (a93f52c)
+- fix(e2e): After daylight savings change (146269c)
+- [SDESK-6346] fix: Skip field validation if schema is null (#1667)
+- [SDNTB-749] fix: Export items to article in supplied order (#1673)
+
 ## * Release v2.3.1 - 2021-08-30
 
 ## [2.3.1-rc.1] 2021-08-27
