@@ -234,7 +234,7 @@ def enhance_coverage(planning, item, users, desks, text_users, text_desks):
                         {
                             "user": user,
                             "note": internal_note if internal_note != item.get("internal_note") else None,
-                            "slugline": (c.get("planning") or {}).get("slugline") or ""
+                            "slugline": (c.get("planning") or {}).get("slugline") or "",
                         }
                     )
                 else:
@@ -283,7 +283,8 @@ def generate_text_item(items, template_name, resource_type):
             if desk:
                 item["assignees"].append(desk["name"])
                 item["text_assignees"].append(
-                    "({0}) - {1}".format(d.get("slugline"), desk["name"]) if d.get("slugline") else desk["name"])
+                    "({0}) - {1}".format(d.get("slugline"), desk["name"]) if d.get("slugline") else desk["name"]
+                )
 
         set_item_place(item)
 
