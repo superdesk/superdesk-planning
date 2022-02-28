@@ -1,5 +1,7 @@
 # Superdesk Planning Changelog
 
+## * Release v2.4.0 - 2022-02-28
+
 ## [2.4.0-rc.2] 2022-02-10
 ### Improvements
 [SDCP-605] Planning accessibility feb2022 #1671
