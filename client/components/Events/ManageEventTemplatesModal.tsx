@@ -22,7 +22,7 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
     render() {
         const {handleHide} = this.props;
 
-        const {getGenericListPageComponent, ListItemColumn, ListItem} = superdeskApi.components;
+        const {getGenericHttpEntityListPageComponent, ListItemColumn, ListItem} = superdeskApi.components;
         const {getFormFieldPreviewComponent, FormFieldType} = superdeskApi.forms;
 
         const {gettext} = superdeskApi.localization;
@@ -42,7 +42,7 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
             ],
         };
 
-        const EventTemplatesComponent = getGenericListPageComponent<IEventTemplate>(
+        const EventTemplatesComponent = getGenericHttpEntityListPageComponent<IEventTemplate>(
             'events_template',
             formConfig
         );
@@ -92,8 +92,9 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
                         defaultSortOption={{field: nameField.field, direction: 'ascending'}}
                         fieldForSearch={nameField}
                         refreshOnEvents={Object.keys(planningEventTemplateEvents)}
-                        disallowCreatingNewItem
-                        disallowFiltering
+                        disallowCreatingNewItem={true}
+                        disallowFiltering={true}
+                        getId={(item) => item._id}
                     />
                 </Modal.Body>
                 <Modal.Footer>
