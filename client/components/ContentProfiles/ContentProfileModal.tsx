@@ -17,7 +17,7 @@ import {getLanguages} from '../../selectors/vocabs';
 import {getFieldNameTranslated, isProfileFieldEnabled} from '../../utils/contentProfiles';
 import {getErrorMessage} from '../../utils';
 
-import {Button, ButtonGroup, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
+import {Button, ButtonGroup, TabNav, TabItem, TabContent, TabPanel} from 'superdesk-ui-framework/react';
 import {Modal} from '../index';
 
 import {GroupTab, GroupTabComponent} from './GroupTab';
@@ -42,7 +42,7 @@ interface IProps {
 }
 
 interface IState {
-    activeTab: number;
+    activeTabId: 'groups' | 'content_fields' | 'embedded_fields';
     profile: IPlanningContentProfile;
     embeddedProfile?: IPlanningContentProfile; // Used for Coverage Profile
     saving: boolean;
@@ -276,26 +276,22 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             currentTab.closeEditor(disableSave);
     }
 
-    changeTab(index: number) {
-        const currentIndex = this.state.activeTab;
+    changeTab(tabId: IState['activeTabId']) {
+        const currentTabId = this.state.activeTabId;
 
-        if (index === currentIndex) {
+        if (tabId === currentTabId) {
             return;
         }
 
         this.closeCurrentEditor().then((response) => {
             if (response === 'cancel') {
-                const button = document.querySelector(
-                    '.planning-profile-form ' +
-                    '> div[role="tablist"] ' +
-                    `button:nth-of-type(${currentIndex + 1})`
-                );
+                const button = document.querySelector(`.planning-profile-form #tab-${currentTabId}`);
 
                 if (button instanceof HTMLButtonElement) {
                     button.click();
                 }
             } else {
-                this.setState({activeTab: index});
+                this.setState({activeTabId: tabId});
             }
         });
     }
@@ -404,23 +400,16 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
     render() {
         const {gettext} = superdeskApi.localization;
         const tabLabels = [(
-            <TabLabel
-                key="groups"
-                label={gettext('Groups')}
-                indexValue={0}
-            />
+            <TabItem key="groups" id="groups">
+                {gettext('Groups')}
+            </TabItem>
         ), (
-            <TabLabel
-                key="content_fields"
-                label={this.props.mainProfile.label ?? gettext('Content Fields')}
-                indexValue={1}
-            />
+            <TabItem key="content_fields" id="content_fields">
+                {this.props.mainProfile.label ?? gettext('Content Fields')}
+            </TabItem>
         )];
         const tabPanels = [(
-            <TabPanel
-                key="groups"
-                indexValue={0}
-            >
+            <TabPanel key="groups" id="groups">
                 <GroupTab
                     ref={this.groupTab}
                     profile={this.state.profile}
@@ -430,10 +419,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                 />
             </TabPanel>
         ), (
-            <TabPanel
-                key="content_fields"
-                indexValue={1}
-            >
+            <TabPanel key="content_fields" id="content_fields">
                 <FieldTab
                     ref={this.fieldTab}
                     profile={this.state.profile}
@@ -449,17 +435,12 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
 
         if (this.props.embeddedProfile != null) {
             tabLabels.push((
-                <TabLabel
-                    key="embedded_fields"
-                    label={this.props.embeddedProfile.label ?? gettext('Embedded Fields')}
-                    indexValue={2}
-                />
+                <TabItem key="embedded_fields" id="embedded_fields">
+                    {this.props.embeddedProfile.label ?? gettext('Embedded Fields')}
+                </TabItem>
             ));
             tabPanels.push((
-                <TabPanel
-                    key="embedded_fields"
-                    indexValue={2}
-                >
+                <TabPanel key="embedded_fields" id="embedded_fields">
                     <FieldTab
                         ref={this.embeddedFieldTab}
                         profile={this.state.embeddedProfile}
@@ -499,10 +480,13 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                         <div className="sd-loader" />
                     )}
                     <form className="planning-profile-form" onSubmit={(e) => e.preventDefault()}>
-                        <Tabs onClick={this.changeTab}>
+                        <TabNav
+                            onClick={this.changeTab}
+                            activePanel={this.state.activeTabId}
+                        >
                             {tabLabels}
-                        </Tabs>
-                        <TabContent activePanel={this.state.activeTab}>
+                        </TabNav>
+                        <TabContent activePanel={this.state.activeTabId}>
                             {tabPanels}
                         </TabContent>
                     </form>
