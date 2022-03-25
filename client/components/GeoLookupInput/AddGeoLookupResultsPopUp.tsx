@@ -139,6 +139,19 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
             this.props.localSuggests : [];
         const suggests = get(this.props.suggests, 'length') > 0 ?
             this.props.suggests : [];
+        const tabLabels = [(
+            <TabItem key="internal" id="internal">
+                {gettext('Existing Locations')}
+            </TabItem>
+        )];
+
+        if (this.props.showExternalSearch) {
+            tabLabels.push((
+                <TabItem key="external" id="external">
+                    {gettext('Search OpenStreetMap')}
+                </TabItem>
+            ));
+        }
 
         return (
             <Popup
@@ -161,10 +174,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                         activePanel={this.state.activeTabId}
                         size="small"
                     >
-                        <TabItem id="internal">{gettext('Existing Locations')}</TabItem>
-                        {!this.props.showExternalSearch ? null : (
-                            <TabItem id="external">{gettext('Search OpenStreetMap')}</TabItem>
-                        )}
+                        {tabLabels}
                     </TabNav>
                     <TabContent activePanel={this.state.activeTabId}>
                         <TabPanel id="internal">
