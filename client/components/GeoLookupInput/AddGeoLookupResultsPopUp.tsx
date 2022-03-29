@@ -7,7 +7,7 @@ import {KEYCODES} from '../../constants';
 
 import {uiUtils, onEventCapture} from '../../utils';
 
-import {Button, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
+import {Button, TabNav, TabItem, TabContent, TabPanel} from 'superdesk-ui-framework/react';
 import {Popup, Content} from '../UI/Popup';
 import {LocationLookupResultItem} from './LocationLookupResultItem';
 
@@ -31,7 +31,7 @@ interface IProps {
 
 interface IState {
     activeOptionIndex: number;
-    tabIndex: 0 | 1;
+    activeTabId: 'internal' | 'external';
 }
 
 export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
@@ -44,7 +44,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
 
         this.state = {
             activeOptionIndex: -1,
-            tabIndex: 0,
+            activeTabId: 'internal',
         };
 
         this.handleKeyBoardEvent = this.handleKeyBoardEvent.bind(this);
@@ -119,13 +119,13 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
         this.props.handleSearchClick();
     }
 
-    onTabChange(tabIndex: 0 | 1) {
-        if (tabIndex !== this.state.tabIndex) {
+    onTabChange(tabId: IState['activeTabId']) {
+        if (tabId !== this.state.activeTabId) {
             this.setState({
-                tabIndex: tabIndex,
+                activeTabId: tabId,
             });
 
-            if (this.state.tabIndex === 0) {
+            if (this.state.activeTabId === 'internal') {
                 this.onSearch();
             } else {
                 this.props.onLocalSearchOnly();
@@ -139,6 +139,19 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
             this.props.localSuggests : [];
         const suggests = get(this.props.suggests, 'length') > 0 ?
             this.props.suggests : [];
+        const tabLabels = [(
+            <TabItem key="internal" id="internal">
+                {gettext('Existing Locations')}
+            </TabItem>
+        )];
+
+        if (this.props.showExternalSearch) {
+            tabLabels.push((
+                <TabItem key="external" id="external">
+                    {gettext('Search OpenStreetMap')}
+                </TabItem>
+            ));
+        }
 
         return (
             <Popup
@@ -156,23 +169,15 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                     noPadding={true}
                     className="addgeolookup__suggests-wrapper"
                 >
-                    <Tabs
+                    <TabNav
                         onClick={this.onTabChange}
+                        activePanel={this.state.activeTabId}
                         size="small"
                     >
-                        <TabLabel
-                            label={gettext('Existing Locations')}
-                            indexValue={0}
-                        />
-                        {!this.props.showExternalSearch ? null : (
-                            <TabLabel
-                                label={gettext('Search OpenStreetMap')}
-                                indexValue={1}
-                            />
-                        )}
-                    </Tabs>
-                    <TabContent activePanel={this.state.tabIndex}>
-                        <TabPanel indexValue={0}>
+                        {tabLabels}
+                    </TabNav>
+                    <TabContent activePanel={this.state.activeTabId}>
+                        <TabPanel id="internal">
                             <ul
                                 className="addgeolookup__suggests"
                                 ref={this.dom.itemList}
@@ -192,7 +197,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                                 )}
                             </ul>
                         </TabPanel>
-                        <TabPanel indexValue={1}>
+                        <TabPanel id="external">
                             {this.props.searching ? (
                                 <div className="spinner-big" />
                             ) : (
