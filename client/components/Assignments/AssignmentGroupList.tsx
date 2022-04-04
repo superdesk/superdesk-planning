@@ -221,9 +221,18 @@ class AssignmentGroupListComponent extends React.Component {
             showCount,
             changeAssignmentListSingleGroupView,
             orderDirection,
+            loadingIndicator,
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
         const headingId = `heading--${this.props.groupKey}`;
+
+        if (loadingIndicator === true) {
+            return (
+                <div className="loading-indicator">
+                    {gettext('Loading')}
+                </div>
+            );
+        }
 
         return (
             <div data-test-id="assignment-group__list">
@@ -324,6 +333,7 @@ AssignmentGroupListComponent.propTypes = {
     saveSortPreferences: PropTypes.bool,
     contacts: PropTypes.object,
     archiveItemForAssignment: PropTypes.object,
+    loadingIndicator: PropTypes.bool,
 };
 
 AssignmentGroupListComponent.defaultProps = {
@@ -351,6 +361,7 @@ const mapStateToProps = (state, ownProps) => {
         priorities: selectors.getAssignmentPriorities(state),
         desks: selectors.general.desks(state),
         contacts: selectors.general.contactsById(state),
+        loadingIndicator: selectors.main.loadingIndicator(state),
     };
 
     if (assignmentsViewRequiresArchiveItems()) {

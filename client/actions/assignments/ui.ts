@@ -111,6 +111,8 @@ const queryAndGetMyAssignments = (filterByState) => (
  */
 const reloadAssignments = (filterByState = null, resetPage = true) => (
     (dispatch, getState) => {
+        dispatch(actions.main.setUnsetLoadingIndicator(true));
+
         const visibleGroups = selectors.getAssignmentGroups(getState());
         let listGroups = (!filterByState || filterByState.length <= 0) ?
             visibleGroups :
@@ -124,7 +126,9 @@ const reloadAssignments = (filterByState = null, resetPage = true) => (
             )
         ));
 
-        return Promise.all(dispatches);
+        return Promise.all(dispatches).finally(() => {
+            dispatch(actions.main.setUnsetLoadingIndicator(false));
+        });
     }
 );
 
