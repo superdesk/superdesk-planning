@@ -125,7 +125,10 @@ export function getPlanningByIds(
 }
 
 export function getLockedPlanningItems(): Promise<Array<IPlanningItem>> {
-    return searchPlanning({lock_state: LOCK_STATE.LOCKED})
+    return searchPlanning({
+        lock_state: LOCK_STATE.LOCKED,
+        only_future: false,
+    })
         .then(modifyResponseForClient)
         .then((response) => response._items);
 }
