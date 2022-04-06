@@ -15,7 +15,7 @@ describe('Planning.Events: create planning action', () => {
     const expectedValues = {
         slugline: 'Original',
         'planning_date.date': '12/12/2045',
-        'planning_date.time': '00:00',
+        'planning_date.time': '01:00',
         description_text: 'Desc.',
         ednote: 'Ed. Note',
         anpa_category: ['Finance'],
