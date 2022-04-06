@@ -110,6 +110,14 @@ const setListSortOrder = (state, payload) => {
     return state;
 };
 
+const setGroupLoading = (state, payload) => {
+    state.lists[payload.list] = {
+        ...state.lists[payload.list],
+        isLoading: payload.isLoading,
+    };
+    return state;
+};
+
 const filterList = (state, listId, assignmentId) => {
     if (state.lists[listId].assignmentIds.indexOf(assignmentId) < 0) {
         return;
@@ -168,6 +176,10 @@ const assignmentReducer = createReducer(initialState, {
 
     [ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER]: (state, payload) => (
         setListSortOrder(cloneDeep(state), payload)
+    ),
+
+    [ASSIGNMENTS.ACTIONS.SET_LOADING]: (state, payload) => (
+        setGroupLoading(state, payload)
     ),
 
     [ASSIGNMENTS.ACTIONS.SET_SORT_FIELD]: (state, payload) => ({

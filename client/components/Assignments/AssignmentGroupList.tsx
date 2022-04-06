@@ -14,6 +14,7 @@ import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
 import {assignmentsViewRequiresArchiveItems} from './AssignmentItem/fields';
+import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
 
 const focusElement = throttle((element: HTMLElement) => {
     element.focus();
@@ -221,18 +222,10 @@ class AssignmentGroupListComponent extends React.Component {
             showCount,
             changeAssignmentListSingleGroupView,
             orderDirection,
-            loadingIndicator,
+            isLoading,
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
         const headingId = `heading--${this.props.groupKey}`;
-
-        if (loadingIndicator === true) {
-            return (
-                <div className="loading-indicator">
-                    {gettext('Loading')}
-                </div>
-            );
-        }
 
         return (
             <div data-test-id="assignment-group__list">
@@ -286,10 +279,15 @@ class AssignmentGroupListComponent extends React.Component {
                     refNode={(assignmentsList) => this.dom.list = assignmentsList}
                     tabIndex={-1}
                 >
-                    {get(assignments, 'length', 0) > 0 ? (
-                        assignments.map((assignment, index) => this.rowRenderer(index))
-                    ) : (
-                        <p className="sd-list-item-group__empty-msg">{groupEmptyMessage}</p>
+                    {isLoading === true && (
+                        <ListItemLoader />
+                    )}
+                    {isLoading !== true && (
+                        get(assignments, 'length', 0) > 0 ? (
+                            assignments.map((assignment, index) => this.rowRenderer(index))
+                        ) : (
+                            <p className="sd-list-item-group__empty-msg">{groupEmptyMessage}</p>
+                        )
                     )}
                 </Group>
             </div>
@@ -333,7 +331,7 @@ AssignmentGroupListComponent.propTypes = {
     saveSortPreferences: PropTypes.bool,
     contacts: PropTypes.object,
     archiveItemForAssignment: PropTypes.object,
-    loadingIndicator: PropTypes.bool,
+    isLoading: PropTypes.bool,
 };
 
 AssignmentGroupListComponent.defaultProps = {
@@ -361,7 +359,7 @@ const mapStateToProps = (state, ownProps) => {
         priorities: selectors.getAssignmentPriorities(state),
         desks: selectors.general.desks(state),
         contacts: selectors.general.contactsById(state),
-        loadingIndicator: selectors.main.loadingIndicator(state),
+        isLoading: assignmentDataSelector.isLoading(state),
     };
 
     if (assignmentsViewRequiresArchiveItems()) {

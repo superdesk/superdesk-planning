@@ -24,6 +24,7 @@ const getList = (state, list) => get(state, `assignment.lists.${list}`, {
     assignmentIds: [],
     total: 0,
     lastPage: 1,
+    isLoading: false,
 });
 
 const getListIds = (list) => get(list, 'assignmentIds', []);
@@ -220,6 +221,7 @@ export const getAssignmentGroupSelectors = {
         page: getAssignmentTodoListPage,
         assignmentIds: getAssignmentsInTodoList,
         sortOrder: getAssignmentTodoListSortOrder,
+        isLoading: null,
     },
     [ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id]: {
         assignmentsSelector: getInProgressAssignments,
@@ -257,3 +259,7 @@ export const getAssignmentGroupSelectors = {
         sortOrder: getAssignmentFutureListSortOrder,
     },
 };
+
+Object.keys(getAssignmentGroupSelectors).forEach((groupKey) => {
+    getAssignmentGroupSelectors[groupKey].isLoading = (state) => getList(state, groupKey).isLoading;
+});
