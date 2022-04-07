@@ -248,6 +248,8 @@ export const getErrorMessage = (error, defaultMessage) => {
         return get(error, 'data._issues.validator exception');
     } else if (get(error, 'data._error.message')) {
         return error.data._error.message;
+    } else if (get(error, '_issues.validator exception')) {
+        return get(error, '_issues.validator exception');
     } else if (typeof error === 'string') {
         return error;
     }
