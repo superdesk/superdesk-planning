@@ -1,3 +1,5 @@
+import moment from 'moment-timezone';
+
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
 import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, PlanningPreview, EventEditor, PlanningEditor} from '../../support/planning';
@@ -15,7 +17,9 @@ describe('Planning.Events: create planning action', () => {
     const expectedValues = {
         slugline: 'Original',
         'planning_date.date': '12/12/2045',
-        'planning_date.time': '00:00',
+        'planning_date.time': moment('2045-12-11' + TIME_STRINGS[0])
+            .tz('Australia/Sydney')
+            .format('HH:00'),
         description_text: 'Desc.',
         ednote: 'Ed. Note',
         anpa_category: ['Finance'],
