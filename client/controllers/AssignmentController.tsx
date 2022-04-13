@@ -9,7 +9,6 @@ import {AssignmentsApp} from '../apps';
 import {WORKSPACE, ASSIGNMENTS} from '../constants';
 
 export class AssignmentController {
-
     removeListeners: Array<() => void>;
 
     constructor(
