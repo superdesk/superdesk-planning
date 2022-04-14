@@ -191,6 +191,8 @@ const updatePreviewItemOnRouteUpdate = () => (
 
 const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
     (dispatch, getState) => {
+        dispatch(assignments.ui.setLoading(groupKey, true));
+
         let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
         const assignmentListSelectors = selectors.getAssignmentGroupSelectors[groupKey];
         const group = ASSIGNMENTS.LIST_GROUPS[groupKey];
@@ -218,10 +220,20 @@ const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
                 }
 
                 return Promise.resolve(data._items);
+            })
+            .finally(() => {
+                dispatch(assignments.ui.setLoading(groupKey, false));
             });
     }
 );
 
+const setLoading = (groupKey: string, isLoading: boolean) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_LOADING,
+    payload: {
+        list: groupKey,
+        isLoading: isLoading,
+    },
+});
 
 /**
  * Action dispatcher to load the next page of assignments.
@@ -1035,6 +1047,7 @@ const self = {
     changeSortField,
     validateStartWorkingOnScheduledUpdate,
     showEditCoverageAssignmentModal,
+    setLoading,
 };
 
 export default self;

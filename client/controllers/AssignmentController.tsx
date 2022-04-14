@@ -9,6 +9,8 @@ import {AssignmentsApp} from '../apps';
 import {WORKSPACE, ASSIGNMENTS} from '../constants';
 
 export class AssignmentController {
+    removeListeners: Array<() => void>;
+
     constructor(
         $element,
         $scope,
@@ -40,16 +42,18 @@ export class AssignmentController {
 
         pageTitle.setUrl(gettext('Assignments'));
 
-        $scope.$on('$routeUpdate', this.handleRouteUpdate);
-        $scope.$on('$destroy', this.onDestroy);
+        this.removeListeners = [
+            $scope.$on('$routeUpdate', this.handleRouteUpdate),
+            $scope.$on('$destroy', this.onDestroy),
+        ];
+
         $scope.$watch(() => desks.active, this.onDeskChange);
 
-        return sdPlanningStore.initWorkspace(WORKSPACE.ASSIGNMENTS, this.loadWorkspace)
-            .then(this.render);
+        return sdPlanningStore.initWorkspace(WORKSPACE.ASSIGNMENTS, this.loadWorkspace);
     }
 
     render() {
-        if (this.$element) {
+        if (!this.rendered && this.$element) {
             ReactDOM.render(
                 <Provider store={this.store}>
                     <AssignmentsApp />
@@ -82,7 +86,12 @@ export class AssignmentController {
             this.store.dispatch(actions.fetchAgendas()),
             this.store.dispatch(actions.users.fetchAndRegisterUserPreferences())
                 .then(() => this.store.dispatch(actions.assignments.ui.loadDefaultListSort()))
-                .then(() => this.onDeskChange()),
+                .then(() => {
+                    // start rendering before fetching assignments
+                    // to display loading progress
+                    this.render();
+                    this.onDeskChange();
+                }),
         ]);
     }
 
@@ -97,7 +106,7 @@ export class AssignmentController {
     }
 
     onDestroy() {
-        this.$scope.$off('$routeUpdate', this.handleRouteUpdate);
+        this.removeListeners.forEach((removeListener) => removeListener());
 
         if (this.rendered && this.$element) {
             // Unmount the React application
