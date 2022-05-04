@@ -5,7 +5,13 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 
 import {appConfig} from 'appConfig';
-import {IEventOrPlanningItem, IFile, IPlanningCoverageItem, IIngestProvider} from '../interfaces';
+import {
+    IEventOrPlanningItem,
+    IFile,
+    IPlanningCoverageItem,
+    IIngestProvider,
+    IFeaturedPlanningItem,
+} from '../interfaces';
 import {IUser} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
 
@@ -275,7 +281,7 @@ export const notifyError = (notify, error, defaultMessage) => {
  * @return {object} The user object found or ingest provider id, otherwise nothing is returned
  */
 export function getCreator(
-    item: IEventOrPlanningItem | IPlanningCoverageItem,
+    item: IEventOrPlanningItem | IPlanningCoverageItem | IFeaturedPlanningItem,
     creator: string,
     users: Array<IUser>
 ): IUser | IIngestProvider['id'] | undefined {

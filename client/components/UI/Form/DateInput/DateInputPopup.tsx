@@ -182,7 +182,7 @@ export class DateInputPopup extends React.Component {
                 onPopupOpen={this.props.onPopupOpen}
                 onPopupClose={this.props.onPopupClose}
             >
-                <Header noBorder={true} className="date-popup__header">
+                <Header noBorder={true} className="date-popup__header" testId="date--header">
                     <div className="date-popup__header-row">
                         <Button
                             onClick={this.handleConfirm.bind(this, 0)}
