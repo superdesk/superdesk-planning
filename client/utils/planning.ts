@@ -23,6 +23,7 @@ import {
     POST_STATE,
     COVERAGES,
     ITEM_TYPE,
+    TIME_COMPARISON_GRANULARITY,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -910,6 +911,32 @@ const getPlanningByDate = (
     return sortBasedOnTBC(days);
 };
 
+function getFeaturedPlanningItemsForDate(items: Array<IPlanningItem>, date: moment.Moment): Array<IPlanningItem> {
+    const startDate = moment.tz(moment(date.format('YYYY-MM-DD')), appConfig.default_timezone);
+    const endDate = moment.tz(moment(date), appConfig.default_timezone).set({
+        [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
+        [TIME_COMPARISON_GRANULARITY.MINUTE]: 59,
+        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
+        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
+    });
+    const group = getPlanningByDate(
+        items,
+        null,
+        startDate,
+        endDate,
+        appConfig.default_timezone,
+        true
+    );
+
+    if (group.length > 0) {
+        const featuredPlansForDate = group.find((group) => group.date === date.format('YYYY-MM-DD'));
+
+        return featuredPlansForDate?.events ?? [];
+    }
+
+    return [];
+}
+
 const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
     PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
 
@@ -1326,6 +1353,7 @@ const self = {
     getPlanningActionsForUiFrameworkMenu,
     isNotForPublication,
     getPlanningByDate,
+    getFeaturedPlanningItemsForDate,
     createNewPlanningFromNewsItem,
     createCoverageFromNewsItem,
     isLockedForAddToPlanning,
