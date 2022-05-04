@@ -4,6 +4,7 @@ import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING, FEATURED_PLANNING} from '../const
 import {planning, events, assignments, autosave, main} from './index';
 import {lockUtils, getItemType, gettext, isExistingItem, modifyForClient} from '../utils';
 import {planningApi} from '../superdeskApi';
+import featuredPlanning from './planning/featuredPlanning';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -29,13 +30,10 @@ const loadAllLocks = () => (
 
                 // If featured stories are locked
                 if (get(data, '[2][0].lock_user')) {
-                    dispatch({
-                        type: FEATURED_PLANNING.ACTIONS.LOCKED,
-                        payload: {
-                            lock_user: data[2][0].lock_user,
-                            lock_session: data[2][0].lock_session,
-                        },
-                    });
+                    dispatch(featuredPlanning.setLockUser(
+                        data[2][0].lock_user,
+                        data[2][0].lock_session
+                    ));
                 }
 
                 return Promise.resolve(payload);
