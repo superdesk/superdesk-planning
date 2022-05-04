@@ -13,15 +13,25 @@ export class Modal extends Popup {
         super(selector);
     }
 
+    get footer() {
+        return this.element.find('.modal__footer');
+    }
+
     /**
      * Returns the dom node for a specific button in the footer
      * @param {string} label - The label on the button
      * @param {number} timeout - The ms timeout when getting the button
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
-    getFooterButton(label, timeout = 3000) {
+    getFooterButton(label, timeout = 3000, shouldExist = true) {
         return this.element.find('.modal__footer')
             .contains(label, {timeout: timeout})
             .should('exist');
+    }
+
+    shouldContainTitle(title: string) {
+        return this.element.find('.modal__heading')
+            .should('exist')
+            .contains(title);
     }
 }
