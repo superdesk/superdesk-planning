@@ -666,6 +666,13 @@ export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
     type: 'planning_featured';
 }
 
+export interface IFeaturedPlanningSaveItem {
+    date?: moment.Moment;
+    items: Array<IPlanningItem['_id']>;
+    tz: string;
+    posted?: boolean;
+}
+
 export interface IFeaturedPlanningLock extends IBaseRestApiResponse {
     lock_user: string;
     lock_time: string | Date | moment.Moment;
@@ -1552,12 +1559,37 @@ export interface IPlanningState {
     planningHistoryItems: Array<any>;
 }
 
+export interface IFeaturedPlanningState {
+    currentSearchParams?: ISearchParams;
+    plannings: {
+        storedItems: {[key: string]: IPlanningItem};
+        sortedItemsForDate: Array<IPlanningItem['_id']>;
+        unselected: Array<IPlanningItem['_id']>;
+        selected: Array<IPlanningItem['_id']>;
+        autoRemove: Array<IPlanningItem['_id']>;
+    },
+    modal: {
+        highlights: Array<IPlanningItem['_id']>;
+        notifications: Array<string>;
+        dirty: boolean;
+    };
+    currentFeaturedItem?: IFeaturedPlanningItem;
+    loading: boolean;
+    lock: {
+        user?: IUser['_id'];
+        session?: string;
+    };
+    inUse: boolean;
+}
+
 export interface IPlanningAppState {
     main: IMainState;
     agenda: IAgendaState;
     events: IEventState;
     planning: IPlanningState;
+    featuredPlanning: IFeaturedPlanningState;
     forms: IFormState;
+    session: ISession;
 }
 
 export interface INominatimLocalityFields {
@@ -1927,7 +1959,11 @@ export interface IPlanningAPI {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IPlanningItem>>;
         getById(planId: IPlanningItem['_id'], saveToStore?: boolean, force?: boolean): Promise<IPlanningItem>;
-        getByIds(planIds: Array<IPlanningItem['_id']>): Promise<Array<IPlanningItem>>;
+        getByIds(
+            planIds: Array<IPlanningItem['_id']>,
+            spikeState?: ISearchSpikeState,
+            params?: ISearchParams
+        ): Promise<Array<IPlanningItem>>;
         getLocked(): Promise<Array<IPlanningItem>>;
         getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;
         getEditorProfile(): IPlanningFormProfile;
