@@ -49,7 +49,7 @@ class EventJsonFeedParser(FileFeedParser):
         return self.items
 
     def _transform_from_superdesk_event(self, superdesk_event):
-
+        superdesk_event = self.ignore_fields(superdesk_event)
         superdesk_event["_created"] = utcnow()
         superdesk_event["_updated"] = utcnow()
         superdesk_event["state"] = WORKFLOW_STATE.INGESTED
