@@ -23,6 +23,9 @@ class JsonEventFormatter(Formatter):
     Simple json output formatter a sample output formatter for events
     """
 
+    name = "JSON Event"
+    type = "json_event"
+
     remove_fields = {
         "lock_time",
         "lock_action",
