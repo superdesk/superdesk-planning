@@ -1,156 +1,242 @@
-import {get, findIndex, cloneDeep} from 'lodash';
-import moment from 'moment';
-import momentTz from 'moment-timezone';
+import moment from 'moment-timezone';
+import {cloneDeep, some} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {ISearchParams, IFeaturedPlanningItem} from '../../interfaces';
-import {planningApi as planningApis} from '../../superdeskApi';
-
-import {showModal, hideModal} from '../index';
+import {IUser} from 'superdesk-api';
+import {IFeaturedPlanningItem, IFeaturedPlanningSaveItem, IPlanningItem, ISearchParams} from '../../interfaces';
+import {planningApi as planningApis, superdeskApi} from '../../superdeskApi';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
 
-import {
-    getErrorMessage,
-    gettext,
-    getIdForFeauturedPlanning,
-    planningUtils,
-    getTimeZoneOffset,
-} from '../../utils';
-
+import {MODALS, FEATURED_PLANNING, TIME_COMPARISON_GRANULARITY} from '../../constants';
+import {getTimeZoneOffset, getErrorMessage, planningUtils, isExistingItem, isItemPublic} from '../../utils';
 import * as selectors from '../../selectors';
-import {MODALS, FEATURED_PLANNING, SPIKED_STATE, MAIN, TIME_COMPARISON_GRANULARITY} from '../../constants';
+import {showModal, hideModal} from '../';
 
 
-/**
- * Clears the items list of the featured planning items.
- * @return Dispatch object
- */
-const clearList = () => ({type: FEATURED_PLANNING.ACTIONS.CLEAR_LIST});
-
-
-/**
- * Stores current search request params to the store
- * param {object} params - Search parameters
- * @return Dispatch object
- */
-function requestFeaturedPlannings(params: ISearchParams) {
+function setInUse(inUse: boolean) {
     return {
-        type: FEATURED_PLANNING.ACTIONS.REQUEST,
+        type: FEATURED_PLANNING.ACTIONS.SET_IN_USE,
+        payload: inUse,
+    };
+}
+
+function setLoading(loading: boolean) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.SET_LOADING,
+        payload: loading,
+    };
+}
+
+function setCurrentSearchParams(params: ISearchParams) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.SET_CURRENT_SEARCH_PARAMS,
         payload: params,
     };
 }
 
-
-/**
- * Saves the total count of search items of the current request.
- * param {integer} total - Total count number of items returned from backend
- * @return Dispatch object
- */
-function total(total: number) {
+function setLockUser(user: IUser['_id'], session: string) {
     return {
-        type: FEATURED_PLANNING.ACTIONS.TOTAL,
-        payload: total,
+        type: FEATURED_PLANNING.ACTIONS.SET_LOCK_USER,
+        payload: {
+            user: user,
+            session: session,
+        },
     };
 }
 
+function setUnlocked() {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.SET_LOCK_USER,
+        payload: {
+            user: null,
+            session: null,
+        },
+    };
+}
 
-/**
- * Stores the flag in store notifying that feature planning modal is open
- * @return Dispatch object
- */
-const setFeaturePlanningInUse = () => ({type: FEATURED_PLANNING.ACTIONS.IN_USE});
+function setFeaturedPlanningItem(item: IFeaturedPlanningItem) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.SET_FEATURED_PLANNING_ITEM,
+        payload: item,
+    };
+}
 
+function clearFeaturedNotifications() {
+    return {type: FEATURED_PLANNING.ACTIONS.CLEAR_NOTIFICATIONS};
+}
 
-/**
- * Sets the features planning items to be displayed in list
- * param {array} ids - array of featured planning items ids
- * @return Dispatch object
- */
-const setInList = (ids) => ({
-    type: FEATURED_PLANNING.ACTIONS.SET_LIST,
-    payload: ids,
-});
+function removeHighlightForItem(item: IPlanningItem) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.REMOVE_HIGHLIGHT,
+        payload: item._id,
+    };
+}
 
+function updateListGroupItemIds() {
+    return {type: FEATURED_PLANNING.ACTIONS.UPDATE_LIST_IDS};
+}
 
-/**
- * Concatenates planning item ids to existing list
- * @param {object} ids - array of featured planning items ids
- * @return Dispatch object
- */
-const addToList = (ids) => ({
-    type: FEATURED_PLANNING.ACTIONS.ADD_TO_LIST,
-    payload: ids,
-});
+function storePlanningItems(planningItems: Array<IPlanningItem>) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.STORE_PLANNING_ITEMS,
+        payload: planningItems.reduce(
+            (items, item) => {
+                items[item._id] = item;
 
+                return items;
+            },
+            {}
+        ),
+    };
+}
 
-/**
- * Saves unsaved data from modal to store
- * @param {object} ids - array of featured planning items in the record for that day
- * @return Dispatch object
- */
-const saveDirtyData = (ids) => (
-    {
-        type: FEATURED_PLANNING.ACTIONS.UNSAVED_ITEMS,
-        payload: ids,
-    }
-);
+function clearLists() {
+    return {type: FEATURED_PLANNING.ACTIONS.CLEAR_LISTS};
+}
 
+function setAvailableItems(planningItems: Array<IPlanningItem['_id']>) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.SET_AVAILABLE_ITEMS,
+        payload: planningItems,
+    };
+}
 
-/**
- * Updates featured planning items returned from store and sets / appends the list
- * @param {array} plannings - array of featured planning items
- * @param {boolean} append - if true add to list else set the entire list
- * @return Promise
- */
-const receivePlannings = (plannings, append = false) => (
-    (dispatch) => {
-        dispatch({
-            type: FEATURED_PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-            payload: plannings,
-        });
+function setRemoveList(planningIds: Array<IPlanningItem['_id']>) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
+        payload: planningIds,
+    };
+}
 
-        if (append) {
-            dispatch(self.addToList(plannings.map((p) => p._id)));
-        } else {
-            dispatch(self.setInList(plannings.map((p) => p._id)));
+function updateSelectedList(planningIds: Array<IPlanningItem['_id']>) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.UPDATE_SELECTED_LIST_ORDER,
+        payload: planningIds,
+    };
+}
+
+function movePlanningToSelectedList(item: IPlanningItem) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.MOVE_ITEM_TO_SELECTED,
+        payload: item._id,
+    };
+}
+
+function movePlanningToUnselectedList(item: IPlanningItem) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.MOVE_ITEM_TO_UNSELECTED,
+        payload: item._id,
+    };
+}
+
+function getAndUpdateStoredPlanningItem(itemId: IPlanningItem['_id']) {
+    return (dispatch, getState) => {
+        if (selectors.featuredPlanning.inUse(getState())) {
+            planningApis.planning.getById(itemId, false, true).then((item) => {
+                dispatch({
+                    type: FEATURED_PLANNING.ACTIONS.UPDATE_PLANNING_AND_LISTS,
+                    payload: item,
+                });
+            });
         }
-        return Promise.resolve();
-    }
-);
+    };
+}
 
+function updatePlanningMetadata(itemId: IPlanningItem['_id']) {
+    return (dispatch, getState) => {
+        if (selectors.featuredPlanning.inUse(getState())) {
+            planningApis.planning.getById(itemId, false, true).then((item) => {
+                dispatch({
+                    type: FEATURED_PLANNING.ACTIONS.UPDATE_PLANNING_METADATA,
+                    payload: item,
+                });
+            });
+        }
+    };
+}
 
-/**
- * Forms search parameters and issues requests to find and update featured planning items
- * and the featured stories record for a given date
- * @param {object} date - moment date object to load the data for
- * @return Promise
- */
-function loadFeaturedPlanningsData(date) {
-    return (dispatch, getState, {notify}) => {
-        let startDate = momentTz.tz(date ? date : moment(), appConfig.default_timezone);
+function getFeaturedPlanningItem(date: moment.Moment) {
+    return (dispatch) => (
+        planningApis.planning.featured.getByDate(date)
+            .then((item) => {
+                dispatch(setFeaturedPlanningItem(item));
+
+                return item;
+            })
+    );
+}
+
+function fetchToList(params: ISearchParams = {}, featuredItem?: IFeaturedPlanningItem) {
+    return (dispatch, getState) => {
+        dispatch(setCurrentSearchParams(params));
+
+        return (featuredItem?.items?.length ?
+            planningApis.planning.getByIds(featuredItem?.items, 'both', {include_killed: true}) :
+            Promise.resolve<Array<IPlanningItem>>([])
+        ).then((currentFeaturedItems) => (
+            planningApis.planning.searchGetAll(params)
+                .then((searchResults) => ({
+                    current: currentFeaturedItems,
+                    search: searchResults,
+                }))
+        )).then((items) => {
+            const currentIds = items.current.map((item) => item._id);
+            const searchResultIds = items.search.map((item) => item._id);
+            const allPlanningItems = [
+                ...items.current.filter((item) => !searchResultIds.includes(item._id)),
+                ...items.search,
+            ];
+
+            const autoRemoveIds = currentIds.filter((itemId) => !searchResultIds.includes(itemId));
+
+            dispatch(storePlanningItems(allPlanningItems));
+
+            const currentSearchDate = selectors.featuredPlanning.currentSearchDate(getState());
+            const sortedItemsForDate = planningUtils.getFeaturedPlanningItemsForDate(
+                items.search,
+                currentSearchDate
+            );
+            const sortedItemIdsForDate = sortedItemsForDate
+                .filter((item) => !autoRemoveIds.includes(item._id))
+                .map((item) => item._id);
+
+            dispatch(setAvailableItems(sortedItemIdsForDate));
+            dispatch(setRemoveList(autoRemoveIds));
+            dispatch(updateListGroupItemIds());
+            return Promise.resolve();
+        });
+    };
+}
+
+function loadFeaturedPlanningsData(date?: moment.Moment) {
+    return (dispatch) => {
+        dispatch(setLoading(true));
+        dispatch(clearLists());
+        const startDate = moment.tz(date ? date : moment(), appConfig.default_timezone);
         const params: ISearchParams = {
             featured: true,
             start_date: startDate,
             date_filter: 'for_date',
             only_future: false,
             spike_state: 'draft',
+            include_killed: false,
             exclude_rescheduled_and_cancelled: true,
             include_scheduled_updates: true,
-            tz_offset: getTimeZoneOffset(
-                momentTz.tz(startDate, appConfig.default_timezone)
-            ),
+            tz_offset: getTimeZoneOffset(moment.tz(startDate, appConfig.default_timezone)),
         };
 
-        dispatch({type: FEATURED_PLANNING.ACTIONS.LOADING_START});
-        return dispatch(self.getFeaturedPlanningItem(startDate))
+        return dispatch(getFeaturedPlanningItem(startDate))
             .then(
-                (featuredItem) => dispatch(self.fetchToList(params, featuredItem)),
+                (featuredItem) => dispatch(fetchToList(params, featuredItem)),
                 (error) => {
                     if (error._error?.code === 404) {
-                        return dispatch(self.fetchToList(params));
+                        return dispatch(fetchToList(params));
                     }
+
+                    const {gettext} = superdeskApi.localization;
+                    const {notify} = superdeskApi.ui;
 
                     notify.error(
                         getErrorMessage(error, gettext('Failed to fetch featured stories!'))
@@ -159,193 +245,126 @@ function loadFeaturedPlanningsData(date) {
                     return Promise.reject(error);
                 }
             )
-            .finally(() => dispatch({type: FEATURED_PLANNING.ACTIONS.LOADING_COMPLETE}));
-    };
-}
-
-/**
- * Requests api to find the featured stories for a given date
- * and updates the store
- * @param {object} date - moment date object to load the data for
- * @return Promise
- */
-function getFeaturedPlanningItem(date) {
-    return (dispatch) => (
-        planningApis.planning.featured.getByDate(date)
-            .then((item) => {
-                dispatch({
-                    type: FEATURED_PLANNING.ACTIONS.RECEIVE_FEATURED_PLANNING_ITEM,
-                    payload: item,
-                });
-                return Promise.resolve(item);
-            })
-    );
-}
-
-
-/**
- * Recursively requests backend to query and fetch the featured planning items
- * until the total number of items are received
- * @param {object} params - search parameters for the request
- * @param {Object} featuredItem - The featured planning item to load items for
- * @return Promise
- */
-function fetchToList(params: ISearchParams = {}, featuredItem: IFeaturedPlanningItem = null) {
-    return (dispatch) => {
-        dispatch(self.requestFeaturedPlannings(params));
-
-        return planningApis.planning.searchGetAll(params)
-            .then((planningItems) => {
-                dispatch(self.total(planningItems.length));
-                dispatch(self.receivePlannings(planningItems, false));
-
-                const planIds = planningItems.map(
-                    (item) => item._id
-                );
-                const itemIds = (featuredItem?.items ?? [])
-                    .filter((itemId) => (
-                        !planIds.includes(itemId)
-                    ));
-
-                if (itemIds.length > 0) {
-                    return planningApis.planning.getByIds(itemIds)
-                        .then((items) => {
-                            dispatch({
-                                type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
-                                payload: items,
-                            });
-                        });
-                }
-
-                return Promise.resolve();
+            .finally(() => {
+                dispatch(setLoading(false));
             });
     };
 }
 
-
-/**
- * Checks the locks restrictions and opens the featured stories modal
- * @return Promise
- */
-const openFeaturedPlanningModal = () => (
-    (dispatch, getState, {notify}) => {
-        const lockSession = selectors.featuredPlanning.featureLockSession(getState());
-        const currentSession = selectors.general.sessionId(getState());
-
+function openFeaturedPlanningModal() {
+    return (dispatch, getState) => {
+        const state = getState();
+        const lockSession = selectors.featuredPlanning.featureLockSession(state);
+        const currentSession = selectors.general.sessionId(state);
 
         if (lockSession && lockSession !== currentSession) {
             return dispatch(showModal({modalType: MODALS.UNLOCK_FEATURED_STORIES}));
         }
 
-        return dispatch(planningApi.lockFeaturedPlanning())
-            .then(() => {
-                dispatch(self.setFeaturePlanningInUse());
-                dispatch(showModal({modalType: MODALS.FEATURED_STORIES}));
-            }, (error) => {
+        const currentSearchDate = selectors.featuredPlanning.currentSearchDate(state);
+
+        dispatch(setInUse(true));
+        dispatch(showModal({modalType: MODALS.FEATURED_STORIES}));
+        dispatch(planningApi.lockFeaturedPlanning())
+            .then(() => (
+                dispatch(loadFeaturedPlanningsData(currentSearchDate))
+            ))
+            .catch((error) => {
+                const {gettext} = superdeskApi.localization;
+                const {notify} = superdeskApi.ui;
+
                 notify.error(
                     getErrorMessage(error, gettext('Failed to lock featured story action!'))
                 );
             });
-    }
-);
+    };
+}
 
+function modifyPlanningFeatured(original: IPlanningItem, remove: boolean = false) {
+    return (dispatch) => {
+        const {gettext} = superdeskApi.localization;
 
-/**
- * Checks if ignore-can-save is needed before toggleing 'featured' attribute of a planning item
- * @param {item} params - planning item to modify
- * @param {boolean} remove - if true removes the featured attribute else sets it
- * @return Promise
- */
-const modifyPlanningFeatured = (original, remove = false) => (
-    (dispatch) => {
         dispatch(main.openActionModalFromEditor(
             original,
-            gettext('Save changes before adding to top stories ?'),
+            gettext('Save changes before adding to top stories?'),
             (unlockedItem, previousLock, openInEditor, openInModal) => (
-                dispatch(self._modifyPlanningFeatured(unlockedItem, remove))
+                dispatch(_modifyPlanningFeatured(unlockedItem, remove))
                     .then((updatedItem) => {
-                        if (get(previousLock, 'action')) {
-                            dispatch(locks.lock(updatedItem, previousLock.action)).then((updatedItem) => {
-                                if (openInEditor || openInModal) {
-                                    dispatch(main.openForEdit(updatedItem, !openInModal, openInModal));
-                                }
-                            }
-                            );
+                        if (previousLock?.action) {
+                            dispatch(locks.lock(updatedItem, previousLock.action))
+                                .then((updatedUnlockedItem) => {
+                                    if (openInEditor || openInModal) {
+                                        dispatch(main.openForEdit(updatedUnlockedItem, !openInModal, openInModal));
+                                    }
+                                });
                         }
                     })
             )
         ));
-    }
-);
+    };
+}
 
-
-/**
- * Toggles 'featured' attribute of a planning item
- * @param {Object} item - planning item to modify
- * @param {boolean} remove - if true removes the featured attribute else sets it
- * @return Promise
- */
-const _modifyPlanningFeatured = (item, remove = false) => (
-    (dispatch, getState, {api, notify}) => (
+function _modifyPlanningFeatured(item: IPlanningItem, remove: boolean = false) {
+    return (dispatch) => (
         dispatch(locks.lock(item, remove ? 'remove_featured' : 'add_featured'))
-            .then((original) => {
+            .then((original: IPlanningItem) => {
                 const updates = cloneDeep(original);
+                const {gettext} = superdeskApi.localization;
+                const {notify} = superdeskApi.ui;
 
                 updates.featured = !remove;
                 return dispatch(main.saveAndUnlockItem(original, updates))
-                    .then((updatedItem) => {
-                        remove ? notify.success(gettext('Planning item removed as featured story')) :
-                            notify.success(gettext('Planning item added as featured story'));
-                        return Promise.resolve(updatedItem);
-                    }, (error) => {
-                        remove ? notify.error(gettext('Failed to remove planning item as featured story')) :
-                            notify.error(gettext('Failed to add planning item added as featured story'));
-                        return Promise.reject(error);
-                    });
+                    .then(
+                        (updatedItem) => {
+                            remove ?
+                                notify.success(gettext('Planning item removed as featured story')) :
+                                notify.success(gettext('Planning item added as featured story'));
+
+                            return updatedItem;
+                        },
+                        (error) => {
+                            remove ?
+                                notify.error(gettext('Failed to remove planning item as featured story')) :
+                                notify.error(gettext('Failed to add planning item added as featured story'));
+
+                            return Promise.reject(error);
+                        }
+                    );
             })
-    )
-);
+    );
+}
 
+function saveFeaturedPlanningForDate(updates: IFeaturedPlanningSaveItem, reloadFeaturedItem: boolean) {
+    const {gettext} = superdeskApi.localization;
+    const {notify} = superdeskApi.ui;
 
-/**
- * Saves featured stories record for a givendate
- * @param {Object} item - record to save
- * @return Promise
- */
-const saveFeaturedPlanningForDate = (item) => (
-    (dispatch, getState, {notify}) => (dispatch(planningApi.saveFeaturedPlanning(item))
-        .then((item) => {
-            if (get(item, ' posted')) {
-                notify.success(gettext('Posted Featured Stories record'));
-            } else {
-                notify.success(gettext('Saved Featured Stories record'));
-            }
+    return (dispatch, getState) => (
+        dispatch(planningApi.saveFeaturedPlanning(updates))
+            .then(
+                (item: IFeaturedPlanningItem) => {
+                    if (item.posted) {
+                        notify.success(gettext('Posted Featured Stories record'));
+                    } else {
+                        notify.success(gettext('Saved Featured Stories record'));
+                    }
 
-            dispatch({
-                type: FEATURED_PLANNING.ACTIONS.RECEIVE_FEATURED_PLANNING_ITEM,
-                payload: item,
-            });
+                    if (reloadFeaturedItem) {
+                        dispatch(loadFeaturedPlanningsData(selectors.featuredPlanning.currentSearchDate(getState())));
+                    }
+                },
+                (error) => {
+                    notify.error(
+                        getErrorMessage(error, gettext('Failed to save featured story record!'))
+                    );
+                }
+            )
+    );
+}
 
-            dispatch({
-                type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
-                payload: [],
-            });
-        },
-        (error) => {
-            notify.error(
-                getErrorMessage(error, gettext('Failed to save featured story record!'))
-            );
-        })
-    )
-);
+function unsetFeaturePlanningInUse(unlock: boolean = true) {
+    return (dispatch) => {
+        dispatch(setInUse(false));
 
-/**
- * Notifies that the featured planning modal is now closed by unlocking and closing modal
- * @return Promise
- */
-const unsetFeaturePlanningInUse = (unlock = true) => (
-    (dispatch) => {
-        dispatch({type: FEATURED_PLANNING.ACTIONS.COMPLETE});
         if (unlock) {
             return dispatch(planningApi.unlockFeaturedPlanning())
                 .then(() => {
@@ -355,130 +374,169 @@ const unsetFeaturePlanningInUse = (unlock = true) => (
         }
 
         return Promise.resolve();
-    }
-);
+    };
+}
 
-
-/**
- * Adds or removes featured planning item based on websocket notification
- * when a planning item was updated
- * @param {interger} planningId - ID of the eplannig item that was updated
- * @return Promise
- */
-const onPlanningUpdatedNotification = (planningId) => (
-    (dispatch, getState) => {
-        if (!selectors.featuredPlanning.inUse(getState())) {
-            return Promise.resolve();
-        }
-
-        return dispatch(planningApi.fetchById(planningId, {force: true}))
-            .then((item) => {
-                const currentSearchDate = selectors.featuredPlanning.currentSearchDate(getState());
-                const currentFeaturedPlannings = selectors.featuredPlanning.storedPlannings(getState());
-                const planningsForDate = get(planningUtils.getPlanningByDate([item], null,
-                    momentTz.tz(moment(currentSearchDate.format('YYYY-MM-DD')), appConfig.default_timezone),
-                    momentTz.tz(moment(currentSearchDate).set({
-                        [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
-                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 59,
-                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
-                        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
-                    }), appConfig.default_timezone),
-                    appConfig.default_timezone),
-                '[0].events', []).map((p) => p._id);
-
-                if (!(planningId in currentFeaturedPlannings) && !planningsForDate.includes(planningId)) {
-                    return Promise.resolve();
-                }
-
-                if ((planningId in currentFeaturedPlannings && !planningsForDate.includes(planningId)) ||
-                    (!item.featured && currentFeaturedPlannings[planningId].featured)) {
-                    // Removed from the date
-                    dispatch(removePlanningItemFromSelection(planningId));
-                    return Promise.resolve();
-                }
-
-                // Added to date or item attribute updated
-                if (item.featured) {
-                    return dispatch(self.addPlanningItemToSelection(planningId, item));
-                }
-
-                return Promise.resolve();
-            });
-    }
-);
-
-
-/**
- * Dispatch to remove planning item from featured planning list
- * @param {interger} planningId - ID of the eplannig item that should beremoved
- * @return Dispatch object
- */
-const removePlanningItemFromSelection = (planningId) => ({
-    type: FEATURED_PLANNING.ACTIONS.REMOVE_PLANNING,
-    payload: planningId,
-});
-
-
-/**
- * Adds featured planning to the featured planning list if required by fetching it by ID
- * @param {interger} id - ID of the eplannig item that was updated
- * @param {object} item - full item object if available to add
- * @return Promise
- */
-const addPlanningItemToSelection = (id, item = null) => (
-    (dispatch, getState) => {
-        let promise = Promise.resolve(item);
-
-        if (!item) {
-            promise = dispatch(planningApi.fetchById(id, {force: true}));
-        }
-
-        return promise.then((item) => {
-            let planningsToUpdate = Object.values(selectors.featuredPlanning.storedPlannings(getState()));
-            const index = findIndex(planningsToUpdate, (p) => p._id === item._id);
-
-            if (index >= 0) {
-                planningsToUpdate[index] = item;
-            } else {
-                planningsToUpdate.push(item);
-            }
-
-            return dispatch(self.receivePlannings(planningsToUpdate, true));
-        });
-    }
-);
-
-const forceUnlock = () => (
-    (dispatch, getState) => (
+function forceUnlock() {
+    return (dispatch) => (
         dispatch(planningApi.unlockFeaturedPlanning())
             .then(() => {
-                dispatch(self.openFeaturedPlanningModal());
+                // Set unlocked here so the websocket notification doesn't think
+                // the current session is getting unlocked by another user/session
+                dispatch(self.setUnlocked());
+                return dispatch(self.openFeaturedPlanningModal());
             })
-    )
-);
+    );
+}
+
+function saveFeaturedStory(teardown: boolean) {
+    return (dispatch, getState) => {
+        const state = getState();
+        const featuredItem = selectors.featuredPlanning.featuredPlanningItem(state);
+
+        if (featuredItem?.posted) {
+            const {gettext} = superdeskApi.localization;
+
+            dispatch(showModal({
+                modalType: MODALS.IGNORE_CANCEL_SAVE,
+                modalProps: {
+                    bodyText: gettext('Save changes without re-posting?'),
+                    onSave: () => {
+                        dispatch(_save(teardown));
+                    },
+                    onIgnore: () => {
+                        dispatch(unsetFeaturePlanningInUse());
+                    },
+                    autoClose: true,
+                    showIgnore: teardown,
+                },
+            }));
+        } else {
+            dispatch(_save(teardown));
+        }
+    };
+}
+
+function _save(teardown: boolean) {
+    return (dispatch, getState) => {
+        const state = getState();
+        const featuredItem = selectors.featuredPlanning.featuredPlanningItem(state);
+        const removeIds = selectors.featuredPlanning.autoRemovedPlanningIds(state);
+        const selectedIds = selectors.featuredPlanning.selectedPlanningIds(state);
+        const currentSearchDate = selectors.featuredPlanning.currentSearchDate(state);
+
+        const updates: IFeaturedPlanningSaveItem = {
+            items: selectedIds.filter(
+                (itemId) => !removeIds.includes(itemId)
+            ),
+            tz: currentSearchDate.tz(),
+        };
+
+        if (!isExistingItem(featuredItem)) {
+            updates.date = currentSearchDate.clone();
+            updates.date.set({
+                [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+            });
+        }
+
+        dispatch(saveFeaturedPlanningForDate(updates, !teardown))
+            .then(() => {
+                if (teardown) {
+                    dispatch(unsetFeaturePlanningInUse());
+                }
+            });
+    };
+}
+
+function postFeaturedStory() {
+    return (dispatch, getState) => {
+        const state = getState();
+        const selectedPlanningItems = selectors.featuredPlanning.selectedPlanningItems(state);
+
+        if (some(selectedPlanningItems, (item) => !(isItemPublic(item)))) {
+            const {gettext} = superdeskApi.localization;
+            const errorMsg = gettext(
+                'Some selected items have not yet been posted. All selections must be visible to subscribers.'
+            );
+
+            dispatch(main.notifyValidationErrors([errorMsg]));
+            return;
+        }
+
+        const featuredItem = selectors.featuredPlanning.featuredPlanningItem(state);
+        const removeIds = selectors.featuredPlanning.autoRemovedPlanningIds(state);
+        const selectedIds = selectors.featuredPlanning.selectedPlanningIds(state);
+        const currentSearchDate = selectors.featuredPlanning.currentSearchDate(state);
+        const updates: IFeaturedPlanningSaveItem = {
+            items: selectedIds.filter(
+                (itemId) => !removeIds.includes(itemId)
+            ),
+            tz: currentSearchDate.tz(),
+            posted: true,
+        };
+
+        if (!isExistingItem(featuredItem)) {
+            updates.date = currentSearchDate.clone();
+            updates.date.set({
+                [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+            });
+        }
+
+        dispatch(saveFeaturedPlanningForDate(updates, true));
+    };
+}
+
+function closeFeaturedStoriesModal() {
+    return (dispatch, getState) => {
+        if (!selectors.featuredPlanning.isDirty(getState())) {
+            dispatch(unsetFeaturePlanningInUse());
+        } else {
+            const {gettext} = superdeskApi.localization;
+
+            dispatch(showModal({
+                modalType: MODALS.IGNORE_CANCEL_SAVE,
+                modalProps: {
+                    bodyText: gettext(
+                        'There are unsaved changes. Are you sure you want to exit Manging Featured Stories?'
+                    ),
+                    onIgnore: () => {
+                        dispatch(unsetFeaturePlanningInUse());
+                    },
+                    onSave: () => {
+                        // Use `setTimeout` otherwise the second `IgnoreCancelSave` modal will not show
+                        // If the FeaturedStory has been posted
+                        setTimeout(() => {
+                            dispatch(saveFeaturedStory(true));
+                        });
+                    },
+                    autoClose: true,
+                },
+            }));
+        }
+    };
+}
 
 // eslint-disable-next-line consistent-this
 const self = {
-    clearList,
-    receivePlannings,
-    fetchToList,
-    requestFeaturedPlannings,
-    setInList,
-    addToList,
-    _modifyPlanningFeatured,
-    modifyPlanningFeatured,
-    openFeaturedPlanningModal,
-    setFeaturePlanningInUse,
-    unsetFeaturePlanningInUse,
+    setLockUser,
+    setUnlocked,
+    clearFeaturedNotifications,
+    removeHighlightForItem,
+    updateSelectedList,
+    movePlanningToSelectedList,
+    movePlanningToUnselectedList,
+    getAndUpdateStoredPlanningItem,
+    updatePlanningMetadata,
     loadFeaturedPlanningsData,
-    saveFeaturedPlanningForDate,
-    getFeaturedPlanningItem,
-    total,
-    saveDirtyData,
-    onPlanningUpdatedNotification,
-    removePlanningItemFromSelection,
-    addPlanningItemToSelection,
+    openFeaturedPlanningModal,
+    modifyPlanningFeatured,
+    unsetFeaturePlanningInUse,
     forceUnlock,
+    saveFeaturedStory,
+    postFeaturedStory,
+    closeFeaturedStoriesModal,
 };
 
 export default self;

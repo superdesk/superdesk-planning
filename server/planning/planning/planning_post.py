@@ -74,7 +74,7 @@ class PlanningPostService(BaseService):
         for doc in docs:
             push_notification(
                 "planning:posted",
-                item=str(doc.get("planning")),
+                item=str(doc.get(config.ID_FIELD) or doc.get("planning")),
                 etag=doc.get("_etag"),
                 pubstatus=doc.get("pubstatus"),
             )

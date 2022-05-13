@@ -9,7 +9,7 @@ import Label from './Label';
  * @name Header
  * @description Header Component of a popup
  */
-const Header = ({text, onClose, children, className, noBorder, noPadding, centerText}) => (
+const Header = ({text, onClose, children, className, noBorder, noPadding, centerText, testId}) => (
     <div
         className={classNames(
             'popup__menu-header',
@@ -19,6 +19,7 @@ const Header = ({text, onClose, children, className, noBorder, noPadding, center
             },
             className
         )}
+        data-test-id={testId}
     >
         {text && (
             <Label text={text} centerText={centerText}>
@@ -41,6 +42,7 @@ Header.propTypes = {
     noBorder: PropTypes.bool,
     noPadding: PropTypes.bool,
     centerText: PropTypes.bool,
+    testId: PropTypes.string,
 };
 
 export default Header;

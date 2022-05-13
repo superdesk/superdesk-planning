@@ -23,6 +23,7 @@ export const Button = ({
     active,
     navbtn,
     noBorderNoPadding,
+    disabled,
     ...props
 }) => (
     <button
@@ -43,6 +44,7 @@ export const Button = ({
         onClick={onClick || null}
         data-sd-tooltip={tooltip}
         data-flow={tooltipDirection}
+        disabled={disabled}
         {...props}
     >
         {icon && <i className={icon} />}
@@ -64,6 +66,7 @@ Button.propTypes = {
     active: PropTypes.bool,
     navbtn: PropTypes.bool,
     noBorderNoPadding: PropTypes.bool,
+    disabled: PropTypes.bool,
 };
 
 Button.defaultProps = {
@@ -74,4 +77,5 @@ Button.defaultProps = {
     darker: false,
     active: false,
     navbtn: true,
+    disabled: false,
 };

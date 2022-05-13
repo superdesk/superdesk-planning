@@ -49,7 +49,7 @@ export const FeaturedPlanningItem = ({
             shadow={1}
             disabled={isExpired || disabled}
             activated={activated}
-            onClick={onClick.bind(null, item._id)}
+            onClick={onClick.bind(null, item)}
             margin={withMargin}
         >
             {!readOnly && selectedPlanningIds.includes(item._id) && (
@@ -63,6 +63,7 @@ export const FeaturedPlanningItem = ({
                         )}
                     >
                         <NavButton
+                            data-test-id="btn-remove"
                             navbtn={false}
                             className="dropdown sd-create-btn"
                             text={gettext('Remove from Feature Stories')}
@@ -116,6 +117,7 @@ export const FeaturedPlanningItem = ({
                         )}
                     >
                         <NavButton
+                            data-test-id="btn-add"
                             className="dropdown sd-create-btn"
                             text={gettext('Add to Feature Stories')}
                             onClick={onAddToSelectedFeaturedPlanning.bind(null, item)}

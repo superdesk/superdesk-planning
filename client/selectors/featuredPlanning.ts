@@ -1,69 +1,76 @@
-import moment from 'moment';
-import momentTz from 'moment-timezone';
+import moment from 'moment-timezone';
 import {createSelector} from 'reselect';
-import {get, cloneDeep} from 'lodash';
+import {cloneDeep} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IPlanningAppState} from '../interfaces';
 
-import {planningUtils, getSearchDateRange} from '../utils';
-import {TIME_COMPARISON_GRANULARITY} from '../constants';
+export const featureLockUser = (state: IPlanningAppState) => state.featuredPlanning?.lock?.user ?? null;
+export const featureLockSession = (state: IPlanningAppState) => state.featuredPlanning?.lock?.session ?? null;
+export const inUse = (state: IPlanningAppState) => state.featuredPlanning?.inUse ?? false;
+export const storedPlannings = (state: IPlanningAppState) => state.featuredPlanning?.plannings.storedItems ?? {};
+export const featuredPlanIdsInList = (state: IPlanningAppState) => (
+    state.featuredPlanning?.plannings?.sortedItemsForDate ?? []
+);
+export const featuredPlanningItem = (state: IPlanningAppState) => state.featuredPlanning?.currentFeaturedItem;
 
-export const featureLockUser = (state) => get(state, 'featuredPlanning.featureLockUser', null);
-export const featureLockSession = (state) => get(state, 'featuredPlanning.featureLockSession', null);
-export const inUse = (state) => get(state, 'featuredPlanning.inUse', null);
-export const storedPlannings = (state) => get(state, 'featuredPlanning.plannings', {});
-export const featuredPlanIdsInList = (state) => get(state, 'featuredPlanning.planningsInList', null);
-export const featuredPlaningToRemove = (state) => get(state, 'featuredPlanning.removeList', []);
-export const featuredPlanningItem = (state) => get(state, 'featuredPlanning.item', null);
-export const previousFilter = (state) => get(state, 'featuredPlanning.previousFilter', false);
-export const currentSearchDate = (state) =>
-    get(
-        state,
-        'featuredPlanning.currentSearch.start_date',
-        momentTz.tz(moment(), appConfig.default_timezone)
-    );
-export const total = (state) => get(state, 'featuredPlanning.total', false);
-export const loading = (state) => get(state, 'featuredPlanning.loading', false);
-export const unsavedItems = (state) => get(state, 'featuredPlanning.unsavedItems', null);
+export const currentSearchDate = (state: IPlanningAppState) => (
+    state.featuredPlanning?.currentSearchParams?.start_date ||
+        moment.tz(moment(), appConfig.default_timezone)
+);
 
-export const featuredPlansInList = createSelector(
-    [storedPlannings, featuredPlanIdsInList],
+export const loading = (state: IPlanningAppState) => state.featuredPlanning?.loading ?? false;
+
+export const isLockedForCurrentUser = (state: IPlanningAppState) => (
+    state.featuredPlanning?.lock?.session === state.session.sessionId
+);
+
+// Planning item's included in current FeaturedItem list
+export const selectedPlanningIds = (state: IPlanningAppState) => (
+    state.featuredPlanning?.plannings?.selected || []
+);
+export const selectedPlanningItems = createSelector(
+    [storedPlannings, selectedPlanningIds],
     (plans, planIds) => (
         cloneDeep(planIds.map((planId) => plans[planId]))
     )
 );
 
-export const orderedFeaturedPlanningList = createSelector(
-    [featuredPlansInList, currentSearchDate],
-    (plansInList, date) => {
-        const search = {
-            advancedSearch: {
-                dates: {
-                    start: moment(date).set({
-                        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
-                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
-                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
-                        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
-                    }),
-                    end: moment(date).set({
-                        [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
-                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 59,
-                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
-                        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
-                    }),
-                },
-            },
-        };
-        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
-        const group = planningUtils.getPlanningByDate(
-            plansInList, null, dateRange.startDate, dateRange.endDate, appConfig.default_timezone, true);
+// Planning item's available for inclusion into current FeaturedItem list
+export const unselectedPlanningIds = (state: IPlanningAppState) => (
+    state.featuredPlanning?.plannings?.unselected || []
+);
+export const unselectedPlanningItems = createSelector(
+    [storedPlannings, unselectedPlanningIds],
+    (plans, planIds) => (
+        cloneDeep(planIds.map((planId) => plans[planId]))
+    )
+);
 
-        if (group.length > 0) {
-            const featuredPlansForDate = group.find((g) => g.date === date.format('YYYY-MM-DD'));
+// Planning item's automatically removed from current FeaturedItem list
+export const autoRemovedPlanningIds = (state: IPlanningAppState) => (
+    state.featuredPlanning?.plannings?.autoRemove ?? []
+);
+export const autoRemovedPlanningItems = createSelector(
+    [storedPlannings, autoRemovedPlanningIds],
+    (plans, planIds) => (
+        cloneDeep(planIds.map((planId) => plans[planId]))
+    )
+);
 
-            return get(featuredPlansForDate, 'events', []);
-        }
-
-        return group;
-    }
+export const notificationList = (state: IPlanningAppState) => (
+    state.featuredPlanning?.modal?.notifications || []
+);
+export const highlightsList = (state: IPlanningAppState) => (
+    state.featuredPlanning?.modal?.highlights || []
+);
+export const isDirty = (state: IPlanningAppState) => (
+    state.featuredPlanning?.modal?.dirty ?? false
+);
+export const isReadOnly = (state: IPlanningAppState) => (
+    state.featuredPlanning?.currentSearchParams?.start_date == null ||
+    (state.featuredPlanning?.currentSearchParams?.start_date as moment.Moment).isBefore(
+        appConfig.default_timezone,
+        'day'
+    )
 );
