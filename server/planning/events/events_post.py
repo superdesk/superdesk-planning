@@ -154,7 +154,7 @@ class EventsPostService(EventsBaseService):
         updates = {"state": new_item_state, "pubstatus": new_post_state}
 
         # check and remove private contacts while posting event, only public contact will be visible
-        updates["event_contact_info"] = [ObjectId(contact['_id']) for contact in get_contacts_from_item(event)]
+        updates["event_contact_info"] = [ObjectId(contact["_id"]) for contact in get_contacts_from_item(event)]
 
         event["pubstatus"] = new_post_state
         # Remove previous workflow state reason
