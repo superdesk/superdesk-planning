@@ -21,6 +21,9 @@ class JsonPlanningFeaturedFormatter(Formatter):
     Simple json output formatter a sample output formatter for planning items
     """
 
+    name = "JSON Planning Featured"
+    type = "json_planning_featured"
+
     def __init__(self):
         """
         Set format type and no export or preview
