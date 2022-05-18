@@ -14,7 +14,7 @@ import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
-import {PLANNING} from '../constants';
+import {PLANNING, POST_STATE} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
 
@@ -88,7 +88,8 @@ export function getPlanningById(
 
 export function getPlanningByIds(
     planIds: Array<IPlanningItem['_id']>,
-    spikeState: ISearchSpikeState = 'draft'
+    spikeState: ISearchSpikeState = 'draft',
+    params?: ISearchParams
 ): Promise<Array<IPlanningItem>> {
     if (planIds.length === 0) {
         return Promise.resolve([]);
@@ -119,6 +120,7 @@ export function getPlanningByIds(
         item_ids: planIds,
         spike_state: spikeState,
         only_future: false,
+        ...params ?? {},
     })
         .then(modifyResponseForClient)
         .then((response) => response._items);
@@ -129,6 +131,7 @@ export function getLockedPlanningItems(): Promise<Array<IPlanningItem>> {
         lock_state: LOCK_STATE.LOCKED,
         directly_locked: true,
         only_future: false,
+        include_killed: true,
     })
         .then(modifyResponseForClient)
         .then((response) => response._items);

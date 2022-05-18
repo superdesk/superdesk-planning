@@ -1,4 +1,5 @@
 import {getDateStringFor, TIME_STRINGS} from '../support/utils/time';
+import {IPlanningItem} from '../../../client/interfaces';
 
 export const AGENDAS = {
     sports: {name: 'Sports'},
@@ -67,8 +68,8 @@ function getPlanningForDate(dateString: string, metadata: {[key: string]: any}) 
 }
 
 export const createPlanningFor = {
-    today: (metadata = {}) => getPlanningForDate(getDateStringFor.today(), metadata),
-    tomorrow: (metadata = {}) => getPlanningForDate(getDateStringFor.tomorrow(), metadata),
-    yesterday: (metadata = {}) => getPlanningForDate(getDateStringFor.yesterday(), metadata),
-    next_week: (metadata = {}) => getPlanningForDate(getDateStringFor.next_week(), metadata),
+    today: (metadata: Partial<IPlanningItem> = {}) => getPlanningForDate(getDateStringFor.today(), metadata),
+    tomorrow: (metadata: Partial<IPlanningItem> = {}) => getPlanningForDate(getDateStringFor.tomorrow(), metadata),
+    yesterday: (metadata: Partial<IPlanningItem> = {}) => getPlanningForDate(getDateStringFor.yesterday(), metadata),
+    next_week: (metadata: Partial<IPlanningItem> = {}) => getPlanningForDate(getDateStringFor.next_week(), metadata),
 };

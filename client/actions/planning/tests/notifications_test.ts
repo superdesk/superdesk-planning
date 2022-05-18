@@ -357,10 +357,7 @@ describe('actions.planning.notifications', () => {
             sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'refetchPlanning').callsFake(() => (Promise.resolve()));
-            sinon.stub(featuredPlanning, 'removePlanningItemFromSelection').callsFake(
-                () => (Promise.resolve())
-            );
-            sinon.stub(featuredPlanning, 'addPlanningItemToSelection').callsFake(
+            sinon.stub(featuredPlanning, 'getAndUpdateStoredPlanningItem').callsFake(
                 () => (Promise.resolve())
             );
         });
@@ -371,8 +368,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.refetchPlanning);
-            restoreSinonStub(featuredPlanning.removePlanningItemFromSelection);
-            restoreSinonStub(featuredPlanning.addPlanningItemToSelection);
+            restoreSinonStub(featuredPlanning.getAndUpdateStoredPlanningItem);
         });
 
         it('onPlanningSpiked dispatches `SPIKE_PLANNING`', (done) => (
@@ -408,7 +404,7 @@ describe('actions.planning.notifications', () => {
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(featuredPlanning.removePlanningItemFromSelection.callCount).toBe(1);
+                    expect(featuredPlanning.getAndUpdateStoredPlanningItem.callCount).toBe(1);
                     expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
                     done();
                 })
@@ -445,7 +441,7 @@ describe('actions.planning.notifications', () => {
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
-                    expect(featuredPlanning.addPlanningItemToSelection.callCount).toBe(1);
+                    expect(featuredPlanning.getAndUpdateStoredPlanningItem.callCount).toBe(1);
                     expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
 
                     done();
@@ -462,12 +458,6 @@ describe('actions.planning.notifications', () => {
             sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'refetchPlanning').callsFake(() => (Promise.resolve()));
-            sinon.stub(featuredPlanning, 'removePlanningItemFromSelection').callsFake(
-                () => (Promise.resolve())
-            );
-            sinon.stub(featuredPlanning, 'addPlanningItemToSelection').callsFake(
-                () => (Promise.resolve())
-            );
         });
 
         afterEach(() => {
@@ -476,8 +466,6 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.refetchPlanning);
-            restoreSinonStub(featuredPlanning.removePlanningItemFromSelection);
-            restoreSinonStub(featuredPlanning.addPlanningItemToSelection);
         });
 
         it('onPlanningUpdated does call scheduleRefetch if item is being edited', (done) => {

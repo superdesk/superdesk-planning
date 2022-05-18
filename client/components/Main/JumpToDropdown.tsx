@@ -1,6 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import momentTz from 'moment-timezone';
+import moment from 'moment-timezone';
 import {get} from 'lodash';
 
 import {gettext, timeUtils} from '../../utils';
@@ -9,7 +8,21 @@ import {Dropdown as DropMenu} from '../UI/Dropdown';
 import {Button as NavButton} from '../UI/Nav';
 import {DateInputPopup} from '../UI/Form/DateInput/DateInputPopup';
 
-export class JumpToDropdown extends React.Component {
+interface IProps {
+    currentStartFilter: moment.Moment;
+    defaultTimeZone: string;
+    dateFormat: string;
+    noBorderNoPadding?: boolean;
+    disabled?: boolean;
+
+    setStartFilter(date: moment.Moment): void;
+}
+
+interface IState {
+    popupOpened: boolean;
+}
+
+export class JumpToDropdown extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -31,8 +44,8 @@ export class JumpToDropdown extends React.Component {
     onChange(value) {
         // If the user has selected 'Today', then set the startFilter to null
         // Otherwise set the startFilter to the supplied day
-        const newMoment = momentTz.tz(value.clone(), this.getTimeZone());
-        const currentMoment = momentTz.tz(moment(), this.getTimeZone());
+        const newMoment = moment.tz(value.clone(), this.getTimeZone());
+        const currentMoment = moment.tz(moment(), this.getTimeZone());
 
         moment(newMoment).isSame(currentMoment, 'day') ?
             this.props.setStartFilter(null) :
@@ -52,8 +65,9 @@ export class JumpToDropdown extends React.Component {
                     textWithIcon={true}
                     noBorderNoPadding={this.props.noBorderNoPadding}
                     aria-label={gettext('Jump to specific date')}
+                    disabled={this.props.disabled}
                 >
-                    {this.props.currentStartFilter.format(this.props.dateFormat)}
+                    {this.props.currentStartFilter.format(this.props.dateFormat || 'LL')}
                 </NavButton>
 
                 {this.state.popupOpened && (
@@ -68,13 +82,3 @@ export class JumpToDropdown extends React.Component {
         );
     }
 }
-
-JumpToDropdown.propTypes = {
-    currentStartFilter: PropTypes.object,
-    setStartFilter: PropTypes.func,
-    defaultTimeZone: PropTypes.string,
-    dateFormat: PropTypes.string,
-    noBorderNoPadding: PropTypes.bool,
-};
-
-JumpToDropdown.defaultProps = {dateFormat: 'LL'};

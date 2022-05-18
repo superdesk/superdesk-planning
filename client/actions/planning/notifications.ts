@@ -5,7 +5,7 @@ import {gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, ITEM_TYPE, MODALS, FEATURED_PLANNING, WORKFLOW_STATE, WORKSPACE} from '../../constants';
+import {PLANNING, ITEM_TYPE, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 
@@ -84,7 +84,7 @@ const onPlanningUpdated = (_e, data) => (
             }
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(udpateAssignment(data.item));
-            dispatch(planning.featuredPlanning.onPlanningUpdatedNotification(data.item));
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
         }
 
         return Promise.resolve();
@@ -116,6 +116,8 @@ const onPlanningLocked = (e, data) => (
                     if (data.lock_session !== sessionId) {
                         dispatch(main.reloadEditor(plan, 'read'));
                     }
+
+                    dispatch(planning.featuredPlanning.updatePlanningMetadata(data.item));
 
                     return Promise.resolve(plan);
                 });
@@ -157,6 +159,8 @@ const onPlanningUnlocked = (_e, data) => (
                 payload: {plan: planningItem},
             });
 
+            dispatch(planning.featuredPlanning.updatePlanningMetadata(data.item));
+
             return Promise.resolve();
         }
     }
@@ -169,6 +173,7 @@ const onPlanningPosted = (_e, data) => (
             dispatch(eventsPlanning.ui.scheduleRefetch());
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(eventsPlanning.ui.refetchPlanning(data.item));
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
         }
 
         return Promise.resolve();
@@ -195,7 +200,7 @@ const onPlanningSpiked = (_e, data) => (
                     gettext('The Planning item was spiked')
             ));
 
-            dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
             return dispatch(planning.ui.scheduleRefetch())
                 .then(() => {
@@ -227,7 +232,7 @@ const onPlanningUnspiked = (_e, data) => (
                     null :
                     gettext('The Planning item was unspiked')
             ));
-            dispatch(planning.featuredPlanning.addPlanningItemToSelection(data.item));
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
 
             dispatch(main.setUnsetLoadingIndicator(true));
             return dispatch(planning.ui.scheduleRefetch())
@@ -253,7 +258,7 @@ const onPlanningCancelled = (e, data) => (
             ));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(udpateAssignment(data.item));
-            dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
         }
     }
 );
@@ -326,15 +331,7 @@ const onPlanningExpired = (_e, data) => (
 const onPlanningFeaturedLocked = (_e, data) => (
     (dispatch) => {
         if (data && data.user) {
-            const payload = {
-                lock_user: data.user,
-                lock_session: data.lock_session,
-            };
-
-            dispatch({
-                type: FEATURED_PLANNING.ACTIONS.LOCKED,
-                payload: payload,
-            });
+            dispatch(planning.featuredPlanning.setLockUser(data.user, data.lock_session));
         }
     }
 );
@@ -342,7 +339,14 @@ const onPlanningFeaturedLocked = (_e, data) => (
 const onPlanningFeaturedUnLocked = (_e, data) => (
     (dispatch, getState) => {
         if (data) {
-            dispatch({type: FEATURED_PLANNING.ACTIONS.UNLOCKED});
+            const currentSessionId = selectors.general.sessionId(getState());
+            const lockSessionId = selectors.featuredPlanning.featureLockUser(getState());
+
+            if (lockSessionId == null || lockSessionId === currentSessionId) {
+                return;
+            }
+
+            dispatch(planning.featuredPlanning.setUnlocked());
 
             if (selectors.featuredPlanning.inUse(getState())) {
                 const user = selectors.general.users(getState()).find((u) => u._id === data.user);
@@ -368,7 +372,7 @@ const onPlanningFilesUpdated = (_e, data) => (
 );
 
 // eslint-disable-next-line consistent-this
-const self = {
+const self: any = {
     onPlanningCreated,
     onPlanningUpdated,
     onPlanningUnlocked,

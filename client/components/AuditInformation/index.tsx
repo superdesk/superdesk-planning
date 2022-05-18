@@ -5,7 +5,7 @@ import {get} from 'lodash';
 import moment from 'moment';
 
 import {IUser} from 'superdesk-api';
-import {IEventOrPlanningItem, IPlanningCoverageItem, IIngestProvider} from '../../interfaces';
+import {IEventOrPlanningItem, IPlanningCoverageItem, IIngestProvider, IFeaturedPlanningItem} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
@@ -23,7 +23,7 @@ interface IProps {
     postedBy?: IUser | IIngestProvider['id'] | undefined;
     postedAt?: string;
     showStateInformation?: boolean;
-    item: IEventOrPlanningItem | IPlanningCoverageItem;
+    item?: IEventOrPlanningItem | IPlanningCoverageItem;
     withPadding?: boolean;
 }
 
