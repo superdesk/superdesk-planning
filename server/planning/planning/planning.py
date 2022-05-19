@@ -1005,9 +1005,10 @@ class PlanningService(superdesk.Service):
                     }
                 )
             except SuperdeskApiError:
-                logger.error("Failed to delete assignment {}".format(assign_id))
+                logger.error("There is a assignment '{}' is in progress".format(assign_id))
                 failed_assignments.append(
                     {
+                        "state": "in Progress",
                         "slugline": assign_planning.get("slugline"),
                         "type": assign_planning.get("g2_content_type"),
                     }

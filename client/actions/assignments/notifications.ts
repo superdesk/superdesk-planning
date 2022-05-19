@@ -315,9 +315,9 @@ const onAssignmentDeleteFailed = (_e, data) => (
         if (get(data, 'items.length', 0) > 0 &&
                 get(data, 'user') === currentUserId &&
                 get(data, 'session') === sessionId) {
-            const msg = data.items.map((i) => gettext(
-                'There is a {{ type }} assignment \'{{ slugline }}\' is in progress',
+            const msg = data.items.map((i) => gettext('There is a {{ type }} assignment \'{{ slugline }}\' {{ state }}',
                 {
+                    state: get(i, 'state'),
                     type: get(i, 'type'),
                     slugline: get(i, 'slugline'),
                 })).join('\n');
