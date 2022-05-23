@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<conceptItem guid="urn:newsml:stt.fi:20220705:259625" standardversion="2.12" standard="NewsML-G2" xmlns="http://iptc.org/std/nar/2006-10-01/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stt="http://www.stt-lehtikuva.fi/NewsML" xsi:schemaLocation="http://iptc.org/std/nar/2006-10-01/ http://www.iptc.org/std/NewsML-G2/2.12/specification/NewsML-G2_2.12-spec-All-Power.xsd http://www.stt-lehtikuva.fi/NewsML http://www.stt-lehtikuva.fi/newsml/schema/STT-Lehtikuva_NewsML_G2.xsd" conformance="power" version="2" stt:formatversion="1.1" xml:lang="fi-FI"><catalogRef href="http://www.iptc.org/std/catalog/catalog.IPTC-G2-Standards_19.xml"/>
+<catalogRef href="http://www.stt-lehtikuva.fi/newsml/doc/stt-NewsCodesCatalog_1.xml"/>
+<itemMeta>
+<itemClass qcode="cinat:concept"/>
+<provider literal="STT"/>
+<versionCreated>2022-03-30T09:31:13+03:00</versionCreated>
+<firstCreated>2022-03-30T08:48:49+03:00</firstCreated>
+<pubStatus qcode="stat:usable"/>
+<signal qcode="sig:update"/>
+</itemMeta>
+<contentMeta>
+<contentCreated>2022-03-30T08:48:49+03:00</contentCreated>
+<contentModified>2022-03-30T08:49:10+03:00</contentModified>
+<infoSource qcode="sttsource:1">
+<name>STT</name>
+</infoSource>
+<contributor>
+<name>STT</name>
+</contributor>
+<language tag="fi-FI"/>
+</contentMeta>
+<concept>
+<conceptId qcode="sttevents:259625" created="2022-03-30T08:48:49+03:00"/>
+<type qcode="cpnat:event"/>
+<name>Pesäpallo: Miesten Superpesis, klo 18 Hyvinkää-Kankaanpää</name>
+<remoteInfo rel="irel:seeAlso" href="www.pesis.fi" contenttype="text/html">
+<title>Pesäpalloliitto</title>
+</remoteInfo>
+<remoteInfo rel="irel:seeAlso" href="www.hyvinkaantahko.fi" contenttype="text/html">
+<title>Hyvinkään Tahko</title>
+</remoteInfo>
+<definition role="drol:summary"/>
+<related rel="sttnat:sttEventType" qcode="sttEventType:9">
+<name>Kilpailut</name>
+</related>
+<related rel="sttnat:sttEventScope" qcode="sttEventScope:5">
+<name>SM</name>
+</related>
+<eventDetails>
+<dates>
+<start>2022-07-05T18:00:00+03:00</start>
+</dates><subject type="cpnat:abstract" qcode="sttdepartment:16"><name>Urheilu</name></subject>
+<subject type="cpnat:abstract" qcode="sttsubj:15000000">
+<name>Urheilu</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:15990000">
+<name>Pesäpallo</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:15000000">
+<name>Urheilu</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:15073000">
+<name>Urheilutapahtumat</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:15073031">
+<name>SM-kisat SM-sarjat Kansalliset mestaruuskisat</name>
+</subject>
+<contactInfo>
+<note>Toiminnanjohtaja Antti Yli-Saunamäki </note>
+<phone>Mob:040 752 5252</phone>
+<email>antti.yli-saunamaki@hyvinkaantahko.fi</email>
+<web/>
+</contactInfo>
+<contactInfo>
+<note>  Hyvinkään Tahko </note>
+<phone/>
+<email>tahkopesisoy@hyvinkaantahko.fi</email>
+<web>www.hyvinkaantahko.fi</web>
+</contactInfo>
+<location qcode="sttlocationalias:13062">
+<name>Pihkalan pesäpallostadion</name>
+<broader type="cpnat:geoArea" qcode="sttcity:43">
+<name>Hyvinkää</name>
+</broader>
+<broader type="cpnat:geoArea" qcode="sttstate:31">
+<name>Uusimaa</name>
+</broader>
+<broader type="cpnat:geoArea" qcode="sttcountry:1">
+<name role="nrol:display">Suomi</name>
+<sameAs qcode="iso3166-1a2:FI"/>
+</broader>
+<POIDetails>
+<address>
+<line>Urheilukatu 19</line>
+<locality qcode="sttcity:43">
+<name>Hyvinkää</name>
+</locality>
+<country qcode="sttcountry:1">
+<name role="nrol:display">Suomi</name>
+<sameAs qcode="iso3166-1a2:FI"/>
+</country>
+<postalCode/>
+</address>
+</POIDetails>
+</location>
+</eventDetails>
+</concept></conceptItem>
