@@ -88,10 +88,6 @@ class EventsMLFeedParserTestCase(TestCase):
         self._add_cvs()
         item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
 
-        from pprint import pprint
-
-        pprint(item)
-
         self.assertEqual(item[GUID_FIELD], "urn:newsml:stt.fi:20220705:259625")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
