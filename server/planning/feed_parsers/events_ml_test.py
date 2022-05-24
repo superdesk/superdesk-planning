@@ -95,6 +95,9 @@ class EventsMLFeedParserTestCase(TestCase):
         self.assertEqual(item[GUID_FIELD], "urn:newsml:stt.fi:20220705:259625")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
+        self.assertEqual(item["firstcreated"], datetime(2022, 3, 30, 8, 48, 49, tzinfo=tzoffset(None, 10800)))
+        self.assertEqual(item["versioncreated"], datetime(2022, 3, 30, 9, 31, 13, tzinfo=tzoffset(None, 10800)))
+
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
         self.assertEqual(item["language"], "fi-FI")
         self.assertEqual(item["name"], "Pesäpallo: Miesten Superpesis, klo 18 Hyvinkää-Kankaanpää")

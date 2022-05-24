@@ -84,17 +84,10 @@ class EventsMLParser(NewsMLTwoFeedParser):
             }
 
             self.set_occur_status(item)
+            self.parse_item_meta(tree, item)
             self.parse_content_meta(tree, item)
             self.parse_concept(tree, item)
             self.parse_event_details(tree, item)
-
-            if item.get("firstcreated"):
-                item["event_created"] = item["firstcreated"]
-            if item.get("versioncreated"):
-                item["event_lastmodified"] = item["versioncreated"]
-
-            item["firstcreated"] = utcnow()
-            item["versioncreated"] = utcnow()
 
             return [item]
 
@@ -115,6 +108,17 @@ class EventsMLParser(NewsMLTwoFeedParser):
                 x for x in eocstat_map.get("items", []) if x["qcode"] == "eocstat:eos5" and x.get("is_active", True)
             ][0]
             item["occur_status"].pop("is_active", None)
+
+    def parse_item_meta(self, tree, item):
+        """Parse itemMeta tag"""
+        meta = tree.find(self.qname("itemMeta"))
+
+        versioncreated_elt = meta.find(self.qname("versionCreated"))
+        if versioncreated_elt is not None and versioncreated_elt.text:
+            item["versioncreated"] = self.datetime(meta.find(self.qname("versionCreated")).text)
+        firstcreated_elt = meta.find(self.qname("firstCreated"))
+        if firstcreated_elt is not None and firstcreated_elt.text:
+            item["firstcreated"] = self.datetime(firstcreated_elt.text)
 
     def parse_content_meta(self, tree, item):
         """Parse contentMeta tag"""
