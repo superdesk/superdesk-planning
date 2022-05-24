@@ -8,6 +8,7 @@ sudo apt-get -y install libxml2-dev libxmlsec1-dev libxmlsec1-openssl
 python -m pip install --upgrade 'pip<21.3' wheel setuptools
 
 if [ "$INSTALL_NODE_MODULES" == "true" ]; then
+    git config --global url."https://git@".insteadOf git://
     npm install
 fi
 
@@ -25,5 +26,6 @@ if [ "$E2E" == "true" ]; then
     cd e2e/server
     pip install -r requirements.txt
     cd ../
+    git config --global url."https://git@".insteadOf git://
     npm install
 fi
