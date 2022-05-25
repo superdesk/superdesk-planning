@@ -44,6 +44,6 @@ jobs:
         run: ./scripts/ci-start-services.sh
       # avoid file watch limit error
       - run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-      - run: npm list
+      - run: npm list || true
       - name: test
         run: npm run test
