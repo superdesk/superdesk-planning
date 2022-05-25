@@ -44,6 +44,7 @@
     "@types/sinon": "^9.0.4",
     "@typescript-eslint/parser": "2.6.1",
     "btoa": "^1.1.2",
+    "cheerio": "1.0.0-rc.10",
     "enzyme": "~3.11.0",
     "enzyme-adapter-react-16": "^1.15.5",
     "eslint": "6.6.0",

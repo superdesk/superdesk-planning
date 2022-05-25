@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [14.x]
     env:
       INSTALL_NODE_MODULES: true
     steps:
@@ -44,5 +44,6 @@ jobs:
         run: ./scripts/ci-start-services.sh
       # avoid file watch limit error
       - run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+      - run: npm list || true
       - name: test
         run: npm run test

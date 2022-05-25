@@ -155,8 +155,7 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     submit() {
-        const reason = this.state.reason ? (gettext('Event Rescheduled: ') + this.state.reason) :
-            this.state.reason;
+        const reason = this.state.reason;
 
         return this.props.onSubmit(
             this.props.original,
