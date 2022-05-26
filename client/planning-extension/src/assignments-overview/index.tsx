@@ -119,7 +119,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                                                         disabled={itemsCount < 1}
                                                         pulsate={false}
                                                         data-test-id="toggle-button"
-                                                        title= {gettext('Assignments')}
+                                                        tooltip={gettext('Assignments')}
                                                     >
                                                         <Badge type="highlight" text={itemsCount.toString()}>
                                                             <span
