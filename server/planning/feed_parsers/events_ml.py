@@ -140,7 +140,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
         item["name"] = concept.find(self.qname("name")).text
 
         try:
-            item["definition_short"] = concept.find(self.qname("definition")).text
+            item["definition_short"] = concept.find(self.qname("definition")).text or ""
         except Exception:
             pass
 
