@@ -15,6 +15,7 @@ import logging
 from copy import deepcopy
 from bson import ObjectId
 from superdesk.errors import SuperdeskApiError
+from planning.errors import AssignmentApiError
 from superdesk.metadata.utils import item_url
 from superdesk.metadata.item import (
     metadata_schema,
@@ -1121,7 +1122,7 @@ class AssignmentsService(superdesk.Service):
         # This should not be needed, as you cannot obtain a lock on an Assignment that is completed
         # But keeping it here for completeness
         if doc["assigned_to"].get("state") == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-            raise SuperdeskApiError.badRequestError(message="Cannot delete a completed Assignment")
+            raise AssignmentApiError.cannotDeleteAssignmentError("Cannot delete a completed Assignment {}".format(doc.get("planning", {}).get("slugline")))
 
     def archive_delete_assignment(self, doc):
         """
