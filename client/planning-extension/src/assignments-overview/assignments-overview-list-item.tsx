@@ -33,7 +33,7 @@ export class AssignmentsOverviewListItem extends React.PureComponent<IProps> {
                         <i className={className} title={tooltip} />
                     </ListItemColumn>
 
-                    <ListItemColumn grow noPadding>
+                    <ListItemColumn title={assignment.planning.slugline} noBorder ellipsisAndGrow>
                         <ListItemRow>
                             <ListItemColumn grow>
                                 <SluglineComponent assignment={assignment} />

@@ -16,6 +16,7 @@ import {AssignmentsOverviewListItem} from './assignments-overview-list-item';
 const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
 const {GroupLabel, IconBig, TopMenuDropdownButton, getLiveQueryHOC, WithLiveResources} = superdesk.components;
 const LiveAssignmentsHOC = getLiveQueryHOC<IAssignmentItem>();
+const {gettext} = superdesk.localization;
 
 interface IProps {
     // empty
@@ -118,6 +119,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                                                         disabled={itemsCount < 1}
                                                         pulsate={false}
                                                         data-test-id="toggle-button"
+                                                        tooltip={gettext('Assignments')}
                                                     >
                                                         <Badge type="highlight" text={itemsCount.toString()}>
                                                             <span
