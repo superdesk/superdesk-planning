@@ -15,6 +15,7 @@ import superdesk
 import logging
 from flask import json, current_app as app
 from superdesk.errors import SuperdeskApiError
+from planning.errors import AssignmentApiError
 from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE
 from superdesk import get_resource_service
@@ -1004,15 +1005,23 @@ class PlanningService(superdesk.Service):
                         "type": assign_planning.get("g2_content_type"),
                     }
                 )
-            except SuperdeskApiError:
-                logger.error("Failed to delete assignment {}".format(assign_id))
+            except AssignmentApiError as e:
+                logger.error("There is a assignment '{}' is in progress".format(assign_id))
                 failed_assignments.append(
                     {
+                        "state": "in Progress",
                         "slugline": assign_planning.get("slugline"),
                         "type": assign_planning.get("g2_content_type"),
                     }
                 )
-
+            except SuperdeskApiError as e:
+                failed_assignments.append(
+                    {
+                        "error": str(e),
+                        "slugline": assign_planning.get("slugline"),
+                        "type": assign_planning.get("g2_content_type"),
+                    }
+                )
                 # Mark the assignment to be deleted.
                 original_assigment = assignment_service.find_one(req=None, _id=assign_id)
                 if original_assigment:
