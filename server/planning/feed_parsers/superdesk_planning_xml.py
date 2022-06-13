@@ -1,4 +1,3 @@
-
 from cgitb import text
 from datetime import date
 import logging
@@ -142,7 +141,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
             item["news_coverage_status"] = {
                 "label": "planned",
                 "name": "coverage intended",
-                "qcode": news_coverage_status
+                "qcode": news_coverage_status,
             }
 
     def parse_genre(self, planning_elt, planning):
@@ -154,10 +153,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         genre_elt = planning_elt.find(self.qname("genre"))
         if genre_elt is not None:
             genre_name = genre_elt.find(self.qname("name"))
-            planning["genre"] = [{
-                "qcode": genre_elt.get("qcode"),
-                "name": genre_name.text
-            }]
+            planning["genre"] = [{"qcode": genre_elt.get("qcode"), "name": genre_name.text}]
 
     def parse_coverage_planning(self, news_coverage_elt):
         """Map news coverage with planning
@@ -168,14 +164,13 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         if planning_elt is not None:
             headline_elt = planning_elt.find(self.qname("headline"))
             content = planning_elt.find(self.qname("itemClass")).get("qcode")
-            planning = {"slugline": headline_elt.text, "g2_content_type": content.split(':')[1]}
+            planning = {"slugline": headline_elt.text, "g2_content_type": content.split(":")[1]}
 
             scheduled_elt = planning_elt.find(self.qname("scheduled"))
             if scheduled_elt is not None and scheduled_elt.text:
                 planning["scheduled"] = self.datetime(scheduled_elt.text)
 
             self.parse_genre(planning_elt, planning)
-            print(planning, "Planning")
             return planning
 
         return {}
@@ -190,8 +185,10 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         news_coverage_set = tree.find(self.qname("newsCoverageSet"))
         if news_coverage_set:
             for news_coverage_elt in news_coverage_set.findall(self.qname("newsCoverage")):
-                item["coverages"].append({
-                    "coverage_id": news_coverage_elt.get("id"),
-                    "firstcreated": self.datetime(news_coverage_elt.get("modified")),
-                    "planning": self.parse_coverage_planning(news_coverage_elt)
-                })
+                item["coverages"].append(
+                    {
+                        "coverage_id": news_coverage_elt.get("id"),
+                        "firstcreated": self.datetime(news_coverage_elt.get("modified")),
+                        "planning": self.parse_coverage_planning(news_coverage_elt),
+                    }
+                )
