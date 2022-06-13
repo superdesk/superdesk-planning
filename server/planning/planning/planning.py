@@ -184,7 +184,6 @@ class PlanningService(superdesk.Service):
         )
         item["ingest_provider_sequence"] = str(sequence_number)
 
-
     def update(self, id, updates, original):
         updates.setdefault("versioncreated", utcnow())
         item = self.backend.update(self.datasource, id, updates, original)
