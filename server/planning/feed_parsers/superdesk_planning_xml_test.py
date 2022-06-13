@@ -27,37 +27,37 @@ class PlanningMLFeedParserTestCase(TestCase):
             self.app.data.insert(
                 "vocabularies",
                 [
-                                    {
-                        "_id" : "newscoveragestatus",
-                        "display_name" : "News Coverage Status",
-                        "type" : "manageable",
-                        "unique_field" : "qcode",
-                        "selection_type" : "do not show",
-                        "items" : [ 
+                    {
+                        "_id": "newscoveragestatus",
+                        "display_name": "News Coverage Status",
+                        "type": "manageable",
+                        "unique_field": "qcode",
+                        "selection_type": "do not show",
+                        "items": [
                             {
-                                "is_active" : True,
-                                "qcode" : "ncostat:int",
-                                "name" : "coverage intended",
-                                "label" : "Planned"
-                            }, 
+                                "is_active": True,
+                                "qcode": "ncostat:int",
+                                "name": "coverage intended",
+                                "label": "Planned",
+                            },
                             {
-                                "is_active" : True,
-                                "qcode" : "ncostat:notdec",
-                                "name" : "coverage not decided yet",
-                                "label" : "On merit"
-                            }, 
+                                "is_active": True,
+                                "qcode": "ncostat:notdec",
+                                "name": "coverage not decided yet",
+                                "label": "On merit",
+                            },
                             {
-                                "is_active" : False,
-                                "qcode" : "ncostat:notint",
-                                "name" : "coverage not intended",
-                                "label" : "Not planned"
-                            }, 
+                                "is_active": False,
+                                "qcode": "ncostat:notint",
+                                "name": "coverage not intended",
+                                "label": "Not planned",
+                            },
                             {
-                                "is_active" : True,
-                                "qcode" : "ncostat:onreq",
-                                "name" : "coverage upon request",
-                                "label" : "On request"
-                            }
+                                "is_active": True,
+                                "qcode": "ncostat:onreq",
+                                "name": "coverage upon request",
+                                "label": "On request",
+                            },
                         ],
                     }
                 ],
@@ -73,7 +73,10 @@ class PlanningMLFeedParserTestCase(TestCase):
         self.assertEqual(item[GUID_FIELD], "urn:newsml:stt.fi:20220506:581312")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.PLANNING)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
-        self.assertEqual(item["slugline"], "Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?")
+        self.assertEqual(
+            item["slugline"],
+            "Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?",
+        )
         self.assertEqual(item["ednote"], "Valtiovarainministeriön ehdotus toiseksi lisätalousarvioksi")
         self.assertEqual(item["coverages"][0]["coverage_id"], "ID_TEXT_120190859")
         self.assertEqual(item["coverages"][0]["planning"]["g2_content_type"], "text")
