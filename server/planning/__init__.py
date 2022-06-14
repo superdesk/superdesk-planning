@@ -70,6 +70,7 @@ import planning.commands  # noqa
 import planning.feeding_services  # noqa
 import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
+import planning.io  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
 __version__ = "2.5.0-dev"
