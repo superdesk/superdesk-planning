@@ -5,15 +5,14 @@ import {
     ISuperdesk,
     IExtensionActivationResult,
     onPublishMiddlewareResult,
-    IIngestRuleHandler,
-    IIngestRule,
 } from 'superdesk-api';
 import {IPlanningAssignmentService} from './interfaces';
 import {IPlanningConfig} from '../../interfaces';
 import {getAssignmentService} from './utils';
 import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
-import {PlanningIngestRuleHandlerActions, PlanningIngestRuleHandlerActionsPreview} from './PlanningIngestRuleHandlerActions';
+import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
+import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -105,7 +104,6 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
-        const {gettext} = superdesk.localization;
 
         return superdesk.privileges.getOwnPrivileges().then((privileges) => {
             const displayTopbarWidget = privileges['planning_assignments_view'] === 1
@@ -122,43 +120,12 @@ const extension: IExtension = {
                             onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
                         },
                         ingest: {
-                            getRuleHandlers(): Array<IIngestRuleHandler> {
-                                return [{
-                                    name: 'planning_publish',
-                                    label: gettext('Planning'),
-                                    supportedActions: {
-                                        fetch_to_desk: false,
-                                        publish_from_desk: false,
-                                    },
-                                    supportedConfigs: {
-                                        exit: true,
-                                        preserveDesk: false,
-                                    },
-                                    customActionComponent: PlanningIngestRuleHandlerActions,
-                                    customActionPreview: PlanningIngestRuleHandlerActionsPreview,
-                                    getDefaults(): IIngestRule {
-                                        return {
-                                            name: '',
-                                            handler: 'planning_publish',
-                                            filter: null,
-                                            actions: {
-                                                fetch: [],
-                                                publish: [],
-                                                exit: false,
-                                                extra: {
-                                                    autopost: true,
-                                                },
-                                            },
-                                            schedule: {
-                                                day_of_week: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'],
-                                                hour_of_day_from: undefined,
-                                                hour_of_day_to: undefined,
-                                                _allDay: true,
-                                            },
-                                        }
-                                    }
-                                }];
-                            }
+                            ruleHandlers: {
+                                planning_publish: {
+                                    editor: AutopostIngestRuleEditor,
+                                    preview: AutopostIngestRulePreview,
+                                },
+                            },
                         },
                     },
                     globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],

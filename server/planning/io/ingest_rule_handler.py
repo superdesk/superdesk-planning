@@ -11,6 +11,8 @@
 import logging
 
 from eve.utils import config
+from flask_babel import lazy_gettext
+
 from superdesk.metadata.item import ITEM_TYPE
 from apps.rules.rule_handlers import RoutingRuleHandler, register_routing_rule_handler
 
@@ -21,7 +23,35 @@ logger = logging.getLogger(__name__)
 
 
 class PlanningRoutingRuleHandler(RoutingRuleHandler):
-    NAME = "planning_publish"
+    ID = "planning_publish"
+    NAME = lazy_gettext("Autopost Planning")
+    supported_actions = {
+        "fetch_to_desk": False,
+        "publish_from_desk": False,
+    }
+    supported_configs = {
+        "exit": True,
+        "preserve_desk": False,
+    }
+    default_values = {
+        "name": "",
+        "handler": "planning_publish",
+        "filter": None,
+        "actions": {
+            "fetch": [],
+            "publish": [],
+            "exit": False,
+            "extra": {
+                "autopost": True,
+            },
+        },
+        "schedule": {
+            "day_of_week": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
+            "hour_of_day_from": None,
+            "hour_of_day_to": None,
+            "_allDay": True,
+        },
+    }
 
     def can_handle(self, rule, ingest_item, routing_scheme):
         return ingest_item.get(ITEM_TYPE) in [ITEM_TYPES.EVENT, ITEM_TYPES.PLANNING]
