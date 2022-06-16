@@ -31,20 +31,23 @@ class Onclusive:
         try:
             for event in content:
                 guid = "urn:newsml:{}:{}".format(event["createdDate"], event["itemId"])
-                logger.warning("An event already exists with exact same ID. Updating events is not supported yet")
-                item = {
-                    GUID_FIELD: guid,
-                    ITEM_TYPE: CONTENT_TYPE.EVENT,
-                    "state": CONTENT_STATE.INGESTED,
-                }
 
-                self.set_occur_status(item)
-                self.parse_item_meta(event, item)
-                self.parse_location(event, item)
-                self.parse_event_details(event, item)
-                self.parse_category(event, item)
+                if get_resource_service("events").find_one(req=None, guid=guid):
+                    logger.warning("An event already exists with exact same ID. Updating events is not supported yet")
+                else:
+                    item = {
+                        GUID_FIELD: guid,
+                        ITEM_TYPE: CONTENT_TYPE.EVENT,
+                        "state": CONTENT_STATE.INGESTED,
+                    }
 
-                self.all_events.append(item)
+                    self.set_occur_status(item)
+                    self.parse_item_meta(event, item)
+                    self.parse_location(event, item)
+                    self.parse_event_details(event, item)
+                    self.parse_category(event, item)
+
+                    self.all_events.append(item)
             return self.all_events
 
         except Exception as ex:
