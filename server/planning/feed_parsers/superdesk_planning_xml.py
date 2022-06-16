@@ -59,6 +59,11 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         try:
             guid = tree.attrib["guid"]
+
+            if get_resource_service("planning").find_one(req=None, guid=guid):
+                logger.warning("A planning item already exists with exact same ID. Updating planning item is not supported yet")
+                return []
+
             item = {
                 GUID_FIELD: guid,
                 ITEM_TYPE: CONTENT_TYPE.PLANNING,
