@@ -27,7 +27,7 @@ class Onclusive:
     def parse_http(self, content, provider):
         return self.parse(content, provider)
 
-    def parse(self, content, provider):
+    def parse(self, content, provider=None):
         try:
             for event in content:
                 guid = "urn:newsml:{}:{}".format(event["createdDate"], event["itemId"])
@@ -73,9 +73,10 @@ class Onclusive:
         item["firstcreated"] = self.datetime(event["createdDate"])
         item["_updated"] = self.datetime(event["lastEditDate"])
         item["slugline"] = (
-            event["summary"] if event["summary"] != "" or event["summary"] is not None else event["description"]
+            event["summary"] if (event["summary"] is not None and event["summary"] != "") else event["description"]
         )
         item["definition_short"] = event["description"]
+        item["links"] = event["website1"]
 
     def parse_event_details(self, event, item):
         start_date = event["startDate"]

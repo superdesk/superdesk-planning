@@ -5,3 +5,4 @@ types-mock==0.1.5
 types-python-dateutil==0.1.2
 types-pytz==0.1.0
 typing-extensions==3.10.0.0
+types-requests==0.1.8
