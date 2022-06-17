@@ -14,6 +14,7 @@ from bson import ObjectId
 import superdesk
 import logging
 from flask import json, current_app as app
+from eve.methods.common import resolve_document_etag
 from superdesk.errors import SuperdeskApiError
 from planning.errors import AssignmentApiError
 from superdesk.metadata.utils import generate_guid, item_url
@@ -62,6 +63,19 @@ logger = logging.getLogger(__name__)
 
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
+
+    def post_in_mongo(self, docs, **kwargs):
+        for doc in docs:
+            self._resolve_defaults(doc)
+        self.on_create(docs)
+        resolve_document_etag(docs, self.datasource)
+        ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
+        self.on_created(docs)
+        return ids
+
+    def patch_in_mongo(self, id, document, original):
+        res = self.backend.update_in_mongo(self.datasource, id, document, original)
+        return res
 
     def generate_related_assignments(self, docs):
         for doc in docs:
@@ -156,6 +170,19 @@ class PlanningService(superdesk.Service):
 
     def on_locked_planning(self, item, user_id):
         self.generate_related_assignments([item])
+
+    @staticmethod
+    def set_ingest_provider_sequence(item, provider):
+        """Sets the value of ingest_provider_sequence in item.
+
+        :param item: object to which ingest_provider_sequence to be set
+        :param provider: ingest_provider object, used to build the key name of sequence
+        """
+        sequence_number = get_resource_service("sequences").get_next_sequence_number(
+            key_name="ingest_providers_{_id}".format(_id=provider[config.ID_FIELD]),
+            max_seq_number=app.config["MAX_VALUE_OF_INGEST_SEQUENCE"],
+        )
+        item["ingest_provider_sequence"] = str(sequence_number)
 
     def update(self, id, updates, original):
         updates.setdefault("versioncreated", utcnow())

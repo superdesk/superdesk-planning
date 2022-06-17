@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<planningItem xmlns="http://iptc.org/std/nar/2006-10-01/" xmlns:stt="http://www.stt-lehtikuva.fi/NewsML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://iptc.org/std/nar/2006-10-01/ http://www.iptc.org/std/NewsML-G2/2.12/specification/NewsML-G2_2.12-spec-All-Power.xsd http://www.stt-lehtikuva.fi/NewsML http://www.stt-lehtikuva.fi/newsml/schema/STT-Lehtikuva_NewsML_G2.xsd" guid="urn:newsml:stt.fi:20220506:581312" version="1" standard="NewsML-G2" standardversion="2.12" conformance="power" xml:lang="fi">
+<catalogRef href="http://www.iptc.org/std/catalog/catalog.IPTC-G2-Standards_18.xml"/>
+<catalogRef href="http://www.stt-lehtikuva.fi/newsml/doc/stt-NewsCodesCatalog_1.xml"/>
+<itemMeta>
+<itemClass qcode="plinat:newscoverage"/>
+<provider literal="STT"/>
+<versionCreated>2022-02-16T12:18:17+02:00</versionCreated>
+<pubStatus qcode="stat:usable"/>
+<edNote role="sttdescription:additionalinfo">Valtiovarainministeriön ehdotus toiseksi lisätalousarvioksi</edNote>
+</itemMeta>
+<contentMeta>
+<contentCreated>2022-02-16T12:18:17+02:00</contentCreated>
+<contentModified>2022-02-16T12:18:17+02:00</contentModified>
+<headline>Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?</headline>
+<description role="drol:summary"/>
+<subject qcode="stt-topics:581312">
+<related rel="sttrel:assigneddate" value="2022-05-06" valuedatatype="Date"/>
+</subject>
+<subject type="cpnat:department" qcode="sttdepartment:9">
+<name>Politiikka</name>
+</subject>
+</contentMeta>
+<assert qcode="stt-topics:581312">
+<newsCoverageStatus qcode="ncostat:int"/>
+</assert>
+<newsCoverageSet>
+<newsCoverage id="ID_TEXT_120190859">
+<planning>
+<g2contentType>application/vnd.iptc.g2.newsitem+xml</g2contentType>
+<itemClass qcode="ninat:text"/>
+<headline>Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?</headline>
+<description/>
+<subject type="cpnat:abstract" qcode="sttdeadline2:20220506120000">
+<name>2022-05-06T12:00:00+02:00</name>
+</subject>
+<subject qcode="stt-topics:581312" type="cpnat:abstract"/>
+<genre qcode="sttgenre:1">
+<name>Pääjuttu</name>
+<narrower qcode="sttversion:3"/>
+<narrower qcode="sttversion:4"/>
+<narrower qcode="sttversion:6"/>
+<narrower qcode="sttversion:7"/>
+<related rel="sttrel:plannedlength" value="3150"/>
+</genre>
+</planning>
+<delivery>
+<deliveredItemRef guidref="urn:newsml:stt.fi:20220506020000:104909012">
+<modified>2022-05-06T02:02:55+02:00</modified>
+</deliveredItemRef>
+<deliveredItemRef guidref="urn:newsml:stt.fi:20220506020100:104909238">
+<modified>2022-05-06T02:03:34+02:00</modified>
+</deliveredItemRef>
+<deliveredItemRef guidref="urn:newsml:stt.fi:20220506020200:104909790">
+<modified>2022-05-06T02:04:49+02:00</modified>
+</deliveredItemRef>
+<deliveredItemRef guidref="urn:newsml:stt.fi:20220506020200:104909790">
+<modified>2022-05-06T02:26:27+02:00</modified>
+</deliveredItemRef>
+</delivery>
+</newsCoverage>
+<newsCoverage id="ID_WORKREQUEST_161861">
+<planning>
+<g2contentType>application/vnd.iptc.g2.newsitem+xml</g2contentType>
+<itemClass qcode="ninat:picture"/>
+<headline> 1 VM LOGO AJASTUKSELLA // Valtiovarainministeriön ehdotus toiseksi lisätalousarvioksi lähetetään ministeriöille </headline>
+<subject type="cpnat:abstract" qcode="sttworkstatus:1">
+<name>Tehdään</name>
+</subject>
+<subject type="ninat:text" qcode="urn:newsml:stt.fi:20220506000000:161861">
+<stt:workstartdate>2022-05-06T00:00:00+02:00</stt:workstartdate>
+<stt:workenddate>2022-05-06T00:00:00+02:00</stt:workenddate>
+</subject>
+<dateline>Suomi</dateline>
+<genre qcode="sttimage:28">
+<name>Kuvituskuvaa arkistosta</name>
+</genre>
+</planning>
+</newsCoverage>
+</newsCoverageSet>
+</planningItem>
