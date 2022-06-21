@@ -12,8 +12,8 @@ class OnclusiveApiServiceTestCase(TestCase):
             service = OnclusiveApiService()
             provider = {
                 "_id": "onclusive_api",
-                "name": "onclusiveapi",
+                "name": "onclusive",
                 "feed_parser": "onclusiveapi",
+                "config": {"url": "https://api.abc.com/", "username": "user", "password": "pass"},
             }
-            events = list(service.update(provider, {}))
-            self.assertEqual(len(events), 1)
+            self.assertEqual(list(service._update(provider, {})), [])
