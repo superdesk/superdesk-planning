@@ -11,6 +11,8 @@ import {IPlanningConfig} from '../../interfaces';
 import {getAssignmentService} from './utils';
 import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
+import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
+import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -116,6 +118,14 @@ const extension: IExtension = {
                             onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
                             onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
                             onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                        },
+                        ingest: {
+                            ruleHandlers: {
+                                planning_publish: {
+                                    editor: AutopostIngestRuleEditor,
+                                    preview: AutopostIngestRulePreview,
+                                },
+                            },
                         },
                     },
                     globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
