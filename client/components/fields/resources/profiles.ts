@@ -6,8 +6,8 @@ import {EditorFieldNumber} from '../editor/base/number';
 import {EditorFieldToggle} from '../editor/base/toggle';
 import {EditorFieldSelect} from '../editor/base/select';
 import {EditorFieldCheckbox} from '../editor/base/checkbox';
+import {SelectCustomVocabulariesList} from '../editor/SelectCustomVocabulariesList';
 
-// TODO: Change this to a checkbox
 registerEditorField(
     'schema.required',
     EditorFieldCheckbox,
@@ -75,6 +75,17 @@ registerEditorField(
             {qcode: 'editor_3', label: superdeskApi.localization.gettext('Editor 3')},
         ],
         valueAsString: true,
+    }),
+    null,
+    true
+);
+
+registerEditorField(
+    'schema.vocabularies',
+    SelectCustomVocabulariesList,
+    () => ({
+        label: superdeskApi.localization.gettext('Vocabularies'),
+        field: 'schema.vocabularies',
     }),
     null,
     true

@@ -23,7 +23,9 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
         return (
             <CustomVocabulariesFields
                 testId={this.props.testId}
-                customVocabularies={this.props.vocabularies}
+                customVocabularies={this.props.vocabularies.filter((cv) => (
+                    (this.props.schema.vocabularies ?? []).includes(cv._id)
+                ))}
                 fieldProps={{
                     item: this.props.item,
                     diff: this.props.item,
@@ -31,7 +33,6 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                     onChange: this.props.onChange,
                     errors: this.props.errors,
                 }}
-                formProfile={this.props.profile}
                 popupProps={{
                     onPopupOpen: this.props.onPopupOpen,
                     onPopupClose: this.props.onPopupClose,
