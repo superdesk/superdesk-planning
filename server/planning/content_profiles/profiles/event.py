@@ -159,7 +159,6 @@ DEFAULT_EVENT_PROFILE = {
             "group": "related_plannings",
             "index": 1,
         },
-
         # Fields disabled by default
         "custom_vocabularies": {"enabled": False},
     },
