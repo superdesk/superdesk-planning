@@ -2,12 +2,12 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventFormProfile, IEventItem, IFile, PREVIEW_PANEL} from '../../interfaces';
 
 import {getCreator, getFileDownloadURL} from '../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import * as selectors from '../../selectors';
 
 import {
@@ -96,7 +96,7 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                     previewGroupToProfile(PREVIEW_PANEL.EVENT, formProfile),
                     {
                         item: item,
-                        language: getUserInterfaceLanguage(),
+                        language: getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                         schema: formProfile.schema,
                     },

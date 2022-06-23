@@ -2,8 +2,6 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
-
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
@@ -18,6 +16,7 @@ import {
 } from '../../interfaces';
 
 import {eventUtils, getCreator, getFileDownloadURL} from '../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
@@ -144,7 +143,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                     previewGroupToProfile(PREVIEW_PANEL.PLANNING, formProfile?.planning),
                     {
                         item: item,
-                        language: getUserInterfaceLanguage(),
+                        language: getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                         schema: formProfile?.planning.schema,
                     },

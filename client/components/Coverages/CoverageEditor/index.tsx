@@ -11,7 +11,6 @@ import {
     IPlanningNewsCoverageStatus
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
-import {getUserInterfaceLanguage} from 'appConfig';
 
 import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';
@@ -21,6 +20,7 @@ import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {COVERAGES} from '../../../constants';
 
 interface IProps {
@@ -115,7 +115,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
         let itemActions = [];
 
         if (!readOnly && !addNewsItemToPlanning) {
-            const language = value.planning?.language ?? getUserInterfaceLanguage();
+            const language = value.planning?.language ?? getUserInterfaceLanguageFromCV();
             const duplicateActions = contentTypes
                 .filter((contentType) => (
                     contentType.qcode !== get(value, 'planning.g2_content_type')

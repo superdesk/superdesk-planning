@@ -1,7 +1,6 @@
 import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, ISession, IPrivileges, ASSIGNMENT_STATE} from '../interfaces';
 
@@ -9,6 +8,7 @@ import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 
 import {gettext, planningUtils, lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
+import {getUserInterfaceLanguageFromCV} from './users';
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 
 const isNotLockRestricted = (assignment, session) => (
@@ -374,7 +374,7 @@ export function getAssignmentTypeInfo(assignment: IAssignmentItem, contentTypes:
             (type) => type.qcode === g2ContentType
         ),
         'name',
-        assignment.planning?.language || getUserInterfaceLanguage()
+        assignment.planning?.language || getUserInterfaceLanguageFromCV()
     );
     const tooltip = gettext('Article Type: {{type}}', {type: contentTypeName});
     const className = planningUtils.getCoverageIcon(

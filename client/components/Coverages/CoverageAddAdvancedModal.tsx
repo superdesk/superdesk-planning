@@ -1,11 +1,11 @@
 import React from 'react';
 import {get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
 import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
 import Modal from '../Modal';
@@ -67,7 +67,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
         return getVocabularyItemFieldTranslated(
             contentType,
             'name',
-            getUserInterfaceLanguage()
+            getUserInterfaceLanguageFromCV()
         );
     }
 
@@ -217,7 +217,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
     }
 
     render() {
-        const language = getUserInterfaceLanguage();
+        const language = getUserInterfaceLanguageFromCV();
 
         return (
             <Modal

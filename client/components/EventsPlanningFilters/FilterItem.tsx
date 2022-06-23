@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 
-import {getUserInterfaceLanguage} from 'appConfig';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {PRIVILEGES} from '../../constants';
 import {List} from '../UI';
 import {ItemActionsMenu} from '../ItemActionsMenu';
@@ -49,7 +49,7 @@ export class FilterItem extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const language = getUserInterfaceLanguage();
+        const language = getUserInterfaceLanguageFromCV();
         const actions = !this.props.privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] ?
             [] :
             [{

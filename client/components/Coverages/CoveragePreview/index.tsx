@@ -1,7 +1,6 @@
 import React from 'react';
 import {get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {
@@ -16,6 +15,7 @@ import {
 import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox, FileReadOnlyList} from '../../UI';
 import {assignmentUtils, planningUtils} from '../../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {ContactsPreviewList} from '../../Contacts';
 import {PLANNING, WORKFLOW_STATE} from '../../../constants';
 import {CoverageItem} from '../';
@@ -138,7 +138,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     previewGroupToProfile(PREVIEW_PANEL.COVERAGE, formProfile),
                     {
                         item: coverage.planning,
-                        language: getUserInterfaceLanguage(),
+                        language: getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                     },
                     {}

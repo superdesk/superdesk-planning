@@ -3,11 +3,10 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
-
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {gettext} from '../../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {Label, Row as FormRow, Field, SelectMetaTermsInput} from '../../UI/Form/';
 import '../style.scss';
 
@@ -40,7 +39,7 @@ export class CreatePlanningComponent extends React.Component {
     }
 
     render() {
-        const language = getUserInterfaceLanguage();
+        const language = getUserInterfaceLanguageFromCV();
 
         return (
             <FormRow noPadding>

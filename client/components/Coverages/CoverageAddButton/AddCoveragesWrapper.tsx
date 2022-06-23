@@ -2,12 +2,12 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {memoize} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../../interfaces';
 
 import {planningUtils, onEventCapture} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
@@ -154,7 +154,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
     render() {
         const Button = this.props.button;
         const coverageTypes = this.getOptions(
-            this.props.language || getUserInterfaceLanguage(),
+            this.props.language || getUserInterfaceLanguageFromCV(),
             this.props.contentTypes,
             this.props.onAdd,
             this.props.defaultDesk,
