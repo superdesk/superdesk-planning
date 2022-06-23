@@ -1,4 +1,3 @@
-from requests import HTTPError
 from planning.feeding_services.onclusive_api_service import OnclusiveApiService
 from planning.tests import TestCase
 

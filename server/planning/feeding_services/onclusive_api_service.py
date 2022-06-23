@@ -47,7 +47,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         """
         Fetch events from external API.
 
-        :param provider: Ingest Provider DetTOKENails.
+        :param provider: Ingest Provider Details.
         :type provider: dict
         :param update: Any update that is required on provider.
         :type update: dict
