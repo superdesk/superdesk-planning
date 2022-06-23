@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime, date, timedelta
+from flask_babel import lazy_gettext
 import requests
+import superdesk
 from superdesk.io.feeding_services.http_base_service import HTTPFeedingServiceBase
 
 logger = logging.getLogger(__name__)
@@ -23,8 +25,20 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             "required": True,
             "default": "https://api.forwardplanner.com/",
         },
-        {"id": "username", "type": "text", "label": "Username", "placeholder": "Username", "required": True},
-        {"id": "password", "type": "password", "label": "Password", "placeholder": "Password", "required": True},
+        {
+            "id": "username",
+            "type": "text",
+            "label": lazy_gettext("Username"),
+            "placeholder": lazy_gettext("Username"),
+            "required": True,
+        },
+        {
+            "id": "password",
+            "type": "password",
+            "label": lazy_gettext("Password"),
+            "placeholder": lazy_gettext("Password"),
+            "required": True,
+        },
     ]
 
     HTTP_AUTH = False
@@ -33,7 +47,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         """
         Fetch events from external API.
 
-        :param provider: Ingest Provider Details.
+        :param provider: Ingest Provider DetTOKENails.
         :type provider: dict
         :param update: Any update that is required on provider.
         :type update: dict
@@ -41,26 +55,13 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         """
         session = requests.Session()
         current_date = datetime.now()
+        TIMEOUT = (5, 30)
         URL = provider["config"]["url"]
-        USERNAME = provider["config"]["username"]
-        PASSWORD = provider["config"]["password"]
-        TOKEN = ""
-        REF_TOKEN = ""
-        # authntication get token
-        if not TOKEN:
-            try:
-                auth_url = URL + "api/v2/auth"
-                body = {"username": USERNAME, "password": PASSWORD}
-                resp = session.post(auth_url, body)
 
-                resp.raise_for_status()
-                if resp.status_code == 200 and resp.content:
-                    data = resp.json()
-                    if data.get("token") and data.get("refreshToken"):
-                        TOKEN = data["token"]
-                        REF_TOKEN = data["refreshToken"]
-            except Exception as e:
-                logger.error("Not Found URL {}".format(URL))
+        if provider["config"].get("refreshToken"):
+            TOKEN = self.renew_token(provider, session, TIMEOUT)
+        else:
+            TOKEN = self.authentication(TIMEOUT, session, provider)
 
         if TOKEN:
             headers = {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN}
@@ -69,22 +70,22 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 provider.get("last_updated") and provider["last_updated"].date() != current_date.date()
             ):
                 current_url = "{}/api/v2/events/date?date={}".format(URL, current_date.strftime("%Y%m%d"))
-                current_event_response = session.get(url=current_url, headers=headers)
+                current_event_response = session.get(url=current_url, headers=headers, timeout=TIMEOUT)
                 current_event_response.raise_for_status()
 
                 if current_event_response.status_code == 401:
-                    TOKEN = self.renew_token(URL, REF_TOKEN, session)
+                    TOKEN = self.renew_token(URL, provider, session)
                 content = current_event_response.json()
 
             end_date = current_date + timedelta(days=30)
             latest_url = "{}/api/v2/events/between?startDate={}&endDate={}".format(
                 URL, current_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d")
             )
-            latest_event_response = session.get(url=latest_url, headers=headers)
+            latest_event_response = session.get(url=latest_url, headers=headers, timeout=TIMEOUT)
             latest_event_response.raise_for_status()
 
             if latest_event_response.status_code == 401:
-                TOKEN = self.renew_token(URL, REF_TOKEN, session)
+                TOKEN = self.renew_token(URL, provider, session)
             content = latest_event_response.json()
 
             parser = self.get_feed_parser(provider)
@@ -102,16 +103,24 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             else:
                 yield [items]
 
-    def renew_token(
-        self,
-        url,
-        ref_token,
-        session,
-    ):
+    def authentication(self, TIMEOUT, session, provider):
+        # authntication get token
+        auth_url = provider["config"]["url"] + "api/v2/auth"
+        body = {"username": provider["config"]["username"], "password": provider["config"]["password"]}
+        resp = session.post(auth_url, body, timeout=TIMEOUT)
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("token") and data.get("refreshToken"):
+            provider["config"]["refreshToken"] = data["refreshToken"]
+            superdesk.get_resource_service("ingest_providers").patch(provider["_id"], provider)
+            return data["refreshToken"]
+
+    def renew_token(self, provider, session):
         # Need to renew Token
-        url = url + "api/v2/auth/renew"
-        body = {"refreshToken": ref_token}
-        renew_response = session.post(url=url, data=body)
+        url = provider["config"]["url"] + "api/v2/auth/renew"
+        body = {"refreshToken": provider["config"]["refreshToken"]}
+        renew_response = session.post(url=url, data=body, timeout=5)
+        renew_response.raise_for_status()
         if renew_response.status_code == 200:
             new_token = renew_response.json()
             return new_token["token"]

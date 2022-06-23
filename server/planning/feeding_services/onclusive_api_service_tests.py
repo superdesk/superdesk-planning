@@ -1,3 +1,4 @@
+from requests import HTTPError
 from planning.feeding_services.onclusive_api_service import OnclusiveApiService
 from planning.tests import TestCase
 
@@ -16,4 +17,8 @@ class OnclusiveApiServiceTestCase(TestCase):
                 "feed_parser": "onclusiveapi",
                 "config": {"url": "https://api.abc.com/", "username": "user", "password": "pass"},
             }
-            self.assertEqual(list(service._update(provider, {})), [])
+            with self.assertRaises(Exception) as error:
+                list(service._update(provider, {}))
+            self.assertEqual(
+                "404 Client Error: Not Found for url: https://api.abc.com/api/v2/auth", error.exception.args[0]
+            )
