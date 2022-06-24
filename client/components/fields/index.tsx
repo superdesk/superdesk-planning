@@ -1,9 +1,9 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -46,7 +46,7 @@ export function registerField(id, component) {
  * @param {Object} props
  */
 export function renderFields(fields, item, props = {}) {
-    const language = getUserInterfaceLanguage();
+    const language = getUserInterfaceLanguageFromCV();
 
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];

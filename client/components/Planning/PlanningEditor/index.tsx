@@ -2,7 +2,7 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {cloneDeep, get, isEqual} from 'lodash';
 
-import {getUserInterfaceLanguage, appConfig} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
@@ -22,6 +22,7 @@ import {planningApi} from '../../../superdeskApi';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {planningUtils, eventUtils} from '../../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
@@ -455,7 +456,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 editorType={this.props.editorType}
                 globalProps={{
                     item: this.props.diff,
-                    language: this.props.diff.language ?? getUserInterfaceLanguage(),
+                    language: this.props.diff.language ?? getUserInterfaceLanguageFromCV(),
                     onChange: this.props.onChangeHandler,
                     errors: this.props.errors,
                     showErrors: this.props.submitFailed,

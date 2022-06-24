@@ -2,7 +2,6 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {isEqual} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {
     IEventItem,
     IEventFormProfile,
@@ -16,6 +15,7 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
@@ -150,7 +150,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const editor = planningApi.editor(this.props.editorType);
-        const language = this.props.diff.language ?? getUserInterfaceLanguage();
+        const language = this.props.diff.language ?? getUserInterfaceLanguageFromCV();
 
         return (
             <EditorForm

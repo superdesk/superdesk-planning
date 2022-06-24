@@ -52,6 +52,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
             'schema.maxlength': {enabled: !disableMinMax},
             'schema.expandable': {enabled: fieldType === 'multi_line'},
             'schema.format_options': {enabled: fieldType === 'editor_3'},
+            'schema.vocabularies': {enabled: this.props.item.name === 'custom_vocabularies'},
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)
@@ -128,6 +129,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
                                             'schema.minlength': {enabled: true, index: 4},
                                             'schema.maxlength': {enabled: true, index: 5},
                                             'schema.format_options': {enabled: true, index: 6},
+                                            'schema.vocabularies': {enabled: true, index: 7},
                                         },
                                         {
                                             item: this.props.item,

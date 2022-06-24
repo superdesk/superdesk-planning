@@ -11,6 +11,7 @@ const appConfig = config.appConfig as IPlanningConfig;
 
 import {getItemWorkflowStateLabel, planningUtils} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 interface IProps {
     coverage: DeepPartial<IPlanningCoverageItem>;
@@ -25,8 +26,7 @@ interface IProps {
 export class CoverageIcon extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const language = this.props.coverage.planning?.language ??
-            config.getUserInterfaceLanguage();
+        const language = this.props.coverage.planning?.language ?? getUserInterfaceLanguageFromCV();
         const user = this.props.users.find(
             (u) => u._id === this.props.coverage.assigned_to?.user,
         );

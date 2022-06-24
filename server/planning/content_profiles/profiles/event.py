@@ -43,6 +43,7 @@ class EventSchema(BaseSchema):
     reference = schema.StringField()
     slugline = schema.StringField()
     subject = subjectField
+    custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
 
 
@@ -158,6 +159,8 @@ DEFAULT_EVENT_PROFILE = {
             "group": "related_plannings",
             "index": 1,
         },
+        # Fields disabled by default
+        "custom_vocabularies": {"enabled": False},
     },
     "schema": dict(EventSchema),  # type: ignore
     "groups": {

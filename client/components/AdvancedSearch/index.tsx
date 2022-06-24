@@ -1,9 +1,9 @@
 import React from 'react';
 import moment from 'moment';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {SEARCH_SPIKE_STATE, IDateRange, ISearchParams, IWorkflowState} from '../../interfaces';
 
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {renderGroupedFieldsForPanel} from '../fields';
 
 
@@ -97,7 +97,7 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
             {
                 onChange: this.props.onChange,
                 popupContainer: this.props.popupContainer,
-                language: getUserInterfaceLanguage(),
+                language: getUserInterfaceLanguageFromCV(),
                 item: this.props.params,
             },
             {
