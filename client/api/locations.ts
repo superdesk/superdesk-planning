@@ -1,6 +1,5 @@
 import * as Nominatim from 'nominatim-browser';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
 import {IPlanningAPI, ILocation, INominatimItem} from '../interfaces';
 import {superdeskApi, planningApi} from '../superdeskApi';
@@ -9,6 +8,7 @@ import {getErrorMessage} from '../utils';
 import {getLocationSearchQuery} from '../selectors/locations';
 import * as actions from '../actions';
 import {convertNominatimToLocation, getUniqueNameForLocation} from '../utils/locations';
+import {getUserInterfaceLanguageFromCV} from '../utils/users';
 
 function create(location: Partial<ILocation>): Promise<ILocation> {
     const {gettext} = superdeskApi.localization;
@@ -218,7 +218,7 @@ function searchExternal(searchText?: string, language?: string): Promise<Array<P
         extratags: true,
         namedetails: true,
         // @ts-ignore - Not defined in `nominatim-browser` package
-        'accept-language': language || getUserInterfaceLanguage(),
+        'accept-language': language || getUserInterfaceLanguageFromCV(),
     })
         .then((response: Array<INominatimItem>) => (
             response.map(

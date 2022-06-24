@@ -2,7 +2,6 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {IContactItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../interfaces';
 
@@ -16,6 +15,7 @@ import {
     planningUtils,
 } from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../components';
@@ -109,7 +109,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
         } = props;
         const language = coverage.planning?.language ??
             item.language ??
-            getUserInterfaceLanguage();
+            getUserInterfaceLanguageFromCV();
         const genre = getVocabularyItemFieldTranslated(
             coverage.planning?.genre,
             'name',

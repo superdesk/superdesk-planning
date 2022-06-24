@@ -2,7 +2,6 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {
     IEventItem,
     IEventFormProfile,
@@ -13,6 +12,7 @@ import {
 import {ICON_COLORS} from '../../../constants';
 
 import {editorMenuUtils, eventUtils, gettext, onEventCapture} from '../../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {eventProfile} from '../../../selectors/forms';
 
 import {StateLabel} from '../..';
@@ -168,7 +168,7 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                     previewGroupToProfile(PREVIEW_PANEL.ASSOCIATED_EVENT, this.props.formProfile),
                     {
                         item: event,
-                        language: getUserInterfaceLanguage(),
+                        language: getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                     },
                     {}

@@ -5,6 +5,7 @@ import {IListFieldProps} from '../../../interfaces';
 import {IVocabulary} from 'superdesk-api';
 
 import {PreviewFormItem} from './base/PreviewFormItem';
+import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 
 interface IProps extends IListFieldProps {
     customVocabularies: Array<IVocabulary>;
@@ -27,9 +28,12 @@ export class PreviewFieldCustomVocabulariesComponent extends React.PureComponent
             if (values.length) {
                 return (
                     <PreviewFormItem
+                        key={vocab._id}
                         label={vocab.display_name}
                         light={true}
-                        value={values.map((item) => item.name).join(', ')}
+                        value={values.map((item) => (
+                            getVocabularyItemFieldTranslated(item, 'name', this.props.language) || item.name
+                        )).join(', ')}
                     />
                 );
             }

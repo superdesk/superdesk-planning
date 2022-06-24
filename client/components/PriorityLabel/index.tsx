@@ -1,9 +1,9 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 interface IProps {
     item: {
@@ -45,7 +45,7 @@ export class PriorityLabel extends React.PureComponent<IProps> {
         const priorityName = getVocabularyItemFieldTranslated(
             priority,
             'name',
-            getUserInterfaceLanguage()
+            getUserInterfaceLanguageFromCV()
         );
         const tooltip = gettext('Priority: {{ name }}', {name: priorityName});
 

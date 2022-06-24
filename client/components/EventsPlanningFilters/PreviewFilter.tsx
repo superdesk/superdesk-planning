@@ -1,9 +1,9 @@
 import * as React from 'react';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventsPlanningContentPanelProps} from '../../interfaces';
 
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
 import * as SidePanel from '../UI/SidePanel';
 import {Label} from '../UI/Form';
@@ -27,7 +27,7 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const language = getUserInterfaceLanguage();
+        const language = getUserInterfaceLanguageFromCV();
 
         return (
             <React.Fragment>

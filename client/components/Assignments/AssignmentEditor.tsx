@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, isEqual} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
-
 import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
 import {getContactTypes} from '../../selectors/vocabs';
@@ -320,7 +319,7 @@ export class AssignmentEditorComponent extends React.Component {
                             iconName="priority-label"
                             noMargin={true}
                             popupContainer={popupContainer}
-                            language={getUserInterfaceLanguage()}
+                            language={getUserInterfaceLanguageFromCV()}
                             clearable={true}
                         />
                     </Row>

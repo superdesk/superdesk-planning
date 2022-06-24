@@ -1,9 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {getUserInterfaceLanguage} from 'appConfig';
-
 import {gettext, stringUtils, getItemInArrayById} from '../../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 
 import {get, keyBy} from 'lodash';
 import {Label} from '../../';
@@ -74,7 +73,7 @@ export const PlanningPreview = ({item, formProfile, agendas, urgencies}) => {
                     readOnly={true}
                     options={urgencies}
                     row={true}
-                    language={getUserInterfaceLanguage()}
+                    language={getUserInterfaceLanguageFromCV()}
                     borderBottom={false}
                     noValueString={'-'}
                 />

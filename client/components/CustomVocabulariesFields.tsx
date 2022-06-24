@@ -1,18 +1,16 @@
 import * as React from 'react';
 import {get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
-import {IFormProfileItem} from '../interfaces';
 import {IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
 
+import {getUserInterfaceLanguageFromCV} from '../utils/users';
 import {SelectMetaTermsInput, Field} from './UI/Form';
 
 interface IProps {
     testId?: string;
     customVocabularies: Array<IVocabulary>;
     fieldProps: any;
-    formProfile: IFormProfileItem;
     popupProps: any;
     onFocusDetails?(): void;
     popupContainer?(): HTMLElement;
@@ -25,7 +23,6 @@ export default class CustomVocabulariesFields extends React.PureComponent<IProps
             customVocabularies,
             fieldProps,
             onFocusDetails,
-            formProfile,
             popupProps,
             popupContainer,
             testId,
@@ -35,10 +32,9 @@ export default class CustomVocabulariesFields extends React.PureComponent<IProps
             errors,
             diff,
         } = fieldProps;
-        const language = get(diff, 'language') || getUserInterfaceLanguage();
+        const language = get(diff, 'language') || getUserInterfaceLanguageFromCV();
 
         return customVocabularies
-            .filter((cv) => get(formProfile, `editor.${cv._id}.enabled`))
             .map((cv) => (
                 <Field
                     key={cv._id}

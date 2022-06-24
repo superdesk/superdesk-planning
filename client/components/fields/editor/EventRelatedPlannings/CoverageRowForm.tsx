@@ -1,11 +1,11 @@
 import * as React from 'react';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {IG2ContentType, IPlanningNewsCoverageStatus} from '../../../../interfaces';
 
 import {planningUtils} from '../../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
+import {getUserInterfaceLanguageFromCV} from '../../../../utils/users';
 
 import {Checkbox, IconButton, IconLabel} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
@@ -100,7 +100,7 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
                                 text={getVocabularyItemFieldTranslated(
                                     this.props.coverage.type,
                                     'name',
-                                    this.props.language ?? getUserInterfaceLanguage()
+                                    this.props.language ?? getUserInterfaceLanguageFromCV()
                                 )}
                                 icon={getCoverageIconName(this.props.coverage.type)}
                             />

@@ -1,7 +1,6 @@
 import React from 'react';
 import {pick, isEqual, cloneDeep, set, get} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 import {
     ISearchFilter,
@@ -12,6 +11,7 @@ import {
 
 import {SidePanel} from '../UI';
 import {gettext, eventPlanningUtils} from '../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {AdvancedSearch} from '../AdvancedSearch';
 import {renderFieldsForPanel} from '../fields';
 
@@ -220,7 +220,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                 {
                                     onChange: this.onFilterChange,
                                     popupContainer: this.getPopupContainer,
-                                    language: getUserInterfaceLanguage(),
+                                    language: getUserInterfaceLanguageFromCV(),
                                     item: this.state.filter,
                                 },
                                 {

@@ -2,7 +2,6 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {set, cloneDeep} from 'lodash';
 
-import {getUserInterfaceLanguage} from 'appConfig';
 import {IVocabularyItem} from 'superdesk-api';
 import {ILocation} from '../../interfaces';
 import {superdeskApi, planningApi} from '../../superdeskApi';
@@ -10,6 +9,7 @@ import {superdeskApi, planningApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 
 import {formatLocationToAddress} from '../../utils/locations';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
 import {EditorFieldText} from '../fields/editor/base/text';
@@ -153,7 +153,7 @@ class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
                         {
                             item: item,
                             onChange: this.onChange,
-                            language: getUserInterfaceLanguage(),
+                            language: getUserInterfaceLanguageFromCV(),
                         },
                         {
                             'location.name': {required: true},
