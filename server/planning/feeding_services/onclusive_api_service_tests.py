@@ -14,7 +14,7 @@ class OnclusiveApiServiceTestCase(TestCase):
                 "_id": "onclusive_api",
                 "name": "onclusive",
                 "feed_parser": "onclusiveapi",
-                "config": {"url": "https://api.abc.com/", "username": "user", "password": "pass"},
+                "config": {"url": "https://api.abc.com", "username": "user", "password": "pass", "days": "30"},
             }
             with self.assertRaises(Exception) as error:
                 list(service._update(provider, {}))

@@ -13,7 +13,7 @@ from superdesk.errors import ParserError
 logger = logging.getLogger(__name__)
 
 
-class Onclusive:
+class OnclusiveFeedParser:
     """
     Superdesk event parser
 
@@ -29,7 +29,7 @@ class Onclusive:
 
     def parse(self, content, provider=None):
         try:
-            for event in content:
+            for event in content[0]:
                 guid = "urn:newsml:{}:{}".format(event["createdDate"], event["itemId"])
 
                 if get_resource_service("events").find_one(req=None, guid=guid):
@@ -69,14 +69,15 @@ class Onclusive:
             item["occur_status"].pop("is_active", None)
 
     def parse_item_meta(self, event, item):
-        item["versioncreated"] = self.datetime(event["createdDate"])
+        item["versioncreated"] = self.datetime(event["lastEditDate"])
         item["firstcreated"] = self.datetime(event["createdDate"])
-        item["_updated"] = self.datetime(event["lastEditDate"])
-        item["slugline"] = (
+        item["name"] = (
             event["summary"] if (event["summary"] is not None and event["summary"] != "") else event["description"]
         )
-        item["definition_short"] = event["description"]
-        item["links"] = event["website1"]
+        item["definition_short"] = (
+            event["description"] if (event["summary"] != "" and event["summary"] is not None) else ""
+        )
+        item["links"] = [event["website1"]]
 
     def parse_event_details(self, event, item):
         start_date = event["startDate"]
@@ -97,14 +98,27 @@ class Onclusive:
         ]
 
     def parse_category(self, event, item):
-        item["anpa_category"] = []
-        if item.get("categories"):
+        categories = []
+        if event.get("categories"):
             for category in event["categories"]:
-                item["anpa_category"] = {
-                    "name": category["categoryName"],
-                    "qcode": category["categoryId"],
-                    "subject": "",
-                }
+                categories.append(
+                    {
+                        "name": category["categoryName"],
+                        "qcode": str(category["categoryId"]),
+                        "scheme": "onclusive_categories",
+                    }
+                )
+            # item["subjects"] = categories
+        if event.get("eventTypes"):
+            for category in event["eventTypes"]:
+                categories.append(
+                    {
+                        "name": category["tagName"],
+                        "qcode": str(category["tagId"]),
+                        "scheme": "onclusive_event_types",
+                    }
+                )
+        item["subject"] = categories
 
     def datetime(self, string):
         try:
