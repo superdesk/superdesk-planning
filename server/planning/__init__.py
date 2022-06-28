@@ -223,7 +223,6 @@ def init_app(app):
     app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments(app)
     app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline(app)
     app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor(app)
-    app.client_config["onclusive_max_offset"] = get_onclusive_max_offset(app)
 
     app.client_config.setdefault("planning", {})
     app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types(app)
