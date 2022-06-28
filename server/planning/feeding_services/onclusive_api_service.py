@@ -63,10 +63,10 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         """
         session = requests.Session()
         current_date = datetime.now()
+        items = []
         TIMEOUT = (5, 30)
         ONCLUSIVE_MAX_OFFSET = app.config["ONCLUSIVE_MAX_OFFSET"]
         URL = provider["config"]["url"]
-
         if provider["config"].get("refreshToken"):
             TOKEN = self.renew_token(provider, session)
         else:
@@ -99,17 +99,17 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 logger.info("Ingesting content: {} ...".format(str(between_event_response.content)[:4000]))
 
                 if hasattr(parser, "parse_http"):
-                    items = parser.parse_http(content, provider)
+                    items.append(parser.parse_http(content, provider))
                 else:
-                    items = parser.parse(content, provider)
-
-                if isinstance(items, list):
-                    yield items
-                else:
-                    yield [items]
+                    items.append(parser.parse(content, provider))
 
             else:
                 logger.warning("some items were not fetched due to the limit")
+
+            if isinstance(items, list):
+                yield items
+            else:
+                yield [items]
 
     def authentication(self, TIMEOUT, session, provider):
         # authntication get token
