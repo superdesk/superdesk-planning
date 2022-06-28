@@ -41,9 +41,9 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             "required": True,
         },
         {
-            "id": "days",
+            "id": "days_to_ingest",
             "type": "text",
-            "label": lazy_gettext("Days"),
+            "label": lazy_gettext("Days to Ingest"),
             "placeholder": lazy_gettext("Days"),
             "required": True,
         },
@@ -63,7 +63,6 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         """
         session = requests.Session()
         current_date = datetime.now()
-        content = []
         TIMEOUT = (5, 30)
         ONCLUSIVE_MAX_OFFSET = app.config["ONCLUSIVE_MAX_OFFSET"]
         URL = provider["config"]["url"]
@@ -74,52 +73,43 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             TOKEN = self.authentication(TIMEOUT, session, provider)
 
         if TOKEN:
+
             headers = {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN}
-
-            if provider.get("last_updated") is None or (
-                provider.get("last_updated") and provider["last_updated"].date() != current_date.date()
-            ):
-                current_url = "{}/api/v2/events/date?date={}".format(URL, current_date.strftime("%Y%m%d"))
-                current_event_response = session.get(url=current_url, headers=headers, timeout=TIMEOUT)
-                current_event_response.raise_for_status()
-
-                if current_event_response.status_code == 401:
-                    TOKEN = self.renew_token(provider, session)
-                content = current_event_response.json()
-                self.parse_data(provider, content)
-
             end_date = current_date + timedelta(days=int(provider["config"]["days"]))
-            for offset in range(100, ONCLUSIVE_MAX_OFFSET, 10000):
-                print("loop started", offset)
+            for offset in range(100, ONCLUSIVE_MAX_OFFSET, 1000):
+
                 between_url = "{}/api/v2/events/between?startDate={}&endDate={}&limit={}".format(
                     URL, current_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d"), offset
                 )
+
                 between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
                 between_event_response.raise_for_status()
-                content.append(between_event_response.json())
 
                 if between_event_response.status_code == 401:
                     TOKEN = self.renew_token(provider, session)
+                    between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
+
+                content = between_event_response.json()
                 if between_event_response.json() == []:
                     break
 
+                parser = self.get_feed_parser(provider)
+
+                logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
+                logger.info("Ingesting content: {} ...".format(str(between_event_response.content)[:4000]))
+
+                if hasattr(parser, "parse_http"):
+                    items = parser.parse_http(content, provider)
+                else:
+                    items = parser.parse(content, provider)
+
+                if isinstance(items, list):
+                    yield items
+                else:
+                    yield [items]
+
             else:
                 logger.warning("some items were not fetched due to the limit")
-
-            parser = self.get_feed_parser(provider)
-
-            logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
-            logger.info("Ingesting content: {} ...".format(str(between_event_response.content)[:4000]))
-
-            if hasattr(parser, "parse_http"):
-                items = parser.parse_http(content, provider)
-            else:
-                items = parser.parse(content, provider)
-
-            if isinstance(items, list):
-                yield items
-            else:
-                yield [items]
 
     def authentication(self, TIMEOUT, session, provider):
         # authntication get token

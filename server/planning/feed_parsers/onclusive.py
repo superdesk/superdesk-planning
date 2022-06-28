@@ -29,7 +29,7 @@ class OnclusiveFeedParser:
 
     def parse(self, content, provider=None):
         try:
-            for event in content[0]:
+            for event in content:
                 guid = "urn:newsml:{}:{}".format(event["createdDate"], event["itemId"])
 
                 if get_resource_service("events").find_one(req=None, guid=guid):
