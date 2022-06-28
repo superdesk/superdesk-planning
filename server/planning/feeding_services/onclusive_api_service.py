@@ -5,6 +5,7 @@ from flask import current_app as app
 import requests
 import superdesk
 from superdesk.io.feeding_services.http_base_service import HTTPFeedingServiceBase
+from planning.common import get_onclusive_max_offset
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +65,9 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         session = requests.Session()
         current_date = datetime.now()
         items = []
+        parser = self.get_feed_parser(provider)
         TIMEOUT = (5, 30)
-        ONCLUSIVE_MAX_OFFSET = app.config["ONCLUSIVE_MAX_OFFSET"]
+        ONCLUSIVE_MAX_OFFSET = get_onclusive_max_offset()
         URL = provider["config"]["url"]
         if provider["config"].get("refreshToken"):
             TOKEN = self.renew_token(provider, session)
@@ -75,7 +77,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         if TOKEN:
 
             headers = {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN}
-            end_date = current_date + timedelta(days=int(provider["config"]["days"]))
+            end_date = current_date + timedelta(days=int(provider["config"]["days_to_ingest"]))
             for offset in range(100, ONCLUSIVE_MAX_OFFSET, 1000):
 
                 between_url = "{}/api/v2/events/between?startDate={}&endDate={}&limit={}".format(
@@ -92,8 +94,6 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 content = between_event_response.json()
                 if between_event_response.json() == []:
                     break
-
-                parser = self.get_feed_parser(provider)
 
                 logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
                 logger.info("Ingesting content: {} ...".format(str(between_event_response.content)[:4000]))
