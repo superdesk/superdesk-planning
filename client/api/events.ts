@@ -114,6 +114,7 @@ export function getLockedEvents(): Promise<Array<IEventItem>> {
         lock_state: LOCK_STATE.LOCKED,
         directly_locked: true,
         only_future: false,
+        include_killed: true,
     });
 }
 
