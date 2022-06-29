@@ -25,6 +25,7 @@ describe('PlanningUtils', () => {
                     currentUser: {
                         currentSession: {
                             _id: 'p1',
+                            type: 'planning',
                             lock_user: 'ident1',
                             lock_session: 'session1',
                             lock_action: 'edit',
@@ -32,6 +33,7 @@ describe('PlanningUtils', () => {
                         },
                         otherSession: {
                             _id: 'p2',
+                            type: 'planning',
                             lock_user: 'ident1',
                             lock_session: 'session2',
                             lock_action: 'edit',
@@ -40,6 +42,7 @@ describe('PlanningUtils', () => {
                     },
                     otherUser: {
                         _id: 'p3',
+                        type: 'planning',
                         lock_user: 'ident2',
                         lock_session: 'session3',
                         lock_action: 'edit',
@@ -51,6 +54,7 @@ describe('PlanningUtils', () => {
                     currentUser: {
                         currentSession: {
                             _id: 'p5',
+                            type: 'planning',
                             event_item: 'e1',
                             lock_user: 'ident1',
                             lock_session: 'session1',
@@ -59,6 +63,7 @@ describe('PlanningUtils', () => {
                         },
                         otherSession: {
                             _id: 'p6',
+                            type: 'planning',
                             event_item: 'e2',
                             lock_user: 'ident1',
                             lock_session: 'session2',
@@ -68,6 +73,7 @@ describe('PlanningUtils', () => {
                     },
                     otherUser: {
                         _id: 'p7',
+                        type: 'planning',
                         event_item: 'e3',
                         lock_user: 'ident2',
                         lock_session: 'session3',
@@ -76,6 +82,7 @@ describe('PlanningUtils', () => {
                     },
                     notLocked: {
                         _id: 'p8',
+                        type: 'planning',
                         event_item: 'e4',
                     },
                 },
@@ -83,6 +90,7 @@ describe('PlanningUtils', () => {
                     currentUser: {
                         currentSession: {
                             _id: 'p9',
+                            type: 'planning',
                             event_item: 'e5',
                             recurrence_id: 'r1',
                             lock_user: 'ident1',
@@ -92,6 +100,7 @@ describe('PlanningUtils', () => {
                         },
                         otherSession: {
                             _id: 'p10',
+                            type: 'planning',
                             event_item: 'e6',
                             recurrence_id: 'r2',
                             lock_user: 'ident1',
@@ -102,6 +111,7 @@ describe('PlanningUtils', () => {
                     },
                     otherUser: {
                         _id: 'p11',
+                        type: 'planning',
                         event_item: 'e7',
                         recurrence_id: 'r3',
                         lock_user: 'ident2',
@@ -111,6 +121,7 @@ describe('PlanningUtils', () => {
                     },
                     notLocked: {
                         _id: 'p12',
+                        type: 'planning',
                         event_item: 'e8',
                         recurrence_id: 'r4',
                     },
@@ -118,16 +129,19 @@ describe('PlanningUtils', () => {
                 associated: {
                     standalone: {
                         _id: 'p13',
+                        type: 'planning',
                         event_item: 'e9',
                     },
                     recurring: {
                         direct: {
                             _id: 'p14',
+                            type: 'planning',
                             event_item: 'e10',
                             recurrence_id: 'r5',
                         },
                         indirect: {
                             _id: 'p15',
+                            type: 'planning',
                             event_item: 'e11',
                             recurrence_id: 'r5',
                         },
@@ -137,6 +151,7 @@ describe('PlanningUtils', () => {
             events: {
                 standalone: {
                     _id: 'e9',
+                    type: 'event',
                     lock_user: 'ident1',
                     lock_session: 'session1',
                     lock_action: 'edit',
@@ -144,6 +159,7 @@ describe('PlanningUtils', () => {
                 },
                 recurring: {
                     _id: 'e10',
+                    type: 'event',
                     recurrence_id: 'r5',
                     lock_user: 'ident1',
                     lock_session: 'session1',
@@ -551,6 +567,7 @@ describe('PlanningUtils', () => {
             event = null;
             planning = {
                 _id: 'plan1',
+                type: 'planning',
                 state: 'draft',
                 coverages: [],
             };

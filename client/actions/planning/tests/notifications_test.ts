@@ -244,6 +244,7 @@ describe('actions.planning.notifications', () => {
             store.initialState.planning.currentPlanningId = 'p1';
             store.initialState.planning.plannings.p1.lock_user = 'ident1';
             store.initialState.planning.plannings.p1.lock_session = 'session1';
+            store.initialState.planning.plannings.p1.lock_time = '2022-06-15T13:01:11+0000';
             sinon.stub(main, 'changeEditorAction').callsFake(() => Promise.resolve());
         });
 
@@ -301,6 +302,7 @@ describe('actions.planning.notifications', () => {
                 {
                     item: 'p1',
                     user: 'ident2',
+                    lock_session: 'session1',
                     etag: 'e123',
                 }))
                 .then(() => {
