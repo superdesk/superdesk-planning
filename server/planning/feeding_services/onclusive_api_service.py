@@ -69,6 +69,8 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         TIMEOUT = (5, 30)
         ONCLUSIVE_MAX_OFFSET = get_onclusive_max_offset()
         URL = provider["config"]["url"]
+        LIMIT = 1000
+
         if provider["config"].get("refreshToken"):
             TOKEN = self.renew_token(provider, session)
         else:
@@ -80,8 +82,8 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             end_date = current_date + timedelta(days=int(provider["config"]["days_to_ingest"]))
             for offset in range(100, ONCLUSIVE_MAX_OFFSET, 1000):
 
-                between_url = "{}/api/v2/events/between?startDate={}&endDate={}&limit={}".format(
-                    URL, current_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d"), offset
+                between_url = "{}/api/v2/events/between?startDate={}&endDate={}&offset{}&limit={}".format(
+                    URL, current_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d"), offset, LIMIT
                 )
 
                 between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
