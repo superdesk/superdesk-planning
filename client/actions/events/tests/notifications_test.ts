@@ -516,6 +516,7 @@ describe('actions.events.notifications', () => {
         beforeEach(() => {
             store.initialState.events.events.e1.lock_user = 'ident1';
             store.initialState.events.events.e1.lock_session = 'session1';
+            store.initialState.events.events.e1.lock_time = '2022-06-15T13:01:11+0000';
             sinon.stub(main, 'changeEditorAction').callsFake(() => Promise.resolve());
         });
 
@@ -577,6 +578,7 @@ describe('actions.events.notifications', () => {
                 {
                     item: 'e1',
                     user: 'ident2',
+                    lock_session: 'session1',
                     etag: 'e123',
                 }
             ))

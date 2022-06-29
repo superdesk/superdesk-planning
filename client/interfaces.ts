@@ -751,7 +751,7 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     version_creator: string;
     firstcreated: string;
     versioncreated: string;
-    type: string;
+    type: 'assignment';
     lock_user: string;
     lock_time: string | Date | moment.Moment;
     lock_session: string;

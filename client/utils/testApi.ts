@@ -29,6 +29,7 @@ Object.assign(superdeskApi, {
     },
     utilities: {
         querySelectorParent: querySelectorParent,
+        dateToServerString: (date) => date.toISOString().slice(0, 19) + '+0000',
     },
     privileges: {
         hasPrivilege: (privilege: string) => privileges[privilege] === 1
