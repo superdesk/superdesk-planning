@@ -127,14 +127,12 @@ export function getPlanningByIds(
 }
 
 export function getLockedPlanningItems(): Promise<Array<IPlanningItem>> {
-    return searchPlanning({
+    return searchPlanningGetAll({
         lock_state: LOCK_STATE.LOCKED,
         directly_locked: true,
         only_future: false,
         include_killed: true,
-    })
-        .then(modifyResponseForClient)
-        .then((response) => response._items);
+    });
 }
 
 export function getLockedFeaturedPlanning(): Promise<Array<IFeaturedPlanningLock>> {

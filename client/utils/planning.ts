@@ -10,6 +10,8 @@ import {
     IPlanningCoverageItem,
     IPlanningNewsCoverageStatus,
     IG2ContentType,
+    ISession,
+    ILockedItems,
 } from '../interfaces';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -203,16 +205,16 @@ const canAddCoverages = (planning, event, privileges, session, locks) => (
         !isItemExpired(planning)
 );
 
-const isPlanningLocked = (plan, locks) =>
-    !isNil(plan) && (
-        plan._id in locks.planning ||
-        get(plan, 'event_item') in locks.event ||
-        get(plan, 'recurrence_id') in locks.recurring
-    );
+function isPlanningLocked(plan: IPlanningItem, locks: ILockedItems): boolean {
+    return lockUtils.getLock(plan, locks) != null;
+}
 
-const isPlanningLockRestricted = (plan, session, locks) =>
-    isPlanningLocked(plan, locks) &&
-        !lockUtils.isItemLockedInThisSession(plan, session, locks);
+function isPlanningLockRestricted(plan: IPlanningItem, session: ISession, locks: ILockedItems): boolean {
+    return (
+        isPlanningLocked(plan, locks) &&
+        !lockUtils.isItemLockedInThisSession(plan, session, locks)
+    );
+}
 
 /**
  * Get the array of coverage content type and color base on the scheduled date
