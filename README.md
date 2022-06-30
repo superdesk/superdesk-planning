@@ -134,6 +134,11 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_DELETE_SPIKED_MINUTES
     * Defaults to 0 - disabled
 
+### Onclusive API Config
+* ONCLUSIVE_MAX_OFFSET:
+    * Defaults to 10000
+    * Sets a maximum for how many events can be retrieved from the API.
+
 ### Event Config
 * MAX_RECURRENT_EVENTS:
     * Defaults to 200

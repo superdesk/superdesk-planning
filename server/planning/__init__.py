@@ -35,6 +35,7 @@ from .common import (
     get_planning_use_xmp_for_pic_slugline,
     get_planning_allowed_coverage_link_types,
     get_planning_auto_close_popup_editor,
+    get_onclusive_max_offset,
 )
 from apps.common.components.utils import register_component
 from .item_lock import LockService

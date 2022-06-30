@@ -1,0 +1,150 @@
+{
+    "itemId": 4112034,
+    "summary": "",
+    "description": "Annual Forum on Anti-Money Laundering and Financial Crime",
+    "startDate": "2022-06-15T00:00:00",
+    "endDate": "2022-06-16T00:00:00",
+    "time": "",
+    "tbcTime": false,
+    "embargoTime": null,
+    "timezone": {
+        "timezoneID": 8,
+        "timezoneAbbreviation": "EDT",
+        "timezoneName": "(EDT) Eastern Daylight Savings Time",
+        "timezoneOffset": -4.00
+    },
+    "venue": "One King West Hotel & Residence, 1 King St W, Toronto",
+    "tbcVenue": false,
+    "venueData": [
+        {
+            "venueId": 20848,
+            "locationLat": 43.648940,
+            "locationLon": -79.378086
+        }
+    ],
+    "organisationId": 22426,
+    "organisationName": "American Conference Institute",
+    "organisation": {
+        "organisationID": 22426,
+        "organisationName": "American Conference Institute",
+        "baseWebsite": "http://www.americanconference.com",
+        "corporateWebsite": "",
+        "irWebsite": "",
+        "isin": "",
+        "centralIndexKey": null,
+        "twitterWebsite": "ACILegal"
+    },
+    "eventConfirmed": false,
+    "isAnnual": true,
+    "isHeadline": false,
+    "isTopStory": false,
+    "isLive": true,
+    "isNew": false,
+    "isUpdated": false,
+    "isProvisional": false,
+    "isVirtual": false,
+    "plannedBy": [
+        4708
+    ],
+    "createdDate": "2021-05-04T21:19:10.2",
+    "lastEditDate": "2022-05-10T13:14:34.873",
+    "deleted": false,
+    "deletionDate": null,
+    "website1": "https://www.canadianinstitute.com/anti-money-laundering-financial-crime/",
+    "website2": "",
+    "twitterWebsite": "CI_Financial",
+    "twitterHashTag": "",
+    "facebookPage": "",
+    "linkedInPage": "",
+    "regionId": 0,
+    "countryId": 38,
+    "countryName": "Canada",
+    "indicator": null,
+    "period": null,
+    "pressContacts": [
+        {
+            "pressContactID": 28871,
+            "organisationID": 22426,
+            "pressContactName": "",
+            "pressContactOffice": "American Conference Institute",
+            "pressContactTelephone": "1 212 352 3220",
+            "pressContactMobile": "",
+            "pressContactEmail": "customerservice@americanconference.com",
+            "pressContactTwitter": "",
+            "pressContactLinkedIn": null
+        }
+    ],
+    "categories": [
+        {
+            "categoryId": 88,
+            "categoryName": "Law & Order",
+            "categoryOrder": 60,
+            "categoryTypeId": 18,
+            "categoryTypeName": null
+        },
+        {
+            "categoryId": 133,
+            "categoryName": "Conflict / Terrorism / Security",
+            "categoryOrder": 100,
+            "categoryTypeId": 17,
+            "categoryTypeName": null
+        },
+        {
+            "categoryId": 97,
+            "categoryName": "Trade Conferences",
+            "categoryOrder": 11290,
+            "categoryTypeId": 14,
+            "categoryTypeName": null
+        },
+        {
+            "categoryId": 159,
+            "categoryName": "Banking",
+            "categoryOrder": 14400,
+            "categoryTypeId": 4,
+            "categoryTypeName": null
+        },
+        {
+            "categoryId": 35,
+            "categoryName": "Finance General",
+            "categoryOrder": 15300,
+            "categoryTypeId": 4,
+            "categoryTypeName": null
+        },
+        {
+            "categoryId": 50,
+            "categoryName": "Tech - Internet, software & new media",
+            "categoryOrder": 16800,
+            "categoryTypeId": 4,
+            "categoryTypeName": null
+        }
+    ],
+    "eventTypes": [
+        {
+            "tagId": 148,
+            "tagName": "Trade Conferences",
+            "tagTypeId": 7,
+            "tagTypeName": null
+        },
+        {
+            "tagId": 228,
+            "tagName": "Cyber Security and Fraud",
+            "tagTypeId": 9,
+            "tagTypeName": null
+        }
+    ],
+    "influencers": [],
+    "country": {
+        "countryId": 38,
+        "countryName": "Canada",
+        "region": "CANADA",
+        "countryCode": "CA"
+    },
+    "order": 0,
+    "primaryCategory": {
+        "categoryId": 88,
+        "categoryName": "Law & Order",
+        "categoryOrder": 60,
+        "categoryTypeId": 18,
+        "categoryTypeName": null
+    }
+}
