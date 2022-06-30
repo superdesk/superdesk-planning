@@ -80,7 +80,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
 
             headers = {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN}
             end_date = current_date + timedelta(days=int(provider["config"]["days_to_ingest"]))
-            for offset in range(100, ONCLUSIVE_MAX_OFFSET, 1000):
+            for offset in range(100, ONCLUSIVE_MAX_OFFSET, LIMIT):
 
                 between_url = "{}/api/v2/events/between?startDate={}&endDate={}&offset{}&limit={}".format(
                     URL, current_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d"), offset, LIMIT
