@@ -95,6 +95,5 @@ class JsonEventFormatter(Formatter):
         :param article:
         :return:
         """
-        print(article)
         result = superdesk.get_resource_service("product_tests").test_products(article, lookup=None)
         return [{"code": p["product_id"], "name": p.get("name")} for p in result if p.get("matched", False)]
