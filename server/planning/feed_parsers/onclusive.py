@@ -26,7 +26,17 @@ class OnclusiveFeedParser(FeedParser):
     all_events = []
 
     def can_parse(self, content):
-        return True
+        try:
+            if not isinstance(content, list):
+                return False
+
+            for event in content:
+                if not event.get("createdDate") or not event.get("itemId"):
+                    return False
+
+            return True
+        except Exception:
+            return False
 
     def parse_http(self, content, provider):
         return self.parse(content, provider)
