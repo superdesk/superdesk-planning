@@ -139,12 +139,19 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             },
         )
 
-        if not agendas.count():
-            # Again, no need to continue if there are no agenda(s) to add
-            return None
+        new_agenda_ids = [agenda[config.ID_FIELD] for agenda in agendas]
+        if len(requested_agenda_ids) != len(new_agenda_ids):
+            missing_ids = ", ".join(
+                [str(agenda_id) for agenda_id in requested_agenda_ids if agenda_id not in new_agenda_ids]
+            )
+            logger.warning(f"The following agendas were not found in the db: {missing_ids}")
+
+            if not len(new_agenda_ids):
+                # Again, no need to continue if there are no agenda(s) to add
+                return None
 
         # Append Agenda IDs found onto the item
-        updates = {"agendas": ingest_item["agendas"] + [agenda[config.ID_FIELD] for agenda in agendas]}
+        updates = {"agendas": ingest_item["agendas"] + new_agenda_ids}
         updated_item = get_resource_service("planning").patch(ingest_item.get(config.ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
         return updates
