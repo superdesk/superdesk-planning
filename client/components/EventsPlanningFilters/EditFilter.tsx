@@ -72,11 +72,10 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
     }
 
     isPristine(updates: Partial<ISearchFilter> = null) {
-        return this.props.filter == null || (
+        return this.props.filter != null &&
             this.props.filter.name == updates?.name &&
             this.props.filter.item_type == updates?.item_type &&
-            isEqual(this.props.filter.params ?? {}, updates?.params)
-        );
+            isEqual(this.props.filter.params ?? {}, updates?.params);
     }
 
     onFilterChange(field: string, value: any) {
