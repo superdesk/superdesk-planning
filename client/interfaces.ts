@@ -1415,7 +1415,7 @@ export interface IEditorFieldProps {
     schema?: IProfileSchemaType;
     editor?: IProfileEditorField;
     showErrors?: boolean;
-    editorType: EDITOR_TYPE;
+    editorType?: EDITOR_TYPE;
 
     onChange(field: string | {[key: string]: any}, value: any): void;
     popupContainer?(): HTMLElement;

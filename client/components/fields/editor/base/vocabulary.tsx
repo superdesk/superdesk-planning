@@ -4,7 +4,7 @@ import {get, set} from 'lodash';
 import {IEditorFieldProps} from '../../../../interfaces';
 import {SelectMetaTermsInput, Row} from '../../../UI/Form';
 
-interface IProps extends IEditorFieldProps {
+export interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
     valueKey?: string;
     labelKey?: string;
@@ -14,7 +14,7 @@ interface IProps extends IEditorFieldProps {
     valueAsString?: boolean;
 }
 
-export class EditorFieldVocabulary extends React.PureComponent<IProps> {
+export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocabularyProps> {
     static defaultProps = {
         valueKey: 'qcode',
         labelKey: 'name',
@@ -23,7 +23,7 @@ export class EditorFieldVocabulary extends React.PureComponent<IProps> {
         valueAsString: false,
     }
 
-    constructor(props: IProps) {
+    constructor(props: IEditorFieldVocabularyProps) {
         super(props);
 
         this.onChange = this.onChange.bind(this);
