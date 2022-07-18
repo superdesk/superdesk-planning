@@ -1,6 +1,7 @@
 import moment from 'moment-timezone';
 
 import {appConfig} from 'appConfig';
+import {superdeskApi} from '../superdeskApi';
 import {IEventItem} from '../interfaces';
 
 import {TIME_COMPARISON_GRANULARITY} from '../constants';
@@ -163,6 +164,16 @@ function getDateForVersionInList(date: moment.Moment | string, tz?: string): str
     return localDate.format(dateFormat + ' @ ' + shortTimeFormat);
 }
 
+function getDateAsString(value: string | Date | moment.Moment): string {
+    if (typeof value === 'string') {
+        return value;
+    } else if (value instanceof Date) {
+        return superdeskApi.utilities.dateToServerString(value);
+    } else {
+        return superdeskApi.utilities.dateToServerString(value.toDate());
+    }
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     getStartOfNextWeek,
@@ -175,6 +186,7 @@ const self = {
     getLocalDate,
     getTimeZoneAbbreviation,
     getDateForVersionInList,
+    getDateAsString,
 };
 
 export default self;

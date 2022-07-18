@@ -110,15 +110,12 @@ export function getEventByIds(
 }
 
 export function getLockedEvents(): Promise<Array<IEventItem>> {
-    return searchEvents({
+    return searchEventsGetAll({
         lock_state: LOCK_STATE.LOCKED,
         directly_locked: true,
         only_future: false,
-    })
-        .then(modifyResponseForClient)
-        .then((response) => (
-            response._items
-        ));
+        include_killed: true,
+    });
 }
 
 function getEventEditorProfile() {

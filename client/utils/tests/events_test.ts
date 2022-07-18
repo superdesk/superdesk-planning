@@ -23,6 +23,7 @@ describe('EventUtils', () => {
                     currentUser: {
                         currentSession: {
                             _id: 'e1',
+                            type: 'event',
                             lock_user: 'ident1',
                             lock_session: 'session1',
                             lock_action: 'edit',
@@ -30,6 +31,7 @@ describe('EventUtils', () => {
                         },
                         otherSession: {
                             _id: 'e2',
+                            type: 'event',
                             lock_user: 'ident1',
                             lock_session: 'session2',
                             lock_action: 'edit',
@@ -38,17 +40,22 @@ describe('EventUtils', () => {
                     },
                     otherUser: {
                         _id: 'e3',
+                        type: 'event',
                         lock_user: 'ident2',
                         lock_session: 'session3',
                         lock_action: 'edit',
                         lock_time: '2099-10-15T14:30+0000',
                     },
-                    notLocked: {_id: 'e4'},
+                    notLocked: {
+                        _id: 'e4',
+                        type: 'event',
+                    },
                 },
                 recurring: {
                     currentUser: {
                         currentSession: {
                             _id: 'e5',
+                            type: 'event',
                             recurrence_id: 'r1',
                             lock_user: 'ident1',
                             lock_session: 'session1',
@@ -57,6 +64,7 @@ describe('EventUtils', () => {
                         },
                         otherSession: {
                             _id: 'e6',
+                            type: 'event',
                             recurrence_id: 'r2',
                             lock_user: 'ident1',
                             lock_session: 'session2',
@@ -66,6 +74,7 @@ describe('EventUtils', () => {
                     },
                     otherUser: {
                         _id: 'e7',
+                        type: 'event',
                         recurrence_id: 'r3',
                         lock_user: 'ident2',
                         lock_session: 'session3',
@@ -74,22 +83,26 @@ describe('EventUtils', () => {
                     },
                     notLocked: {
                         _id: 'e8',
+                        type: 'event',
                         recurrence_id: 'r4',
                     },
                 },
                 associated: {
                     standalone: {
                         _id: 'e9',
+                        type: 'event',
                         planning_ids: ['p1'],
                     },
                     recurring: {
                         direct: {
                             _id: 'e10',
+                            type: 'event',
                             recurrence_id: 'r5',
                             planning_ids: ['p2'],
                         },
                         indirect: {
                             _id: 'e11',
+                            type: 'event',
                             recurrence_id: 'r6',
                         },
                     },
@@ -98,6 +111,7 @@ describe('EventUtils', () => {
             plans: {
                 standalone: {
                     _id: 'p1',
+                    type: 'planning',
                     event_item: 'e9',
                     lock_user: 'ident1',
                     lock_session: 'session1',
@@ -107,6 +121,7 @@ describe('EventUtils', () => {
                 recurring: {
                     direct: {
                         _id: 'p2',
+                        type: 'planning',
                         event_item: 'e10',
                         recurrence_id: 'r5',
                         lock_user: 'ident1',
@@ -116,6 +131,7 @@ describe('EventUtils', () => {
                     },
                     indirect: {
                         _id: 'p3',
+                        type: 'planning',
                         event_item: 'e12',
                         recurrence_id: 'r6',
                         lock_user: 'ident1',
@@ -359,6 +375,7 @@ describe('EventUtils', () => {
             // Base condition where assign to calendar is available
             event = {
                 _id: 'e1',
+                type: 'event',
                 state: WORKFLOW_STATE.DRAFT,
             };
             expectActions(getActions(), ['Assign to calendar']);

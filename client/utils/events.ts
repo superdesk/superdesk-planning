@@ -4,7 +4,7 @@ import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatt
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {appConfig} from 'appConfig';
-import {IEventItem} from '../interfaces';
+import {IEventItem, ISession, ILockedItems} from '../interfaces';
 
 import {
     PRIVILEGES,
@@ -67,15 +67,16 @@ const isEventSameDay = (startingDate, endingDate) => (
 
 const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
 
-const isEventLocked = (event, locks) =>
-    !isNil(event) && locks && (
-        event._id in locks.event ||
-        get(event, 'recurrence_id') in locks.recurring
-    );
+function isEventLocked(event: IEventItem, locks: ILockedItems): boolean {
+    return lockUtils.getLock(event, locks) != null;
+}
 
-const isEventLockRestricted = (event, session, locks) =>
-    isEventLocked(event, locks) &&
-    !lockUtils.isItemLockedInThisSession(event, session, locks);
+function isEventLockRestricted(event: IEventItem, session: ISession, locks: ILockedItems): boolean {
+    return (
+        isEventLocked(event, locks) &&
+        !lockUtils.isItemLockedInThisSession(event, session, locks)
+    );
+}
 
 const isEventCompleted = (event) => (get(event, 'completed'));
 
