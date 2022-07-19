@@ -13,7 +13,7 @@ class OnclusiveApiServiceTestCase(TestCase):
             provider = {
                 "_id": "onclusive_api",
                 "name": "onclusive",
-                "feed_parser": "onclusiveapi",
+                "feed_parser": "onclusive_api",
                 "config": {"url": "https://api.abc.com", "username": "user", "password": "pass", "days": "30"},
             }
             with self.assertRaises(Exception) as error:
