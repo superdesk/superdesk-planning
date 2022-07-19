@@ -101,17 +101,12 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 logger.info("Ingesting content: {} ...".format(str(between_event_response.content)[:4000]))
 
                 if hasattr(parser, "parse_http"):
-                    items.append(parser.parse_http(content, provider))
+                    yield (parser.parse_http(content, provider))
                 else:
-                    items.append(parser.parse(content, provider))
+                    yield (parser.parse(content, provider))
 
             else:
                 logger.warning("some items were not fetched due to the limit")
-
-            if isinstance(items, list):
-                yield items
-            else:
-                yield [items]
 
     def authentication(self, TIMEOUT, session, provider):
         # authntication get token
