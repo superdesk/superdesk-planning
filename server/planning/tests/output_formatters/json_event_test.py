@@ -109,6 +109,26 @@ class JsonEventTestCase(TestCase):
         ]
         self.app.data.insert("contacts", contact)
 
+        self.app.data.insert(
+            "content_filters",
+            [{"_id": 301, "content_filter": [{"expression": {"pf": [1]}}], "name": "filter-test"}],
+        )
+        self.app.data.insert(
+            "filter_conditions",
+            [{"_id": 101, "field": "type", "operator": "eq", "value": "event", "name": "test-1"}],
+        )
+        self.app.data.insert(
+            "products",
+            [
+                {
+                    "_id": 201,
+                    "content_filter": {"filter_id": 3, "filter_type": "permitting"},
+                    "name": "p-1",
+                    "product_type": "api",
+                }
+            ],
+        )
+
     def test_formatter(self):
         formatter = JsonEventFormatter()
         output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
@@ -117,6 +137,7 @@ class JsonEventTestCase(TestCase):
         self.assertEqual(output_item.get("event_contact_info")[0].get("last_name"), "Doe")
         self.assertEqual(output_item.get("internal_note"), "An internal Note")
         self.assertEqual(output_item.get("ednote"), "An editorial Note")
+        self.assertEqual(output_item.get("products"), [{"code": 201, "name": "p-1"}])
 
     def test_files_publishing(self):
         init_app(self.app)

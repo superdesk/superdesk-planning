@@ -758,7 +758,7 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     version_creator: string;
     firstcreated: string;
     versioncreated: string;
-    type: string;
+    type: 'assignment';
     lock_user: string;
     lock_time: string | Date | moment.Moment;
     lock_session: string;
@@ -1415,7 +1415,7 @@ export interface IEditorFieldProps {
     schema?: IProfileSchemaType;
     editor?: IProfileEditorField;
     showErrors?: boolean;
-    editorType: EDITOR_TYPE;
+    editorType?: EDITOR_TYPE;
 
     onChange(field: string | {[key: string]: any}, value: any): void;
     popupContainer?(): HTMLElement;

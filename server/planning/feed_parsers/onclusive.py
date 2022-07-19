@@ -2,6 +2,7 @@ import datetime
 import logging
 import arrow
 from superdesk import get_resource_service
+from superdesk.io.feed_parsers import FeedParser
 from superdesk.metadata.item import (
     ITEM_TYPE,
     CONTENT_TYPE,
@@ -13,7 +14,7 @@ from superdesk.errors import ParserError
 logger = logging.getLogger(__name__)
 
 
-class OnclusiveFeedParser:
+class OnclusiveFeedParser(FeedParser):
     """
     Superdesk event parser
 
@@ -23,6 +24,19 @@ class OnclusiveFeedParser:
     NAME = "onclusive_api"
     label = "Onclusive API"
     all_events = []
+
+    def can_parse(self, content):
+        try:
+            if not isinstance(content, list):
+                return False
+
+            for event in content:
+                if not event.get("createdDate") or not event.get("itemId"):
+                    return False
+
+            return True
+        except Exception:
+            return False
 
     def parse(self, content, provider=None):
         try:

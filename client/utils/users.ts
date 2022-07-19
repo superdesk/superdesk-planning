@@ -42,6 +42,11 @@ export function getUsersDefaultLanguage(useCV: boolean = false, required: boolea
 
 export function getUserInterfaceLanguageFromCV(): string {
     const language = getUserInterfaceLanguage();
+
+    if (planningApi.redux?.store == null) {
+        return language;
+    }
+
     const state = planningApi.redux.store.getState();
     const languages = getLanguages(state);
 

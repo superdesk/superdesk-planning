@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 import planning from './index';
 import assignments from '../assignments/index';
-import {gettext} from '../../utils';
+import {gettext, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
@@ -138,7 +138,14 @@ const onPlanningLocked = (e, data) => (
 const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            let planningItem = selectors.planning.storedPlannings(getState())[data.item];
+            const state = getState();
+            let planningItem = selectors.planning.storedPlannings(state)[data.item];
+            const isCurrentlyLocked = lockUtils.isItemLocked(planningItem, selectors.locks.getLockedItems(state));
+
+            if (!isCurrentlyLocked && planningItem?.lock_session == null) {
+                // No need to announce an unlock, as we have already done so
+                return Promise.resolve();
+            }
 
             dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 

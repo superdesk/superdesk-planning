@@ -242,7 +242,7 @@ function moveItemToSelected(prevState: IFeaturedPlanningState, itemId: IPlanning
 
     state.plannings.selected.unshift(itemId);
     state.plannings.unselected = removeItemFromList(state.plannings.unselected, itemId);
-    state.modal.dirty = xor(
+    state.modal.dirty = state.currentFeaturedItem == null || xor(
         state.currentFeaturedItem.items ?? [],
         state.plannings.selected
     ).length > 0;
@@ -256,7 +256,7 @@ function moveItemToUnselected(prevState: IFeaturedPlanningState, itemId: IPlanni
 
     state.plannings.selected = removeItemFromList(state.plannings.selected, itemId);
     state.plannings.unselected.unshift(itemId);
-    state.modal.dirty = xor(
+    state.modal.dirty = state.currentFeaturedItem == null || xor(
         state.currentFeaturedItem.items ?? [],
         state.plannings.selected
     ).length > 0;

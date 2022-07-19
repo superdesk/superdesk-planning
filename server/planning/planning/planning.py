@@ -219,9 +219,9 @@ class PlanningService(superdesk.Service):
         # Validate if agendas being added are enabled agendas
         agenda_service = get_resource_service("agenda")
         for agenda_id in updates.get("agendas", []):
-            agenda = agenda_service.find_one(req=None, _id=str(agenda_id))
+            agenda = agenda_service.find_one(req=None, _id=agenda_id)
             if not agenda:
-                raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda.get("name")))
+                raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda_id))
 
             if not agenda.get("is_enabled", False) and (
                 original is None or agenda_id not in original.get("agendas", [])
