@@ -21,7 +21,7 @@ class OnclusiveFeedParser(FeedParser):
     Feed Parser which can parse the Onclusive API Events
     """
 
-    NAME = "onclusiveapi"
+    NAME = "onclusive_api"
     label = "Onclusive API"
     all_events = []
 
@@ -37,9 +37,6 @@ class OnclusiveFeedParser(FeedParser):
             return True
         except Exception:
             return False
-
-    def parse_http(self, content, provider):
-        return self.parse(content, provider)
 
     def parse(self, content, provider=None):
         try:

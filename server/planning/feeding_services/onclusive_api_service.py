@@ -4,6 +4,7 @@ from flask_babel import lazy_gettext
 from flask import current_app as app
 import requests
 import superdesk
+from superdesk.io.registry import register_feeding_service_parser
 from superdesk.io.feeding_services.http_base_service import HTTPFeedingServiceBase
 from planning.common import get_onclusive_max_offset
 
@@ -18,6 +19,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
     NAME = "Onclusive_api"
     label = "Onclusive api feed"
     service = "events"
+    FeedParser = "onclusive_api"
     fields = [
         {
             "id": "url",
@@ -100,18 +102,10 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 logger.info("Ingesting events with {} parser".format(parser.__class__.__name__))
                 logger.info("Ingesting content: {} ...".format(str(between_event_response.content)[:4000]))
 
-                if hasattr(parser, "parse_http"):
-                    items.append(parser.parse_http(content, provider))
-                else:
-                    items.append(parser.parse(content, provider))
+                yield (parser.parse(content, provider))
 
             else:
                 logger.warning("some items were not fetched due to the limit")
-
-            if isinstance(items, list):
-                yield items
-            else:
-                yield [items]
 
     def authentication(self, TIMEOUT, session, provider):
         # authntication get token
@@ -134,3 +128,6 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         if renew_response.status_code == 200:
             new_token = renew_response.json()
             return new_token["token"]
+
+
+register_feeding_service_parser(OnclusiveApiService.NAME, OnclusiveApiService.FeedParser)
