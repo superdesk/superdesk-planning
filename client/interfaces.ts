@@ -758,7 +758,6 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     version_creator: string;
     firstcreated: string;
     versioncreated: string;
-    type: string;
     lock_user: string;
     lock_time: string | Date | moment.Moment;
     lock_session: string;
@@ -824,6 +823,10 @@ export interface ICommonAdvancedSearchParams {
     }>;
     subject?: Array<ISubject>;
     language?: string;
+    source?: Array<{
+        id?: string;
+        name?: string;
+    }>;
 }
 
 export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
@@ -842,6 +845,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams;
     sortOrder?: SORT_ORDER;
     sortField?: SORT_FIELD;
+    source?:string;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -852,10 +856,6 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         location?: IEventLocation;
         reference?: string;
-        source?: Array<{
-            id?: string;
-            name?: string;
-        }>;
     };
 }
 
@@ -1260,13 +1260,13 @@ export interface ISearchParams {
     filter_id?: ISearchFilter['_id'];
     sort_order?: SORT_ORDER;
     sort_field?: SORT_FIELD;
-
-    // Event Params
-    reference?: string;
     source?: Array<{
         id?: string;
         name?: string;
     }>;
+
+    // Event Params
+    reference?: string;
     location?: IEventLocation;
     calendars?: Array<ICalendar>;
     no_calendar_assigned?: boolean;
@@ -1314,10 +1314,10 @@ export interface ISearchAPIParams {
     directly_locked?: boolean;
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
+    source?: string;
 
     // Event Params
     reference?: string;
-    source?: string;
     location?: IEventLocation['qcode'];
     calendars?: string;
     no_calendar_assigned?: boolean;
@@ -1415,7 +1415,7 @@ export interface IEditorFieldProps {
     schema?: IProfileSchemaType;
     editor?: IProfileEditorField;
     showErrors?: boolean;
-    editorType: EDITOR_TYPE;
+    editorType?: EDITOR_TYPE;
 
     onChange(field: string | {[key: string]: any}, value: any): void;
     popupContainer?(): HTMLElement;

@@ -46,13 +46,6 @@ def search_reference(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must.append(elastic.query_string(text=params["reference"], field="reference", default_operator="AND"))
 
 
-def search_source(params: Dict[str, Any], query: elastic.ElasticQuery):
-    sources = [str(source_id) for source_id in str_to_array(params.get("source"))]
-
-    if len(sources):
-        query.must.append(elastic.terms(field="ingest_provider", values=sources))
-
-
 def search_location(params: Dict[str, Any], query: elastic.ElasticQuery):
     if len(params.get("location") or ""):
         query.must.append(elastic.term(field="location.qcode", value=params["location"]))
@@ -396,7 +389,6 @@ EVENT_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None
     search_events,
     search_slugline,
     search_reference,
-    search_source,
     search_location,
     search_calendars,
     search_no_calendar_assigned,
@@ -408,7 +400,6 @@ EVENT_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
 
 EVENT_PARAMS: List[str] = [
     "reference",
-    "source",
     "location",
     "calendars",
     "no_calendar_assigned",

@@ -387,6 +387,13 @@ def restrict_items_to_user_only(_params: Dict[str, Any], query: elastic.ElasticQ
         search_original_creator({"original_creator": str(user_id)}, query)
 
 
+def search_source(params: Dict[str, Any], query: elastic.ElasticQuery):
+    sources = [str(source_id) for source_id in str_to_array(params.get("source"))]
+
+    if len(sources):
+        query.must.append(elastic.terms(field="ingest_provider", values=sources))
+
+
 COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
     search_item_ids,
     search_name,
@@ -401,6 +408,7 @@ COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], Non
     append_states_query_for_advanced_search,
     restrict_items_to_user_only,
     search_original_creator,
+    search_source,
 ]
 
 
@@ -434,4 +442,5 @@ COMMON_PARAMS: List[str] = [
     "sort_order",
     "sort_field",
     "original_creator",
+    "source",
 ]

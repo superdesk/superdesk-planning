@@ -8,7 +8,7 @@ import {
     ISearchSpikeState,
     LOCK_STATE,
 } from '../interfaces';
-import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll} from './search';
+import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToString} from './search';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
@@ -30,6 +30,7 @@ function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams>
         include_scheduled_updates: params.include_scheduled_updates,
         event_item: arrayToString(params.event_item),
         g2_content_type: params.g2_content_type?.qcode,
+        source: cvsToString(params.source, 'id')
     };
 }
 
