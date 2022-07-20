@@ -1,3 +1,4 @@
+import {IPlanningSearchParams} from '../../interfaces';
 import {showModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
@@ -89,15 +90,15 @@ const addToList = (ids) => ({
  * Queries the API and sets the Planning List to the items received
  * @param {object} params - Parameters used when querying for planning items
  */
-const fetchToList = (params) => (
-    (dispatch) => {
+function fetchToList(params: IPlanningSearchParams) {
+    return (dispatch) => {
         dispatch(self.requestPlannings(params));
         return dispatch(planningApi.fetch(params))
             .then((items) => (dispatch(self.setInList(
                 items.map((p) => p._id)
             ))));
-    }
-);
+    };
+}
 
 /**
  * Fetch more planning items and add them to the list
