@@ -16,7 +16,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
     Feeding Service class which can read events using HTTP
     """
 
-    NAME = "Onclusive_api"
+    NAME = "onclusive_api"
     label = "Onclusive api feed"
     service = "events"
     FeedParser = "onclusive_api"
@@ -66,7 +66,6 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         """
         session = requests.Session()
         current_date = datetime.now()
-        items = []
         parser = self.get_feed_parser(provider)
         TIMEOUT = (5, 30)
         ONCLUSIVE_MAX_OFFSET = get_onclusive_max_offset()
@@ -93,6 +92,8 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
 
                 if between_event_response.status_code == 401:
                     TOKEN = self.renew_token(provider, session)
+                    if not TOKEN:
+                        TOKEN = self.authentication(TIMEOUT, session, provider)
                     between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
 
                 content = between_event_response.json()
@@ -117,14 +118,21 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         if data.get("token") and data.get("refreshToken"):
             provider["config"]["refreshToken"] = data["refreshToken"]
             superdesk.get_resource_service("ingest_providers").patch(provider["_id"], provider)
-            return data["refreshToken"]
+            return data["token"]
 
     def renew_token(self, provider, session):
         # Need to renew Token
         url = provider["config"]["url"] + "/api/v2/auth/renew"
         body = {"refreshToken": provider["config"]["refreshToken"]}
         renew_response = session.post(url=url, data=body, timeout=5)
-        renew_response.raise_for_status()
+        try:
+            renew_response.raise_for_status()
+        except Exception as e:
+            logger.error(e)
+        if renew_response.status_code == 400:
+            provider["config"].pop("refreshToken")
+            superdesk.get_resource_service("ingest_providers").patch(provider["_id"], provider)
+            return
         if renew_response.status_code == 200:
             new_token = renew_response.json()
             return new_token["token"]
