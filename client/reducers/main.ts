@@ -51,7 +51,7 @@ const modifyParams = (state, payload) => {
     return params;
 };
 
-export default createReducer(initialState, {
+export default createReducer<IMainState>(initialState, {
     [RESET_STORE]: (state) => ({
         ...state,
         previewItem: null,
@@ -104,21 +104,13 @@ export default createReducer(initialState, {
         listViewType: payload,
     }),
 
-    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload) => {
-        let newState = {
-            ...state,
-            search: {
-                ...state.search,
-                [payload]: cloneDeep(search),
-            },
-        };
-
-        if (get(state.search[payload], 'currentSearch.excludeRescheduledAndCancelled')) {
-            newState.search[payload].currentSearch = {excludeRescheduledAndCancelled: true};
-        }
-
-        return newState;
-    },
+    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload: keyof IMainState['search']) => ({
+        ...state,
+        search: {
+            ...state.search,
+            [payload]: cloneDeep(search),
+        },
+    }),
 
     [MAIN.ACTIONS.SET_PREVIEW_ITEM]: (state, payload) => ({
         ...state,

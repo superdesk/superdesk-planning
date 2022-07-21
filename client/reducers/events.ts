@@ -1,9 +1,9 @@
 import {orderBy, cloneDeep, uniq, get} from 'lodash';
 import moment from 'moment';
 
-import {IEventState, LIST_VIEW_TYPE} from '../interfaces';
+import {IEventState, IMainState, LIST_VIEW_TYPE} from '../interfaces';
 
-import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, WORKFLOW_STATE} from '../constants';
+import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, WORKFLOW_STATE, MAIN} from '../constants';
 import {createReducer} from './createReducer';
 
 const initialState: IEventState = {
@@ -73,7 +73,7 @@ export const unspikeEvent = (events, payload) => {
     event._etag = payload.etag;
 };
 
-const eventsReducer = createReducer(initialState, {
+const eventsReducer = createReducer<IEventState>(initialState, {
     [RESET_STORE]: () => (initialState),
 
     [INIT_STORE]: () => (initialState),
@@ -299,6 +299,13 @@ const eventsReducer = createReducer(initialState, {
         currentCalendarId: null,
         currentFilterId: payload,
     }),
+    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload: keyof IMainState['search']) => (
+        payload !== 'EVENTS' ? state : {
+            ...state,
+            currentCalendarId: null,
+            currentFilterId: null,
+        }
+    ),
 
     [EVENTS.ACTIONS.EXPIRE_EVENTS]: (state, payload) => {
         let events = cloneDeep(state.events);

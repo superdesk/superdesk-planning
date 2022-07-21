@@ -1582,11 +1582,19 @@ export interface IFeaturedPlanningState {
     inUse: boolean;
 }
 
+export interface IEventsPlanningState {
+    eventsAndPlanningInList: Array<IEventOrPlanningItem['_id']>;
+    relatedPlannings: {[key: string]: IPlanningItem};
+    filters: Array<ISearchFilter>;
+    currentFilter?: ISearchFilter['_id'];
+}
+
 export interface IPlanningAppState {
     main: IMainState;
     agenda: IAgendaState;
     events: IEventState;
     planning: IPlanningState;
+    eventsPlanning: IEventsPlanningState;
     featuredPlanning: IFeaturedPlanningState;
     forms: IFormState;
     session: ISession;

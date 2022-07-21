@@ -1,9 +1,12 @@
-import {EVENTS_PLANNING, INIT_STORE, RESET_STORE} from '../constants';
 import {cloneDeep, get, uniq, sortBy} from 'lodash';
+
+import {IEventsPlanningState, IMainState, ISearchFilter} from '../interfaces';
+import {EVENTS_PLANNING, INIT_STORE, RESET_STORE, MAIN} from '../constants';
+
 import {createReducer} from './createReducer';
 import {getItemId} from '../utils';
 
-const initialState = {
+const initialState: IEventsPlanningState = {
     eventsAndPlanningInList: [],
     relatedPlannings: {},
     filters: [],
@@ -27,7 +30,7 @@ const addOrReplaceFilters = (filters, filter) => {
     return sortBy(filters, [(f) => f.name.toLowerCase()]);
 };
 
-const eventsPlanningReducer = createReducer(initialState, {
+const eventsPlanningReducer = createReducer<IEventsPlanningState>(initialState, {
     [RESET_STORE]: () => (null),
 
     [INIT_STORE]: () => (initialState),
@@ -80,10 +83,16 @@ const eventsPlanningReducer = createReducer(initialState, {
             filters: sortBy([...payload], [(f) => f.name.toLowerCase()]),
         }
     ),
-    [EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER]: (state, payload) => (
+    [EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER]: (state, payload: ISearchFilter['_id']) => (
         {
             ...state,
-            currentFilter: payload,
+            currentFilter: payload === EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING ? null : payload,
+        }
+    ),
+    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload: keyof IMainState['search']) => (
+        payload !== 'COMBINED' ? state : {
+            ...state,
+            currentFilter: null,
         }
     ),
 });

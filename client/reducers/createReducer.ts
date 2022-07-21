@@ -1,5 +1,5 @@
-export const createReducer = (initialState, reducerMap) => (
-    (state = initialState, action) => {
+export function createReducer<T = any>(initialState: T, reducerMap: {[key: string]: (state: T, payload: any) => T}) {
+    return (state = initialState, action) => {
         const reducer = reducerMap[action.type];
 
         if (reducer) {
@@ -10,5 +10,5 @@ export const createReducer = (initialState, reducerMap) => (
                 ...state,
             };
         }
-    }
-);
+    };
+}
