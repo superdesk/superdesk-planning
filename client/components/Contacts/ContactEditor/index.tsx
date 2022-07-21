@@ -1,20 +1,35 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Modal} from '../../index';
 import {gettext} from '../../../utils';
 
 import * as ContactFormComponents from 'superdesk-core/scripts/apps/contacts/components/Form';
+import {IContact} from 'superdesk-core/scripts/apps/contacts/Contacts';
 import ng from 'superdesk-core/scripts/core/services/ng';
 
-export class ContactEditor extends React.Component {
+interface IProps {
+    currentContact: IContact;
+    onCancel(): void;
+    onSave(contact: IContact): void;
+}
+
+interface IState {
+    showModal: boolean;
+    dirty: boolean;
+    valid: boolean;
+}
+
+export class ContactEditor extends React.Component<IProps, IState> {
+    contactForm: React.RefObject<ContactFormComponents.ContactFormContainer>;
+
     constructor(props) {
         super(props);
         this.state = {
             showModal: true,
-            dirty: null,
-            valid: null,
-            triggerSave: null,
+            dirty: false,
+            valid: false,
         };
+        this.contactForm = React.createRef();
+
         this.handleCancel = this.handleCancel.bind(this);
         this.onDirty = this.onDirty.bind(this);
         this.onValidation = this.onValidation.bind(this);
@@ -26,7 +41,7 @@ export class ContactEditor extends React.Component {
     handleCancel() {
         this.setState({
             showModal: false,
-        }, this.props.onCancel());
+        }, () => this.props.onCancel());
     }
 
     onDirty() {
@@ -42,9 +57,9 @@ export class ContactEditor extends React.Component {
     }
 
     triggerSave() {
-        this.setState({
-            triggerSave: true,
-        });
+        if (this.contactForm.current != null) {
+            this.contactForm.current.save();
+        }
     }
 
     exitEditor(result) {
@@ -54,7 +69,6 @@ export class ContactEditor extends React.Component {
 
     onSave(result) {
         this.setState({
-            triggerSave: false,
             dirty: false,
             showModal: false,
         }, () => this.exitEditor(result));
@@ -87,12 +101,13 @@ export class ContactEditor extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <ContactFormContainer
+                        ref={this.contactForm}
                         contact={currentContact}
                         svc={services}
                         onCancel={this.handleCancel}
                         onDirty={this.onDirty}
                         onValidation={this.onValidation}
-                        triggerSave={this.state.triggerSave}
+                        triggerSave={false}
                         onSave={this.onSave}
                         hideActionBar={true}
                     />
@@ -110,9 +125,3 @@ export class ContactEditor extends React.Component {
         );
     }
 }
-
-ContactEditor.propTypes = {
-    onCancel: PropTypes.func,
-    currentContact: PropTypes.object,
-    onSave: PropTypes.func,
-};

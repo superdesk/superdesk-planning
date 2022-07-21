@@ -161,7 +161,6 @@ export const isViewFiltered = createSelector<
 
         // Remove fields that we don't want to calculate
         const exclude: Array<keyof ICombinedEventOrPlanningSearchParams> = [
-            'filter_id',
             'timezoneOffset',
             'advancedSearch',
             'itemIds',

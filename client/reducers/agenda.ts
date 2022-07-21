@@ -1,7 +1,7 @@
 import {sortBy} from 'lodash';
 
-import {IAgendaState} from '../interfaces';
-import {AGENDA, RESET_STORE, INIT_STORE} from '../constants';
+import {IAgendaState, IMainState} from '../interfaces';
+import {AGENDA, RESET_STORE, INIT_STORE, MAIN} from '../constants';
 
 /**
  * Creates a new agenda if it doesn't exist, otherwise updates the existing one
@@ -64,6 +64,12 @@ const agendaReducer = (state = initialState, action) => {
         return {
             ...state,
             agendas: replaceOrAddInAgendas(state.agendas.slice(), action.payload),
+        };
+    case MAIN.ACTIONS.CLEAR_SEARCH:
+        return (action.payload as keyof IMainState['search']) !== 'PLANNING' ? state : {
+            ...state,
+            currentAgendaId: null,
+            currentFilterId: null,
         };
     default:
         return state;
