@@ -88,15 +88,20 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 )
 
                 between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
-                between_event_response.raise_for_status()
+                try:
+                    between_event_response.raise_for_status()
+                except Exception as e:
+                    logger.error(e)
 
                 if between_event_response.status_code == 401:
                     TOKEN = self.renew_token(provider, session)
                     if not TOKEN:
                         TOKEN = self.authentication(TIMEOUT, session, provider)
                     between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
+                    between_event_response.raise_for_status()
 
-                content = between_event_response.json()
+                if between_event_response.status_code == 200:
+                    content = between_event_response.json()
                 if between_event_response.json() == []:
                     break
 
