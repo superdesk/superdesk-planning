@@ -54,8 +54,8 @@ class OnclusiveFeedParserTestCase(TestCase):
 
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
 
-        self.assertEqual(item["dates"]["start"], "2022-06-15T00:00:00")
-        self.assertEqual(item["dates"]["end"], "2022-06-16T00:00:00")
+        self.assertEqual(item["dates"]["start"], datetime.datetime(2022, 6, 15, 0, 0, tzinfo=tzutc()))
+        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 16, 0, 0, tzinfo=tzutc()))
         self.assertEqual(item["dates"]["tz"], "EDT")
 
         self.assertEqual(item["name"], "Annual Forum on Anti-Money Laundering and Financial Crime")
