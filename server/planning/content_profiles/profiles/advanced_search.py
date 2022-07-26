@@ -99,6 +99,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "source": {
+                "enabled": True,
+                "index": 6,
+                "group": "states",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
             # Dates
             "start_date": {
                 "enabled": True,
@@ -143,16 +150,9 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "source": {
-                "enabled": True,
-                "index": 4,
-                "group": "events",
-                "search_enabled": True,
-                "filter_enabled": True,
-            },
             "location": {
                 "enabled": True,
-                "index": 5,
+                "index": 4,
                 "group": "events",
                 "search_enabled": True,
                 "filter_enabled": True,
@@ -249,6 +249,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
             "exclude_rescheduled_and_cancelled": {
                 "enabled": True,
                 "index": 6,
+                "group": "states",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "source": {
+                "enabled": True,
+                "index": 7,
                 "group": "states",
                 "search_enabled": True,
                 "filter_enabled": True,
@@ -417,6 +424,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
             "lock_state": {
                 "enabled": True,
                 "index": 5,
+                "group": "states",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
+            "source": {
+                "enabled": True,
+                "index": 6,
                 "group": "states",
                 "search_enabled": True,
                 "filter_enabled": True,

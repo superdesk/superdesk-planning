@@ -42,6 +42,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         language: params.advancedSearch?.language,
         sort_order: params.sortOrder ?? SORT_ORDER.ASCENDING,
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
+        source: params.advancedSearch?.source,
     };
 }
 
@@ -75,6 +76,7 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
             state: params.state,
             subject: params.subject,
             language: params.language,
+            source: params.source,
         },
     };
 }
@@ -120,7 +122,6 @@ export function eventParamsToSearchParams(params: IEventSearchParams): ISearchPa
         ...commonParamsToSearchParams(params),
         recurrence_id: params.recurrenceId,
         reference: params.advancedSearch?.reference,
-        source: params.advancedSearch?.source,
         location: params.advancedSearch?.location,
         no_calendar_assigned: params.noCalendarAssigned,
         calendars: params.calendars,
@@ -140,7 +141,6 @@ export function searchParamsToEventParams(params: ISearchParams): IEventSearchPa
             ...common.advancedSearch,
             location: params.location,
             reference: params.reference,
-            source: params.source,
         },
     };
 }

@@ -207,7 +207,10 @@ export class PlanningStoreService {
                     ),
                     ingest: {
                         providers: get(data, 'ingest', [])
-                            .filter((p) => get(p, 'content_types', []).indexOf(ITEM_TYPE.EVENT) !== -1)
+                            .filter((p) => (
+                                get(p, 'content_types', []).indexOf(ITEM_TYPE.EVENT) !== -1 ||
+                                get(p, 'content_types', []).indexOf(ITEM_TYPE.PLANNING) !== -1)
+                            )
                             .map((provider) => ({
                                 name: provider.name,
                                 id: provider._id,
