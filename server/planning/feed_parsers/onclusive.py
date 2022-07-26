@@ -91,8 +91,8 @@ class OnclusiveFeedParser(FeedParser):
         item["links"] = [event["website1"]]
 
     def parse_event_details(self, event, item):
-        start_date = event["startDate"]
-        end_date = event["endDate"]
+        start_date = self.datetime(event["startDate"])
+        end_date = self.datetime(event["endDate"])
         timezone = None
         if event.get("timezone"):
             timezone = event["timezone"]["timezoneAbbreviation"]
