@@ -23,6 +23,7 @@ from planning.common import (
     ITEM_ACTIONS,
     is_valid_event_planning_reason,
     ASSIGNMENT_WORKFLOW_STATE,
+    get_coverage_status_from_cv,
 )
 from flask import request
 
@@ -58,19 +59,12 @@ class PlanningCancelService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True).get(config.ID_FIELD, "")
         session = get_auth().get(config.ID_FIELD, "")
-        coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
 
         event_cancellation = request.view_args.get("event_cancellation")
         cancel_all_coverage = updates.pop("cancel_all_coverage", False)
         event_reschedule = updates.pop("event_reschedule", False)
-
-        coverage_cancel_state = None
-        if coverage_states:
-            coverage_cancel_state = next(
-                (x for x in coverage_states.get("items", []) if x["qcode"] == "ncostat:notint"),
-                None,
-            )
-            coverage_cancel_state.pop("is_active", None)
+        coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
+        coverage_cancel_state.pop("is_active", None)
 
         ids = []
         updates["coverages"] = deepcopy(original.get("coverages"))

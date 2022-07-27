@@ -223,18 +223,52 @@ def remove_lock_information(item):
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
 
 
-def get_coverage_cancellation_state():
+def get_default_coverage_status_qcode_on_ingest(current_app=None):
+    return (current_app or app).config.get("PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST", "ncostat:int")
+
+
+def get_coverage_status_from_cv(qcode: str):
+    default_states = {
+        "ncostat:int": {
+            "name": "coverage intended",
+            "label": "Planned",
+            "qcode": "ncostat:int",
+            "is_active": True,
+        },
+        "ncostat:notdec": {
+            "name": "coverage not decided yet",
+            "label": "On merit",
+            "qcode": "ncostat:notdec",
+            "is_active": True,
+        },
+        "ncostat:notint": {
+            "name": "coverage not intended",
+            "label": "Not planned",
+            "qcode": "ncostat:notint",
+            "is_active": True,
+        },
+        "ncostat:onreq": {
+            "name": "coverage upon request",
+            "label": "On request",
+            "qcode": "ncostat:onreq",
+            "is_active": True,
+        },
+    }
+
     coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
+    if coverage_states and len(coverage_states.get("items", [])):
+        coverage_status = next((state for state in coverage_states["items"] if state.get("qcode") == qcode), None)
+        if coverage_status:
+            return coverage_status
 
-    coverage_cancel_state = None
-    if coverage_states:
-        coverage_cancel_state = next(
-            (x for x in coverage_states.get("items", []) if x["qcode"] == "ncostat:notint"),
-            None,
-        )
-        coverage_cancel_state.pop("is_active", None)
+        logger.warning(f"newscoveragestatus '{qcode}' not found in CV items, falling back to defaults")
 
-    return coverage_cancel_state
+    if qcode not in default_states.keys():
+        default_qcode = get_default_coverage_status_qcode_on_ingest()
+        logger.warning(f"Invalid newscoveragestatus qcode '{qcode}', defaulting to '{default_qcode}'")
+        qcode = default_qcode
+
+    return default_states[qcode]
 
 
 def is_locked_in_this_session(item, user_id=None, session_id=None):
