@@ -162,6 +162,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_EXPORT_BODY_TEMPLATE:
     * Default: https://github.com/superdesk/superdesk-planning/blob/develop/server/planning/planning_export_templates.py#L39
     * Overrides the default event template used for planning exports
+* PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST:
+    * Default: 'ncostat:int' - Coverage Planned
+    * The default CV qcode for populating planning.coverage[x].news_coverage_status on ingest
 
 ### Assignments Config
 * SLACK_BOT_TOKEN
