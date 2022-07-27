@@ -41,7 +41,9 @@ class PlanningHistoryService(HistoryService):
     """Service for keeping track of the history of a planning entries"""
 
     def on_item_created(self, items):
-        add_to_planning = strtobool(request.args.get("add_to_planning", "false"))
+        add_to_planning = False
+        if request and hasattr(request, "args"):
+            add_to_planning = strtobool(request.args.get("add_to_planning", "false"))
         super().on_item_created(items, "add_to_planning" if add_to_planning else None)
 
     def _save_history(self, planning, update, operation):
@@ -59,6 +61,10 @@ class PlanningHistoryService(HistoryService):
             "operation": operation,
             "update": update,
         }
+
+        if operation == "create" and update.get("state", "") == "ingested":
+            history["operation"] = "ingested"
+
         self.post([history])
 
     def on_item_updated(self, updates, original, operation=None):

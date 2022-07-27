@@ -29,7 +29,7 @@ from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
     POST_STATE_SCHEMA,
-    get_coverage_cancellation_state,
+    get_coverage_status_from_cv,
     WORKFLOW_STATE,
     ASSIGNMENT_WORKFLOW_STATE,
     update_post_item,
@@ -118,6 +118,9 @@ class PlanningService(superdesk.Service):
             # set timestamps
             update_dates_for(doc)
 
+            if doc["state"] == "ingested":
+                get_resource_service("planning_history").on_item_created([doc])
+
     def on_created(self, docs):
         session_id = get_auth().get("_id")
         for doc in docs:
@@ -134,10 +137,15 @@ class PlanningService(superdesk.Service):
         self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc):
-        if "event_item" not in doc:
+        event_id = doc.get("event_item")
+        if not event_id:
             return
         events_service = get_resource_service("events")
-        original_event = events_service.find_one(req=None, _id=doc["event_item"])
+        original_event = events_service.find_one(req=None, _id=event_id)
+
+        if not original_event:
+            logger.warning(f"Failed to update event history, Event '{event_id}' not found")
+            return
 
         events_service.system_update(
             doc["event_item"],
@@ -745,7 +753,8 @@ class PlanningService(superdesk.Service):
                 raise SuperdeskApiError.badRequestError("Assignment related to the coverage does not exists.")
 
             # Check if coverage was cancelled
-            coverage_cancel_state = get_coverage_cancellation_state()
+            coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
+            coverage_cancel_state.pop("is_active", None)
             if (
                 original.get("workflow_status") != updates.get("workflow_status")
                 and updates.get("workflow_status") == WORKFLOW_STATE.CANCELLED
