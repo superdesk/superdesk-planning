@@ -13,7 +13,7 @@
 <contentCreated>2022-02-16T12:18:17+02:00</contentCreated>
 <contentModified>2022-02-16T12:18:17+02:00</contentModified>
 <headline>Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?</headline>
-<description role="drol:summary"/>
+<description role="drol:summary">Alustatalous on Tiekartaston valmistumisen jälkeen globaalisti jatkanut nopeaa ja voimakasta kasvuaan</description>
 <subject qcode="stt-topics:581312">
 <related rel="sttrel:assigneddate" value="2022-05-06" valuedatatype="Date"/>
 </subject>
@@ -25,12 +25,13 @@
 <newsCoverageStatus qcode="ncostat:int"/>
 </assert>
 <newsCoverageSet>
-<newsCoverage id="ID_TEXT_120190859">
+<newsCoverage id="ID_TEXT_120190859" modified="2022-05-06T02:26:27+02:00">
 <planning>
 <g2contentType>application/vnd.iptc.g2.newsitem+xml</g2contentType>
 <itemClass qcode="ninat:text"/>
+<scheduled>2022-05-06T02:02:55+02:00</scheduled>
 <headline>Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?</headline>
-<description/>
+<description>ja alustatalouden kehitystä ja näkymiä käsittelevässä tilaisuudessa julkaistaan myös tilanneraportti</description>
 <subject type="cpnat:abstract" qcode="sttdeadline2:20220506120000">
 <name>2022-05-06T12:00:00+02:00</name>
 </subject>
