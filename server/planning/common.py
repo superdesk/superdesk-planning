@@ -20,6 +20,7 @@ from superdesk import get_resource_service, logger
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
 from superdesk.utc import utcnow
 from superdesk.celery_app import celery
+from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 from apps.publish.enqueue import get_enqueue_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
@@ -228,47 +229,16 @@ def get_default_coverage_status_qcode_on_ingest(current_app=None):
 
 
 def get_coverage_status_from_cv(qcode: str):
-    default_states = {
-        "ncostat:int": {
-            "name": "coverage intended",
-            "label": "Planned",
-            "qcode": "ncostat:int",
-            "is_active": True,
-        },
-        "ncostat:notdec": {
-            "name": "coverage not decided yet",
-            "label": "On merit",
-            "qcode": "ncostat:notdec",
-            "is_active": True,
-        },
-        "ncostat:notint": {
-            "name": "coverage not intended",
-            "label": "Not planned",
-            "qcode": "ncostat:notint",
-            "is_active": True,
-        },
-        "ncostat:onreq": {
-            "name": "coverage upon request",
-            "label": "On request",
-            "qcode": "ncostat:onreq",
-            "is_active": True,
-        },
-    }
-
     coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
-    if coverage_states and len(coverage_states.get("items", [])):
-        coverage_status = next((state for state in coverage_states["items"] if state.get("qcode") == qcode), None)
-        if coverage_status:
-            return coverage_status
 
-        logger.warning(f"newscoveragestatus '{qcode}' not found in CV items, falling back to defaults")
+    if not coverage_states or not len(coverage_states.get("items", [])):
+        raise SuperdeskApiError.notConfiguredError(message="newscoveragestatus CV not found in DB or has no items")
 
-    if qcode not in default_states.keys():
-        default_qcode = get_default_coverage_status_qcode_on_ingest()
-        logger.warning(f"Invalid newscoveragestatus qcode '{qcode}', defaulting to '{default_qcode}'")
-        qcode = default_qcode
+    coverage_status = next((state for state in coverage_states["items"] if state.get("qcode") == qcode), None)
+    if coverage_status:
+        return coverage_status
 
-    return default_states[qcode]
+    raise SuperdeskApiError.badRequestError(message=f"newscoveragestatus '{qcode}' not found in CV items")
 
 
 def is_locked_in_this_session(item, user_id=None, session_id=None):
