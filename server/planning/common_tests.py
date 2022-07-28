@@ -1,5 +1,5 @@
 from planning.tests import TestCase
-from .common import set_actioned_date_to_event
+from .common import set_actioned_date_to_event, get_coverage_status_from_cv
 from datetime import datetime, timedelta
 from superdesk.utc import utcnow
 
@@ -42,3 +42,50 @@ class CommonTestCase(TestCase):
         }
         set_actioned_date_to_event(updates, original)
         self.assertEqual(updates, {})
+
+    def test_get_coverage_status_from_cv(self):
+        with self.app.app_context():
+            items = [
+                {
+                    "is_active": True,
+                    "qcode": "ncostat:int",
+                    "name": "coverage intended",
+                    "label": "Coverage planned",
+                },
+                {
+                    "is_active": True,
+                    "qcode": "ncostat:notdec",
+                    "name": "coverage not decided yet",
+                    "label": "Coverage on merit",
+                },
+                {
+                    "is_active": False,
+                    "qcode": "ncostat:notint",
+                    "name": "coverage not intended",
+                    "label": "Coverage not planned",
+                },
+                {
+                    "is_active": True,
+                    "qcode": "ncostat:onreq",
+                    "name": "coverage upon request",
+                    "label": "Coverage on request",
+                },
+            ]
+            self.app.data.insert(
+                "vocabularies",
+                [
+                    {
+                        "_id": "newscoveragestatus",
+                        "display_name": "News Coverage Status",
+                        "type": "manageable",
+                        "unique_field": "qcode",
+                        "selection_type": "do not show",
+                        "items": items,
+                    }
+                ],
+            )
+
+            self.assertEqual(get_coverage_status_from_cv("ncostat:int")["label"], "Coverage planned")
+            self.assertEqual(get_coverage_status_from_cv("ncostat:notdec")["label"], "Coverage on merit")
+            self.assertEqual(get_coverage_status_from_cv("ncostat:notint")["label"], "Coverage not planned")
+            self.assertEqual(get_coverage_status_from_cv("ncostat:onreq")["label"], "Coverage on request")

@@ -20,6 +20,7 @@ from superdesk import get_resource_service, logger
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
 from superdesk.utc import utcnow
 from superdesk.celery_app import celery
+from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 from apps.publish.enqueue import get_enqueue_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
@@ -223,18 +224,21 @@ def remove_lock_information(item):
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
 
 
-def get_coverage_cancellation_state():
+def get_default_coverage_status_qcode_on_ingest(current_app=None):
+    return (current_app or app).config.get("PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST", "ncostat:int")
+
+
+def get_coverage_status_from_cv(qcode: str):
     coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
 
-    coverage_cancel_state = None
-    if coverage_states:
-        coverage_cancel_state = next(
-            (x for x in coverage_states.get("items", []) if x["qcode"] == "ncostat:notint"),
-            None,
-        )
-        coverage_cancel_state.pop("is_active", None)
+    if not coverage_states or not len(coverage_states.get("items", [])):
+        raise SuperdeskApiError.notConfiguredError(message="newscoveragestatus CV not found in DB or has no items")
 
-    return coverage_cancel_state
+    coverage_status = next((state for state in coverage_states["items"] if state.get("qcode") == qcode), None)
+    if coverage_status:
+        return coverage_status
+
+    raise SuperdeskApiError.badRequestError(message=f"newscoveragestatus '{qcode}' not found in CV items")
 
 
 def is_locked_in_this_session(item, user_id=None, session_id=None):

@@ -398,7 +398,7 @@ Feature: Assignments Delete
         When we get "/assignments/"
         Then we get list with 0 items
 
-    @auth @today
+    @auth @today @planning_cvs
     Scenario: Deleting an Assignment in schedule_updates chain will remove all assignments in the chain
         Given "desks"
         """
@@ -766,6 +766,7 @@ Feature: Assignments Delete
     @auth
     @link_updates
     @notification @today
+    @planning_cvs
     Scenario: Deleting an Assignment in schedule_updates chain will unlink all assignments content
         Given empty "planning"
         When we post to "planning"

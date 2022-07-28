@@ -880,6 +880,7 @@ Feature: Events Reschedule
         """
 
     @auth
+    @planning_cvs
     Scenario: Reschedule series of postponed events
         When we post to "events"
         """

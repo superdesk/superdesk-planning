@@ -15,6 +15,9 @@ export class PlanningHistory extends React.Component {
         let text, agenda;
 
         switch (historyItem.operation) {
+        case HISTORY_OPERATIONS.INGESTED:
+            text = gettext('Ingested');
+            break;
         case HISTORY_OPERATIONS.CREATE:
             text = get(historyItem, 'update.event_item') ? gettext('Created from event') :
                 gettext('Created');

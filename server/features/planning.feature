@@ -364,6 +364,7 @@ Feature: Planning
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Coverage cannot be deleted after assignment is added to workflow.
         Given empty "planning"
         When we post to "planning"
@@ -2079,6 +2080,7 @@ Feature: Planning
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Cancelled planning's coverage cannot be removed
         When we post to "planning" with success
         """
@@ -3748,6 +3750,7 @@ Feature: Planning
         """
 
     @auth
+    @planning_cvs
     Scenario: Attach XMP file to coverage adds assignment_id to it
         When we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS
         When we set PLANNING_XMP_ASSIGNMENT_MAPPING
@@ -3842,6 +3845,7 @@ Feature: Planning
         Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
 
     @auth
+    @planning_cvs
     Scenario: Attaching XMP file to coverage adds assignment_id to it only if the config mapping is present
         When we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS
         When we upload a file "photo.XMP" to "/planning_files"
@@ -3936,6 +3940,7 @@ Feature: Planning
 
 
     @auth
+    @planning_cvs
     Scenario: Attach XMP file to coverage adds assignment_id to it by injecting missing tag
         When we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS
         When we set PLANNING_XMP_ASSIGNMENT_MAPPING
@@ -4030,6 +4035,7 @@ Feature: Planning
         Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
 
     @auth
+    @planning_cvs
     Scenario: Attach XMP file to coverage changes coverage slugline
         When we set PLANNING_USE_XMP_FOR_PIC_SLUGLINE
         When we set PLANNING_XMP_SLUGLINE_MAPPING
@@ -4122,6 +4128,7 @@ Feature: Planning
         """
 
     @auth
+    @planning_cvs
     Scenario: Changing coverage slugline according to XMP file depends on config
         When we set PLANNING_USE_XMP_FOR_PIC_SLUGLINE
         When we upload a file "photo.XMP" to "/planning_files"

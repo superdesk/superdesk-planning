@@ -8,6 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from os import path
+
+from apps.prepopulate.app_populate import AppPopulateCommand
 from superdesk.tests.environment import before_feature, before_step, after_scenario   # noqa
 from superdesk.tests.environment import setup_before_all, setup_before_scenario
 from app import get_app
@@ -37,3 +40,9 @@ def before_scenario(context, scenario):
         config['PLANNING_ALLOW_SCHEDULED_UPDATES'] = False
 
     setup_before_scenario(context, scenario, config, app_factory=get_app)
+
+    if 'planning_cvs' in scenario.tags:
+        with context.app.app_context():
+            cmd = AppPopulateCommand()
+            filename = path.join(path.abspath(path.dirname("features/steps/fixtures/")), "vocabularies.json")
+            cmd.run(filename)
