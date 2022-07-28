@@ -1396,6 +1396,7 @@ Feature: Assignment link
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Can link only rewrites to scheduled update assignments
     Given empty "planning"
         When we post to "planning"
@@ -1682,6 +1683,7 @@ Feature: Assignment link
     @auth
     @notification
     @link_updates
+    @planning_cvs
     Scenario: Can't link scheduled update if coverage is not linked
     Given empty "planning"
         When we post to "planning"
@@ -1995,6 +1997,7 @@ Feature: Assignment link
     @auth
     @notification
     @link_updates
+    @planning_cvs
     Scenario: Can't link scheduled update if previous scheduled update is not linked
     Given empty "planning"
         When we post to "planning"
@@ -2323,6 +2326,7 @@ Feature: Assignment link
     @auth
     @notification
     @link_updates
+    @planning_cvs
     Scenario: Content will link by default to latest in_progress/completed assignment
     Given empty "planning"
         When we post to "planning"
@@ -2649,6 +2653,7 @@ Feature: Assignment link
     @auth
     @notification
     @link_updates
+    @planning_cvs
     Scenario: Using 'force' option will reassign to a new assignment
     Given empty "planning"
         When we post to "planning"
@@ -2990,6 +2995,7 @@ Feature: Assignment link
     @auth
     @notification
     @link_updates
+    @planning_cvs
     Scenario: Using 'force' option will still validate assignment being linked
     Given empty "planning"
         When we post to "planning"

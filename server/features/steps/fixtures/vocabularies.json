@@ -37,10 +37,10 @@
         "type": "manageable",
         "unique_field": "qcode",
         "items": [
-            {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended"},
-            {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet"},
-            {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended"},
-            {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request"}
+            {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+            {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet", "label": "On merit"},
+            {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended", "label": "Not planned"},
+            {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request", "label": "On request"}
         ]
     }
 ]

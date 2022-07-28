@@ -322,6 +322,7 @@ Feature: Events Recurring
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Converting a posted event to be a recurring event will reschedule and update it
         Given we have sessions "/sessions"
         Given "events"

@@ -2,6 +2,7 @@ Feature: Cancel all coverage
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Changes planning item state to `cancelled`
       When we post to "planning" with success
       """
@@ -56,6 +57,7 @@ Feature: Cancel all coverage
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Published planning gets updated
       When we post to "/products" with success
       """
@@ -777,6 +779,7 @@ Feature: Cancel all coverage
 
 
     @auth
+    @planning_cvs
     Scenario: Reason field can configured as required field for planning item
         Given "planning_types"
         """
