@@ -89,10 +89,3 @@ class CommonTestCase(TestCase):
             self.assertEqual(get_coverage_status_from_cv("ncostat:notdec")["label"], "Coverage on merit")
             self.assertEqual(get_coverage_status_from_cv("ncostat:notint")["label"], "Coverage not planned")
             self.assertEqual(get_coverage_status_from_cv("ncostat:onreq")["label"], "Coverage on request")
-
-    def test_get_coverage_status_from_cv_without_cv(self):
-        with self.app.app_context():
-            self.assertEqual(get_coverage_status_from_cv("ncostat:int")["label"], "Planned")
-            self.assertEqual(get_coverage_status_from_cv("ncostat:notdec")["label"], "On merit")
-            self.assertEqual(get_coverage_status_from_cv("ncostat:notint")["label"], "Not planned")
-            self.assertEqual(get_coverage_status_from_cv("ncostat:onreq")["label"], "On request")
