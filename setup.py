@@ -8,6 +8,8 @@ package_data = {
         'templates/*.html',
         '*.po',
         '*.mo',
+        'data_updates/*.py',
+        'data_updates/*.js',
     ]
 }
 
