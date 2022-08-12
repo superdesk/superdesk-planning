@@ -13,9 +13,7 @@ if [ "$INSTALL_NODE_MODULES" == "true" ]; then
 fi
 
 if [ "$INSTALL_PY_MODULES" == "true" ]; then
-    cd server
-    pip install -r requirements.txt
-    cd ..
+    pip install -r server/requirements.txt
 fi
 
 if [ "$INSTALL_PY_EDITABLE" == "true" ]; then
