@@ -8,42 +8,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8]
-        node-version: [14.x]
-        e2e: [a, b]
+        python-version: ['3.8']
+        node-version: ['14']
+        e2e: ['a', 'b']
     env:
       INSTALL_NODE_MODULES: true
       RUN_SERVICES: true
       E2E: true
       TZ: Australia/Sydney
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Set up NodeJS ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache NPM
-        uses: actions/cache@v2
-        with:
-          # npm cache files are stored in `~/.npm on Linux/MacOS
-          path: ~/.npm
-          key: ${{ runner.OS }}-node-${{ hashFiles('package.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip
-            ${{ runner.os }}-
+          cache: 'pip'
+          cache-dependency-path: 'server/requirements.txt'
       - name: Setup Environment
         run: ./scripts/ci-install.sh
       - name: Build Client

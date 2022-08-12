@@ -7,55 +7,38 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: ['3.8', '3.10']
     env:
       INSTALL_PY_MODULES: true
       RUN_SERVICES: true
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip
-            ${{ runner.os }}-
+          cache: 'pip'
+          cache-dependency-path: 'server/requirements.txt'
       - name: Setup Environment
         run: ./scripts/ci-install.sh
       - name: Start Services
         run: ./scripts/ci-start-services.sh
-      - name: Nosetests
-        working-directory: ./server
-        run: nosetests --logging-level=ERROR
+      - name: Pytest
+        run: pytest --log-level=ERROR --disable-warnings server/planning
   server-behave:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: ['3.8', '3.10']
     env:
       INSTALL_PY_MODULES: true
       RUN_SERVICES: true
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip
-            ${{ runner.os }}-
+          cache: 'pip'
+          cache-dependency-path: 'server/requirements.txt'
       - name: Setup Environment
         run: ./scripts/ci-install.sh
       - name: Start Services
@@ -68,30 +51,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: ['3.8', '3.10']
     env:
       INSTALL_PY_MODULES: true
       INSTALL_PY_EDITABLE: true
       RUN_SERVICES: true
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip
-            ${{ runner.os }}-
+          cache: 'pip'
+          cache-dependency-path: 'server/requirements.txt'
       - name: Setup Environment
         run: ./scripts/ci-install.sh
       - name: Start Services
         run: ./scripts/ci-start-services.sh
       - name: Pytest
-        working-directory: ./server/tests/prod_api
-        run: pytest
+        run: pytest --log-level=ERROR --disable-warnings server/tests/prod_api
