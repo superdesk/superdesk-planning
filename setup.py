@@ -27,7 +27,7 @@ setup(
     license='AGPLv3',
     install_requires=[
         'icalendar>=4.0.3,<4.1',
-        'deepdiff==3.3.0'
+        'deepdiff'
     ],
     url='https://github.com/superdesk/superdesk-planning',
     classifiers=[
