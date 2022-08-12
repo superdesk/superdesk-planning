@@ -63,7 +63,10 @@ class PlanningFeaturedService(superdesk.Service):
     def on_updated(self, updates, original):
         self.enqueue_published_item(updates, original)
 
-    def post_featured_planning(self, updates, original={}):
+    def post_featured_planning(self, updates, original=None):
+        if original is None:
+            original = {}
+
         if updates.get("posted", False):
             self.validate_post_status(updates.get("items", original.get("items" or [])))
             updates["posted"] = True
