@@ -355,7 +355,7 @@ class EventPlanningSchedule(TestCase):
         }
 
         service.post([event])
-        events = list(service.get(req=None, lookup=None))
+        events = list(service.get_from_mongo(req=None, lookup=None))
         self.assertPlanningSchedule(events, 3)
 
         schedule = deepcopy(events[0].get("dates"))
@@ -368,7 +368,7 @@ class EventPlanningSchedule(TestCase):
         update_repetitions.is_original_event = Mock(return_value=False)
         update_repetitions.patch(events[0].get("_id"), {"dates": schedule})
 
-        events = list(service.get(req=None, lookup=None))
+        events = list(service.get_from_mongo(req=None, lookup=None))
         self.assertPlanningSchedule(events, 5)
 
         # reset mocked function
@@ -389,7 +389,7 @@ class EventPlanningSchedule(TestCase):
         }
 
         service.post([event])
-        events = list(service.get(req=None, lookup=None))
+        events = list(service.get_from_mongo(req=None, lookup=None))
         self.assertPlanningSchedule(events, 1)
         lock_service = LockService(self.app)
         locked_event = lock_service.lock(events[0], None, "session", "convert_recurring", "events")
