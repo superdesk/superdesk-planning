@@ -525,7 +525,10 @@ def get_related_items(item, assignment=None):
         return list(archive_list.values())
 
 
-def update_assignment_on_link_unlink(assignment_id, item, published_updated=[]):
+def update_assignment_on_link_unlink(assignment_id, item, published_updated=None):
+    if published_updated is None:
+        published_updated = []
+
     published_states = [
         CONTENT_STATE.SCHEDULED,
         CONTENT_STATE.PUBLISHED,
@@ -632,7 +635,9 @@ def get_text_from_elem(elem, tag=".//p"):
             return p.text
 
 
-def get_delivery_publish_time(updates, original={}):
+def get_delivery_publish_time(updates, original=None):
+    if original is None:
+        original = {}
     schdl_stngs = updates.get("schedule_settings") or original.get("schedule_settings", {})
     return schdl_stngs.get("utc_publish_schedule") or updates.get("firstpublished") or original.get("firstpublished")
 
@@ -645,9 +650,11 @@ def get_coverage_for_assignment(assignment):
     )
 
 
-def strip_text_fields(item, fields=["name", "slugline"]):
+def strip_text_fields(item, fields=None):
     if not item:
         return
+    elif fields is None:
+        fields = ["name", "slugline"]
 
     for f in fields:
         if item.get(f):
@@ -656,18 +663,20 @@ def strip_text_fields(item, fields=["name", "slugline"]):
 
 def sanitize_array_fields(
     item,
-    fields=[
-        "calendars",
-        "place",
-        "contacts",
-        "anpa_category",
-        "subject",
-        "files",
-        "links",
-        "agenda",
-        "coverages",
-    ],
+    fields=None,
 ):
+    if fields is None:
+        fields = [
+            "calendars",
+            "place",
+            "contacts",
+            "anpa_category",
+            "subject",
+            "files",
+            "links",
+            "agenda",
+            "coverages",
+        ]
     for field in fields:
         if field in item:
             if not isinstance(item[field], list):
