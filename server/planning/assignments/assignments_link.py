@@ -85,8 +85,9 @@ class AssignmentsLinkService(Service):
                         }
                     )
 
-                # Update archive/published collection with assignment linking
-                update_assignment_on_link_unlink(assignment[config.ID_FIELD], item, published_updated_items)
+                if not doc.get("skip_archive_update", False):
+                    # Update archive/published collection with assignment linking
+                    update_assignment_on_link_unlink(assignment[config.ID_FIELD], item, published_updated_items)
 
                 ids.append(item.get(config.ID_FIELD))
                 items.append(item)
@@ -253,6 +254,7 @@ class AssignmentsLinkResource(Resource):
         "item_id": {"type": "string", "required": True},
         "reassign": {"type": "boolean", "required": True},
         "force": {"type": "boolean"},
+        "skip_archive_update": {"type": "boolean"},
     }
 
     resource_methods = ["POST"]
