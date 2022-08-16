@@ -1592,6 +1592,7 @@ planning_schema = {
     "state_reason": {"type": "string", "nullable": True},
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
     "_type": {"type": "string", "mapping": None},
+    "extra": metadata_schema["extra"],
 }  # end planning_schema
 
 
