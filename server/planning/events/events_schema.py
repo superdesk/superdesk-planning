@@ -303,4 +303,5 @@ events_schema = {
             },
         },
     },
+    "extra": metadata_schema["extra"],
 }  # end events_schema

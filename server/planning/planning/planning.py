@@ -57,6 +57,7 @@ from planning.content_profiles.utils import is_field_enabled
 from superdesk import Resource
 from lxml import etree
 from io import BytesIO
+from planning.signals import planning_created
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +135,7 @@ class PlanningService(superdesk.Service):
                 event_item=doc.get("event_item", None),
             )
             self._update_event_history(doc)
+            planning_created.send(self, item=doc)
         self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc):
@@ -513,7 +515,9 @@ class PlanningService(superdesk.Service):
             self.set_slugline_from_xmp(coverage, original_coverage)
             if self.coverage_changed(coverage, original_coverage):
                 user = get_user()
-                coverage["version_creator"] = str(user.get(config.ID_FIELD)) if user else None
+                if user:
+                    # ``version_creator`` cannot be null
+                    coverage["version_creator"] = str(user.get(config.ID_FIELD))
                 coverage["versioncreated"] = utcnow()
 
                 contact_id = coverage.get(
@@ -1588,6 +1592,7 @@ planning_schema = {
     "state_reason": {"type": "string", "nullable": True},
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
     "_type": {"type": "string", "mapping": None},
+    "extra": metadata_schema["extra"],
 }  # end planning_schema
 
 
