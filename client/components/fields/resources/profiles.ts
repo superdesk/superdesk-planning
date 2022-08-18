@@ -90,3 +90,25 @@ registerEditorField(
     null,
     true
 );
+
+registerEditorField(
+    'field.all_day.enabled',
+    EditorFieldToggle,
+    () => ({
+        label: superdeskApi.localization.gettext('All Day Toggle'),
+        field: 'field.all_day.enabled',
+    }),
+    null,
+    true,
+);
+
+registerEditorField(
+    'field.default_duration_on_change',
+    EditorFieldNumber,
+    () => ({
+        label: superdeskApi.localization.gettext('Default Duration'),
+        field: 'field.default_duration_on_change',
+    }),
+    null,
+    true
+);
