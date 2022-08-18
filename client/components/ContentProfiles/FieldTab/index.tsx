@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {cloneDeep, isEqual} from 'lodash';
+import {cloneDeep, isEqual, set} from 'lodash';
 
 import {IIgnoreCancelSaveResponse} from 'superdesk-api';
 import {
@@ -44,7 +44,7 @@ export class FieldTab extends React.Component<IProps, IState> {
         };
 
         this.openEditor = this.openEditor.bind(this);
-        this.updateFieldSchema = this.updateFieldSchema.bind(this);
+        this.updateField = this.updateField.bind(this);
         this.closeEditor = this.closeEditor.bind(this);
         this.saveField = this.saveField.bind(this);
         this.updateFieldOrder = this.updateFieldOrder.bind(this);
@@ -62,16 +62,14 @@ export class FieldTab extends React.Component<IProps, IState> {
         }
     }
 
-    updateFieldSchema(field: string, value: number | boolean) {
-        this.setState((prevState: Readonly<IState>) => ({
-            selectedField: {
-                ...prevState.selectedField,
-                schema: {
-                    ...prevState.selectedField.schema,
-                    [field]: value,
-                },
-            },
-        }));
+    updateField(field: string, value: number | boolean) {
+        this.setState((prevState: Readonly<IState>) => {
+            const selectedField = cloneDeep(prevState.selectedField);
+
+            set(selectedField, field, value);
+
+            return {selectedField};
+        });
     }
 
     isEditorDirty() {
@@ -272,7 +270,7 @@ export class FieldTab extends React.Component<IProps, IState> {
                         systemRequired={systemRequiredFields.includes(this.state.selectedField.name)}
                         closeEditor={this.closeEditor}
                         saveField={this.saveField}
-                        updateFieldSchema={this.updateFieldSchema}
+                        updateField={this.updateField}
                     />
                 )}
             </div>

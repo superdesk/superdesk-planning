@@ -178,7 +178,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                     },
                     dates: {
                         required: true,
-                        showAllDay: true,
+                        showAllDay: this.props.formProfile.editor.dates.all_day.enabled,
                         showTimeZone: true,
                         enabled: !this.props.itemExists,
                         onChange: this.onDatesChanged,

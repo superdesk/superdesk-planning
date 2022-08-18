@@ -16,7 +16,7 @@ interface IProps {
     systemRequired: boolean;
     closeEditor(): void;
     saveField(): void;
-    updateFieldSchema(field: string, value: string | number | boolean | Array<string>): void;
+    updateField(field: string, value: string | number | boolean | Array<string>): void;
 }
 
 export class FieldEditor extends React.PureComponent<IProps> {
@@ -35,7 +35,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
     }
 
     onChange(field: string, value: string | number | boolean | Array<string>) {
-        this.props.updateFieldSchema(field.replace('schema.', ''), value);
+        this.props.updateField(field, value);
     }
 
     render() {
@@ -53,6 +53,8 @@ export class FieldEditor extends React.PureComponent<IProps> {
             'schema.expandable': {enabled: fieldType === 'multi_line'},
             'schema.format_options': {enabled: fieldType === 'editor_3'},
             'schema.vocabularies': {enabled: this.props.item.name === 'custom_vocabularies'},
+            'field.all_day.enabled': {enabled: this.props.item.name === 'dates'},
+            'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)
@@ -130,6 +132,8 @@ export class FieldEditor extends React.PureComponent<IProps> {
                                             'schema.maxlength': {enabled: true, index: 5},
                                             'schema.format_options': {enabled: true, index: 6},
                                             'schema.vocabularies': {enabled: true, index: 7},
+                                            'field.all_day.enabled': {enabled: true, index: 8},
+                                            'field.default_duration_on_change': {enabled: true, index: 9},
                                         },
                                         {
                                             item: this.props.item,
