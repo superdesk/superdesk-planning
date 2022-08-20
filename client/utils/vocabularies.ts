@@ -28,15 +28,14 @@ export function getVocabularyItemFieldTranslated(
 export function getVocabularyItemNames<T>(
     selected: Array<T>,
     options: Array<T>,
-    valueField: keyof T,
+    valueField: string,
     nameField: keyof T,
     language: string
 ): Array<string> {
     if (!selected?.length) {
         return [];
     }
-
-    const values = selected.map((item) => item[valueField]);
+    const values = valueField === '_id' ? selected : selected.map((item) => item[valueField]);
 
     return options
         .filter((item) => values.includes(item[valueField]))

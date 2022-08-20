@@ -53,7 +53,7 @@ export function getG2ContentTypeString(
 
 export function getValuesFromCV(
     propName: string,
-    valueField: string = 'qcode',
+    valueField: string = propName === 'agendas' ? '_id' : 'qcode',
     nameField: string = 'name'
 ) {
     return function(value: any | undefined, props: {[key: string]: any}): string | null {
