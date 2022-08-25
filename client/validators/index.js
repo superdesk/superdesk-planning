@@ -67,7 +67,11 @@ export const validateItem = ({
 
         if (get(profile, 'schema')) {
             // validate custom fields
-            Object.keys(profile.schema).filter((key) => !validators[profileName][key])
+            Object.keys(profile.schema)
+                .filter((key) => (
+                    !validators[profileName][key] &&
+                    profile.schema[key] != null)
+                )
                 .forEach((key) => {
                     const schema = profile.schema[key];
 
