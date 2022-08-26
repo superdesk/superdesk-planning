@@ -5,7 +5,7 @@ import eventsUi from './ui';
 import main from '../main';
 import planningApi from '../planning/api';
 import {get} from 'lodash';
-import {gettext, dispatchUtils, getErrorMessage} from '../../utils';
+import {gettext, dispatchUtils, getErrorMessage, lockUtils} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -30,8 +30,15 @@ const onEventCreated = (_e, data) => (
 const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            const events = selectors.events.storedEvents(getState());
+            const state = getState();
+            const events = selectors.events.storedEvents(state);
             let eventInStore = get(events, data.item, {});
+            const isCurrentlyLocked = lockUtils.isItemLocked(eventInStore, selectors.locks.getLockedItems(state));
+
+            if (!isCurrentlyLocked && eventInStore?.lock_session == null) {
+                // No need to announce an unlock, as we have already done so
+                return Promise.resolve(eventInStore);
+            }
 
             dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
 
