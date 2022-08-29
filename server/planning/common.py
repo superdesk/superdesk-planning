@@ -213,6 +213,10 @@ def get_assignment_acceptance_email_address(current_app=None):
     return app.config.get("PLANNING_ACCEPT_ASSIGNMENT_EMAIL", "")
 
 
+def get_notify_self_on_assignment(current_app=None):
+    return (current_app or app).config.get("PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT", False)
+
+
 def remove_lock_information(item):
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
 

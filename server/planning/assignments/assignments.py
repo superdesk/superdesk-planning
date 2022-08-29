@@ -57,6 +57,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_FIELD_SCHEMA,
     update_assignment_on_link_unlink,
+    get_notify_self_on_assignment,
 )
 from icalendar import Calendar, Event
 from flask import request, json, current_app as app
@@ -532,7 +533,9 @@ class AssignmentsService(superdesk.Service):
                         )
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
-                if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user", ""):
+                if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user", "") or get_notify_self_on_assignment(
+                    app
+                ):
                     PlanningNotifications().notify_assignment(
                         target_user=assigned_to.get("user"),
                         message="assignment_assigned_msg",

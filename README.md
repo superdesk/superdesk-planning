@@ -165,6 +165,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_AUTO_ASSIGN_TO_WORKFLOW
     * Defaults to false
     * Automatically assigned a coverage to workflow
+* PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT
+    * Defaults to false
+    * If true, sends a notification to a user on creating an assignment that is assigned to themselves
 
 ### Authoring Config
 * PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH
