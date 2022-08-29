@@ -85,9 +85,9 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 startDate=current_date.strftime("%Y%m%d"),
                 endDate=end_date.strftime("%Y%m%d"),
                 limit=LIMIT,
-                offset=None,
+                offset=0,
             )
-            for offset in range(100, ONCLUSIVE_MAX_OFFSET, LIMIT):
+            for offset in range(0, ONCLUSIVE_MAX_OFFSET, LIMIT):
                 params["offset"] = offset
 
                 between_event_response = session.get(url=url, params=params, headers=headers, timeout=TIMEOUT)
