@@ -78,16 +78,19 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             TOKEN = self.authentication(TIMEOUT, session, provider)
 
         if TOKEN:
-
+            url = f"{URL}/api/v2/events/between"
             headers = {"Content-Type": "application/json", "Authorization": "Bearer " + TOKEN}
             end_date = current_date + timedelta(days=int(provider["config"]["days_to_ingest"]))
+            params = dict(
+                startDate=current_date.strftime("%Y%m%d"),
+                endDate=end_date.strftime("%Y%m%d"),
+                limit=LIMIT,
+                offset=None,
+            )
             for offset in range(100, ONCLUSIVE_MAX_OFFSET, LIMIT):
+                params["offset"] = offset
 
-                between_url = "{}/api/v2/events/between?startDate={}&endDate={}&offset{}&limit={}".format(
-                    URL, current_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d"), offset, LIMIT
-                )
-
-                between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
+                between_event_response = session.get(url=url, params=params, headers=headers, timeout=TIMEOUT)
                 try:
                     between_event_response.raise_for_status()
                 except Exception as e:
@@ -97,7 +100,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                     TOKEN = self.renew_token(provider, session)
                     if not TOKEN:
                         TOKEN = self.authentication(TIMEOUT, session, provider)
-                    between_event_response = session.get(url=between_url, headers=headers, timeout=TIMEOUT)
+                    between_event_response = session.get(url=url, params=params, headers=headers, timeout=TIMEOUT)
                     between_event_response.raise_for_status()
 
                 if between_event_response.status_code == 200:
