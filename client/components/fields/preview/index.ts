@@ -42,7 +42,7 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
             label: superdeskApi.localization.gettext('Agendas'),
             defaultString: superdeskApi.localization.gettext('No agendas assigned.')
         }),
-        getValue: getValuesFromCV('agendas'),
+        getValue: getValuesFromCV('agendas', '_id'),
         mapStateToProps: (state) => ({agendas: selectors.planning.agendas(state)}),
     },
     calendars: {
