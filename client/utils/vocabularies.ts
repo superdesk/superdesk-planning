@@ -35,13 +35,7 @@ export function getVocabularyItemNames<T>(
     if (!selected?.length) {
         return [];
     }
-    var selected_values = selected;
-
-    if (valueField === '_id') {
-        selected_values = selected_values.map((item) => ({_id: item}));
-    }
-
-    const values = selected_values.map((item) => item[valueField]);
+    const values = selected.map((item) => item[valueField]);
 
     return options
         .filter((item) => values.includes(item[valueField]))
