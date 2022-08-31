@@ -35,7 +35,6 @@ export function getVocabularyItemNames<T>(
     if (!selected?.length) {
         return [];
     }
-
     const values = selected.map((item) => item[valueField]);
 
     return options
