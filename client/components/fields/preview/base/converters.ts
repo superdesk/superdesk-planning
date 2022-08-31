@@ -58,7 +58,8 @@ export function getValuesFromCV(
 ) {
     return function(value: any | undefined, props: {[key: string]: any}): string | null {
         const names = getVocabularyItemNames(
-            value,
+            (Array.isArray(value) && value.every((val) => typeof val === 'string')
+            ) ? value.map((item) => ({[valueField]: item, [nameField]: item})) : value,
             props[propName],
             valueField,
             nameField,
