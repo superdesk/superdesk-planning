@@ -386,8 +386,8 @@ class AssignmentsService(superdesk.Service):
             event = Event()
             event["UID"] = UID
             event["CLASS"] = "PUBLIC"
-            event["DTSTART"] = scheduled_time
-            event["DTEND"] = scheduled_time
+            event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+            event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
             event[f"SUMMARY;LANGUAGE={language}"] = summary
             event["DESCRIPTION"] = assignment.get("description_text", "")
             event["PRIORITY"] = priority
@@ -403,9 +403,12 @@ class AssignmentsService(superdesk.Service):
                     )
                     event["LOCATION"] = formatted_location
 
-            event["CREATED"] = created
-            event["LAST-MODIFIED"] = updated
-            event["STATUS"] = assigned_to["state"]
+            event.add("CREATED", created)
+            event.add("LAST-MODIFIED", updated)
+            event.add("DTSTAMP", updated)
+            event.add(
+                "STATUS", "CANCELED" if assigned_to["state"] == ASSIGNMENT_WORKFLOW_STATE.CANCELLED else "CONFIRMED"
+            )
             event["URL"] = url
 
             ical.add_component(event)

@@ -1,3 +1,5 @@
+from datetime import datetime
+import pytz
 from planning.tests import TestCase
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
@@ -44,7 +46,7 @@ class DuplicateCoverageTestCase(TestCase):
                 {
                     "planning": {
                         "slugline": "new slugline",
-                        "scheduled": "2029-10-13T15:00:00+0000",
+                        "scheduled": datetime(2029, 10, 13, 15, 00, tzinfo=pytz.UTC),
                     },
                     "assigned_to": {
                         "user": "562435231d41c835d7b5fb55",
@@ -60,7 +62,7 @@ class DuplicateCoverageTestCase(TestCase):
             self.assertEqual(len(updated_plan["coverages"]), 2)
 
             self.assertEqual(new_coverage["planning"]["slugline"], "new slugline")
-            self.assertEqual(new_coverage["planning"]["scheduled"], "2029-10-13T15:00:00+0000")
+            self.assertEqual(new_coverage["planning"]["scheduled"], datetime(2029, 10, 13, 15, 00, tzinfo=pytz.UTC))
             self.assertEqual(new_coverage["assigned_to"]["user"], "562435231d41c835d7b5fb55")
             self.assertEqual(new_coverage["assigned_to"]["desk"], "desk2")
             self.assertEqual(new_coverage["assigned_to"]["state"], "in_progress")
