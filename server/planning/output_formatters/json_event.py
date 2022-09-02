@@ -15,7 +15,7 @@ from copy import deepcopy
 from flask import current_app as app
 from superdesk.publish.formatters import Formatter
 from superdesk.utils import json_serialize_datetime_objectId
-from .utils import expand_contact_info
+from .utils import expand_contact_info, get_matching_products
 
 
 class JsonEventFormatter(Formatter):
@@ -64,7 +64,7 @@ class JsonEventFormatter(Formatter):
         """Format the item to json event"""
         output_item = deepcopy(item)
         output_item["event_contact_info"] = expand_contact_info(item.get("event_contact_info", []))
-        output_item["products"] = self._format_products(item)
+        output_item["products"] = get_matching_products(item)
         if item.get("files"):
             try:
                 output_item["files"] = self._get_files_for_publish(item)
@@ -88,12 +88,3 @@ class JsonEventFormatter(Formatter):
             }
 
         return [publish_file(file_id) for file_id in item["files"]]
-
-    def _format_products(self, article):
-        """
-        Return a list of API product id's that the article matches.
-        :param article:
-        :return:
-        """
-        result = superdesk.get_resource_service("product_tests").test_products(article, lookup=None)
-        return [{"code": p["product_id"], "name": p.get("name")} for p in result if p.get("matched", False)]
