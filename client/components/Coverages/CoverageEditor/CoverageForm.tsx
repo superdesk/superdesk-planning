@@ -294,7 +294,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath;
 
         this.setState({uploading: true});
-        this.props.uploadFiles(files)
+        return this.props.uploadFiles(files)
             .then((newFiles) => {
                 const value = xmpFile ? get(newFiles, '[0]._id') :
                     [
