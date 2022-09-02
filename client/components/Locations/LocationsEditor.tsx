@@ -75,7 +75,7 @@ function getItemStateFromProps(props: IProps): IState['item'] {
         location: location,
         country: country,
         state: state,
-        latitude: location.position?.longitude?.toString() ?? '',
+        latitude: location.position?.latitude?.toString() ?? '',
         longitude: location.position?.longitude?.toString() ?? '',
     };
 }
