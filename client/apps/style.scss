@@ -66,6 +66,10 @@
         &--assignment {
             height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
         }
+
+        &--locations {
+            height: 100%;
+        }
     }
     .loading-indicator{
         top: calc(#{$nav-height} + #{$subnav-height});

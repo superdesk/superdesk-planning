@@ -70,7 +70,10 @@ export class LocationsListComponent extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
 
         return (
-            <div className="sd-column-box__main-column__items" onScroll={this.handleScroll}>
+            <div
+                className="sd-column-box__main-column__items sd-column-box__main-column__items--locations"
+                onScroll={this.handleScroll}
+            >
                 {this.props.locations?.length ? null : (
                     <span className="sd-alert">
                         {gettext('No result')}
