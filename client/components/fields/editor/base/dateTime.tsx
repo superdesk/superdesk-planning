@@ -9,6 +9,8 @@ interface IProps extends IEditorFieldProps {
     canClear?: boolean;
     showToBeConfirmed?: boolean;
     toBeConfirmed?: boolean;
+    isLocalTimeZoneDifferent?: boolean;
+    remoteTimeZone?: string;
     onToBeConfirmed?(field: string): void;
 }
 
