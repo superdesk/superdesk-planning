@@ -9,7 +9,7 @@ import {Switch} from 'superdesk-ui-framework/react';
 import {EditorFieldEndDateTime} from './EndDateTime';
 import {EditorFieldStartDateTime} from './StartDateTime';
 import {Row, TimeZoneInput} from '../../UI/Form';
-import {eventUtils} from '../../../utils';
+import {eventUtils, timeUtils} from '../../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 interface IProps extends IEditorFieldProps {
@@ -220,6 +220,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             this.props.item.dates?.end,
             true
         );
+        const isLocalTimeZoneDifferent = timeUtils.isEventInDifferentTimeZone(this.props.item);
         const {
             refNode,
             ...props
@@ -243,6 +244,8 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                         this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
                     }}
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
+                    isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
+                    remoteTimeZone={this.props.item.dates?.tz}
                 />
                 <EditorFieldEndDateTime
                     {...props}
@@ -259,6 +262,8 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                         this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
                     }}
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
+                    isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
+                    remoteTimeZone={this.props.item.dates?.tz}
                 />
                 <Row
                     flex={true}

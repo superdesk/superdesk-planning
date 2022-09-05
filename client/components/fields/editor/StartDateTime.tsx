@@ -8,8 +8,10 @@ interface IProps extends IEditorFieldProps {
     canClear?: boolean;
     timeField?: string;
     showToBeConfirmed?: boolean;
-    onToBeConfirmed?(field: string): void;
     toBeConfirmed: boolean;
+    isLocalTimeZoneDifferent?: boolean;
+    remoteTimeZone?: string;
+    onToBeConfirmed?(field: string): void;
 }
 
 export class EditorFieldStartDateTime extends React.PureComponent<IProps> {
