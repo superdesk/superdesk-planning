@@ -247,3 +247,62 @@ class JsonPlanningTestCase(TestCase):
             )
             self.assertEqual(output_item.get("coverages")[0].get("deliveries"), [])
             self.assertEqual(output_item.get("coverages")[0].get("workflow_status"), "cancelled")
+
+    def test_matching_product_ids(self):
+        with self.app.app_context():
+            self.app.data.insert(
+                "filter_conditions",
+                [
+                    {
+                        "_id": "fc-type-planning",
+                        "name": "filter-planning",
+                        "field": "type",
+                        "operator": "eq",
+                        "value": "planning",
+                    },
+                    {
+                        "_id": "fc-type-event",
+                        "name": "filter-events",
+                        "field": "type",
+                        "operator": "eq",
+                        "value": "event",
+                    },
+                ],
+            )
+            self.app.data.insert(
+                "content_filters",
+                [
+                    {
+                        "_id": "cf-planning",
+                        "name": "filter-planning",
+                        "content_filter": [{"expression": {"fc": ["fc-type-planning"]}}],
+                    },
+                    {
+                        "_id": "cf-events",
+                        "name": "filter-events",
+                        "content_filter": [{"expression": {"fc": ["fc-type-event"]}}],
+                    },
+                ],
+            )
+            self.app.data.insert(
+                "products",
+                [
+                    {
+                        "_id": "prod-type-planning",
+                        "content_filter": {"filter_id": "cf-planning", "filter_type": "permitting"},
+                        "name": "planning-only",
+                        "product_type": "both",
+                    },
+                    {
+                        "_id": "prod-type-events",
+                        "content_filter": {"filter_id": "cf-events", "filter_type": "permitting"},
+                        "name": "events-only",
+                        "product_type": "both",
+                    },
+                ],
+            )
+            formatter = JsonPlanningFormatter()
+            item = deepcopy(self.item)
+            output = formatter.format(item, {"name": "Test Subscriber"})[0]
+            output_item = json.loads(output[1])
+            self.assertEqual(output_item["products"], [{"code": "prod-type-planning", "name": "planning-only"}])

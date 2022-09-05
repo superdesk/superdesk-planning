@@ -1,3 +1,4 @@
+from typing import List, Dict, Any
 from superdesk import get_resource_service
 from bson import ObjectId
 
@@ -33,3 +34,10 @@ def expand_contact_info(contacts):
             expanded.append(c_details)
 
     return expanded
+
+
+def get_matching_products(item: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Return a list of API product id's that the article matches."""
+
+    result = get_resource_service("product_tests").test_products(item, lookup=None)
+    return [{"code": p["product_id"], "name": p.get("name")} for p in result if p.get("matched", False)]
