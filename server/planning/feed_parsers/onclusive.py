@@ -10,6 +10,7 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.errors import ParserError
+from flask import current_app as app
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class OnclusiveFeedParser(FeedParser):
                         GUID_FIELD: guid,
                         ITEM_TYPE: CONTENT_TYPE.EVENT,
                         "state": CONTENT_STATE.INGESTED,
+                        "language": app.config["DEFAULT_LANGUAGE"]
                     }
 
                     self.set_occur_status(item)
