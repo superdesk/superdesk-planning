@@ -51,7 +51,7 @@ class OnclusiveFeedParser(FeedParser):
                         GUID_FIELD: guid,
                         ITEM_TYPE: CONTENT_TYPE.EVENT,
                         "state": CONTENT_STATE.INGESTED,
-                        "language": app.config["DEFAULT_LANGUAGE"]
+                        "language": app.config["DEFAULT_LANGUAGE"],
                     }
 
                     self.set_occur_status(item)
