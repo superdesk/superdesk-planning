@@ -119,10 +119,6 @@ class EventsService(superdesk.Service):
         if not doc.get("original_creator"):
             doc.pop("original_creator", None)
 
-        # SDCP-638
-        if not doc.get("language"):
-            doc["language"] = app.config["DEFAULT_LANGUAGE"]
-
     @staticmethod
     def has_planning_items(doc):
         return EventsService.get_plannings_for_event(doc).count() > 0
@@ -164,6 +160,10 @@ class EventsService(superdesk.Service):
             if "guid" not in event:
                 event["guid"] = generate_guid(type=GUID_NEWSML)
             event[config.ID_FIELD] = event["guid"]
+
+            # SDCP-638
+            if not event.get("language"):
+                event["language"] = app.config["DEFAULT_LANGUAGE"]
 
             # family_id get on ingest we don't need it planning
             event.pop("family_id", None)

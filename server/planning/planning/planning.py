@@ -111,6 +111,10 @@ class PlanningService(superdesk.Service):
                 doc["guid"] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc["guid"]
 
+            # SDCP-638
+            if not doc.get("language"):
+                doc["language"] = app.config["DEFAULT_LANGUAGE"]
+
             self.validate_planning(doc)
             set_original_creator(doc)
             self._set_planning_event_info(doc, planning_type)
