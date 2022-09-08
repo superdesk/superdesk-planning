@@ -62,4 +62,3 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item["definition_short"], "")
 
         self.assertEqual(item["location"][0]["name"], "One King West Hotel & Residence, 1 King St W, Toronto")
-        self.assertEqual(item["language"], "en")

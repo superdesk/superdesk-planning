@@ -119,6 +119,10 @@ class EventsService(superdesk.Service):
         if not doc.get("original_creator"):
             doc.pop("original_creator", None)
 
+        # SDCP-638
+        if not doc.get("language"):
+            doc["language"] = app.config["DEFAULT_LANGUAGE"]
+
     @staticmethod
     def has_planning_items(doc):
         return EventsService.get_plannings_for_event(doc).count() > 0
