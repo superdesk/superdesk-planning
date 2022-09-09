@@ -174,10 +174,12 @@ Feature: Event Search
         ]}
         """
         When we get "/events_planning_search?repo=events&only_future=false&language=en"
-        Then we get list with 1 items
+        Then we get list with 3 items
         """
         {"_items": [
-            {"_id": "event_786"}
+            {"_id": "event_786"},
+            {"_id": "event_123"},
+            {"_id": "event_456"}
         ]}
         """
         When we get "/events_planning_search?repo=events&only_future=false&lock_state=locked"
