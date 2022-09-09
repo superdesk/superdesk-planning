@@ -81,7 +81,7 @@ Feature: Event Search
                     "definition_short": "short value",
                     "definition_long": "long value",
                     "reference": "2020/00195698",
-                    "language": "en",
+                    "language": "fr-CA",
                     "dates": {
                         "start": "2016-01-02T00:00:00+0000",
                         "end": "2016-01-03T00:00:00+0000"
@@ -173,13 +173,11 @@ Feature: Event Search
             {"_id": "event_456"}
         ]}
         """
-        When we get "/events_planning_search?repo=events&only_future=false&language=en"
-        Then we get list with 3 items
+        When we get "/events_planning_search?repo=events&only_future=false&language=fr-CA"
+        Then we get list with 1 items
         """
         {"_items": [
-            {"_id": "event_786"},
-            {"_id": "event_123"},
-            {"_id": "event_456"}
+            {"_id": "event_786"}
         ]}
         """
         When we get "/events_planning_search?repo=events&only_future=false&lock_state=locked"
