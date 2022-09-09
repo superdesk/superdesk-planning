@@ -161,6 +161,10 @@ class EventsService(superdesk.Service):
                 event["guid"] = generate_guid(type=GUID_NEWSML)
             event[config.ID_FIELD] = event["guid"]
 
+            # SDCP-638
+            if not event.get("language"):
+                event["language"] = app.config["DEFAULT_LANGUAGE"]
+
             # family_id get on ingest we don't need it planning
             event.pop("family_id", None)
 
