@@ -84,6 +84,11 @@ class AssignmentsHistoryService(HistoryService):
                 "proxy_user",
                 assigned_to.get("assignor_user", assigned_to.get("assignor_desk")),
             )
+        # If external accept set the user to the assigned user
+        if operation == ASSIGNMENT_HISTORY_ACTIONS.ACCEPTED and self.get_user_id() is None:
+            assigned_to = assignment.get("assigned_to", {})
+            user = assigned_to.get("user")
+            update["assigned_to"] = {"user": user}
         history = {
             "assignment_id": assignment[config.ID_FIELD],
             "user_id": user,

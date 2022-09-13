@@ -100,6 +100,10 @@ class AssignmentHistoryComponent extends React.Component {
             return (<span><strong>{gettext('Work started ')}</strong>{gettext('on assignment by ')}</span>);
 
         case ASSIGNMENTS.HISTORY_OPERATIONS.ASSIGNMENT_ACCEPTED:
+            user = getItemInArrayById(this.props.users, get(update, 'assigned_to.user'));
+            if (user) {
+                return (<span>{gettext('The assignment has been accepted by ')}</span>);
+            }
             return (<span>{gettext('The assignment has been accepted ')}</span>);
 
         default:
@@ -108,7 +112,7 @@ class AssignmentHistoryComponent extends React.Component {
     }
 
     render() {
-        const getHistoryActionUserName = (userId) => getItemInArrayById(this.props.users, userId).display_name;
+        const getHistoryActionUserName = (userId) => getItemInArrayById(this.props.users, userId)?.display_name ?? '';
 
         return (
             <ContentBlock>
