@@ -1129,14 +1129,14 @@ class PlanningService(superdesk.Service):
         if not self.is_xmp_updated(updates_coverage, original_coverage):
             return rv
 
-        assignment_id = updates_coverage.get("_id") or updates_coverage["assigned_to"].get("assignment_id")
+        coverage_id = updates_coverage.get("coverage_id") or (original_coverage or {}).get("coverage_id")
         xmp_file = get_resource_service("planning_files").find_one(
             req=None, _id=updates_coverage["planning"]["xmp_file"]
         )
         if not xmp_file:
             logger.error(
-                "Attached xmp_file not found. Assignment: {0}, xmp_file: {1}".format(
-                    assignment_id, updates_coverage["planning"]["xmp_file"]
+                "Attached xmp_file not found. Coverage: {0}, xmp_file: {1}".format(
+                    coverage_id, updates_coverage["planning"]["xmp_file"]
                 )
             )
             return rv
@@ -1144,8 +1144,8 @@ class PlanningService(superdesk.Service):
         xmp_file = app.media.get(xmp_file["media"], resource="planning_files")
         if not xmp_file:
             logger.error(
-                "xmp_file not found in media storage. Assignment: {0}, xmp_file: {1}".format(
-                    assignment_id, updates_coverage["planning"]["xmp_file"]
+                "xmp_file not found in media storage. Coverage: {0}, xmp_file: {1}".format(
+                    coverage_id, updates_coverage["planning"]["xmp_file"]
                 )
             )
             return rv
