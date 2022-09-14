@@ -47,6 +47,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
 
         const fieldProps = {
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
+            'schema.read_only': {enabled: this.props.item.name === 'related_plannings'},
             'schema.field_type': {enabled: fieldType != null},
             'schema.minlength': {enabled: !disableMinMax},
             'schema.maxlength': {enabled: !disableMinMax},
@@ -126,14 +127,15 @@ export class FieldEditor extends React.PureComponent<IProps> {
                                         'editor',
                                         {
                                             'schema.required': {enabled: true, index: 1},
-                                            'schema.field_type': {enabled: true, index: 2},
-                                            'schema.expandable': {enabled: true, index: 3},
-                                            'schema.minlength': {enabled: true, index: 4},
-                                            'schema.maxlength': {enabled: true, index: 5},
-                                            'schema.format_options': {enabled: true, index: 6},
-                                            'schema.vocabularies': {enabled: true, index: 7},
-                                            'field.all_day.enabled': {enabled: true, index: 8},
-                                            'field.default_duration_on_change': {enabled: true, index: 9},
+                                            'schema.read_only': {enabled: true, index: 2},
+                                            'schema.field_type': {enabled: true, index: 3},
+                                            'schema.expandable': {enabled: true, index: 4},
+                                            'schema.minlength': {enabled: true, index: 5},
+                                            'schema.maxlength': {enabled: true, index: 6},
+                                            'schema.format_options': {enabled: true, index: 7},
+                                            'schema.vocabularies': {enabled: true, index: 8},
+                                            'field.all_day.enabled': {enabled: true, index: 9},
+                                            'field.default_duration_on_change': {enabled: true, index: 10},
                                         },
                                         {
                                             item: this.props.item,

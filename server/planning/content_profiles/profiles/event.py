@@ -45,6 +45,7 @@ class EventSchema(BaseSchema):
     subject = subjectField
     custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
+    related_plannings.schema["read_only"] = False
 
 
 DEFAULT_EVENT_PROFILE = {
