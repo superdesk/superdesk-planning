@@ -1,4 +1,4 @@
-import {createRef} from 'react';
+import {createRef, RefObject} from 'react';
 import moment from 'moment';
 import {cloneDeep} from 'lodash';
 
@@ -9,7 +9,8 @@ import {
     IEditorBookmark,
     IEditorFormGroup,
     IEventItem,
-    IPlanningItem
+    IPlanningItem,
+    IProfileSchemaTypeList,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 
@@ -35,6 +36,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         }
 
         const canCreatePlanningItems = hasPrivilege('planning_planning_management');
+        const isRelatedPlanningReadOnly = (profile.schema.related_plannings as IProfileSchemaTypeList)?.read_only;
         const bookmarks = getBookmarksFromFormGroups(groups);
         let index = bookmarks.length;
 
@@ -47,7 +49,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
                 id: 'add_planning',
                 type: BOOKMARK_TYPE.custom,
                 index: index++,
-                disabled: !canCreatePlanningItems,
+                disabled: !canCreatePlanningItems || isRelatedPlanningReadOnly,
                 component: AddPlanningBookmark,
             }, {
                 id: 'associated_plannings',
@@ -60,7 +62,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         };
     }
 
-    function getRelatedPlanningDomRef(planId: IPlanningItem['_id']): React.RefObject<RelatedPlanningItem> {
+    function getRelatedPlanningDomRef(planId: IPlanningItem['_id']): RefObject<RelatedPlanningItem> {
         const editor = planningApi.editor(type);
         const field = `planning-item--${planId}`;
 
