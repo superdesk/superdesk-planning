@@ -1,6 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
+import {IPlanningItem} from '../../../interfaces';
 import {ICON_COLORS} from '../../../constants';
 import {onEventCapture, editorMenuUtils} from '../../../utils';
 
@@ -10,114 +10,121 @@ import {CollapseBox} from '../../UI';
 import {PlanningPreviewContent} from '../../Planning';
 import {RelatedPlanningListItem} from './RelatedPlanningListItem';
 
-export const PlanningMetaData = (
-    {
-        plan,
-        scrollInView,
-        tabEnabled,
-        onEditPlanning,
-        noOpen,
-        onClick,
-        navigation,
-        active,
-        showIcon,
-        showBorder,
-        field,
-        noBg,
+interface IProps {
+    plan: DeepPartial<IPlanningItem>;
+    field?: string;
+    scrollInView?: boolean; // defaults to true
+    tabEnabled?: boolean;
+    noOpen?: boolean;
+    active?: boolean;
+    showIcon?: boolean; // defaults to true
+    showBorder?: boolean; // defaults to true
+    noBg?: boolean;
+    navigation?: any;
+    onEditPlanning?(): void;
+    onOpen?(): void;
+    onClick?(): void;
+}
+
+export class PlanningMetaData extends React.PureComponent<IProps> {
+    collapseBox: React.RefObject<CollapseBox>;
+
+    constructor(props) {
+        super(props);
+
+        this.collapseBox = React.createRef();
     }
-) => {
-    const editPlanningComponent = onEditPlanning ?
-        (
+
+    scrollIntoView() {
+        this.collapseBox.current?.scrollInView(true);
+    }
+
+    focus() {
+        this.collapseBox.current?.scrollInView(true);
+    }
+
+    render() {
+        const editPlanningComponent = this.props.onEditPlanning == null ? null : (
             <button
                 data-sd-tooltip="Edit Planning Item"
                 data-flow="left"
                 onClick={(event) => {
                     onEventCapture(event);
-                    onEditPlanning();
+                    this.props.onEditPlanning();
                 }}
             >
                 <i className="icon-pencil" />
             </button>
-        ) : null;
+        );
 
-    const planningListView = (
-        <RelatedPlanningListItem
-            item={plan}
-            active={active}
-            noBg={noBg}
-            showBorder={showBorder}
-            showIcon={showIcon}
-            editPlanningComponent={editPlanningComponent}
-        />
-    );
+        const planningListView = (
+            <RelatedPlanningListItem
+                item={this.props.plan}
+                active={this.props.active}
+                noBg={this.props.noBg}
+                showBorder={this.props.showBorder ?? true}
+                showIcon={this.props.showIcon ?? true}
+                editPlanningComponent={editPlanningComponent}
+            />
+        );
 
-    const planningInDetailTopBar = (
-        <Item noBg={true} noHover={true}>
-            <Column border={false}>
-                <ItemIcon
-                    item={plan}
-                    doubleSize={true}
-                    color={ICON_COLORS.DARK_BLUE_GREY}
-                />
-            </Column>
-            <Column border={false} grow={true}>
-                {(
+        const planningInDetailTopBar = (
+            <Item
+                noBg={true}
+                noHover={true}
+            >
+                <Column border={false}>
+                    <ItemIcon
+                        item={this.props.plan}
+                        doubleSize={true}
+                        color={ICON_COLORS.DARK_BLUE_GREY}
+                    />
+                </Column>
+                <Column
+                    border={false}
+                    grow={true}
+                >
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-strong">{plan.slugline}</span>
+                            <span className="sd-list-item__text-strong">
+                                {this.props.plan.slugline}
+                            </span>
                         </span>
                     </Row>
-                )}
-            </Column>
-        </Item>
-    );
+                </Column>
+            </Item>
+        );
 
-    const planningInDetail = (
-        <PlanningPreviewContent item={plan} inner={true} noPadding={true} />
-    );
+        const planningInDetail = (
+            <PlanningPreviewContent
+                item={this.props.plan}
+                inner={true}
+                noPadding={true}
+            />
+        );
 
-    const onClose = editorMenuUtils.onItemClose(navigation, field);
-    const onOpen = editorMenuUtils.onItemOpen(navigation, field);
-    const forceScroll = editorMenuUtils.forceScroll(navigation, field);
-    const isOpen = editorMenuUtils.isOpen(navigation, field);
+        const onClose = editorMenuUtils.onItemClose(this.props.navigation, this.props.field);
+        const onOpen = editorMenuUtils.onItemOpen(this.props.navigation, this.props.field);
+        const forceScroll = editorMenuUtils.forceScroll(this.props.navigation, this.props.field);
+        const isOpen = editorMenuUtils.isOpen(this.props.navigation, this.props.field);
 
-    return (
-        <CollapseBox
-            collapsedItem={planningListView}
-            openItemTopBar={planningInDetailTopBar}
-            openItem={planningInDetail}
-            scrollInView={scrollInView}
-            tabEnabled={tabEnabled}
-            tools={editPlanningComponent}
-            noOpen={noOpen}
-            isOpen={isOpen}
-            onClose={onClose}
-            onOpen={onOpen}
-            onClick={onClick}
-            forceScroll={forceScroll}
-        />
-    );
-};
-
-PlanningMetaData.propTypes = {
-    plan: PropTypes.object,
-    scrollInView: PropTypes.bool,
-    tabEnabled: PropTypes.bool,
-    onEditPlanning: PropTypes.func,
-    onOpen: PropTypes.func,
-    onClick: PropTypes.func,
-    noOpen: PropTypes.bool,
-    navigation: PropTypes.object,
-    active: PropTypes.bool,
-    showIcon: PropTypes.bool,
-    showBorder: PropTypes.bool,
-    field: PropTypes.string,
-    noBg: PropTypes.bool,
-};
-
-
-PlanningMetaData.defaultProps = {
-    scrollInView: true,
-    showIcon: true,
-    showBorder: true,
-};
+        return (
+            <CollapseBox
+                ref={this.collapseBox}
+                collapsedItem={planningListView}
+                openItemTopBar={planningInDetailTopBar}
+                openItem={planningInDetail}
+                scrollInView={this.props.scrollInView ?? true}
+                tabEnabled={this.props.tabEnabled}
+                tools={editPlanningComponent}
+                noOpen={this.props.noOpen}
+                isOpen={isOpen}
+                onClose={onClose}
+                onOpen={onOpen}
+                onClick={this.props.onClick}
+                forceScroll={forceScroll}
+                scrollIntoViewOptions={{behavior: 'smooth'}}
+            />
+        );
+    }
+}

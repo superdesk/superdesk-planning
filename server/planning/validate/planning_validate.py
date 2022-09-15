@@ -70,6 +70,14 @@ class SchemaValidator(Validator):
         # Ignore this profile as it's for the front-end editor
         pass
 
+    def _validate_read_only(self, read_only, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+
+        # Ignore this profile as it's for the front-end editor
+        pass
+
 
 class PlanningValidateResource(Resource):
     endpoint_name = "planning_validator"

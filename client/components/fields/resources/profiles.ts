@@ -20,6 +20,17 @@ registerEditorField(
 );
 
 registerEditorField(
+    'schema.read_only',
+    EditorFieldCheckbox,
+    () => ({
+        label: superdeskApi.localization.gettext('Read Only'),
+        field: 'schema.read_only',
+    }),
+    null,
+    true
+);
+
+registerEditorField(
     'schema.format_options',
     SelectEditor3FormattingOptions,
     () => ({
