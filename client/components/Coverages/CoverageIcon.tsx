@@ -55,7 +55,7 @@ export class CoverageIcon extends React.PureComponent<IProps> {
 
         if (this.props.coverage._time_to_be_confirmed != null) {
             scheduledStr = moment(this.props.coverage.planning.scheduled)
-                .format(dateFormat + ` @ ${gettext('TBC')}`);
+                .format(dateFormat + ' ' + timeFormat + ` ${gettext('TBC')}`);
         }
         const state = getItemWorkflowStateLabel(this.props.coverage.assigned_to);
         const genre = getVocabularyItemFieldTranslated(
