@@ -225,6 +225,20 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('Keywords:')}),
         getValue: getKeywordsString,
     },
+    registration_details: {
+        props: () => ({
+            label: superdeskApi.localization.gettext('Registration Details:'),
+            convertNewlineToBreak: true,
+        }),
+        getValue: getPreviewString,
+    },
+    invitation_details: {
+        props: () => ({
+            label: superdeskApi.localization.gettext('Invitation Details:'),
+            convertNewlineToBreak: true,
+        }),
+        getValue: getPreviewString,
+    },
 };
 
 let FIELD_TO_PREVIEW_COMPONENT: {[key: string]: any} = {};

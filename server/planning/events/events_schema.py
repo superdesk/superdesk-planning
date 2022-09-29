@@ -66,6 +66,8 @@ events_schema = {
     "definition_short": {"type": "string"},
     "definition_long": {"type": "string"},
     "internal_note": {"type": "string"},
+    "registration_details": {"type": "string"},
+    "invitation_details": {"type": "string"},
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
     "anpa_category": metadata_schema["anpa_category"],

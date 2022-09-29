@@ -45,6 +45,8 @@ class EventSchema(BaseSchema):
     subject = subjectField
     custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
+    registration_details = TextField(field_type="multi_line")
+    invitation_details = TextField(field_type="multi_line")
 
 
 DEFAULT_EVENT_PROFILE = {
@@ -161,6 +163,8 @@ DEFAULT_EVENT_PROFILE = {
         },
         # Fields disabled by default
         "custom_vocabularies": {"enabled": False},
+        "registration_details": {"enabled": False},
+        "invitation_details": {"enabled": False},
     },
     "schema": dict(EventSchema),  # type: ignore
     "groups": {

@@ -48,3 +48,25 @@ registerEditorField(
     null,
     false
 );
+
+registerEditorField(
+    'registration_details',
+    EditorFieldDynamicTextType,
+    () => ({
+        label: superdeskApi.localization.gettext('Registration Details'),
+        field: 'registration_details',
+    }),
+    null,
+    false,
+);
+
+registerEditorField(
+    'invitation_details',
+    EditorFieldDynamicTextType,
+    () => ({
+        label: superdeskApi.localization.gettext('Invitation Details'),
+        field: 'invitation_details',
+    }),
+    null,
+    false,
+);
