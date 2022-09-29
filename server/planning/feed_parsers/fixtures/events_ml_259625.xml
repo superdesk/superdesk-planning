@@ -30,7 +30,13 @@
 <remoteInfo rel="irel:seeAlso" href="www.hyvinkaantahko.fi" contenttype="text/html">
 <title>Hyvinkään Tahko</title>
 </remoteInfo>
-<definition role="drol:summary"/>
+<definition role="drol:summary">Tapahtumaelinkeinon asiantuntija TMK Tori- ja markkinakaupan palvelukeskus järjestää touko - syyskuussa 2022 yhdeksäntoista kaupunkia käsittävän Suurmarkkinakiertueen, jossa samassa kokonaisuudessa ovat Kansainväliset ja Suomalaiset Suurmarkkinat.  Kansainväliset &amp; Suomalaiset Suurmarkkinat ovat nyt Hyvinkäällä 15.-18.9.2022. Markkinat ovat avoinna to-la klo 10-20.  Sunnuntaina markkinat ovat avoinna klo 10-18.
+
+Markkina-alueena on Hyvinkään kauppatori ympäristöineen sekä Willantori ympäristöineen.
+
+Suurmarkkinoilla keskeisenä ideana on, että markkinoilla on myynnissä eri maiden ja maakuntien erikoistuotteita, niin että niiden valmistajat/kasvattajat ovat itse myymässä ja esittelemässä tuotteitaan.
+
+https://www.eurooppamarkkinat.fi/</definition>
 <related rel="sttnat:sttEventType" qcode="sttEventType:9">
 <name>Kilpailut</name>
 </related>
@@ -68,6 +74,7 @@
 <email>tahkopesisoy@hyvinkaantahko.fi</email>
 <web>www.hyvinkaantahko.fi</web>
 </contactInfo>
+<registration>Contact: baz@foobar.com, kaz@foobar.com, daz@foobar.com, faz@foobar.com</registration>
 <location qcode="sttlocationalias:13062">
 <name>Pihkalan pesäpallostadion</name>
 <broader type="cpnat:geoArea" qcode="sttcity:43">
