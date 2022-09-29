@@ -8,13 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from datetime import timedelta
+from datetime import timedelta, time
+import pytz
+import re
 import logging
 
 from flask import current_app as app
 from xml.etree.ElementTree import Element
 
 from superdesk import get_resource_service
+from eve_elastic.elastic import parse_date
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 from superdesk.metadata.item import (
     ITEM_TYPE,
@@ -23,7 +26,9 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.errors import ParserError
-from superdesk.utc import utcnow
+from superdesk.utc import local_to_utc, utc_to_local
+from superdesk.text_utils import plain_text_to_html
+from planning.content_profiles.utils import get_planning_schema, is_field_enabled, is_field_editor_3
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +145,12 @@ class EventsMLParser(NewsMLTwoFeedParser):
         item["name"] = concept.find(self.qname("name")).text
 
         try:
-            item["definition_short"] = concept.find(self.qname("definition")).text or ""
+            definition = concept.find(self.qname("definition")).text or ""
+            # if is_field_editor_3("event", "definition_short"):
+            if is_field_editor_3("definition_short", get_planning_schema("event")):
+                definition = plain_text_to_html(definition)
+
+            item["definition_short"] = definition
         except Exception:
             pass
 
@@ -153,23 +163,71 @@ class EventsMLParser(NewsMLTwoFeedParser):
         except Exception:
             pass
 
+    def get_datetime_str(self, value: str, default_time: str, default_tz: str) -> str:
+        if "T" not in value:
+            # Only date supplied
+            utc_datetime = local_to_utc(default_tz, parse_date(f"{value}T{default_time}"))
+            return utc_to_local(default_tz, utc_datetime).isoformat()
+
+        date_str, time_str = value.split("T")
+        if time_str.upper().endswith("Z"):
+            return value
+
+        try:
+            time_str, offset_1, offset_2 = re.split("([+-])", time_str)
+        except ValueError:
+            # Only time supplied, no offset
+            utc_datetime = local_to_utc(default_tz, parse_date(f"{date_str}T{time_str}"))
+            return utc_to_local(default_tz, utc_datetime).isoformat()
+
+        return value
+
     def parse_event_details(self, tree, item):
         """Parse eventDetails tag"""
         concept = tree.find(self.qname("concept"))
         event_details = concept.find(self.qname("eventDetails"))
 
-        dates = event_details.find(self.qname("dates"))
-        start_date = self.datetime(dates.find(self.qname("start")).text)
+        self.parse_event_schedule(event_details.find(self.qname("dates")), item)
+        self.parse_content_subject(event_details, item)
+        self.parse_registration_details(event_details, item)
 
-        if dates.find(self.qname("end")):
-            end_date = self.datetime(dates.find(self.qname("end")).text)
+    def parse_event_schedule(self, dates, item):
+        start_date_source = dates.find(self.qname("start")).text
+        start_date_str = self.get_datetime_str(start_date_source, "00:00:00", app.config["DEFAULT_TIMEZONE"])
+        start_date = parse_date(start_date_str)
+        is_start_local_midnight = start_date.time() == time(0, 0, 0)
+
+        if dates.find(self.qname("end")) is not None and dates.find(self.qname("end")).text:
+            end_date = parse_date(
+                self.get_datetime_str(dates.find(self.qname("end")).text, "23:59:59", app.config["DEFAULT_TIMEZONE"])
+            )
         else:
-            end_date = start_date + timedelta(hours=self.get_default_event_duration())
+            if is_start_local_midnight and "T" not in start_date_source:
+                end_date = parse_date(
+                    self.get_datetime_str(start_date_source, "23:59:59", app.config["DEFAULT_TIMEZONE"])
+                )
+            else:
+                end_date = start_date + timedelta(hours=self.get_default_event_duration())
 
         item["dates"] = dict(
-            start=start_date,
-            end=end_date,
+            start=start_date.astimezone(pytz.utc),
+            end=end_date.astimezone(pytz.utc),
             tz=app.config["DEFAULT_TIMEZONE"],
         )
 
-        self.parse_content_subject(event_details, item)
+    def parse_registration_details(self, event_details, item):
+        event_type = get_planning_schema("event")
+
+        if not is_field_enabled("registration_details", event_type):
+            return
+
+        try:
+            registration = event_details.find(self.qname("registration"))
+            if registration is not None and registration.text:
+                registration_details = registration.text
+                if is_field_editor_3("registration_details", event_type):
+                    registration_details = plain_text_to_html(registration_details)
+
+                item["registration_details"] = registration_details
+        except Exception:
+            pass
