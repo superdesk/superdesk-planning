@@ -227,6 +227,10 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('No Content Linking');
     case 'xmp_file':
         return gettext('XMP File');
+    case 'registration_details':
+        return gettext('Registration Details');
+    case 'invitation_details':
+        return gettext('Invitation Details');
     }
 
     return field;

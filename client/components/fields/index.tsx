@@ -256,6 +256,8 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'definition_long',
             'internal_note',
             'ednote',
+            'registration_details',
+            'invitation_details',
         ],
     }],
     [PREVIEW_PANEL.PLANNING]: [{

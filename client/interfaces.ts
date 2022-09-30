@@ -386,13 +386,15 @@ export interface IEventItem extends IBaseRestApiResponse {
     definition_short?: string;
     definition_long?: string;
     internal_note?: string;
+    registration_details?: string;
+    invitation_details?: string;
     anpa_category?: Array<IANPACategory>;
     files?: Array<string>;
     relationships?: {
         broader?: string;
         narrower?: string;
         related?: string;
-    }
+    };
     links?: Array<string>;
     dates?: {
         start?: string | Date | moment.Moment;
@@ -985,6 +987,8 @@ export interface IEventFormProfile {
         dates: IProfileEditorDatesField;
         definition_long: IProfileEditorField;
         definition_short: IProfileEditorField;
+        registration_details: IProfileEditorField;
+        invitation_details: IProfileEditorField;
         ednote: IProfileEditorField;
         event_contact_info: IProfileEditorField;
         files: IProfileEditorField;
@@ -1006,6 +1010,8 @@ export interface IEventFormProfile {
         dates: IProfileSchemaTypeDict;
         definition_long: IProfileSchemaTypeString;
         definition_short: IProfileSchemaTypeString;
+        registration_details: IProfileSchemaTypeString;
+        invitation_details: IProfileSchemaTypeString;
         ednote: IProfileSchemaTypeString;
         event_contact_info: IProfileSchemaTypeList;
         files: IProfileSchemaTypeList;
