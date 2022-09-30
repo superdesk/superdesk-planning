@@ -123,3 +123,10 @@
 .nav-tabs__content--no-padding {
     padding: 0px !important;
 }
+
+.d-flex {
+    display: flex;
+    .mt-1{
+        margin-top: 15px;
+    }
+}
