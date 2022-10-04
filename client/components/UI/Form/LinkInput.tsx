@@ -162,13 +162,12 @@ export class LinkInput extends React.Component<IProps, IState> {
 
         return readOnly ? (
             <Row>
-                <LineInput className="d-flex" noMargin={noMargin} noLabel={true}>
+                <LineInput noMargin={noMargin} noLabel={false}>
                     <Label text={this.state.title} />
                     <a
                         href={this.getAbsoulteURL(value)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-1"
                     >
                         {value}
                     </a>
