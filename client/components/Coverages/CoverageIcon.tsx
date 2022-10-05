@@ -53,7 +53,7 @@ export class CoverageIcon extends React.PureComponent<IProps> {
             moment(this.props.coverage.planning.scheduled).format(dateFormat + ' ' + timeFormat) :
             null;
 
-        if (this.props.coverage._time_to_be_confirmed != null) {
+        if (this.props.coverage._time_to_be_confirmed) {
             scheduledStr = moment(this.props.coverage.planning.scheduled)
                 .format(dateFormat + ` @ ${gettext('TBC')}`);
         }
