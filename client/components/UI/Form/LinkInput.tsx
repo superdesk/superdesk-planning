@@ -162,8 +162,8 @@ export class LinkInput extends React.Component<IProps, IState> {
 
         return readOnly ? (
             <Row>
-                <LineInput noMargin={noMargin} noLabel={false}>
-                    <Label text={this.state.title} />
+                <LineInput noMargin={noMargin} noLabel={true}>
+                    <Label text={this.state.title} displayLink={true} />
                     <a
                         href={this.getAbsoulteURL(value)}
                         target="_blank"

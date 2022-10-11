@@ -9,7 +9,7 @@ import './style.scss';
  * @name Label
  * @description Form label component
  */
-export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLeft, icon, htmlFor}) => (
+export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLeft, icon, htmlFor, displayLink}) => (
     !text ? null : (
         <label
             className={classNames({
@@ -20,6 +20,7 @@ export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLef
                 'form-label--no-min-width': noMinWidth,
                 'form-label--padding': padding,
                 'form-label--left-margin': marginLeft,
+                'form-label--display-link': displayLink,
             })}
             htmlFor={htmlFor}
         >
@@ -39,6 +40,7 @@ Label.propTypes = {
     marginLeft: PropTypes.bool,
     icon: PropTypes.string,
     htmlFor: PropTypes.string,
+    displayLink: PropTypes.bool,
 };
 
 Label.defaultProps = {
