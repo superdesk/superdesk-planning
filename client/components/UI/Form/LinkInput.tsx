@@ -161,17 +161,16 @@ export class LinkInput extends React.Component<IProps, IState> {
             get(value, 'length', 0) > 0;
 
         return readOnly ? (
-            <Row>
-                <LineInput noMargin={noMargin} noLabel={true}>
-                    <Label text={this.state.title} displayLink={true} />
-                    <a
-                        href={this.getAbsoulteURL(value)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        {value}
-                    </a>
-                </LineInput>
+            <Row><div className= "form__row" data-test-id="field-location">
+                <Label text={this.state.title} />
+                <a
+                    href={this.getAbsoulteURL(value)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {value}
+                </a>
+            </div>
             </Row>
         ) : (
             <Row className="link-input">
