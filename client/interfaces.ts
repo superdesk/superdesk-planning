@@ -154,6 +154,19 @@ export type IPlanningAssignedTo = {
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
 
+export enum ITEM_TYPE {
+    EVENT = 'event',
+    PLANNING = 'planning',
+    ASSIGNMENT = 'assignment',
+    TEXT = 'text',
+    PICTURE = 'picture',
+    VIDEO = 'video',
+    AUDIO = 'audio',
+    GRAPHIC = 'graphic',
+    COMPOSITE = 'composite',
+    UNKNOWN = 'unknown',
+}
+
 export enum SEARCH_SPIKE_STATE {
     SPIKED = 'spiked',
     NOT_SPIKED = 'draft',
@@ -1873,6 +1886,18 @@ export abstract class IEditorRefComponent {
 
 export abstract class IEditorHeaderComponent {
     abstract unregisterKeyBoardShortcuts(): void;
+}
+
+export interface IWebsocketMessageData {
+    ITEM_UNLOCKED: {
+        item: IEventOrPlanningItem['_id'];
+        etag: IEventOrPlanningItem['_etag'];
+        from_ingest: boolean;
+        user?: IEventOrPlanningItem['lock_user'];
+        lock_session?: IEventOrPlanningItem['lock_session'];
+        recurrence_id?: IEventItem['recurrence_id'];
+        event_item?: IEventItem['_id'];
+    };
 }
 
 export interface IEditorAPI {

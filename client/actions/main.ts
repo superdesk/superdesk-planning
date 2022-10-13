@@ -2,6 +2,7 @@ import {get, isEmpty, isEqual, isNil, omit} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
+import {IUser} from 'superdesk-api';
 import {planningApi as planningApis, superdeskApi} from '../superdeskApi';
 import {
     EDITOR_TYPE,
@@ -13,12 +14,13 @@ import {
     ISearchParams,
     LIST_VIEW_TYPE,
     PLANNING_VIEW,
+    IWebsocketMessageData,
+    ITEM_TYPE,
 } from '../interfaces';
 
 import {
     AGENDA,
     EVENTS,
-    ITEM_TYPE,
     MAIN,
     MODALS,
     PLANNING,
@@ -1322,16 +1324,40 @@ const reloadEditor = (item, action) => (
     }
 );
 
+function getItemUnlockModalBodyText(itemType: IEventOrPlanningItem['type'], fromIngest: boolean, user?: IUser) {
+    const {localization} = superdeskApi;
+
+    if (fromIngest) {
+        return itemType === 'event' ?
+            localization.gettext('The Event you were editing was updated via ingest') :
+            localization.gettext('The Planning item you were editing was updated via ingest');
+    } else if (user != null) {
+        const params = {userName: user.display_name};
+
+        return itemType === 'event' ?
+            localization.gettext('The Event you were editing was unlocked by "{{ userName }}"', params) :
+            localization.gettext('The Planning item you were editing was unlocked by "{{ userName }}"', params);
+    }
+
+    return itemType === 'event' ?
+        localization.gettext('The Event you were editing was unlocked') :
+        localization.gettext('The Planning item you were editing was unlocked');
+}
+
 /**
  * Action to reset the initial values in the editor
  * @param {object} data - data from unlock notification
  * @param {object} item - item in store
  * @param {string} itemType - type of item, event or planning
  */
-const onItemUnlocked = (data, item, itemType) => (
-    (dispatch, getState) => {
-        const locks = selectors.locks.getLockedItems(getState());
-        const itemLock = lockUtils.getLock(item, locks);
+function onItemUnlocked(
+    data: IWebsocketMessageData['ITEM_UNLOCKED'],
+    item: IEventOrPlanningItem,
+    itemType: ITEM_TYPE,
+) {
+    return (dispatch, getState) => {
+        const lockedItems = selectors.locks.getLockedItems(getState());
+        const itemLock = lockUtils.getLock(item, lockedItems);
         const sessionId = selectors.general.session(getState()).sessionId;
 
         const editorItemId = selectors.forms.currentItemId(getState());
@@ -1363,8 +1389,7 @@ const onItemUnlocked = (data, item, itemType) => (
                 modalType: MODALS.NOTIFICATION_MODAL,
                 modalProps: {
                     title: gettext('Item Unlocked'),
-                    body: gettext(`The ${itemType} you were editing was unlocked by`) +
-                        ' "' + user.display_name + '"',
+                    body: getItemUnlockModalBodyText(item.type, data.from_ingest, user),
                 },
             }));
 
@@ -1373,8 +1398,8 @@ const onItemUnlocked = (data, item, itemType) => (
                 dispatch(self.closePreviewAndEditorForItems([item]));
             }
         }
-    }
-);
+    };
+}
 
 /**
  * Action to fetch data from published planning version

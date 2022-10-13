@@ -1,5 +1,6 @@
+import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, ITEM_TYPE} from '../../constants';
+import {WORKFLOW_STATE, EVENTS} from '../../constants';
 import eventsApi from './api';
 import eventsUi from './ui';
 import main from '../main';
@@ -27,9 +28,9 @@ const onEventCreated = (_e, data) => (
  * @param _e
  * @param {object} data - Event and User IDs
  */
-const onEventUnlocked = (_e, data) => (
-    (dispatch, getState) => {
-        if (data && data.item) {
+function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
+    return (dispatch, getState) => {
+        if (data?.item != null) {
             const state = getState();
             const events = selectors.events.storedEvents(state);
             let eventInStore = get(events, data.item, {});
@@ -62,8 +63,8 @@ const onEventUnlocked = (_e, data) => (
         }
 
         return Promise.resolve();
-    }
-);
+    };
+}
 
 const onEventLocked = (_e, data) => (
     (dispatch, getState) => {
