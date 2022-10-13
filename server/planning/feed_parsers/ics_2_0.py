@@ -120,9 +120,9 @@ class IcsTwoFeedParser(FileFeedParser):
                     # IMPORTANT: firstcreated must be less than 2 days past
                     # we must preserve the original event created and updated in some other fields
                     if component.get("created"):
-                        item["event_created"] = component.get("created").dt
+                        item["ingest_firstcreated"] = component.get("created").dt
                     if component.get("last-modified"):
-                        item["event_lastmodified"] = component.get("last-modified").dt
+                        item["ingest_versioncreated"] = component.get("last-modified").dt
                     item["firstcreated"] = utcnow()
                     item["versioncreated"] = utcnow()
                     items.append(item)

@@ -10,6 +10,7 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.errors import ParserError
+from planning.common import POST_STATE
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,6 @@ class OnclusiveFeedParser(FeedParser):
 
     NAME = "onclusive_api"
     label = "Onclusive API"
-    all_events = []
 
     def can_parse(self, content):
         try:
@@ -40,26 +40,24 @@ class OnclusiveFeedParser(FeedParser):
 
     def parse(self, content, provider=None):
         try:
+            all_events = []
             for event in content:
                 guid = "urn:newsml:{}:{}".format(event["createdDate"], event["itemId"])
 
-                if get_resource_service("events").find_one(req=None, guid=guid):
-                    logger.warning("An event already exists with exact same ID. Updating events is not supported yet")
-                else:
-                    item = {
-                        GUID_FIELD: guid,
-                        ITEM_TYPE: CONTENT_TYPE.EVENT,
-                        "state": CONTENT_STATE.INGESTED,
-                    }
+                item = {
+                    GUID_FIELD: guid,
+                    ITEM_TYPE: CONTENT_TYPE.EVENT,
+                    "state": CONTENT_STATE.INGESTED,
+                }
 
-                    self.set_occur_status(item)
-                    self.parse_item_meta(event, item)
-                    self.parse_location(event, item)
-                    self.parse_event_details(event, item)
-                    self.parse_category(event, item)
+                self.set_occur_status(item)
+                self.parse_item_meta(event, item)
+                self.parse_location(event, item)
+                self.parse_event_details(event, item)
+                self.parse_category(event, item)
 
-                    self.all_events.append(item)
-            return self.all_events
+                all_events.append(item)
+            return all_events
 
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
@@ -80,6 +78,7 @@ class OnclusiveFeedParser(FeedParser):
             item["occur_status"].pop("is_active", None)
 
     def parse_item_meta(self, event, item):
+        item["pubstatus"] = POST_STATE.CANCELLED if event.get("deleted") else POST_STATE.USABLE
         item["versioncreated"] = self.datetime(event["lastEditDate"])
         item["firstcreated"] = self.datetime(event["createdDate"])
         item["name"] = (

@@ -5,7 +5,6 @@ from flask import current_app as app
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 import pytz
 from xml.etree.ElementTree import Element
-from superdesk import get_resource_service
 from superdesk.metadata.item import (
     CONTENT_TYPE,
     ITEM_TYPE,
@@ -15,7 +14,12 @@ from superdesk.metadata.item import (
 from superdesk.utc import utcnow, utc_to_local
 from superdesk.errors import ParserError
 
-from planning.common import get_coverage_status_from_cv, get_default_coverage_status_qcode_on_ingest, WORKFLOW_STATE
+from planning.common import (
+    get_coverage_status_from_cv,
+    get_default_coverage_status_qcode_on_ingest,
+    WORKFLOW_STATE,
+    POST_STATE,
+)
 
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
@@ -72,12 +76,6 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         try:
             guid = tree.attrib["guid"]
 
-            if get_resource_service("planning").find_one(req=None, guid=guid):
-                logger.warning(
-                    "A planning item already exists with exact same ID. Updating planning item is not supported yet"
-                )
-                return []
-
             item = {
                 GUID_FIELD: guid,
                 ITEM_TYPE: CONTENT_TYPE.PLANNING,
@@ -114,6 +112,12 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         item_class_elt = meta.find(self.qname("itemClass"))
         if item_class_elt is not None:
             item["item_class"] = item_class_elt.get("qcode")
+
+        try:
+            pubstatus = (meta.find(self.qname("pubStatus")).get("qcode").split(":")[1]).lower()
+            item["pubstatus"] = POST_STATE.CANCELLED if pubstatus in ["canceled", POST_STATE.CANCELLED] else pubstatus
+        except (AttributeError, IndexError):
+            item["pubstatus"] = POST_STATE.USABLE
 
     def parse_content_meta(self, tree, item):
         """Parse contentMeta tag

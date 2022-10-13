@@ -29,6 +29,7 @@ from superdesk.errors import ParserError
 from superdesk.utc import local_to_utc, utc_to_local
 from superdesk.text_utils import plain_text_to_html
 from planning.content_profiles.utils import get_planning_schema, is_field_enabled, is_field_editor_3
+from planning.common import POST_STATE
 
 logger = logging.getLogger(__name__)
 
@@ -78,10 +79,6 @@ class EventsMLParser(NewsMLTwoFeedParser):
         try:
             guid = tree.attrib["guid"]
 
-            if get_resource_service("events").find_one(req=None, guid=guid):
-                logger.warning("An event already exists with exact same ID. Updating events is not supported yet")
-                return []
-
             item = {
                 GUID_FIELD: guid,
                 ITEM_TYPE: CONTENT_TYPE.EVENT,
@@ -121,9 +118,16 @@ class EventsMLParser(NewsMLTwoFeedParser):
         versioncreated_elt = meta.find(self.qname("versionCreated"))
         if versioncreated_elt is not None and versioncreated_elt.text:
             item["versioncreated"] = self.datetime(meta.find(self.qname("versionCreated")).text)
+
         firstcreated_elt = meta.find(self.qname("firstCreated"))
         if firstcreated_elt is not None and firstcreated_elt.text:
             item["firstcreated"] = self.datetime(firstcreated_elt.text)
+
+        try:
+            pubstatus = (meta.find(self.qname("pubStatus")).get("qcode").split(":")[1]).lower()
+            item["pubstatus"] = POST_STATE.CANCELLED if pubstatus == "canceled" else pubstatus
+        except (AttributeError, IndexError):
+            item["pubstatus"] = POST_STATE.USABLE
 
     def parse_content_meta(self, tree, item):
         """Parse contentMeta tag"""
