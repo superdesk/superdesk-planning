@@ -553,8 +553,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    const modalStr = 'The event you were editing was unlocked' +
-                    ' by "firstname2 lastname2"';
+                    const modalStr = 'The Event you were editing was unlocked by "{{ userName }}"';
 
                     expect(store.dispatch.args[2][0].type).toEqual('AUTOSAVE_REMOVE');
                     expect(store.dispatch.args[3]).toEqual([{
