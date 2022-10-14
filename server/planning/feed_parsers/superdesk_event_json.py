@@ -2,7 +2,6 @@ import logging
 
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
-from superdesk.errors import ParserError
 from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
 from planning.common import WORKFLOW_STATE
@@ -39,12 +38,6 @@ class EventJsonFeedParser(FileFeedParser):
         self.items = []
         with open(file_path, "r") as f:
             superdesk_event = json.load(f)
-
-            events_service = get_resource_service("events")
-            existing_event = events_service.find_one(req=None, guid=superdesk_event.get("guid"))
-            if existing_event:
-                logger.warn("An event already exists with exact same Id. Updating events is not supported yet.")
-                return []
         self.items.append(self._transform_from_superdesk_event(superdesk_event))
         return self.items
 
@@ -74,7 +67,6 @@ class EventJsonFeedParser(FileFeedParser):
             "files",
             "state_reason",
             "schedule_settings",
-            "pubstatus",
             "_current_version",
             "_id",
             "item_id",

@@ -278,8 +278,7 @@ describe('actions.planning.notifications', () => {
                     user: 'ident2',
                 }))
                 .then(() => {
-                    const modalStr = 'The planning you were editing was unlocked' +
-                    ' by "firstname2 lastname2"';
+                    const modalStr = 'The Planning item you were editing was unlocked by "{{ userName }}"';
 
                     expect(store.dispatch.args[2][0].type).toEqual('AUTOSAVE_REMOVE');
                     expect(store.dispatch.args[3]).toEqual([{

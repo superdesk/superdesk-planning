@@ -10,6 +10,7 @@
 
 """Superdesk Events"""
 
+from typing import Dict, Any, Optional
 import superdesk
 import logging
 import itertools
@@ -38,7 +39,7 @@ from dateutil.rrule import (
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML
+from superdesk.metadata.item import GUID_NEWSML, CONTENT_STATE
 from superdesk.notification import push_notification
 from superdesk.utc import get_date, utcnow
 from apps.auth import get_user, get_user_id
@@ -61,6 +62,9 @@ from planning.common import (
     set_ingested_event_state,
     LOCK_ACTION,
     sanitize_input_data,
+    set_ingest_version_datetime,
+    is_new_version,
+    update_ingest_on_patch,
 )
 from .events_schema import events_schema
 
@@ -82,18 +86,35 @@ class EventsService(superdesk.Service):
     """Service class for the events model."""
 
     def post_in_mongo(self, docs, **kwargs):
+        """Post an ingested item(s)"""
+
         for doc in docs:
             self._resolve_defaults(doc)
+            doc.pop("pubstatus", None)
+            set_ingest_version_datetime(doc)
+
         self.on_create(docs)
         resolve_document_etag(docs, self.datasource)
         ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
         self.on_created(docs)
         return ids
 
-    def patch_in_mongo(self, id, document, original):
+    def patch_in_mongo(self, id, document, original) -> Optional[Dict[str, Any]]:
+        """Patch an ingested item onto an existing item locally"""
+
         set_planning_schedule(document)
-        res = self.backend.update_in_mongo(self.datasource, id, document, original)
-        return res
+        update_ingest_on_patch(document, original)
+        response = self.backend.update_in_mongo(self.datasource, id, document, original)
+        self.on_updated(document, original, from_ingest=True)
+        return response
+
+    def is_new_version(self, new_item, old_item):
+        return is_new_version(new_item, old_item)
+
+    def ingest_cancel(self, item, feeding_service):
+        """Ignore cancelling on ingest, this will happen in ``update_post_item``"""
+
+        pass
 
     def on_fetched(self, docs):
         for doc in docs["_items"]:
@@ -418,7 +439,7 @@ class EventsService(superdesk.Service):
         else:
             self._update_recurring_events(updates, original, update_method)
 
-    def on_updated(self, updates, original):
+    def on_updated(self, updates, original, from_ingest: Optional[bool] = None):
         # If this Event was converted to a recurring series
         # Then update all associated Planning items with the recurrence_id
         if updates.get("recurrence_id") and not original.get("recurrence_id"):
@@ -440,6 +461,7 @@ class EventsService(superdesk.Service):
                 lock_session=str(get_auth().get("_id")),
                 etag=updates["_etag"],
                 recurrence_id=original.get("recurrence_id") or None,
+                from_ingest=from_ingest,
             )
 
         self.delete_event_files(updates, original)

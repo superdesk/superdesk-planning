@@ -58,6 +58,8 @@ events_schema = {
     "source": metadata_schema["source"],
     "original_source": metadata_schema["original_source"],
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
+    "ingest_firstcreated": metadata_schema["versioncreated"],
+    "ingest_versioncreated": metadata_schema["versioncreated"],
     "event_created": {"type": "datetime"},
     "event_lastmodified": {"type": "datetime"},
     # Event Details

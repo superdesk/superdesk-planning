@@ -18,7 +18,7 @@ from eve.methods.common import resolve_document_etag
 from superdesk.errors import SuperdeskApiError
 from planning.errors import AssignmentApiError
 from superdesk.metadata.utils import generate_guid, item_url
-from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE
+from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE, CONTENT_STATE
 from superdesk import get_resource_service
 from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
@@ -47,6 +47,9 @@ from planning.common import (
     get_planning_use_xmp_for_pic_slugline,
     get_planning_use_xmp_for_pic_assignments,
     sync_assignment_details_to_coverages,
+    set_ingest_version_datetime,
+    is_new_version,
+    update_ingest_on_patch,
 )
 from superdesk.utc import utcnow
 from itertools import chain
@@ -66,8 +69,13 @@ class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
     def post_in_mongo(self, docs, **kwargs):
+        """Post an ingested item(s)"""
+
         for doc in docs:
             self._resolve_defaults(doc)
+            doc.pop("pubstatus", None)
+            set_ingest_version_datetime(doc)
+
         self.on_create(docs)
         resolve_document_etag(docs, self.datasource)
         ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
@@ -75,8 +83,20 @@ class PlanningService(superdesk.Service):
         return ids
 
     def patch_in_mongo(self, id, document, original):
-        res = self.backend.update_in_mongo(self.datasource, id, document, original)
-        return res
+        """Patch an ingested item onto an existing item locally"""
+
+        update_ingest_on_patch(document, original)
+        response = self.backend.update_in_mongo(self.datasource, id, document, original)
+        self.on_updated(document, original, from_ingest=True)
+        return response
+
+    def is_new_version(self, new_item, old_item):
+        return is_new_version(new_item, old_item)
+
+    def ingest_cancel(self, item, feeding_service):
+        """Ignore cancelling on ingest, this will happen in ``update_post_item``"""
+
+        pass
 
     def generate_related_assignments(self, docs):
         for doc in docs:
@@ -297,12 +317,14 @@ class PlanningService(superdesk.Service):
         added_agendas = list(set(updated_agendas) - set(existing_agendas))
         return added_agendas, removed_agendas
 
-    def on_updated(self, updates, original):
+    def on_updated(self, updates, original, from_ingest=False):
         added, removed = self._get_added_removed_agendas(updates, original)
+        item_id = str(original[config.ID_FIELD])
         session_id = get_auth().get(config.ID_FIELD)
+        user_id = str(updates.get("version_creator", ""))
         push_notification(
             "planning:updated",
-            item=str(original[config.ID_FIELD]),
+            item=item_id,
             user=str(updates.get("version_creator", "")),
             added_agendas=added,
             removed_agendas=removed,
@@ -313,6 +335,19 @@ class PlanningService(superdesk.Service):
         doc.update(updates)
         self.generate_related_assignments([doc])
         updates["coverages"] = doc.get("coverages") or []
+
+        if original.get("lock_user") and "lock_user" in updates and updates.get("lock_user") is None:
+            # When the Planning is unlocked by a patch
+            push_notification(
+                "planning:unlock",
+                item=item_id,
+                user=user_id,
+                lock_session=session_id,
+                etag=updates["_etag"],
+                event_item=original.get("event_item"),
+                recurrence_id=original.get("recurrence_id") or None,
+                from_ingest=from_ingest,
+            )
 
         posted = update_post_item(updates, original)
         if posted:
@@ -1457,6 +1492,8 @@ planning_schema = {
     "source": metadata_schema["source"],
     "original_source": metadata_schema["original_source"],
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
+    "ingest_firstcreated": metadata_schema["versioncreated"],
+    "ingest_versioncreated": metadata_schema["versioncreated"],
     # Agenda Item details
     "agendas": {
         "type": "list",

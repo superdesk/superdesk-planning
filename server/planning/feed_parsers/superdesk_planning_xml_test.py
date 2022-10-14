@@ -1,16 +1,20 @@
 from os import path
 from xml.etree import ElementTree
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.tz import tzoffset, tzutc
+from copy import deepcopy
 
+from superdesk import get_resource_service
 from superdesk.metadata.item import (
     ITEM_TYPE,
     CONTENT_TYPE,
     GUID_FIELD,
     CONTENT_STATE,
 )
+from superdesk.io.commands.update_ingest import ingest_item
 
 from planning.feed_parsers.superdesk_planning_xml import PlanningMLParser
+from planning.common import POST_STATE
 from planning.tests import TestCase
 
 
@@ -124,3 +128,96 @@ class PlanningMLFeedParserTestCase(TestCase):
         self.assertEqual(coverage["planning"]["genre"][0]["qcode"], "sttimage:28")
         self.assertEqual(coverage["planning"]["genre"][0]["name"], "Kuvituskuvaa arkistosta")
         self.assertEqual(coverage["planning"]["scheduled"], item["planning_date"])
+
+    def test_update_planning(self):
+        service = get_resource_service("planning")
+
+        self._add_cvs()
+        source = PlanningMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        provider = {
+            "_id": "efgh",
+            "source": "sf",
+            "name": "PlanningML Ingest",
+        }
+
+        # Ingest first version
+        ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+        self.assertTrue(ingested)
+        self.assertIn(source["guid"], ids)
+        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(
+            dest["slugline"],
+            "Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?",
+        )
+
+        # Attempt to update with same version
+        source["ingest_versioncreated"] += timedelta(hours=1)
+        source["versioncreated"] = source["ingest_versioncreated"]
+        source["slugline"] = "Test slugline"
+        provider["disable_item_updates"] = True
+        ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+        self.assertFalse(ingested)
+
+        # Attempt to update with a new version
+        provider.pop("disable_item_updates")
+        ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+        self.assertTrue(ingested)
+        self.assertIn(source["guid"], ids)
+        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(dest["slugline"], "Test slugline")
+
+    def test_update_published_planning(self):
+        service = get_resource_service("planning")
+        published_service = get_resource_service("published_planning")
+
+        self._add_cvs()
+        original_source = PlanningMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        source = deepcopy(original_source)
+        provider = {
+            "_id": "efgh",
+            "source": "sf",
+            "name": "PlanningML Ingest",
+        }
+
+        # Ingest first version
+        ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+        self.assertTrue(ingested)
+        self.assertIn(source["guid"], ids)
+
+        # Publish the Planning item
+        service.patch(
+            source["guid"],
+            {
+                "pubstatus": POST_STATE.USABLE,
+                "state": CONTENT_STATE.SCHEDULED,
+            },
+        )
+
+        # Make sure the Planning item has been added to the ``published_planning`` collection
+        self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 1)
+        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+        self.assertEqual(dest["state"], CONTENT_STATE.SCHEDULED)
+        self.assertEqual(dest["pubstatus"], POST_STATE.USABLE)
+
+        # Ingest a new version of the item, and make sure the item is re-published
+        source = deepcopy(original_source)
+        source["versioncreated"] += timedelta(hours=1)
+        ingest_item(source, provider=provider, feeding_service={})
+        self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 2)
+        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+
+        # Make sure the item state has not change after ingest
+        self.assertEqual(dest["state"], CONTENT_STATE.SCHEDULED)
+        self.assertEqual(dest["pubstatus"], POST_STATE.USABLE)
+
+        # Ingest another version, this time cancel the item
+        source = deepcopy(original_source)
+        source["versioncreated"] += timedelta(hours=2)
+        source["pubstatus"] = POST_STATE.CANCELLED
+        ingest_item(source, provider=provider, feeding_service={})
+        self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 3)
+        dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+
+        # Make sure the item state was changed after ingest
+        self.assertEqual(dest["state"], CONTENT_STATE.KILLED)
+        self.assertEqual(dest["pubstatus"], POST_STATE.CANCELLED)

@@ -1,11 +1,12 @@
 import {get} from 'lodash';
+import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
 import planning from './index';
 import assignments from '../assignments/index';
 import {gettext, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, ITEM_TYPE, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
+import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 
@@ -135,9 +136,9 @@ const onPlanningLocked = (e, data) => (
  * @param {object} _e - Event object
  * @param {object} data - Planning and User IDs
  */
-const onPlanningUnlocked = (_e, data) => (
-    (dispatch, getState) => {
-        if (get(data, 'item')) {
+function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
+    return (dispatch, getState) => {
+        if (data?.item != null) {
             const state = getState();
             let planningItem = selectors.planning.storedPlannings(state)[data.item];
             const isCurrentlyLocked = lockUtils.isItemLocked(planningItem, selectors.locks.getLockedItems(state));
@@ -170,8 +171,8 @@ const onPlanningUnlocked = (_e, data) => (
 
             return Promise.resolve();
         }
-    }
-);
+    };
+}
 
 const onPlanningPosted = (_e, data) => (
     (dispatch) => {

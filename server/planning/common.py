@@ -8,13 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple
+from typing import NamedTuple, Dict, Any
 
 import re
 import time
 from flask import current_app as app
 from collections import namedtuple
-from datetime import timedelta
+from datetime import timedelta, datetime
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk import get_resource_service, logger
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
@@ -766,3 +766,41 @@ def get_assginment_name(assignment):
         return assignment["planning"]["slugline"]
     else:
         return assignment.get("description_text") or ""
+
+
+def set_ingest_version_datetime(item: Dict[str, Any]):
+    if not item.get("ingest_firstcreated"):
+        item["ingest_firstcreated"] = item.get("firstcreated") or item.get("versioncreated") or utcnow()
+
+    if not item.get("ingest_versioncreated"):
+        item["ingest_versioncreated"] = item.get("versioncreated") or utcnow()
+
+
+def get_ingested_datetime(item: Dict[str, Any]) -> datetime:
+    return item.get("ingest_versioncreated") or item.get("versioncreated") or utcnow()
+
+
+def is_new_version(new_item: Dict[str, Any], old_item: Dict[str, Any]) -> bool:
+    set_ingest_version_datetime(new_item)
+    if old_item.get(ITEM_STATE) != CONTENT_STATE.INGESTED:
+        # Existing item has been touched
+        # i.e. state has been changed from ``ingested`` to ``draft``
+        return True
+
+    # ``versioncreated`` can be updated by users,
+    # so test last time the Event was updated
+    return get_ingested_datetime(new_item) > get_ingested_datetime(old_item)
+
+
+def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
+    set_ingest_version_datetime(updates)
+    remove_lock_information(updates)
+
+    if not original.get("pubstatus"):
+        # The local version has not been published yet
+        # So remove the provided ``pubstatus``
+        updates.pop("pubstatus", None)
+    elif original.get("pubstatus") == updates.get("pubstatus"):
+        # The local version has been published
+        # and no change to ``pubstatus`` on ingested item
+        updates.pop("state")
