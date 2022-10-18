@@ -21,7 +21,7 @@ import {StretchBar} from '../../UI/SubNav';
 
 import {LockContainer, ItemIcon} from '../../index';
 import {EditorItemActions} from './index';
-import { ButtonGroup } from 'superdesk-ui-framework';
+import {ButtonGroup} from 'superdesk-ui-framework';
 
 export class EditorHeader extends React.Component {
     constructor(props) {
