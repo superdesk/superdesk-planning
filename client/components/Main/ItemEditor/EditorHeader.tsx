@@ -21,6 +21,7 @@ import {StretchBar} from '../../UI/SubNav';
 
 import {LockContainer, ItemIcon} from '../../index';
 import {EditorItemActions} from './index';
+import { ButtonGroup } from 'superdesk-ui-framework';
 
 export class EditorHeader extends React.Component {
     constructor(props) {
@@ -363,14 +364,16 @@ export class EditorHeader extends React.Component {
 
         return (
             <StretchBar right={true}>
-                {buttons.map((button) => (
-                    states[button.state] && (
-                        <Button
-                            key={button.state}
-                            {...button.props}
-                        />
-                    )
-                ))}
+                <ButtonGroup align='right'>
+                    {buttons.map((button) => (
+                        states[button.state] && (
+                            <Button
+                                key={button.state}
+                                {...button.props}
+                            />
+                        )
+                    ))}
+                </ButtonGroup>
             </StretchBar>
         );
     }

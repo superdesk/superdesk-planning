@@ -18,7 +18,9 @@ export const Header = ({children, className, darkBlue, darker}) => (
             className
         )}
     >
-        {children}
+        <div className="side-panel__header-inner">
+            {children}
+        </div>
     </div>
 );
 
