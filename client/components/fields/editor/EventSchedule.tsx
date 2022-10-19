@@ -272,6 +272,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     {!this.props.showAllDay ? null : (
                         <div data-test-id={`${this.props.testId}_all_day`}>
                             <Switch
+                                label={{text: gettext('All Day'), hidden: true}}
                                 value={isAllDay}
                                 onChange={this.onAllDayChange}
                             />

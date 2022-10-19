@@ -170,6 +170,7 @@ export class EditorFieldSelectWithFreeText extends React.Component<IProps, IStat
                         <label className="sd-input__label">{gettext('Other')}</label>
                         <div className="sd-input__icon-right">
                             <Switch
+                                label={{text: gettext('Other'), hidden: true}}
                                 value={this.state.enterFreeText}
                                 onChange={this.toggleFreeText}
                                 disabled={this.props.disabled}
