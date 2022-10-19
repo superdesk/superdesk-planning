@@ -51,7 +51,7 @@
             cursor: pointer;
         }
         &:active {
-            background: darken($dropdownLinkBackgroundHover, 10%);
+            background: $dropdownLinkBackgroundHover;
         }
         &.disabled:hover, &[disabled]:hover {
             background: none;

@@ -44,7 +44,7 @@
     }
 
     &:focus {
-        outline: 2px solid $sd-colour-interactive__base;
+        outline: 2px solid var(--sd-colour-interactive);
         outline-offset: -2px;
     }
 }
