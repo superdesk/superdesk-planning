@@ -1,4 +1,20 @@
-.contacts-list__holder {
-    padding: 0px;
-    overflow: visible;
+
+.side-panel__content-block {
+    .contacts-list__holder {
+        padding: 0 0 1.6rem 0 !important;
+        overflow: visible;
+        .contact-metadata {
+            background-color: var(--sd-item__main-Bg);
+            margin-top: 1rem;
+            &:first-child {
+                margin-top: 0;
+            }
+            .sd-list-item {
+                background-color: transparent !important;
+                &:hover {
+                    background-color: transparent !important;
+                }
+            }
+        }
+    }
 }

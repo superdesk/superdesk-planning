@@ -7,8 +7,9 @@ import {onEventCapture} from '../../../utils';
 
 import {StateLabel} from '../../';
 import {Item, Column, Row, ActionMenu} from '../../UI/List';
-import {CollapseBox} from '../../UI';
+import {CollapseBox, IconButton} from '../../UI';
 import {ContactInfoContainer, ContactLabel} from '../';
+
 
 import '../SelectSearchContactsField/style.scss';
 
@@ -62,25 +63,23 @@ export class ContactMetaData extends React.PureComponent<IProps> {
         if (!readOnly) {
             if (onEditContact) {
                 contactActions.push(
-                    <button
-                        data-sd-tooltip={gettext('Edit Contact')}
-                        data-flow="left"
+                    <IconButton
+                        icon="icon-pencil"
+                        aria-label={gettext('Edit Contact')}
+                        tabIndex={this.props.tabEnabled ? 0 : null}
                         onClick={this.editContact}
-                    >
-                        <i className="icon-pencil" />
-                    </button>
+                    />
                 );
             }
 
             if (onRemoveContact) {
                 contactActions.push(
-                    <button
-                        data-sd-tooltip={gettext('Remove Contact')}
-                        data-flow="left"
+                    <IconButton
+                        icon="icon-trash"
+                        aria-label={gettext('Remove Contact')}
+                        tabIndex={this.props.tabEnabled ? 0 : null}
                         onClick={this.removeContact}
-                    >
-                        <i className="icon-trash" />
-                    </button>
+                    />
                 );
             }
         }

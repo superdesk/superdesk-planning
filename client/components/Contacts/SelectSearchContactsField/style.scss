@@ -17,12 +17,6 @@
             @include opacity(100);
         }
   	}
-
-    &__item {
-        &:focus {
-            background-color: #f4f4f4;
-        }
-    }
 }
 
 .Select__button {

@@ -3,10 +3,10 @@
     flex-grow: 1;
     .editor-bookmark.active {
         background-color: var(--color-input-bg--focus);
-        border-right: 2px solid #5ea9c8;
+        border-right: 2px solid var(--sd-colour-interactive);
     }
     .related-plannings .planning-item {
-        background-color: var(--color-bg-100);
+        background-color: var(--sd-colour-panel-bg--100);
         border-radius: 0;
     }
 
@@ -17,8 +17,8 @@
 
         &.active {
             background-color: var(--color-input-bg--focus);
-            border-right: 4px solid #5ea9c8;
-            color: #5ea9c8;
+            border-right: 4px solid var(--sd-colour-interactive);
+            color: var(--sd-colour-interactive);
         }
     }
 }

@@ -78,7 +78,6 @@
 
     &__parent {
 	    display: block;
-	    vertical-align: top;
         position: relative;
         font-size: 12px;
         color: #000;
@@ -135,14 +134,14 @@
     div.sd-line-input__input {
         border-bottom: 1px solid rgba(0, 0, 0, 0.15);
         height: auto;
-        min-height: 3rem;
-        padding-left: 2.8rem !important;
+        min-height: 3.2rem !important;
+        padding-left: 3rem !important;
     }
 
     .sd-line-input__plus-btn {
         margin: 0!important;
-        margin-left: 2px !important;
-        margin-top: -1px !important;
+        margin-inline-start: 3px !important;
+        margin-block-start: 3px !important;
     }
 
     &--disabled {

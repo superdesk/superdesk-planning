@@ -77,10 +77,12 @@
   color: $green;
 }
 
-.icn-mix__sub-icn--gray {
-  color: $grayLight !important;
-  background-color: transparent !important;
+
+.icn-mix__sub-icn.icn-mix__sub-icn--gray {
+    color: var(--color-text-lighter) !important;
+    background-color: transparent !important;
 }
+
 
 .history-list {
   &--no-padding {

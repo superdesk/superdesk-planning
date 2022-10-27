@@ -21,7 +21,7 @@ export const PlanningInfo = ({item, onClick, active}) => {
                     </span>
                 </Row>
                 <Row>
-                    <InternalNoteLabel item={item} marginRight={true} />
+                    <InternalNoteLabel item={item} />
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         <time className="no-padding">
                             <i className="icon-time" />

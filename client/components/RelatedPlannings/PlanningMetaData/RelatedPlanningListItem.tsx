@@ -86,7 +86,7 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                 </List.Column>
                 <List.Column>
                     <List.Row>
-                        <span className="sd-no-wrap">
+                        <span className="sd-no-wrap sd-list-item__icon-group">
                             {(this.props.item.coverages ?? []).map((coverage, index) => (
                                 <CoverageIcon
                                     key={index}

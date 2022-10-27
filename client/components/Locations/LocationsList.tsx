@@ -79,72 +79,76 @@ export class LocationsListComponent extends React.Component<IProps, IState> {
                         {gettext('No result')}
                     </span>
                 )}
+                <List.Group spaceBetween>
                 {this.props.locations.map((location, index) => (
-                    <List.Item
-                        shadow={1}
-                        key={location._id}
-                        onClick={this.props.editLocation.bind(null, location)}
-                        activated={location._id === this.props.currentLocation?._id}
-                    >
-                        <List.Column grow={false} border={true}>
-                            <List.Row>
-                                <a
-                                    title={gettext('Show on map')}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    href={getMapUrl(
-                                        appConfig.street_map_url,
-                                        location.name,
-                                        formatLocationToAddress(location)
-                                    )}
-                                >
-                                    <i className="sd-list-item__location" />
-                                </a>
-                            </List.Row>
-                        </List.Column>
-                        <List.Column grow={true} border={false}>
-                            <List.Row>
-                                <span className="sd-list-item__strong">
-                                    {location.name}
-                                </span>
-                                <span className="sd-list-item__text-label">
-                                    {gettext('Address')}:
-                                </span>
-                                <span className="sd-list-item__normal">
-                                    {location.address.line?.[0]}
-                                </span>
-                                <span className="sd-list-item__text-label">
-                                    {gettext('City/Town')}:
-                                </span>
-                                <span className="sd-list-item__normal">
-                                    {location.address.city ?? location.address.area}
-                                </span>
-                                <span className="sd-list-item__text-label">
-                                    {gettext('State/Province/Region')}:
-                                </span>
-                                <span className="sd-list-item__normal">
-                                    {location.address.state ?? location.address.locality}
-                                </span>
-                                <span className="sd-list-item__text-label">
-                                    {gettext('Post Code')}:
-                                </span>
-                                <span className="sd-list-item__normal">
-                                    {location.address.postal_code}
-                                </span>
-                                <span className="sd-list-item__text-label">
-                                    {gettext('Country')}:
-                                </span>
-                                <span className="sd-list-item__normal">
-                                    {location.address.country}
-                                </span>
-                            </List.Row>
-                        </List.Column>
-                        <List.ActionMenu>
-                            <button onClick={this.props.deleteLocation.bind(null, location)}>
-                                <i className="icon-trash" /></button>
-                        </List.ActionMenu>
-                    </List.Item>
+                    
+                        <List.Item
+                            shadow={1}
+                            key={location._id}
+                            onClick={this.props.editLocation.bind(null, location)}
+                            activated={location._id === this.props.currentLocation?._id}
+                        >
+                            <List.Column grow={false} border={true}>
+                                <List.Row>
+                                    <a
+                                        title={gettext('Show on map')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        href={getMapUrl(
+                                            appConfig.street_map_url,
+                                            location.name,
+                                            formatLocationToAddress(location)
+                                        )}
+                                    >
+                                        <i className="sd-list-item__location" />
+                                    </a>
+                                </List.Row>
+                            </List.Column>
+                            <List.Column grow={true} border={false}>
+                                <List.Row>
+                                    <span className="sd-list-item__strong">
+                                        {location.name}
+                                    </span>
+                                    <span className="sd-list-item__text-label">
+                                        {gettext('Address')}:
+                                    </span>
+                                    <span className="sd-list-item__normal">
+                                        {location.address.line?.[0]}
+                                    </span>
+                                    <span className="sd-list-item__text-label">
+                                        {gettext('City/Town')}:
+                                    </span>
+                                    <span className="sd-list-item__normal">
+                                        {location.address.city ?? location.address.area}
+                                    </span>
+                                    <span className="sd-list-item__text-label">
+                                        {gettext('State/Province/Region')}:
+                                    </span>
+                                    <span className="sd-list-item__normal">
+                                        {location.address.state ?? location.address.locality}
+                                    </span>
+                                    <span className="sd-list-item__text-label">
+                                        {gettext('Post Code')}:
+                                    </span>
+                                    <span className="sd-list-item__normal">
+                                        {location.address.postal_code}
+                                    </span>
+                                    <span className="sd-list-item__text-label">
+                                        {gettext('Country')}:
+                                    </span>
+                                    <span className="sd-list-item__normal">
+                                        {location.address.country}
+                                    </span>
+                                </List.Row>
+                            </List.Column>
+                            <List.ActionMenu>
+                                <button className='icn-btn' onClick={this.props.deleteLocation.bind(null, location)}>
+                                    <i className="icon-trash" /></button>
+                            </List.ActionMenu>
+                        </List.Item>
+                    
                 ))}
+                </List.Group>
             </div>
         );
     }

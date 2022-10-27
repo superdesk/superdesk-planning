@@ -340,7 +340,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
 
         return (
             <Item
-                shadow={3}
+                shadow={0}
                 activated={get(assignment, '_id') === currentAssignmentId}
                 onClick={this.handleSingleAndDoubleClick}
                 className="AssignmentItem"

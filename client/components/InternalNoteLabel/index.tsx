@@ -86,7 +86,7 @@ InternalNoteLabel.propTypes = {
 InternalNoteLabel.defaultProps = {
     prefix: '',
     showTooltip: true,
-    marginRight: true,
+    marginRight: false,
     marginLeft: false,
     noteField: 'internal_note',
     showHeaderText: true,

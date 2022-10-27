@@ -25,7 +25,7 @@ export const EventInfo = ({item, onClick, active}) => {
                 <Row>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         <time className="no-padding">
-                            <InternalNoteLabel item={item} marginRight={true} />
+                            <InternalNoteLabel item={item} />
                             <i className="icon-time" />
                             {get(item, 'dates.start') &&
                             getDateTimeString(

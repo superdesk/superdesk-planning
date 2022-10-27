@@ -40,7 +40,7 @@ class ButtonList extends React.PureComponent {
         const {buttonList, right} = this.props;
 
         return (
-            <div>
+            <div className='button-group button-group--end button-group--comfort'>
                 {buttonList.map((buttonProps, index) => (
                     <Button
                         className={classNames({'pull-right': right})}

@@ -10,7 +10,7 @@ export const InternalComponent = ({assignment}: IProps) => (
     <InternalNoteLabel
         item={assignment}
         prefix="planning."
-        marginRight={true}
-        marginLeft={true}
+        marginRight={false}
+        marginLeft={false}
     />
 );

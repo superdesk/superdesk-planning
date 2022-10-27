@@ -200,7 +200,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                     <InternalNoteLabel
                         item={this.props.coverage}
                         prefix="planning."
-                        marginRight={true}
+                        marginRight={false}
                     />
                     <i className="icon-time" />
                     {this.state.coverageDateText}

@@ -48,7 +48,7 @@ export const PlanningDateTime = ({
     return (
         <span
             data-test-id="coverage-icons"
-            className="sd-no-wrap"
+            className="sd-no-wrap sd-list-item__icon-group"
         >
             {coverageToDisplay.map((coverage, i) => (
                 <CoverageIcon
