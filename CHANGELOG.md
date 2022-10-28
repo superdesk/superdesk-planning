@@ -1,5 +1,36 @@
 # Superdesk Planning Changelog
 
+## [v2.5.0] 2022-10-28
+### Improvements
+- [SDESK-6387] add loading indicator to assignments view (#1675)
+- [SDESK-6431] Improvements for the top Assignments and Mark for me widgets on top panel (#1689)
+- [SDESK-6434] Improve error message when unposting a planning item which had a coverage story also published (#1681)
+- [SDESK-6564] Allow configuring All Day & Default Duration in EventProfile (#1709)
+- [SDESK-6569] Add config to allow sending self assignment email notifications (#1712)
+- [SDESK-6568] Add related_plannings.read_only attribute to Event ContentProfile (#1722)
+
+### Fixes
+- [SDESK-6407] fix: ManageEventTemplates modal crashes on open (#1674)
+- fix(e2e): Calculate Planning datetime from Event datetime (#1677)
+- [SDESK-6305] fix: Extent getErrorMessage to include errors in _issues (#1678)
+- [SDESK-6342] Rewrite FeaturedStories Modal to use Redux for lists (#1679)
+- use python 3.8 only for testing (#1684)
+- [SDESK-6212] set output formats metadata (#1683)
+- [CPNHUB-79] avoid Event Rescheduled in the payload (#1685)
+- [SDESK-6504] fix: Ignore unlock ws notification if already unlocked (#1694)
+- [SDESK-6541] fix: Unable to remove item from unsaved featured story (#1697)
+- fix(ui): Calculating dirty state in Filter form (#1698)
+- [SDESK-6542] fix(ui): CLEAR FILTERS button not showing with saved filters (#1701)
+- [SDESK-6543] fix: Unable to save new contact after validation error (#1700)
+- [SDAAP-23] fix: Data updates from planning are not being deployed (#1705)
+- [SDESK-6561] fix: Planning preview shows all Agenda items regardless (#1710)
+- [SDESK-6852] Correct date formats in assignment ical attachment (#1714)
+- [SDAAP-26] fix(locations): Missing scrollbar, loading incorrect position (#1716)
+- [SDAAP-30] fix: Show local date & time in EventSchedule input field (#1717)
+- [SDESK-6570] fix: XMPFile field crashes page upon upload (#1718)
+- [SDAAP-36] fix: Stop assignment crashing when there is no user (#1720)
+- [SDESK-6570] fix: Updating Coverage XMP file without an Assignment (#1721)
+
 ## [v2.4.1] 2022-10-28
 ### Fixes
 - fix(ci): Lock cheerio version to 1.0.0-rc10 (#1687)
