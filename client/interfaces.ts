@@ -921,6 +921,7 @@ interface IBaseProfileSchemaType<T> {
 }
 
 export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
+    read_only?: boolean;
     schema?: {[key: string]: any};
     mandatory_in_list?: {[key: string]: any};
 }

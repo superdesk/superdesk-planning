@@ -1140,7 +1140,7 @@ const defaultCoverageValues = (
                     to: eventItem?.dates?.end
                 });
 
-                if (duration > appConfig.long_event_duration_threshold) {
+                if (duration.hours() > appConfig.long_event_duration_threshold) {
                     delete newCoverage.planning.scheduled;
                     delete newCoverage.planning._scheduledTime;
                 }

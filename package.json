@@ -75,6 +75,6 @@
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.14",
     "react": "^16.9.0",
-    "superdesk-ui-framework": "^2.4.9"
+    "superdesk-ui-framework": "^2.4.20"
   }
 }
