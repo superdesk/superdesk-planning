@@ -1,5 +1,13 @@
 # Superdesk Planning Changelog
 
+## [v2.5.1] 2022-10-28
+- [SDESK-6592] fix: Planning: Inconsistent Tooltip display for Due date (#1723)
+- [SDESK-6558] fix : Event links are overlapping in the preview (#1725)
+- [SDESK-6612] Due date for coverages is not being set correctly if long_event_duration_threshold is set (#1726)
+- [SDAAP-39] fix subject validation always fails when updating time (#1727)
+- [SDESK-6558] fix : Event links are overlapping in the preview (#1728)
+- fix: LinkAssignmentModal showing when no assignment matches (#1730)
+
 ## [v2.5.0] 2022-10-28
 ### Improvements
 - [SDESK-6387] add loading indicator to assignments view (#1675)
