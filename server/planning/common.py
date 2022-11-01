@@ -144,12 +144,6 @@ def set_item_expiry(doc):
         doc[ITEM_EXPIRY] = None
 
 
-def get_onclusive_max_offset(current_app=None):
-    if current_app is not None:
-        return int(current_app.config.get("ONCLUSIVE_MAX_OFFSET", 10000))
-    return int(app.config.get("ONCLUSIVE_MAX_OFFSET", 10000))
-
-
 def get_max_recurrent_events(current_app=None):
     if current_app is not None:
         return int(current_app.config.get("MAX_RECURRENT_EVENTS", 200))

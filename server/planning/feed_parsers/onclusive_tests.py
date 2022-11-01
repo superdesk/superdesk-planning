@@ -1,8 +1,7 @@
-import json
-from .onclusive import OnclusiveFeedParser
-import datetime
-from dateutil.tz import tzutc
 import os
+import json
+import datetime
+
 from planning.tests import TestCase
 from superdesk.metadata.item import (
     ITEM_TYPE,
@@ -10,6 +9,8 @@ from superdesk.metadata.item import (
     GUID_FIELD,
     CONTENT_STATE,
 )
+
+from .onclusive import OnclusiveFeedParser
 
 
 class OnclusiveFeedParserTestCase(TestCase):
@@ -44,21 +45,32 @@ class OnclusiveFeedParserTestCase(TestCase):
         expected_subjects.sort(key=lambda i: i["name"])
         self.assertEqual(item["subject"], expected_subjects)
 
-        self.assertEqual(item[GUID_FIELD], "urn:newsml:2021-05-04T21:19:10.2:4112034")
+        self.assertEqual(item[GUID_FIELD], "urn:onclusive:2021-05-04T21:19:10.2:4112034")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
-        self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 21, 19, 10, 200000, tzinfo=tzutc()))
-        self.assertEqual(item["versioncreated"], datetime.datetime(2022, 5, 10, 13, 14, 34, 873000, tzinfo=tzutc()))
+        self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 21, 19, 10, tzinfo=datetime.timezone.utc))
+        self.assertEqual(
+            item["versioncreated"], datetime.datetime(2022, 5, 10, 13, 14, 34, tzinfo=datetime.timezone.utc)
+        )
 
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
 
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
 
-        self.assertEqual(item["dates"]["start"], datetime.datetime(2022, 6, 15, 0, 0, tzinfo=tzutc()))
-        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 16, 0, 0, tzinfo=tzutc()))
-        self.assertEqual(item["dates"]["tz"], "EDT")
+        self.assertEqual(item["dates"]["start"], datetime.datetime(2022, 6, 15, 10, 30, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 16, 3, 59, 59, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["dates"]["tz"], "US/Eastern")
+        self.assertEqual(item["dates"]["no_end_time"], True)
 
         self.assertEqual(item["name"], "Annual Forum on Anti-Money Laundering and Financial Crime")
         self.assertEqual(item["definition_short"], "")
 
         self.assertEqual(item["location"][0]["name"], "One King West Hotel & Residence, 1 King St W, Toronto")
+
+    def test_content_no_time(self):
+        data = self.data.copy()
+        data["time"] = ""
+        item = OnclusiveFeedParser().parse([data])[0]
+        self.assertEqual(item["dates"]["start"], datetime.datetime(2022, 6, 15, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 15, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["dates"]["all_day"], True)

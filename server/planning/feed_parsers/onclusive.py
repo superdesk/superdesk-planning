@@ -1,6 +1,6 @@
 import datetime
 import logging
-import arrow
+import pytz
 from superdesk import get_resource_service
 from superdesk.io.feed_parsers import FeedParser
 from superdesk.metadata.item import (
@@ -11,6 +11,7 @@ from superdesk.metadata.item import (
 )
 from superdesk.errors import ParserError
 from planning.common import POST_STATE
+from flask import current_app as app
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,8 @@ class OnclusiveFeedParser(FeedParser):
 
     NAME = "onclusive_api"
     label = "Onclusive API"
+
+    ONCLUSIVE_TIMEZONES = [tzname for tzname in pytz.common_timezones if "US" in tzname or "GMT" in tzname]
 
     def can_parse(self, content):
         try:
@@ -42,7 +45,7 @@ class OnclusiveFeedParser(FeedParser):
         try:
             all_events = []
             for event in content:
-                guid = "urn:newsml:{}:{}".format(event["createdDate"], event["itemId"])
+                guid = "urn:onclusive:{}:{}".format(event["createdDate"], event["itemId"])
 
                 item = {
                     GUID_FIELD: guid,
@@ -50,13 +53,15 @@ class OnclusiveFeedParser(FeedParser):
                     "state": CONTENT_STATE.INGESTED,
                 }
 
-                self.set_occur_status(item)
-                self.parse_item_meta(event, item)
-                self.parse_location(event, item)
-                self.parse_event_details(event, item)
-                self.parse_category(event, item)
-
-                all_events.append(item)
+                try:
+                    self.set_occur_status(item)
+                    self.parse_item_meta(event, item)
+                    self.parse_location(event, item)
+                    self.parse_event_details(event, item)
+                    self.parse_category(event, item)
+                    all_events.append(item)
+                except (KeyError, IndexError, TypeError) as error:
+                    logger.exception("error %s ingesting event %s", error, event)
             return all_events
 
         except Exception as ex:
@@ -87,25 +92,55 @@ class OnclusiveFeedParser(FeedParser):
         item["definition_short"] = (
             event["description"] if (event["summary"] != "" and event["summary"] is not None) else ""
         )
-        item["links"] = [event["website1"]]
+
+        item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
 
     def parse_event_details(self, event, item):
-        start_date = self.datetime(event["startDate"])
-        end_date = self.datetime(event["endDate"])
-        timezone = None
-        if event.get("timezone"):
-            timezone = event["timezone"]["timezoneAbbreviation"]
+        if event.get("time"):
+            start_date = self.datetime(event["startDate"], event.get("time"), event["timezone"])
+            end_date = self.datetime(event["endDate"], "23:59:59", event["timezone"])
+            tz = self.parse_timezone(start_date, event)
+            item["dates"] = dict(
+                start=start_date,
+                end=end_date,
+                tz=tz,
+                no_end_time=True,
+            )
+        else:
+            item["dates"] = dict(
+                start=self.datetime(event["startDate"], "00:00:00"),
+                end=self.datetime(event["endDate"], "00:00:00"),
+                all_day=True,
+            )
 
-        item["dates"] = dict(
-            start=start_date,
-            end=end_date,
-            tz=timezone,
-        )
+    def parse_timezone(self, start_date, event):
+        if event.get("timezone"):
+            timezones = app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES) + pytz.common_timezones
+            for tzname in timezones:
+                date = start_date.astimezone(pytz.timezone(tzname))
+                abbr = date.strftime("%Z")
+                if abbr == event["timezone"]["timezoneAbbreviation"]:
+                    return tzname
+            else:
+                logger.warning("Could not find timezone for %s", event["timezone"]["timezoneAbbreviation"])
 
     def parse_location(self, event, item):
-        item["location"] = [
-            {"name": event["venue"], "qcode": "", "address": {"country": event["country"]["countryName"]}}
-        ]
+        if event.get("venue"):
+            try:
+                venue_data = event["venueData"][0]
+            except (IndexError, KeyError):
+                venue_data = {}
+            item["location"] = [
+                {
+                    "name": event["venue"],
+                    "qcode": "onclusive-venue:{}".format(venue_data.get("venueId")),
+                    "address": {"country": event["countryName"]},
+                }
+            ]
+        elif event.get("countryName"):
+            item["location"] = [
+                {"name": event["countryName"], "qcode": "onclusive-country:{}".format(event["countryId"])},
+            ]
 
     def parse_category(self, event, item):
         categories = []
@@ -130,11 +165,15 @@ class OnclusiveFeedParser(FeedParser):
                 )
         item["subject"] = categories
 
-    def datetime(self, string):
-        try:
-            return datetime.datetime.strptime(string, "%Y-%m-%dT%H:%M:%S.000Z")
-        except (ValueError, TypeError):
-            try:
-                return arrow.get(string).datetime
-            except arrow.parser.ParserError:
-                raise ValueError(string)
+    def datetime(self, date, time=None, timezone=None, tzinfo=None):
+        """Convert value to datetime, if timezone is provided converts it to UTC."""
+        if timezone is not None:
+            delta = datetime.timedelta(hours=timezone.get("timezoneOffset"))
+            tzinfo = datetime.timezone(delta)
+        elif tzinfo is None:
+            tzinfo = datetime.timezone.utc
+        parsed = datetime.datetime.fromisoformat(date.split(".")[0]).replace(tzinfo=tzinfo)
+        if time is not None:
+            parsed_time = datetime.time.fromisoformat(time)
+            parsed = parsed.replace(hour=parsed_time.hour, minute=parsed_time.minute, second=parsed_time.second)
+        return parsed.astimezone(datetime.timezone.utc)
