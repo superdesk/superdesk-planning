@@ -88,7 +88,7 @@ export class CoverageIcon extends React.PureComponent<IProps> {
                             this.props.coverage
                         ),
                         planningUtils.getCoverageIconColor(this.props.coverage),
-                        'sd-list-item__inline-icon'
+                        
                     )}
                 />
             </span>

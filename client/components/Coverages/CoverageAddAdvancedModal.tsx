@@ -338,16 +338,18 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                         {' '}
                         {gettext('make this mode the default')}
                     </label>
-                    <button className="btn" type="button" onClick={this.props.close}>{gettext('Cancel')}</button>
-                    <button
-                        className="btn btn--primary"
-                        type="button"
-                        disabled={
-                            !this.state.isDirty
-                            || this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))
-                        }
-                        onClick={() => this.save()}
-                    >{gettext('Save')}</button>
+                    <div className="button-group button-group--end button-group--comfort">
+                        <button className="btn" type="button" onClick={this.props.close}>{gettext('Cancel')}</button>
+                        <button
+                            className="btn btn--primary"
+                            type="button"
+                            disabled={
+                                !this.state.isDirty
+                                || this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))
+                            }
+                            onClick={() => this.save()}
+                        >{gettext('Save')}</button>
+                    </div>
                 </Modal.Footer>
             </Modal>
         );

@@ -251,9 +251,19 @@ textarea.sd-line-input__input {
     }
 }
 
+.modal__body {
+    .sd-column-box__slide-in-column {
+        background-color: var(--sd-colour-panel-bg--000);
+        .sd-column-box__slide-in-column-inner {
+            background-color: var(--sd-colour-panel-bg--000);
+        }
+    }
+}
+
 .subnav--dark-blue-grey {
     --color-text: hsla(214, 13%, 96%, 1);
     --color-text-light: hsla(214, 13%, 76%, 1);
     --color-text-lighter: hsla(214, 13%, 56%, 1);
     --sd-colour-btn-txt-neutral: hsla(214, 13%, 96%, 1);
+    --color-icon-default: hsla(214, 13%, 64%, 1);
 }
