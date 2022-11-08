@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 import datetime
 
 from planning.tests import TestCase
@@ -9,6 +10,8 @@ from superdesk.metadata.item import (
     GUID_FIELD,
     CONTENT_STATE,
 )
+
+from unittest.mock import patch
 
 from .onclusive import OnclusiveFeedParser
 
@@ -66,6 +69,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item["definition_short"], "")
 
         self.assertEqual(item["location"][0]["name"], "One King West Hotel & Residence, 1 King St W, Toronto")
+        self.assertEqual(item["location"][0]["address"]["country"], "Canada")
 
     def test_content_no_time(self):
         data = self.data.copy()
@@ -74,3 +78,10 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item["dates"]["start"], datetime.datetime(2022, 6, 15, tzinfo=datetime.timezone.utc))
         self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 15, tzinfo=datetime.timezone.utc))
         self.assertEqual(item["dates"]["all_day"], True)
+
+    def test_unknown_timezone(self):
+        with self.app.app_context():
+            with patch.dict(self.app.config, {"ONCLUSIVE_TIMEZONES": ["FOO"]}):
+                with self.assertLogs("planning", level=logging.ERROR) as logger:
+                    OnclusiveFeedParser().parse([self.data])
+                    self.assertIn("ERROR:planning.feed_parsers.onclusive:Unknown Timezone FOO", logger.output)

@@ -1,6 +1,7 @@
 import datetime
 import logging
 import pytz
+from typing import Dict
 from superdesk import get_resource_service
 from superdesk.io.feed_parsers import FeedParser
 from superdesk.metadata.item import (
@@ -117,7 +118,11 @@ class OnclusiveFeedParser(FeedParser):
         if event.get("timezone"):
             timezones = app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES) + pytz.common_timezones
             for tzname in timezones:
-                date = start_date.astimezone(pytz.timezone(tzname))
+                try:
+                    date = start_date.astimezone(pytz.timezone(tzname))
+                except pytz.exceptions.UnknownTimeZoneError:
+                    logger.error("Unknown Timezone %s", tzname)
+                    continue
                 abbr = date.strftime("%Z")
                 if abbr == event["timezone"]["timezoneAbbreviation"]:
                     return tzname
@@ -125,7 +130,7 @@ class OnclusiveFeedParser(FeedParser):
                 logger.warning("Could not find timezone for %s", event["timezone"]["timezoneAbbreviation"])
 
     def parse_location(self, event, item):
-        if event.get("venue"):
+        if event.get("venue") and event.get("venueData"):
             try:
                 venue_data = event["venueData"][0]
             except (IndexError, KeyError):
@@ -134,13 +139,23 @@ class OnclusiveFeedParser(FeedParser):
                 {
                     "name": event["venue"],
                     "qcode": "onclusive-venue:{}".format(venue_data.get("venueId")),
-                    "address": {"country": event["countryName"]},
+                    "address": self.parse_address(event),
                 }
             ]
         elif event.get("countryName"):
             item["location"] = [
-                {"name": event["countryName"], "qcode": "onclusive-country:{}".format(event["countryId"])},
+                {
+                    "name": event["countryName"],
+                    "qcode": "onclusive-country:{}".format(event["countryId"]),
+                    "address": self.parse_address(event),
+                },
             ]
+
+    def parse_address(self, event) -> Dict[str, str]:
+        try:
+            return {"country": event["countryName"]}
+        except KeyError:
+            return {}
 
     def parse_category(self, event, item):
         categories = []
