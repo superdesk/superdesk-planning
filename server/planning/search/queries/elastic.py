@@ -94,15 +94,15 @@ class ElasticRangeParams:
     def __init__(
         self,
         field: str,
-        gt: str = None,
-        gte: str = None,
-        lt: str = None,
-        lte: str = None,
-        value_format: str = None,
-        time_zone: str = None,
-        start_of_week: int = None,
-        date_range: DateRanges = None,
-        date: str = None,
+        gt: Optional[str] = None,
+        gte: Optional[str] = None,
+        lt: Optional[str] = None,
+        lte: Optional[str] = None,
+        value_format: Optional[str] = None,
+        time_zone: Optional[str] = None,
+        start_of_week: Optional[int] = None,
+        date_range: Optional[DateRanges] = None,
+        date: Optional[str] = None,
     ):
         """Allows to easily set fields by name using kwargs"""
 
@@ -140,7 +140,7 @@ def bool_or(conditions: List[Dict[str, Any]]):
     return {"bool": {"minimum_should_match": 1, "should": conditions}}
 
 
-def bool_and(conditions: List[Dict[str, Any]], nested_path: str = None):
+def bool_and(conditions: List[Dict[str, Any]], nested_path: Optional[str] = None):
     return (
         {"bool": {"must": conditions}}
         if nested_path is None
@@ -156,7 +156,7 @@ def terms(field: str, values: List[Any]):
     return {"terms": {field: values}}
 
 
-def query_string(text: str, lenient: bool = False, default_operator: str = "OR", field: str = None):
+def query_string(text: str, lenient: bool = False, default_operator: str = "OR", field: Optional[str] = None):
     sanitized_text = sanitize_query_text(text)
     query = f"{field}:({sanitized_text})" if field is not None else sanitized_text
 
