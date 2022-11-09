@@ -101,6 +101,9 @@ events_schema = {
                 "nullable": True,
             },
             "tz": {"type": "string"},
+            "end_tz": {"type": "string"},
+            "all_day": {"type": "boolean"},
+            "no_end_time": {"type": "boolean"},
             "duration": {"type": "string"},
             "confirmation": {"type": "string"},
             "recurring_date": {

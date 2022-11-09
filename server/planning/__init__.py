@@ -10,6 +10,7 @@
 
 """Superdesk Planning Plugin."""
 
+import logging
 import superdesk
 from eve.utils import config
 from flask_babel import lazy_gettext
@@ -35,7 +36,6 @@ from .common import (
     get_planning_use_xmp_for_pic_slugline,
     get_planning_allowed_coverage_link_types,
     get_planning_auto_close_popup_editor,
-    get_onclusive_max_offset,
 )
 from apps.common.components.utils import register_component
 from .item_lock import LockService
@@ -77,6 +77,10 @@ from planning.planning_download import init_app as init_planning_download_app
 __version__ = "2.6.0-dev"
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def init_app(app):
