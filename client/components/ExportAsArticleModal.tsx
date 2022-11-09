@@ -214,23 +214,23 @@ export class ExportAsArticleModal extends React.Component {
                     </Row>
                 </Modal.Body>
                 <Modal.Footer>
-                    <div className='button-group button-group--end button-group--comfort'>
-                        <Button
-                                type="button"
-                                onClick={this.props.handleHide}
-                            >{gettext('Cancel')}</Button>
-                            {!download && (
-                                <Button
-                                    type="submit"
-                                    className="btn--primary"
-                                    disabled={!desk}
-                                    onClick={this.onSubmit}
-                                >{gettext('Export')}</Button>
-                            )}
-                            {download && (
-                                <Button type="submit" className="btn--primary"onClick={this.onSubmit}>
-                                    {gettext('Download')}</Button>
-                            )}
+                    <div className="button-group button-group--end button-group--comfort">
+                        <Button type="button" onClick={this.props.handleHide}>
+                            {gettext('Cancel')}
+                        </Button>
+                        {!download && (
+                            <Button
+                                type="submit"
+                                className="btn--primary"
+                                disabled={!desk}
+                                onClick={this.onSubmit}
+                            >{gettext('Export')}</Button>
+                        )}
+                        {download && (
+                            <Button type="submit" className="btn--primary"onClick={this.onSubmit}>
+                                {gettext('Download')}
+                            </Button>
+                        )}
                     </div>
                 </Modal.Footer>
             </Modal>

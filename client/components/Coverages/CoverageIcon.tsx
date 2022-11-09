@@ -88,7 +88,6 @@ export class CoverageIcon extends React.PureComponent<IProps> {
                             this.props.coverage
                         ),
                         planningUtils.getCoverageIconColor(this.props.coverage),
-                        
                     )}
                 />
             </span>

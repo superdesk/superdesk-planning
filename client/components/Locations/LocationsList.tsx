@@ -80,8 +80,7 @@ export class LocationsListComponent extends React.Component<IProps, IState> {
                     </span>
                 )}
                 <List.Group spaceBetween>
-                {this.props.locations.map((location, index) => (
-                    
+                    {this.props.locations.map((location, index) => (
                         <List.Item
                             shadow={1}
                             key={location._id}
@@ -142,12 +141,12 @@ export class LocationsListComponent extends React.Component<IProps, IState> {
                                 </List.Row>
                             </List.Column>
                             <List.ActionMenu>
-                                <button className='icn-btn' onClick={this.props.deleteLocation.bind(null, location)}>
+                                <button className="icn-btn" onClick={this.props.deleteLocation.bind(null, location)}>
                                     <i className="icon-trash" /></button>
                             </List.ActionMenu>
                         </List.Item>
                     
-                ))}
+                    ))}
                 </List.Group>
             </div>
         );
