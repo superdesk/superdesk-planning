@@ -145,7 +145,6 @@ export class LocationsListComponent extends React.Component<IProps, IState> {
                                     <i className="icon-trash" /></button>
                             </List.ActionMenu>
                         </List.Item>
-                    
                     ))}
                 </List.Group>
             </div>
