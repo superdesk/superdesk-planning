@@ -86,7 +86,7 @@ export class ContactMetaData extends React.PureComponent<IProps> {
 
         const contactListView = (
             <div>
-                <Item noBg={!active} activated={active} margin={true}>
+                <Item noBg={!active} activated={active} margin={false}>
                     <div className="sd-list-item__border" />
                     <Column grow={true} border={false}>
                         <Row>
