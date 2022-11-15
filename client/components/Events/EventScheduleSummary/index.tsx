@@ -53,7 +53,7 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
         <React.Fragment>
             <Row
                 label={forUpdating ? currentDateLabel : gettext('Date:')}
-                value={currentDateText || ''}
+                value={!eventSchedule?.no_end_time ? currentDateText : currentDateText.split('-')[0] || ''}
                 noPadding={noPadding || isRemoteTimeZone}
                 dataTestId="field-dates"
             />

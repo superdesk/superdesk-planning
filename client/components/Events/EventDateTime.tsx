@@ -55,6 +55,9 @@ export class EventDateTime extends React.PureComponent<IProps> {
             toBeConfirmed: item._time_to_be_confirmed,
         };
 
+        const noEndTime = item.dates?.no_end_time;
+
+
         return isAllDay && !ignoreAllDay ? (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
                 {gettext('All day')}
@@ -72,13 +75,16 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     date={start}
                     {...commonProps}
                 />
+                {!noEndTime && (
+                    <>
                 &ndash;
-                <DateTime
-                    withDate={multiDay}
-                    withYear={withYear}
-                    date={end}
-                    {...commonProps}
-                />
+                        <DateTime
+                            withDate={multiDay}
+                            withYear={withYear}
+                            date={end}
+                            {...commonProps}
+                        /> </>
+                )}
                 {isRemoteTimeZone && (
                     <span>&nbsp;(
                         <span className="EventDateTime__timezone sd-margin-r--0-5">
@@ -90,13 +96,18 @@ export class EventDateTime extends React.PureComponent<IProps> {
                             date={remoteStart}
                             {...commonProps}
                         />
+
+                        {!noEndTime && (
+                            <>
                         &ndash;
-                        <DateTime
-                            withDate={remoteEndWithDate}
-                            withYear={remoteEndWithYear}
-                            date={remoteEnd}
-                            {...commonProps}
-                        />)
+                                <DateTime
+                                    withDate={remoteEndWithDate}
+                                    withYear={remoteEndWithYear}
+                                    date={remoteEnd}
+                                    {...commonProps}
+                                />
+                            </>
+                        )})
                     </span>
                 )}
             </span>
