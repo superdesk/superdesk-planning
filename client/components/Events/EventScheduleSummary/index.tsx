@@ -6,15 +6,16 @@ import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
 import './style.scss';
+import {IEventItem} from 'interfaces';
 
 
 export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEventTimezone}) => {
     if (!schedule)
         return null;
 
-    const eventSchedule = get(schedule, 'dates', {});
+    const eventSchedule: IEventItem['dates'] = get(schedule, 'dates', {});
     const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
-    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(eventSchedule);
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(schedule);
     const eventDateText = eventUtils.getDateStringForEvent(
         schedule,
         false,
