@@ -31,6 +31,8 @@ from superdesk.text_utils import plain_text_to_html
 from planning.content_profiles.utils import get_planning_schema, is_field_enabled, is_field_editor_3
 from planning.common import POST_STATE
 
+from . import utils
+
 logger = logging.getLogger(__name__)
 
 
@@ -200,24 +202,43 @@ class EventsMLParser(NewsMLTwoFeedParser):
         start_date_str = self.get_datetime_str(start_date_source, "00:00:00", app.config["DEFAULT_TIMEZONE"])
         start_date = parse_date(start_date_str)
         is_start_local_midnight = start_date.time() == time(0, 0, 0)
+        no_end_time = None
+        all_day = not utils.has_time(start_date_source)
+        tz = app.config["DEFAULT_TIMEZONE"]
+        if all_day:  # ignore timezone
+            tz = None
+            start_date = utils.parse_date_utc(start_date_source)
 
         if dates.find(self.qname("end")) is not None and dates.find(self.qname("end")).text:
-            end_date = parse_date(
-                self.get_datetime_str(dates.find(self.qname("end")).text, "23:59:59", app.config["DEFAULT_TIMEZONE"])
-            )
+            dates_end_text = dates.find(self.qname("end")).text
+            end_date = parse_date(self.get_datetime_str(dates_end_text, "23:59:59", app.config["DEFAULT_TIMEZONE"]))
+            if all_day:
+                end_date = utils.parse_date_utc(dates_end_text).replace(hour=23, minute=59, second=59)
+            else:
+                no_end_time = not utils.has_time(dates_end_text)
+        elif dates.find(self.qname("duration")) is not None and dates.find(self.qname("duration")).text:
+            duration_text = dates.find(self.qname("duration")).text
+            duration = utils.parse_duration(duration_text)
+            end_date = start_date + duration
+            if not duration.seconds:
+                no_end_time = True  # duration is only days, treat it as no end time
+                end_date = end_date.replace(hour=23, minute=59, second=59)
         else:
-            if is_start_local_midnight and "T" not in start_date_source:
-                end_date = parse_date(
-                    self.get_datetime_str(start_date_source, "23:59:59", app.config["DEFAULT_TIMEZONE"])
-                )
+            if is_start_local_midnight and all_day:
+                end_date = start_date.replace(hour=23, minute=59, second=59)
             else:
                 end_date = start_date + timedelta(hours=self.get_default_event_duration())
 
         item["dates"] = dict(
             start=start_date.astimezone(pytz.utc),
             end=end_date.astimezone(pytz.utc),
-            tz=app.config["DEFAULT_TIMEZONE"],
+            tz=tz,
         )
+
+        if all_day:
+            item["dates"]["all_day"] = all_day
+        elif no_end_time:
+            item["dates"]["no_end_time"] = no_end_time
 
     def parse_registration_details(self, event_details, item):
         event_type = get_planning_schema("event")
