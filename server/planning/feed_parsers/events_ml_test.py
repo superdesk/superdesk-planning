@@ -172,9 +172,10 @@ class EventsMLFeedParserTestCase(TestCase):
         self.assertEqual(
             get_item_dates("2022-07-05"),
             dict(
-                start=datetime(2022, 7, 4, 22, 0, tzinfo=utc),
-                end=datetime(2022, 7, 5, 21, 59, 59, tzinfo=utc),
-                tz=self.app.config["DEFAULT_TIMEZONE"],
+                start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
+                end=datetime(2022, 7, 5, 23, 59, 59, tzinfo=utc),
+                all_day=True,
+                tz=None,
             ),
         )
 
@@ -183,9 +184,10 @@ class EventsMLFeedParserTestCase(TestCase):
         self.assertEqual(
             get_item_dates("2022-07-05", "2022-07-07"),
             dict(
-                start=datetime(2022, 7, 4, 22, 0, tzinfo=utc),
-                end=datetime(2022, 7, 7, 21, 59, 59, tzinfo=utc),
-                tz=self.app.config["DEFAULT_TIMEZONE"],
+                start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
+                end=datetime(2022, 7, 7, 23, 59, 59, tzinfo=utc),
+                all_day=True,
+                tz=None,
             ),
         )
 
@@ -330,3 +332,12 @@ class EventsMLFeedParserTestCase(TestCase):
         # Make sure the item state was changed after ingest
         self.assertEqual(dest["state"], CONTENT_STATE.KILLED)
         self.assertEqual(dest["pubstatus"], POST_STATE.CANCELLED)
+
+    def test_parse_dates(self):
+        self._load_fixture("events_ml_259270.xml")
+        self._add_cvs()
+        source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        dates = source["dates"]
+        self.assertTrue(dates["all_day"])
+        self.assertEqual(datetime(2022, 11, 10, tzinfo=utc), dates["start"])
+        self.assertEqual(datetime(2022, 11, 11, 23, 59, 59, tzinfo=utc), dates["end"])
