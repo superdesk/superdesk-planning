@@ -95,7 +95,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={original.dates}
+                    schedule={original}
                     forUpdating={true}
                     useEventTimezone={true}
                 />

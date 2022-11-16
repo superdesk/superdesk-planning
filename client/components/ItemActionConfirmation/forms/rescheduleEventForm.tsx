@@ -200,7 +200,7 @@ export class RescheduleEventComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={this.props.original.dates}
+                    schedule={this.props.original}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
