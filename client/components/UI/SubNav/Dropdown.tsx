@@ -210,51 +210,53 @@ export class Dropdown extends React.Component<IProps, IState> {
                 ) :
                     this.renderButtonDropMenu()
                 }
-                <Menu
-                    isOpen={this.state.open}
-                    alignRight={false}
-                    scrollable={this.props.scrollable}
-                >
-                    {this.props.label == undefined ? null : (
-                        <React.Fragment>
-                            <Label>{this.props.label}</Label>
-                            <Divider />
-                        </React.Fragment>
-                    )}
+                <div>
+                    <Menu
+                        isOpen={this.state.open}
+                        alignRight={false}
+                        scrollable={this.props.scrollable}
+                    >
+                        {this.props.label == undefined ? null : (
+                            <React.Fragment>
+                                <Label>{this.props.label}</Label>
+                                <Divider />
+                            </React.Fragment>
+                        )}
 
-                    {(this.props.searchable !== true || this.props.items.length < 3) ?
-                        null :
-                        (
-                            <div style={{paddingLeft: 10, paddingRight: 10}}>
-                                <input
-                                    type="text"
-                                    value={this.state.filterValue}
-                                    onChange={this.updateSearchText}
-                                    placeholder={gettext('Filter')}
-                                    className="dropdown-filter"
-                                    ref={this.searchInput}
-                                />
-                            </div>
-                        )
-                    }
+                        {(this.props.searchable !== true || this.props.items.length < 3) ?
+                            null :
+                            (
+                                <div style={{paddingLeft: 10, paddingRight: 10}}>
+                                    <input
+                                        type="text"
+                                        value={this.state.filterValue}
+                                        onChange={this.updateSearchText}
+                                        placeholder={gettext('Filter')}
+                                        className="dropdown-filter"
+                                        ref={this.searchInput}
+                                    />
+                                </div>
+                            )
+                        }
 
-                    {this.props.group ? (
-                        Object.keys(filterGroups)
-                            .map((group, index) => (
-                                <React.Fragment key={index}>
-                                    {!group?.length ? null : (
-                                        <React.Fragment>
-                                            <Divider />
-                                            <Label>{group}</Label>
-                                        </React.Fragment>
-                                    )}
-                                    {filterGroups[group].map(this.renderDropdownItem)}
-                                </React.Fragment>
-                            ))
-                    ) : (
-                        filteredItems.map(this.renderDropdownItem)
-                    )}
-                </Menu>
+                        {this.props.group ? (
+                            Object.keys(filterGroups)
+                                .map((group, index) => (
+                                    <React.Fragment key={index}>
+                                        {!group?.length ? null : (
+                                            <React.Fragment>
+                                                <Divider />
+                                                <Label>{group}</Label>
+                                            </React.Fragment>
+                                        )}
+                                        {filterGroups[group].map(this.renderDropdownItem)}
+                                    </React.Fragment>
+                                ))
+                        ) : (
+                            filteredItems.map(this.renderDropdownItem)
+                        )}
+                    </Menu>
+                </div>
             </DropMenu>
         );
     }

@@ -294,25 +294,27 @@ export class AssignmentItem extends React.Component<IProps, IState> {
             : [];
 
         return itemActions.length < 1 ? null : (
-            <Menu items={planningUtils.toUIFrameworkInterface(itemActions)}>
-                {(toggle) => (
-                    <div
-                        style={{display: 'flex', height: '100%'}}
-                        className="sd-list-item__action-menu sd-list-item__action-menu--direction-row"
-                    >
-                        <button
-                            className="icn-btn dropdown__toggle actions-menu-button"
-                            aria-label={gettext('Actions')}
-                            onClick={(e) => {
-                                toggle(e);
-                            }}
-                            data-test-id="menu-button"
+            <div>
+                <Menu items={planningUtils.toUIFrameworkInterface(itemActions)}>
+                    {(toggle) => (
+                        <div
+                            style={{display: 'flex', height: '100%'}}
+                            className="sd-list-item__action-menu sd-list-item__action-menu--direction-row"
                         >
-                            <i className="icon-dots-vertical" />
-                        </button>
-                    </div>
-                )}
-            </Menu>
+                            <button
+                                className="icn-btn dropdown__toggle actions-menu-button"
+                                aria-label={gettext('Actions')}
+                                onClick={(e) => {
+                                    toggle(e);
+                                }}
+                                data-test-id="menu-button"
+                            >
+                                <i className="icon-dots-vertical" />
+                            </button>
+                        </div>
+                    )}
+                </Menu>
+            </div>
         );
     }
 
