@@ -6,11 +6,15 @@ import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
 import './style.scss';
+import moment from 'moment';
 
-
-export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEventTimezone}) => {
-    if (!schedule)
-        return null;
+export const EventScheduleSummary = ({
+    schedule,
+    noPadding,
+    forUpdating,
+    useEventTimezone,
+}) => {
+    if (!schedule) return null;
 
     const eventSchedule = get(schedule, 'dates', {});
     const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
@@ -28,8 +32,14 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
             ...schedule,
             dates: {
                 ...eventSchedule,
-                start: timeUtils.getDateInRemoteTimeZone(eventSchedule.start, eventSchedule.tz),
-                end: timeUtils.getDateInRemoteTimeZone(eventSchedule.end, eventSchedule.tz),
+                start: timeUtils.getDateInRemoteTimeZone(
+                    eventSchedule.start,
+                    eventSchedule.tz
+                ),
+                end: timeUtils.getDateInRemoteTimeZone(
+                    eventSchedule.end,
+                    eventSchedule.tz
+                ),
             },
         };
 
@@ -49,11 +59,35 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
         currentDateLabel = gettext('Current Date (Based on Event timezone)');
     }
 
+    const start = moment(eventSchedule.start);
+    const end = moment(eventSchedule.end);
+
+    const multiDay = !eventUtils.isEventSameDay(start, end);
+    const allDay = eventSchedule?.all_day;
+    const noEndTime = eventSchedule?.no_end_time;
+
+    const splittedDate = currentDateText?.split('-');
+
+    let datesToShow;
+
+    if (allDay && !multiDay) {
+        datesToShow = splittedDate[0].slice(0, 10);
+    } else if (noEndTime && !multiDay) {
+        datesToShow = splittedDate[0];
+    } else if (allDay && multiDay) {
+        datesToShow = splittedDate[0].slice(0, 10) + '-' + splittedDate[1].slice(0, 11);
+    } else if (noEndTime && multiDay) {
+        datesToShow = currentDateText.slice(0, 31);
+    } else {
+        datesToShow = currentDateText;
+    }
+
+
     return (
         <React.Fragment>
             <Row
                 label={forUpdating ? currentDateLabel : gettext('Date:')}
-                value={!eventSchedule?.no_end_time ? currentDateText : currentDateText.split('-')[0] || ''}
+                value={datesToShow || ''}
                 noPadding={noPadding || isRemoteTimeZone}
                 dataTestId="field-dates"
             />
@@ -66,10 +100,7 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
             )}
 
             {doesRepeat && (
-                <Row
-                    noPadding={noPadding}
-                    dataTestId="field-dates_repeat"
-                >
+                <Row noPadding={noPadding} dataTestId="field-dates_repeat">
                     <RepeatEventSummary
                         schedule={eventSchedule}
                         asInputField
