@@ -16,7 +16,14 @@ interface IProps {
   displayLocalTimezone?: boolean;
 }
 
-export class EventDateTime extends React.PureComponent<IProps> {
+interface IState {
+  hideDash: boolean;
+}
+export class EventDateTime extends React.PureComponent<IProps, IState> {
+    constructor(props) {
+        super(props);
+        this.state = {hideDash: false};
+    }
     render() {
         const {gettext} = superdeskApi.localization;
         const {item, ignoreAllDay, displayLocalTimezone} = this.props;
@@ -42,9 +49,9 @@ export class EventDateTime extends React.PureComponent<IProps> {
         remoteStart.date() !== remoteEnd.date();
             remoteEndWithDate = remoteStart.date() !== remoteEnd.date();
             remoteStartWithYear =
-        remoteStartWithDate && remoteStart.year() !== remoteEnd.year();
+      remoteStartWithDate && remoteStart.year() !== remoteEnd.year();
             remoteEndWithYear =
-        remoteEndWithDate && remoteStart.year() !== remoteEnd.year();
+      remoteEndWithDate && remoteStart.year() !== remoteEnd.year();
         }
 
         if (item._time_to_be_confirmed && !multiDay) {
@@ -63,6 +70,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
             toBeConfirmed: item._time_to_be_confirmed,
             noEndTime: noEndTime,
             allDay: allDay,
+            multiDay: multiDay,
         };
 
         return isAllDay && !ignoreAllDay ? (
@@ -82,12 +90,15 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     date={start}
                     {...commonProps}
                 />
-        &ndash;
+                {!this.state.hideDash && <>&ndash;</>}
                 <DateTime
                     withDate={multiDay}
                     withYear={withYear}
                     isEndEventDateTime={true}
                     date={end}
+                    setHideDash={(value: boolean) =>
+                        this.setState({hideDash: value})
+                    }
                     {...commonProps}
                 />
                 {isRemoteTimeZone && (
@@ -102,12 +113,15 @@ export class EventDateTime extends React.PureComponent<IProps> {
                             date={remoteStart}
                             {...commonProps}
                         />
-            &ndash;
+                        {!this.state.hideDash && <>&ndash;</>}
                         <DateTime
                             withDate={remoteEndWithDate}
                             withYear={remoteEndWithYear}
                             date={remoteEnd}
                             isEndEventDateTime={true}
+                            setHideDash={(value: boolean) =>
+                                this.setState({hideDash: value})
+                            }
                             {...commonProps}
                         />
             )

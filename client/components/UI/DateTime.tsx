@@ -22,6 +22,8 @@ function DateTime({
     allDay,
     isEndEventDateTime,
     noEndTime,
+    setHideDash,
+    multiDay,
 }) {
     const {gettext} = superdeskApi.localization;
     const dateFormat = appConfig.planning.dateformat;
@@ -41,19 +43,34 @@ function DateTime({
 
     let eventEndDate;
 
-    if (allDay && withDate) {
+    if (noEndTime && !multiDay) {
+        eventEndDate = null;
+        setHideDash && setHideDash(true);
+    } else if (allDay && multiDay) {
         eventEndDate = moment(date).format(dateTimeFormat)
             .slice(0, 5) || '';
-    } else if (noEndTime && withDate) {
+    } else if (noEndTime && multiDay) {
         eventEndDate = moment(date).format(dateTimeFormat)
             .slice(0, 5) || '';
+    } else if (allDay && !multiDay) {
+        setHideDash && setHideDash(true);
+    }
+
+    let eventStartDate;
+
+    if (allDay && multiDay) {
+        eventStartDate = moment(date).format(dateTimeFormat)
+            .slice(0, -5);
     } else {
-        eventEndDate = moment(date).format(dateTimeFormat);
+        eventStartDate = moment(date).format(dateTimeFormat);
     }
 
     return (
         <time className={!padLeft ? 'Datetime' : null} title={'date.toString()'}>
-            {isEndEventDateTime && eventEndDate ? eventEndDate : moment(date).format(dateTimeFormat) || ''}
+            {!isEndEventDateTime && eventStartDate}
+            {isEndEventDateTime && (eventEndDate || eventEndDate == null)
+                ? eventEndDate
+                : ''}
         </time>
     );
 }
@@ -68,6 +85,8 @@ DateTime.propTypes = {
     allDay: PropTypes.bool,
     isEndEventDateTime: PropTypes.bool,
     noEndTime: PropTypes.bool,
+    setHideDash: PropTypes.func,
+    multiDay: PropTypes.bool,
 };
 
 DateTime.defaultProps = {
