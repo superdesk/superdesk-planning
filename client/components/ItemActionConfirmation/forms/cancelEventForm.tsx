@@ -124,7 +124,7 @@ export class CancelEventComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={original}
+                    event={original}
                     forUpdating={true}
                     useEventTimezone={true}
                 />

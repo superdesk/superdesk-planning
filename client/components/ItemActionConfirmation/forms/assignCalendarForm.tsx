@@ -78,7 +78,7 @@ export class AssignCalendarComponent extends React.Component {
                     className="strong"
                 />
 
-                <EventScheduleSummary schedule={original} noPadding={true} />
+                <EventScheduleSummary event={original} noPadding={true} />
 
                 <Row
                     enabled={true}

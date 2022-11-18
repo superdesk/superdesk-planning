@@ -10,14 +10,14 @@ import {IEventItem} from 'interfaces';
 
 
 interface IProps {
-    schedule: Partial<IEventItem>,
+    event: Partial<IEventItem>,
     noPadding?: boolean,
     forUpdating?: boolean,
     useEventTimezone?: boolean
 }
 
 export const EventScheduleSummary = ({
-    schedule: event,
+    event,
     noPadding = false,
     forUpdating = false,
     useEventTimezone = false
@@ -37,7 +37,7 @@ export const EventScheduleSummary = ({
     let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {
-        const remoteSchedule = {
+        const remoteEvent = {
             ...event,
             dates: {
                 ...eventSchedule,
@@ -47,7 +47,7 @@ export const EventScheduleSummary = ({
         };
 
         newDateString = eventUtils.getDateStringForEvent(
-            remoteSchedule,
+            remoteEvent,
             false,
             false
         );

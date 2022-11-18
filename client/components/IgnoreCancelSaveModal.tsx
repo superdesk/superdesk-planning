@@ -53,7 +53,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
                     className="strong"
                 />
 
-                <EventScheduleSummary schedule={item} />
+                <EventScheduleSummary event={item} />
 
                 {onSave && (
                     <UpdateMethodSelection
