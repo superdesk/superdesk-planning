@@ -54,6 +54,8 @@ function DateTime({
             .slice(0, 5) || '';
     } else if (allDay && !multiDay) {
         setHideDash && setHideDash(true);
+    } else {
+        eventEndDate = moment(date).format(dateTimeFormat);
     }
 
     let eventStartDate;
@@ -66,11 +68,10 @@ function DateTime({
     }
 
     return (
-        <time className={!padLeft ? 'Datetime' : null} title={'date.toString()'}>
+        <time className={!padLeft ? 'Datetime' : null} title={date.toString()}>
             {!isEndEventDateTime && eventStartDate}
             {isEndEventDateTime && (eventEndDate || eventEndDate == null)
-                ? eventEndDate
-                : ''}
+                && eventEndDate}
         </time>
     );
 }
