@@ -59,12 +59,14 @@ export const EventScheduleSummary = ({
         currentDateLabel = gettext('Current Date (Based on Event timezone)');
     }
 
-    const start = moment(eventSchedule.start);
-    const end = moment(eventSchedule.end);
-
-    const multiDay = !eventUtils.isEventSameDay(start, end);
     const allDay = eventSchedule?.all_day;
     const noEndTime = eventSchedule?.no_end_time;
+
+    const start = allDay ? moment.utc(eventSchedule.start) : moment(eventSchedule.start);
+    const end = allDay || noEndTime ? moment.utc(eventSchedule.end) :  moment(eventSchedule.end);
+
+    const multiDay = !eventUtils.isEventSameDay(start, end);
+   
 
     const splittedDate = currentDateText?.split('-');
 
