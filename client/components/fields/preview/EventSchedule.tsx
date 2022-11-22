@@ -11,7 +11,7 @@ export class PreviewFieldEventSchedule extends React.PureComponent<IListFieldPro
 
         return (
             <EventScheduleSummary
-                schedule={{
+                event={{
                     dates: item.dates,
                     [TO_BE_CONFIRMED_FIELD]: item._time_to_be_confirmed,
                 }}

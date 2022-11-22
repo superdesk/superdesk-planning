@@ -84,7 +84,7 @@ export class SpikeEventComponent extends React.Component {
                     noPadding={true}
                 />
 
-                <EventScheduleSummary schedule={original} />
+                <EventScheduleSummary event={original} />
 
                 <Row
                     enabled={isRecurring}
