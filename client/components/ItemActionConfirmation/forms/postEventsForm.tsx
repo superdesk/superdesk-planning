@@ -100,7 +100,7 @@ export class PostEventsComponent extends React.Component {
                     className="strong"
                 />
 
-                <EventScheduleSummary schedule={original} />
+                <EventScheduleSummary event={original} />
 
                 <Row
                     enabled={isRecurring}

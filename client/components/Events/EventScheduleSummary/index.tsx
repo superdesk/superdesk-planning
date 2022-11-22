@@ -6,17 +6,30 @@ import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
 import './style.scss';
+import {IEventItem} from 'interfaces';
 
 
-export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEventTimezone}) => {
-    if (!schedule)
+interface IProps {
+    event: Partial<IEventItem>,
+    noPadding?: boolean,
+    forUpdating?: boolean,
+    useEventTimezone?: boolean
+}
+
+export const EventScheduleSummary = ({
+    event,
+    noPadding = false,
+    forUpdating = false,
+    useEventTimezone = false
+}: IProps) => {
+    if (!event)
         return null;
 
-    const eventSchedule = get(schedule, 'dates', {});
+    const eventSchedule: IEventItem['dates'] = get(event, 'dates', {});
     const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
-    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(eventSchedule);
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
     const eventDateText = eventUtils.getDateStringForEvent(
-        schedule,
+        event,
         false,
         true,
         isRemoteTimeZone
@@ -24,8 +37,8 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
     let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {
-        const remoteSchedule = {
-            ...schedule,
+        const remoteEvent = {
+            ...event,
             dates: {
                 ...eventSchedule,
                 start: timeUtils.getDateInRemoteTimeZone(eventSchedule.start, eventSchedule.tz),
@@ -34,7 +47,7 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
         };
 
         newDateString = eventUtils.getDateStringForEvent(
-            remoteSchedule,
+            remoteEvent,
             false,
             false
         );
@@ -72,7 +85,6 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
                 >
                     <RepeatEventSummary
                         schedule={eventSchedule}
-                        asInputField
                         noMargin={noPadding}
                         forUpdating={forUpdating}
                     />
@@ -80,16 +92,4 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
             )}
         </React.Fragment>
     );
-};
-
-EventScheduleSummary.propTypes = {
-    schedule: PropTypes.object,
-    noPadding: PropTypes.bool,
-    forUpdating: PropTypes.bool,
-    useEventTimezone: PropTypes.bool,
-};
-
-EventScheduleSummary.defaultProps = {
-    noPadding: false,
-    useEventTimezone: false,
 };

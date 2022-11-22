@@ -135,7 +135,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={this.currentDate}
+                    event={original}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
