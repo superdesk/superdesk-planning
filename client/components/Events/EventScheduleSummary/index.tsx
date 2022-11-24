@@ -21,8 +21,8 @@ export const EventScheduleSummary = ({
     forUpdating = false,
     useEventTimezone = false
 }: IProps) => {
-    // if (!event)
-    //     return null;
+    if (!event)
+        return null;
 
     const eventSchedule: IEventItem['dates'] = get(event, 'dates', {});
     const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
