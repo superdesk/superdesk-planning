@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<conceptItem guid="urn:newsml:stt.fi:20221110:259270" standardversion="2.12" standard="NewsML-G2" xmlns="http://iptc.org/std/nar/2006-10-01/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stt="http://www.stt-lehtikuva.fi/NewsML" xsi:schemaLocation="http://iptc.org/std/nar/2006-10-01/ http://www.iptc.org/std/NewsML-G2/2.12/specification/NewsML-G2_2.12-spec-All-Power.xsd http://www.stt-lehtikuva.fi/NewsML http://www.stt-lehtikuva.fi/newsml/schema/STT-Lehtikuva_NewsML_G2.xsd" conformance="power" version="0" stt:formatversion="1.1" xml:lang="fi-FI"><catalogRef href="http://www.iptc.org/std/catalog/catalog.IPTC-G2-Standards_19.xml"/>
+<catalogRef href="http://www.stt-lehtikuva.fi/newsml/doc/stt-NewsCodesCatalog_1.xml"/>
+<itemMeta>
+<itemClass qcode="cinat:concept"/>
+<provider literal="STT"/>
+<versionCreated>2022-11-10T15:50:50+02:00</versionCreated>
+<firstCreated>2022-03-23T12:24:05+02:00</firstCreated>
+<pubStatus qcode="stat:usable"/>
+<service qcode="sttservice:eventscal">
+<name>Tapahtumakalenteri</name>
+</service>
+<signal qcode="sig:update"/>
+</itemMeta>
+<contentMeta>
+<contentCreated>2022-03-23T12:24:05+02:00</contentCreated>
+<infoSource qcode="sttsource:1">
+<name>STT</name>
+</infoSource>
+<contributor>
+<name>STT</name>
+</contributor>
+<language tag="fi-FI"/>
+</contentMeta>
+<concept>
+<conceptId qcode="sttevents:259270" created="2022-03-23T12:24:05+02:00"/>
+<type qcode="cpnat:event"/>
+<name>The Manhattan Transfer 50-vuotisjuhlakiertueellaan Suomessa</name>
+<note role="sttdescription:eventinv">Tiedote 23.3.2022, julkaisuvapaa klo 10.00.
+
+The Manhattan Transfer 50-vuotisjuhlakiertueellaan Suomeen!
+
+Palkittu lauluyhtye The Manhattan Transfer esiintyy 50-vuotisjuhlakiertueellaan seitsemällä suomalaispaikkakunnalla marraskuussa 2022. Hyvinkäällä, Oulussa, Kuopiossa, Tampereella, Turussa, Jyväskylässä ja Helsingissä järjestettävien konserttien lipunmyynti alkaa tänään. 
+
+Maailman parhaaksi lauluyhtyeeksi tituleerattu The Manhattan Transfer saapuu Suomeen marraskuussa 2022 50-vuotisjuhlakiertuellaan. Miljoonia albumeita uransa aikana myynyt The Manhattan Transfer on yksi maailman suosituimmista ja innovatiivisimmista lauluyhtyeistä. The Manhattan Transfer on saanut uransa aikana lukuisia Grammy-palkintoja ja muita tunnustuksia, yhtye on mm. valittu Vocal Group Hall of Fameen vuona 1998. 
+
+Yhä aktiivisesti konsertoiva kvartetti on viihdyttänyt yleisöä jo vuosia sellaisilla hiteillä kuin The Boy from New York City, Until I Met You (Corner Pocket), Why Not!  ja Route 66. Juhlakonserttien ohjelmistoon yhtye poimii kappaleita koko 50-vuotisen uransa ajalta. The Manhattan Transferin ensimmäinen, yhtyeen nimeä kantava albumi julkaistiin vuonna 1975. Viimeisin levy Junction on vuodelta 2018.
+
+The Manhattan Transferin perustajajäsen Tim Hauser menehtyi vuonna 2014, mutta yhtye on jatkanut menestyksen tiellä hänen muistoaan kunnioittaen myös tämän jälkeen. Hauserin tilalle kokoonpanoon nousi Trist Curless, joka täydentää jo vuosia yhdessä laulaneita Alan Paulia, Janis Siegeliä ja Cheryl Bentyneä. Suomessa The Manhattan Transfer nähtiin viimeksi loppuvuodesta 2021 menestyksekkäällä viiden kaupungin kiertueella.
+
+THE MANHATTAN TRANSFER 50-VUOTISJUHLAKIERTUE
+To 10.11 Hyvinkääsali
+Pe 11.11 Oulu, Madetojan sali
+La 12.11 Kuopio, Musiikkikeskus
+Ma 14.11 Tampere-talo
+Ti 15.11 Turku, Logomo
+Ke 16.11 Jyväskylä, Paviljonki
+To 17.11 Helsinki, Kulttuuritalo
+
+Liput alkaen 59,90€
+Lippujen myynti alkaa 23.3.2022 osoitteessa Lippu.fi
+
+Mediakuvat: https://bit.ly/3Jk9cKf
+
+Järjestäjä: RH Entertainment Oy,  marko@prodisco.fi
+
+Lisätiedot ja haastattelupyynnöt: 
+
+Liekki Promotion 
+Nora Norrlin
+nora.norrlin@liekkipromotion.com
++ 358 40 846 0116
+www.facebook.com/liekkipromotion
+</note>
+<definition role="drol:summary">Palkittu lauluyhtye The Manhattan Transfer esiintyy 50-vuotisjuhlakiertueellaan seitsemällä suomalaispaikkakunnalla marraskuussa 2022. Hyvinkäällä, Oulussa, Kuopiossa, Tampereella, Turussa, Jyväskylässä ja Helsingissä.
+
+THE MANHATTAN TRANSFER 50-VUOTISJUHLAKIERTUE
+To 10.11 Hyvinkääsali
+Pe 11.11 Oulu, Madetojan sali
+La 12.11 Kuopio, Musiikkikeskus
+Ma 14.11 Tampere-talo
+Ti 15.11 Turku, Logomo
+Ke 16.11 Jyväskylä, Paviljonki
+To 17.11 Helsinki, Kulttuuritalo</definition>
+<related rel="sttnat:sttEventType" qcode="sttEventType:13">
+<name>Konsertit</name>
+</related>
+<eventDetails>
+<dates>
+<duration>P1D</duration>
+<start>2022-11-10</start>
+</dates><subject type="cpnat:abstract" qcode="sttdepartment:4"><name>Kulttuuri</name></subject>
+<subject type="cpnat:abstract" qcode="sttsubj:01000000">
+<name>Taide Kulttuuri Viihde</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:01011000">
+<name>Musiikki</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:01011006">
+<name>Rock Pop</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:01000000">
+<name>Taide Kulttuuri Viihde</name>
+</subject>
+<subject type="cpnat:abstract" qcode="sttsubj:01996000">
+<name>Konsertti</name>
+</subject>
+<contactInfo>
+<note> Nora Norrlin Liekki Promotion</note>
+<phone>Mob:040 846 0116</phone>
+<email>nora.norrlin@liekkipromotion.com</email>
+<web/>
+</contactInfo>
+<registration>
+Liput alkaen 59,90€
+Lippujen myynti alkaa 23.3.2022 osoitteessa Lippu.fi.
+Mediakuvat: https://bit.ly/3Jk9cKf
+</registration>
+<location qcode="sttlocationalias:17591">
+<name>Suomi</name>
+<POIDetails>
+<address>
+<line> </line>
+<locality qcode="sttcity:0">
+<name/>
+</locality>
+<country qcode="sttcountry:0">
+<name role="nrol:display"/>
+</country>
+<postalCode/>
+</address>
+</POIDetails>
+</location>
+</eventDetails>
+</concept></conceptItem>

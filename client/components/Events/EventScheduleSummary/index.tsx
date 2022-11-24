@@ -7,20 +7,28 @@ import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
 import './style.scss';
 import moment from 'moment';
+import {IEventItem} from 'interfaces';
+interface IProps {
+    event: Partial<IEventItem>,
+    noPadding?: boolean,
+    forUpdating?: boolean,
+    useEventTimezone?: boolean
+}
 
 export const EventScheduleSummary = ({
-    schedule,
-    noPadding,
-    forUpdating,
-    useEventTimezone,
-}) => {
-    if (!schedule) return null;
+    event,
+    noPadding = false,
+    forUpdating = false,
+    useEventTimezone = false
+}: IProps) => {
+    // if (!event)
+    //     return null;
 
-    const eventSchedule = get(schedule, 'dates', {});
+    const eventSchedule: IEventItem['dates'] = get(event, 'dates', {});
     const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
-    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(eventSchedule);
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
     const eventDateText = eventUtils.getDateStringForEvent(
-        schedule,
+        event,
         false,
         true,
         isRemoteTimeZone
@@ -28,8 +36,8 @@ export const EventScheduleSummary = ({
     let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {
-        const remoteSchedule = {
-            ...schedule,
+        const remoteEvent = {
+            ...event,
             dates: {
                 ...eventSchedule,
                 start: timeUtils.getDateInRemoteTimeZone(
@@ -43,8 +51,9 @@ export const EventScheduleSummary = ({
             },
         };
 
+
         newDateString = eventUtils.getDateStringForEvent(
-            remoteSchedule,
+            remoteEvent,
             false,
             false
         );
@@ -63,10 +72,9 @@ export const EventScheduleSummary = ({
     const noEndTime = eventSchedule?.no_end_time;
 
     const start = allDay ? moment.utc(eventSchedule.start) : moment(eventSchedule.start);
-    const end = allDay || noEndTime ? moment.utc(eventSchedule.end) :  moment(eventSchedule.end);
+    const end = allDay || noEndTime ? moment.utc(eventSchedule.end) : moment(eventSchedule.end);
 
     const multiDay = !eventUtils.isEventSameDay(start, end);
-   
 
     const splittedDate = currentDateText?.split('-');
 
@@ -105,7 +113,6 @@ export const EventScheduleSummary = ({
                 <Row noPadding={noPadding} dataTestId="field-dates_repeat">
                     <RepeatEventSummary
                         schedule={eventSchedule}
-                        asInputField
                         noMargin={noPadding}
                         forUpdating={forUpdating}
                     />
@@ -113,16 +120,4 @@ export const EventScheduleSummary = ({
             )}
         </React.Fragment>
     );
-};
-
-EventScheduleSummary.propTypes = {
-    schedule: PropTypes.object,
-    noPadding: PropTypes.bool,
-    forUpdating: PropTypes.bool,
-    useEventTimezone: PropTypes.bool,
-};
-
-EventScheduleSummary.defaultProps = {
-    noPadding: false,
-    useEventTimezone: false,
 };
