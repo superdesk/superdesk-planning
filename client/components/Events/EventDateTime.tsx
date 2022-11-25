@@ -63,15 +63,16 @@ export class EventDateTime extends React.PureComponent<IProps, IState> {
         }
 
         const noEndTime = item.dates?.no_end_time;
-        const allDay = item.dates?.all_day;
+        const isFullDay = item.dates?.all_day;
 
         const commonProps = {
             padLeft: false,
             toBeConfirmed: item._time_to_be_confirmed,
             noEndTime: noEndTime,
-            allDay: allDay,
+            isFullDay: isFullDay,
             multiDay: multiDay,
         };
+
 
         return isAllDay && !ignoreAllDay ? (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">

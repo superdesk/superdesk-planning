@@ -19,7 +19,7 @@ function DateTime({
     withYear,
     padLeft,
     toBeConfirmed,
-    allDay,
+    isFullDay,
     isEndEventDateTime,
     noEndTime,
     setHideDash,
@@ -41,37 +41,40 @@ function DateTime({
         .filter((d) => d)
         .join('\u00a0'); // &nbsp;
 
+    let eventStartDate;
+
+    if (isFullDay && multiDay) {
+        eventStartDate = moment.utc(date).format(dateFormat);
+    } else if (noEndTime && !multiDay) {
+        eventStartDate = moment(date).format(dateFormat) + ' ' + moment(date).format(timeFormat);
+    } else if (isFullDay && !multiDay) {
+        eventStartDate = moment.utc(date).format(dateFormat);
+    } else {
+        eventStartDate = moment(date).format(dateTimeFormat);
+    }
+
     let eventEndDate;
 
     if (noEndTime && !multiDay) {
         eventEndDate = null;
         setHideDash && setHideDash(true);
-    } else if (allDay && multiDay) {
-        eventEndDate = moment(date).format(dateTimeFormat)
-            .slice(0, 5) || '';
+    } else if (isFullDay && multiDay) {
+        eventEndDate = moment.utc(date).format(dateFormat);
     } else if (noEndTime && multiDay) {
-        eventEndDate = moment(date).format(dateTimeFormat)
-            .slice(0, 5) || '';
-    } else if (allDay && !multiDay) {
+        eventEndDate = moment.utc(date).format(dateFormat);
+    } else if (isFullDay && !multiDay) {
         setHideDash && setHideDash(true);
+        eventEndDate = null;
     } else {
         eventEndDate = moment(date).format(dateTimeFormat);
-    }
-
-    let eventStartDate;
-
-    if (allDay && multiDay) {
-        eventStartDate = moment(date).format(dateTimeFormat)
-            .slice(0, -5);
-    } else {
-        eventStartDate = moment(date).format(dateTimeFormat);
     }
 
     return (
         <time className={!padLeft ? 'Datetime' : null} title={date.toString()}>
             {!isEndEventDateTime && eventStartDate}
-            {isEndEventDateTime && (eventEndDate || eventEndDate == null)
-                && eventEndDate}
+            {isEndEventDateTime &&
+        (eventEndDate || eventEndDate == null) &&
+        eventEndDate}
         </time>
     );
 }
@@ -83,7 +86,7 @@ DateTime.propTypes = {
     withDate: PropTypes.bool,
     padLeft: PropTypes.bool,
     toBeConfirmed: PropTypes.bool,
-    allDay: PropTypes.bool,
+    isFullDay: PropTypes.bool,
     isEndEventDateTime: PropTypes.bool,
     noEndTime: PropTypes.bool,
     setHideDash: PropTypes.func,

@@ -6,7 +6,6 @@ import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
 import './style.scss';
-import moment from 'moment';
 import {IEventItem} from 'interfaces';
 interface IProps {
     event: Partial<IEventItem>,
@@ -33,7 +32,11 @@ export const EventScheduleSummary = ({
         true,
         isRemoteTimeZone
     );
-    let newDateString, currentDateText, remoteDateText, currentDateLabel;
+    let newDateString, currentDateText, remoteDateText, currentDateLabel, datesToShow, datesToShowRemote;
+
+    datesToShow = eventUtils.getDateStringForEvent(event, false,
+        true,
+        isRemoteTimeZone);
 
     if (isRemoteTimeZone) {
         const remoteEvent = {
@@ -57,10 +60,12 @@ export const EventScheduleSummary = ({
             false,
             false
         );
+
+        datesToShowRemote = eventUtils.getDateStringForEvent(remoteEvent, false, false);
     }
 
-    currentDateText = eventDateText;
-    remoteDateText = newDateString;
+    currentDateText = datesToShow;
+    remoteDateText = datesToShowRemote;
     currentDateLabel = gettext('Current Date');
     if (useEventTimezone && isRemoteTimeZone) {
         currentDateText = newDateString.replace(/[\(\)]/g, '');
@@ -68,36 +73,11 @@ export const EventScheduleSummary = ({
         currentDateLabel = gettext('Current Date (Based on Event timezone)');
     }
 
-    const allDay = eventSchedule?.all_day;
-    const noEndTime = eventSchedule?.no_end_time;
-
-    const start = allDay ? moment.utc(eventSchedule.start) : moment(eventSchedule.start);
-    const end = allDay || noEndTime ? moment.utc(eventSchedule.end) : moment(eventSchedule.end);
-
-    const multiDay = !eventUtils.isEventSameDay(start, end);
-
-    const splittedDate = currentDateText?.split('-');
-
-    let datesToShow;
-
-    if (allDay && !multiDay) {
-        datesToShow = splittedDate[0].slice(0, 10);
-    } else if (noEndTime && !multiDay) {
-        datesToShow = splittedDate[0];
-    } else if (allDay && multiDay) {
-        datesToShow = splittedDate[0].slice(0, 10) + '-' + splittedDate[1].slice(0, 11);
-    } else if (noEndTime && multiDay) {
-        datesToShow = currentDateText.slice(0, 31);
-    } else {
-        datesToShow = currentDateText;
-    }
-
-
     return (
         <React.Fragment>
             <Row
                 label={forUpdating ? currentDateLabel : gettext('Date:')}
-                value={datesToShow || ''}
+                value={currentDateText || ''}
                 noPadding={noPadding || isRemoteTimeZone}
                 dataTestId="field-dates"
             />
