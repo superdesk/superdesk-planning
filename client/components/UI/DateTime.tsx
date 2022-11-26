@@ -22,7 +22,6 @@ function DateTime({
     isFullDay,
     isEndEventDateTime,
     noEndTime,
-    setHideDash,
     multiDay,
 }) {
     const {gettext} = superdeskApi.localization;
@@ -45,7 +44,7 @@ function DateTime({
 
     if (isFullDay && multiDay) {
         eventStartDate = moment.utc(date).format(dateFormat);
-    } else if (noEndTime && !multiDay) {
+    } else if (noEndTime && !multiDay || multiDay) {
         eventStartDate = moment(date).format(dateFormat) + ' ' + moment(date).format(timeFormat);
     } else if (isFullDay && !multiDay) {
         eventStartDate = moment.utc(date).format(dateFormat);
@@ -57,13 +56,11 @@ function DateTime({
 
     if (noEndTime && !multiDay) {
         eventEndDate = null;
-        setHideDash && setHideDash(true);
     } else if (isFullDay && multiDay) {
         eventEndDate = moment.utc(date).format(dateFormat);
     } else if (noEndTime && multiDay) {
         eventEndDate = moment.utc(date).format(dateFormat);
     } else if (isFullDay && !multiDay) {
-        setHideDash && setHideDash(true);
         eventEndDate = null;
     } else {
         eventEndDate = moment(date).format(dateTimeFormat);
@@ -89,7 +86,6 @@ DateTime.propTypes = {
     isFullDay: PropTypes.bool,
     isEndEventDateTime: PropTypes.bool,
     noEndTime: PropTypes.bool,
-    setHideDash: PropTypes.func,
     multiDay: PropTypes.bool,
 };
 

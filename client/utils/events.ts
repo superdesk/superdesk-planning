@@ -455,8 +455,9 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
         return datesToShow = start.format(dateFormat);
     } else if (noEndTime && !multiDay) {
         if (withTimezone) {
-            if (!useLocal && tz) {
-                timezoneForEvents = `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz)})`;
+            if (!useLocal && (tz || tz == null)) {
+                // eslint-disable-next-line max-len
+                timezoneForEvents = `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz ? tz : 'utc')})`;
             } else {
                 timezoneForEvents = getDateTimeString(start, dateFormat, timeFormat, ' @ ', true);
             }
