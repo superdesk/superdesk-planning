@@ -215,6 +215,28 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         return None
 
+    def get_coverage_details(self, news_coverage_elt, item):
+        """Process the Coverage element and optionally return the coverage details
+
+        If ``None`` is returned, this coverage is not added to the Planning item
+        """
+
+        coverage_id = news_coverage_elt.get("id")
+        planning = self.parse_coverage_planning(news_coverage_elt, item)
+
+        if planning is None:
+            logger.warning(f"Failed to process coverage '{coverage_id}', planning details not found")
+            return None
+
+        modified = news_coverage_elt.get("modified")
+        return {
+            "coverage_id": coverage_id,
+            "workflow_status": WORKFLOW_STATE.DRAFT,
+            "firstcreated": item["firstcreated"],
+            "versioncreated": self.datetime(modified) if modified else item["firstcreated"],
+            "planning": planning,
+        }
+
     def parse_news_coverage_set(self, tree, item):
         """Parse newsCoverageSet tag
 
@@ -225,20 +247,6 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         news_coverage_set = tree.find(self.qname("newsCoverageSet"))
         if news_coverage_set is not None:
             for news_coverage_elt in news_coverage_set.findall(self.qname("newsCoverage")):
-                coverage_id = news_coverage_elt.get("id")
-                planning = self.parse_coverage_planning(news_coverage_elt, item)
-
-                if planning is None:
-                    logger.warning(f"Failed to process coverage '{coverage_id}', planning details not found")
-                    continue
-
-                modified = news_coverage_elt.get("modified")
-                item["coverages"].append(
-                    {
-                        "coverage_id": coverage_id,
-                        "workflow_status": WORKFLOW_STATE.DRAFT,
-                        "firstcreated": item["firstcreated"],
-                        "versioncreated": self.datetime(modified) if modified else item["firstcreated"],
-                        "planning": planning,
-                    }
-                )
+                coverage = self.get_coverage_details(news_coverage_elt, item)
+                if coverage is not None:
+                    item["coverages"].append(coverage)
