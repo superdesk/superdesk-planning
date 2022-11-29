@@ -228,7 +228,6 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
                             type="primary"
                             text={gettext('Save')}
                             onClick={this.props.onSave.bind(null, false)}
-                            // onClick={this.onSave.bind(null, false)}
                         />
                     )}
                 </Modal.Footer>
