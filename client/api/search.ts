@@ -29,8 +29,12 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         spike_state: params.spike_state,
         include_killed: params.include_killed,
         date_filter: params.date_filter,
-        start_date: params.start_date == null ? null : getDateTimeElasticFormat(params.start_date),
-        end_date: params.end_date == null ? null : getDateTimeElasticFormat(params.end_date),
+        start_date: params.start_date == null ?
+            null :
+            getDateTimeElasticFormat(params.start_date, params.date_filter != 'for_date'),
+        end_date: params.end_date == null ?
+            null :
+            getDateTimeElasticFormat(params.end_date, params.date_filter != 'for_date'),
         start_of_week: params.start_of_week,
         slugline: params.slugline,
         lock_state: params.lock_state,

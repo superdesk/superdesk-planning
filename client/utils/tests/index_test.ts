@@ -1,5 +1,6 @@
 import * as utils from '../index';
 import sinon from 'sinon';
+import moment from 'moment-timezone';
 import lockReducer from '../../reducers/locks';
 import {PRIVILEGES} from '../../constants';
 
@@ -251,5 +252,12 @@ describe('Utils', () => {
         it('cancelled item is readOnly even if it has edit lock', () => {
             expect(utils.isItemReadOnly(item, session, privilages, lockedItems)).toBe(true);
         });
+    });
+
+    it('getDateTimeElasticFormat convertToUTC param', () => {
+        const t1 = moment.tz('2022-11-29T10:00:00+1100', 'Australia/Sydney');
+
+        expect(utils.getDateTimeElasticFormat(t1)).toBe('2022-11-28T23:00:00+0000');
+        expect(utils.getDateTimeElasticFormat(t1, false)).toBe('2022-11-29T10:00:00+0000');
     });
 });
