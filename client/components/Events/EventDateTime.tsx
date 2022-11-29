@@ -16,10 +16,7 @@ interface IProps {
   displayLocalTimezone?: boolean;
 }
 
-interface IState {
-  hideDash: boolean;
-}
-export class EventDateTime extends React.PureComponent<IProps, IState> {
+export class EventDateTime extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {item, ignoreAllDay, displayLocalTimezone} = this.props;
@@ -28,7 +25,7 @@ export class EventDateTime extends React.PureComponent<IProps, IState> {
         const isAllDay = eventUtils.isEventAllDay(start, end);
         const multiDay = !eventUtils.isEventSameDay(start, end);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
-        const withYear = multiDay && start.year() !== end.year();
+        const withYear = multiDay && start.year() !== end.year();        const myWithDate = multiDay && start.date() !== end.date();
         const localStart = timeUtils.getLocalDate(start, item.dates.tz);
         let remoteStart,
             remoteEnd,
@@ -69,7 +66,7 @@ export class EventDateTime extends React.PureComponent<IProps, IState> {
             multiDay: multiDay,
         };
 
-        const hideDash = !((noEndTime || isFullDay) && !multiDay);
+        const showDash = !((noEndTime || isFullDay) && !multiDay);
 
         return isAllDay && !ignoreAllDay ? (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
@@ -88,7 +85,7 @@ export class EventDateTime extends React.PureComponent<IProps, IState> {
                     date={start}
                     {...commonProps}
                 />
-                {hideDash && <>&ndash;</>}
+                {showDash && <>&ndash;</>}
                 <DateTime
                     withDate={multiDay}
                     withYear={withYear}
@@ -108,7 +105,7 @@ export class EventDateTime extends React.PureComponent<IProps, IState> {
                             date={remoteStart}
                             {...commonProps}
                         />
-                        {hideDash && <>&ndash;</>}
+                        {showDash && <>&ndash;</>}
                         <DateTime
                             withDate={remoteEndWithDate}
                             withYear={remoteEndWithYear}

@@ -42,12 +42,10 @@ function DateTime({
 
     let eventStartDate;
 
-    if (isFullDay && multiDay) {
+    if (isFullDay && (multiDay || !multiDay)) {
         eventStartDate = moment.utc(date).format(dateFormat);
-    } else if (noEndTime && !multiDay || multiDay) {
-        eventStartDate = moment(date).format(dateFormat) + ' ' + moment(date).format(timeFormat);
-    } else if (isFullDay && !multiDay) {
-        eventStartDate = moment.utc(date).format(dateFormat);
+    } else if (noEndTime && (!multiDay || multiDay)) {
+        eventStartDate = moment(date).format(dateTimeFormat);
     } else {
         eventStartDate = moment(date).format(dateTimeFormat);
     }
@@ -70,8 +68,7 @@ function DateTime({
         <time className={!padLeft ? 'Datetime' : null} title={date.toString()}>
             {!isEndEventDateTime && eventStartDate}
             {isEndEventDateTime &&
-        (eventEndDate || eventEndDate == null) &&
-        eventEndDate}
+                eventEndDate}
         </time>
     );
 }

@@ -424,7 +424,7 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
     const tz = get(event.dates, 'tz');
     const localStart = timeUtils.getLocalDate(start, tz);
     let dateString, timezoneString = '';
-    let datesToShow, timezoneForEvents = '';
+    let timezoneForEvents = '';
 
     if (!start || !end)
         return;
@@ -452,30 +452,31 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
     const multiDay = !isEventSameDay(start, end);
 
     if (isFullDay && !multiDay) {
-        return datesToShow = start.format(dateFormat);
+        return timezoneForEvents = start.format(dateFormat);
     } else if (noEndTime && !multiDay) {
         if (withTimezone) {
-            if (!useLocal && (tz || tz == null)) {
-                // eslint-disable-next-line max-len
-                timezoneForEvents = `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz ? tz : 'utc')})`;
+            if (!useLocal) {
+                timezoneForEvents =
+                `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz ? tz : 'utc')})`;
             } else {
                 timezoneForEvents = getDateTimeString(start, dateFormat, timeFormat, ' @ ', true);
             }
         }
-        return datesToShow = timezoneForEvents;
+        return timezoneForEvents;
     } else if (isFullDay && multiDay) {
-        return datesToShow = start.format(dateFormat) + ' - ' + end.format(dateFormat);
+        return timezoneForEvents = start.format(dateFormat) + ' - ' + end.format(dateFormat);
     } else if (noEndTime && multiDay) {
         if (withTimezone) {
             if (!useLocal && tz) {
-                // eslint-disable-next-line max-len
-                timezoneForEvents = `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz) + ' - ' + end.format(dateFormat)})`;
+                timezoneForEvents =
+                 `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz) + ' - ' +
+                 end.format(dateFormat)})`;
             } else {
-                // eslint-disable-next-line max-len
-                timezoneForEvents = getDateTimeString(start, dateFormat, timeFormat, ' @ ', true) + ' - ' + end.format(dateFormat);
+                timezoneForEvents =
+                getDateTimeString(start, dateFormat, timeFormat, ' @ ', true) + ' - ' + end.format(dateFormat);
             }
         }
-        return datesToShow = timezoneForEvents;
+        return timezoneForEvents;
     }
 
     if (withTimezone) {
