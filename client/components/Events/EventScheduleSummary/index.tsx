@@ -7,8 +7,6 @@ import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
 import './style.scss';
 import {IEventItem} from 'interfaces';
-
-
 interface IProps {
     event: Partial<IEventItem>,
     noPadding?: boolean,
@@ -34,27 +32,40 @@ export const EventScheduleSummary = ({
         true,
         isRemoteTimeZone
     );
-    let newDateString, currentDateText, remoteDateText, currentDateLabel;
+    let newDateString, currentDateText, remoteDateText, currentDateLabel, datesToShow, datesToShowRemote;
+
+    datesToShow = eventUtils.getDateStringForEvent(event, false,
+        true,
+        isRemoteTimeZone);
 
     if (isRemoteTimeZone) {
         const remoteEvent = {
             ...event,
             dates: {
                 ...eventSchedule,
-                start: timeUtils.getDateInRemoteTimeZone(eventSchedule.start, eventSchedule.tz),
-                end: timeUtils.getDateInRemoteTimeZone(eventSchedule.end, eventSchedule.tz),
+                start: timeUtils.getDateInRemoteTimeZone(
+                    eventSchedule.start,
+                    eventSchedule.tz
+                ),
+                end: timeUtils.getDateInRemoteTimeZone(
+                    eventSchedule.end,
+                    eventSchedule.tz
+                ),
             },
         };
+
 
         newDateString = eventUtils.getDateStringForEvent(
             remoteEvent,
             false,
             false
         );
+
+        datesToShowRemote = eventUtils.getDateStringForEvent(remoteEvent, false, false);
     }
 
-    currentDateText = eventDateText;
-    remoteDateText = newDateString;
+    currentDateText = datesToShow;
+    remoteDateText = datesToShowRemote;
     currentDateLabel = gettext('Current Date');
     if (useEventTimezone && isRemoteTimeZone) {
         currentDateText = newDateString.replace(/[\(\)]/g, '');
@@ -79,10 +90,7 @@ export const EventScheduleSummary = ({
             )}
 
             {doesRepeat && (
-                <Row
-                    noPadding={noPadding}
-                    dataTestId="field-dates_repeat"
-                >
+                <Row noPadding={noPadding} dataTestId="field-dates_repeat">
                     <RepeatEventSummary
                         schedule={eventSchedule}
                         noMargin={noPadding}

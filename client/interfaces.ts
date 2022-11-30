@@ -410,6 +410,8 @@ export interface IEventItem extends IBaseRestApiResponse {
     };
     links?: Array<string>;
     dates?: {
+        all_day?: boolean;
+        no_end_time?: boolean;
         start?: string | Date | moment.Moment;
         end?: string | Date | moment.Moment;
         tz?: string;
