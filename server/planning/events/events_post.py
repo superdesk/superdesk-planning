@@ -6,7 +6,6 @@ from superdesk.resource import Resource, not_analyzed
 from superdesk.notification import push_notification
 
 from .events import EventsResource
-from bson.objectid import ObjectId
 from .events_base_service import EventsBaseService
 from planning.common import (
     WORKFLOW_STATE,
@@ -19,6 +18,8 @@ from planning.common import (
     enqueue_planning_item,
     get_version_item_for_post,
 )
+
+from planning.utils import try_cast_object_id
 
 
 class EventsPostResource(EventsResource):
@@ -154,7 +155,9 @@ class EventsPostService(EventsBaseService):
         updates = {"state": new_item_state, "pubstatus": new_post_state}
 
         # check and remove private contacts while posting event, only public contact will be visible
-        updates["event_contact_info"] = [ObjectId(contact["_id"]) for contact in get_contacts_from_item(event)]
+        updates["event_contact_info"] = [
+            try_cast_object_id(contact["_id"]) for contact in get_contacts_from_item(event)
+        ]
 
         event["pubstatus"] = new_post_state
         # Remove previous workflow state reason

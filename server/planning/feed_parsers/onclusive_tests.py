@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import datetime
+import superdesk
 
 from planning.tests import TestCase
 from superdesk.metadata.item import (
@@ -11,6 +12,7 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 
+from copy import deepcopy
 from unittest.mock import patch
 
 from .onclusive import OnclusiveFeedParser
@@ -70,6 +72,24 @@ class OnclusiveFeedParserTestCase(TestCase):
 
         self.assertEqual(item["location"][0]["name"], "One King West Hotel & Residence, 1 King St W, Toronto")
         self.assertEqual(item["location"][0]["address"]["country"], "Canada")
+
+        self.assertEqual(1, len(item["event_contact_info"]))
+        contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
+        self.assertIsNotNone(contact)
+        self.assertTrue(contact["public"])
+        self.assertTrue(contact["is_active"])
+        self.assertEqual(["customerservice@americanconference.com"], contact["contact_email"])
+        self.assertEqual([{"number": "1 212 352 3220", "public": True}], contact["contact_phone"])
+        self.assertEqual("American Conference Institute", contact["organisation"])
+        self.assertEqual("Benjamin Andrew", contact["first_name"])
+        self.assertEqual("Stokes", contact["last_name"])
+
+        data = deepcopy(self.data)
+        data["pressContacts"][0]["pressContactEmail"] = "foo@example.com"
+        item = OnclusiveFeedParser().parse([data])[0]
+        contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
+        self.assertEqual(["foo@example.com"], contact["contact_email"])
+        self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())
 
     def test_content_no_time(self):
         data = self.data.copy()
