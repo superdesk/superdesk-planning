@@ -25,7 +25,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const isAllDay = eventUtils.isEventAllDay(start, end);
         const multiDay = !eventUtils.isEventSameDay(start, end);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
-        const withYear = multiDay && start.year() !== end.year();        const myWithDate = multiDay && start.date() !== end.date();
+        const withYear = multiDay && start.year() !== end.year();
         const localStart = timeUtils.getLocalDate(start, item.dates.tz);
         let remoteStart,
             remoteEnd,
