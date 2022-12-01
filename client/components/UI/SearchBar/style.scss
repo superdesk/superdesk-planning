@@ -1,8 +1,6 @@
 .SearchBar.extended {
     .search-handler {
         display: flex;
-        height: 47px;
-        box-shadow: inset 7px 0 10px -7px rgba(0, 0, 0, 0.5);
         input {
             flex-grow: 1;
         }
@@ -15,11 +13,7 @@
     }
 }
 .flat-searchbar {
-    .search-handler {
-        height: 47px !important;
-    }
-
-    .search-handler:focus {
+    .search-handler:focus-visible {
         border: 1px solid blue;
     }
 }

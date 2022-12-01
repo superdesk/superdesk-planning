@@ -48,7 +48,7 @@
 // Make <div class="sd-line-input__input" /> the same as an input element when
 // sd-line-input--disabled modifier is used
 .sd-line-input.sd-line-input--disabled div.sd-line-input__input {
-    border-bottom: 1px dotted rgba(0, 0, 0, 0.15);
+    border-bottom: 1px dotted var(--sd-colour-line--medium);
     cursor: not-allowed;
 }
 
@@ -110,9 +110,13 @@
 // Fixes for Assignment Group List
 .sd-list-item-group {
     &__empty-msg {
-        line-height: 4rem;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         text-align: center;
-        color: $grayLight;
+        color: var(--color-text-lighter);
+        border-radius: var(--b-radius--medium);
     }
 }
 

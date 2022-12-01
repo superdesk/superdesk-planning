@@ -32,7 +32,7 @@
     }
 
     &__search {
-        margin-top: 15px;
+        margin-top: 0 !important;
     }
 
     &__category {
@@ -46,30 +46,46 @@
     }
 
     &__list {
-    	li {margin: 5px 0;}
-    	span, i { float: left; text-align: left; }
-		overflow-y: scroll;
+		overflow-y: auto !important;
 		overflow-x: hidden;
 		max-height: 200px;
-		padding: 5px 10px;
+		padding: 5px 0px !important;
     }
 
     &__item {
-    	margin: 5px;
-        padding-left: 10px;
+    	margin: 0 !important;
+        padding-left: 0 !important;
+        background-color: transparent !important;
         button {
             width: 100%;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-		&:hover {
-			background: $sd-hover;
-		}
+            // text-overflow: ellipsis;
+            // overflow: hidden;
+            // white-space: nowrap;
 
-		&--active {
-			background: $sd-hover;
-		}
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--color-text);
+            transition: all ease 0.2s;
+            min-height: 3.2rem;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            i {
+                color: var(--color-icon-default);
+                opacity: 0.5;
+            }
+            &:hover {
+                background: var(--sd-colour-interactive--alpha-20);
+            }
+            &:active {
+                background: var(--sd-colour-interactive--alpha-30);
+            }
+        }
 
         &--no-group {
             padding: 0px !important;
@@ -80,7 +96,7 @@
 	    display: block;
         position: relative;
         font-size: 12px;
-        color: #000;
+        color: var(--color-text);
         background-color: rgba(0,0,0,0.05);
         margin-right: 3px;
         margin-bottom: 3px;
@@ -101,9 +117,15 @@
 
 	// SearchBar related styling customisations
     .search-handler {
+        position: relative;
+        z-index: 1;
         padding: 0;
-        height: 47px;
-        box-shadow: inset 0px -7px 10px -7px rgba(0, 0, 0, 0.5) !important;
+        height: 42px !important;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--sd-colour-line--light) !important;
+        box-shadow: none !important;
 
         .backlink {
             cursor: pointer;
@@ -113,10 +135,31 @@
 
     .trigger-icon {
     	margin-top: 0;
+        pointer-events: none !important;
     }
 
     .search-close {
     	height: 30px;
+    }
+}
+.Select__popup__search {
+    .SearchBar.extended {
+        .search-handler {
+            position: relative;
+            z-index: 1;
+            padding: 0;
+            height: 42px !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-inline: 8px;
+            border: none !important;
+            border-bottom: 1px solid var(--sd-colour-line--light) !important;
+            box-shadow: none !important;
+            .trigger-icon {
+                margin: 0;
+            }
+        }
     }
 }
 
@@ -156,6 +199,8 @@
 }
 
 .sd-line-input__plus-btn--disabled {
-    background-color: rgba(0, 0, 0, 0.1) !important;
+    background-color: hsla(214, 13%, 55%, 0.3) !important;
+    opacity: 0.5;
+    pointer-events: none;
     cursor: default !important;
 }

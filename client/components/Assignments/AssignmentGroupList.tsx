@@ -286,7 +286,7 @@ class AssignmentGroupListComponent extends React.Component {
                         get(assignments, 'length', 0) > 0 ? (
                             assignments.map((assignment, index) => this.rowRenderer(index))
                         ) : (
-                            <p className="sd-list-item-group__empty-msg">{groupEmptyMessage}</p>
+                            <li className="sd-list-item-group__empty-msg">{groupEmptyMessage}</li>
                         )
                     )}
                 </Group>

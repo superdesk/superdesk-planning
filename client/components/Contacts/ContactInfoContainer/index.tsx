@@ -29,7 +29,7 @@ export class ContactInfoContainer extends React.Component {
         let contents = [
             'div',
             {
-                className: 'media-box contacts',
+                className: 'sd-grid-item contacts',
             },
         ];
 
@@ -41,7 +41,7 @@ export class ContactInfoContainer extends React.Component {
 
         return (
             <div className="contact-popup">
-                <span className="mgrid-view">{renderContents(contents)}</span>
+                <span className="">{renderContents(contents)}</span>
             </div>
         );
     }

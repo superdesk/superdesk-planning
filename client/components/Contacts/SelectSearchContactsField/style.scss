@@ -20,57 +20,7 @@
 }
 
 .Select__button {
-	background-color: $sd-blue;
-}
-
-.Select__popup__wrapper {
-    z-index: 2000;
-
-    &__search {
-        margin-top: 15px;
-    }
-
-    &__list {
-    	li {margin: 5px 0;}
-    	span, i { float: left; text-align: left; }
-		overflow-y: scroll;
-		overflow-x: hidden;
-		max-height: 200px;
-		margin-top: 5px;
-    }
-
-    &__item {
-    	margin: 5px;
-        button {
-            width: 100%;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-		&:hover {
-			background: $sd-hover;
-		}
-
-		&--active {
-			background: $sd-hover;
-		}
-    }
-
-    &__search {
-    	border-bottom: 1px solid $grayLighter;
-    }
-
-	// SearchBar related styling customisations
-    .search-handler {
-        padding: 0;
-        height: 30px;
-    }
-    .trigger-icon {
-    	margin-top: 0px;
-    }
-    .search-close {
-    	height: 30px;
-    }
+	background-color: var(--sd-colour-interactive);
 }
 
 .SearchBar--narrow {
@@ -93,19 +43,38 @@
 
 .contact-info {
     flex-grow: 1;
-
-    .sd-list-item__column {
-        padding: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--gap--small) 0;
+    padding: $sd-base-increment 0;
+    border-radius: var(--b-radius--small);
+}
+.contact-info__data {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0px;
+}
+.contact-info__name {
+    color: var(--color-text);
+    font-size: 1.4rem;
+    font-weight: 500;
+    display: flex;
+    gap: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    .contact-info__job-info {
+        font-size: 1.4rem;
+        font-weight: 400;
+        color: var(--color-text-light);
     }
-
-    .avatar {
-        @include border-radius(50%);
-        position: relative;
-        background-image: url('~images/avatar_200.png');
-        &.organisation {
-            background-image: url('~images/avatar_group_64.png');
-        }
-    }
+}
+.contact-info__mail {
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--color-text-light);
+    font-style: italic;
 }
 
 .contact-metadata {

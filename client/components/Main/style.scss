@@ -8,7 +8,7 @@
 
 .sd-list-item__text {
     &--disabled {
-        color: $grayLight;
+        color: var(--color-text-light);
     }
 }
 

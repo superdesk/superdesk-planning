@@ -58,14 +58,14 @@ time.Datetime {
 
     &--disabled {
         opacity: 0.75;
-        background-color: #ccc;
+        //background-color: #ccc;
         &:hover {
             opacity: 0.75;
-            background-color: #ddd;
+            //background-color: #ddd;
         }
 
         .icn-mix__sub-icn {
-            color: gray;
+            color: var(--color-text-lighter);
         }
     }
 }
@@ -85,8 +85,8 @@ time.Datetime {
         li {
             cursor: not-allowed !important;
             &:hover {
-                color: $black;
-                background-color: rgba(0,0,0,0.05);
+                color: var(--color-text);
+                //background-color: rgba(0,0,0,0.05);
             }
         }
     }

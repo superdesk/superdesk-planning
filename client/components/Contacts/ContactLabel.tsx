@@ -6,36 +6,31 @@ import {get} from 'lodash';
 import {Item, Column} from '../UI/List';
 
 export const ContactLabel = ({contact}) => (
-    <Item className="contact-info">
-        <Column border={false} noPadding={true}>
-            <figure
-                className={classNames(
-                    'avatar',
-                    {organisation: !contact.first_name}
-                )}
-            />
-        </Column>
-        <Column>
-            <div>
-                <span className="sd-list-item__text-strong sd-overflow-ellipsis">
+    <div className="contact-info">
+        <figure
+            className={classNames(
+                'avatar',
+                {organisation: !contact.first_name}
+            )}
+        />
+        <div className="contact-info__data">
+            <h5 className="contact-info__name">
                     {contact.first_name ?
                         `${contact.first_name} ${contact.last_name} ` :
                         `${contact.organisation} `
                     }
                     {(contact.first_name && contact.job_title && contact.organisation) && (
-                        <h5 className="sd-overflow-ellipsis">{contact.job_title}, {contact.organisation}</h5>
+                        <span className="contact-info__job-info">, {contact.job_title}, {contact.organisation}</span>
                     )}
-                </span>
-            </div>
+                </h5>
+
             {get(contact, 'contact_email[0]') && (
-                <div>
-                    <span className="sd-overflow-ellipsis">
-                        {contact.contact_email[0]}
-                    </span>
-                </div>
+                <span className="contact-info__mail">
+                    {contact.contact_email[0]}
+                </span>
             )}
-        </Column>
-    </Item>
+        </div>
+    </div>
 );
 
 ContactLabel.propTypes = {
