@@ -68,20 +68,22 @@ export class FieldList extends React.PureComponent<IProps> {
             >
                 {!menuItems.before.length ? null : (
                     <div className="profile-item__add-btn">
-                        <Menu items={menuItems.before}>
-                            {(toggle) => (
-                                <Button
-                                    text={gettext('Add field before')}
-                                    iconOnly={true}
-                                    icon="plus-large"
-                                    shape="round"
-                                    type="primary"
-                                    onClick={(event) => {
-                                        toggle(event);
-                                    }}
-                                />
-                            )}
-                        </Menu>
+                        <div>
+                            <Menu items={menuItems.before}>
+                                {(toggle) => (
+                                    <Button
+                                        text={gettext('Add field before')}
+                                        iconOnly={true}
+                                        icon="plus-large"
+                                        shape="round"
+                                        type="primary"
+                                        onClick={(event) => {
+                                            toggle(event);
+                                        }}
+                                    />
+                                )}
+                            </Menu>
+                        </div>
                     </div>
                 )}
                 <List.Column
@@ -120,20 +122,22 @@ export class FieldList extends React.PureComponent<IProps> {
                 </List.ActionMenu>
                 {(!isLastField || !menuItems.after.length) ? null : (
                     <div className="profile-item__add-btn profile-item__add-btn--bottom">
-                        <Menu items={menuItems.after}>
-                            {(toggle) => (
-                                <Button
-                                    text={gettext('Add field after')}
-                                    iconOnly={true}
-                                    icon="plus-large"
-                                    shape="round"
-                                    type="primary"
-                                    onClick={(event) => {
-                                        toggle(event);
-                                    }}
-                                />
-                            )}
-                        </Menu>
+                        <div>
+                            <Menu items={menuItems.after}>
+                                {(toggle) => (
+                                    <Button
+                                        text={gettext('Add field after')}
+                                        iconOnly={true}
+                                        icon="plus-large"
+                                        shape="round"
+                                        type="primary"
+                                        onClick={(event) => {
+                                            toggle(event);
+                                        }}
+                                    />
+                                )}
+                            </Menu>
+                        </div>
                     </div>
                 )}
             </List.Item>
@@ -145,27 +149,29 @@ export class FieldList extends React.PureComponent<IProps> {
 
         return !this.props.fields.length ? (
             <div className="planning-profile__empty-list">
-                <Menu
-                    items={this.props.unusedFields.map((item) => ({
-                        label: item.name,
-                        onClick: () => {
-                            this.props.insertField(item, this.props.group?._id, 0);
-                        }
-                    }))}
-                >
-                    {(toggle) => (
-                        <Button
-                            text={gettext('Add first field')}
-                            iconOnly={true}
-                            icon="plus-large"
-                            shape="round"
-                            type="primary"
-                            onClick={(event) => {
-                                toggle(event);
-                            }}
-                        />
-                    )}
-                </Menu>
+                <div>
+                    <Menu
+                        items={this.props.unusedFields.map((item) => ({
+                            label: item.name,
+                            onClick: () => {
+                                this.props.insertField(item, this.props.group?._id, 0);
+                            }
+                        }))}
+                    >
+                        {(toggle) => (
+                            <Button
+                                text={gettext('Add first field')}
+                                iconOnly={true}
+                                icon="plus-large"
+                                shape="round"
+                                type="primary"
+                                onClick={(event) => {
+                                    toggle(event);
+                                }}
+                            />
+                        )}
+                    </Menu>
+                </div>
             </div>
         ) : (
             <List.Group spaceBetween={true}>
