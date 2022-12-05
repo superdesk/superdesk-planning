@@ -4,6 +4,7 @@ import moment from 'moment';
 
 import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
+import {timeUtils} from '../../utils';
 
 import './style.scss';
 
@@ -55,16 +56,18 @@ function DateTime({
     if ((noEndTime || isFullDay) && !multiDay) {
         eventEndDate = null;
     } else if ((noEndTime || isFullDay) && multiDay) {
-        eventEndDate = moment.utc(date).format(dateFormat);
+        eventEndDate = moment(date).format(dateFormat);
     } else {
         eventEndDate = moment(date).format(dateTimeFormat);
     }
 
+    const isEventStartDate = !isEndEventDateTime && eventStartDate;
+    const isEventEndDate = isEndEventDateTime && eventEndDate;
+    const tz = timeUtils.getTimeZoneAbbreviation(date.format('z')) + ' ';
+
     return (
-        <time className={!padLeft ? 'Datetime' : null} title={date.toString()}>
-            {!isEndEventDateTime && eventStartDate}
-            {isEndEventDateTime &&
-                eventEndDate}
+        <time className={!padLeft ? 'Datetime' : null} title={tz + (isEventStartDate || isEventEndDate)}>
+            {isEventStartDate}{isEventEndDate}
         </time>
     );
 }
