@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from superdesk import get_resource_service
-from bson import ObjectId
+from planning.utils import try_cast_object_id
 
 
 def expand_contact_info(contacts):
@@ -17,7 +17,7 @@ def expand_contact_info(contacts):
 
     contact_details = get_resource_service("contacts").find(
         where={
-            "_id": {"$in": [ObjectId(c) for c in contacts]},
+            "_id": {"$in": [try_cast_object_id(c) for c in contacts]},
             "public": True,
             "is_active": True,
         }

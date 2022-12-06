@@ -60,6 +60,7 @@ class OnclusiveFeedParser(FeedParser):
                     self.parse_location(event, item)
                     self.parse_event_details(event, item)
                     self.parse_category(event, item)
+                    self.parse_contact_info(event, item)
                     all_events.append(item)
                 except (KeyError, IndexError, TypeError) as error:
                     logger.exception("error %s ingesting event %s", error, event)
@@ -192,3 +193,44 @@ class OnclusiveFeedParser(FeedParser):
             parsed_time = datetime.time.fromisoformat(time)
             parsed = parsed.replace(hour=parsed_time.hour, minute=parsed_time.minute, second=parsed_time.second)
         return parsed.astimezone(datetime.timezone.utc)
+
+    def parse_contact_info(self, event, item):
+        for contact_info in event.get("pressContacts"):
+            contact_id = "onclusive:{}".format(contact_info["pressContactID"])
+            item.setdefault("event_contact_info", []).append(contact_id)
+
+            data = {}
+            if contact_info.get("pressContactEmail"):
+                data.setdefault("contact_email", []).append(contact_info["pressContactEmail"])
+
+            if contact_info.get("pressContactTelephone"):
+                data.setdefault("contact_phone", []).append(
+                    {"number": contact_info["pressContactTelephone"], "public": True}
+                )
+
+            if contact_info.get("pressContactOffice"):
+                data["organisation"] = contact_info["pressContactOffice"]
+
+            if contact_info.get("pressContactName"):
+                try:
+                    first, last = contact_info["pressContactName"].rsplit(" ", 1)
+                except ValueError:
+                    first = ""
+                    last = contact_info["pressContactName"]
+                data["first_name"] = first
+                data["last_name"] = last
+
+            existing_contact = get_resource_service("contacts").find_one(req=None, _id=contact_id)
+            if existing_contact is None:
+                logger.debug("New contact %s %s", contact_id, data.get("organisation"))
+                data.update(
+                    {
+                        "_id": contact_id,
+                        "is_active": True,
+                        "public": True,
+                    }
+                )
+                get_resource_service("contacts").post([data])
+            else:
+                logger.debug("Existing contact %s %s", contact_id, data.get("organisation"))
+                get_resource_service("contacts").patch(existing_contact["_id"], data)
