@@ -56,18 +56,18 @@ function DateTime({
     if ((noEndTime || isFullDay) && !multiDay) {
         eventEndDate = null;
     } else if ((noEndTime || isFullDay) && multiDay) {
-        eventEndDate = moment(date).format(dateFormat);
+        eventEndDate = moment.utc(date).format(dateFormat);
     } else {
         eventEndDate = moment(date).format(dateTimeFormat);
     }
 
-    const isEventStartDate = !isEndEventDateTime && eventStartDate;
-    const isEventEndDate = isEndEventDateTime && eventEndDate;
+    const startDate = !isEndEventDateTime && eventStartDate;
+    const endDate = isEndEventDateTime && eventEndDate;
     const tz = timeUtils.getTimeZoneAbbreviation(date.format('z')) + ' ';
 
     return (
-        <time className={!padLeft ? 'Datetime' : null} title={tz + (isEventStartDate || isEventEndDate)}>
-            {isEventStartDate}{isEventEndDate}
+        <time className={!padLeft ? 'Datetime' : null} title={tz + (startDate || endDate)}>
+            {startDate}{endDate}
         </time>
     );
 }
