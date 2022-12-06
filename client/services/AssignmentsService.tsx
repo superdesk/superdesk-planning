@@ -111,13 +111,13 @@ export class AssignmentsService {
                     // based on the slugline of the archive item
                     this.getBySlugline(get(item, 'slugline'), get(item, 'type'))
                         .then((data) => {
-                            // If no Assignments were found, then there is nothing to do
                             if (get(data, '_meta.total', 0) < 1) {
+                                // If no Assignments were found, then there is nothing to do
                                 resolve();
+                            } else {
+                                // Show the LinkToAssignment modal for further user decisions
+                                this.showLinkAssignmentModal(item, resolve, reject);
                             }
-
-                            // Show the LinkToAssignment modal for further user decisions
-                            this.showLinkAssignmentModal(item, resolve, reject);
                         })
                         .catch(() => {
                             // If the API call failed, allow the publishing to continue

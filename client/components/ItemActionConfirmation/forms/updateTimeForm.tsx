@@ -217,7 +217,7 @@ export class UpdateTimeComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={original.dates}
+                    event={original}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}

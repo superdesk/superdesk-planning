@@ -424,6 +424,7 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
     const tz = get(event.dates, 'tz');
     const localStart = timeUtils.getLocalDate(start, tz);
     let dateString, timezoneString = '';
+    let timezoneForEvents = '';
 
     if (!start || !end)
         return;
@@ -443,6 +444,39 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
             dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
                     getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
         }
+    }
+
+    const isFullDay = event?.dates?.all_day;
+    const noEndTime = event?.dates?.no_end_time;
+
+    const multiDay = !isEventSameDay(start, end);
+
+    if (isFullDay && !multiDay) {
+        return timezoneForEvents = start.format(dateFormat);
+    } else if (noEndTime && !multiDay) {
+        if (withTimezone) {
+            if (!useLocal) {
+                timezoneForEvents =
+                `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz ? tz : 'utc')})`;
+            } else {
+                timezoneForEvents = getDateTimeString(start, dateFormat, timeFormat, ' @ ', true);
+            }
+        }
+        return timezoneForEvents;
+    } else if (isFullDay && multiDay) {
+        return timezoneForEvents = start.format(dateFormat) + ' - ' + end.format(dateFormat);
+    } else if (noEndTime && multiDay) {
+        if (withTimezone) {
+            if (!useLocal && tz) {
+                timezoneForEvents =
+                 `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz) + ' - ' +
+                 end.format(dateFormat)})`;
+            } else {
+                timezoneForEvents =
+                getDateTimeString(start, dateFormat, timeFormat, ' @ ', true) + ' - ' + end.format(dateFormat);
+            }
+        }
+        return timezoneForEvents;
     }
 
     if (withTimezone) {
@@ -897,7 +931,7 @@ const duplicateEvent = (event, occurStatus) => {
 
 export const shouldLockEventForEdit = (item, privileges) => (
     !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
+    (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
 );
 
 const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) => {
@@ -1088,6 +1122,7 @@ const fillEventTime = (event) => {
         event._endTime = null;
     }
 };
+
 
 // eslint-disable-next-line consistent-this
 const self = {

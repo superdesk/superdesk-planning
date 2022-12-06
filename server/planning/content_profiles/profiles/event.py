@@ -45,6 +45,7 @@ class EventSchema(BaseSchema):
     subject = subjectField
     custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
+    related_plannings.schema["read_only"] = False
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
 

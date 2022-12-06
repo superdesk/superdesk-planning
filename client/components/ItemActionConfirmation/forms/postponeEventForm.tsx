@@ -97,7 +97,7 @@ export class PostponeEventComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={original.dates}
+                    event={original}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}

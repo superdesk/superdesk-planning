@@ -125,6 +125,7 @@ export const validators = {
         slugline: [formProfile],
         dates: [eventValidators.validateDates],
         ednote: [formProfile],
+        subject: [formProfile],
     },
     planning: {
         planning_date: [formProfile, planningValidators.validatePlanningScheduleDate],

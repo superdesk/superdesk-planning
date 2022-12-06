@@ -79,7 +79,7 @@ export class UnspikeEventComponent extends React.Component {
                     noPadding={true}
                 />
 
-                <EventScheduleSummary schedule={original.dates} />
+                <EventScheduleSummary event={original} />
 
                 <Row
                     enabled={isRecurring}

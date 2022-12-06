@@ -6,42 +6,66 @@ import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
 import './style.scss';
+import {IEventItem} from 'interfaces';
+interface IProps {
+    event: Partial<IEventItem>,
+    noPadding?: boolean,
+    forUpdating?: boolean,
+    useEventTimezone?: boolean
+}
 
-
-export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEventTimezone}) => {
-    if (!schedule)
+export const EventScheduleSummary = ({
+    event,
+    noPadding = false,
+    forUpdating = false,
+    useEventTimezone = false
+}: IProps) => {
+    if (!event)
         return null;
 
-    const eventSchedule = get(schedule, 'dates', {});
+    const eventSchedule: IEventItem['dates'] = get(event, 'dates', {});
     const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
-    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(eventSchedule);
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
     const eventDateText = eventUtils.getDateStringForEvent(
-        schedule,
+        event,
         false,
         true,
         isRemoteTimeZone
     );
-    let newDateString, currentDateText, remoteDateText, currentDateLabel;
+    let newDateString, currentDateText, remoteDateText, currentDateLabel, datesToShow, datesToShowRemote;
+
+    datesToShow = eventUtils.getDateStringForEvent(event, false,
+        true,
+        isRemoteTimeZone);
 
     if (isRemoteTimeZone) {
-        const remoteSchedule = {
-            ...schedule,
+        const remoteEvent = {
+            ...event,
             dates: {
                 ...eventSchedule,
-                start: timeUtils.getDateInRemoteTimeZone(eventSchedule.start, eventSchedule.tz),
-                end: timeUtils.getDateInRemoteTimeZone(eventSchedule.end, eventSchedule.tz),
+                start: timeUtils.getDateInRemoteTimeZone(
+                    eventSchedule.start,
+                    eventSchedule.tz
+                ),
+                end: timeUtils.getDateInRemoteTimeZone(
+                    eventSchedule.end,
+                    eventSchedule.tz
+                ),
             },
         };
 
+
         newDateString = eventUtils.getDateStringForEvent(
-            remoteSchedule,
+            remoteEvent,
             false,
             false
         );
+
+        datesToShowRemote = eventUtils.getDateStringForEvent(remoteEvent, false, false);
     }
 
-    currentDateText = eventDateText;
-    remoteDateText = newDateString;
+    currentDateText = datesToShow;
+    remoteDateText = datesToShowRemote;
     currentDateLabel = gettext('Current Date');
     if (useEventTimezone && isRemoteTimeZone) {
         currentDateText = newDateString.replace(/[\(\)]/g, '');
@@ -66,13 +90,9 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
             )}
 
             {doesRepeat && (
-                <Row
-                    noPadding={noPadding}
-                    dataTestId="field-dates_repeat"
-                >
+                <Row noPadding={noPadding} dataTestId="field-dates_repeat">
                     <RepeatEventSummary
                         schedule={eventSchedule}
-                        asInputField
                         noMargin={noPadding}
                         forUpdating={forUpdating}
                     />
@@ -80,16 +100,4 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
             )}
         </React.Fragment>
     );
-};
-
-EventScheduleSummary.propTypes = {
-    schedule: PropTypes.object,
-    noPadding: PropTypes.bool,
-    forUpdating: PropTypes.bool,
-    useEventTimezone: PropTypes.bool,
-};
-
-EventScheduleSummary.defaultProps = {
-    noPadding: false,
-    useEventTimezone: false,
 };
