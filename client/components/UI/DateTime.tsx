@@ -61,13 +61,12 @@ function DateTime({
         eventEndDate = moment(date).format(dateTimeFormat);
     }
 
-    const startDate = !isEndEventDateTime && eventStartDate;
-    const endDate = isEndEventDateTime && eventEndDate;
+    const displayDate = !isEndEventDateTime ? eventStartDate : eventEndDate;
     const tz = timeUtils.getTimeZoneAbbreviation(date.format('z')) + ' ';
 
     return (
-        <time className={!padLeft ? 'Datetime' : null} title={tz + (startDate || endDate)}>
-            {startDate}{endDate}
+        <time className={!padLeft ? 'Datetime' : null} title={tz + displayDate}>
+            {displayDate}
         </time>
     );
 }
