@@ -20,6 +20,7 @@ export class EditorFieldContacts extends React.PureComponent<IEditorFieldProps> 
                 value={value}
                 onChange={this.props.onChange}
                 readOnly={this.props.disabled}
+                singleValue={false}
             />
         );
     }
