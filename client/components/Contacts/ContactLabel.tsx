@@ -15,14 +15,14 @@ export const ContactLabel = ({contact}) => (
         />
         <div className="contact-info__data">
             <h5 className="contact-info__name">
-                    {contact.first_name ?
-                        `${contact.first_name} ${contact.last_name} ` :
-                        `${contact.organisation} `
-                    }
-                    {(contact.first_name && contact.job_title && contact.organisation) && (
-                        <span className="contact-info__job-info">, {contact.job_title}, {contact.organisation}</span>
-                    )}
-                </h5>
+                {contact.first_name ?
+                    `${contact.first_name} ${contact.last_name} ` :
+                    `${contact.organisation} `
+                }
+                {(contact.first_name && contact.job_title && contact.organisation) && (
+                    <span className="contact-info__job-info">, {contact.job_title}, {contact.organisation}</span>
+                )}
+            </h5>
 
             {get(contact, 'contact_email[0]') && (
                 <span className="contact-info__mail">
