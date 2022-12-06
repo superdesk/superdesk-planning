@@ -91,7 +91,7 @@ export class ScheduledUpdateForm extends React.Component {
                     field={`${field}.planning.contact_info`}
                     profileName="contact_info"
                     label={assignmentUtils.getContactLabel(get(diff, field))}
-                    defaultValue={[]}
+                    defaultValue={null}
                     {...fieldProps}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
