@@ -4,6 +4,7 @@ import moment from 'moment';
 
 import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
+import {timeUtils} from '../../utils';
 
 import './style.scss';
 
@@ -60,11 +61,12 @@ function DateTime({
         eventEndDate = moment(date).format(dateTimeFormat);
     }
 
+    const displayDate = !isEndEventDateTime ? eventStartDate : eventEndDate;
+    const tz = timeUtils.getTimeZoneAbbreviation(date.format('z')) + ' ';
+
     return (
-        <time className={!padLeft ? 'Datetime' : null} title={date.toString()}>
-            {!isEndEventDateTime && eventStartDate}
-            {isEndEventDateTime &&
-                eventEndDate}
+        <time className={!padLeft ? 'Datetime' : null} title={tz + displayDate}>
+            {displayDate}
         </time>
     );
 }

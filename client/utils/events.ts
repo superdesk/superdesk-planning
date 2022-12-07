@@ -473,7 +473,8 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
                  end.format(dateFormat)})`;
             } else {
                 timezoneForEvents =
-                getDateTimeString(start, dateFormat, timeFormat, ' @ ', true) + ' - ' + end.format(dateFormat);
+                getDateTimeString(start, dateFormat, timeFormat, ' @ ', true) + ' - ' +
+                moment.utc(end).format(dateFormat);
             }
         }
         return timezoneForEvents;
