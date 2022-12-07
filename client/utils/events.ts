@@ -868,6 +868,23 @@ const modifyLocationForServer = (event) => {
         null;
 };
 
+const removeFieldsStartingWith = (updates: {[key: string]: Array<any> | any}, prefix: string) => {
+    Object.keys(updates).forEach((field) => {
+        if (!Array.isArray(updates[field])) {
+            if (field.startsWith(prefix)) {
+                delete updates[field];
+            }
+        } else {
+            updates[field].forEach((arrayEntry) => {
+                Object.keys(arrayEntry).forEach((arrayEntryField) => {
+                    if (arrayEntryField.startsWith(prefix)) {
+                        delete arrayEntry[arrayEntryField];
+                    }
+                });
+            });
+        }
+    });
+};
 
 const modifyForServer = (event, removeNullLinks = false) => {
     modifyLocationForServer(event);
@@ -878,6 +895,9 @@ const modifyForServer = (event, removeNullLinks = false) => {
             (link) => link && get(link, 'length', 0) > 0
         );
     }
+
+    // clean up angular artifacts
+    removeFieldsStartingWith(event, '$$');
 
     if (timeUtils.isEventInDifferentTimeZone(event)) {
         if (get(event, 'dates.start') && moment.isMoment(event.dates.start)) {
