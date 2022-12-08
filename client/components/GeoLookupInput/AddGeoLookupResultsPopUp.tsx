@@ -7,7 +7,7 @@ import {KEYCODES} from '../../constants';
 
 import {uiUtils, onEventCapture} from '../../utils';
 
-import {Button, TabNav, TabItem, TabContent, TabPanel} from 'superdesk-ui-framework/react';
+import {Button, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
 import {Popup, Content} from '../UI/Popup';
 import {LocationLookupResultItem} from './LocationLookupResultItem';
 
@@ -29,9 +29,14 @@ interface IProps {
     onPopupClose?(): void;
 }
 
+enum TAB_INDEX {
+    INTERNAL = 0,
+    EXTERNAL = 1,
+}
+
 interface IState {
     activeOptionIndex: number;
-    activeTabId: 'internal' | 'external';
+    activeTabId: TAB_INDEX;
 }
 
 export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
@@ -44,7 +49,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
 
         this.state = {
             activeOptionIndex: -1,
-            activeTabId: 'internal',
+            activeTabId: TAB_INDEX.INTERNAL,
         };
 
         this.handleKeyBoardEvent = this.handleKeyBoardEvent.bind(this);
@@ -125,7 +130,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                 activeTabId: tabId,
             });
 
-            if (this.state.activeTabId === 'internal') {
+            if (this.state.activeTabId === TAB_INDEX.INTERNAL) {
                 this.onSearch();
             } else {
                 this.props.onLocalSearchOnly();
@@ -140,16 +145,20 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
         const suggests = get(this.props.suggests, 'length') > 0 ?
             this.props.suggests : [];
         const tabLabels = [(
-            <TabItem key="internal" id="internal">
-                {gettext('Existing Locations')}
-            </TabItem>
+            <TabLabel
+                key="internal"
+                label={gettext('Existing Locations')}
+                indexValue={TAB_INDEX.INTERNAL}
+            />
         )];
 
         if (this.props.showExternalSearch) {
             tabLabels.push((
-                <TabItem key="external" id="external">
-                    {gettext('Search OpenStreetMap')}
-                </TabItem>
+                <TabLabel
+                    key="external"
+                    label={gettext('Search OpenStreetMap')}
+                    indexValue={TAB_INDEX.EXTERNAL}
+                />
             ));
         }
 
@@ -169,15 +178,14 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                     noPadding={true}
                     className="addgeolookup__suggests-wrapper"
                 >
-                    <TabNav
+                    <Tabs
                         onClick={this.onTabChange}
-                        activePanel={this.state.activeTabId}
                         size="small"
                     >
                         {tabLabels}
-                    </TabNav>
+                    </Tabs>
                     <TabContent activePanel={this.state.activeTabId}>
-                        <TabPanel id="internal">
+                        <TabPanel indexValue={TAB_INDEX.INTERNAL}>
                             <ul
                                 className="addgeolookup__suggests"
                                 ref={this.dom.itemList}
@@ -197,7 +205,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                                 )}
                             </ul>
                         </TabPanel>
-                        <TabPanel id="external">
+                        <TabPanel indexValue={TAB_INDEX.EXTERNAL}>
                             {this.props.searching ? (
                                 <div className="spinner-big" />
                             ) : (
