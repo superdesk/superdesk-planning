@@ -169,7 +169,7 @@ class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
                     )}
                 </Modal.Body>
                 <Modal.Footer flex={true}>
-                    <ButtonGroup align="right">
+                    <ButtonGroup align="end">
                         <Button
                             text={gettext('Cancel')}
                             onClick={this.props.reject}

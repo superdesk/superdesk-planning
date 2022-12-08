@@ -249,7 +249,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                     </Group>
                 </div>
                 <div className="coverage-form__footer">
-                    <ButtonGroup align="right">
+                    <ButtonGroup align="end">
                         <Button
                             data-test-id="footer--cancel"
                             type="default"

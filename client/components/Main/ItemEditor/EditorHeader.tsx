@@ -364,7 +364,7 @@ export class EditorHeader extends React.Component {
 
         return (
             <StretchBar right={true}>
-                <ButtonGroup align="right">
+                <ButtonGroup align="end">
                     {buttons.map((button) => (
                         states[button.state] && (
                             <Button

@@ -46,7 +46,7 @@ export class SubNavBar extends React.PureComponent<IProps> {
         return (
             <SubNav zIndex={3}>
                 {assignmentListSingleGroupView && (
-                    <ButtonGroup align="left">
+                    <ButtonGroup align="start">
                         <Tooltip
                             text={gettext('Back to group list view')}
                             flow="right"

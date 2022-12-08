@@ -73,7 +73,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
                         <span className="sd-text__strong">
                             {getFieldNameTranslated(this.props.item.name)}
                         </span>
-                        <ButtonGroup align="right">
+                        <ButtonGroup align="end">
                             <Button
                                 text={gettext('Cancel')}
                                 onClick={() => this.props.closeEditor()}

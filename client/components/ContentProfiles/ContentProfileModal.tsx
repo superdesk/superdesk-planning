@@ -492,7 +492,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                     </form>
                 </Modal.Body>
                 <Modal.Footer flex={true}>
-                    <ButtonGroup align="right">
+                    <ButtonGroup align="end">
                         <Button
                             text={this.state.dirty ?
                                 gettext('Cancel') :

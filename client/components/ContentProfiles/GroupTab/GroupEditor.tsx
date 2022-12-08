@@ -64,7 +64,7 @@ export class GroupEditor extends React.PureComponent<IProps> {
                         {gettext('Details')}
                     </div>
                     <div className="side-panel__sliding-toolbar">
-                        <ButtonGroup align="right">
+                        <ButtonGroup align="end">
                             <Button
                                 text={gettext('Cancel')}
                                 onClick={() => this.props.onCancel()}

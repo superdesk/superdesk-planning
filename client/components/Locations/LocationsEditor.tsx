@@ -190,7 +190,7 @@ export class LocationsEditorComponent extends React.Component<IProps, IState> {
                             gettext('Edit Location')
                         }
                     </h3>
-                    <ButtonGroup align="right" padded>
+                    <ButtonGroup align="end" padded>
                         <Button
                             text={!this.state.form?.dirty ?
                                 gettext('Close') :

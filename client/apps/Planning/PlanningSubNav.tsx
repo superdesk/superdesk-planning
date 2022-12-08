@@ -126,7 +126,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                         showFilters={this.props.showFilters ?? true}
                         privileges={this.props.privileges}
                     />
-                    <ButtonGroup align="right">
+                    <ButtonGroup align="end">
                         <Dropdown items={this.viewOptions}>
                             <button className="sd-navbtn" aria-label={gettext('Change view')}>
                                 <i className={listViewIcon} />

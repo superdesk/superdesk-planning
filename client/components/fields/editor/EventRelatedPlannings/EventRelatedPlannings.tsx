@@ -32,7 +32,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                         {gettext('Related Plannings')}
                     </label>
                     {disabled ? null : (
-                        <ButtonGroup align="right">
+                        <ButtonGroup align="end">
                             <Button
                                 type="primary"
                                 icon="plus-large"
