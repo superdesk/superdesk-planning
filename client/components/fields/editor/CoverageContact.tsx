@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {get} from 'lodash';
 
-import {IContactItem, IEditorFieldProps} from '../../../interfaces';
+import {IEditorFieldProps} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
 import {ContactField, ContactsPreviewList} from '../../Contacts';
@@ -12,19 +12,6 @@ interface IProps extends IEditorFieldProps {
 }
 
 export class EditorFieldCoverageContact extends React.PureComponent<IProps> {
-    constructor(props) {
-        super(props);
-
-        this.onChange = this.onChange.bind(this);
-    }
-
-    onChange(field: string, value: Array<IContactItem['_id']>) {
-        this.props.onChange(
-            field,
-            value[0] ?? null
-        );
-    }
-
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'planning.contact_info';
@@ -53,9 +40,10 @@ export class EditorFieldCoverageContact extends React.PureComponent<IProps> {
                 testId={this.props.testId}
                 field={field}
                 label={label}
-                value={value != null ? [value] : []}
-                onChange={this.onChange}
+                value={value}
+                onChange={this.props.onChange}
                 readOnly={this.props.disabled}
+                singleValue={true}
             />
         );
     }
