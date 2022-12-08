@@ -155,6 +155,7 @@ export class EditorFieldSelectWithFreeText extends React.Component<IProps, IStat
                     ) : (
                         <Input
                             value={value}
+                            type="text"
                             label={this.props.label}
                             disabled={this.props.disabled}
                             required={this.props.required}

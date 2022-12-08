@@ -7,6 +7,7 @@ import {Input} from 'superdesk-ui-framework/react';
 import {Row} from '../../../UI/Form';
 
 export interface IEditorFieldTextProps extends IEditorFieldProps {
+    type?: 'text' | 'password' | 'number';
     maxLength?: number;
     info?: string;
     inlineLabel?: boolean;
@@ -75,6 +76,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
             >
                 <Input
                     value={value}
+                    type={this.props.type ?? 'text'}
                     key={this.state.key}
                     label={this.props.label}
                     required={this.props.required ?? this.props.schema?.required}
