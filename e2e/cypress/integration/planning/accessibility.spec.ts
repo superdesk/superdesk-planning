@@ -3,7 +3,7 @@ import {setup, login, waitForPageLoad, SubNavBar, Workqueue, addItems} from '../
 import {PlanningList, PlanningEditor} from '../../support/planning';
 import {TIME_STRINGS} from '../../support/utils/time';
 
-describe('Planning.Planning: list view accessibility', () => {
+describe.skip('Planning.Planning: list view accessibility', () => {
     const list = new PlanningList();
 
     beforeEach(() => {

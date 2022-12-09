@@ -69,7 +69,7 @@ export function addItems(resource, items) {
  */
 export function login() {
     cy.log('Common.App.login');
-    cy.get('#login-username')
+    cy.get('#login-username', {timeout: 30000})
         .clear()
         .type('admin')
         .should('have.value', 'admin');
