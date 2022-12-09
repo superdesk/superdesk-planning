@@ -205,6 +205,7 @@ export class Editor {
         cy.log('Common.Editor.openAllToggleBoxes');
         this.element
             .find('.toggle-box.toggle-box--circle.hidden')
+            .should('be.visible')
             .click({multiple: true});
     }
 

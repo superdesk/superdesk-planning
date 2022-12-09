@@ -178,6 +178,7 @@ export class AdvancedSearch {
         cy.log('Planning.SearchPanel.openAllToggleBoxes');
         this.searchPanel
             .find('.toggle-box.toggle-box--circle.hidden')
+            .should('be.visible')
             .click({multiple: true});
     }
 
