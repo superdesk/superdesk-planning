@@ -36,13 +36,13 @@ jobs:
       - name: E2E Suite A
         if: matrix.e2e == 'a'
         working-directory: ./e2e
-        run: npm run cypress-ci -- --spec "cypress/integration/events/*.spec.*"
+        run: npm run cypress-ci -- --spec "cypress/e2e/events/*.cy.ts"
         env:
           CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
       - name: E2E Suite B
         if: matrix.e2e == 'b'
         working-directory: ./e2e
-        run: npm run cypress-ci -- --spec "cypress/integration/!(events)/*.spec.*"
+        run: npm run cypress-ci -- --spec "cypress/e2e/!(events)/*.cy.ts|cypress/e2e/workqueue.cy.ts"
         env:
           CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
       - name: Upload screenshots
