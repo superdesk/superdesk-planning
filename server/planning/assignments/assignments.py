@@ -85,29 +85,43 @@ class AssignmentsService(superdesk.Service):
 
     def _enhance_archive_items(self, docs):
         ids = [str(item["assignment_id"]) for item in docs if item.get("assignment_id")]
-        assignments = {
-            str(item[config.ID_FIELD]): item for item in self.get_from_mongo(req=None, lookup={"_id": {"$in": ids}})
-        }
+        if len(ids):
+            assignments = {
+                str(item[config.ID_FIELD]): item for item in self.get_from_mongo(req=None, lookup={"_id": {"$in": ids}})
+            }
 
-        for doc in docs:
-            if doc.get("assignment_id") in assignments:
-                doc["assignment"] = assignments[doc["assignment_id"]].get("assigned_to") or {}
+            for doc in docs:
+                if doc.get("assignment_id") in assignments:
+                    doc["assignment"] = assignments[doc["assignment_id"]].get("assigned_to") or {}
 
     def on_fetched(self, docs):
-        for doc in docs["_items"]:
-            self._enchance_assignment(doc)
+        self._enhance_assignments(docs.get("_items", []))
 
     def on_fetched_item(self, doc):
-        self._enchance_assignment(doc)
+        self._enhance_assignments([doc])
 
-    def _enchance_assignment(self, doc):
+    def _enhance_assignments(self, docs):
         """Populate `item_ids` with ids for all linked Archive items for an Assignment"""
+        items = list(self.get_archive_items_for_assignments([str(doc.get(config.ID_FIELD)) for doc in docs]))
+        for doc in docs:
+            ids = [str(item.get("_id")) for item in items if str(item.get("assignment_id")) == str(doc.get("_id"))]
+            if len(ids):
+                doc["item_ids"] = ids
 
-        results = self.get_archive_items_for_assignment(doc)
-        if results.count() > 0:
-            doc["item_ids"] = [str(item.get(config.ID_FIELD)) for item in results]
+            self.set_type(doc, doc)
 
-        self.set_type(doc, doc)
+    def get_archive_items_for_assignments(self, assignment_ids):
+        """
+        Given an array of assignment id's return the matching items
+        :param assignment_ids:
+        :return:
+        """
+        query = {"query": {"filtered": {"filter": {"terms": {"assignment_id": assignment_ids}}}}}
+
+        req = ParsedRequest()
+        repos = "archive,published,archived"
+        req.args = {"source": json.dumps(query), "repo": repos}
+        return get_resource_service("search").get(req=req, lookup=None)
 
     def get_archive_items_for_assignment(self, assignment):
         """Using the `search` resource service, retrieve the list of Archive items linked to the provided Assignment."""

@@ -201,6 +201,9 @@ const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
         querySearchSettings.page = page;
         querySearchSettings.dateFilter = group.dateFilter;
         querySearchSettings.orderDirection = assignmentListSelectors.sortOrder(getState());
+        if (group.max_results) {
+            querySearchSettings.max_results = group.max_results
+        };
 
         return dispatch(assignments.api.query(querySearchSettings))
             .then((data) => {
