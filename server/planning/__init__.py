@@ -74,7 +74,7 @@ import planning.output_formatters  # noqa
 import planning.io  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
-__version__ = "2.6.0-dev"
+__version__ = "2.6.0rc1"
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 

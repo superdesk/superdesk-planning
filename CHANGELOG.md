@@ -1,5 +1,39 @@
 # Superdesk Planning Changelog
 
+## [v2.6.0-rc1] 2022-12-12
+### Features
+- [SDESK-6439] New EventsML feed parser (#1686)
+- [SDESK-6480] New PlanningML feed parser (#1690)
+- [SDESK-6441] Ingest rule to auto post Events or Planning (#1691)
+- [SDCP-627] New Onclusive feed parser (#1692)
+
+### Improvements
+- [SDCP-629] Include Product IDs in JSON Event formatter (#1695)
+- [SDESK-6537] Allow assigning Agenda or Calendar upon ingest (#1696)
+- [SDESK-6528] Provide Ingest Source filter for 'Events & Planning' and 'Planning Only' views (#1702)
+- chore: Enable CI on Python 3.10 (#1707)
+- [STTNHUB-170] Add planning_created signal (#1708)
+- [SDESK-6586] Include Product IDs in JSON Planning formatter (#1715)
+- [SDESK-6609] Support updating Events & Planning on ingest (#1729)
+- [SDCP-642] refactor onclusive ingest (#1731)
+- [STTNHUB-188] ingest(planning_xml): Generate coverage details in separate function (#1737)
+- [SDESK-6646] Add a flag 'no end time' for ingested events that arrive without an end time set (#1733)
+- [CPNHUB-166] parse contacts info from onclusive api (#1741)
+
+### Fixes
+- [SDESK-6439] fix(ingest-EventsML): Dont set definition_short to None (#1688)
+- [CPNHUB-121] fix: Provide CV Selector in ContentProfile CustomVocabulary field (#1693)
+- [SDCP-627] fix: Onclusive API feed service not available (#1699)
+- [SDCP-627] fix: datetime parsing and api token handling (#1703)
+- [STTNHUB-169] fix(ingest): PlanningML missing coverage schedule and other metadata (#1704)
+- [SDESK-6528] fix(ingest): Missing ingest provider in Planning schema (#1706)
+- fix onclusive api offset param handling (#1713)
+- [SDCP-638] fix: Language field of ingested event is populated but missing language blocks posting the event (#1719)
+- [STTNHUB-179] ingest(eventsml): Fix date parsing and add new Event fields (#1724)
+- [STTNHUB-189] handle missing time and duration field in eventsml parser (#1734)
+- [SDESK-6698] fix spike event date not showing in the UI (#1732)
+- [SDESK-6646] fix: Issues with displaying Event dates when no end time is set (#1743)
+
 ## [v2.5.1] 2022-10-28
 - [SDESK-6592] fix: Planning: Inconsistent Tooltip display for Due date (#1723)
 - [SDESK-6558] fix : Event links are overlapping in the preview (#1725)
