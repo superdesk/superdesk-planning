@@ -152,6 +152,7 @@ describe('actions.assignments.api', () => {
                         page: 2,
                         sort: '[("_created", 1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
@@ -180,6 +181,7 @@ describe('actions.assignments.api', () => {
                         page: 3,
                         sort: '[("_updated", -1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
@@ -208,6 +210,7 @@ describe('actions.assignments.api', () => {
                         page: 3,
                         sort: '[("_updated", -1)]',
                         source: source,
+                        max_results: null
                     });
 
                     done();
@@ -236,6 +239,7 @@ describe('actions.assignments.api', () => {
                         page: 3,
                         sort: '[("_updated", -1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
@@ -263,6 +267,7 @@ describe('actions.assignments.api', () => {
                         page: 3,
                         sort: '[("_updated", -1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
@@ -290,6 +295,7 @@ describe('actions.assignments.api', () => {
                         page: 3,
                         sort: '[("priority", -1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
@@ -317,6 +323,7 @@ describe('actions.assignments.api', () => {
                         page: 3,
                         sort: '[("priority", 1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
@@ -371,6 +378,7 @@ describe('actions.assignments.api', () => {
                         page: 1,
                         sort: '[("priority", 1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
@@ -399,6 +407,7 @@ describe('actions.assignments.api', () => {
                         page: 1,
                         sort: '[("_updated", -1)]',
                         source: source,
+                        max_results: null,
                     });
 
                     done();
