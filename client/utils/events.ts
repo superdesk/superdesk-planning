@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from 'moment-timezone';
 import RRule from 'rrule';
 import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
