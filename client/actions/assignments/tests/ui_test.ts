@@ -116,6 +116,7 @@ describe('actions.assignments.ui', () => {
                         type: null,
                         priority: null,
                         ignoreScheduledUpdates: false,
+                        max_results: 100,
                     }]);
 
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
