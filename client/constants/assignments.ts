@@ -86,18 +86,21 @@ export const ASSIGNMENTS = {
             id: 'TODO',
             label: 'To Do',
             states: ['assigned', 'submitted'],
+            max_results: 100,
             emptyMessage: 'There are no assignments to do',
         },
         IN_PROGRESS: {
             id: 'IN_PROGRESS',
             label: 'In Progress',
             states: ['in_progress'],
+            max_results: 100,
             emptyMessage: 'There are no assignments in progress',
         },
         COMPLETED: {
             id: 'COMPLETED',
             label: 'Completed',
             states: ['completed', 'cancelled'],
+            max_results: 100,
             emptyMessage: 'There are no assignments completed',
         },
         CURRENT: {

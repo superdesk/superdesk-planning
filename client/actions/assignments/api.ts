@@ -162,6 +162,7 @@ const query = ({
     dateFilter = null,
     size = null,
     ignoreScheduledUpdates = false,
+    max_results = null,
 }) => (
     (dispatch, getState, {api}) => {
         const filterByValues = {
@@ -190,6 +191,7 @@ const query = ({
 
         return api('assignments').query({
             page: page,
+            max_results: max_results,
             sort: sort,
             source: JSON.stringify(size !== null ?
                 {query, size} :

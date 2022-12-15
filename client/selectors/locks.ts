@@ -8,12 +8,21 @@ import {newItemAutosaves} from './forms';
 
 import {lockUtils} from '../utils';
 
-export const getLockedItems = (state) => get(state, 'locks') || {
-    event: {},
-    planning: {},
-    recurring: {},
-    assignment: {},
-};
+const EMPTY_LOCKS = {};
+const eventLocks = (state) => get(state, 'locks.event', EMPTY_LOCKS);
+const planningLocks = (state) => get(state, 'locks.planning', EMPTY_LOCKS);
+const recurringLocks = (state) => get(state, 'locks.recurring', EMPTY_LOCKS);
+const assignmentLocks = (state) => get(state, 'locks.assignment', EMPTY_LOCKS);
+
+export const getLockedItems = createSelector(
+    [eventLocks, planningLocks, recurringLocks, assignmentLocks],
+    (event, planning, recurring, assignment) => ({
+        event,
+        planning,
+        recurring,
+        assignment,
+    })
+);
 
 /** Returns the list of currently locked planning items */
 export const getLockedPlannings = createSelector(

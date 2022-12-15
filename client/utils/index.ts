@@ -645,9 +645,15 @@ export const getDateTimeString = (
         dateStr;
 };
 
-export const getDateTimeElasticFormat = (date) => (
-    getDateTimeString(moment(date).utc(), 'YYYY-MM-DD', 'HH:mm:ss+0000', 'T', false)
-);
+export function getDateTimeElasticFormat(date: moment.Moment | string, convertToUTC: boolean = true): string {
+    return getDateTimeString(
+        convertToUTC ? moment(date).utc() : moment(date),
+        'YYYY-MM-DD',
+        'HH:mm:ss+0000',
+        'T',
+        false
+    );
+}
 
 export const isEmptyActions = (actions) => {
     if (get(actions, 'length', 0) < 1) {
