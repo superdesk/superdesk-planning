@@ -1134,3 +1134,54 @@ Feature: Events Post
             "completed": true
         }
         """
+
+    @auth
+    Scenario: filters private contacts on event post and doesnt modify event
+        When we post to "/contacts"
+        """
+        [
+            {"first_name": "Private", "last_name": "Foo", "public": false},
+            {"first_name": "Public", "last_name": "Bar", "public": true}
+        ]
+        """
+        Then we store "PRIVATE_CONTACT" with first item
+        Then we store "PUBLIC_CONTACT" with 2 item
+        When we post to "/events"
+        """
+        [{
+            "name": "Event 123",
+            "slugline": "event-123",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "event_contact_info": ["#PRIVATE_CONTACT._id#", "#PUBLIC_CONTACT._id#"]
+        }]
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "event_contact_info": ["#PRIVATE_CONTACT._id#", "#PUBLIC_CONTACT._id#"]
+        }
+        """
+        When we get "/published_planning?where={"item_id":"#events._id#"}"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [{
+                "published_item": {"event_contact_info": ["#PUBLIC_CONTACT._id#"]}
+            }]
+        }
+        """
