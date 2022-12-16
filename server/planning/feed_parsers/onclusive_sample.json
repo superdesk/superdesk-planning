@@ -146,5 +146,6 @@
         "categoryOrder": 60,
         "categoryTypeId": 18,
         "categoryTypeName": null
-    }
+    },
+    "locale": "en-CA"
 }
