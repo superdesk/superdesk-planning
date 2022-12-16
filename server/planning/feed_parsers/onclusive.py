@@ -29,6 +29,8 @@ class OnclusiveFeedParser(FeedParser):
 
     ONCLUSIVE_TIMEZONES = [tzname for tzname in pytz.common_timezones if "US" in tzname or "GMT" in tzname]
 
+    default_locale = "en-CA"
+
     def can_parse(self, content):
         try:
             if not isinstance(content, list):
@@ -96,6 +98,7 @@ class OnclusiveFeedParser(FeedParser):
         )
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
+        item["language"] = event.get("locale") or self.default_locale
 
     def parse_event_details(self, event, item):
         if event.get("time"):
