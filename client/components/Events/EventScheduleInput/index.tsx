@@ -323,6 +323,7 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
             defaultValue: false,
         };
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(diff);
+        const isAllDayEnabled: boolean = formProfile?.editor?.dates?.all_day?.enabled;
 
         return (
             <div>
@@ -395,7 +396,7 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
                 />
 
                 <Row flex={true} noPadding>
-                    {!(formProfile?.editor?.dates?.all_day?.enabled ?? true) ? null : (
+                    {!(isAllDayEnabled ?? true) ? null : (
                         <Field
                             onChange={this.handleAllDayChange}
                             field="dates.all_day"
@@ -413,7 +414,7 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
                             onChange={this.onChange}
                             row={false}
                             {...fieldProps}
-                            halfWidth={formProfile?.editor?.dates?.all_day?.enabled}
+                            halfWidth={isAllDayEnabled}
                         />
                     )}
                 </Row>
