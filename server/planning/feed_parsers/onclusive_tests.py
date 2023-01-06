@@ -1,4 +1,5 @@
 import os
+import bson
 import json
 import logging
 import datetime
@@ -75,6 +76,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item["location"][0]["address"]["country"], "Canada")
 
         self.assertEqual(1, len(item["event_contact_info"]))
+        self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertIsNotNone(contact)
         self.assertTrue(contact["public"])
@@ -88,6 +90,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         data = deepcopy(self.data)
         data["pressContacts"][0]["pressContactEmail"] = "foo@example.com"
         item = OnclusiveFeedParser().parse([data])[0]
+        self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertEqual(["foo@example.com"], contact["contact_email"])
         self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())
