@@ -1,6 +1,7 @@
 import datetime
 import logging
 import pytz
+import bson
 from typing import Dict
 from superdesk import get_resource_service
 from superdesk.io.feed_parsers import FeedParser
@@ -199,10 +200,9 @@ class OnclusiveFeedParser(FeedParser):
 
     def parse_contact_info(self, event, item):
         for contact_info in event.get("pressContacts"):
-            contact_id = "onclusive:{}".format(contact_info["pressContactID"])
-            item.setdefault("event_contact_info", []).append(contact_id)
-
-            data = {}
+            item.setdefault("event_contact_info", [])
+            contact_uri = "onclusive:{}".format(contact_info["pressContactID"])
+            data = {"uri": contact_uri}
             if contact_info.get("pressContactEmail"):
                 data.setdefault("contact_email", []).append(contact_info["pressContactEmail"])
 
@@ -223,17 +223,18 @@ class OnclusiveFeedParser(FeedParser):
                 data["first_name"] = first
                 data["last_name"] = last
 
-            existing_contact = get_resource_service("contacts").find_one(req=None, _id=contact_id)
+            existing_contact = get_resource_service("contacts").find_one(req=None, uri=contact_uri)
             if existing_contact is None:
-                logger.debug("New contact %s %s", contact_id, data.get("organisation"))
+                logger.debug("New contact %s %s", contact_uri, data.get("organisation"))
                 data.update(
                     {
-                        "_id": contact_id,
                         "is_active": True,
                         "public": True,
                     }
                 )
                 get_resource_service("contacts").post([data])
+                item["event_contact_info"].append(bson.ObjectId(data["_id"]))
             else:
-                logger.debug("Existing contact %s %s", contact_id, data.get("organisation"))
+                logger.debug("Existing contact %s %s", contact_uri, data.get("organisation"))
                 get_resource_service("contacts").patch(existing_contact["_id"], data)
+                item["event_contact_info"].append(bson.ObjectId(existing_contact["_id"]))
