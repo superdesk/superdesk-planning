@@ -51,7 +51,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         expected_subjects.sort(key=lambda i: i["name"])
         self.assertEqual(item["subject"], expected_subjects)
 
-        self.assertEqual(item[GUID_FIELD], "urn:onclusive:2021-05-04T21:19:10.2:4112034")
+        self.assertEqual(item[GUID_FIELD], "urn:onclusive:4112034")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
         self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 21, 19, 10, tzinfo=datetime.timezone.utc))
