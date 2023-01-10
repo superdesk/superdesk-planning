@@ -49,7 +49,7 @@ class OnclusiveFeedParser(FeedParser):
         try:
             all_events = []
             for event in content:
-                guid = "urn:onclusive:{}:{}".format(event["createdDate"], event["itemId"])
+                guid = "urn:onclusive:{}".format(event["itemId"])
 
                 item = {
                     GUID_FIELD: guid,
@@ -196,7 +196,7 @@ class OnclusiveFeedParser(FeedParser):
         if time is not None:
             parsed_time = datetime.time.fromisoformat(time)
             parsed = parsed.replace(hour=parsed_time.hour, minute=parsed_time.minute, second=parsed_time.second)
-        return parsed.astimezone(datetime.timezone.utc)
+        return parsed.replace(microsecond=0).astimezone(datetime.timezone.utc)
 
     def parse_contact_info(self, event, item):
         for contact_info in event.get("pressContacts"):
