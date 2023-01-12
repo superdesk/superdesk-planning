@@ -264,8 +264,8 @@ def format_address(location=None, seperator=" "):
     if address.get("line"):
         formatted_address.append(address.get("line")[0])
 
-    formatted_address.append(address.get("area"))
-    formatted_address.append(address.get("locality"))
+    formatted_address.append(address.get("city") or address.get("area"))
+    formatted_address.append(address.get("state") or address.get("locality"))
     formatted_address.append(address.get("postal_code"))
     formatted_address.append(address.get("country"))
 
