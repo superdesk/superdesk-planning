@@ -42,13 +42,14 @@ class PlanningSpikeResource(PlanningResource):
 class PlanningSpikeService(BaseService):
     def update(self, id, updates, original):
         if original.get("pubstatus") or original.get("state") not in [
+            WORKFLOW_STATE.INGESTED,
             WORKFLOW_STATE.DRAFT,
             WORKFLOW_STATE.POSTPONED,
             WORKFLOW_STATE.CANCELLED,
         ]:
             raise SuperdeskApiError.badRequestError(message="Spike failed. Planning item in invalid state for spiking.")
 
-        user = get_user(required=True)
+        user = get_user()
 
         updates["revert_state"] = original[ITEM_STATE]
         updates[ITEM_STATE] = WORKFLOW_STATE.SPIKED
@@ -78,7 +79,7 @@ class PlanningSpikeService(BaseService):
         push_notification(
             "planning:spiked",
             item=str(id),
-            user=str(user.get(config.ID_FIELD)),
+            user=str(user.get(config.ID_FIELD, "")),
             etag=item["_etag"],
             revert_state=item["revert_state"],
         )
@@ -133,7 +134,7 @@ class PlanningSpikeService(BaseService):
         notify = True
         if original.get("event_item"):
             event = get_resource_service("events").find_one(req=None, _id=original.get("event_item"))
-            notify = event.get("state") != WORKFLOW_STATE.SPIKED
+            notify = not event or event.get("state") != WORKFLOW_STATE.SPIKED
 
         get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete, notify)
 

@@ -212,6 +212,7 @@ class EventsPostService(EventsBaseService):
         docs = []
         for planning in plannings:
             if not planning.get("pubstatus") and planning.get("state") in [
+                WORKFLOW_STATE.INGESTED,
                 WORKFLOW_STATE.DRAFT,
                 WORKFLOW_STATE.POSTPONED,
                 WORKFLOW_STATE.CANCELLED,

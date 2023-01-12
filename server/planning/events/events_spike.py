@@ -54,14 +54,14 @@ class EventsSpikeService(EventsBaseService):
         remove_autosave_on_spike(original)
         item = super().update(id, updates, original)
 
-        if self.is_original_event(original):
-            user = get_user(required=True).get(config.ID_FIELD, "")
+        user_id = get_user().get(config.ID_FIELD, "")
+        if self.is_original_event(original) or not user_id:
             spiked_items.append({"id": id, "etag": item["_etag"], "revert_state": item["revert_state"]})
 
             push_notification(
                 "events:spiked",
                 item=str(original[config.ID_FIELD]),
-                user=str(user),
+                user=str(user_id),
                 spiked_items=spiked_items,
             )
 
