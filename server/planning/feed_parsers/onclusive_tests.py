@@ -1,4 +1,5 @@
 import os
+import bson
 import json
 import logging
 import datetime
@@ -50,7 +51,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         expected_subjects.sort(key=lambda i: i["name"])
         self.assertEqual(item["subject"], expected_subjects)
 
-        self.assertEqual(item[GUID_FIELD], "urn:onclusive:2021-05-04T21:19:10.2:4112034")
+        self.assertEqual(item[GUID_FIELD], "urn:onclusive:4112034")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
         self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 21, 19, 10, tzinfo=datetime.timezone.utc))
@@ -59,6 +60,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         )
 
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
+        self.assertEqual(item["language"], "en-CA")
 
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
 
@@ -74,6 +76,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item["location"][0]["address"]["country"], "Canada")
 
         self.assertEqual(1, len(item["event_contact_info"]))
+        self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertIsNotNone(contact)
         self.assertTrue(contact["public"])
@@ -87,6 +90,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         data = deepcopy(self.data)
         data["pressContacts"][0]["pressContactEmail"] = "foo@example.com"
         item = OnclusiveFeedParser().parse([data])[0]
+        self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertEqual(["foo@example.com"], contact["contact_email"])
         self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())

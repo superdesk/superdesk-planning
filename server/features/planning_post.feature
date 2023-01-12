@@ -411,3 +411,90 @@ Feature: Post Planning
         }
         """
         Then we get error 400
+
+    @auth
+    Scenario: filters private contacts on planning post and doesnt modify planning
+        When we post to "/contacts"
+        """
+        [
+            {"first_name": "Private", "last_name": "Foo", "public": false},
+            {"first_name": "Public", "last_name": "Bar", "public": true}
+        ]
+        """
+        Then we store "PRIVATE_CONTACT" with first item
+        Then we store "PUBLIC_CONTACT" with 2 item
+        When we post to "/planning"
+        """
+        [{
+            "headline": "Plan 1",
+            "slugline": "plan-1",
+            "planning_date": "2029-11-21T12:00:00.000Z"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "coverage_id": "plan1cov1",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "planning": {
+                    "headline": "Plan 1 Cov 1",
+                    "slugline": "plan-1-cov-1",
+                    "g2_content_type": "text",
+                    "contact_info": "#PRIVATE_CONTACT._id#"
+                }
+            }, {
+                "coverage_id": "plan1cov2",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "planning": {
+                    "headline": "Plan 1 Cov 2",
+                    "slugline": "plan-1-cov-2",
+                    "g2_content_type": "text",
+                    "contact_info": "#PUBLIC_CONTACT._id#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "coverages": [{
+                "coverage_id": "plan1cov1",
+                "planning": {"contact_info": "#PRIVATE_CONTACT._id#"}
+            }, {
+                "coverage_id": "plan1cov2",
+                "planning": {"contact_info": "#PUBLIC_CONTACT._id#"}
+            }]
+        }
+        """
+        When we get "/published_planning?where={"item_id":"#planning._id#"}"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [{
+                "published_item": {
+                    "coverages": [{
+                        "coverage_id": "plan1cov1",
+                        "planning": {"contact_info": "__no_value__"}
+                    }, {
+                        "coverage_id": "plan1cov2",
+                        "planning": {"contact_info": "#PUBLIC_CONTACT._id#"}
+                    }]
+                }
+            }]
+        }
+        """

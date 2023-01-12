@@ -264,8 +264,8 @@ def format_address(location=None, seperator=" "):
     if address.get("line"):
         formatted_address.append(address.get("line")[0])
 
-    formatted_address.append(address.get("area"))
-    formatted_address.append(address.get("locality"))
+    formatted_address.append(address.get("city") or address.get("area"))
+    formatted_address.append(address.get("state") or address.get("locality"))
     formatted_address.append(address.get("postal_code"))
     formatted_address.append(address.get("country"))
 
@@ -594,10 +594,19 @@ def is_valid_event_planning_reason(updates, original):
 
 
 def get_contacts_from_item(item):
-    contact_ids = item.get("event_contact_info") or []
+    contact_ids = []
+
+    if item.get("event_contact_info"):
+        contact_ids.extend([str(contact_id) for contact_id in item["event_contact_info"]])
+
     if (item.get("event") or {}).get("event_contact_info"):
-        contact_ids = item["event"]["event_contact_info"]
-    contact_ids = [str(c) for c in contact_ids]
+        contact_ids.extend([str(contact_id) for contact_id in item["event"]["event_contact_info"]])
+
+    if item.get("coverages"):
+        for coverage in item["coverages"]:
+            if (coverage.get("planning") or {}).get("contact_info"):
+                contact_ids.append(str(coverage["planning"]["contact_info"]))
+
     query = {"query": {"bool": {"must": [{"terms": {"_id": contact_ids}}, {"term": {"public": "true"}}]}}}
     contacts = get_resource_service("contacts").search(query)
     return list(contacts)

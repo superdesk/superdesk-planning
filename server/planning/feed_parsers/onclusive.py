@@ -1,6 +1,7 @@
 import datetime
 import logging
 import pytz
+import bson
 from typing import Dict
 from superdesk import get_resource_service
 from superdesk.io.feed_parsers import FeedParser
@@ -29,6 +30,8 @@ class OnclusiveFeedParser(FeedParser):
 
     ONCLUSIVE_TIMEZONES = [tzname for tzname in pytz.common_timezones if "US" in tzname or "GMT" in tzname]
 
+    default_locale = "en-CA"
+
     def can_parse(self, content):
         try:
             if not isinstance(content, list):
@@ -46,7 +49,7 @@ class OnclusiveFeedParser(FeedParser):
         try:
             all_events = []
             for event in content:
-                guid = "urn:onclusive:{}:{}".format(event["createdDate"], event["itemId"])
+                guid = "urn:onclusive:{}".format(event["itemId"])
 
                 item = {
                     GUID_FIELD: guid,
@@ -96,6 +99,7 @@ class OnclusiveFeedParser(FeedParser):
         )
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
+        item["language"] = event.get("locale") or self.default_locale
 
     def parse_event_details(self, event, item):
         if event.get("time"):
@@ -192,14 +196,13 @@ class OnclusiveFeedParser(FeedParser):
         if time is not None:
             parsed_time = datetime.time.fromisoformat(time)
             parsed = parsed.replace(hour=parsed_time.hour, minute=parsed_time.minute, second=parsed_time.second)
-        return parsed.astimezone(datetime.timezone.utc)
+        return parsed.replace(microsecond=0).astimezone(datetime.timezone.utc)
 
     def parse_contact_info(self, event, item):
         for contact_info in event.get("pressContacts"):
-            contact_id = "onclusive:{}".format(contact_info["pressContactID"])
-            item.setdefault("event_contact_info", []).append(contact_id)
-
-            data = {}
+            item.setdefault("event_contact_info", [])
+            contact_uri = "onclusive:{}".format(contact_info["pressContactID"])
+            data = {"uri": contact_uri}
             if contact_info.get("pressContactEmail"):
                 data.setdefault("contact_email", []).append(contact_info["pressContactEmail"])
 
@@ -220,17 +223,18 @@ class OnclusiveFeedParser(FeedParser):
                 data["first_name"] = first
                 data["last_name"] = last
 
-            existing_contact = get_resource_service("contacts").find_one(req=None, _id=contact_id)
+            existing_contact = get_resource_service("contacts").find_one(req=None, uri=contact_uri)
             if existing_contact is None:
-                logger.debug("New contact %s %s", contact_id, data.get("organisation"))
+                logger.debug("New contact %s %s", contact_uri, data.get("organisation"))
                 data.update(
                     {
-                        "_id": contact_id,
                         "is_active": True,
                         "public": True,
                     }
                 )
                 get_resource_service("contacts").post([data])
+                item["event_contact_info"].append(bson.ObjectId(data["_id"]))
             else:
-                logger.debug("Existing contact %s %s", contact_id, data.get("organisation"))
+                logger.debug("Existing contact %s %s", contact_uri, data.get("organisation"))
                 get_resource_service("contacts").patch(existing_contact["_id"], data)
+                item["event_contact_info"].append(bson.ObjectId(existing_contact["_id"]))

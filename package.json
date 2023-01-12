@@ -32,7 +32,7 @@
     "redux-logger": "~3.0.6",
     "reselect": "~3.0.1",
     "rrule": "~2.2.9",
-    "superdesk-ui-framework": "^3.0.1-beta.30",
+    "superdesk-ui-framework": "^3.0.0-rc12",
     "ts-loader": "3.5.0",
     "typescript": "3.9.7",
     "whatwg-fetch": "~2.0.4"
@@ -77,6 +77,6 @@
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.14",
     "react": "^16.9.0",
-    "superdesk-ui-framework": "3.0.1-beta.30"
+    "superdesk-ui-framework": "^3.0.0-rc12"
   }
 }

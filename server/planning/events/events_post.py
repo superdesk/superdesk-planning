@@ -154,11 +154,6 @@ class EventsPostService(EventsBaseService):
         new_item_state = get_item_post_state(event, new_post_state, repost)
         updates = {"state": new_item_state, "pubstatus": new_post_state}
 
-        # check and remove private contacts while posting event, only public contact will be visible
-        updates["event_contact_info"] = [
-            try_cast_object_id(contact["_id"]) for contact in get_contacts_from_item(event)
-        ]
-
         event["pubstatus"] = new_post_state
         # Remove previous workflow state reason
         if new_item_state in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
@@ -187,6 +182,9 @@ class EventsPostService(EventsBaseService):
         return updated_event
 
     def publish_event(self, event, version):
+        # check and remove private contacts while posting event, only public contact will be visible
+        event["event_contact_info"] = [try_cast_object_id(contact["_id"]) for contact in get_contacts_from_item(event)]
+
         """Enqueue the items for publish"""
         version_id = get_resource_service("published_planning").post(
             [
@@ -214,6 +212,7 @@ class EventsPostService(EventsBaseService):
         docs = []
         for planning in plannings:
             if not planning.get("pubstatus") and planning.get("state") in [
+                WORKFLOW_STATE.INGESTED,
                 WORKFLOW_STATE.DRAFT,
                 WORKFLOW_STATE.POSTPONED,
                 WORKFLOW_STATE.CANCELLED,
