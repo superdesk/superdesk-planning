@@ -39,6 +39,7 @@ class EventsTemplateResource(Resource):
     }
     _event_fields = {
         "slugline": {"type": "string", "required": False, "readonly": True},
+        "language": {"type": "string", "required": False, "readonly": True},
         "name": {"type": "string", "required": False, "readonly": True},
         "definition_short": {"type": "string", "required": False, "readonly": True},
         "definition_long": {"type": "string", "required": False, "readonly": True},
@@ -179,6 +180,7 @@ class EventsTemplateService(BaseService):
             "event_contact_info",
             "subject",
             "occur_status",
+            "language"
         ):
             if field in event and event[field]:
                 doc["data"][field] = event[field]
