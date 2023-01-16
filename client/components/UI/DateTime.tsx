@@ -44,7 +44,7 @@ function DateTime({
     let eventStartDate;
 
     if (isFullDay) {
-        eventStartDate = moment.utc(date).format(dateFormat);
+        eventStartDate = moment(date).format(dateFormat);
     } else if (noEndTime) {
         eventStartDate = moment(date).format(dateTimeFormat);
     } else {
@@ -56,7 +56,7 @@ function DateTime({
     if ((noEndTime || isFullDay) && !multiDay) {
         eventEndDate = null;
     } else if ((noEndTime || isFullDay) && multiDay) {
-        eventEndDate = moment.utc(date).format(dateFormat);
+        eventEndDate = moment(date).format(dateFormat);
     } else {
         eventEndDate = moment(date).format(dateTimeFormat);
     }
