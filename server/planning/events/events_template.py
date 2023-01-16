@@ -180,7 +180,7 @@ class EventsTemplateService(BaseService):
             "event_contact_info",
             "subject",
             "occur_status",
-            "language"
+            "language",
         ):
             if field in event and event[field]:
                 doc["data"][field] = event[field]
