@@ -135,6 +135,27 @@ TEMP_ID_PREFIX = "tempId-"
 TO_BE_CONFIRMED_FIELD = "_time_to_be_confirmed"
 TO_BE_CONFIRMED_FIELD_SCHEMA = {"type": "boolean"}
 
+EVENT_IGNORED_FIELDS = {
+    "_id",
+    "guid",
+    "unique_name",
+    "unique_id",
+    "lock_user",
+    "lock_time",
+    "lock_session",
+    "lock_action",
+    "_created",
+    "_updated",
+    "_etag",
+    "pubstatus",
+    "recurrence_id",
+    "previous_recurrence_id",
+    "reschedule_from",
+    "reschedule_to" "_reschedule_from_schedule",
+    "expired",
+    "state_reason",
+}
+
 
 def set_item_expiry(doc):
     expiry_minutes = app.settings.get("PLANNING_EXPIRY_MINUTES", None)
