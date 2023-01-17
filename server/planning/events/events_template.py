@@ -40,7 +40,6 @@ class EventsTemplateResource(Resource):
     }
     _event_fields = {
         "slugline": {"type": "string", "required": False, "readonly": True},
-        "language": {"type": "string", "required": False, "readonly": True},
         "name": {"type": "string", "required": False, "readonly": True},
         "definition_short": {"type": "string", "required": False, "readonly": True},
         "definition_long": {"type": "string", "required": False, "readonly": True},
@@ -163,7 +162,7 @@ class EventsTemplateService(BaseService):
 
     def _fill_event_template(self, doc):
         event = self._get_event(doc["based_on_event"])
-        doc.copy(event)
+        doc = event.copy()
         for field in EVENT_IGNORED_FIELDS:
             doc.pop(field, None)
 
