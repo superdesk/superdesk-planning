@@ -38,6 +38,50 @@ class EventsTemplateResource(Resource):
         "PATCH": "planning_event_templates",
         "PUT": "planning_event_templates",
     }
+    _event_fields = {
+        "slugline": {"type": "string", "required": False, "readonly": True},
+        "name": {"type": "string", "required": False, "readonly": True},
+        "definition_short": {"type": "string", "required": False, "readonly": True},
+        "definition_long": {"type": "string", "required": False, "readonly": True},
+        "internal_note": {"type": "string", "required": False, "readonly": True},
+        "ednote": {"type": "string", "required": False, "readonly": True},
+        "links": {"type": "list", "readonly": True},
+        "occur_status": {
+            "type": "dict",
+            "allow_unknown": True,
+            "schema": {
+                "qcode": {"type": "string"},
+                "name": {"type": "string"},
+                "label": {"type": "string"},
+            },
+            "readonly": True,
+        },
+        "files": {
+            "type": "list",
+            "schema": Resource.rel("events_files"),
+            "readonly": True,
+        },
+        "calendars": {
+            "type": "list",
+            "schema": {
+                "type": "dict",
+                "allow_unknown": True,
+                "schema": {
+                    "qcode": {"type": "string"},
+                    "name": {"type": "string"},
+                    "is_active": {"type": "boolean"},
+                },
+            },
+            "readonly": True,
+        },
+        "location": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
+        "event_contact_info": {
+            "type": "list",
+            "schema": Resource.rel("contacts"),
+            "readonly": True,
+        },
+        "subject": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
+    }
     schema = {
         "template_name": {
             "type": "string",
@@ -51,11 +95,7 @@ class EventsTemplateResource(Resource):
             embeddable=False,
             required=True,
         ),
-        "data": {
-            "type": "dict",
-            "schema": {},
-            "allow_unknown": True,
-        },
+        "data": {"type": "dict", "schema": _event_fields, "allow_unknown": True},
     }
 
 
