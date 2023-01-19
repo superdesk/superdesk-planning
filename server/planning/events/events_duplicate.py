@@ -14,7 +14,7 @@ from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url
 from flask import request, current_app as app
-from planning.common import ITEM_STATE, WORKFLOW_STATE, EVENT_IGNORED_FIELDS
+from planning.common import ITEM_STATE, WORKFLOW_STATE, DUPLICATE_EVENT_IGNORED_FIELDS
 from eve.utils import config
 
 
@@ -63,7 +63,7 @@ class EventsDuplicateService(BaseService):
     def _duplicate_doc(self, original):
         new_doc = original.copy()
 
-        for f in EVENT_IGNORED_FIELDS:
+        for f in DUPLICATE_EVENT_IGNORED_FIELDS:
             new_doc.pop(f, None)
         new_doc.get("dates").pop("recurring_rule", None)
         new_doc[ITEM_STATE] = WORKFLOW_STATE.DRAFT

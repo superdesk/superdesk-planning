@@ -135,7 +135,7 @@ TEMP_ID_PREFIX = "tempId-"
 TO_BE_CONFIRMED_FIELD = "_time_to_be_confirmed"
 TO_BE_CONFIRMED_FIELD_SCHEMA = {"type": "boolean"}
 
-EVENT_IGNORED_FIELDS = {
+DUPLICATE_EVENT_IGNORED_FIELDS = {
     "_id",
     "guid",
     "unique_name",

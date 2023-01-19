@@ -17,7 +17,7 @@ from superdesk.metadata.item import metadata_schema
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from superdesk.utils import ListCursor
-from planning.common import EVENT_IGNORED_FIELDS
+from planning.common import DUPLICATE_EVENT_IGNORED_FIELDS
 from apps.archive.common import get_user
 
 logger = logging.getLogger(__name__)
@@ -163,7 +163,7 @@ class EventsTemplateService(BaseService):
     def _fill_event_template(self, doc):
         event = self._get_event(doc["based_on_event"])
         doc["data"] = event.copy()
-        for field in EVENT_IGNORED_FIELDS:
+        for field in DUPLICATE_EVENT_IGNORED_FIELDS:
             doc["data"].pop(field, None)
 
 
