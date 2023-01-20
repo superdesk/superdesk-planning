@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "2.6.0-rc.1",
+  "version": "2.6.0",
   "license": "AGPL-3.0",
   "description": "",
   "repository": {
@@ -66,7 +66,7 @@
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
-    "superdesk-core": "github:superdesk/superdesk-client-core#release/2.6",
+    "superdesk-core": "github:superdesk/superdesk-client-core#v2.6.0",
     "ts-node": "~7.0.1",
     "tslint": "5.11.0",
     "typescript-eslint-parser": "^18.0.0"
