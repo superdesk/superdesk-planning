@@ -151,7 +151,8 @@ DUPLICATE_EVENT_IGNORED_FIELDS = {
     "recurrence_id",
     "previous_recurrence_id",
     "reschedule_from",
-    "reschedule_to" "_reschedule_from_schedule",
+    "reschedule_to",
+    "_reschedule_from_schedule",
     "expired",
     "state_reason",
 }
