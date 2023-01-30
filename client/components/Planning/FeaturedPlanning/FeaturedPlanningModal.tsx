@@ -223,14 +223,12 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
                             onClick={this.props.postFeaturedStory}
                         />
                     )}
-                    {!this.props.dirty ? null : (
                         <Button
                             type="primary"
                             text={gettext('Save')}
                             disabled={!this.props.dirty}
                             onClick={this.props.onSave.bind(null, false)}
                         />
-                    )}
                 </Modal.Footer>
             </Modal>
         );
