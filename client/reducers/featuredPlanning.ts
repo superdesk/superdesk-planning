@@ -73,7 +73,7 @@ function updateListIds(prevState: IFeaturedPlanningState): IFeaturedPlanningStat
 
     const dirty = (removePlanningIds?.length ?? 0) > 0 || (
         !existingItem &&
-        selectedPlanningIds?.length &&
+        !selectedPlanningIds &&
         !isReadOnly
     );
 
