@@ -227,6 +227,7 @@ export class FeaturedPlanningModalComponent extends React.Component<IProps, any>
                         <Button
                             type="primary"
                             text={gettext('Save')}
+                            disabled={!this.props.dirty}
                             onClick={this.props.onSave.bind(null, false)}
                         />
                     )}
