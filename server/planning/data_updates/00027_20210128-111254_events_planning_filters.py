@@ -14,7 +14,6 @@ from eve.utils import config
 # This script converts `events_planning_filters` documents to newer schema
 # Required after changes in PR: https://github.com/superdesk/superdesk-planning/pull/1511
 class DataUpdate(BaseDataUpdate):
-
     resource = "events_planning_filters"
 
     def forwards(self, mongodb_collection, mongodb_database):

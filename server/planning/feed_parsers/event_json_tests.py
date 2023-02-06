@@ -5,7 +5,6 @@ from superdesk import get_resource_service
 
 
 class EventJsonFeedParserTestCase(TestCase):
-
     sample_json = {}
 
     def setUp(self):
@@ -18,7 +17,6 @@ class EventJsonFeedParserTestCase(TestCase):
 
     def test_event_json_feed_parser_parse(self):
         with self.app.app_context():
-
             random_event = {
                 "is_active": True,
                 "name": "random123",
@@ -33,7 +31,6 @@ class EventJsonFeedParserTestCase(TestCase):
 
             # add the random event items for above fields.
             for field in assign_from_local_cv:
-
                 self.app.data.insert(
                     "vocabularies",
                     [
@@ -58,7 +55,6 @@ class EventJsonFeedParserTestCase(TestCase):
             # ignore fields like files as per the ACs in SDNTB-682
             self.assertNotIn("files", events[0])
             for field in assign_from_local_cv.keys():
-
                 # check if the same random is returned after parsing as inserted above.
                 if events[0].get(field):
                     if field == "occur_status":
