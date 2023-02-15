@@ -23,7 +23,6 @@ DEFAULT_PROFILES = {
 
 
 class DataUpdate(BaseDataUpdate):
-
     resource = "planning_types"
     resource_types = ["event", "planning", "coverage"]
 

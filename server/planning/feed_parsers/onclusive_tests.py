@@ -20,7 +20,6 @@ from .onclusive import OnclusiveFeedParser
 
 
 class OnclusiveFeedParserTestCase(TestCase):
-
     data = {}
 
     def setUp(self):

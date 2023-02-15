@@ -13,7 +13,6 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
 
     def test_update(self):
         with self.app.app_context():
-
             service = OnclusiveApiService()
             provider = {
                 "_id": "onclusive_api",

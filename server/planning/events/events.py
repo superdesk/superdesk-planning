@@ -356,7 +356,6 @@ class EventsService(superdesk.Service):
             event_id = str(doc.get(config.ID_FIELD))
             # If we duplicated this event, update the history
             if doc.get("duplicate_from"):
-
                 parent_id = doc["duplicate_from"]
                 parent_event = self.find_one(req=None, _id=parent_id)
 

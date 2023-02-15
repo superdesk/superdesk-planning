@@ -14,7 +14,6 @@ from unittest import mock
 
 
 class MockSlack:
-
     api_call_OK = True
 
     def api_call(self, method, **pars):

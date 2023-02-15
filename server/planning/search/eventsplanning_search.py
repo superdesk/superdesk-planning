@@ -116,7 +116,6 @@ class EventsPlanningService(Service):
     def _construct_search_query(
         self, repo: str, params: Dict[str, Any], search_filter: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
-
         if repo == "events":
             filters = EVENT_SEARCH_FILTERS
         elif repo == "planning":
