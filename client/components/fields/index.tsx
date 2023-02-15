@@ -189,7 +189,11 @@ export function renderGroupedFieldsForPanel(
     }, {
         name: 'details',
         title: gettext('Details'),
-    }];
+    }, {
+        name: 'language',
+        title: gettext('Language'),
+    },
+    ];
 
     return groups.map((group) => {
         const renderedFields = renderFieldsForPanel(

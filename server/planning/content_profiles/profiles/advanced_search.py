@@ -157,6 +157,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "language": {
+                "enabled": True,
+                "index": 1,
+                "group": "language",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
         },
         "planning": {
             # Common Fields
