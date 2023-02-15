@@ -34,13 +34,6 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
-            "language": {
-                "enabled": False,
-                "index": 4,
-                "group": "common",
-                "search_enabled": True,
-                "filter_enabled": True,
-            },
             # Vocabularies
             "anpa_category": {
                 "enabled": True,
