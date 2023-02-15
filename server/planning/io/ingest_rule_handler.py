@@ -84,7 +84,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
     def _is_original_posted(self, ingest_item: Dict[str, Any]):
         service = get_resource_service("events" if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT else "planning")
-        original = service.fine_one(req=None, _id=ingest_item.get(config.ID_FIELD))
+        original = service.find_one(req=None, _id=ingest_item.get(config.ID_FIELD))
 
         return original.get("pubstatus") in [POST_STATE.USABLE, POST_STATE.CANCELLED]
 
