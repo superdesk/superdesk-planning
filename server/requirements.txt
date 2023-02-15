@@ -19,4 +19,4 @@ pytest-env
 
 -e .
 # Install in editable state so we get feature fixtures
--e git+https://github.com/superdesk/superdesk-core.git@v2.6.0#egg=superdesk-core
+-e git+https://github.com/superdesk/superdesk-core.git@hotfix/2.6.1#egg=superdesk-core
