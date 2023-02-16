@@ -34,6 +34,13 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "search_enabled": True,
                 "filter_enabled": True,
             },
+            "language": {
+                "enabled": True,
+                "index": 4,
+                "group": "common",
+                "search_enabled": True,
+                "filter_enabled": True,
+            },
             # Vocabularies
             "anpa_category": {
                 "enabled": True,
@@ -147,13 +154,6 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "enabled": True,
                 "index": 4,
                 "group": "events",
-                "search_enabled": True,
-                "filter_enabled": True,
-            },
-            "language": {
-                "enabled": True,
-                "index": 1,
-                "group": "language",
                 "search_enabled": True,
                 "filter_enabled": True,
             },
