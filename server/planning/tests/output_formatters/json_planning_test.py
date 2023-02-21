@@ -51,7 +51,9 @@ class JsonPlanningTestCase(TestCase):
         ],
         "internal_note": "An internal Note",
         "_etag": "639e18fc36d9ef6da577702de307aa9506b440e2",
-        "subject": [{"name": "tourism", "qcode": "10006000", "parent": "10000000", "translations": {"name": {"en": "Tourism"}}}],
+        "subject": [
+            {"name": "tourism", "qcode": "10006000", "parent": "10000000", "translations": {"name": {"en": "Tourism"}}}
+        ],
         "description_text": "The description of the event",
         "anpa_category": [{"name": "International News", "qcode": "i"}],
         "flags": {"marked_for_not_publication": False},

@@ -1,4 +1,3 @@
-
 from typing import Dict
 from superdesk.publish.formatters.ninjs_formatter import get_locale_name
 
