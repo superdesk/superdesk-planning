@@ -11,6 +11,7 @@ from bson.objectid import ObjectId
     lambda self, subscriber: 1,
 )
 class JsonPlanningTestCase(TestCase):
+    maxDiff = None
     item = {
         "_id": "urn:newsml:localhost:2018-04-10T11:06:53.632085:e372d553-9ee1-4e62-8706-fd2eb678ce06",
         "_planning_schedule": [
@@ -50,7 +51,7 @@ class JsonPlanningTestCase(TestCase):
         ],
         "internal_note": "An internal Note",
         "_etag": "639e18fc36d9ef6da577702de307aa9506b440e2",
-        "subject": [{"name": "tourism", "qcode": "10006000", "parent": "10000000"}],
+        "subject": [{"name": "tourism", "qcode": "10006000", "parent": "10000000", "translations": {"name": {"en": "Tourism"}}}],
         "description_text": "The description of the event",
         "anpa_category": [{"name": "International News", "qcode": "i"}],
         "flags": {"marked_for_not_publication": False},
@@ -80,6 +81,7 @@ class JsonPlanningTestCase(TestCase):
         "lock_time": None,
         "urgency": 1,
         "version_creator": "57bcfc5d1d41c82e8401dcc0",
+        "language": "en",
     }
     assignment = [
         {
@@ -125,9 +127,17 @@ class JsonPlanningTestCase(TestCase):
         }
     ]
 
-    def setUp(self):
-        super().setUp()
-        self.maxDiff = None
+    def format(self):
+        with self.app.app_context():
+            formatter = JsonPlanningFormatter()
+            output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
+            output_item = json.loads(output[1])
+            return output_item
+
+    def test_formatting(self):
+        output_item = self.format()
+        self.assertEqual("en", output_item["language"])
+        self.assertEqual("Tourism", output_item["subject"][0]["name"])
 
     def test_formatter_completed_coverage(self):
         with self.app.app_context():

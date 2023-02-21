@@ -24,7 +24,7 @@ class JsonEventTestCase(TestCase):
         "event_contact_info": ["5ab491271d41c88e98ad9336"],
         "internal_note": "An internal Note",
         "_etag": "5ce752b8907fba6b6f56e316f4722436bd3098ba",
-        "subject": [{"name": "tourism", "qcode": "10006000", "parent": "10000000"}],
+        "subject": [{"name": "tourism", "qcode": "10006000", "parent": "10000000", "translations": {"name": {"en": "Tourism"}}}],
         "anpa_category": [{"name": "International News", "qcode": "i"}],
         "occur_status": {
             "label": "Confirmed",
@@ -75,6 +75,7 @@ class JsonEventTestCase(TestCase):
         "lock_user": None,
         "lock_time": None,
         "expiry": None,
+        "language": "en",
     }
 
     def setUp(self):
@@ -138,6 +139,8 @@ class JsonEventTestCase(TestCase):
         self.assertEqual(output_item.get("internal_note"), "An internal Note")
         self.assertEqual(output_item.get("ednote"), "An editorial Note")
         self.assertEqual(output_item.get("products"), [{"code": 201, "name": "p-1"}])
+        self.assertEqual(output_item.get("subject")[0]["name"], "Tourism")
+        self.assertEqual(output_item.get("language"), "en")
 
     def test_files_publishing(self):
         init_app(self.app)
