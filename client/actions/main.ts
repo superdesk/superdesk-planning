@@ -236,7 +236,6 @@ const save = (original, updates, withConfirmation = true) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            confirmation = false;
             promise = dispatch(eventsUi.save(original, updates));
             break;
         case ITEM_TYPE.PLANNING:
@@ -287,6 +286,7 @@ const save = (original, updates, withConfirmation = true) => (
 
                 switch (itemType) {
                 case ITEM_TYPE.EVENT:
+                    notify.success(gettext('{{ itemType }} created', {itemType: getItemTypeString(savedItem)}));
                     dispatch(
                         eventsApi.receiveEvents([savedItem])
                     );
