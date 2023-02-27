@@ -237,6 +237,7 @@ const save = (original, updates, withConfirmation = true) => (
         switch (itemType) {
         case ITEM_TYPE.EVENT:
             promise = dispatch(eventsUi.save(original, updates, confirmation));
+            confirmation = false;
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
