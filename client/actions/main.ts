@@ -16,6 +16,7 @@ import {
     PLANNING_VIEW,
     IWebsocketMessageData,
     ITEM_TYPE,
+    IEventTemplate,
 } from '../interfaces';
 
 import {
@@ -174,6 +175,13 @@ const createNew = (itemType, item = null, updateUrl = true, modal = false) => (
         ...item,
     }, 'create', updateUrl, modal)
 );
+
+function createEventFromTemplate(template: IEventTemplate) {
+    return self.createNew(ITEM_TYPE.EVENT, {
+        ...template.data,
+        dates: {},
+    });
+}
 
 const unlockAndCancel = (item, ignoreSession = false) => (
     (dispatch, getState) => {
@@ -1619,6 +1627,7 @@ const self = {
     openActionModalFromEditor,
     isItemValid,
     createNew,
+    createEventFromTemplate,
     fetchById,
     fetchItemHistory,
     reloadEditor,
