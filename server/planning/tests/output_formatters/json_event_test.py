@@ -27,7 +27,7 @@ class JsonEventTestCase(TestCase):
         "subject": [
             {"name": "tourism", "qcode": "10006000", "parent": "10000000", "translations": {"name": {"en": "Tourism"}}}
         ],
-        "anpa_category": [{"name": "International News", "qcode": "i"}],
+        "anpa_category": [{"name": "International News", "qcode": "i", "translations": {"name": {"en": "News"}}}],
         "occur_status": {
             "label": "Confirmed",
             "name": "Planned, occurs certainly",
@@ -58,7 +58,14 @@ class JsonEventTestCase(TestCase):
         "links": ["https://www.prague.eu/en"],
         "files": [],
         "type": "event",
-        "calendars": [{"name": "Holidays", "qcode": "holidays", "is_active": True}],
+        "calendars": [
+            {
+                "name": "Holidays",
+                "qcode": "holidays",
+                "is_active": True,
+                "translations": {"name": {"en": "Holidays Calendar"}},
+            }
+        ],
         "original_creator": "57bcfc5d1d41c82e8401dcc0",
         "state": "draft",
         "slugline": "SLUGLINE",
@@ -142,6 +149,8 @@ class JsonEventTestCase(TestCase):
         self.assertEqual(output_item.get("ednote"), "An editorial Note")
         self.assertEqual(output_item.get("products"), [{"code": 201, "name": "p-1"}])
         self.assertEqual(output_item.get("subject")[0]["name"], "Tourism")
+        self.assertEqual(output_item.get("calendars")[0]["name"], "Holidays Calendar")
+        self.assertEqual(output_item.get("anpa_category")[0]["name"], "News")
         self.assertEqual(output_item.get("language"), "en")
 
     def test_files_publishing(self):
