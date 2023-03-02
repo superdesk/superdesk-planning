@@ -1,4 +1,3 @@
-import time
 import logging
 import requests
 
@@ -11,6 +10,8 @@ from superdesk.io.feeding_services.http_base_service import HTTPFeedingServiceBa
 from superdesk.timer import timer
 from superdesk.utc import utcnow
 from urllib.parse import urljoin
+from superdesk.errors import ProviderError
+from celery.exceptions import SoftTimeLimitExceeded
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,6 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         self.session = requests.Session()
         parser = self.get_feed_parser(provider)
         update["tokens"] = provider.get("tokens") or {}
-        start_time = time.time()
         with timer("onclusive:update"):
             self.authenticate(provider, update["tokens"])
             if not self.token:
@@ -87,9 +87,11 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 second=0
             )  # next time start from here, onclusive api does not use seconds
             if update["tokens"].get("import_finished"):
-                logger.info("Fetching updates since %s", provider["last_updated"].isoformat())
                 url = urljoin(URL, "/api/v2/events/latest")
-                start = update["tokens"]["import_finished"]
+                start = update["tokens"]["import_finished"] - timedelta(
+                    hours=1
+                )  # add 1h buffer to avoid missing events
+                logger.info("Fetching updates since %s", start.isoformat())
                 start_offset = 0
                 params = dict(
                     date=start.strftime("%Y%m%d"),
@@ -113,41 +115,48 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                     endDate=end.strftime("%Y%m%d"),
                     limit=LIMIT,
                 )
-            for offset in range(start_offset, MAX_OFFSET, LIMIT):
-                if time.time() - start_time > 60 * 20:  # stop after 20m to avoid celery soft timeout
-                    logger.warning("Stopping Onclusive ingest before the limit")
+            logger.info("ingest from onclusive %s with params %s", url, params)
+            try:
+                last_updated = None
+                for offset in range(start_offset, MAX_OFFSET, LIMIT):
+                    params["offset"] = offset
+                    logger.debug("params %s", params)
+                    content = self._fetch(url, params, provider, update["tokens"])
+                    if not content:
+                        logger.info("done ingesting offset=%d last_updated=%s", offset, last_updated)
+                        if last_updated:
+                            update["tokens"]["import_finished"] = last_updated
+                        break
+                    items = parser.parse(content, provider)
+                    for item in items:
+                        if item.get("versioncreated"):
+                            last_updated = (
+                                max(last_updated, item["versioncreated"]) if last_updated else item["versioncreated"]
+                            )
+                    yield items
                     update["tokens"]["start_offset"] = offset
-                    break
-                params["offset"] = offset
-                logger.debug("params %s", params)
-                content = self._fetch(url, params, provider, update["tokens"])
-                if not content:
-                    logger.info("done ingesting with offset %d", offset)
-                    break
-                yield parser.parse(content, provider)
-                update["tokens"]["start_offset"] = offset
-            else:
-                logger.warning("some items were not fetched due to the limit")
-            update["tokens"]["import_finished"] = update["last_updated"]
+                else:
+                    logger.warning("some items were not fetched due to the limit")
+            except SoftTimeLimitExceeded:
+                logger.warning("stopped due to time limit, tokens=%s", update["tokens"])
+                # let it finish the current job and update the start_offset for next time
 
     def _fetch(self, url, params, provider, tokens):
-        with timer("onclusive:events"):
-            response = self.session.get(url=url, params=params, headers=self.headers, timeout=self.timeout)
+        for i in range(5):
+            with timer("onclusive:fetch"):
+                response = self.session.get(url=url, params=params, headers=self.headers, timeout=self.timeout)
 
-        if response.status_code == 401:
-            self.authenticate(provider, tokens)
-            if self.token:
-                with timer("onclusive:events"):
-                    response = self.session.get(url, params=params, headers=self.headers, timeout=self.timeout)
+            if response.status_code == 200:
+                return response.json()
 
-        response.raise_for_status()
-        data = response.json()
+            if response.status_code == 401:
+                self.authenticate(provider, tokens)
 
-        if data and app.config.get("ONCLUSIVE_DEBUG"):
-            with open("/tmp/onclusive.json", "w") as f:
-                json.dump(data, f, indent=2)
+            if response.status_code == 400:
+                logger.error("error from api %s", response.text)
 
-        return data
+        logger.error("could not fetch data from api params=%s", params)
+        raise ProviderError.ingestError()
 
     @property
     def headers(self):
