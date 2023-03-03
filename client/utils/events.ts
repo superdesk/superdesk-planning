@@ -5,6 +5,7 @@ import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {appConfig} from 'appConfig';
 import {IEventItem, ISession, ILockedItems} from '../interfaces';
+import {planningApi} from '../superdeskApi';
 
 import {
     PRIVILEGES,
@@ -961,6 +962,7 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
         qcode: 'eocstat:eos5',
         name: 'Planned, occurs certainly',
     };
+    const language = planningApi.contentProfiles.getDefaultLanguage(planningApi.contentProfiles.get('event'));
 
     let newEvent = {
         type: ITEM_TYPE.EVENT,
@@ -974,7 +976,8 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
         state: 'draft',
         _startTime: null,
         _endTime: null,
-        language: getUsersDefaultLanguage(true),
+        language: language,
+        languages: [language],
     };
 
     if (defaultPlaceList) {

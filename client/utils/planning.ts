@@ -1036,6 +1036,7 @@ const shouldLockPlanningForEdit = (item, privileges) => (
 );
 
 const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
+    const language = planningApi.contentProfiles.getDefaultLanguage(planningApi.contentProfiles.get('planning'));
     const newPlanning = {
         type: ITEM_TYPE.PLANNING,
         planning_date: moment(),
@@ -1043,7 +1044,8 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
             [getItemId(currentAgenda)] : [],
         state: 'draft',
         item_class: 'plinat:newscoverage',
-        language: getUsersDefaultLanguage(true),
+        language: language,
+        languages: [language],
     };
 
     if (defaultPlaceList) {
