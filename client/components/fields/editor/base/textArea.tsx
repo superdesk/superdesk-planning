@@ -12,6 +12,7 @@ interface IProps extends IEditorFieldProps {
     autoHeight?: boolean;
     rows?: number;
     labelIcon?: string;
+    noPadding?: boolean;
 }
 
 export class EditorFieldTextArea extends React.PureComponent<IProps> {
@@ -38,6 +39,7 @@ export class EditorFieldTextArea extends React.PureComponent<IProps> {
             <Row
                 testId={this.props.testId}
                 refNode={this.node}
+                noPadding={this.props.noPadding}
             >
                 <TextAreaInput
                     {...this.props}

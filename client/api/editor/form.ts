@@ -1,3 +1,4 @@
+import {IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
     IEditorAPI,
@@ -8,6 +9,7 @@ import {
 import {planningApi} from '../../superdeskApi';
 
 import {isItemReadOnly} from '../../utils';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {editorSelectors} from '../../selectors/editors';
 import * as actions from '../../actions';
 
@@ -139,6 +141,20 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         dispatch(actions.editors.hidePopupForm(type));
     }
 
+    function getMainLanguage(): IVocabularyItem['qcode'] {
+        const state = getState();
+
+        return state.mainLanguage ?? state.diff.language ?? getUserInterfaceLanguageFromCV();
+    }
+
+    function setMainLanguage(languageQcode?: IVocabularyItem['qcode']) {
+        setState({mainLanguage: languageQcode});
+    }
+
+    function toggleAllLanguages(): void {
+        setState({showAllLanguages: !getState().showAllLanguages});
+    }
+
     return {
         setState,
         getState,
@@ -152,5 +168,8 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         waitForScroll,
         showPopupForm,
         closePopupForm,
+        getMainLanguage,
+        setMainLanguage,
+        toggleAllLanguages,
     };
 }

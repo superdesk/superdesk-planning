@@ -24,6 +24,7 @@ export function getTextFieldComponent(schema?: IProfileSchemaTypeString) {
 
 interface IProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeString;
+    noPadding?: boolean;
 }
 
 export class EditorFieldDynamicTextType extends React.PureComponent<IProps> {

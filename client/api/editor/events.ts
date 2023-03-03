@@ -1,5 +1,6 @@
 import {createRef} from 'react';
 
+import {IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
     IEditorAPI,
@@ -163,6 +164,53 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
         }
     }
 
+    function beforeFormUpdates(newState: Partial<IEditorState>, field: keyof IEventOrPlanningItem, value?: any) {
+        const editorApi = planningApi.editor(type);
+        const itemType = editorApi.item.getItemType();
+        const multilingualConfig = planningApi.contentProfiles.multilingual.getConfig(itemType);
+        const currentState = editorApi.form.getState();
+
+        if (multilingualConfig.isEnabled) {
+            const newDiff = newState.diff;
+            const languages: Array<IVocabularyItem['qcode']> = (
+                field === 'languages' ? value : newDiff.languages
+            ) || [];
+
+            if (field === 'translations') {
+                // Make sure the parent field of the translated ones are populated
+                const translationFields = value.reduce((items, item) => {
+                    items[item.field] = items[item.field] || {};
+                    items[item.field][item.language] = item.value;
+
+                    return items;
+                }, {});
+
+                multilingualConfig.fields.forEach((parentField) => {
+                    if (translationFields[parentField] != null) {
+                        newDiff[parentField] = (
+                            translationFields[parentField][multilingualConfig.defaultLanguage] ||
+                            translationFields[parentField][languages[0]]
+                        );
+                    }
+                });
+            } else if (field === 'languages') {
+                // Make sure that the parent language field is populated as well
+                newDiff.language = value[0];
+
+                // And filter out any translations that are not in item's selected languages
+                newDiff.translations = (newDiff.translations || []).filter(
+                    (item) => (languages.includes(item.language))
+                );
+
+                if (currentState.mainLanguage != null && !languages.includes(currentState.mainLanguage)) {
+                    // List of languages has changed, and the `mainLanguage` is no longer available
+                    // So unset it now
+                    newState.mainLanguage = undefined;
+                }
+            }
+        }
+    }
+
     return {
         onEditorConstructed,
         onEditorMounted,
@@ -175,5 +223,6 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
         onOriginalChanged,
         onItemUpdated,
         onScroll,
+        beforeFormUpdates,
     };
 }

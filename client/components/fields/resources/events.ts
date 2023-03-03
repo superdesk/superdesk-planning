@@ -2,12 +2,12 @@ import {registerEditorField} from './registerEditorFields';
 
 import {superdeskApi} from '../../../superdeskApi';
 
-import {EditorFieldDynamicTextType} from '../editor/base/dynamicTextTypeField';
+import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
 import {EditorFieldEventLinks} from '../editor/EventLinks';
 
 registerEditorField(
     'definition_long',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Long Description'),
         field: 'definition_long',
@@ -18,7 +18,7 @@ registerEditorField(
 
 registerEditorField(
     'definition_short',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Description'),
         field: 'definition_short',
@@ -29,7 +29,7 @@ registerEditorField(
 
 registerEditorField(
     'reference',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Reference'),
         field: 'reference',
@@ -51,7 +51,7 @@ registerEditorField(
 
 registerEditorField(
     'registration_details',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Registration Details'),
         field: 'registration_details',
@@ -62,7 +62,7 @@ registerEditorField(
 
 registerEditorField(
     'invitation_details',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Invitation Details'),
         field: 'invitation_details',

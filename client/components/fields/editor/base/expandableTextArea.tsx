@@ -9,6 +9,7 @@ interface IProps extends IEditorFieldProps {
     maxLength?: number;
     schema?: IProfileSchemaTypeString;
     multiLine?: boolean;
+    noPadding?: boolean;
 }
 
 export class EditorFieldExpandableTextArea extends React.PureComponent<IProps> {
@@ -35,6 +36,7 @@ export class EditorFieldExpandableTextArea extends React.PureComponent<IProps> {
             <Row
                 testId={this.props.testId}
                 refNode={this.node}
+                noPadding={this.props.noPadding}
             >
                 <ExpandableTextAreaInput
                     {...this.props}
