@@ -125,7 +125,7 @@ const save = (original, updates) => (
 
                 return Promise.resolve(item);
             }, (error) => {
-                notify.error(
+                notify.warning(
                     getErrorMessage(
                         error,
                         gettext('Failed to save autosave item.')
