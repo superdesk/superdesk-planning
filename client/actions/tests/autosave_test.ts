@@ -212,8 +212,8 @@ describe('actions.autosave', () => {
                 .then(done.fail, (error) => {
                     expect(error).toEqual(errorMessage);
 
-                    expect(services.notify.error.callCount).toBe(1);
-                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+                    expect(services.notify.warning.callCount).toBe(1);
+                    expect(services.notify.warning.args[0]).toEqual(['Failed!']);
 
                     done();
                 });
