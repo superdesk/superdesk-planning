@@ -18,6 +18,7 @@ from superdesk import get_resource_service
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
 from superdesk.metadata.item import CONTENT_STATE
 from .utils import expand_contact_info, get_matching_products
+from .json_utils import translate_names
 
 
 class JsonPlanningFormatter(Formatter):
@@ -97,6 +98,9 @@ class JsonPlanningFormatter(Formatter):
 
         output_item["agendas"] = self._expand_agendas(item)
         output_item["products"] = get_matching_products(item)
+
+        translate_names(output_item)
+
         return output_item
 
     def _get_coverage_workflow_state(self, assignment_state):

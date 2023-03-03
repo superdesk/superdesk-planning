@@ -236,5 +236,6 @@ class OnclusiveFeedParser(FeedParser):
                 item["event_contact_info"].append(bson.ObjectId(data["_id"]))
             else:
                 logger.debug("Existing contact %s %s", contact_uri, data.get("organisation"))
-                get_resource_service("contacts").patch(existing_contact["_id"], data)
-                item["event_contact_info"].append(bson.ObjectId(existing_contact["_id"]))
+                existing_contact_id = bson.ObjectId(existing_contact["_id"])
+                get_resource_service("contacts").patch(existing_contact_id, data)
+                item["event_contact_info"].append(existing_contact_id)

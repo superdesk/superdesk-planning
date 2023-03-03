@@ -73,7 +73,7 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
     showEditModal(contact) {
         this.setState({
             showEditModal: true,
-            editContact: contact || {public: true, is_active: true},
+            editContact: contact || {public: false, is_active: true},
         });
     }
 

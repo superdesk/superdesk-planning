@@ -41,7 +41,6 @@ class DeleteMarkedAssignmentsTest(TestCase):
         self.assignment_service = get_resource_service("assignments")
 
     def assertAssignmentDeleted(self, assignment_ids, not_deleted=False):
-
         for assignment_id in assignment_ids:
             assignment = self.assignment_service.find_one(_id=assignment_id, req=None)
             if not_deleted:

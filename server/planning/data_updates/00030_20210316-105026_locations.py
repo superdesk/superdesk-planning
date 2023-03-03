@@ -14,11 +14,11 @@ from superdesk import get_resource_service
 
 
 class DataUpdate(BaseDataUpdate):
-
     resource = "locations"
 
     def forwards(self, mongodb_collection, mongodb_database):
         vocabularies = get_resource_service("vocabularies")
+
         countries = {
             country["name"].lower(): country
             for country in (vocabularies.find_one(req=None, _id="countries") or {}).get("items") or []

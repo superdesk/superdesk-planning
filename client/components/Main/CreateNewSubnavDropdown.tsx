@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventTemplate} from '../../interfaces';
 
-import {PRIVILEGES, ITEM_TYPE} from '../../constants';
+import {PRIVILEGES} from '../../constants';
 import * as actions from '../../actions';
 import {eventTemplates} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
@@ -84,10 +84,7 @@ function mapStateToProps(state) {
 }
 
 const mapDispatchToProps = (dispatch) => ({
-    createEventFromTemplate: (template: IEventTemplate) => dispatch(actions.main.createNew(
-        ITEM_TYPE.EVENT,
-        template.data
-    ))
+    createEventFromTemplate: (template: IEventTemplate) => dispatch(actions.main.createEventFromTemplate(template)),
 });
 
 export const CreateNewSubnavDropdown = connect(

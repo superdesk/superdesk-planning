@@ -16,6 +16,7 @@ from flask import current_app as app
 from superdesk.publish.formatters import Formatter
 from superdesk.utils import json_serialize_datetime_objectId
 from .utils import expand_contact_info, get_matching_products
+from .json_utils import translate_names
 
 
 class JsonEventFormatter(Formatter):
@@ -74,6 +75,9 @@ class JsonEventFormatter(Formatter):
 
         for f in self.remove_fields:
             output_item.pop(f, None)
+
+        translate_names(output_item)
+
         return output_item
 
     def _get_files_for_publish(self, item):
