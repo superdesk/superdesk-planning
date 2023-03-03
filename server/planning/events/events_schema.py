@@ -219,6 +219,10 @@ events_schema = {
         "mapping": not_analyzed,
     },
     "language": metadata_schema["language"],
+    "languages": {
+        "type": "list",
+        "mapping": not_analyzed,
+    },
     # These next two are for spiking/unspiking and purging events
     "state": WORKFLOW_STATE_SCHEMA,
     "expiry": {"type": "datetime", "nullable": True},
@@ -311,4 +315,15 @@ events_schema = {
         },
     },
     "extra": metadata_schema["extra"],
+    "translations": {
+        "type": "list",
+        "mapping": {
+            "type": "nested",
+            "properties": {
+                "field": not_analyzed,
+                "language": not_analyzed,
+                "value": not_analyzed,
+            },
+        },
+    },
 }  # end events_schema

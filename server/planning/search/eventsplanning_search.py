@@ -124,7 +124,7 @@ class EventsPlanningService(Service):
         else:
             filters = COMBINED_SEARCH_FILTERS
 
-        return construct_search_query(filters, params, search_filter)
+        return construct_search_query(repo, filters, params, search_filter)
 
     def _get_combined_view_data(self, items, request, params, search_filter):
         """Get list of event and planning for the combined view

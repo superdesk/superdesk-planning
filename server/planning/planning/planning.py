@@ -1520,6 +1520,21 @@ planning_schema = {
     "company_codes": metadata_schema["company_codes"],
     # Content Metadata - See IPTC-G2-Implementation_Guide 16.2
     "language": metadata_schema["language"],
+    "languages": {
+        "type": "list",
+        "mapping": not_analyzed,
+    },
+    "translations": {
+        "type": "list",
+        "mapping": {
+            "type": "nested",
+            "properties": {
+                "field": not_analyzed,
+                "language": not_analyzed,
+                "value": not_analyzed,
+            },
+        },
+    },
     "abstract": metadata_schema["abstract"],
     "headline": metadata_schema["headline"],
     "slugline": metadata_schema["slugline"],

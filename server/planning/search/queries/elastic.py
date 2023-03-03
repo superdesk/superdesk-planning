@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Any, List, NamedTuple, Dict, Optional
+from typing import Any, List, NamedTuple, Dict, Optional, Set
 
 from datetime import timedelta
 from flask import current_app as app
@@ -32,6 +32,7 @@ class ElasticQuery:
         self.sort: List[Any] = []
 
         self.extra: Dict[str, Any] = {}
+        self.multilingual_fields: Set[str] = set()
 
     def build(self) -> Dict[str, Any]:
         query: Dict[str, Any] = {"query": {"bool": {}}}
