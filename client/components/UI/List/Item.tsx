@@ -12,6 +12,7 @@ interface IProps {
     refNode?: any;
     tabIndex?: number;
     draggable?: boolean;
+    testId?: string;
 
     onClick?(event: React.MouseEvent<HTMLLIElement>): void;
     onMouseEnter?(): void;
@@ -43,10 +44,12 @@ export class Item extends React.PureComponent<IProps> {
             refNode,
             tabIndex,
             draggable,
+            testId,
         } = this.props;
 
         return (
             <li
+                data-test-id={testId}
                 className={classNames(
                     className,
                     'sd-list-item',

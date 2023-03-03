@@ -264,6 +264,7 @@ export class FieldTab extends React.Component<IProps, IState> {
                     <FieldEditor
                         key={this.state.selectedField?.name}
                         item={this.state.selectedField}
+                        profile={this.props.profile}
                         isDirty={this.isEditorDirty()}
                         disableMinMax={this.props.disableMinMaxFields?.includes(this.state.selectedField.name)}
                         disableRequired={this.props.disableRequiredFields?.includes(this.state.selectedField.name)}

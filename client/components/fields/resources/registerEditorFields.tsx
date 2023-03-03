@@ -43,11 +43,11 @@ function editorHoc<S extends IEditorFieldProps>(options: IEditorHocOptions<S>) {
     return EditorHOC;
 }
 
-export function registerEditorField<S extends IEditorFieldProps>(
+export function registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
     field: string,
-    Component: React.ComponentClass<S>,
-    props?: (currentProps: S) => Partial<S>,
-    mapStateToProps?: (state: IPlanningAppState) => Partial<S>,
+    Component: React.ComponentClass<ComponentProps>,
+    props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
+    mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
     forwardRef?: boolean
 ) {
     FIELD_TO_EDITOR_COMPONENT[field] = editorHoc({

@@ -7,6 +7,7 @@ import './style.scss';
 interface IProps {
     flex?: boolean;
     noPadding?: boolean;
+    smallPadding?: boolean;
     className?: string | {[key: string]: boolean};
     halfWidth?: boolean;
     enabled?: boolean; // defaults to true
@@ -34,6 +35,7 @@ export class Row extends React.PureComponent<IProps> {
                         'form__row--flex': this.props.flex,
                         'no-padding': this.props.noPadding,
                         'form__row--half-width': this.props.halfWidth,
+                        'form__row--small-padding': this.props.smallPadding,
                     },
                     this.props.className
                 )}

@@ -1,3 +1,4 @@
+import {IVocabularyItem} from 'superdesk-api';
 import {registerEditorField} from './registerEditorFields';
 
 import {superdeskApi} from '../../../superdeskApi';
@@ -6,7 +7,10 @@ import {EditorFieldNumber} from '../editor/base/number';
 import {EditorFieldToggle} from '../editor/base/toggle';
 import {EditorFieldSelect} from '../editor/base/select';
 import {EditorFieldCheckbox} from '../editor/base/checkbox';
+import {EditorFieldTreeSelect, IEditorFieldTreeSelectProps} from '../editor/base/treeSelect';
 import {SelectCustomVocabulariesList} from '../editor/SelectCustomVocabulariesList';
+
+import {getLanguagesForTreeSelectInput} from '../../../selectors/vocabs';
 
 registerEditorField(
     'schema.required',
@@ -122,4 +126,54 @@ registerEditorField(
     }),
     null,
     true
+);
+
+registerEditorField<IEditorFieldTreeSelectProps, {options: Array<{value: IVocabularyItem}>}>(
+    'schema.languages',
+    EditorFieldTreeSelect,
+    (currentProps) => ({
+        label: superdeskApi.localization.gettext('Languages'),
+        field: 'schema.languages',
+        info: superdeskApi.localization.gettext('Click the Plus button to add languages'),
+        allowMultiple: true,
+        valueAsString: true,
+        required: true,
+        getOptions: () => currentProps.options,
+        getId: (item: IVocabularyItem) => item.qcode,
+        getLabel: (item: IVocabularyItem) => item.name,
+    }),
+    (state) => ({
+        options: getLanguagesForTreeSelectInput(state),
+    }),
+    true
+);
+
+registerEditorField(
+    'schema.multilingual',
+    EditorFieldCheckbox,
+    () => ({
+        label: superdeskApi.localization.gettext('Multilingual'),
+        field: 'schema.multilingual',
+    }),
+    null,
+    true,
+);
+
+registerEditorField<IEditorFieldTreeSelectProps, {options: Array<{value: IVocabularyItem}>}>(
+    'schema.default_language',
+    EditorFieldTreeSelect,
+    (currentProps) => ({
+        label: superdeskApi.localization.gettext('Default language'),
+        field: 'schema.default_language',
+        allowMultiple: false,
+        required: true,
+        valueAsString: true,
+        getOptions: () => currentProps.options,
+        getId: (item: IVocabularyItem) => item.qcode,
+        getLabel: (item: IVocabularyItem) => item.name,
+    }),
+    (state) => ({
+        options: getLanguagesForTreeSelectInput(state),
+    }),
+    true,
 );
