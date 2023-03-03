@@ -29,10 +29,10 @@ class ContentProfilesTestCase(TestCase):
                         {"qcode": "nl", "name": "Dutch", "is_active": True},
                         {"qcode": "fr", "name": "French", "is_active": True},
                         {"qcode": "en", "name": "English", "is_active": True},
-                        {"qcode": "de", "name": "German", "is_active": True}
-                    ]
+                        {"qcode": "de", "name": "German", "is_active": True},
+                    ],
                 }
-            ]
+            ],
         )
 
     def test_get_multilingual_fields(self):
@@ -56,9 +56,9 @@ class ContentProfilesTestCase(TestCase):
                     "editor": {
                         "language": {"enabled": True},
                     },
-                    "schema": schema
+                    "schema": schema,
                 }
-            ]
+            ],
         )
 
         fields = get_multilingual_fields("event")
@@ -72,7 +72,7 @@ class ContentProfilesTestCase(TestCase):
             "planning_types",
             "event",
             {"schema": schema},
-            self.app.data.find_one("planning_types", req=None, _id="event")
+            self.app.data.find_one("planning_types", req=None, _id="event"),
         )
 
         fields = get_multilingual_fields("event")

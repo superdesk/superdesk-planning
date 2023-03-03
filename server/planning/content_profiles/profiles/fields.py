@@ -58,7 +58,7 @@ class StringField(schema.StringField):
         required: bool = False,
         maxlength: Optional[int] = None,
         minlength: Optional[int] = None,
-        multilingual: Optional[bool] = False
+        multilingual: Optional[bool] = False,
     ):
         super().__init__(required=required, maxlength=maxlength, minlength=minlength)
 
@@ -82,7 +82,7 @@ class TextField(StringField):
         field_type: TextFieldTypes = "single_line",
         expandable: Optional[bool] = None,
         format_options: Optional[List[str]] = None,
-        multilingual: Optional[bool] = None
+        multilingual: Optional[bool] = None,
     ):
         super().__init__(required=required, maxlength=maxlength, minlength=minlength, multilingual=multilingual)
         self.schema["field_type"] = field_type
@@ -101,7 +101,7 @@ class LanguageField(StringField):
         minlength: Optional[int] = None,
         multilingual: Optional[bool] = False,
         languages: Optional[List[str]] = None,
-        default_langauge: Optional[str] = None
+        default_langauge: Optional[str] = None,
     ):
         super().__init__(required=required, maxlength=maxlength, minlength=minlength, multilingual=multilingual)
         self.schema["languages"] = languages

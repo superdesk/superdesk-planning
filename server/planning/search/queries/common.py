@@ -110,10 +110,7 @@ def search_text_field(params: Dict[str, Any], query: elastic.ElasticQuery, field
         return
     elif field in query.multilingual_fields:
         query.must.append(
-            elastic.bool_or([
-                construct_text_query(params, field),
-                construct_multilingual_text_query(params, field)
-            ])
+            elastic.bool_or([construct_text_query(params, field), construct_multilingual_text_query(params, field)])
         )
     else:
         query.must.append(elastic.query_string(text=params[field], field=field, default_operator="AND", lenient=True))
@@ -124,11 +121,13 @@ def construct_text_query(params: Dict[str, Any], field: str):
 
 
 def construct_multilingual_text_query(params: Dict[str, Any], field: str):
-    return elastic.bool_and(nested_path="translations", conditions=[
-        {"term": {"translations.field": field}},
-        elastic.query_string(text=params[field], field="translations.value", default_operator="AND",
-                             lenient=True)
-    ])
+    return elastic.bool_and(
+        nested_path="translations",
+        conditions=[
+            {"term": {"translations.field": field}},
+            elastic.query_string(text=params[field], field="translations.value", default_operator="AND", lenient=True),
+        ],
+    )
 
 
 def search_item_ids(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -146,25 +145,29 @@ def search_full_text(params: Dict[str, Any], query: elastic.ElasticQuery):
         return
     elif len(query.multilingual_fields):
         query.must.append(
-            elastic.bool_or([
-                elastic.query_string(text=params["full_text"], lenient=True, default_operator="AND"),
-                {
-                    "nested": {
-                        "path": "translations",
-                        "query": {
-                            "bool": {
-                                "must": [{
-                                    "query_string": {
-                                        "default_operator": "AND",
-                                        "lenient": True,
-                                        "query": params["full_text"],
-                                    },
-                                }],
+            elastic.bool_or(
+                [
+                    elastic.query_string(text=params["full_text"], lenient=True, default_operator="AND"),
+                    {
+                        "nested": {
+                            "path": "translations",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {
+                                            "query_string": {
+                                                "default_operator": "AND",
+                                                "lenient": True,
+                                                "query": params["full_text"],
+                                            },
+                                        }
+                                    ],
+                                },
                             },
                         },
                     },
-                },
-            ]),
+                ]
+            ),
         )
     else:
         query.must.append(elastic.query_string(text=params["full_text"], lenient=True, default_operator="AND"))

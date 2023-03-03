@@ -45,10 +45,12 @@ def search_sluglines(params: Dict[str, Any], query: elastic.ElasticQuery):
         or_query = elastic.ElasticQuery()
         or_query.multilingual_fields = query.multilingual_fields
 
-        or_query.must.extend([
-            common.construct_text_query(params, "slugline"),
-            common.construct_multilingual_text_query(params, "slugline"),
-        ])
+        or_query.must.extend(
+            [
+                common.construct_text_query(params, "slugline"),
+                common.construct_multilingual_text_query(params, "slugline"),
+            ]
+        )
         planning.search_coverage_sluglines(params, or_query)
 
         if len(or_query.must) == 1:

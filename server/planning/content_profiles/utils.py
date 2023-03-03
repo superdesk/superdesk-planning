@@ -32,12 +32,12 @@ def get_multilingual_fields(resource: str) -> Set[str]:
     content_type = get_planning_schema(resource)
     schema = content_type.get("schema") or {}
 
-    return set() if not (schema.get("language") or {}).get("multilingual") else set(
-        field
-        for field, schema in schema.items()
-        if (
-            is_field_enabled(field, content_type) and
-            field != "language" and
-            schema.get("multilingual") is True
+    return (
+        set()
+        if not (schema.get("language") or {}).get("multilingual")
+        else set(
+            field
+            for field, schema in schema.items()
+            if (is_field_enabled(field, content_type) and field != "language" and schema.get("multilingual") is True)
         )
     )
