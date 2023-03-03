@@ -1,5 +1,5 @@
 import {Editor} from '../../common/editor';
-import {Input, ToggleInput, SelectInput, SelectMetaTerms, LocationInput} from '../../common/inputs';
+import {Input, ToggleInput, SelectInput, SelectMetaTerms, LocationInput, TreeSelect} from '../../common/inputs';
 import {ContactsInput} from '../../contacts';
 import {LinkInput} from './linkInput';
 
@@ -10,7 +10,7 @@ import {LinkInput} from './linkInput';
 export class EventEditor extends Editor {
     fields: {[key: string]: any};
 
-    constructor() {
+    constructor(languages: Array<string> = [], multilingualFields: Array<string> = []) {
         super('.icon-event', 'event');
 
         const getParent = () => this.element;
@@ -51,5 +51,34 @@ export class EventEditor extends Editor {
             event_contact_info: new ContactsInput(getParent, '[data-test-id="field-event_contact_info"]'),
             location: new LocationInput(getParent, '[data-test-id=field-location]'),
         };
+
+        if (languages.length > 0) {
+            this.fields.language = new TreeSelect(getParent, '[data-test-id=field-language]', true);
+
+            const firstLanguage = languages[0];
+            multilingualFields.forEach((field) => {
+                const originalField = this.fields[field];
+
+                languages.forEach((languageQcode) => {
+                    this.fields[`${field}.${languageQcode}`] = new Input(
+                        getParent,
+                        originalField.selector.replace(field, `${field}.${languageQcode}`)
+                    )
+                });
+                this.fields[field] = this.fields[`${field}.${firstLanguage}`];
+            });
+        } else {
+            this.fields.language = new TreeSelect(getParent, '[data-test-id=field-language]', false);
+        }
+    }
+
+    toggleShowAllLanguages() {
+        this.element.find('#editor--language-controls [role="checkbox"]')
+            .should('exist')
+            .click();
+    }
+
+    getMainLanguageButton(languageQcode: string) {
+        return  this.element.find(`#editor--language-controls [data-test-id="main-language--${languageQcode}"]`);
     }
 }

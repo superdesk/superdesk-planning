@@ -3,6 +3,9 @@
  * Wrapper class for a generic Input field
  */
 export class Input {
+    getParent: () => Cypress.Chainable<JQuery<HTMLElement>>;
+    selector: string;
+
     /**
      * Creates an instance of the Input wrapper
      * @param {function():Cypress.Chainable<JQuery<HTMLElement>>} getParent - Callback to retrieve the parent

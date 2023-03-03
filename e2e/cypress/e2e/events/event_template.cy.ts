@@ -89,7 +89,7 @@ describe('Planning.Events: event templates', () => {
         modal.element
             .find('.search-handler')
             .find('input')
-            .type('Exam');
+            .type('Exam{enter}');
 
         modal.element
             .find('[data-test-id=list-page--filters-active]')
@@ -106,7 +106,7 @@ describe('Planning.Events: event templates', () => {
         modal.element
             .find('.search-handler')
             .find('input')
-            .type('Test');
+            .type('Test{enter}');
 
         modal.element
             .find('[data-test-id=list-page--filters-active]')
@@ -121,7 +121,8 @@ describe('Planning.Events: event templates', () => {
         modal.element
             .find('.search-handler')
             .find('input')
-            .clear();
+            .clear()
+            .type('{enter}');
 
         // Open our filter and make sure the template_name is correct
         modal.element
