@@ -54,8 +54,8 @@ Feature: Search multilingual metadata
                 {"field": "slugline", "language": "de", "value": "slugline-de"},
                 {"field": "name", "language": "en", "value": "name-en"},
                 {"field": "name", "language": "de", "value": "name-de"},
-                {"field": "definition_short", "language": "en", "value": "desc-en"},
-                {"field": "definition_short", "language": "de", "value": "desc-de"}
+                {"field": "definition_short", "language": "en", "value": "<p>My <b>Description</b> is here</p>"},
+                {"field": "definition_short", "language": "de", "value": "<p><h2>Über</h2> dem <b>Gebäude<b></p>"}
             ]
         }]
         """
@@ -94,4 +94,14 @@ Feature: Search multilingual metadata
         Then we get list with 0 items
         """
         {"_items": []}
+        """
+        When we get "/events_planning_search?repo=events&full_text=my%20description%20is%20here"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_123"}]}
+        """
+        When we get "/events_planning_search?repo=events&full_text=uber%20dem%20Gebaude"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event_123"}]}
         """

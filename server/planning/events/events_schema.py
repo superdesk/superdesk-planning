@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import Resource
-from superdesk.resource import not_analyzed
+from superdesk.resource import not_analyzed, string_with_analyzer
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
@@ -322,7 +322,7 @@ events_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": not_analyzed,
+                "value": string_with_analyzer,
             },
         },
     },

@@ -20,7 +20,7 @@ from planning.errors import AssignmentApiError
 from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE, CONTENT_STATE
 from superdesk import get_resource_service
-from superdesk.resource import not_analyzed
+from superdesk.resource import not_analyzed, string_with_analyzer
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth, update_dates_for
@@ -1531,7 +1531,7 @@ planning_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": not_analyzed,
+                "value": string_with_analyzer,
             },
         },
     },
