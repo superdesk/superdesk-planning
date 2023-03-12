@@ -122,6 +122,14 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     updateFormValues(diff, field, value);
                 }
 
+                if (typeof field === 'object') {
+                    Object.keys(field).forEach((subField) => {
+                        this.editorApi.events.beforeFormUpdates(newState, subField, diff[subField]);
+                    });
+                } else {
+                    this.editorApi.events.beforeFormUpdates(newState, field, value);
+                }
+
                 this.itemManager.validate(this.props, newState, this.state);
 
                 if (updateDirtyFlag) {
@@ -315,6 +323,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         const formContainerRefNode = !this.props.inModalView ?
             null :
             this.editorApi.dom.formContainer;
+        const language = this.editorApi.form.getMainLanguage();
 
         return (
             <Content
@@ -362,6 +371,8 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                         activeNav={this.state.activeNav}
                         groups={this.props.groups ?? []}
                         editorType={this.props.editorType}
+                        showAllLanguages={this.state.showAllLanguages}
+                        language={language}
                     />
                 )}
             </Content>

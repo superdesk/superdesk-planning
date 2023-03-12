@@ -51,6 +51,7 @@ export class FieldList extends React.PureComponent<IProps> {
 
         return (
             <List.Item
+                testId={`content-list--field-${item.name}`}
                 shadow={1}
                 draggable={true}
                 activated={this.props.selectedField === item.name}

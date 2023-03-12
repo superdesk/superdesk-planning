@@ -40,10 +40,6 @@ class BooleanField(schema.SchemaField):
         self.schema["required"] = required
 
 
-class BaseSchema(schema.Schema):
-    slugline = schema.StringField()
-
-
 class StringRequiredForAction(schema.SchemaField):
     def __repr__(self):
         return "string"
@@ -56,10 +52,28 @@ class StringRequiredForAction(schema.SchemaField):
         self.schema["dependencies"] = dependencies
 
 
+class StringField(schema.StringField):
+    def __init__(
+        self,
+        required: bool = False,
+        maxlength: Optional[int] = None,
+        minlength: Optional[int] = None,
+        multilingual: Optional[bool] = False,
+    ):
+        super().__init__(required=required, maxlength=maxlength, minlength=minlength)
+
+        if multilingual:
+            self.schema["multilingual"] = multilingual
+
+
+class BaseSchema(schema.Schema):
+    slugline = StringField()
+
+
 TextFieldTypes = Literal["single_line", "multi_line", "editor_3"]
 
 
-class TextField(schema.StringField):
+class TextField(StringField):
     def __init__(
         self,
         required: bool = False,
@@ -68,14 +82,30 @@ class TextField(schema.StringField):
         field_type: TextFieldTypes = "single_line",
         expandable: Optional[bool] = None,
         format_options: Optional[List[str]] = None,
+        multilingual: Optional[bool] = None,
     ):
-        super().__init__(required=required, maxlength=maxlength, minlength=minlength)
+        super().__init__(required=required, maxlength=maxlength, minlength=minlength, multilingual=multilingual)
         self.schema["field_type"] = field_type
 
         if field_type == "multi_line" and expandable:
             self.schema["expandable"] = expandable
         elif field_type == "editor_3" and format_options is not None:
             self.schema["format_options"] = format_options
+
+
+class LanguageField(StringField):
+    def __init__(
+        self,
+        required: bool = False,
+        maxlength: Optional[int] = None,
+        minlength: Optional[int] = None,
+        multilingual: Optional[bool] = False,
+        languages: Optional[List[str]] = None,
+        default_langauge: Optional[str] = None,
+    ):
+        super().__init__(required=required, maxlength=maxlength, minlength=minlength, multilingual=multilingual)
+        self.schema["languages"] = languages
+        self.schema["default_langauge"] = default_langauge
 
 
 subjectField = schema.ListField(

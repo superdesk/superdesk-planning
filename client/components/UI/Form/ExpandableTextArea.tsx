@@ -70,7 +70,7 @@ export class ExpandableTextArea extends React.Component {
         }
     }
 
-    autoResize(value = null) {
+    autoResize(value = null, forceShowExpandedButton = false) {
         if (!this.dom.input) {
             return;
         }
@@ -110,9 +110,9 @@ export class ExpandableTextArea extends React.Component {
             this.dom.input.style['overflow-y'] = 'auto';
             this.dom.input.style.height = '100px';
 
-            const scrollbarRequired = (this.dom.input.clientHeight + 5) < this.dom.input.scrollHeight;
+            const scrollbarRequired = (this.dom.input.clientHeight + 5) <= this.dom.input.scrollHeight;
 
-            this.setState({showExpandedButton: scrollbarRequired});
+            this.setState({showExpandedButton: scrollbarRequired || forceShowExpandedButton});
         }
     }
 
@@ -132,7 +132,7 @@ export class ExpandableTextArea extends React.Component {
         this.setState(
             {expanded: expand},
             () => {
-                this.autoResize();
+                this.autoResize(null, true);
                 if (expand && this.dom.input && this.dom.input.parentNode) {
                     this.dom.input.parentNode.scrollIntoView();
                 }
