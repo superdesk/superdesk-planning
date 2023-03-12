@@ -156,11 +156,8 @@ class LockService(BaseComponent):
 
     def unlock_session_for_resource(self, user_id, session_id, is_last_session, resource):
         item_service = get_resource_service(resource)
-        items = item_service.find(
-            where={LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
-        )
-
-        for item in items:
+        term_filter = {LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
+        for item in item_service.search({"query": {"bool": {"filter": {"term": term_filter}}}}):
             self.unlock(item, user_id, session_id, resource)
 
     def can_lock(self, item, user_id, session_id, resource):
