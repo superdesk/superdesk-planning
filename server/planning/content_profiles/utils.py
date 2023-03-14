@@ -17,8 +17,8 @@ def get_planning_schema(resource: str):
 
 
 def is_field_enabled(field, planning_type):
-    editor = planning_type.get("editor", {})
-    return editor.get(field, {}).get("enabled", False)
+    editor = planning_type.get("editor") or {}
+    return (editor.get(field) or {}).get("enabled", False)
 
 
 def is_field_editor_3(field: str, planning_type) -> bool:
@@ -30,14 +30,18 @@ def is_field_editor_3(field: str, planning_type) -> bool:
 
 def get_multilingual_fields(resource: str) -> Set[str]:
     content_type = get_planning_schema(resource)
-    schema = content_type.get("schema") or {}
+    resource_schema = content_type.get("schema") or {}
 
     return (
         set()
-        if not (schema.get("language") or {}).get("multilingual")
+        if not (resource_schema.get("language") or {}).get("multilingual")
         else set(
-            field
-            for field, schema in schema.items()
-            if (is_field_enabled(field, content_type) and field != "language" and schema.get("multilingual") is True)
+            field_name
+            for field_name, field_schema in resource_schema.items()
+            if (
+                is_field_enabled(field_name, content_type)
+                and field_name != "language"
+                and (field_schema or {}).get("multilingual") is True
+            )
         )
     )
