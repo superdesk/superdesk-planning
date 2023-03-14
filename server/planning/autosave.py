@@ -14,6 +14,7 @@ from superdesk import Service
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_TYPE
+from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 
 
 class AutosaveService(Service):
@@ -32,11 +33,11 @@ class AutosaveService(Service):
     def _validate(doc):
         """Validate the autosave to ensure it contains user/session"""
 
-        if "lock_user" not in doc:
+        if LOCK_USER not in doc:
             raise SuperdeskApiError.badRequestError(message="Autosave failed, User not supplied")
 
-        if "lock_session" not in doc:
+        if LOCK_SESSION not in doc:
             raise SuperdeskApiError.badRequestError(message="Autosave failed, User Session not supplied")
 
-    def on_session_end(self, user_id, session_id):
-        self.delete(lookup={"lock_user": str(user_id), "lock_session": str(session_id)})
+    def on_session_end(self, user_id, session_id, is_last_session):
+        self.delete(lookup={LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)})
