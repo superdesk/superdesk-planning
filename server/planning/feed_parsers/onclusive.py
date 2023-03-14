@@ -18,6 +18,10 @@ from flask import current_app as app
 logger = logging.getLogger(__name__)
 
 
+class EmbargoedException(RuntimeError):
+    pass
+
+
 class OnclusiveFeedParser(FeedParser):
     """
     Superdesk event parser
@@ -65,6 +69,8 @@ class OnclusiveFeedParser(FeedParser):
                     self.parse_category(event, item)
                     self.parse_contact_info(event, item)
                     all_events.append(item)
+                except EmbargoedException:
+                    logger.info("Ignoring embargoed event %s", event["itemId"])
                 except (KeyError, IndexError, TypeError) as error:
                     logger.exception("error %s ingesting event %s", error, event)
             return all_events
@@ -100,6 +106,10 @@ class OnclusiveFeedParser(FeedParser):
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
         item["language"] = event.get("locale") or self.default_locale
+        if event.get("embargoTime"):
+            embargoed = datetime.datetime.fromisoformat(event["embargoTime"])
+            if embargoed > datetime.datetime.utcnow():
+                raise EmbargoedException()
 
     def parse_event_details(self, event, item):
         if event.get("time"):

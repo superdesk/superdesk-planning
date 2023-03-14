@@ -22,17 +22,20 @@ from .onclusive import OnclusiveFeedParser
 class OnclusiveFeedParserTestCase(TestCase):
     data = {}
 
-    def setUp(self):
-        super().setUp()
+    def parse(self, file):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        sample_json = os.path.join(dir_path, "onclusive_sample.json")
+        sample_json = os.path.join(dir_path, file)
         try:
             with open(sample_json, "r") as f:
                 superdesk_event = json.load(f)
                 if superdesk_event:
                     self.data = superdesk_event
         except Exception:
-            self.data = []
+            self.data = {}
+
+    def setUp(self):
+        super().setUp()
+        self.parse("onclusive_sample.json")
 
     def test_content(self):
         item = OnclusiveFeedParser().parse([self.data])[0]
@@ -108,3 +111,12 @@ class OnclusiveFeedParserTestCase(TestCase):
                 with self.assertLogs("planning", level=logging.ERROR) as logger:
                     OnclusiveFeedParser().parse([self.data])
                     self.assertIn("ERROR:planning.feed_parsers.onclusive:Unknown Timezone FOO", logger.output)
+
+    def test_embargoed(self):
+        data = self.data.copy()
+        data["embargoTime"] = "2055-03-07T10:00:00"
+        with self.app.app_context():
+            with self.assertLogs("planning", level=logging.INFO) as logger:
+                parsed = OnclusiveFeedParser().parse([data])
+                self.assertEqual(0, len(parsed))
+                self.assertIn("INFO:planning.feed_parsers.onclusive:Ignoring embargoed event 4112034", logger.output)

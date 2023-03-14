@@ -19,12 +19,9 @@ from superdesk.lock import lock, unlock
 from eve.utils import config
 from superdesk import get_resource_service, get_resource_privileges
 from apps.common.components.base_component import BaseComponent
+from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
 
 
-LOCK_USER = "lock_user"
-LOCK_SESSION = "lock_session"
-LOCK_ACTION = "lock_action"
-LOCK_TIME = "lock_time"
 logger = logging.getLogger(__name__)
 
 
@@ -76,10 +73,10 @@ class LockService(BaseComponent):
                 updates = {
                     LOCK_USER: user_id,
                     LOCK_SESSION: session_id,
-                    "lock_time": utcnow(),
+                    LOCK_TIME: utcnow(),
                 }
                 if action:
-                    updates["lock_action"] = action
+                    updates[LOCK_ACTION] = action
 
                 item_service.update(item.get(config.ID_FIELD), updates, item)
 
@@ -87,9 +84,9 @@ class LockService(BaseComponent):
                     resource + ":lock",
                     item=str(item.get(config.ID_FIELD)),
                     user=str(user_id),
-                    lock_time=updates["lock_time"],
+                    lock_time=updates[LOCK_TIME],
                     lock_session=str(session_id),
-                    lock_action=updates.get("lock_action"),
+                    lock_action=updates.get(LOCK_ACTION),
                     etag=updates["_etag"],
                 )
             else:
@@ -114,57 +111,53 @@ class LockService(BaseComponent):
 
         can_user_unlock, error_message = self.can_unlock(item, user_id, resource)
 
-        if can_user_unlock:
-            # following line executes handlers attached to function:
-            # on_unlock_'resource' - ex. on_unlock_planning, on_unlock_event
-            getattr(self.app, "on_unlock_%s" % resource)(item, user_id)
-            updates = {}
-            if item.get(LOCK_USER):
-                updates = {
-                    LOCK_USER: None,
-                    LOCK_SESSION: None,
-                    "lock_time": None,
-                    "lock_action": None,
-                }
-
-                item_service.update(item.get(config.ID_FIELD), updates, item)
-
-            # following line executes handlers attached to function:
-            # on_unlocked_'resource' - ex. on_unlocked_planning, on_unlocked_event
-            getattr(self.app, "on_unlocked_%s" % resource)(item, user_id)
-
-            push_notification(
-                resource + ":unlock",
-                item=str(item.get(config.ID_FIELD)),
-                user=str(user_id),
-                lock_session=str(session_id),
-                etag=updates.get("_etag") or item.get("_etag"),
-                event_item=item.get("event_item") or None,
-                recurrence_id=item.get("recurrence_id") or None,
-            )
-        else:
+        if not can_user_unlock:
             raise SuperdeskApiError.forbiddenError(message=error_message)
 
+        # following line executes handlers attached to function:
+        # on_unlock_'resource' - ex. on_unlock_planning, on_unlock_event
+        getattr(self.app, "on_unlock_%s" % resource)(item, user_id)
+
+        # Unlock the item
+        updates = {LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None}
+        item_service.update(item.get(config.ID_FIELD), updates, item)
+        lock_session = item.get(LOCK_SESSION) or str(session_id)
         item = item_service.find_one(req=None, _id=item_id)
+
+        # following line executes handlers attached to function:
+        # on_unlocked_'resource' - ex. on_unlocked_planning, on_unlocked_event
+        getattr(self.app, "on_unlocked_%s" % resource)(item, user_id)
+
+        push_notification(
+            resource + ":unlock",
+            item=str(item.get(config.ID_FIELD)),
+            user=str(user_id),
+            lock_session=lock_session,
+            etag=item.get("_etag"),
+            event_item=item.get("event_item") or None,
+            recurrence_id=item.get("recurrence_id") or None,
+        )
+
         return item
 
-    def unlock_session(self, user_id, session_id):
-        self.unlock_session_for_resource(user_id, session_id, "planning")
-        self.unlock_session_for_resource(user_id, session_id, "events")
-        self.unlock_session_for_resource(user_id, session_id, "assignments")
-        self.unlock_featured_planning(user_id, session_id)
+    def unlock_session(self, user_id, session_id, is_last_session):
+        self.unlock_session_for_resource(user_id, session_id, is_last_session, "planning")
+        self.unlock_session_for_resource(user_id, session_id, is_last_session, "events")
+        self.unlock_session_for_resource(user_id, session_id, is_last_session, "assignments")
+        self.unlock_featured_planning(user_id, session_id, is_last_session)
 
-    def unlock_featured_planning(self, user_id, session_id):
+    def unlock_featured_planning(self, user_id, session_id, is_last_session):
         item_service = get_resource_service("planning_featured_lock")
-        items = item_service.find(where={"lock_session": session_id})
+        items = item_service.find(
+            where={LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
+        )
         if items.count() > 0:
             item_service.delete_action(lookup={})
 
-    def unlock_session_for_resource(self, user_id, session_id, resource):
+    def unlock_session_for_resource(self, user_id, session_id, is_last_session, resource):
         item_service = get_resource_service(resource)
-        items = item_service.find(where={"lock_session": session_id})
-
-        for item in items:
+        term_filter = {LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
+        for item in item_service.search({"query": {"bool": {"filter": {"term": term_filter}}}}):
             self.unlock(item, user_id, session_id, resource)
 
     def can_lock(self, item, user_id, session_id, resource):
@@ -201,8 +194,8 @@ class LockService(BaseComponent):
 
         return True, ""
 
-    def on_session_end(self, user_id, session_id):
-        self.unlock_session(user_id, session_id)
+    def on_session_end(self, user_id, session_id, is_last_session):
+        self.unlock_session(user_id, session_id, is_last_session)
 
     def validate_relationship_locks(self, item, resource_name):
         if not item:

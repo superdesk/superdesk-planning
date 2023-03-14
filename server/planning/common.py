@@ -807,7 +807,7 @@ def get_ingested_datetime(item: Dict[str, Any]) -> datetime:
 
 def is_new_version(new_item: Dict[str, Any], old_item: Dict[str, Any]) -> bool:
     set_ingest_version_datetime(new_item)
-    if old_item.get(ITEM_STATE) != CONTENT_STATE.INGESTED:
+    if old_item.get("version_creator"):
         # Existing item has been touched
         # i.e. state has been changed from ``ingested`` to ``draft``
         return True
