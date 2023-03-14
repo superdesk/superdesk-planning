@@ -94,8 +94,8 @@ class OnclusiveFeedParserTestCase(TestCase):
         item = OnclusiveFeedParser().parse([data])[0]
         self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
-        self.assertEqual(["foo@example.com"], contact["contact_email"])
         self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())
+        self.assertEqual(["foo@example.com"], contact["contact_email"])
 
     def test_content_no_time(self):
         data = self.data.copy()
@@ -114,9 +114,25 @@ class OnclusiveFeedParserTestCase(TestCase):
 
     def test_embargoed(self):
         data = self.data.copy()
-        data["embargoTime"] = "2055-03-07T10:00:00"
+        data["embargoTime"] = "2022-12-07T09:00:00"
+        data["timezone"] = {
+            "timezoneID": 3,
+            "timezoneAbbreviation": "MST",
+            "timezoneName": "(MST) Mountain Standard Time",
+            "timezoneOffset": -7.0,
+        }
+
         with self.app.app_context():
             with self.assertLogs("planning", level=logging.INFO) as logger:
-                parsed = OnclusiveFeedParser().parse([data])
-                self.assertEqual(0, len(parsed))
-                self.assertIn("INFO:planning.feed_parsers.onclusive:Ignoring embargoed event 4112034", logger.output)
+                with patch("planning.feed_parsers.onclusive.utcnow") as utcnow_mock:
+                    utcnow_mock.return_value = datetime.datetime.fromisoformat("2022-12-07T10:00:00+00:00")
+
+                    parsed = OnclusiveFeedParser().parse([data])
+                    self.assertEqual(0, len(parsed))
+                    self.assertIn(
+                        "INFO:planning.feed_parsers.onclusive:Ignoring embargoed event 4112034", logger.output
+                    )
+
+                    utcnow_mock.return_value = datetime.datetime.fromisoformat("2022-12-07T18:00:00+00:00")
+                    parsed = OnclusiveFeedParser().parse([data])
+                    self.assertEqual(1, len(parsed))
