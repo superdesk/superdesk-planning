@@ -34,6 +34,7 @@ class PlanningSchema(BaseSchema):
     slugline = schema.StringField(required=True)
     subject = subjectField
     urgency = schema.IntegerField()
+    priority = schema.IntegerField()
     custom_vocabularies = schema.ListField()
     associated_event = schema.NoneField()
     coverages = schema.ListField()
@@ -140,6 +141,7 @@ DEFAULT_PLANNING_PROFILE = {
             "group": "coverages",
             "index": 1,
         },
+        "priority": {"enabled": False, "group": "details", "index": 8},
     },
     "schema": dict(PlanningSchema),  # type: ignore
     "groups": {
