@@ -11,7 +11,7 @@ export function cvsToString(items?: Array<{[key: string]: any}>, field: string =
     );
 }
 
-export function arrayToString(items?: Array<string>): string {
+export function arrayToString(items?: Array<string | number>): string {
     return (items ?? [])
         .join(',');
 }

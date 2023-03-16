@@ -394,6 +394,13 @@ def search_source(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must.append(elastic.terms(field="ingest_provider", values=sources))
 
 
+def search_priority(params: Dict[str, Any], query: elastic.ElasticQuery):
+    priorities = [str(qcode) for qcode in str_to_array(params.get("priority"))]
+
+    if len(priorities):
+        query.must.append(elastic.terms(field="priority", values=priorities))
+
+
 COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
     search_item_ids,
     search_name,
@@ -409,6 +416,7 @@ COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], Non
     restrict_items_to_user_only,
     search_original_creator,
     search_source,
+    search_priority,
 ]
 
 
@@ -443,4 +451,5 @@ COMMON_PARAMS: List[str] = [
     "sort_field",
     "original_creator",
     "source",
+    "priority",
 ]

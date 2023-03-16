@@ -43,6 +43,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_order: params.sortOrder ?? SORT_ORDER.ASCENDING,
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
+        priority: params.advancedSearch?.priority,
     };
 }
 
@@ -77,6 +78,7 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
             subject: params.subject,
             language: params.language,
             source: params.source,
+            priority: params.priority,
         },
     };
 }
