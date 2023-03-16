@@ -5,6 +5,7 @@ import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {appConfig} from 'appConfig';
 import {IEventItem, ISession, ILockedItems} from '../interfaces';
+import {planningApi} from '../superdeskApi';
 
 import {
     PRIVILEGES,
@@ -956,30 +957,36 @@ export const shouldLockEventForEdit = (item, privileges) => (
 );
 
 const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) => {
+    const {contentProfiles} = planningApi;
+    const defaultValues = contentProfiles.getDefaultValues(contentProfiles.get('event'));
     const occurStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
         label: 'Confirmed',
         qcode: 'eocstat:eos5',
         name: 'Planned, occurs certainly',
     };
 
-    let newEvent = {
-        type: ITEM_TYPE.EVENT,
-        occur_status: occurStatus,
-        dates: {
-            start: null,
-            end: null,
-            tz: timeUtils.localTimeZone(),
+    let newEvent = Object.assign(
+        {
+            type: ITEM_TYPE.EVENT,
+            occur_status: occurStatus,
+            dates: {
+                start: null,
+                end: null,
+                tz: timeUtils.localTimeZone(),
+            },
+            calendars: defaultCalendars,
+            state: 'draft',
+            _startTime: null,
+            _endTime: null,
+            language: getUsersDefaultLanguage(true),
         },
-        calendars: defaultCalendars,
-        state: 'draft',
-        _startTime: null,
-        _endTime: null,
-        language: getUsersDefaultLanguage(true),
-    };
+        defaultValues
+    );
 
     if (defaultPlaceList) {
         newEvent.place = defaultPlaceList;
     }
+
     return newEvent;
 };
 

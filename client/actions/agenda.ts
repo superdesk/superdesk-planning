@@ -249,8 +249,10 @@ const createPlanningFromEvent = (
     planningDate: Moment = null,
     agendas: Array<string> = []
 ) => (
-    (dispatch) => (
-        dispatch(planning.api.save({}, {
+    (dispatch, getState) => {
+        const defaultPlace = selectors.general.defaultPlaceList(getState());
+        const newPlan: Partial<IPlanningItem> = {
+            ...planningUtils.defaultPlanningValues([], defaultPlace),
             event_item: event._id,
             slugline: stringUtils.convertStringFieldForProfileFieldType(
                 'event',
@@ -293,8 +295,14 @@ const createPlanningFromEvent = (
             ),
             agendas: agendas,
             language: event.language,
-        }))
-    )
+        };
+
+        if (event.priority != null) {
+            newPlan.priority = event.priority;
+        }
+
+        return dispatch(planning.api.save({}, newPlan));
+    }
 );
 
 /**
