@@ -8,6 +8,7 @@ import {
     IContentProfile,
     IArticle,
     RICH_FORMATTING_OPTION,
+    IVocabularyItem,
 } from 'superdesk-api';
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
@@ -396,6 +397,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     event_created?: string | Date;
     event_lastmodified?: string | Date;
     name?: string;
+    priority?: number;
     definition_short?: string;
     definition_long?: string;
     internal_note?: string;
@@ -556,6 +558,7 @@ export interface ICoveragePlanningDetails {
     slugline: string;
     internal_note: string;
     workflow_status_reason: string;
+    priority?: number;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -845,6 +848,7 @@ export interface ICommonAdvancedSearchParams {
         id?: string;
         name?: string;
     }>;
+    priority?: Array<number>;
 }
 
 export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
@@ -920,6 +924,7 @@ interface IBaseProfileSchemaType<T> {
     validate_on_post?: boolean;
     minlength?: number;
     maxlength?: number;
+    default_value?: string | number;
 }
 
 export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
@@ -1288,6 +1293,8 @@ export interface ISearchParams {
         name?: string;
     }>;
 
+    priority?: Array<number>;
+
     // Event Params
     reference?: string;
     location?: IEventLocation;
@@ -1338,6 +1345,7 @@ export interface ISearchAPIParams {
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
     source?: string;
+    priority?: string;
 
     // Event Params
     reference?: string;
@@ -1621,6 +1629,7 @@ export interface IPlanningAppState {
     featuredPlanning: IFeaturedPlanningState;
     forms: IFormState;
     session: ISession;
+    vocabularies: {[id: string]: Array<IVocabularyItem>};
 }
 
 export interface INominatimLocalityFields {
@@ -2090,6 +2099,7 @@ export interface IPlanningAPI {
     contentProfiles: {
         getAll(): Promise<Array<IPlanningContentProfile>>;
         get(contentType: string): IPlanningContentProfile;
+        getDefaultValues(profile: IPlanningContentProfile): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem>;
         patch(original: IPlanningContentProfile, updates: IPlanningContentProfile): Promise<IPlanningContentProfile>;
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;

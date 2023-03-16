@@ -1,4 +1,4 @@
-import {IPlanningContentProfile, IPlanningAPI} from '../interfaces';
+import {IPlanningContentProfile, IPlanningAPI, IEventOrPlanningItem, IPlanningCoverageItem} from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {profiles} from '../selectors/forms';
@@ -21,9 +21,43 @@ function getAll() {
     )
         .then((response) => {
             response._items.forEach(sortProfileGroups);
+            enablePriorityInSearchProfile(response._items);
 
             return response._items;
         });
+}
+
+function enablePriorityInSearchProfile(profiles: Array<IPlanningContentProfile>) {
+    // Hack to enable/disable priority field in search profiles based on the content profiles
+    // TODO: Remove this hack when we implement a solution for all searchable fields
+    const profilesById: {[id: string]: IPlanningContentProfile} = profiles.reduce((profileMap, profile) => {
+        profileMap[profile._id] = profile;
+
+        return profileMap;
+    }, {});
+    const searchProfile = profilesById.advanced_search.editor;
+    const priorityEnabled = {
+        event: profilesById.event.editor.priority?.enabled === true,
+        planning: profilesById.planning.editor.priority?.enabled === true,
+    };
+
+    const priorityField = {
+        enabled: true,
+        index: 5,
+        group: 'common',
+        search_enabled: true,
+        filter_enabled: true,
+    };
+
+    if (priorityEnabled.event) {
+        searchProfile.event.priority = priorityField;
+        if (priorityEnabled.planning) {
+            searchProfile.combined.priority = priorityField;
+        }
+    }
+    if (priorityEnabled.planning) {
+        searchProfile.planning.priority = priorityField;
+    }
 }
 
 function getProfile(contentType: string) {
@@ -134,9 +168,23 @@ function updateProfilesInStore() {
     });
 }
 
+function getDefaultValues(profile: IPlanningContentProfile): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem> {
+    return Object.keys(profile?.schema ?? {}).reduce(
+        (defaults, field) => {
+            if (profile.schema[field]?.default_value != null) {
+                defaults[field] = profile.schema[field].default_value;
+            }
+
+            return defaults;
+        },
+        {}
+    );
+}
+
 export const contentProfiles: IPlanningAPI['contentProfiles'] = {
     getAll: getAll,
     get: getProfile,
+    getDefaultValues: getDefaultValues,
     patch: patch,
     showManagePlanningProfileModal: showManagePlanningProfileModal,
     showManageEventProfileModal: showManageEventProfileModal,
