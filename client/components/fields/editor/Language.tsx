@@ -64,7 +64,7 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
             this.props.setMainLanguage != null
         );
         const selectedLanguages = this.props.languages
-            .filter((entry) => values.includes(entry.value.qcode))
+            .filter((entry) => values?.includes(entry.value.qcode))
             .map((entry) => entry.value);
 
         const editor = (
