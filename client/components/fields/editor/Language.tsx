@@ -57,14 +57,14 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
         const baseField = this.props.field ?? 'language';
         const field = !isMultilingual ? baseField : `${baseField}s`;
 
-        const values = get(this.props.item, field, this.props.defaultValue || []);
+        const values = get(this.props.item, field, this.props.defaultValue || []) ?? [];
         const showMainLanguageChoice = (
             isMultilingual === true &&
             values.length > 1 &&
             this.props.setMainLanguage != null
         );
         const selectedLanguages = this.props.languages
-            .filter((entry) => values?.includes(entry.value.qcode))
+            .filter((entry) => values.includes(entry.value.qcode))
             .map((entry) => entry.value);
 
         const editor = (
