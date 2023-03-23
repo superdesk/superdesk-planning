@@ -259,6 +259,8 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'ednote',
             'registration_details',
             'invitation_details',
+            'accreditation_info',
+            'accreditation_deadline',
         ],
     }],
     [PREVIEW_PANEL.PLANNING]: [{
