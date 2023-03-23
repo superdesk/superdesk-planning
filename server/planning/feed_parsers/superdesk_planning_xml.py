@@ -69,12 +69,15 @@ class PlanningMLParser(NewsMLTwoFeedParser):
                 )
                 self.__class__.missing_voc = "continue"
 
+    def get_item_id(self, tree: Element) -> str:
+        return tree.attrib["guid"]
+
     def parse(self, tree: Element, provider=None):
         self.root = tree
         self.set_missing_voc_policy()
 
         try:
-            guid = tree.attrib["guid"]
+            guid = self.get_item_id(tree)
 
             item = {
                 GUID_FIELD: guid,
