@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField
+from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField, DateTimeField
 
 
 class EventSchema(BaseSchema):
@@ -48,6 +48,8 @@ class EventSchema(BaseSchema):
     related_plannings.schema["read_only"] = False
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
+    accreditation_info = TextField(field_type="single_line")
+    accreditation_deadline = DateTimeField()
 
 
 DEFAULT_EVENT_PROFILE = {
@@ -166,6 +168,8 @@ DEFAULT_EVENT_PROFILE = {
         "custom_vocabularies": {"enabled": False},
         "registration_details": {"enabled": False},
         "invitation_details": {"enabled": False},
+        "accreditation_info": {"enabled": False},
+        "accreditation_deadline": {"enabled": False},
     },
     "schema": dict(EventSchema),  # type: ignore
     "groups": {
