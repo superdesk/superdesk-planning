@@ -70,6 +70,8 @@ events_schema = {
     "internal_note": {"type": "string"},
     "registration_details": {"type": "string"},
     "invitation_details": {"type": "string"},
+    "accreditation_info": {"type": "string"},
+    "accreditation_deadline": {"type": "datetime"},
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
     "anpa_category": metadata_schema["anpa_category"],
