@@ -79,7 +79,7 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
                 onChange={this.onChange}
                 allowMultiple={isMultilingual}
                 valueAsString={true}
-                required={this.props.required || this.props.clearable !== true}
+                required={this.props.required ?? this.props.schema?.required}
                 smallPadding={showMainLanguageChoice}
             />
         );
