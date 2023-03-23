@@ -447,8 +447,8 @@ def get_start_of_next_week(date=None, start_of_week=0):
 def get_event_max_multi_day_duration(current_app=None):
     """Get the max multi day duration"""
     if current_app is not None:
-        return int(current_app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))
-    return int(app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))
+        return int(current_app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 365))
+    return int(app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 365))
 
 
 def set_original_creator(doc):

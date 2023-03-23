@@ -21,6 +21,8 @@
   "author": "Edouard Richard",
   "dependencies": {
     "dompurify": "^1.0.11",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.41",
     "nominatim-browser": "~2.0.2",
     "react-bootstrap": "0.32.1",
     "react-debounce-input": "3.2.0",
@@ -32,7 +34,7 @@
     "redux-logger": "~3.0.6",
     "reselect": "~3.0.1",
     "rrule": "~2.2.9",
-    "superdesk-ui-framework": "^3.0.0-rc12",
+    "superdesk-ui-framework": "3.0.0-rc12",
     "ts-loader": "3.5.0",
     "typescript": "~4.9.5",
     "whatwg-fetch": "~2.0.4"
@@ -61,7 +63,6 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^2.0.13",
-    "moment-timezone": "0.5.14",
     "react-test-renderer": "16.2.0",
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
@@ -74,9 +75,9 @@
   "peerDependencies": {
     "classnames": "^2.2.5",
     "lodash": "^4.17.19",
-    "moment": "^2.20.1",
-    "moment-timezone": "^0.5.14",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.41",
     "react": "^16.9.0",
-    "superdesk-ui-framework": "^3.0.0-rc12"
+    "superdesk-ui-framework": "3.0.0-rc12"
   }
 }
