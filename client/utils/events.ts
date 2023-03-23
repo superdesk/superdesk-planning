@@ -453,7 +453,12 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
     const multiDay = !isEventSameDay(start, end);
 
     if (isFullDay && !multiDay) {
-        return timezoneForEvents = start.format(dateFormat);
+        if (get(event.dates, 'all_day')) {
+            // use UTC mode to avoid any date conversion
+            return moment.utc(start).format(dateFormat);
+        }
+
+        return start.format(dateFormat);
     } else if (noEndTime && !multiDay) {
         if (withTimezone) {
             if (!useLocal) {
