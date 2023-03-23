@@ -99,7 +99,6 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
             multilingualConfig.isEnabled === true &&
             multilingualConfig.fields.includes(this.props.field)
         );
-        const defaultLanguage = multilingualConfig.defaultLanguage;
         let languages = this.props.item.languages != null ?
             this.props.item.languages :
             multilingualConfig.languages;
@@ -117,28 +116,10 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
                     {...this.props}
                 />
             );
-        } else if ((languages.length ?? 0) === 0) {
-            // If multilingual is enabled, but there are no languages selected on the item
-            // then we show the input fields as disabled and show an error
-
-            return (
-                <EditorFieldDynamicTextType
-                    key={this.props.field}
-                    {...this.props}
-                    disabled={true}
-                    errors={{[this.props.field]: gettext('At least 1 language is required')}}
-                    showErrors={true}
-                    item={{[this.props.field]: ''}}
-                    schema={{
-                        ...this.props.schema,
-                        field_type: 'single_line',
-                    }}
-                />
-            );
-        } else if ((languages.length ?? 0) === 1) {
-            // If only 1 language is selected, then we show the input field as a normal text field
+        } else if ((languages.length ?? 0) <= 1) {
+            // If 1 or no language is selected, then we show the input field as a normal text field
             // without translations (but store it in the `translations` dictionary)
-            const language = languages[0];
+            const language = languages[0] ?? multilingualConfig.defaultLanguage;
 
             return (
                 <EditorFieldDynamicTextType
