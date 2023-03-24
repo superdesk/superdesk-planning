@@ -62,9 +62,9 @@ Feature: Events Autosave
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """
         When we get "/event_autosave"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
-        {"_items": [{"_id": "event2"}, {"_id": "event3"}]}
+        {"_items": [{"_id": "event3"}]}
         """
 
     @auth
@@ -147,9 +147,9 @@ Feature: Events Autosave
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """
         When we get "/planning_autosave"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
-        {"_items": [{"_id": "plan2"}, {"_id": "plan3"}]}
+        {"_items": [{"_id": "plan3"}]}
         """
 
     @auth

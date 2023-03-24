@@ -169,6 +169,10 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('Keywords')}),
         getValue: getKeywordsString,
     },
+    accreditation_deadline: {
+        props: () => ({label: superdeskApi.localization.gettext('Accreditation Deadline')}),
+        getValue: getDateTimeValue,
+    },
 };
 
 const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
@@ -241,6 +245,10 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
             label: superdeskApi.localization.gettext('Invitation Details'),
             convertNewlineToBreak: true,
         }),
+        getValue: getPreviewString,
+    },
+    accreditation_info: {
+        props: () => ({label: superdeskApi.localization.gettext('Accreditation Info')}),
         getValue: getPreviewString,
     },
 };
