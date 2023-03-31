@@ -740,15 +740,30 @@ const getFlattenedEventsByDate = (events, startDate, endDate) => {
     return flatten(sortBy(eventsList, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 };
 
+
+const getStartDate = (event: IEventItem) => (
+    event.dates?.all_day ? moment.utc(event.dates.start) : moment(event.dates?.start)
+);
+
+const getEndDate = (event: IEventItem) => (
+    event.dates?.all_day ? moment.utc(event.dates.end) : moment(event.dates?.end)
+);
+
 /*
  * Groups the events by date
  */
-const getEventsByDate = (events, startDate, endDate) => {
+const getEventsByDate = (events: Array<IEventItem>, startDate, endDate) => {
     if (!get(events, 'length', 0)) return [];
     // check if search exists
     // order by date
-    let sortedEvents = events.sort((a, b) => a.dates.start - b.dates.start);
-    let maxStartDate = sortedEvents[sortedEvents.length - 1].dates.start;
+    let sortedEvents = events.sort((a, b) => {
+        const startA = getStartDate(a);
+        const startB = getStartDate(b);
+
+        return startA.diff(startB);
+    });
+
+    let maxStartDate = getStartDate(sortedEvents[sortedEvents.length - 1]);
 
     if (startDate.isAfter(maxStartDate, 'day')) {
         maxStartDate = startDate;
@@ -756,21 +771,22 @@ const getEventsByDate = (events, startDate, endDate) => {
 
     const days = {};
 
-    function addEventToDate(event, date) {
-        let eventDate = date || event.dates.start;
-        let eventStart = event.dates.start;
-        let eventEnd = event.dates.end;
+    function addEventToDate(event, date?: moment.Moment) {
+        let eventDate = date || getStartDate(event);
+        let eventStart = getStartDate(event);
+        let eventEnd = getEndDate(event);
 
-        if (!event.dates.start.isSame(event.dates.end, 'day')) {
+        if (!eventStart.isSame(eventEnd, 'day') && !event.dates.all_day) {
             eventStart = eventDate;
-            eventEnd = event.dates.end.isSame(eventDate, 'day') ?
-                event.dates.end : moment(eventDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').add(86399, 'seconds');
+            eventEnd = eventEnd.isSame(eventDate, 'day') ?
+                eventEnd :
+                moment(eventDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').add(86399, 'seconds');
         }
 
-        if (!(isDateInRange(startDate, eventStart, eventEnd) ||
-            isDateInRange(endDate, eventStart, eventEnd))) {
-            if (!isDateInRange(eventStart, startDate, endDate) &&
-                !isDateInRange(eventEnd, startDate, endDate)) {
+        if (!(isDateInRange(startDate, eventStart, eventEnd, event.dates.all_day) ||
+            isDateInRange(endDate, eventStart, eventEnd, event.dates.all_day))) {
+            if (!isDateInRange(eventStart, startDate, endDate, event.dates.all_day) &&
+                !isDateInRange(eventEnd, startDate, endDate, event.dates.all_day)) {
                 return;
             }
         }
@@ -783,23 +799,23 @@ const getEventsByDate = (events, startDate, endDate) => {
 
         let evt = cloneDeep(event);
 
-        evt._sortDate = eventDate;
-
+        evt._sortDate = eventStart;
         days[eventDateFormatted].push(evt);
     }
 
     sortedEvents.forEach((event) => {
         // compute the number of days of the event
-        let ending = event.actioned_date ? event.actioned_date : event.dates.end;
+        const ending = event.actioned_date ? event.actioned_date : getEndDate(event);
+        const startDate = getStartDate(event);
 
-        if (!event.dates.start.isSame(ending, 'day')) {
-            let deltaDays = Math.max(Math.ceil(ending.diff(event.dates.start, 'days', true)), 1);
+        if (!startDate.isSame(ending, 'day')) {
+            let deltaDays = Math.max(Math.ceil(ending.diff(startDate, 'days', true)), 1);
             // if the event happens during more that one day, add it to every day
             // add the event to the other days
 
             for (let i = 1; i <= deltaDays; i++) {
-                //  clone the date
-                const newDate = moment(event.dates.start.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+                // clone the date
+                const newDate = moment(startDate.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
 
                 newDate.add(i, 'days');
 
@@ -811,7 +827,7 @@ const getEventsByDate = (events, startDate, endDate) => {
 
         // add event to its initial starting date
         // add an event only if it's not actioned or actioned after this event's start date
-        if (!event.actioned_date || event.actioned_date.isSameOrAfter(event.dates.start, 'date')) {
+        if (!event.actioned_date || event.actioned_date.isSameOrAfter(startDate, 'date')) {
             addEventToDate(event);
         }
     });
@@ -1196,6 +1212,8 @@ const self = {
     getFlattenedEventsByDate,
     isEventCompleted,
     fillEventTime,
+    getStartDate,
+    getEndDate,
 };
 
 export default self;

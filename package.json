@@ -22,7 +22,7 @@
   "dependencies": {
     "dompurify": "^1.0.11",
     "moment": "^2.29.4",
-    "moment-timezone": "^0.5.41",
+    "moment-timezone": "^0.5.42",
     "nominatim-browser": "~2.0.2",
     "react-bootstrap": "0.32.1",
     "react-debounce-input": "3.2.0",
@@ -40,7 +40,7 @@
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
-    "@types/jasmine": "^3.5.11",
+    "@types/jasmine": "^3.10.7",
     "@types/lodash": "4.14.117",
     "@types/react": "16.8.23",
     "@types/react-dom": "16.8.0",
@@ -50,11 +50,11 @@
     "btoa": "^1.1.2",
     "cheerio": "1.0.0-rc.10",
     "enzyme": "~3.11.0",
-    "enzyme-adapter-react-16": "^1.15.5",
+    "enzyme-adapter-react-16": "^1.15.7",
     "eslint": "6.6.0",
     "eslint-plugin-react": "7.16.0",
     "jasmine": "^2.99.0",
-    "jasmine-reporters": "^2.3.0",
+    "jasmine-reporters": "^2.5.2",
     "karma": "^2.0.0",
     "karma-chrome-launcher": "2.2.0",
     "karma-cli": "^1.0.1",
