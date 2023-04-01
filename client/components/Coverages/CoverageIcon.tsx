@@ -85,7 +85,8 @@ export class CoverageIcon extends React.PureComponent<IProps> {
                         planningUtils.getCoverageIcon(
                             planningUtils.getCoverageContentType(this.props.coverage, this.props.contentTypes) ||
                             this.props.coverage.planning?.g2_content_type,
-                            this.props.coverage
+                            this.props.coverage,
+                            this.props.users
                         ),
                         planningUtils.getCoverageIconColor(this.props.coverage),
                     )}

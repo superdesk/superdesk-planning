@@ -30,7 +30,8 @@ function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams>
         include_scheduled_updates: params.include_scheduled_updates,
         event_item: arrayToString(params.event_item),
         g2_content_type: params.g2_content_type?.qcode,
-        source: cvsToString(params.source, 'id')
+        source: cvsToString(params.source, 'id'),
+        coverageUserId: params.coverageUserId,
     };
 }
 

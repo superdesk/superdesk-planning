@@ -38,6 +38,8 @@ const mapStateToProps = (state) => ({
     listViewType: selectors.main.getCurrentListViewType(state),
     sortOrder: selectors.main.getCurrentSortOrder(state),
     sortField: selectors.main.getCurrentSortField(state),
+    users: selectors.general.users(state),
+    groups: selectors.main.itemGroups(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -51,6 +53,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     sortFieldOptions: Array<{label: string, onSelect(): void}>
     container?: HTMLDivElement;
     resizeObserver: ResizeObserver;
+    userList:Array<{label: string, onSelect(): void}>
 
     constructor(props) {
         super(props);
@@ -85,6 +88,18 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
             label: gettext('Date Updated'),
             onSelect: this.changeSortField.bind(this, SORT_FIELD.UPDATED),
         }];
+
+        this.userList =
+            this.props.users.map((item) => [{
+                label: gettext(item.first_name + ' ' + item.last_name),
+                onSelect: () => this.filterCoverageUser(item._id),
+            }]).flat();
+    }
+
+    filterCoverageUser(id) {
+
+        // here we got the data
+        return planningApi.planning.search({coverageUserId: id});
     }
 
     onContainerMounted(node: HTMLDivElement) {
@@ -171,6 +186,15 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
                     </ButtonGroup>
+                    <div>
+                          All items and Coverages assigned to :
+                        <Dropdown items={this.userList}>
+                            <span className="sd-margin-l--1 sd-margin-r--3">
+                                {gettext('Users')}
+                                <span className="dropdown__caret" />
+                            </span>
+                        </Dropdown>
+                    </div>
                     <ButtonGroup align="end">
                         {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
                             <React.Fragment>

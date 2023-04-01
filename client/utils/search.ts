@@ -43,6 +43,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_order: params.sortOrder ?? SORT_ORDER.ASCENDING,
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
+        coverageUserId: params.coverageUserId,
     };
 }
 
