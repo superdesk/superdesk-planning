@@ -2,7 +2,7 @@
   "name": "superdesk",
   "license": "GPL-3.0",
   "dependencies": {
-    "superdesk-core": "github:superdesk/superdesk-client-core#v2.5.2",
+    "superdesk-core": "github:superdesk/superdesk-client-core#hotfix/2.5.3",
     "superdesk-planning": "file:../"
   },
   "devDependencies": {
@@ -11,9 +11,9 @@
     "cypress-real-events": "^1.5.0",
     "cypress-terminal-report": "^3.3.2",
     "extract-text-webpack-plugin": "3.0.2",
-    "lodash": "^4.17.15",
-    "moment": "2.20.1",
-    "moment-timezone": "0.5.14"
+    "lodash": "^4.17.19",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.41"
   },
   "scripts": {
     "cypress-ui": "cypress open",
