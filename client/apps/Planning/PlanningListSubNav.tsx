@@ -61,9 +61,6 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
 
     constructor(props) {
         super(props);
-        this.state = {
-            name: ''
-        };
         const {gettext} = superdeskApi.localization;
 
         this.toggleSortOrder = this.toggleSortOrder.bind(this);
@@ -71,7 +68,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
         this.onContainerMounted = this.onContainerMounted.bind(this);
 
         this.container = null;
-        this.state = {viewSize: 'standard'};
+        this.state = {viewSize: 'standard', name: ''};
         this.resizeObserver = new ResizeObserver(this.onResized);
 
         this.intervalOptions = [{
@@ -151,12 +148,12 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        let newOption = { _id: null, display_name: 'All'}
-        let List = [newOption, ...this.props.users]
+        let newOption = {_id: null, display_name: 'All'};
+        let List = [newOption, ...this.props.users];
         const userList = List.map((user) => ({
             label: user.display_name,
             onSelect: () => {
-                this.filterCoverageUser(user)
+                this.filterCoverageUser(user);
             }
         }));
         const {gettext} = superdeskApi.localization;
@@ -200,7 +197,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     </ButtonGroup>
                     {this.props.activefilter === 'EVENTS' ? ' ' : (
                         <div>
-                          {gettext("Assigned Items/Coverages:")}
+                            {gettext('Assigned Coverages Items :')}
                             <Dropdown items={userList}>
                                 <span className="sd-margin-l--1 sd-margin-r--3">
                                     {this.state.name}
