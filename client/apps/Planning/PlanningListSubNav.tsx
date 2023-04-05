@@ -66,7 +66,6 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
         };
         const {gettext} = superdeskApi.localization;
 
-        this.props.users.unshift({_id: null, display_name: 'All'});
         this.toggleSortOrder = this.toggleSortOrder.bind(this);
         this.onResized = this.onResized.bind(this);
         this.onContainerMounted = this.onContainerMounted.bind(this);
@@ -152,10 +151,12 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const userList = this.props.users.map((user) => ({
+        let newOption = { _id: null, display_name: 'All'}
+        let List = [newOption, ...this.props.users]
+        const userList = List.map((user) => ({
             label: user.display_name,
             onSelect: () => {
-                this.filterCoverageUser(user);
+                this.filterCoverageUser(user)
             }
         }));
         const {gettext} = superdeskApi.localization;
