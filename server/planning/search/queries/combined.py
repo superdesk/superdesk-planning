@@ -87,6 +87,7 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     query.must.append(elastic.bool_or([event_query.build()["query"], planning_query.build()["query"]]))
 
+
 def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):
     planning.search_coverage_assigned_user(params, query)
 

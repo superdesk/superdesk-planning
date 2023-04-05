@@ -95,6 +95,7 @@ def search_coverage_sluglines(params: Dict[str, Any], query: elastic.ElasticQuer
             ),
         )
 
+
 def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("coverage_user_id") and not strtobool(params.get("no_coverage", False)):
         query.must.append(
@@ -108,6 +109,7 @@ def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.Elastic
                 "coverages",
             ),
         )
+
 
 def search_urgency(params: Dict[str, Any], query: elastic.ElasticQuery):
     urgency = str_to_number(params.get("urgency"))
