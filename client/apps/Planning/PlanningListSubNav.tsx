@@ -199,7 +199,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     </ButtonGroup>
                     {this.props.activefilter === 'EVENTS' ? ' ' : (
                         <div>
-                          All items and Coverages assigned to :
+                          {gettext("Assigned Items/Coverages:")}
                             <Dropdown items={userList}>
                                 <span className="sd-margin-l--1 sd-margin-r--3">
                                     {this.state.name}
