@@ -43,7 +43,6 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_order: params.sortOrder ?? SORT_ORDER.ASCENDING,
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
-        coverageUserId: params.coverageUserId,
     };
 }
 
@@ -94,6 +93,7 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         include_scheduled_updates: params.includeScheduledUpdates,
         no_agenda_assigned: params.noAgendaAssigned,
         agendas: params.agendas,
+        coverage_user_id: params.coverage_user_id
     };
 }
 
@@ -108,6 +108,7 @@ export function searchParamsToPlanningParams(params: ISearchParams): IPlanningSe
         excludeRescheduledAndCancelled: params.exclude_rescheduled_and_cancelled,
         featured: params.featured,
         includeScheduledUpdates: params.include_scheduled_updates,
+        coverage_user_id: params.coverage_user_id,
         advancedSearch: {
             ...common.advancedSearch,
             featured: params.featured,
@@ -126,6 +127,7 @@ export function eventParamsToSearchParams(params: IEventSearchParams): ISearchPa
         location: params.advancedSearch?.location,
         no_calendar_assigned: params.noCalendarAssigned,
         calendars: params.calendars,
+        coverage_user_id: params.coverage_user_id
     };
 }
 
@@ -138,6 +140,7 @@ export function searchParamsToEventParams(params: ISearchParams): IEventSearchPa
         calendars: params.calendars,
         noCalendarAssigned: params.no_calendar_assigned,
         recurrenceId: params.recurrence_id,
+        coverage_user_id: params.coverage_user_id,
         advancedSearch: {
             ...common.advancedSearch,
             location: params.location,
@@ -150,6 +153,7 @@ export function combinedParamsToSearchParams(params: ICombinedSearchParams): ISe
     return {
         ...commonParamsToSearchParams(params),
         reference: params.advancedSearch?.reference,
+        coverage_user_id: params.coverage_user_id,
     };
 }
 
@@ -158,6 +162,7 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
 
     return {
         ...common,
+        coverage_user_id: params.coverage_user_id,
         advancedSearch: {
             ...common.advancedSearch,
             reference: params.reference,

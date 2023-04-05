@@ -48,7 +48,6 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         sort_order: params.sort_order,
         sort_field: params.sort_field,
         tz_offset: params.date_filter ? getTimeZoneOffset() : null,
-        coverageUserId: params.coverageUserId,
     };
 }
 

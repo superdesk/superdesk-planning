@@ -22,14 +22,17 @@ interface IProps {
     currentInterval: 'DAY' | 'WEEK' | 'MONTH';
     sortOrder: SORT_ORDER;
     sortField: SORT_FIELD;
-
+    userList:Array<{label: string, onSelect(): void}>;
+    users: any;
     setStartFilter(value?: moment.Moment): void;
     jumpTo(interval: 'TODAY' | 'BACK' | 'FORWARD'): void;
     setJumpInterval(interval: 'DAY' | 'WEEK' | 'MONTH'): void;
+    activefilter?:string;
 }
 
 interface IState {
-    viewSize: SUBNAV_VIEW_SIZE;
+    viewSize?: SUBNAV_VIEW_SIZE;
+    name?: string,
 }
 
 const mapStateToProps = (state) => ({
@@ -40,6 +43,7 @@ const mapStateToProps = (state) => ({
     sortField: selectors.main.getCurrentSortField(state),
     users: selectors.general.users(state),
     groups: selectors.main.itemGroups(state),
+    activefilter: selectors.main.activeFilter(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -53,12 +57,16 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     sortFieldOptions: Array<{label: string, onSelect(): void}>
     container?: HTMLDivElement;
     resizeObserver: ResizeObserver;
-    userList:Array<{label: string, onSelect(): void}>
+    userList: Array<{label: string, onSelect(): void}>
 
     constructor(props) {
         super(props);
+        this.state = {
+            name: ''
+        };
         const {gettext} = superdeskApi.localization;
 
+        this.props.users.unshift({_id: null, display_name: 'All'});
         this.toggleSortOrder = this.toggleSortOrder.bind(this);
         this.onResized = this.onResized.bind(this);
         this.onContainerMounted = this.onContainerMounted.bind(this);
@@ -88,18 +96,10 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
             label: gettext('Date Updated'),
             onSelect: this.changeSortField.bind(this, SORT_FIELD.UPDATED),
         }];
-
-        this.userList =
-            this.props.users.map((item) => [{
-                label: gettext(item.first_name + ' ' + item.last_name),
-                onSelect: () => this.filterCoverageUser(item._id),
-            }]).flat();
     }
 
-    filterCoverageUser(id) {
-
-        // here we got the data
-        return planningApi.planning.search({coverageUserId: id});
+    componentDidMount() {
+        this.setState({name: 'All'});
     }
 
     onContainerMounted(node: HTMLDivElement) {
@@ -146,7 +146,18 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
         planningApi.ui.list.search({sort_field: field});
     }
 
+    filterCoverageUser(item) {
+        planningApi.ui.list.search({coverage_user_id: item._id});
+        this.setState({name: item.display_name});
+    }
+
     render() {
+        const userList = this.props.users.map((user) => ({
+            label: user.display_name,
+            onSelect: () => {
+                this.filterCoverageUser(user);
+            }
+        }));
         const {gettext} = superdeskApi.localization;
         const {currentStartFilter} = this.props;
         let intervalText: string;
@@ -186,15 +197,19 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
                     </ButtonGroup>
-                    <div>
+                    {this.props.activefilter === 'EVENTS' ? ' ' : (
+                        <div>
                           All items and Coverages assigned to :
-                        <Dropdown items={this.userList}>
-                            <span className="sd-margin-l--1 sd-margin-r--3">
-                                {gettext('Users')}
-                                <span className="dropdown__caret" />
-                            </span>
-                        </Dropdown>
-                    </div>
+                            <Dropdown items={userList}>
+                                <span className="sd-margin-l--1 sd-margin-r--3">
+                                    {this.state.name}
+                                    <span className="dropdown__caret" />
+                                </span>
+                            </Dropdown>
+
+                        </div>
+                    )}
+
                     <ButtonGroup align="end">
                         {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
                             <React.Fragment>

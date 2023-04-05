@@ -96,14 +96,13 @@ def search_coverage_sluglines(params: Dict[str, Any], query: elastic.ElasticQuer
         )
 
 def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if params.get("coverageUserId") and not strtobool(params.get("no_coverage", False)):
+    if params.get("coverage_user_id") and not strtobool(params.get("no_coverage", False)):
         query.must.append(
             elastic.bool_and(
                 [
-                    elastic.query_string(
-                        text=params["coverageUserId"],
+                    elastic.term(
                         field="coverages.assigned_to.user",
-                        default_operator="AND",
+                        value=params["coverage_user_id"],
                     ),
                 ],
                 "coverages",
@@ -293,7 +292,7 @@ PLANNING_PARAMS: List[str] = [
     "featured",
     "include_scheduled_updates",
     "event_item",
-    "coverageUserId"
+    "coverage_user_id",
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)
