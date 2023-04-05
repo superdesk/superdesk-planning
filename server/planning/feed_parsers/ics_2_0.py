@@ -68,7 +68,6 @@ class IcsTwoFeedParser(FileFeedParser):
         return self.parse(cal, provider)
 
     def parse(self, cal, provider=None):
-
         try:
             items = []
 

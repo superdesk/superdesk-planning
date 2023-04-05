@@ -8,7 +8,6 @@ class EventHTTPFeedingServiceTestCase(TestCase):
 
     def test_update(self):
         with self.app.app_context():
-
             service = EventHTTPFeedingService()
             provider = {
                 "_id": "ics_20",
