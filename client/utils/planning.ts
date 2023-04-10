@@ -974,7 +974,7 @@ function getCoverageDateTimeText(coverage: IPlanningCoverageItem) {
  */
 function getCoverageIcon(
     type: IG2ContentType['qcode'] | IG2ContentType['content item type'],
-    coverage?: DeepPartial<IPlanningCoverageItem>,
+    coverage?: DeepPartial<IPlanningCoverageItem>
 ): string {
     if (get(coverage, 'scheduled_updates.length', 0) > 0 ||
             (get(coverage, 'scheduled_update_id') && get(coverage, 'assignment_id'))) {
