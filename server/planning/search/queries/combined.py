@@ -109,6 +109,7 @@ COMBINED_PARAMS: List[str] = [
     "agendas",
     "include_associated_planning",
     "coverage_user_id",
+    "coverage_user_name",
 ]
 
 COMBINED_PARAMS.extend(common.COMMON_PARAMS)

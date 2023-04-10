@@ -28,11 +28,11 @@ interface IProps {
     jumpTo(interval: 'TODAY' | 'BACK' | 'FORWARD'): void;
     setJumpInterval(interval: 'DAY' | 'WEEK' | 'MONTH'): void;
     activefilter?:string;
+    currentSearch : any;
 }
 
 interface IState {
     viewSize?: SUBNAV_VIEW_SIZE;
-    name?: string,
 }
 
 const mapStateToProps = (state) => ({
@@ -43,7 +43,8 @@ const mapStateToProps = (state) => ({
     sortField: selectors.main.getCurrentSortField(state),
     users: selectors.general.users(state),
     groups: selectors.main.itemGroups(state),
-    activefilter: selectors.main.activeFilter(state)
+    activefilter: selectors.main.activeFilter(state),
+    currentSearch: selectors.main.currentSearch(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -68,7 +69,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
         this.onContainerMounted = this.onContainerMounted.bind(this);
 
         this.container = null;
-        this.state = {viewSize: 'standard', name: ''};
+        this.state = {viewSize: 'standard'};
         this.resizeObserver = new ResizeObserver(this.onResized);
 
         this.intervalOptions = [{
@@ -92,10 +93,6 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
             label: gettext('Date Updated'),
             onSelect: this.changeSortField.bind(this, SORT_FIELD.UPDATED),
         }];
-    }
-
-    componentDidMount() {
-        this.setState({name: 'All'});
     }
 
     onContainerMounted(node: HTMLDivElement) {
@@ -143,12 +140,11 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     }
 
     filterCoverageUser(item) {
-        planningApi.ui.list.search({coverage_user_id: item._id});
-        this.setState({name: item.display_name});
+        planningApi.ui.list.search({coverage_user_id: item._id, coverage_user_name: item.display_name});
     }
 
     render() {
-        let newOption = {_id: null, display_name: 'All'};
+        let newOption = {_id: null, display_name: 'ALL'};
         let List = [newOption, ...this.props.users];
         const userList = List.map((user) => ({
             label: user.display_name,
@@ -200,7 +196,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                             {gettext('Assigned Coverages Items :')}
                             <Dropdown items={userList}>
                                 <span className="sd-margin-l--1 sd-margin-r--3">
-                                    {this.state.name}
+                                    {this.props.currentSearch.coverage_user_name ?? 'ALL'}
                                     <span className="dropdown__caret" />
                                 </span>
                             </Dropdown>

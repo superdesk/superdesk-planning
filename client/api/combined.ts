@@ -26,6 +26,7 @@ function convertCombinedParams(params: ISearchParams): Partial<ISearchAPIParams>
         include_associated_planning: params.include_associated_planning,
         source: cvsToString(params.source, 'id'),
         coverage_user_id: params.coverage_user_id,
+        coverage_user_name: params.coverage_user_name,
     };
 }
 
