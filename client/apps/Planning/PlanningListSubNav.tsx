@@ -4,7 +4,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER} from '../../interfaces';
+import {LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER, PLANNING_VIEW} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -12,6 +12,7 @@ import * as actions from '../../actions';
 import {Button, ButtonGroup, Dropdown, SubNav, Tooltip, IconButton} from 'superdesk-ui-framework/react';
 import {FilterSubnavDropdown} from '../../components/Main';
 import {SubNavDatePicker} from './SubNavDatePicker';
+import {IUser} from 'superdesk-api';
 
 export type SUBNAV_VIEW_SIZE = 'standard' | 'compact';
 const STANDARD_MIN_WIDTH = 500;
@@ -22,17 +23,16 @@ interface IProps {
     currentInterval: 'DAY' | 'WEEK' | 'MONTH';
     sortOrder: SORT_ORDER;
     sortField: SORT_FIELD;
-    userList:Array<{label: string, onSelect(): void}>;
-    users: any;
+    users: Array<IUser>
     setStartFilter(value?: moment.Moment): void;
     jumpTo(interval: 'TODAY' | 'BACK' | 'FORWARD'): void;
     setJumpInterval(interval: 'DAY' | 'WEEK' | 'MONTH'): void;
-    activefilter?:string;
-    currentSearch : any;
+    activefilter: PLANNING_VIEW;
+    coverageUser : string;
 }
 
 interface IState {
-    viewSize?: SUBNAV_VIEW_SIZE;
+    viewSize: SUBNAV_VIEW_SIZE;
 }
 
 const mapStateToProps = (state) => ({
@@ -42,9 +42,8 @@ const mapStateToProps = (state) => ({
     sortOrder: selectors.main.getCurrentSortOrder(state),
     sortField: selectors.main.getCurrentSortField(state),
     users: selectors.general.users(state),
-    groups: selectors.main.itemGroups(state),
     activefilter: selectors.main.activeFilter(state),
-    currentSearch: selectors.main.currentSearch(state)
+    coverageUser: selectors.main.getCoverageUser(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -58,7 +57,6 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     sortFieldOptions: Array<{label: string, onSelect(): void}>
     container?: HTMLDivElement;
     resizeObserver: ResizeObserver;
-    userList: Array<{label: string, onSelect(): void}>
 
     constructor(props) {
         super(props);
@@ -145,8 +143,8 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
 
     render() {
         let newOption = {_id: null, display_name: 'ALL'};
-        let List = [newOption, ...this.props.users];
-        const userList = List.map((user) => ({
+        let list = [newOption, ...this.props.users];
+        const userList = list.map((user) => ({
             label: user.display_name,
             onSelect: () => {
                 this.filterCoverageUser(user);
@@ -191,12 +189,13 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
                     </ButtonGroup>
-                    {this.props.activefilter === 'EVENTS' ? ' ' : (
+                    {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
                         <div>
                             {gettext('Assigned Coverages Items :')}
                             <Dropdown items={userList}>
                                 <span className="sd-margin-l--1 sd-margin-r--3">
-                                    {this.props.currentSearch.coverage_user_name ?? 'ALL'}
+                                    {this.props.users.find(
+                                        (user) => user._id == this.props.coverageUser)?.display_name ?? 'ALL'}
                                     <span className="dropdown__caret" />
                                 </span>
                             </Dropdown>
