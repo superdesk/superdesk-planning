@@ -730,8 +730,11 @@ const receiveEventHistory = (eventHistoryItems) => ({
  */
 const createEventFromPlanning = (plan: IPlanningItem) => (
     (dispatch, getState) => {
-        const defaultDurationOnChange = selectors.forms.defaultEventDuration(getState());
-        const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
+        const state = getState();
+        const defaultDurationOnChange = selectors.forms.defaultEventDuration(state);
+        const occurStatuses = selectors.vocabs.eventOccurStatuses(state);
+        const defaultCalendar = selectors.events.defaultCalendarValue(state);
+        const defaultPlace = selectors.general.defaultPlaceList(state);
         const unplannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos0', 'qcode') || {
             label: 'Unplanned event',
             qcode: 'eocstat:eos0',
@@ -739,6 +742,7 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
         };
         const eventProfile = selectors.forms.eventProfile(getState());
         const newEvent: Partial<IEventItem> = {
+            ...eventUtils.defaultEventValues(occurStatuses, defaultCalendar, defaultPlace),
             dates: {
                 start: moment(plan.planning_date).clone(),
                 end: moment(plan.planning_date)
@@ -783,6 +787,10 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
             _planning_item: plan._id,
             language: plan.language,
         };
+
+        if (plan.priority != null) {
+            newEvent.priority = plan.priority;
+        }
 
         if (get(eventProfile, 'editor.slugline.enabled', false)) {
             newEvent.slugline = stringUtils.convertStringFieldForProfileFieldType(

@@ -68,7 +68,8 @@ Feature: Event Search
                             "world_region": "Asia",
                             "country": ""
                         }
-                    ]
+                    ],
+                    "priority": 2
                 },
                 {
                     "guid": "event_786",
@@ -87,7 +88,8 @@ Feature: Event Search
                         "end": "2016-01-03T00:00:00+0000"
                     },
                     "subject": [{"qcode": "test qcode 2", "name": "test name"}],
-                    "lock_session": "ident1"
+                    "lock_session": "ident1",
+                    "priority": 7
                 }
             ]
             """
@@ -210,6 +212,16 @@ Feature: Event Search
             {"_id": "event_456"}
         ]}
         """
+        When we get "/events_planning_search?repo=events&only_future=false&priority=2,7"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "event_456"},
+            {"_id": "event_786"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&priority=1"
+        Then we get list with 0 items
 
     @auth
     Scenario: Search by event specific parameters

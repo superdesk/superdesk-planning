@@ -326,6 +326,14 @@ describe('agenda', () => {
                         expect(apiSpy.save.args[0]).toEqual([
                             {},
                             {
+                                type: 'planning',
+                                state: 'draft',
+                                item_class: 'plinat:newscoverage',
+                                flags: {
+                                    marked_for_not_publication: false,
+                                    overide_auto_assign_to_workflow: false,
+                                },
+                                coverages: [],
                                 event_item: events[0]._id,
                                 planning_date: events[0].dates.start,
                                 slugline: events[0].slugline,

@@ -446,6 +446,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     this.props.value.planning?.g2_content_type === 'text'
                 ),
             },
+            priority: {field: 'planning.priority'},
         };
 
         const editor = planningApi.editor(this.props.editorType);

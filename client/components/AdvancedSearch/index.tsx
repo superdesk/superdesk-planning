@@ -139,6 +139,10 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                 location: {
                     disableAddLocation: false,
                 },
+                priority: {
+                    multiple: true,
+                    defaultValue: [],
+                },
             },
             null,
             this.props.enabledField

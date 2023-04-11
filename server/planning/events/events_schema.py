@@ -88,6 +88,7 @@ events_schema = {
         },
     },
     "links": {"type": "list", "nullable": True},
+    "priority": metadata_schema["priority"],
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
     "dates": {
         "type": "dict",

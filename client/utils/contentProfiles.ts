@@ -231,6 +231,8 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Registration Details');
     case 'invitation_details':
         return gettext('Invitation Details');
+    case 'priority':
+        return gettext('Priority');
     }
 
     return field;

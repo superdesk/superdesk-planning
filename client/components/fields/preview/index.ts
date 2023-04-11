@@ -239,6 +239,10 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         }),
         getValue: getPreviewString,
     },
+    priority: {
+        props: () => ({label: superdeskApi.localization.gettext('Priority:')}),
+        getValue: getPreviewString,
+    },
 };
 
 let FIELD_TO_PREVIEW_COMPONENT: {[key: string]: any} = {};

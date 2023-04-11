@@ -56,6 +56,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
             'schema.vocabularies': {enabled: this.props.item.name === 'custom_vocabularies'},
             'field.all_day.enabled': {enabled: this.props.item.name === 'dates'},
             'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
+            'schema.default_value': {enabled: this.props.item.name === 'priority'},
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)
@@ -136,6 +137,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
                                             'schema.vocabularies': {enabled: true, index: 8},
                                             'field.all_day.enabled': {enabled: true, index: 9},
                                             'field.default_duration_on_change': {enabled: true, index: 10},
+                                            'schema.default_value': {enabled: true, index: 11},
                                         },
                                         {
                                             item: this.props.item,

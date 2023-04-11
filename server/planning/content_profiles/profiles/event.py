@@ -48,6 +48,7 @@ class EventSchema(BaseSchema):
     related_plannings.schema["read_only"] = False
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
+    priority = schema.IntegerField()
 
 
 DEFAULT_EVENT_PROFILE = {
@@ -106,6 +107,11 @@ DEFAULT_EVENT_PROFILE = {
             "enabled": True,
             "group": "description",
             "index": 8,
+        },
+        "priority": {
+            "enabled": False,
+            "group": "description",
+            "index": 9,
         },
         # Location Group
         "location": {

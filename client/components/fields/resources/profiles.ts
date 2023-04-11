@@ -7,6 +7,7 @@ import {EditorFieldToggle} from '../editor/base/toggle';
 import {EditorFieldSelect} from '../editor/base/select';
 import {EditorFieldCheckbox} from '../editor/base/checkbox';
 import {SelectCustomVocabulariesList} from '../editor/SelectCustomVocabulariesList';
+import {ProfileFieldDefaultValue} from '../editor/ProfileFieldDefaultValue';
 
 registerEditorField(
     'schema.required',
@@ -119,6 +120,17 @@ registerEditorField(
     () => ({
         label: superdeskApi.localization.gettext('Default Duration'),
         field: 'field.default_duration_on_change',
+    }),
+    null,
+    true
+);
+
+registerEditorField(
+    'schema.default_value',
+    ProfileFieldDefaultValue,
+    (props) => ({
+        label: superdeskApi.localization.gettext('Default Value'),
+        field: 'schema.default_value',
     }),
     null,
     true
