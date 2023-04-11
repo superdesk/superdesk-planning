@@ -295,7 +295,6 @@ PLANNING_PARAMS: List[str] = [
     "include_scheduled_updates",
     "event_item",
     "coverage_user_id",
-    "coverage_user_name",
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)

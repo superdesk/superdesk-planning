@@ -138,7 +138,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     }
 
     filterCoverageUser(item) {
-        planningApi.ui.list.search({coverage_user_id: item._id, coverage_user_name: item.display_name});
+        planningApi.ui.list.search({coverage_user_id: item._id});
     }
 
     render() {
