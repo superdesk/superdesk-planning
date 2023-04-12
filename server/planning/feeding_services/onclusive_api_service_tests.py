@@ -41,8 +41,11 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
                         "refreshToken": "refresh",
                     },
                 )
-                m.get("https://api.abc.com/api/v2/events/between?offset=0", json=[{}])  # first returns an item
-                m.get("https://api.abc.com/api/v2/events/between?offset=100", json=[])  # second will make it stop
+                m.get(
+                    "https://api.abc.com/api/v2/events/between?offset=0",
+                    json=[{"versioncreated": event["versioncreated"].isoformat()}],
+                )  # first returns an item
+                m.get("https://api.abc.com/api/v2/events/between?offset=1000", json=[])  # second will make it stop
                 list(service._update(provider, updates))
             self.assertIn("tokens", updates)
             self.assertEqual("refresh", updates["tokens"]["refreshToken"])
