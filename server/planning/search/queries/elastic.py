@@ -200,6 +200,9 @@ def field_range(query: ElasticRangeParams):
     if query.value_format:
         params["format"] = query.value_format
 
+    if query.time_zone:
+        params["time_zone"] = query.time_zone
+
     if query.field in ("dates.start", "dates.end"):
         # handle also all day events
         # there we get value which is in utc,

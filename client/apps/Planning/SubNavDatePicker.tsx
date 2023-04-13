@@ -4,7 +4,7 @@ import moment from 'moment-timezone';
 import {SUBNAV_VIEW_SIZE} from './PlanningListSubNav';
 
 import {DateInputPopup} from '../../components/UI/Form/DateInput/DateInputPopup';
-import {gettext, timeUtils} from '../../utils';
+import {timeUtils, gettext} from '../../utils';
 import {Button} from 'superdesk-ui-framework/react';
 
 interface IProps {
