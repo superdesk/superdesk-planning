@@ -108,7 +108,7 @@ export class GroupEditor extends React.PureComponent<IProps> {
                             <div className="form__group">
                                 <div className="form__row">
                                     <Switch
-                                        label={{text: gettext('Use Togglebox')}}
+                                        label={{content: gettext('Use Togglebox')}}
                                         value={this.props.group.useToggleBox}
 
                                         onChange={this.props.updateGroupAttribute.bind(null, 'useToggleBox')}
@@ -118,7 +118,7 @@ export class GroupEditor extends React.PureComponent<IProps> {
                             <div className="form__group">
                                 <div className="form__row">
                                     <Switch
-                                        label={{text: gettext('Show Bookmark')}}
+                                        label={{content: gettext('Show Bookmark')}}
                                         value={this.props.group.showBookmark}
 
                                         onChange={this.props.updateGroupAttribute.bind(null, 'showBookmark')}

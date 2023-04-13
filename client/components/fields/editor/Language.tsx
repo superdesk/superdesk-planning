@@ -93,7 +93,7 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
                 >
                     <ButtonGroup>
                         <Switch
-                            label={{text: gettext('Show all language fields')}}
+                            label={{content: gettext('Show all language fields')}}
                             value={this.props.showAllLanguages}
                             onChange={() => this.props.toggleAllLanguages()}
                             disabled={this.props.disabled}
