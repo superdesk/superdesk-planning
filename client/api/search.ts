@@ -2,6 +2,7 @@ import {ISearchAPIParams, ISearchParams} from '../interfaces';
 import {superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {getDateTimeElasticFormat, getTimeZoneOffset} from '../utils';
+import {default as timeUtils} from '../utils/time';
 
 
 export function cvsToString(items?: Array<{[key: string]: any}>, field: string = 'qcode'): string {
@@ -48,6 +49,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         sort_order: params.sort_order,
         sort_field: params.sort_field,
         tz_offset: params.date_filter ? getTimeZoneOffset() : null,
+        time_zone: timeUtils.localTimeZone(),
     };
 }
 

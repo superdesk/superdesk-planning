@@ -1,8 +1,7 @@
 import os
-import multiprocessing
 
 bind = '0.0.0.0:5000'
-workers = int(os.environ.get('WEB_CONCURRENCY', multiprocessing.cpu_count() * 2 + 1))
+workers = 3
 
 loglevel = 'warning'
 

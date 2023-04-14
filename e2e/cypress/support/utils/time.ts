@@ -1,8 +1,10 @@
 import moment from 'moment-timezone';
 
+export const TIMEZONE = moment.tz.guess();
+
 export function getStartOfNextWeek(): moment.Moment {
     const startOfWeek = 0;
-    let current = (moment.tz('Australia/Sydney')).set({
+    let current = (moment()).set({
         hour: 0,
         minute: 0,
         second: 0,
@@ -26,19 +28,16 @@ export function getStartOfNextWeek(): moment.Moment {
 }
 
 export const getDateStringFor = {
-    today: () => moment
-        .tz('Australia/Sydney')
+    today: () => moment()
         .set({hour: 0})
         .utc()
         .format('YYYY-MM-DD'),
-    yesterday: () => moment
-        .tz('Australia/Sydney')
+    yesterday: () => moment()
         .set({hour: 0})
         .utc()
         .subtract(1, 'd')
         .format('YYYY-MM-DD'),
-    tomorrow: () => moment
-        .tz('Australia/Sydney')
+    tomorrow: () => moment()
         .set({hour: 0})
         .utc()
         .add(1, 'd')
@@ -49,7 +48,6 @@ export const getDateStringFor = {
 
 export function getTimeStringForHour(hour: number): string {
     return moment()
-        .tz('Australia/Sydney')
         .set({hour: hour})
         .utc()
         .format('THH:00:00+0000');

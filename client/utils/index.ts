@@ -672,9 +672,18 @@ export const onEventCapture = (event) => {
     }
 };
 
-export const isDateInRange = (inputDate, startDate, endDate) => {
+export const isDateInRange = (inputDate, startDate, endDate, allDay = false) => {
     if (!inputDate) {
         return false;
+    }
+
+    if (allDay) {
+        // if passed as string so inBetween will convert those to local dates
+        // from utc dates which are used for all day events
+        const startDay = startDate.format('YYYY-MM-DD');
+        const endDay = (endDate || inputDate).format('YYYY-MM-DD');
+
+        return moment(inputDate).isBetween(startDay, endDay, 'day', '[]');
     }
 
     if (startDate && moment(inputDate).isBefore(startDate, 'millisecond') ||
@@ -945,6 +954,7 @@ export const sortBasedOnTBC = (days) => {
     }
 
     pushEventsForTheDay(days);
+
     return sortBy(sortable, [(e) => (e.date)]);
 };
 
