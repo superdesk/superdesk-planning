@@ -74,7 +74,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         :return: a list of events which can be saved.
         """
         URL = provider["config"]["url"]
-        LIMIT = 100
+        LIMIT = 1000
         MAX_OFFSET = int(app.config.get("ONCLUSIVE_MAX_OFFSET", 100000))
         self.session = requests.Session()
         parser = self.get_feed_parser(provider)
@@ -113,7 +113,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 params = dict(
                     startDate=start.strftime("%Y%m%d"),
                     endDate=end.strftime("%Y%m%d"),
-                    limit=LIMIT,
+                    limit=LIMIT + 100,  # add some overlap to hopefully avoid missing events
                 )
             logger.info("ingest from onclusive %s with params %s", url, params)
             try:

@@ -137,6 +137,7 @@ filters_schema = {
             "item_ids": list_strings(),
             "name": string(),
             "tz_offset": string(),
+            "time_zone": string(),
             "full_text": string(),
             "anpa_category": list_cvs(),
             "subject": list_cvs(),

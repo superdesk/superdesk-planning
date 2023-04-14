@@ -12,11 +12,9 @@ from typing import Dict, Any, Optional, List, Callable, Union
 
 import logging
 from datetime import datetime
-from flask import current_app as app
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
 from superdesk import get_resource_service
-from superdesk.utc import get_timezone_offset, utcnow
 from superdesk.errors import SuperdeskApiError
 from superdesk.default_settings import strtobool as _strtobool
 from superdesk.users.services import current_user_has_privilege
@@ -29,13 +27,9 @@ from planning.common import POST_STATE, WORKFLOW_STATE
 logger = logging.getLogger(__name__)
 
 
-def get_time_zone(params: Dict[str, Any]):
-    return params.get("tz_offset") or get_timezone_offset(app.config["DEFAULT_TIMEZONE"], utcnow())
-
-
 def get_date_params(params: Dict[str, Any]):
     date_filter = (params.get("date_filter") or "").strip().lower()
-    tz_offset = get_time_zone(params)
+    time_zone = params.get("time_zone")
 
     try:
         start_date = params.get("start_date")
@@ -66,7 +60,7 @@ def get_date_params(params: Dict[str, Any]):
         logger.exception(e)
         raise SuperdeskApiError.badRequestError("Invalid value for end date")
 
-    return date_filter, start_date, end_date, tz_offset
+    return date_filter, start_date, end_date, time_zone
 
 
 def str_to_array(arg: Optional[Union[List[str], str]] = None) -> List[str]:
@@ -268,16 +262,16 @@ def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery
     if not field_name or field_name == "schedule":
         return
 
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
 
     if not date_filter and not start_date and not end_date:
         query.filter.append(
-            elastic.date_range(elastic.ElasticRangeParams(field=field_name, lte="now/d", time_zone=tz_offset))
+            elastic.date_range(elastic.ElasticRangeParams(field=field_name, lte="now/d", time_zone=time_zone))
         )
     else:
         base_query = elastic.ElasticRangeParams(
             field=field_name,
-            time_zone=tz_offset,
+            time_zone=time_zone,
             start_of_week=int(params.get("start_of_week") or 0),
         )
 
@@ -424,6 +418,7 @@ COMMON_PARAMS: List[str] = [
     "item_ids",
     "name",
     "tz_offset",
+    "time_zone",
     "full_text",
     "anpa_category",
     "subject",

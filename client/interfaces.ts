@@ -1264,6 +1264,7 @@ export interface ISearchParams {
     item_ids?: Array<string>;
     name?: string;
     tz_offset?: string;
+    time_zone?: string;
     full_text?: string;
     anpa_category?: Array<IANPACategory>;
     subject?: Array<ISubject>;
@@ -1326,6 +1327,7 @@ export interface ISearchAPIParams {
     item_ids?: string;
     name?: string;
     tz_offset?: string;
+    time_zone?: string;
     full_text?: string;
     anpa_category?: string;
     subject?: string;
