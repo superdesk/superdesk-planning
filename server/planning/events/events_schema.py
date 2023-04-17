@@ -249,6 +249,7 @@ events_schema = {
         "nullable": True,
         "mapping": {
             "type": "object",
+            "dynamic": False,
             "properties": {
                 "qcode": not_analyzed,
                 "name": not_analyzed,
