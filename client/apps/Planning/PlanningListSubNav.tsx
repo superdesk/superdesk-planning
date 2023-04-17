@@ -28,7 +28,7 @@ interface IProps {
     jumpTo(interval: 'TODAY' | 'BACK' | 'FORWARD'): void;
     setJumpInterval(interval: 'DAY' | 'WEEK' | 'MONTH'): void;
     activefilter: PLANNING_VIEW;
-    coverageUser : string;
+    coverageUser?: IUser['_id'];
 }
 
 interface IState {
@@ -195,7 +195,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                             <Dropdown items={userList}>
                                 <span className="sd-margin-l--1 sd-margin-r--3">
                                     {this.props.users.find(
-                                        (user) => user._id == this.props.coverageUser)?.display_name ?? 'ALL'}
+                                        (user) => user._id == this.props.coverageUser)?.display_name ?? gettext('ALL')}
                                     <span className="dropdown__caret" />
                                 </span>
                             </Dropdown>

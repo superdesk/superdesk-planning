@@ -98,7 +98,7 @@ export const getCurrentSortField = createSelector(
 
 export const getCoverageUser = createSelector(
     [currentSearch],
-    (params) => params.coverage_user_id ?? 'ALL',
+    (params) => params.coverage_user_id
 );
 export const currentJumpInterval = createSelector(
     [activeFilter, searchParams],
