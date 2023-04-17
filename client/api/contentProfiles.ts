@@ -31,7 +31,7 @@ function enablePriorityInSearchProfile(profiles: Array<IPlanningContentProfile>)
     // Hack to enable/disable priority field in search profiles based on the content profiles
     // TODO: Remove this hack when we implement a solution for all searchable fields
     const profilesById: {[id: string]: IPlanningContentProfile} = profiles.reduce((profileMap, profile) => {
-        profileMap[profile._id ?? profile.name] = profile;
+        profileMap[profile.name] = profile;
 
         return profileMap;
     }, {});
