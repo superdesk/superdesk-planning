@@ -879,6 +879,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     sortOrder?: SORT_ORDER;
     sortField?: SORT_FIELD;
     source?:string;
+    coverage_user_id?:string;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -890,6 +891,7 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
         location?: IEventLocation;
         reference?: string;
     };
+
 }
 
 export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem> {
@@ -1312,6 +1314,7 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
+    coverage_user_id?:string;
 
     // Event Params
     reference?: string;
@@ -1363,6 +1366,7 @@ export interface ISearchAPIParams {
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
     source?: string;
+    coverage_user_id?:string;
 
     // Event Params
     reference?: string;

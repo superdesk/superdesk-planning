@@ -4,7 +4,7 @@ import moment from 'moment';
 import classNames from 'classnames';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER} from '../../interfaces';
+import {LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER, PLANNING_VIEW} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -12,6 +12,7 @@ import * as actions from '../../actions';
 import {Button, ButtonGroup, Dropdown, SubNav, Tooltip, IconButton} from 'superdesk-ui-framework/react';
 import {FilterSubnavDropdown} from '../../components/Main';
 import {SubNavDatePicker} from './SubNavDatePicker';
+import {IUser} from 'superdesk-api';
 
 export type SUBNAV_VIEW_SIZE = 'standard' | 'compact';
 const STANDARD_MIN_WIDTH = 500;
@@ -22,10 +23,12 @@ interface IProps {
     currentInterval: 'DAY' | 'WEEK' | 'MONTH';
     sortOrder: SORT_ORDER;
     sortField: SORT_FIELD;
-
+    users: Array<IUser>
     setStartFilter(value?: moment.Moment): void;
     jumpTo(interval: 'TODAY' | 'BACK' | 'FORWARD'): void;
     setJumpInterval(interval: 'DAY' | 'WEEK' | 'MONTH'): void;
+    activefilter: PLANNING_VIEW;
+    coverageUser?: IUser['_id'];
 }
 
 interface IState {
@@ -38,6 +41,9 @@ const mapStateToProps = (state) => ({
     listViewType: selectors.main.getCurrentListViewType(state),
     sortOrder: selectors.main.getCurrentSortOrder(state),
     sortField: selectors.main.getCurrentSortField(state),
+    users: selectors.general.users(state),
+    activefilter: selectors.main.activeFilter(state),
+    coverageUser: selectors.main.getCoverageUser(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -131,7 +137,19 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
         planningApi.ui.list.search({sort_field: field});
     }
 
+    filterCoverageUser(item) {
+        planningApi.ui.list.search({coverage_user_id: item._id});
+    }
+
     render() {
+        let newOption = {_id: null, display_name: 'ALL'};
+        let list = [newOption, ...this.props.users];
+        const userList = list.map((user) => ({
+            label: user.display_name,
+            onSelect: () => {
+                this.filterCoverageUser(user);
+            }
+        }));
         const {gettext} = superdeskApi.localization;
         const {currentStartFilter} = this.props;
         let intervalText: string;
@@ -171,6 +189,20 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
                     </ButtonGroup>
+                    {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
+                        <div>
+                            {gettext('Assigned Coverages Items :')}
+                            <Dropdown items={userList}>
+                                <span className="sd-margin-l--1 sd-margin-r--3">
+                                    {this.props.users.find(
+                                        (user) => user._id == this.props.coverageUser)?.display_name ?? gettext('ALL')}
+                                    <span className="dropdown__caret" />
+                                </span>
+                            </Dropdown>
+
+                        </div>
+                    )}
+
                     <ButtonGroup align="end">
                         {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
                             <React.Fragment>

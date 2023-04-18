@@ -88,11 +88,16 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
     query.must.append(elastic.bool_or([event_query.build()["query"], planning_query.build()["query"]]))
 
 
+def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):
+    planning.search_coverage_assigned_user(params, query)
+
+
 COMBINED_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
     search_not_common_fields,
     search_sluglines,
     search_calendars_and_agendas,
     search_dates,
+    search_coverage_assigned_user,
 ]
 
 COMBINED_SEARCH_FILTERS.extend(common.COMMON_SEARCH_FILTERS)
@@ -103,6 +108,7 @@ COMBINED_PARAMS: List[str] = [
     "calendars",
     "agendas",
     "include_associated_planning",
+    "coverage_user_id",
 ]
 
 COMBINED_PARAMS.extend(common.COMMON_PARAMS)
