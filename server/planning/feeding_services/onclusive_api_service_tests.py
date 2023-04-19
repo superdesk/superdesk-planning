@@ -49,7 +49,8 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
                 list(service._update(provider, updates))
             self.assertIn("tokens", updates)
             self.assertEqual("refresh", updates["tokens"]["refreshToken"])
-            self.assertEqual(event["versioncreated"], updates["tokens"]["import_finished"])
+            self.assertIn("import_finished", updates["tokens"])
+            self.assertEqual(updates["last_updated"], updates["tokens"]["next_start"])
 
             provider.update(updates)
             updates = {}

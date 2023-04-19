@@ -73,7 +73,7 @@ class OnclusiveFeedParser(FeedParser):
                 except EmbargoedException:
                     logger.info("Ignoring embargoed event %s", event["itemId"])
                 except (KeyError, IndexError, TypeError) as error:
-                    logger.exception("error %s ingesting event %s", error, event)
+                    logger.exception("error %s when ingesting event", error, extra=dict(event=event))
             return all_events
 
         except Exception as ex:
@@ -116,13 +116,13 @@ class OnclusiveFeedParser(FeedParser):
     def parse_event_details(self, event, item):
         if event.get("time"):
             start_date = self.datetime(event["startDate"], event.get("time"), event["timezone"])
-            end_date = self.datetime(event["endDate"], "23:59:59", event["timezone"])
+            end_date = self.datetime(event["endDate"], timezone=event["timezone"])
             tz = self.parse_timezone(start_date, event)
             item["dates"] = dict(
                 start=start_date,
-                end=end_date,
-                tz=tz,
+                end=max(start_date, end_date),
                 no_end_time=True,
+                tz=tz,
             )
         else:
             item["dates"] = dict(
@@ -136,12 +136,14 @@ class OnclusiveFeedParser(FeedParser):
             timezones = app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES) + pytz.common_timezones
             for tzname in timezones:
                 try:
-                    date = start_date.astimezone(pytz.timezone(tzname))
+                    tz = pytz.timezone(tzname)
+                    date = start_date.astimezone(tz)
                 except pytz.exceptions.UnknownTimeZoneError:
                     logger.error("Unknown Timezone %s", tzname)
                     continue
                 abbr = date.strftime("%Z")
-                if abbr == event["timezone"]["timezoneAbbreviation"]:
+                offset = tz.utcoffset(start_date.replace(tzinfo=None)).total_seconds() / 3600
+                if abbr == event["timezone"]["timezoneAbbreviation"] and offset == event["timezone"]["timezoneOffset"]:
                     return tzname
             else:
                 logger.warning("Could not find timezone for %s", event["timezone"]["timezoneAbbreviation"])
