@@ -747,8 +747,38 @@ const getStartDate = (event: IEventItem) => (
 );
 
 const getEndDate = (event: IEventItem) => (
-    event.dates?.all_day ? moment.utc(event.dates.end) : moment(event.dates?.end)
+    (event.dates?.all_day || event.dates?.no_end_time) ? moment.utc(event.dates.end) : moment(event.dates?.end)
 );
+
+const isEventInRange = (
+    event: IEventItem,
+    eventStart: moment.Moment,
+    eventEnd: moment.Moment,
+    start: moment.Moment,
+    end?: moment.Moment,
+) => {
+    let localStart = eventStart;
+    let localEnd = eventEnd;
+    let startUnit : moment.unitOfTime.StartOf = 'second';
+    let endUnit : moment.unitOfTime.StartOf = 'second';
+
+    if (event.dates?.all_day) {
+        // we have only dates in utc
+        localStart = moment(eventStart.format('YYYY-MM-DD'));
+        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
+        startUnit = 'day';
+        endUnit = 'day';
+    }
+
+    if (event.dates?.no_end_time) {
+        // we have time for start, but only date for end
+        localStart = moment(eventStart);
+        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
+        endUnit = 'day';
+    }
+
+    return localEnd.isSameOrAfter(start, endUnit) && (end == null || localStart.isSameOrBefore(end, startUnit));
+};
 
 /*
  * Groups the events by date
@@ -777,19 +807,15 @@ const getEventsByDate = (events: Array<IEventItem>, startDate, endDate) => {
         let eventStart = getStartDate(event);
         let eventEnd = getEndDate(event);
 
-        if (!eventStart.isSame(eventEnd, 'day') && !event.dates.all_day) {
+        if (!eventStart.isSame(eventEnd, 'day') && !event.dates.all_day && !event.dates.no_end_time) {
             eventStart = eventDate;
             eventEnd = eventEnd.isSame(eventDate, 'day') ?
                 eventEnd :
                 moment(eventDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').add(86399, 'seconds');
         }
 
-        if (!(isDateInRange(startDate, eventStart, eventEnd, event.dates.all_day) ||
-            isDateInRange(endDate, eventStart, eventEnd, event.dates.all_day))) {
-            if (!isDateInRange(eventStart, startDate, endDate, event.dates.all_day) &&
-                !isDateInRange(eventEnd, startDate, endDate, event.dates.all_day)) {
-                return;
-            }
+        if (!isEventInRange(event, eventDate, eventEnd, startDate, endDate)) {
+            return;
         }
 
         let eventDateFormatted = eventDate.format('YYYY-MM-DD');
@@ -806,21 +832,21 @@ const getEventsByDate = (events: Array<IEventItem>, startDate, endDate) => {
 
     sortedEvents.forEach((event) => {
         // compute the number of days of the event
-        const ending = event.actioned_date ? event.actioned_date : getEndDate(event);
-        const startDate = getStartDate(event);
+        const eventEndDate = event.actioned_date ? event.actioned_date : getEndDate(event);
+        const eventStartDate = getStartDate(event);
 
-        if (!startDate.isSame(ending, 'day')) {
-            let deltaDays = Math.max(Math.ceil(ending.diff(startDate, 'days', true)), 1);
+        if (!eventStartDate.isSame(eventEndDate, 'day')) {
+            let deltaDays = Math.max(Math.ceil(eventEndDate.diff(eventStartDate, 'days', true)), 1);
             // if the event happens during more that one day, add it to every day
             // add the event to the other days
 
             for (let i = 1; i <= deltaDays; i++) {
                 // clone the date
-                const newDate = moment(startDate.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+                const newDate = moment(eventStartDate.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
 
                 newDate.add(i, 'days');
 
-                if (maxStartDate.isSameOrAfter(newDate, 'day') && newDate.isSameOrBefore(ending, 'day')) {
+                if (maxStartDate.isSameOrAfter(newDate, 'day') && newDate.isSameOrBefore(eventEndDate, 'day')) {
                     addEventToDate(event, newDate);
                 }
             }
@@ -828,7 +854,7 @@ const getEventsByDate = (events: Array<IEventItem>, startDate, endDate) => {
 
         // add event to its initial starting date
         // add an event only if it's not actioned or actioned after this event's start date
-        if (!event.actioned_date || event.actioned_date.isSameOrAfter(startDate, 'date')) {
+        if (!event.actioned_date || event.actioned_date.isSameOrAfter(eventStartDate, 'date')) {
             addEventToDate(event);
         }
     });
