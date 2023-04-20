@@ -105,9 +105,8 @@ const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
 
-        return superdesk.privileges.getOwnPrivileges().then((privileges) => {
-            const displayTopbarWidget = privileges['planning_assignments_view'] === 1
-                && extensionConfig?.assignmentsTopBarWidget === true;
+        const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
+            && extensionConfig?.assignmentsTopBarWidget === true;
 
             const result: IExtensionActivationResult = {
                 contributions: {
@@ -132,8 +131,7 @@ const extension: IExtension = {
                 },
             };
 
-            return result;
-        });
+            return Promise.resolve(result);
     },
 };
 
