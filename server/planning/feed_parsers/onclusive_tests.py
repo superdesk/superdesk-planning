@@ -67,7 +67,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
 
         self.assertEqual(item["dates"]["start"], datetime.datetime(2022, 6, 15, 10, 30, tzinfo=datetime.timezone.utc))
-        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 16, 3, 59, 59, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 15, 10, 30, tzinfo=datetime.timezone.utc))
         self.assertEqual(item["dates"]["tz"], "US/Eastern")
         self.assertEqual(item["dates"]["no_end_time"], True)
 
@@ -111,6 +111,32 @@ class OnclusiveFeedParserTestCase(TestCase):
                 with self.assertLogs("planning", level=logging.ERROR) as logger:
                     OnclusiveFeedParser().parse([self.data])
                     self.assertIn("ERROR:planning.feed_parsers.onclusive:Unknown Timezone FOO", logger.output)
+
+    def test_cst_timezone(self):
+        data = self.data.copy()
+        data.update(
+            {
+                "startDate": "2023-04-18T00:00:00.0000000",
+                "endDate": "2023-04-18T00:00:00.0000000",
+                "time": "10:00",
+                "timezone": {
+                    "timezoneID": 24,
+                    "timezoneAbbreviation": "CST",
+                    "timezoneName": "(CST) China Standard Time : Beijing, Taipei",
+                    "timezoneOffset": 8.00,
+                },
+            }
+        )
+        item = OnclusiveFeedParser().parse([data])[0]
+        self.assertEqual(
+            {
+                "start": datetime.datetime(2023, 4, 18, 2, tzinfo=datetime.timezone.utc),
+                "end": datetime.datetime(2023, 4, 18, 2, tzinfo=datetime.timezone.utc),
+                "no_end_time": True,
+                "tz": "Asia/Macau",
+            },
+            item["dates"],
+        )
 
     def test_embargoed(self):
         data = self.data.copy()
