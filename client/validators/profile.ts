@@ -1,7 +1,7 @@
 import {get, isEmpty} from 'lodash';
 import {gettext} from '../utils';
 
-export const formProfile = ({field, value, profile, errors, messages}) => {
+export const formProfile = ({field, value, profile, errors, messages, diff}) => {
     // If the field is not enabled or no schema defined, then simply return
     if (!get(profile, `editor.${field}.enabled`, false) || !get(profile, `schema.${field}`)) {
         return;
@@ -10,6 +10,8 @@ export const formProfile = ({field, value, profile, errors, messages}) => {
     const schema = get(profile, `schema.${field}`) || {};
 
     const fieldValue = (typeof value === 'string') ? value.trim() : value;
+
+    const field_value = (diff?.translations || []).filter((e) => e.field === field);
 
     if (!schema.required && get(fieldValue, length, 0) < 1) {
         return;
@@ -38,6 +40,14 @@ export const formProfile = ({field, value, profile, errors, messages}) => {
     } else if (schema.required && (typeof fieldValue === 'number' ? !fieldValue : isEmpty(fieldValue))) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
+    } else if (schema.required && schema.multilingual) {
+        const errorMessage = gettext(`${fieldLabel} is a required field`);
+
+        if (field !== 'language' && diff?.languages?.length !== field_value?.length || field_value.some((obj
+        ) => obj.value === '')) {
+            errors[field] = gettext('This field is required');
+            messages.push(errorMessage);
+        }
     } else if (get(schema, 'minlength', 0) > 0 && get(fieldValue, 'length', 0) < schema.minlength) {
         if (get(schema, 'type', 'string') === 'list') {
             errors[field] = gettext('Not enough');
