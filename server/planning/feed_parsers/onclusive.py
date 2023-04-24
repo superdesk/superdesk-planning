@@ -133,7 +133,11 @@ class OnclusiveFeedParser(FeedParser):
 
     def parse_timezone(self, start_date, event):
         if event.get("timezone"):
-            timezones = app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES) + pytz.common_timezones
+            timezones = (
+                app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES)
+                + pytz.common_timezones
+                + pytz.all_timezones
+            )
             for tzname in timezones:
                 try:
                     tz = pytz.timezone(tzname)
