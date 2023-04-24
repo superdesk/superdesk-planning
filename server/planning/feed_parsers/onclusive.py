@@ -51,33 +51,29 @@ class OnclusiveFeedParser(FeedParser):
             return False
 
     def parse(self, content, provider=None):
-        try:
-            all_events = []
-            for event in content:
-                guid = "urn:onclusive:{}".format(event["itemId"])
+        all_events = []
+        for event in content:
+            guid = "urn:onclusive:{}".format(event["itemId"])
 
-                item = {
-                    GUID_FIELD: guid,
-                    ITEM_TYPE: CONTENT_TYPE.EVENT,
-                    "state": CONTENT_STATE.INGESTED,
-                }
+            item = {
+                GUID_FIELD: guid,
+                ITEM_TYPE: CONTENT_TYPE.EVENT,
+                "state": CONTENT_STATE.INGESTED,
+            }
 
-                try:
-                    self.set_occur_status(item)
-                    self.parse_item_meta(event, item)
-                    self.parse_location(event, item)
-                    self.parse_event_details(event, item)
-                    self.parse_category(event, item)
-                    self.parse_contact_info(event, item)
-                    all_events.append(item)
-                except EmbargoedException:
-                    logger.info("Ignoring embargoed event %s", event["itemId"])
-                except (KeyError, IndexError, TypeError) as error:
-                    logger.exception("error %s when ingesting event", error, extra=dict(event=event))
-            return all_events
-
-        except Exception as ex:
-            raise ParserError.parseMessageError(ex, provider)
+            try:
+                self.set_occur_status(item)
+                self.parse_item_meta(event, item)
+                self.parse_location(event, item)
+                self.parse_event_details(event, item)
+                self.parse_category(event, item)
+                self.parse_contact_info(event, item)
+                all_events.append(item)
+            except EmbargoedException:
+                logger.info("Ignoring embargoed event %s", event["itemId"])
+            except Exception as error:
+                logger.exception("error %s when parsing event %s", error, event["itemId"], extra=dict(event=event))
+        return all_events
 
     def set_occur_status(self, item):
         eocstat_map = get_resource_service("vocabularies").find_one(req=None, _id="eventoccurstatus")
@@ -146,7 +142,7 @@ class OnclusiveFeedParser(FeedParser):
                     logger.error("Unknown Timezone %s", tzname)
                     continue
                 abbr = date.strftime("%Z")
-                offset = tz.utcoffset(start_date.replace(tzinfo=None)).total_seconds() / 3600
+                offset = date.utcoffset().total_seconds() / 3600
                 if abbr == event["timezone"]["timezoneAbbreviation"] and offset == event["timezone"]["timezoneOffset"]:
                     return tzname
             else:

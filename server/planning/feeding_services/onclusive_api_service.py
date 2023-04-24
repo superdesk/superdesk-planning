@@ -87,6 +87,8 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 second=0
             )  # next time start from here, onclusive api does not use seconds
             if update["tokens"].get("import_finished"):
+                # populate it for cases when import was done before we introduced the field
+                update["tokens"].setdefault("next_start", update["tokens"]["import_finished"] - timedelta(hours=8))
                 url = urljoin(URL, "/api/v2/events/latest")
                 start = update["tokens"]["next_start"] - timedelta(
                     hours=3,  # add a buffer, also not sure about timezone there
