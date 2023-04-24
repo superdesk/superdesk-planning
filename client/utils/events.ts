@@ -420,70 +420,44 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
     // !! Note - expects event dates as instance of moment() !! //
     const dateFormat = appConfig.planning.dateformat;
     const timeFormat = appConfig.planning.timeformat;
-    const start = get(event.dates, 'start');
-    const end = get(event.dates, 'end');
+    const start = getStartDate(event);
+    const end = getEndDate(event);
     const tz = get(event.dates, 'tz');
     const localStart = timeUtils.getLocalDate(start, tz);
-    let dateString, timezoneString = '';
-    let timezoneForEvents = '';
+    const isFullDay = event?.dates?.all_day;
+    const noEndTime = event?.dates?.no_end_time;
+    const multiDay = !start.isSame(end, 'day');
 
-    if (!start || !end)
+    let dateString, timezoneString = '';
+
+    if (!start || !end) {
         return;
+    }
 
     dateString = getTBCDateString(event, ' @ ', dateOnly);
     if (!dateString) {
-        if (start.isSame(end, 'day')) {
-            if (dateOnly) {
+        if (!multiDay) {
+            if (dateOnly || isFullDay) {
                 dateString = start.format(dateFormat);
+            } else if (noEndTime) {
+                dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false);
             } else {
                 dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
                     end.format(timeFormat);
             }
         } else if (dateOnly) {
             dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
+        } else if (noEndTime) {
+            dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false);
         } else {
             dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
                     getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
         }
     }
 
-    const isFullDay = event?.dates?.all_day;
-    const noEndTime = event?.dates?.no_end_time;
-
-    const multiDay = !isEventSameDay(start, end);
-
-    if (isFullDay && !multiDay) {
-        if (get(event.dates, 'all_day')) {
-            // use UTC mode to avoid any date conversion
-            return moment.utc(start).format(dateFormat);
-        }
-
-        return start.format(dateFormat);
-    } else if (noEndTime && !multiDay) {
-        if (withTimezone) {
-            if (!useLocal) {
-                timezoneForEvents =
-                `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz ? tz : 'utc')})`;
-            } else {
-                timezoneForEvents = getDateTimeString(start, dateFormat, timeFormat, ' @ ', true);
-            }
-        }
-        return timezoneForEvents;
-    } else if (isFullDay && multiDay) {
-        return timezoneForEvents = start.format(dateFormat) + ' - ' + end.format(dateFormat);
-    } else if (noEndTime && multiDay) {
-        if (withTimezone) {
-            if (!useLocal && tz) {
-                timezoneForEvents =
-                 `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz) + ' - ' +
-                 end.format(dateFormat)})`;
-            } else {
-                timezoneForEvents =
-                getDateTimeString(start, dateFormat, timeFormat, ' @ ', true) + ' - ' +
-                moment.utc(end).format(dateFormat);
-            }
-        }
-        return timezoneForEvents;
+    // no timezone info needed
+    if (isFullDay || dateOnly) {
+        return multiDay ? start.format(dateFormat) + ' - ' + end.format(dateFormat) : start.format(dateFormat);
     }
 
     if (withTimezone) {
