@@ -7,7 +7,7 @@ import {showModal} from './index';
 import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
 import planningUi from './planning/ui';
-import {getItemType, gettext, planningUtils, eventUtils, getItemInArrayById, getErrorMessage} from '../utils';
+import {getItemType, gettext, getItemInArrayById, getErrorMessage, lockUtils} from '../utils';
 
 /**
  * Action Dispatcher to select an/all Event(s)
@@ -193,11 +193,9 @@ const exportAsArticle = (items = [], download) => (
         const sortableItems = [];
         const label = (item) => item.headline || item.slugline || item.description_text || item.name;
         const locks = selectors.locks.getLockedItems(state);
-        const isLockedCheck = isPlanning ? planningUtils.isPlanningLocked :
-            eventUtils.isEventLocked;
 
         items.forEach((item) => {
-            const isLocked = isLockedCheck(item, locks);
+            const isLocked = lockUtils.isItemLocked(item, locks);
             const isNotForPublication = get(item, 'flags.marked_for_not_publication');
 
             if (isLocked || isNotForPublication) {

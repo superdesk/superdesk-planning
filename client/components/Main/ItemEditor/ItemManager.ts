@@ -352,7 +352,8 @@ export class ItemManager {
             )
                 .then((original) => {
                     initialValues = cloneDeep(original);
-                    return this.dispatch<any>(actions.locks.lock(original));
+
+                    return planningApi.locks.lockItem(original);
                 });
         } else {
             // Fetch the latest item from the API to view in read-only mode
@@ -803,27 +804,11 @@ export class ItemManager {
     }
 
     lock(item: IEventOrPlanningItem) {
-        return this.dispatch<any>(
-            actions.locks.lock(item)
-        );
+        return planningApi.locks.lockItem(item);
     }
 
     unlock() {
-        const {itemId, itemType} = this.props;
-        let action = actions.locks.unlock;
-
-        if (!itemId || isTemporaryId(itemId)) {
-            return Promise.resolve();
-        } else if (itemType === ITEM_TYPE.EVENT) {
-            action = actions.events.api.unlock;
-        } else if (itemType === ITEM_TYPE.PLANNING) {
-            action = actions.planning.api.unlock;
-        }
-
-        return this.dispatch<any>(action({
-            _id: itemId,
-            type: itemType,
-        }));
+        return planningApi.locks.unlockItem(this.props.item);
     }
 
     unlockThenLock(item: IEventOrPlanningItem) {
@@ -831,8 +816,9 @@ export class ItemManager {
             itemReady: false,
             loading: true,
         })
-            .then(() => this.dispatch<any>(
-                actions.locks.unlockThenLock(item, this.props.inModalView)
+            .then(() => (planningApi.locks.unlockThenLockItem(item, 'edit')))
+            .then((lockedItem) => (
+                this.dispatch<any>(actions.main.openForEdit(lockedItem, true, this.props.inModalView))
             ));
     }
 
@@ -847,10 +833,7 @@ export class ItemManager {
 
         // If event was created by a planning item, unlock the planning item
         if (diff?.type === 'event' && diff._planning_item) {
-            this.dispatch<any>(actions.planning.api.unlock({
-                _id: diff._planning_item,
-                type: ITEM_TYPE.PLANNING,
-            }));
+            planningApi.locks.unlockItemById(diff._planning_item, 'planning');
         }
 
         promises.push(this.autoSave.remove());

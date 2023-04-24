@@ -294,7 +294,7 @@ export interface ISession {
     identity: IUser;
 }
 
-export type IPrivileges = {[key: string]: number};
+export type IPrivileges = {[key: string]: number | boolean};
 
 export interface ILocation extends IBaseRestApiResponse {
     guid: string;
@@ -338,12 +338,12 @@ export interface ILocation extends IBaseRestApiResponse {
 }
 
 export interface ILock {
-    action: string;
-    item_id: string;
-    item_type: string;
-    session: string;
-    time: string;
-    user: string;
+    action: IEventOrPlanningItem['lock_action'];
+    item_id: IEventOrPlanningItem['_id'];
+    item_type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
+    session: IEventOrPlanningItem['lock_session'];
+    time: IEventOrPlanningItem['lock_time'];
+    user: IEventOrPlanningItem['lock_user'];
 }
 
 export interface ILockedItems {
@@ -376,6 +376,29 @@ export interface IEventLocation {
         lon: number;
     };
 }
+
+export interface IItemAction {
+    actionName?: string;
+    label: string;
+    key?: string;
+    icon?: string;
+    inactive?: boolean;
+    text?: string;
+    callback?(...args: Array<any>): void;
+}
+
+export interface IItemSubActions {
+    create: {
+        current: Array<IItemAction>;
+        past: Array<IItemAction>;
+    };
+    createAndOpen: {
+        current: Array<IItemAction>;
+        past: Array<IItemAction>;
+    };
+}
+
+export type IDateTime = moment.MomentInput;
 
 export interface IEventItem extends IBaseRestApiResponse {
     guid?: string;
@@ -412,8 +435,8 @@ export interface IEventItem extends IBaseRestApiResponse {
     dates?: {
         all_day?: boolean;
         no_end_time?: boolean;
-        start?: string | Date | moment.Moment;
-        end?: string | Date | moment.Moment;
+        start?: IDateTime;
+        end?: IDateTime;
         tz?: string;
         duration?: string;
         confirmation?: string;
@@ -422,7 +445,7 @@ export interface IEventItem extends IBaseRestApiResponse {
             frequency?: string;
             interval?: number;
             endRepeatMode?: 'count' | 'until';
-            until?: string | Date | moment.Moment;
+            until?: IDateTime;
             count?: number;
             bymonth?: string;
             byday?: string;
@@ -444,8 +467,8 @@ export interface IEventItem extends IBaseRestApiResponse {
             byminute?: string;
         }
     };
-    _startTime?: string | Date | moment.Moment;
-    _endTime?: string | Date | moment.Moment;
+    _startTime?: IDateTime;
+    _endTime?: IDateTime;
     _planning_schedule?: Array<{
         scheduled?: string | Date;
     }>;
@@ -481,7 +504,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     expired?: boolean;
     pubstatus?: IPlanningPubstatus;
     lock_user?: string;
-    lock_time?: string | Date | moment.Moment;
+    lock_time?: IDateTime;
     lock_session?: string;
     lock_action?: string;
     update_method?: IEventUpdateMethod;
@@ -503,11 +526,15 @@ export interface IEventItem extends IBaseRestApiResponse {
     planning_ids?: Array<string>;
     _plannings?: Array<IPlanningItem>;
     template?: string;
-    _sortDate?: string | Date | moment.Moment;
+    _sortDate?: IDateTime;
 
     // Used only to add/modify Plannings/Coverages from the Event form
     // These are only stored with the Autosave and not the actual Event
     associated_plannings: Array<Partial<IPlanningItem>>;
+
+    // Attributes added by API (removed via modifyForClient)
+    // The `_status` field is available when the item comes from a POST/PATCH request
+    _status: any;
 }
 
 export interface IEventTemplate extends IBaseRestApiResponse {
@@ -525,8 +552,8 @@ export interface ICoveragePlanningDetails {
     contact_info: string;
     item_class: string;
     item_count: string;
-    scheduled: string | Date | moment.Moment;
-    _scheduledTime: string | Date | moment.Moment;
+    scheduled: IDateTime;
+    _scheduledTime: IDateTime;
     files: Array<string>;
     xmp_file: string;
     service: Array<{
@@ -636,7 +663,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     expired: boolean;
     featured: boolean;
     lock_user: string;
-    lock_time: string | Date | moment.Moment;
+    lock_time: IDateTime;
     lock_session: string;
     lock_action: string;
     coverages: Array<IPlanningCoverageItem>;
@@ -648,7 +675,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         scheduled_update_id: string;
         scheduled: string | Date;
     }>;
-    planning_date: string | Date | moment.Moment;
+    planning_date: IDateTime;
     flags?: {
         marked_for_not_publication?: boolean;
         overide_auto_assign_to_workflow?: boolean;
@@ -667,6 +694,10 @@ export interface IPlanningItem extends IBaseRestApiResponse {
 
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;
+
+    // Attributes added by API (removed via modifyForClient)
+    // The `_status` field is available when the item comes from a POST/PATCH request
+    _status: any;
 }
 
 export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
@@ -692,7 +723,7 @@ export interface IFeaturedPlanningSaveItem {
 
 export interface IFeaturedPlanningLock extends IBaseRestApiResponse {
     lock_user: string;
-    lock_time: string | Date | moment.Moment;
+    lock_time: IDateTime;
     lock_session: string;
 }
 
@@ -777,7 +808,7 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     versioncreated: string;
     type: 'assignment';
     lock_user: string;
-    lock_time: string | Date | moment.Moment;
+    lock_time: IDateTime;
     lock_session: string;
     lock_action: string;
     _to_delete: boolean;
@@ -827,6 +858,7 @@ export interface IDateSearchParams {
 }
 
 export type IEventOrPlanningItem = IEventItem | IPlanningItem;
+export type IAssignmentOrPlanningItem = IEventOrPlanningItem | IAssignmentItem;
 
 export interface ICommonAdvancedSearchParams {
     anpa_category?: Array<IANPACategory>;
@@ -1272,8 +1304,8 @@ export interface ISearchParams {
     spike_state?: ISearchSpikeState;
     include_killed?: boolean;
     date_filter?: IDateRange;
-    start_date?: string | Date | moment.Moment;
-    end_date?: string | Date | moment.Moment;
+    start_date?: IDateTime;
+    end_date?: IDateTime;
     only_future?: boolean;
     start_of_week?: number;
     slugline?: string;
@@ -1621,6 +1653,7 @@ export interface IPlanningAppState {
     featuredPlanning: IFeaturedPlanningState;
     forms: IFormState;
     session: ISession;
+    locks: ILockedItems;
 }
 
 export interface INominatimLocalityFields {
@@ -1900,6 +1933,18 @@ export interface IWebsocketMessageData {
         lock_session?: IEventOrPlanningItem['lock_session'];
         recurrence_id?: IEventItem['recurrence_id'];
         event_item?: IEventItem['_id'];
+        type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
+    };
+    ITEM_LOCKED: {
+        item: IEventOrPlanningItem['_id'];
+        etag: IEventOrPlanningItem['_etag'];
+        user: IEventOrPlanningItem['lock_user'];
+        lock_session: IEventOrPlanningItem['lock_session'];
+        lock_action: IEventOrPlanningItem['lock_action'];
+        lock_time: IEventOrPlanningItem['lock_time'];
+        recurrence_id?: IEventOrPlanningItem['recurrence_id'];
+        type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
+        event_item?: IEventItem['_id'];
     };
 }
 
@@ -1992,7 +2037,6 @@ export interface IPlanningAPI {
         searchGetAll(params: ISearchParams): Promise<Array<IEventItem>>;
         getById(eventId: IEventItem['_id']): Promise<IEventItem>;
         getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
-        getLocked(): Promise<Array<IEventItem>>;
         getEditorProfile(): IEventFormProfile;
         getSearchProfile(): IEventSearchProfile;
         create(updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
@@ -2007,15 +2051,12 @@ export interface IPlanningAPI {
             spikeState?: ISearchSpikeState,
             params?: ISearchParams
         ): Promise<Array<IPlanningItem>>;
-        getLocked(): Promise<Array<IPlanningItem>>;
-        getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;
         getEditorProfile(): IPlanningFormProfile;
         getSearchProfile(): IPlanningSearchProfile;
         featured: {
-            lock(): Promise<Partial<IFeaturedPlanningLock>>;
-            unlock(): Promise<undefined>;
             getById(id: string): Promise<IFeaturedPlanningItem>;
             getByDate(date: moment.Moment): Promise<IFeaturedPlanningItem>;
+            save(updates: Partial<IFeaturedPlanningItem>): Promise<IFeaturedPlanningItem>;
         };
         coverages: {
             setDefaultValues(
@@ -2027,6 +2068,9 @@ export interface IPlanningAPI {
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
         update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
         createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
+    };
+    assignments: {
+        getById(assignmentId: IAssignmentItem['_id']): Promise<IAssignmentItem>;
     };
     coverages: {
         getEditorProfile(): ICoverageFormProfile;
@@ -2085,6 +2129,7 @@ export interface IPlanningAPI {
             updates: Partial<IEventOrPlanningItem>
         ): Promise<IEventOrPlanningItem>;
         delete(item: IEventOrPlanningItem): Promise<void>;
+        deleteById(itemType: IEventOrPlanningItem['type'], itemId: IEventOrPlanningItem['_id']): Promise<void>;
     };
     editor(type: EDITOR_TYPE): IEditorAPI;
     contentProfiles: {
@@ -2094,5 +2139,21 @@ export interface IPlanningAPI {
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;
         updateProfilesInStore(): Promise<void>;
+    };
+    locks: {
+        loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
+        addLockToStore(data: IWebsocketMessageData['ITEM_LOCKED']): void;
+        removeLockFromStore(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
+        lockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
+        lockItemById<T extends IAssignmentOrPlanningItem>(
+            itemId: T['_id'],
+            itemType: T['type'],
+            action: string
+        ): Promise<T>;
+        unlockItem<T extends IAssignmentOrPlanningItem>(item: T): Promise<T>;
+        unlockItemById<T extends IAssignmentOrPlanningItem>(itemId: T['_id'], itemType: T['type']): Promise<T>;
+        unlockThenLockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
+        lockFeaturedPlanning(): Promise<void>;
+        unlockFeaturedPlanning(): Promise<void>;
     };
 }
