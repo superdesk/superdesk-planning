@@ -1,10 +1,15 @@
+import {get, cloneDeep} from 'lodash';
+
+import {IWebsocketMessageData} from '../../interfaces';
+
+import {planningApi} from '../../superdeskApi';
+import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
+import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
+
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
-import {get, cloneDeep} from 'lodash';
 import planning from '../planning';
-import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
-import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
 import * as actions from '../../actions';
 
@@ -149,6 +154,12 @@ const onAssignmentUpdated = (_e, data) => (
                             lock_time: null,
                         };
 
+                        planningApi.locks.removeLockFromStore({
+                            item: data.item,
+                            etag: data.etag,
+                            from_ingest: false,
+                            type: 'assignment',
+                        });
                         dispatch({
                             type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
                             payload: {assignment: item},
@@ -185,9 +196,10 @@ const _updatePlannigRelatedToAssignment = (data) => (
     }
 );
 
-const onAssignmentLocked = (_e, data) => (
-    (dispatch) => {
+function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
+    return (dispatch) => {
         if (get(data, 'item')) {
+            planningApi.locks.addLockToStore(data);
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     let item = {
@@ -209,8 +221,8 @@ const onAssignmentLocked = (_e, data) => (
         }
 
         return Promise.resolve();
-    }
-);
+    };
+}
 
 /**
  * WS Action when a Planning item gets unlocked
@@ -220,9 +232,10 @@ const onAssignmentLocked = (_e, data) => (
  * @param {object} _e - Event object
  * @param {object} data - Planning and User IDs
  */
-const onAssignmentUnlocked = (_e, data) => (
-    (dispatch, getState) => {
+function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
+    return (dispatch, getState) => {
         if (get(data, 'item')) {
+            planningApi.locks.removeLockFromStore(data);
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     const locks = selectors.locks.getLockedItems(getState());
@@ -265,8 +278,8 @@ const onAssignmentUnlocked = (_e, data) => (
                     return Promise.resolve();
                 });
         }
-    }
-);
+    };
+}
 
 /**
  * WS Action when an Assignment is deleted
