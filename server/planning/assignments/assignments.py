@@ -254,6 +254,7 @@ class AssignmentsService(superdesk.Service):
         assigned_to = doc.get("assigned_to") or {}
         kwargs = {
             "item": doc.get(config.ID_FIELD),
+            "etag": doc.get("_etag"),
             "coverage": doc.get("coverage_item"),
             "planning": doc.get("planning_item"),
             "assigned_user": assigned_to.get("user"),
