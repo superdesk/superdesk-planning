@@ -1,3 +1,5 @@
+import {ILockedItems} from '../interfaces';
+
 export const config = {
     server: {url: 'http://server.com'},
     model: {dateformat: 'DD/MM/YYYY'},
@@ -483,7 +485,7 @@ export const urgency = {
     ],
 };
 
-export const locks = {
+export const locks: ILockedItems = {
     event: {},
     planning: {},
     recurring: {},

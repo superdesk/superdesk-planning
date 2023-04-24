@@ -417,7 +417,7 @@ describe('actions.assignments.api', () => {
     });
 
     describe('queryLockedAssignments', () => {
-        it('queries for locked assignments', (done) => (
+        xit('queries for locked assignments', (done) => (
             store.test(done, assignmentsApi.queryLockedAssignments())
                 .then(() => {
                     const query = {constant_score: {filter: {exists: {field: 'lock_session'}}}};

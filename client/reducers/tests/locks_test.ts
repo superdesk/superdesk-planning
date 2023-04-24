@@ -1,4 +1,15 @@
-import locks, {convertItemToLock} from '../locks';
+import {IWebsocketMessageData} from '../../interfaces';
+import locks from '../locks';
+import {LOCKS} from '../../constants';
+import {lockUtils} from '../../utils';
+
+function getLockMessageData(item): IWebsocketMessageData['ITEM_LOCKED'] {
+    return {
+        ...item,
+        item: item._id,
+        user: item.lock_user,
+    };
+}
 
 describe('lock reducers', () => {
     let initialState;
@@ -7,6 +18,7 @@ describe('lock reducers', () => {
         events: {
             event: {
                 _id: 'e1',
+                type: 'event',
                 lock_action: 'edit',
                 lock_session: 'sess123',
                 lock_user: 'user123',
@@ -14,6 +26,7 @@ describe('lock reducers', () => {
             },
             recurring: {
                 _id: 'e2',
+                type: 'event',
                 recurrence_id: 'r1',
                 lock_action: 'postpone',
                 lock_session: 'sess123',
@@ -24,6 +37,7 @@ describe('lock reducers', () => {
         planning: {
             planning: {
                 _id: 'p1',
+                type: 'planning',
                 lock_action: 'update_time',
                 lock_session: 'sess123',
                 lock_user: 'user123',
@@ -31,6 +45,7 @@ describe('lock reducers', () => {
             },
             event: {
                 _id: 'p2',
+                type: 'planning',
                 event_item: 'e3',
                 lock_action: 'reschedule',
                 lock_session: 'sess123',
@@ -39,6 +54,7 @@ describe('lock reducers', () => {
             },
             recurring: {
                 _id: 'p3',
+                type: 'planning',
                 event_item: 'e7',
                 recurrence_id: 'r2',
                 lock_action: 'edit',
@@ -49,6 +65,7 @@ describe('lock reducers', () => {
         },
         assignment: {
             _id: 'a1',
+            type: 'assignment',
             lock_action: 'edit',
             lock_session: 'sess123',
             lock_user: 'user123',
@@ -58,15 +75,15 @@ describe('lock reducers', () => {
 
     const lockItems = {
         event: {
-            e1: convertItemToLock(lockTypes.events.event, 'event'),
-            e3: convertItemToLock(lockTypes.planning.event, 'planning'),
+            e1: lockUtils.getLockFromItem(lockTypes.events.event),
+            e3: lockUtils.getLockFromItem(lockTypes.planning.event),
         },
-        planning: {p1: convertItemToLock(lockTypes.planning.planning, 'planning')},
+        planning: {p1: lockUtils.getLockFromItem(lockTypes.planning.planning)},
         recurring: {
-            r1: convertItemToLock(lockTypes.events.recurring, 'event'),
-            r2: convertItemToLock(lockTypes.planning.recurring, 'planning'),
+            r1: lockUtils.getLockFromItem(lockTypes.events.recurring),
+            r2: lockUtils.getLockFromItem(lockTypes.planning.recurring),
         },
-        assignment: {a1: convertItemToLock(lockTypes.assignment, 'assignment')},
+        assignment: {a1: lockUtils.getLockFromItem(lockTypes.assignment)},
     };
 
     const initialLocks = {
@@ -86,7 +103,7 @@ describe('lock reducers', () => {
         initialState,
         {
             type: 'RECEIVE_LOCKS',
-            payload: initialLocks,
+            payload: lockItems,
         }
     ));
 
@@ -118,30 +135,17 @@ describe('lock reducers', () => {
         expect(result).toEqual(initialState);
     });
 
-    it('convertItemToLock', () => {
-        expect(convertItemToLock(lockTypes.events.event, 'event')).toEqual({
-            action: 'edit',
-            session: 'sess123',
-            time: '2099-10-15T14:30+0000',
-            user: 'user123',
-            item_type: 'event',
-            item_id: 'e1',
-        });
-    });
-
     it('LOCKS.ACTIONS.RECEIVE', () => {
-        const result = getInitialLocks();
-
-        expect(result).toEqual(lockItems);
+        expect(getInitialLocks()).toEqual(lockItems);
     });
 
-    it('LOCK_PLANNING', () => {
+    it('LOCKS.ACTIONS.ADD_LOCK - Planning', () => {
         // Planning item with direct Planning lock
         let result = locks(
             initialState,
             {
-                type: 'LOCK_PLANNING',
-                payload: {plan: lockTypes.planning.planning},
+                type: LOCKS.ACTIONS.ADD_LOCK,
+                payload: getLockMessageData(lockTypes.planning.planning),
             }
         );
 
@@ -152,12 +156,11 @@ describe('lock reducers', () => {
             assignment: {},
         });
 
-        // Planning item with associated Event lock
         result = locks(
             initialState,
             {
-                type: 'LOCK_PLANNING',
-                payload: {plan: lockTypes.planning.event},
+                type: LOCKS.ACTIONS.ADD_LOCK,
+                payload: getLockMessageData(lockTypes.planning.event),
             }
         );
         expect(result).toEqual({
@@ -167,13 +170,12 @@ describe('lock reducers', () => {
             assignment: {},
         });
 
-        // Planning item with associated series of Recurring Events lock
         result = locks(
             initialState,
             {
-                type: 'LOCK_PLANNING',
-                payload: {plan: lockTypes.planning.recurring},
-            }
+                type: LOCKS.ACTIONS.ADD_LOCK,
+                payload: getLockMessageData(lockTypes.planning.recurring),
+            },
         );
         expect(result).toEqual({
             event: {},
@@ -183,13 +185,13 @@ describe('lock reducers', () => {
         });
     });
 
-    it('UNLOCK_PLANNING', () => {
+    it('LOCKS.ACTIONS.REMOVE_LOCK - Planning', () => {
         // Planning item with direct Planning lock
         let result = locks(
             getInitialLocks(),
             {
-                type: 'UNLOCK_PLANNING',
-                payload: {plan: lockTypes.planning.planning},
+                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                payload: getLockMessageData(lockTypes.planning.planning),
             }
         );
 
@@ -204,8 +206,8 @@ describe('lock reducers', () => {
         result = locks(
             getInitialLocks(),
             {
-                type: 'UNLOCK_PLANNING',
-                payload: {plan: lockTypes.planning.event},
+                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                payload: getLockMessageData(lockTypes.planning.event),
             }
         );
         expect(result).toEqual({
@@ -219,8 +221,8 @@ describe('lock reducers', () => {
         result = locks(
             getInitialLocks(),
             {
-                type: 'UNLOCK_PLANNING',
-                payload: {plan: lockTypes.planning.recurring},
+                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                payload: getLockMessageData(lockTypes.planning.recurring),
             }
         );
         expect(result).toEqual({
@@ -231,13 +233,13 @@ describe('lock reducers', () => {
         });
     });
 
-    it('LOCK_EVENT', () => {
+    it('LOCKS.ACTIONS.ADD_LOCK - Events', () => {
         // Event item with direct Event lock
         let result = locks(
             initialState,
             {
-                type: 'LOCK_EVENT',
-                payload: {event: lockTypes.events.event},
+                type: LOCKS.ACTIONS.ADD_LOCK,
+                payload: getLockMessageData(lockTypes.events.event),
             }
         );
 
@@ -252,8 +254,8 @@ describe('lock reducers', () => {
         result = locks(
             initialState,
             {
-                type: 'LOCK_EVENT',
-                payload: {event: lockTypes.events.recurring},
+                type: LOCKS.ACTIONS.ADD_LOCK,
+                payload: getLockMessageData(lockTypes.events.recurring),
             }
         );
         expect(result).toEqual({
@@ -264,13 +266,13 @@ describe('lock reducers', () => {
         });
     });
 
-    it('UNLOCK_EVENT', () => {
+    it('LOCKS.ACTIONS.REMOVE_LOCK - Events', () => {
         // Event item with direct Event lock
         let result = locks(
             getInitialLocks(),
             {
-                type: 'UNLOCK_EVENT',
-                payload: {event: lockTypes.events.event},
+                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                payload: getLockMessageData(lockTypes.events.event),
             }
         );
 
@@ -285,8 +287,8 @@ describe('lock reducers', () => {
         result = locks(
             getInitialLocks(),
             {
-                type: 'UNLOCK_EVENT',
-                payload: {event: lockTypes.events.recurring},
+                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                payload: getLockMessageData(lockTypes.events.recurring),
             }
         );
         expect(result).toEqual({
@@ -297,46 +299,13 @@ describe('lock reducers', () => {
         });
     });
 
-    it('MARK_EVENT_POSTPONED', () => {
-        // Event item with direct Event lock
-        let result = locks(
-            getInitialLocks(),
-            {
-                type: 'MARK_EVENT_POSTPONED',
-                payload: {event: lockTypes.events.event},
-            }
-        );
-
-        expect(result).toEqual({
-            event: {e3: lockItems.event.e3},
-            planning: lockItems.planning,
-            recurring: lockItems.recurring,
-            assignment: lockItems.assignment,
-        });
-
-        // Event item with series of Recurring Events lock
-        result = locks(
-            getInitialLocks(),
-            {
-                type: 'MARK_EVENT_POSTPONED',
-                payload: {event: lockTypes.events.recurring},
-            }
-        );
-        expect(result).toEqual({
-            event: lockItems.event,
-            planning: lockItems.planning,
-            recurring: {r2: lockItems.recurring.r2},
-            assignment: lockItems.assignment,
-        });
-    });
-
-    it('LOCK_ASSIGNMENT', () => {
+    it('LOCKS.ACTIONS.ADD_LOCK - Assignment', () => {
         // Planning item with direct Planning lock
         let result = locks(
             initialState,
             {
-                type: 'LOCK_ASSIGNMENT',
-                payload: {assignment: lockTypes.assignment},
+                type: LOCKS.ACTIONS.ADD_LOCK,
+                payload: getLockMessageData(lockTypes.assignment),
             }
         );
 
@@ -348,13 +317,13 @@ describe('lock reducers', () => {
         });
     });
 
-    it('UNLOCK_ASSIGNMENT', () => {
+    it('LOCKS.ACTIONS.REMOVE_LOCK - Assignment', () => {
         // Planning item with direct Planning lock
         let result = locks(
             getInitialLocks(),
             {
-                type: 'UNLOCK_ASSIGNMENT',
-                payload: {assignment: lockTypes.assignment},
+                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                payload: getLockMessageData(lockTypes.assignment),
             }
         );
 

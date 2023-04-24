@@ -2,11 +2,13 @@ import moment from 'moment';
 import {get, omit} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {ILockedItems} from '../../interfaces';
 
-import planUtils from '../planning';
+import {lockUtils, planningUtils} from '../index';
 import lockReducer from '../../reducers/locks';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
 import {expectActions} from '../testUtils';
+import {sessions} from '../testData';
 
 describe('PlanningUtils', () => {
     let session;
@@ -14,11 +16,7 @@ describe('PlanningUtils', () => {
     let lockedItems;
 
     beforeEach(() => {
-        session = {
-            identity: {_id: 'ident1'},
-            sessionId: 'session1',
-        };
-
+        session = sessions[0];
         locks = {
             plans: {
                 adhoc: {
@@ -173,30 +171,55 @@ describe('PlanningUtils', () => {
         lockedItems = lockReducer({}, {
             type: 'RECEIVE_LOCKS',
             payload: {
-                events: [
-                    locks.events.standalone,
-                    locks.events.recurring,
-                ],
-                plans: [
-                    locks.plans.adhoc.currentUser.currentSession,
-                    locks.plans.adhoc.currentUser.otherSession,
-                    locks.plans.adhoc.otherUser,
-                    locks.plans.event.currentUser.currentSession,
-                    locks.plans.event.currentUser.otherSession,
-                    locks.plans.event.otherUser,
-                    locks.plans.recurring.currentUser.currentSession,
-                    locks.plans.recurring.currentUser.otherSession,
-                    locks.plans.recurring.otherUser,
-                ],
+                event: {
+                    [locks.events.standalone._id]: lockUtils.getLockFromItem(
+                        locks.events.standalone
+                    ),
+                    [locks.plans.event.currentUser.currentSession.event_item]: lockUtils.getLockFromItem(
+                        locks.plans.event.currentUser.currentSession
+                    ),
+                    [locks.plans.event.currentUser.otherSession.event_item]: lockUtils.getLockFromItem(
+                        locks.plans.event.currentUser.otherSession
+                    ),
+                    [locks.plans.event.otherUser.event_item]: lockUtils.getLockFromItem(
+                        locks.plans.event.otherUser
+                    ),
+                },
+                recurring: {
+                    [locks.events.recurring.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.events.recurring
+                    ),
+                    [locks.plans.recurring.currentUser.currentSession.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.plans.recurring.currentUser.currentSession
+                    ),
+                    [locks.plans.recurring.currentUser.otherSession.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.plans.recurring.currentUser.otherSession
+                    ),
+                    [locks.plans.recurring.otherUser.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.plans.recurring.otherUser
+                    ),
+                },
+                planning: {
+                    [locks.plans.adhoc.currentUser.currentSession._id]: lockUtils.getLockFromItem(
+                        locks.plans.adhoc.currentUser.currentSession
+                    ),
+                    [locks.plans.adhoc.currentUser.otherSession._id]: lockUtils.getLockFromItem(
+                        locks.plans.adhoc.currentUser.otherSession
+                    ),
+                    [locks.plans.adhoc.otherUser._id]: lockUtils.getLockFromItem(
+                        locks.plans.adhoc.otherUser
+                    ),
+                },
+                assignment: {},
             },
         });
     });
 
     const isPlanningLocked = (plan, result) => (
-        expect(planUtils.isPlanningLocked(plan, lockedItems)).toBe(result)
+        expect(lockUtils.isItemLocked(plan, lockedItems)).toBe(result)
     );
     const isPlanningLockRestricted = (plan, result) => (
-        expect(planUtils.isPlanningLockRestricted(plan, session, lockedItems)).toBe(result)
+        expect(lockUtils.isLockRestricted(plan, session, lockedItems)).toBe(result)
     );
 
     it('isPlanningLocked', () => {
@@ -275,7 +298,7 @@ describe('PlanningUtils', () => {
                 version_creator: 'ident2',
             };
 
-            const coverage = planUtils.createCoverageFromNewsItem(
+            const coverage = planningUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
@@ -311,7 +334,7 @@ describe('PlanningUtils', () => {
                 firstpublished: '2017-10-15T16:00:00',
             };
 
-            const coverage = planUtils.createCoverageFromNewsItem(
+            const coverage = planningUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
@@ -347,7 +370,7 @@ describe('PlanningUtils', () => {
                 firstpublished: '2017-10-15T16:00:00',
             };
 
-            const coverage = planUtils.createCoverageFromNewsItem(
+            const coverage = planningUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
@@ -384,7 +407,7 @@ describe('PlanningUtils', () => {
                 schedule_settings: {utc_publish_schedule: '2017-10-15T20:00:00'},
             };
 
-            const coverage = planUtils.createCoverageFromNewsItem(
+            const coverage = planningUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
             expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
@@ -443,7 +466,7 @@ describe('PlanningUtils', () => {
                 place: [{name: 'Australia'}],
             };
 
-            const plan = planUtils.createNewPlanningFromNewsItem(
+            const plan = planningUtils.createNewPlanningFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
             expect(plan).toEqual(jasmine.objectContaining({
@@ -498,7 +521,7 @@ describe('PlanningUtils', () => {
                 flags: {marked_for_not_publication: true},
             };
 
-            const plan = planUtils.createNewPlanningFromNewsItem(
+            const plan = planningUtils.createNewPlanningFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
             expect(plan).toEqual(jasmine.objectContaining({
@@ -551,18 +574,19 @@ describe('PlanningUtils', () => {
             EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
         ];
 
-        let locks;
+        let locks: ILockedItems;
         let session;
         let planning;
         let event;
         let privileges;
 
         beforeEach(() => {
-            session = {};
+            session = sessions[0];
             locks = {
                 event: {},
                 planning: {},
                 recurring: {},
+                assignment: {},
             };
             event = null;
             planning = {
@@ -580,7 +604,7 @@ describe('PlanningUtils', () => {
         });
 
         it('draft event and planning', () => {
-            let itemActions = planUtils.getPlanningItemActions(
+            let itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -595,7 +619,7 @@ describe('PlanningUtils', () => {
                 state: 'draft',
                 planning_ids: ['1'],
             };
-            itemActions = planUtils.getPlanningItemActions(
+            itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -613,7 +637,7 @@ describe('PlanningUtils', () => {
 
         it('postponed event and planning', () => {
             planning.state = 'postponed';
-            let itemActions = planUtils.getPlanningItemActions(
+            let itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -627,7 +651,7 @@ describe('PlanningUtils', () => {
                 state: 'postponed',
                 planning_ids: ['1'],
             };
-            itemActions = planUtils.getPlanningItemActions(
+            itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -641,7 +665,7 @@ describe('PlanningUtils', () => {
 
         it('canceled event and planning', () => {
             planning.state = 'cancelled';
-            let itemActions = planUtils.getPlanningItemActions(
+            let itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -652,7 +676,7 @@ describe('PlanningUtils', () => {
                 state: 'cancelled',
                 planning_ids: ['1'],
             };
-            itemActions = planUtils.getPlanningItemActions(
+            itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -661,7 +685,7 @@ describe('PlanningUtils', () => {
 
         it('rescheduled event and planning', () => {
             planning.state = 'rescheduled';
-            let itemActions = planUtils.getPlanningItemActions(
+            let itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -674,7 +698,7 @@ describe('PlanningUtils', () => {
                 state: 'rescheduled',
                 planning_ids: ['1'],
             };
-            itemActions = planUtils.getPlanningItemActions(
+            itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -691,7 +715,7 @@ describe('PlanningUtils', () => {
                 planning_ids: ['1'],
             };
 
-            let itemActions = planUtils.getPlanningItemActions(
+            let itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -713,7 +737,7 @@ describe('PlanningUtils', () => {
                 planning_ids: ['1'],
             };
 
-            let itemActions = planUtils.getPlanningItemActions(
+            let itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -729,18 +753,19 @@ describe('PlanningUtils', () => {
         });
 
         it('add coverage', () => {
-            session = {
-                identity: {_id: 'ident1'},
-                sessionId: 'session1',
-            };
+            session = sessions[0];
             planning.lock_user = 'ident1';
             planning.lock_session = 'session1';
             locks.planning.plan1 = {
+                item_id: 'plan1',
+                item_type: 'planning',
                 user: 'ident1',
                 session: 'session1',
+                action: 'edit',
+                time: '2023-04-20T13:01:11+0000',
             };
 
-            let itemActions = planUtils.getPlanningItemActions(
+            let itemActions = planningUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
             );
 
@@ -767,7 +792,7 @@ describe('PlanningUtils', () => {
                 ],
             };
 
-            planUtils.modifyForClient(planning);
+            planningUtils.modifyForClient(planning);
             expect(get(planning, 'coverages[0].planning.genre.name')).toEqual('foo');
             expect(get(planning, 'coverages[0].planning.genre.qcode')).toEqual('bar');
         });
@@ -785,7 +810,7 @@ describe('PlanningUtils', () => {
                 ],
             };
 
-            planUtils.modifyForClient(planning);
+            planningUtils.modifyForClient(planning);
             expect(get(planning, 'coverages[0].planning.genre.name')).toEqual('foo');
             expect(get(planning, 'coverages[0].planning.genre.qcode')).toEqual('bar');
         });
@@ -801,7 +826,7 @@ describe('PlanningUtils', () => {
                 ],
             };
 
-            planUtils.modifyForClient(planning);
+            planningUtils.modifyForClient(planning);
             expect(get(planning, 'coverages[0].planning')).toEqual({});
         });
     });
@@ -820,7 +845,7 @@ describe('PlanningUtils', () => {
                 ],
             };
 
-            planUtils.modifyForServer(planning);
+            planningUtils.modifyForServer(planning);
             expect(get(planning, 'coverages[0].planning.genre[0].name')).toEqual('foo');
             expect(get(planning, 'coverages[0].planning.genre[0].qcode')).toEqual('bar');
         });
@@ -838,7 +863,7 @@ describe('PlanningUtils', () => {
                 ],
             };
 
-            planUtils.modifyForServer(planning);
+            planningUtils.modifyForServer(planning);
             expect(get(planning, 'coverages[0].planning.genre')).toEqual([1, 2]);
         });
 
@@ -853,7 +878,7 @@ describe('PlanningUtils', () => {
                 ],
             };
 
-            planUtils.modifyForServer(planning);
+            planningUtils.modifyForServer(planning);
             expect(get(planning, 'coverages[0].planning.genre')).toBeNull(null);
         });
     });
@@ -873,7 +898,7 @@ describe('PlanningUtils', () => {
                 workflow_status: 'draft',
             };
 
-            expect(planUtils.canRemoveCoverage(coverage, planning)).toBe(true);
+            expect(planningUtils.canRemoveCoverage(coverage, planning)).toBe(true);
         });
 
         it('cancelled coverages can be removed only if planning item is not cancelled', () => {
@@ -886,7 +911,7 @@ describe('PlanningUtils', () => {
                 workflow_status: 'cancelled',
             };
 
-            expect(planUtils.canRemoveCoverage(coverage, planning)).toBe(true);
+            expect(planningUtils.canRemoveCoverage(coverage, planning)).toBe(true);
         });
 
         it('no coverages can be removed if planning item is cancelled', () => {
@@ -899,7 +924,7 @@ describe('PlanningUtils', () => {
                 workflow_status: 'draft',
             };
 
-            expect(planUtils.canRemoveCoverage(coverage, planning)).toBe(false);
+            expect(planningUtils.canRemoveCoverage(coverage, planning)).toBe(false);
         });
     });
 
@@ -912,13 +937,13 @@ describe('PlanningUtils', () => {
                 ednote: 'Ed note',
                 planning_date: planned};
 
-            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, null);
+            let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, null);
 
             expect(get(coverage, 'planning.scheduled').format()).toBe(planned.add(1, 'hour').format());
 
             planned = moment('2119-03-15T09:33:00+11:00');
             plan.planning_date = planned;
-            coverage = planUtils.defaultCoverageValues(
+            coverage = planningUtils.defaultCoverageValues(
                 newsCoverageStatus,
                 plan,
                 null
@@ -941,14 +966,14 @@ describe('PlanningUtils', () => {
                 event_item: 'xxx'};
             const event = {dates: {end: eventEnd}};
 
-            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
+            let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
 
             expect(get(coverage, 'planning.scheduled').format()).toBe(eventEnd.add(1, 'hour').format());
 
             eventEnd = moment('2119-03-17T09:33:00+11:00');
             event.dates.end = eventEnd;
 
-            coverage = planUtils.defaultCoverageValues(
+            coverage = planningUtils.defaultCoverageValues(
                 newsCoverageStatus,
                 plan,
                 event
@@ -970,7 +995,7 @@ describe('PlanningUtils', () => {
             const event = {dates: {end: eventEnd, start: eventStart}};
 
             appConfig.long_event_duration_threshold = 4;
-            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
+            let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
 
             expect(get(coverage, 'planning.scheduled', null)).toBeNull(null);
         });
