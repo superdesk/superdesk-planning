@@ -5,7 +5,7 @@ import {IEventItem, ILockedItems} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 import {ICON_COLORS} from '../../../constants';
 
-import {eventUtils} from '../../../utils';
+import {eventUtils, lockUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 
 import * as List from '../../UI/List';
@@ -33,7 +33,7 @@ const mapStateToProps = (state) => ({
 
 class RelatedEventListItemComponent extends React.PureComponent<IProps> {
     render() {
-        const isItemLocked = eventUtils.isEventLocked(
+        const isItemLocked = lockUtils.isItemLocked(
             this.props.item,
             this.props.lockedItems
         );

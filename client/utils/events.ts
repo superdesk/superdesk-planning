@@ -3,8 +3,22 @@ import RRule from 'rrule';
 import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
-import {appConfig} from 'appConfig';
-import {IEventItem, ISession, ILockedItems} from '../interfaces';
+import {IVocabularyItem} from 'superdesk-api';
+import {
+    IEventItem,
+    ISession,
+    ILockedItems,
+    IDateTime,
+    IPlanningItem,
+    IPrivileges,
+    IItemAction,
+    IPlanningConfig,
+    IItemSubActions,
+    IEventOccurStatus,
+} from '../interfaces';
+import {appConfig as config} from 'appConfig';
+
+const appConfig = config as IPlanningConfig;
 
 import {
     PRIVILEGES,
@@ -52,33 +66,26 @@ import {toUIFrameworkInterface} from './planning';
  * @param {boolean} checkMultiDay - If true include multi-day in the check, otherwise must be single day only
  * @return {boolean} If the date/times occupy entire day(s)
  */
-const isEventAllDay = (startingDate, endingDate, checkMultiDay = false) => {
+function isEventAllDay(startingDate: IDateTime, endingDate: IDateTime, checkMultiDay: boolean = false): boolean {
     const start = moment(startingDate).clone();
     const end = moment(endingDate).clone();
 
     return (checkMultiDay || start.isSame(end, 'day')) &&
         start.isSame(start.clone().startOf('day'), 'minute') &&
         end.isSame(end.clone().endOf('day'), 'minute');
-};
-
-const isEventSameDay = (startingDate, endingDate) => (
-    moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY')
-);
-
-const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
-
-function isEventLocked(event: IEventItem, locks: ILockedItems): boolean {
-    return lockUtils.getLock(event, locks) != null;
 }
 
-function isEventLockRestricted(event: IEventItem, session: ISession, locks: ILockedItems): boolean {
-    return (
-        isEventLocked(event, locks) &&
-        !lockUtils.isItemLockedInThisSession(event, session, locks)
-    );
+function isEventSameDay(startingDate: IDateTime, endingDate: IDateTime): boolean {
+    return moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY');
 }
 
-const isEventCompleted = (event) => (get(event, 'completed'));
+function eventHasPlanning(event: IEventItem): boolean {
+    return get(event, 'planning_ids', []).length > 0;
+}
+
+function isEventCompleted(event: IEventItem): boolean {
+    return get(event, 'completed');
+}
 
 /**
  * Helper function to determine if a recurring event instances overlap
@@ -89,7 +96,11 @@ const isEventCompleted = (event) => (get(event, 'completed'));
  * @param {object} recurringRule - The list of recurring rules
  * @returns {boolean} True if the instances overlap, false otherwise
  */
-const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => {
+function doesRecurringEventsOverlap(
+    startingDate: IDateTime,
+    endingDate: IDateTime,
+    recurringRule: IEventItem['dates']['recurring_rule']
+): boolean {
     if (!recurringRule || !startingDate || !endingDate ||
         !('frequency' in recurringRule) || !('interval' in recurringRule)) return false;
 
@@ -126,9 +137,13 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
     let nextEvent = moment(rule.after(startingDate.toDate()));
 
     return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate);
-};
+}
 
-const getRelatedEventsForRecurringEvent = (recurringEvent, filter, postedPlanningOnly) => {
+function getRelatedEventsForRecurringEvent(
+    recurringEvent: IEventItem,
+    filter: {name: string, value: string},
+    postedPlanningOnly: boolean
+): IEventItem & {_events: Array<IEventItem>, _relatedPlannings: Array<IPlanningItem>} {
     let eventsInSeries = get(recurringEvent, '_recurring', []);
     let events = [];
     let plannings = get(recurringEvent, '_plannings', []);
@@ -162,14 +177,15 @@ const getRelatedEventsForRecurringEvent = (recurringEvent, filter, postedPlannin
         _events: events,
         _relatedPlannings: plannings,
     };
-};
+}
 
-const isEventIngested = (event) => (
-    get(event, 'state', WORKFLOW_STATE.DRAFT) === WORKFLOW_STATE.INGESTED
-);
+function isEventIngested(event: IEventItem): boolean {
+    return get(event, 'state', WORKFLOW_STATE.DRAFT) === WORKFLOW_STATE.INGESTED;
+}
 
-const canSpikeEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canSpikeEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
+    return (
+        !isNil(event) &&
         !isItemPosted(event) &&
         (
             getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT ||
@@ -178,161 +194,242 @@ const canSpikeEvent = (event, session, privileges, locks) => (
         ) &&
         !!privileges[PRIVILEGES.SPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         !get(event, 'reschedule_from') &&
-        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
-);
+        (
+            !isItemExpired(event) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        )
+    );
+}
 
-const canUnspikeEvent = (event, privileges) => (
-    !isNil(event) &&
+function canUnspikeEvent(event: IEventItem, privileges: IPrivileges): boolean {
+    return (
+        !isNil(event) &&
         isItemSpiked(event) &&
         !!privileges[PRIVILEGES.UNSPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
-);
+        (
+            !isItemExpired(event) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        )
+    );
+}
 
-const canDuplicateEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canDuplicateEvent(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isNil(event) &&
         !isItemSpiked(event) &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
-);
+    );
+}
 
-const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canCreatePlanningFromEvent(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isNil(event) &&
         !isItemSpiked(event) &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
         !isItemPostponed(event) &&
         !isItemExpired(event) &&
         !isItemKilled(event)
-);
+    );
+}
 
-const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) => (
-    canCreatePlanningFromEvent(event, session, privileges, locks)
-);
-
-const canPostEvent = (event, session, privileges, locks) => (
-    isExistingItem(event) &&
+function canPostEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
+    return (
+        isExistingItem(event) &&
         !isItemSpiked(event) &&
         getPostedState(event) !== POST_STATE.USABLE &&
         !!privileges[PRIVILEGES.POST_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         (!isItemCancelled(event) || getItemWorkflowState(event) === WORKFLOW_STATE.KILLED) &&
         !isItemRescheduled(event)
-);
+    );
+}
 
-const canUnpostEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canUnpostEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
+    return (
+        !isNil(event) &&
         !isItemSpiked(event) &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         getPostedState(event) === POST_STATE.USABLE &&
         !!privileges[PRIVILEGES.UNPOST_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event)
-);
+    );
+}
 
-const canCancelEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canCancelEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
+    return (
+        !isNil(event) &&
         !isItemSpiked(event) &&
         !isItemCancelled(event) &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isItemRescheduled(event) &&
         !isEventCompleted(event) &&
         !isItemExpired(event)
-);
+    );
+}
 
-const isEventInUse = (event) => (
-    !isNil(event) &&
-        (eventHasPlanning(event) || isItemPublic(event))
-);
+function isEventInUse(event: IEventItem): boolean {
+    return !isNil(event) && (
+        eventHasPlanning(event) ||
+        isItemPublic(event)
+    );
+}
 
-const isEventLockedForMetadataEdit = (event) => (
-    get(event, 'lock_action', null) === 'edit'
-);
-
-const canConvertToRecurringEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canConvertToRecurringEvent(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isNil(event) &&
         !event.recurrence_id &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event) &&
-        !isEventLockedForMetadataEdit(event) && !isItemCancelled(event) && !isEventCompleted(event) &&
+        lockUtils.getLockAction(event, locks) !== 'edit' &&
+        !isItemCancelled(event) && !isEventCompleted(event) &&
         !isItemExpired(event)
-);
+    );
+}
 
-const canEditEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canEditEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
+    return (
+        !isNil(event) &&
         !isItemSpiked(event) &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isItemRescheduled(event) &&
-        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
-);
+        (
+            !isItemExpired(event) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        )
+    );
+}
 
-const canUpdateEvent = (event, session, privileges, locks) => (
-    canEditEvent(event, session, privileges, locks) &&
+function canUpdateEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
+    return (
+        canEditEvent(event, session, privileges, locks) &&
         isItemPublic(event) &&
         !isItemKilled(event) &&
         !!privileges[PRIVILEGES.POST_EVENT]
-);
+    );
+}
 
-const canUpdateEventTime = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canUpdateEventTime(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event) && !isItemCancelled(event) &&
         !isEventCompleted(event) &&
         !isItemExpired(event)
-);
+    );
+}
 
-const canRescheduleEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canRescheduleEvent(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isNil(event) &&
         !isItemSpiked(event) &&
         !isItemCancelled(event) &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event) &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isEventCompleted(event) &&
         !isItemExpired(event)
-);
+    );
+}
 
-const canPostponeEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canPostponeEvent(event: IEventItem, session: ISession, privileges: IPrivileges, locks: ILockedItems): boolean {
+    return (
+        !isNil(event) &&
         !isItemSpiked(event) &&
         !isItemCancelled(event) &&
-        !isEventLockRestricted(event, session, locks) &&
+        !lockUtils.isLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
         !isItemRescheduled(event) &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isEventCompleted(event) &&
         !isItemExpired(event)
-);
+    );
+}
 
-const canUpdateEventRepetitions = (event, session, privileges, locks) => (
-    !isNil(event) &&
+function canUpdateEventRepetitions(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isNil(event) &&
         isEventRecurring(event) &&
         canRescheduleEvent(event, session, privileges, locks) &&
         !isEventCompleted(event) &&
         !isItemExpired(event)
-);
+    );
+}
 
-const canAssignEventToCalendar = (event, session, privileges, locks) => (
-    canEditEvent(event, session, privileges, locks) &&
-        !isEventLocked(event, locks)
-);
+function canAssignEventToCalendar(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        canEditEvent(event, session, privileges, locks) &&
+        !lockUtils.isItemLocked(event, locks)
+    );
+}
 
-const canSaveEventAsTemplate = (event, session, privileges, locks) => (
-    !isEventLockRestricted(event, session, locks) && privileges[PRIVILEGES.EVENT_TEMPLATES]
-);
+function canSaveEventAsTemplate(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !lockUtils.isLockRestricted(event, session, locks) &&
+        !!privileges[PRIVILEGES.EVENT_TEMPLATES]
+    );
+}
 
-const canMarkEventAsComplete = (event, session, privileges, locks) => {
+function canMarkEventAsComplete(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
     const currentDate = moment();
     const precondition = [
         WORKFLOW_STATE.DRAFT,
@@ -343,15 +440,27 @@ const canMarkEventAsComplete = (event, session, privileges, locks) => {
 
     if (get(event, 'recurrence_id')) {
         // can action on any recurring event from present to future
-        return precondition && event.dates.end.isSameOrAfter(currentDate, 'date');
+        return (
+            precondition &&
+            event.dates.end.isSameOrAfter(currentDate, 'date')
+        );
     } else {
         // can action only if event is of current day or current day passes through a multi day event
-        return precondition && event.dates.start.isSameOrBefore(currentDate, 'date') &&
-            event.dates.end.isSameOrAfter(currentDate, 'date');
+        return (
+            precondition &&
+            event.dates.start.isSameOrBefore(currentDate, 'date') &&
+            event.dates.end.isSameOrAfter(currentDate, 'date')
+        );
     }
-};
+}
 
-const getEventItemActions = (event, session, privileges, actions, locks) => {
+function getEventItemActions(
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    actions: Array<IItemAction>,
+    locks: ILockedItems
+): Array<IItemAction> {
     let itemActions = [];
     let key = 1;
 
@@ -359,7 +468,7 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
         [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: () =>
             canSpikeEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: () =>
-            canUnspikeEvent(event, privileges, locks),
+            canUnspikeEvent(event, privileges),
         [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: () =>
             canDuplicateEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: () =>
@@ -367,7 +476,7 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
         [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: () =>
             canCreatePlanningFromEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: () =>
-            canCreateAndOpenPlanningFromEvent(event, session, privileges, locks),
+            canCreatePlanningFromEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: () =>
             canUpdateEventTime(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: () =>
@@ -392,7 +501,7 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
 
     actions.forEach((action) => {
         if (actionsValidator[action.actionName] &&
-                !actionsValidator[action.actionName](event, session, privileges)) {
+                !actionsValidator[action.actionName]()) {
             return;
         }
 
@@ -409,13 +518,18 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
     }
 
     return itemActions;
-};
+}
 
-const isEventRecurring = (item) => (
-    get(item, 'recurrence_id', null) !== null
-);
+function isEventRecurring(item: IEventItem): boolean {
+    return item.recurrence_id != null;
+}
 
-const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTimezone = true) => {
+function getDateStringForEvent(
+    event: IEventItem,
+    dateOnly: boolean = false,
+    useLocal: boolean = true,
+    withTimezone: boolean = true
+): string {
     // !! Note - expects event dates as instance of moment() !! //
     const dateFormat = appConfig.planning.dateformat;
     const timeFormat = appConfig.planning.timeformat;
@@ -491,9 +605,14 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
     } else {
         return `${timezoneString}${dateString}`;
     }
-};
+}
 
-const getSingleDayPlanningActions = (item, actions, createPlanning, createAndOpenPlanning) => {
+function getSingleDayPlanningActions(
+    item: IEventItem,
+    actions: Array<IItemAction>,
+    createPlanning: (event: IEventItem, a2: null, a3: false) => void,
+    createAndOpenPlanning: (event: IEventItem, a2: null, a3: true) => void
+) {
     if (createPlanning || createAndOpenPlanning) {
         actions.push(GENERIC_ITEM_ACTIONS.DIVIDER);
 
@@ -511,9 +630,14 @@ const getSingleDayPlanningActions = (item, actions, createPlanning, createAndOpe
             });
         }
     }
-};
+}
 
-const generateMultiDayPlanningActions = (item, subActions, createPlanning, createAndOpenPlanning) => {
+function generateMultiDayPlanningActions(
+    item: IEventItem,
+    subActions: IItemSubActions,
+    createPlanning: (event: IEventItem, date: moment.Moment, a3: boolean) => void,
+    createAndOpenPlanning: (event: IEventItem, date: moment.Moment, a3: boolean) => void
+) {
     let eventDate = moment(item.dates.start);
     const currentDate = moment();
 
@@ -574,11 +698,16 @@ const generateMultiDayPlanningActions = (item, subActions, createPlanning, creat
                 ...subActions.createAndOpen.past,
             ];
     }
-};
+}
 
-const getMultiDayPlanningActions = (item, actions, createPlanning, createAndOpenPlanning) => {
+function getMultiDayPlanningActions(
+    item: IEventItem,
+    actions: Array<IItemAction>,
+    createPlanning: (event: IEventItem, date: moment.Moment, a3: boolean) => void,
+    createAndOpenPlanning: (event: IEventItem, date: moment.Moment, a3: boolean) => void
+) {
     // Multi-day event with a requirement of a submenu
-    let subActions = {
+    let subActions: IItemSubActions = {
         create: {
             current: [],
             past: [],
@@ -626,17 +755,29 @@ const getMultiDayPlanningActions = (item, actions, createPlanning, createAndOpen
             );
         }
     }
-};
+}
 
-const getEventActions = ({
-    item,
-    session,
-    privileges,
-    lockedItems,
-    callBacks,
-    withMultiPlanningDate,
-    calendars,
-}) => {
+interface IGetEventActionArgs {
+    item: IEventItem;
+    session: ISession;
+    privileges: IPrivileges;
+    lockedItems: ILockedItems;
+    callBacks: {[key: string]: (...args: Array<any>) => any};
+    withMultiPlanningDate: boolean;
+    calendars: Array<IVocabularyItem>;
+}
+
+function getEventActions(
+    {
+        item,
+        session,
+        privileges,
+        lockedItems,
+        callBacks,
+        withMultiPlanningDate,
+        calendars,
+    }: IGetEventActionArgs
+): Array<IItemAction> {
     if (!isExistingItem(item)) {
         return [];
     }
@@ -720,25 +861,25 @@ const getEventActions = ({
         actions,
         lockedItems
     );
-};
+}
 
-function getEventActionsForUiFrameworkMenu(data): Array<IMenuItem> {
+function getEventActionsForUiFrameworkMenu(data: IGetEventActionArgs): Array<IMenuItem> {
     return toUIFrameworkInterface(getEventActions(data));
 }
 
 /*
  * Groups the events by date
  */
-const getFlattenedEventsByDate = (events, startDate, endDate) => {
+function getFlattenedEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, endDate: moment.Moment) {
     const eventsList = getEventsByDate(events, startDate, endDate);
 
     return flatten(sortBy(eventsList, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
-};
+}
 
 /*
  * Groups the events by date
  */
-const getEventsByDate = (events, startDate, endDate) => {
+function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, endDate: moment.Moment) {
     if (!get(events, 'length', 0)) return [];
     // check if search exists
     // order by date
@@ -751,7 +892,7 @@ const getEventsByDate = (events, startDate, endDate) => {
 
     const days = {};
 
-    function addEventToDate(event, date) {
+    function addEventToDate(event: IEventItem, date?: moment.Moment) {
         let eventDate = date || event.dates.start;
         let eventStart = event.dates.start;
         let eventEnd = event.dates.end;
@@ -812,9 +953,9 @@ const getEventsByDate = (events, startDate, endDate) => {
     });
 
     return sortBasedOnTBC(days);
-};
+}
 
-const modifyForClient = (event) => {
+function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
     sanitizeItemFields(event);
 
     // The `_status` field is available when the item comes from a POST/PATCH request
@@ -852,14 +993,14 @@ const modifyForClient = (event) => {
     }
 
     return event;
-};
+}
 
 function modifyEventsForClient(events: Array<IEventItem>): Array<IEventItem> {
     events.forEach(modifyForClient);
     return events;
 }
 
-const modifyLocationForServer = (event) => {
+function modifyLocationForServer(event: IEventItem) {
     if (!('location' in event) || Array.isArray(event.location)) {
         return;
     }
@@ -867,9 +1008,9 @@ const modifyLocationForServer = (event) => {
     event.location = event.location ?
         [event.location] :
         null;
-};
+}
 
-const removeFieldsStartingWith = (updates: {[key: string]: Array<any> | any}, prefix: string) => {
+function removeFieldsStartingWith(updates: {[key: string]: Array<any> | any}, prefix: string) {
     Object.keys(updates).forEach((field) => {
         if (!Array.isArray(updates[field])) {
             if (field.startsWith(prefix)) {
@@ -885,9 +1026,9 @@ const removeFieldsStartingWith = (updates: {[key: string]: Array<any> | any}, pr
             });
         }
     });
-};
+}
 
-const modifyForServer = (event, removeNullLinks = false) => {
+function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
     modifyLocationForServer(event);
 
     // remove links if it contains only null values
@@ -918,9 +1059,9 @@ const modifyForServer = (event, removeNullLinks = false) => {
     }
 
     return event;
-};
+}
 
-const duplicateEvent = (event, occurStatus) => {
+function duplicateEvent(event: IEventItem, occurStatus: IEventOccurStatus) {
     let duplicatedEvent = cloneDeep(omitBy(event, (v, k) => (
         k.startsWith('_')) ||
         ['guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time', 'lock_session', 'lock_action',
@@ -948,22 +1089,31 @@ const duplicateEvent = (event, occurStatus) => {
     duplicatedEvent.dates.tz = moment.tz.guess();
 
     return duplicatedEvent;
-};
+}
 
-export const shouldLockEventForEdit = (item, privileges) => (
-    !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-    (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
-);
+export function shouldLockEventForEdit(item: IEventItem, privileges: IPrivileges): boolean {
+    return (
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        (
+            !isItemPublic(item) ||
+            !!privileges[PRIVILEGES.POST_EVENT]
+        )
+    );
+}
 
-const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) => {
+function defaultEventValues(
+    occurStatuses: IEventOccurStatus,
+    defaultCalendars: IEventItem['calendars'],
+    defaultPlaceList: IEventItem['place']
+): Partial<IEventItem> {
     const occurStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
         label: 'Confirmed',
         qcode: 'eocstat:eos5',
         name: 'Planned, occurs certainly',
     };
 
-    let newEvent = {
-        type: ITEM_TYPE.EVENT,
+    let newEvent: Partial<IEventItem> = {
+        type: 'event',
         occur_status: occurStatus,
         dates: {
             start: null,
@@ -981,7 +1131,7 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
         newEvent.place = defaultPlaceList;
     }
     return newEvent;
-};
+}
 
 function shouldFetchFilesForEvent(event?: IEventItem) {
     return (event?.files || [])
@@ -989,7 +1139,7 @@ function shouldFetchFilesForEvent(event?: IEventItem) {
         .length > 0;
 }
 
-const getRepeatSummaryForEvent = (schedule) => {
+function getRepeatSummaryForEvent(schedule: IEventItem['dates']): string {
     const frequency = get(schedule, 'recurring_rule.frequency');
     const endRepeatMode = get(schedule, 'recurring_rule.endRepeatMode');
     const until = get(schedule, 'recurring_rule.until');
@@ -1089,9 +1239,13 @@ const getRepeatSummaryForEvent = (schedule) => {
     };
 
     return getFrequency() + getEnds() + getDays();
-};
+}
 
-const eventsDatesSame = (event1, event2, granularity = TIME_COMPARISON_GRANULARITY.MILLISECOND) => {
+function eventsDatesSame(
+    event1: IEventItem,
+    event2: IEventItem,
+    granularity: string = TIME_COMPARISON_GRANULARITY.MILLISECOND
+): boolean {
     const pickField = (value, key) => (key !== 'until');
     const nonMomentFieldsEqual = isEqual(
         pickBy(get(event1, 'dates.recurring_rule'), pickField),
@@ -1120,9 +1274,9 @@ const eventsDatesSame = (event1, event2, granularity = TIME_COMPARISON_GRANULARI
     }
 
     return nonMomentFieldsEqual;
-};
+}
 
-const eventHasPostedPlannings = (event) => {
+function eventHasPostedPlannings(event: IEventItem): boolean {
     let hasPosteditem = false;
 
     get(event, '_relatedPlannings', []).forEach((p) => {
@@ -1132,9 +1286,9 @@ const eventHasPostedPlannings = (event) => {
     });
 
     return hasPosteditem;
-};
+}
 
-const fillEventTime = (event) => {
+function fillEventTime(event: IEventItem) {
     if (!get(event, TO_BE_CONFIRMED_FIELD) && get(event, 'dates')) {
         event._startTime = event.dates.start;
         event._endTime = event.dates.end;
@@ -1142,7 +1296,7 @@ const fillEventTime = (event) => {
         event._startTime = null;
         event._endTime = null;
     }
-};
+}
 
 
 // eslint-disable-next-line consistent-this
@@ -1153,7 +1307,6 @@ const self = {
     canSpikeEvent,
     canUnspikeEvent,
     canCreatePlanningFromEvent,
-    canCreateAndOpenPlanningFromEvent,
     canPostEvent,
     canUnpostEvent,
     canEditEvent,
@@ -1167,8 +1320,6 @@ const self = {
     canUpdateEventTime,
     canConvertToRecurringEvent,
     canUpdateEventRepetitions,
-    isEventLocked,
-    isEventLockRestricted,
     isEventSameDay,
     isEventRecurring,
     getDateStringForEvent,
