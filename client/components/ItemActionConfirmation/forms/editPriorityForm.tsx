@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {isEqual, get} from 'lodash';
 
+import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
@@ -168,7 +169,7 @@ const mapDispatchToProps = (dispatch) => ({
 
     onHide: (assignment) => {
         if (assignment.lock_action === 'edit_priority') {
-            dispatch(actions.assignments.api.unlock(assignment));
+            planningApi.locks.unlockItem(assignment);
         }
     },
 });

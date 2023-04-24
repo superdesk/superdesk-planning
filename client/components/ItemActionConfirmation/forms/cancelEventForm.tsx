@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, isEmpty} from 'lodash';
 
+import {planningApi} from '../../../superdeskApi';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext} from '../../../utils';
@@ -199,7 +200,7 @@ const mapDispatchToProps = (dispatch) => ({
     ),
     onHide: (original, modalProps) => {
         const promise = original.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action ?
-            dispatch(actions.events.api.unlock(original)) :
+            planningApi.locks.unlockItem(original) :
             Promise.resolve(original);
 
         if (get(modalProps, 'onCloseModal')) {

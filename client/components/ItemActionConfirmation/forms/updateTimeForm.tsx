@@ -6,6 +6,7 @@ import moment from 'moment';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
@@ -331,7 +332,7 @@ const mapDispatchToProps = (dispatch) => ({
     },
     onHide: (event, modalProps) => {
         const promise = event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action ?
-            dispatch(actions.events.api.unlock(event)) :
+            planningApi.locks.unlockItem(event) :
             Promise.resolve(event);
 
         if (get(modalProps, 'onCloseModal')) {

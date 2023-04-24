@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {get, isEqual, cloneDeep} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
@@ -204,7 +205,7 @@ const mapDispatchToProps = (dispatch) => ({
 
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action) {
-            dispatch(actions.events.api.unlock(event));
+            planningApi.locks.unlockItem(event);
         }
     },
 

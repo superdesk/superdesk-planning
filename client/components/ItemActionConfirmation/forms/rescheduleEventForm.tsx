@@ -5,6 +5,7 @@ import {get, isEqual, cloneDeep, omit, isEmpty} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
+import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import {formProfile, validateItem} from '../../../validators';
@@ -356,7 +357,7 @@ const mapDispatchToProps = (dispatch) => ({
 
     onHide: (event, modalProps) => {
         const promise = event.lock_action === EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action ?
-            dispatch(actions.events.api.unlock(event)) :
+            planningApi.locks.unlockItem(event) :
             Promise.resolve(event);
 
         if (get(modalProps, 'onCloseModal')) {
