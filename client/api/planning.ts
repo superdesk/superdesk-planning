@@ -127,35 +127,6 @@ export function getPlanningByIds(
         .then((response) => response._items);
 }
 
-export function getLockedPlanningItems(): Promise<Array<IPlanningItem>> {
-    return searchPlanningGetAll({
-        lock_state: LOCK_STATE.LOCKED,
-        directly_locked: true,
-        only_future: false,
-        include_killed: true,
-    });
-}
-
-export function getLockedFeaturedPlanning(): Promise<Array<IFeaturedPlanningLock>> {
-    return superdeskApi.dataApi.queryRawJson<IRestApiResponse<IFeaturedPlanningLock>>(
-        'planning_featured_lock',
-        {
-            source: JSON.stringify({
-                query: {
-                    constant_score: {
-                        filter: {
-                            exists: {
-                                field: 'lock_session',
-                            },
-                        },
-                    },
-                },
-            })
-        }
-    )
-        .then((response) => response._items);
-}
-
 function getPlanningEditorProfile() {
     return planningProfile(planningApi.redux.store.getState());
 }
@@ -224,8 +195,6 @@ export const planning: IPlanningAPI['planning'] = {
     searchGetAll: searchPlanningGetAll,
     getById: getPlanningById,
     getByIds: getPlanningByIds,
-    getLocked: getLockedPlanningItems,
-    getLockedFeatured: getLockedFeaturedPlanning,
     getEditorProfile: getPlanningEditorProfile,
     getSearchProfile: getPlanningSearchProfile,
     featured: featured,

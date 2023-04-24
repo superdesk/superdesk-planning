@@ -4,9 +4,7 @@ import {cloneDeep, some} from 'lodash';
 import {appConfig} from 'appConfig';
 import {IUser} from 'superdesk-api';
 import {IFeaturedPlanningItem, IFeaturedPlanningSaveItem, IPlanningItem, ISearchParams} from '../../interfaces';
-import {planningApi as planningApis, superdeskApi} from '../../superdeskApi';
-import planningApi from './api';
-import {locks} from '../index';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import main from '../main';
 
 import {MODALS, FEATURED_PLANNING, TIME_COMPARISON_GRANULARITY} from '../../constants';
@@ -134,7 +132,7 @@ function movePlanningToUnselectedList(item: IPlanningItem) {
 function getAndUpdateStoredPlanningItem(itemId: IPlanningItem['_id']) {
     return (dispatch, getState) => {
         if (selectors.featuredPlanning.inUse(getState())) {
-            planningApis.planning.getById(itemId, false, true).then((item) => {
+            planningApi.planning.getById(itemId, false, true).then((item) => {
                 dispatch({
                     type: FEATURED_PLANNING.ACTIONS.UPDATE_PLANNING_AND_LISTS,
                     payload: item,
@@ -147,7 +145,7 @@ function getAndUpdateStoredPlanningItem(itemId: IPlanningItem['_id']) {
 function updatePlanningMetadata(itemId: IPlanningItem['_id']) {
     return (dispatch, getState) => {
         if (selectors.featuredPlanning.inUse(getState())) {
-            planningApis.planning.getById(itemId, false, true).then((item) => {
+            planningApi.planning.getById(itemId, false, true).then((item) => {
                 dispatch({
                     type: FEATURED_PLANNING.ACTIONS.UPDATE_PLANNING_METADATA,
                     payload: item,
@@ -159,7 +157,7 @@ function updatePlanningMetadata(itemId: IPlanningItem['_id']) {
 
 function getFeaturedPlanningItem(date: moment.Moment) {
     return (dispatch) => (
-        planningApis.planning.featured.getByDate(date)
+        planningApi.planning.featured.getByDate(date)
             .then((item) => {
                 dispatch(setFeaturedPlanningItem(item));
 
@@ -173,10 +171,10 @@ function fetchToList(params: ISearchParams = {}, featuredItem?: IFeaturedPlannin
         dispatch(setCurrentSearchParams(params));
 
         return (featuredItem?.items?.length ?
-            planningApis.planning.getByIds(featuredItem?.items, 'both', {include_killed: true}) :
+            planningApi.planning.getByIds(featuredItem?.items, 'both', {include_killed: true}) :
             Promise.resolve<Array<IPlanningItem>>([])
         ).then((currentFeaturedItems) => (
-            planningApis.planning.searchGetAll(params)
+            planningApi.planning.searchGetAll(params)
                 .then((searchResults) => ({
                     current: currentFeaturedItems,
                     search: searchResults,
@@ -265,7 +263,7 @@ function openFeaturedPlanningModal() {
 
         dispatch(setInUse(true));
         dispatch(showModal({modalType: MODALS.FEATURED_STORIES}));
-        dispatch(planningApi.lockFeaturedPlanning())
+        planningApi.locks.lockFeaturedPlanning()
             .then(() => (
                 dispatch(loadFeaturedPlanningsData(currentSearchDate))
             ))
@@ -291,7 +289,7 @@ function modifyPlanningFeatured(original: IPlanningItem, remove: boolean = false
                 dispatch(_modifyPlanningFeatured(unlockedItem, remove))
                     .then((updatedItem) => {
                         if (previousLock?.action) {
-                            dispatch(locks.lock(updatedItem, previousLock.action))
+                            planningApi.locks.lockItem(updatedItem, previousLock.action)
                                 .then((updatedUnlockedItem) => {
                                     if (openInEditor || openInModal) {
                                         dispatch(main.openForEdit(updatedUnlockedItem, !openInModal, openInModal));
@@ -306,7 +304,7 @@ function modifyPlanningFeatured(original: IPlanningItem, remove: boolean = false
 
 function _modifyPlanningFeatured(item: IPlanningItem, remove: boolean = false) {
     return (dispatch) => (
-        dispatch(locks.lock(item, remove ? 'remove_featured' : 'add_featured'))
+        planningApi.locks.lockItem(item, remove ? 'remove_featured' : 'add_featured')
             .then((original: IPlanningItem) => {
                 const updates = cloneDeep(original);
                 const {gettext} = superdeskApi.localization;
@@ -334,12 +332,12 @@ function _modifyPlanningFeatured(item: IPlanningItem, remove: boolean = false) {
     );
 }
 
-function saveFeaturedPlanningForDate(updates: IFeaturedPlanningSaveItem, reloadFeaturedItem: boolean) {
+function saveFeaturedPlanningForDate(updates: Partial<IFeaturedPlanningItem>, reloadFeaturedItem: boolean) {
     const {gettext} = superdeskApi.localization;
     const {notify} = superdeskApi.ui;
 
     return (dispatch, getState) => (
-        dispatch(planningApi.saveFeaturedPlanning(updates))
+        planningApi.planning.featured.save(updates)
             .then(
                 (item: IFeaturedPlanningItem) => {
                     if (item.posted) {
@@ -366,7 +364,7 @@ function unsetFeaturePlanningInUse(unlock: boolean = true) {
         dispatch(setInUse(false));
 
         if (unlock) {
-            return dispatch(planningApi.unlockFeaturedPlanning())
+            planningApi.locks.unlockFeaturedPlanning()
                 .then(() => {
                     dispatch(hideModal());
                     return Promise.resolve();
@@ -379,13 +377,12 @@ function unsetFeaturePlanningInUse(unlock: boolean = true) {
 
 function forceUnlock() {
     return (dispatch) => (
-        dispatch(planningApi.unlockFeaturedPlanning())
-            .then(() => {
+        planningApi.locks.unlockFeaturedPlanning()
+            .then(() => (
                 // Set unlocked here so the websocket notification doesn't think
                 // the current session is getting unlocked by another user/session
-                dispatch(self.setUnlocked());
-                return dispatch(self.openFeaturedPlanningModal());
-            })
+                dispatch(self.openFeaturedPlanningModal())
+            ))
     );
 }
 

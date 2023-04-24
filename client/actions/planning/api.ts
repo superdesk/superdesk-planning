@@ -2,14 +2,13 @@ import {get, cloneDeep, pickBy, has, every} from 'lodash';
 
 import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
+import {planningApi} from '../../superdeskApi';
 
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import {
     getErrorMessage,
-    getTimeZoneOffset,
     planningUtils,
-    lockUtils,
     isExistingItem,
     isPublishedItemId,
     isValidFileInput,
@@ -24,7 +23,6 @@ import {
     TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import main from '../main';
-import {planningApi} from '../../superdeskApi';
 import {planningParamsToSearchParams} from '../../utils/search';
 
 /**
@@ -498,77 +496,6 @@ const receivePlannings = (plannings) => (
     }
 );
 
-/**
- * Action dispatcher that attempts to unlock a Planning item through the API
- * @param {object} item - The Planning item to unlock
- * @return Promise
- */
-const unlock = (item) => (
-    (dispatch, getState, {api}) => (
-        api('planning_unlock', item).save({})
-    )
-        .then((item) => {
-            planningUtils.modifyForClient(item);
-
-            dispatch({
-                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
-                payload: {plan: item},
-            });
-
-            return Promise.resolve(item);
-        }, (error) => Promise.reject(error))
-);
-
-/**
- * Action dispatcher that attempts to lock a Planning item through the API
- * @param {object} planning - The Planning item to lock
- * @param {String} lockAction - The lock action
- * @return Promise
- */
-const lock = (planning, lockAction = 'edit') => (
-    (dispatch, getState, {api}) => {
-        if (lockAction === null ||
-            lockUtils.isItemLockedInThisSession(
-                planning,
-                selectors.general.session(getState()),
-                selectors.locks.getLockedItems(getState())
-            )
-        ) {
-            return Promise.resolve(planning);
-        }
-
-        return api('planning_lock', planning).save({}, {lock_action: lockAction})
-            .then((item) => {
-                planningUtils.modifyForClient(item);
-
-                dispatch({
-                    type: PLANNING.ACTIONS.LOCK_PLANNING,
-                    payload: {plan: item},
-                });
-
-                return Promise.resolve(item);
-            }, (error) => Promise.reject(error));
-    }
-);
-
-/**
- * Locks featured stories action
- * @return Promise
- */
-function lockFeaturedPlanning() {
-    return (dispatch, getState, {notify}) => (
-        planningApi.planning.featured.lock()
-            .catch((error) => {
-                notify.error(
-                    getErrorMessage(
-                        error,
-                        gettext('Failed to lock featured story action!')
-                    )
-                );
-            })
-    );
-}
-
 const fetchPlanningFiles = (planning) => (
     (dispatch, getState) => {
         if (!planningUtils.shouldFetchFilesForPlanning(planning)) {
@@ -604,36 +531,6 @@ const getFiles = (files) => (
             })
     )
 );
-
-
-/**
- * Action dispatcher to save the featured planning record through the API
- * @param {object} updates - updates to save
- * @return Promise
- */
-const saveFeaturedPlanning = (updates) => (
-    (dispatch, getState, {api}) => {
-        const item = selectors.featuredPlanning.featuredPlanningItem(getState()) || {};
-
-        return api('planning_featured').save(cloneDeep(item), {...updates})
-            .then((savedItem) => savedItem);
-    }
-);
-
-
-/**
- * Unlocks featured planning action
- * @return Promise
- */
-function unlockFeaturedPlanning() {
-    return (dispatch, getState, {notify}) => (
-        planningApi.planning.featured.unlock()
-            .catch((error) => {
-                notify.error(
-                    getErrorMessage(error, gettext('Failed to unlock featured story action!')));
-            })
-    );
-}
 
 const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
@@ -732,8 +629,6 @@ const self = {
     save,
     fetchById,
     fetchPlanningsEvents,
-    unlock,
-    lock,
     loadPlanningById,
     loadPlanningByIds,
     fetchPlanningHistory,
@@ -750,9 +645,6 @@ const self = {
     loadPlanningByRecurrenceId,
     cancel,
     cancelAllCoverage,
-    lockFeaturedPlanning,
-    unlockFeaturedPlanning,
-    saveFeaturedPlanning,
     fetchPlanningFiles,
     uploadFiles,
     removeFile,

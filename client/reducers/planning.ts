@@ -166,15 +166,6 @@ const planningReducer = createReducer(initialState, {
         };
     },
 
-    [LOCKS.ACTIONS.RECEIVE]: (state, payload) => (
-        get(payload, 'plans.length', 0) <= 0 ?
-            state :
-            planningReducer(state, {
-                type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-                payload: payload.plans,
-            })
-    ),
-
     [PLANNING.ACTIONS.SPIKE_PLANNING]: (state, payload) => {
         // If the planning is not loaded, disregard this action
         if (!(payload.id in state.plannings)) return state;

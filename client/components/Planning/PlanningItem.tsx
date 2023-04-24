@@ -22,6 +22,7 @@ import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 import {
     eventUtils,
     planningUtils,
+    lockUtils,
     onEventCapture,
     isItemPosted,
     getItemId,
@@ -190,7 +191,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         }
 
         const {gettext} = superdeskApi.localization;
-        const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
+        const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
         const event = get(item, 'event');
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);

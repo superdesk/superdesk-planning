@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
+import {planningApi} from '../../superdeskApi';
+
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
 import {planningUtils, lockUtils, actionUtils} from '../../utils';
 import {PLANNING, PRIVILEGES, EVENTS, ICON_COLORS} from '../../constants';
 import * as selectors from '../../selectors';
-import * as actions from '../../actions';
 import {get} from 'lodash';
 
 export class PlanningPreviewHeaderComponent extends React.Component {
@@ -17,7 +19,6 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             item,
             lockedItems,
             session,
-            onUnlock,
             showUnlock,
             hideItemActions,
             event,
@@ -27,7 +28,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
         } = this.props;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
-        const lockRestricted = planningUtils.isPlanningLockRestricted(item, session, lockedItems);
+        const lockRestricted = lockUtils.isLockRestricted(item, session, lockedItems);
 
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
@@ -87,7 +88,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                             users={users}
                             showUnlock={unlockPrivilege && showUnlock}
                             withLoggedInfo={true}
-                            onUnlock={onUnlock.bind(null, item)}
+                            onUnlock={planningApi.locks.unlockItem.bind(null, item)}
                             small={false}
                             noMargin={true}
                         />
@@ -112,7 +113,6 @@ PlanningPreviewHeaderComponent.propTypes = {
     agendas: PropTypes.array,
     lockedItems: PropTypes.object,
     duplicateEvent: PropTypes.func,
-    onUnlock: PropTypes.func,
     event: PropTypes.object,
     itemActionDispatches: PropTypes.object,
     showUnlock: PropTypes.bool,
@@ -132,7 +132,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onUnlock: (planning) => (dispatch(actions.locks.unlock(planning))),
     itemActionDispatches: actionUtils.getActionDispatches({dispatch: dispatch}),
 });
 

@@ -15,13 +15,14 @@ import {
     IPlanningFormProfile,
     IPlanningItem,
     IPlanningNewsCoverageStatus,
+    ILockedItems,
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
 import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {planningUtils, eventUtils} from '../../../utils';
+import {planningUtils, eventUtils, lockUtils} from '../../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 
 import {EditorForm} from '../../Editor/EditorForm';
@@ -55,6 +56,7 @@ interface IProps {
     defaultDesk?: IDesk;
     preferredCoverageDesks: {[key: string]: string};
     files: Array<IFile>;
+    lockedItems: ILockedItems;
 
     onChangeHandler(
         field: string | {[key: string]: any},
@@ -89,6 +91,7 @@ const mapStateToProps = (state) => ({
     files: selectors.general.files(state),
     contentTypes: selectors.general.contentTypes(state),
     formProfile: selectors.forms.planningProfile(state),
+    lockedItems: selectors.locks.getLockedItems(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -208,7 +211,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
     }
 
     handleAddToPlanningLoading() {
-        if ((this.props.itemExists && !planningUtils.isLockedForAddToPlanning(this.props.item)) ||
+        if ((this.props.itemExists && !lockUtils.isLockedForAddToPlanning(this.props.item, this.props.lockedItems)) ||
             (!this.props.itemExists && get(this.props, 'diff.coverages.length', 0) > 0)
         ) {
             return;
