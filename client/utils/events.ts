@@ -445,13 +445,14 @@ const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTim
                 dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
                     end.format(timeFormat);
             }
-        } else if (dateOnly) {
+        } else if (dateOnly || isFullDay) {
             dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
         } else if (noEndTime) {
-            dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false);
+            dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
+                end.format(dateFormat);
         } else {
             dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
-                    getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
+                getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
         }
     }
 
