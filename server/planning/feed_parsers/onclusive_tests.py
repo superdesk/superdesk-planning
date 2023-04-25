@@ -162,3 +162,22 @@ class OnclusiveFeedParserTestCase(TestCase):
                     utcnow_mock.return_value = datetime.datetime.fromisoformat("2022-12-07T18:00:00+00:00")
                     parsed = OnclusiveFeedParser().parse([data])
                     self.assertEqual(1, len(parsed))
+
+    def test_timezone_ambigous_time_error(self):
+        data = self.data.copy()
+        data.update(
+            {
+                "startDate": "2023-10-27T00:00:00.0000000",
+                "time": "08:30",
+                "timezone": {
+                    "timezoneID": 27,
+                    "timezoneAbbreviation": "JST",
+                    "timezoneName": "(JST) Japan Standard Time : Tokyo",
+                    "timezoneOffset": 9.00,
+                    "timezoneIdentity": None,
+                },
+            }
+        )
+
+        item = OnclusiveFeedParser().parse([data])[0]
+        assert item["dates"]["tz"] == "Asia/Tokyo"
