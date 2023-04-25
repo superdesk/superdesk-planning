@@ -15,7 +15,13 @@
     },
     "venue": "Karuizawa",
     "tbcVenue": false,
-    "venueData": [],
+    "venueData": [
+        {
+            "venueId": 20848,
+            "locationLat": 43.648940,
+            "locationLon": -79.378086
+        }
+    ],
     "organisationId": 22426,
     "organisationName": "American Conference Institute",
     "organisation": {

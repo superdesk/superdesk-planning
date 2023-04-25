@@ -159,6 +159,7 @@ class OnclusiveFeedParser(FeedParser):
                     "name": event["venue"],
                     "qcode": "onclusive-venue:{}".format(venue_data.get("venueId")),
                     "address": self.parse_address(event),
+                    "location": {"lat": venue_data.get("locationLat"), "lon": venue_data.get("locationLon")},
                 }
             ]
         elif event.get("countryName"):

@@ -76,6 +76,7 @@ class OnclusiveFeedParserTestCase(TestCase):
 
         self.assertEqual(item["location"][0]["name"], "Karuizawa")
         self.assertEqual(item["location"][0]["address"]["country"], "Japan")
+        self.assertEqual(item["location"][0]["location"], {'lat': 43.64894, 'lon': -79.378086})
 
         self.assertEqual(1, len(item["event_contact_info"]))
         self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
