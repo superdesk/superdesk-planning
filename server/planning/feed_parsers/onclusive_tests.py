@@ -74,8 +74,8 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item["name"], "Annual Forum on Anti-Money Laundering and Financial Crime")
         self.assertEqual(item["definition_short"], "")
 
-        self.assertEqual(item["location"][0]["name"], "One King West Hotel & Residence, 1 King St W, Toronto")
-        self.assertEqual(item["location"][0]["address"]["country"], "Canada")
+        self.assertEqual(item["location"][0]["name"], "Karuizawa")
+        self.assertEqual(item["location"][0]["address"]["country"], "Japan")
 
         self.assertEqual(1, len(item["event_contact_info"]))
         self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
