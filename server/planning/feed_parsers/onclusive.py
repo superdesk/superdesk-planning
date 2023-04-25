@@ -149,9 +149,9 @@ class OnclusiveFeedParser(FeedParser):
                 logger.warning("Could not find timezone for %s", event["timezone"]["timezoneAbbreviation"])
 
     def parse_location(self, event, item):
-        if event.get("venue") and event.get("venueData"):
+        if event.get("venue"):
             try:
-                venue_data = event["venueData"][0]
+                venue_data = event.get("venueData", [])[0]
             except (IndexError, KeyError):
                 venue_data = {}
             item["location"] = [
