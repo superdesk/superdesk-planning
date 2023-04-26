@@ -35,18 +35,29 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too long');
             messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required && (typeof fieldValue === 'number' ? !fieldValue : isEmpty(fieldValue))) {
+    } else if (schema.required && !schema.multilingual && (
+        typeof fieldValue === 'number' ? !fieldValue : isEmpty(fieldValue))) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
-    } else if (schema.required && schema.multilingual) {
-        if (
-            field !== 'language' &&
-            diff?.languages?.length !== (diff?.translations || []).filter((e) => e.field === field).length ||
-            (diff?.translations || []).some((obj) => obj.field === field && obj.value === '')
-        ) {
+    } else if (schema.required && schema.multilingual && field !== 'language') {
+        const multilingualField = diff?.translations?.filter((e) => e.field === field) || [];
+        const missingLangs = diff?.languages?.filter((lang) => !multilingualField.some(
+            (obj) => obj.language === lang)) || [];
+        const emptyValues = multilingualField.filter((obj) => obj.value === '');
+
+        missingLangs.forEach((qcode) => {
+            const name = `${fieldLabel} (${qcode})`;
+
             errors[field] = gettext('This field is required');
-            messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
-        }
+            messages.push(gettext('{{ name }} is a required field', {name}));
+        });
+
+        emptyValues.forEach(({language}) => {
+            const name = `${fieldLabel} (${language})`;
+
+            errors[field] = gettext('This field is required');
+            messages.push(gettext('{{ name }} is a required field', {name}));
+        });
     } else if (get(schema, 'minlength', 0) > 0 && get(fieldValue, 'length', 0) < schema.minlength) {
         if (get(schema, 'type', 'string') === 'list') {
             errors[field] = gettext('Not enough');
