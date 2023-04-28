@@ -39,6 +39,7 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
                     json={
                         "token": "tok",
                         "refreshToken": "refresh",
+                        "productId": 10,
                     },
                 )
                 m.get(
@@ -46,11 +47,12 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
                     json=[{"versioncreated": event["versioncreated"].isoformat()}],
                 )  # first returns an item
                 m.get("https://api.abc.com/api/v2/events/between?offset=1000", json=[])  # second will make it stop
-                list(service._update(provider, updates))
+                items = list(service._update(provider, updates))
             self.assertIn("tokens", updates)
             self.assertEqual("refresh", updates["tokens"]["refreshToken"])
             self.assertIn("import_finished", updates["tokens"])
             self.assertEqual(updates["last_updated"], updates["tokens"]["next_start"])
+            self.assertEqual("fr", items[0][0]["language"])
 
             provider.update(updates)
             updates = {}

@@ -62,7 +62,7 @@ class OnclusiveFeedParserTestCase(TestCase):
         )
 
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
-        self.assertEqual(item["language"], "en-CA")
+        self.assertEqual(item["language"], "en")
 
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
 

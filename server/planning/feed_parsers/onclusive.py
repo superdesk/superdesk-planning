@@ -102,7 +102,8 @@ class OnclusiveFeedParser(FeedParser):
         )
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
-        item["language"] = event.get("locale") or self.default_locale
+        if event.get("locale"):
+            item["language"] = event["locale"].split("-")[0]
         if event.get("embargoTime") and event.get("timezone") and event["timezone"].get("timezoneOffset"):
             tz = datetime.timezone(datetime.timedelta(hours=event["timezone"]["timezoneOffset"]))
             embargoed = datetime.datetime.fromisoformat(event["embargoTime"]).replace(tzinfo=tz)
