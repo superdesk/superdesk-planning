@@ -9,6 +9,7 @@ import {createTestStore} from '../../utils';
 
 describe('planningApi.locks', () => {
     let redux: Store;
+
     beforeEach(() => {
         redux = createTestStore();
         planningApi.redux.store = redux;

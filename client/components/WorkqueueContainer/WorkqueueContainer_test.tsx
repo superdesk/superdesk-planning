@@ -122,7 +122,7 @@ describe('<WorkqueueContainer />', () => {
     });
 
     it('contains locked events and planning items for workqueue items', () => {
-        const state = store.getState()
+        const state = store.getState();
         const workqueueItems = selectors.locks.workqueueItems(state);
 
         expect(workqueueItems.length).toBe(2);

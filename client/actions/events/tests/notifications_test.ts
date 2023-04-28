@@ -469,7 +469,7 @@ describe('actions.events.notifications', () => {
 
     describe('onEventLocked', () => {
         beforeEach(() => {
-            sinon.stub(planningApi.locks, 'addLockToStore').returns(undefined)
+            sinon.stub(planningApi.locks, 'addLockToStore').returns(undefined);
             sinon.stub(eventsApi, 'getEvent').returns(Promise.resolve(data.events[0]));
         });
 

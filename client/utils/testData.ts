@@ -858,7 +858,7 @@ export const lockedAssignments = [
         lock_session: 'session1',
         lock_time: '2023-04-28T12:01:11+0000'
     }
-]
+];
 
 export const archive = [
     {
