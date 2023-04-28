@@ -41,22 +41,34 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else if (schema.required && schema.multilingual && field !== 'language') {
         const multilingualField = diff?.translations?.filter((e) => e.field === field) || [];
-        const missingLangs = diff?.languages?.filter((lang) => !multilingualField.some(
-            (obj) => obj.language === lang)) || [];
+        const missingLangs = diff?.languages?.filter((lang) => !multilingualField.some((
+            obj) => obj.language === lang)) || [];
         const emptyValues = multilingualField.filter((obj) => obj.value === '');
 
         missingLangs.forEach((qcode) => {
             const name = `${fieldLabel} (${qcode})`;
+            const fieldError = `${field}.${qcode}`;
 
-            errors[field] = gettext('This field is required');
+            errors[fieldError] = gettext('This field is required');
             messages.push(gettext('{{ name }} is a required field', {name}));
         });
 
         emptyValues.forEach(({language}) => {
             const name = `${fieldLabel} (${language})`;
+            const fieldError = `${field}.${language}`;
 
-            errors[field] = gettext('This field is required');
+            errors[fieldError] = gettext('This field is required');
             messages.push(gettext('{{ name }} is a required field', {name}));
+        });
+
+        Object.keys(errors).forEach((fieldError) => {
+            const [fieldName, lang] = fieldError.split('.');
+
+            if (fieldName === field && diff.languages.includes(lang)) {
+                if (!missingLangs.includes(lang) && !emptyValues.some((obj) => obj.language === lang)) {
+                    delete errors[fieldError];
+                }
+            }
         });
     } else if (get(schema, 'minlength', 0) > 0 && get(fieldValue, 'length', 0) < schema.minlength) {
         if (get(schema, 'type', 'string') === 'list') {
