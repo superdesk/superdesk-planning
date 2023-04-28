@@ -56,9 +56,9 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item[GUID_FIELD], "urn:onclusive:4112034")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
-        self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 21, 19, 10, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 20, 19, 10, tzinfo=datetime.timezone.utc))
         self.assertEqual(
-            item["versioncreated"], datetime.datetime(2022, 5, 10, 13, 14, 34, tzinfo=datetime.timezone.utc)
+            item["versioncreated"], datetime.datetime(2022, 5, 10, 12, 14, 34, tzinfo=datetime.timezone.utc)
         )
 
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")

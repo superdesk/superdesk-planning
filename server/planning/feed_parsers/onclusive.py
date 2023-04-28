@@ -12,7 +12,7 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.errors import ParserError
-from superdesk.utc import utcnow
+from superdesk.utc import utcnow, local_to_utc
 from planning.common import POST_STATE
 from flask import current_app as app
 
@@ -92,8 +92,8 @@ class OnclusiveFeedParser(FeedParser):
 
     def parse_item_meta(self, event, item):
         item["pubstatus"] = POST_STATE.CANCELLED if event.get("deleted") else POST_STATE.USABLE
-        item["versioncreated"] = self.datetime(event["lastEditDate"])
-        item["firstcreated"] = self.datetime(event["createdDate"])
+        item["versioncreated"] = self.server_datetime(event["lastEditDate"])
+        item["firstcreated"] = self.server_datetime(event["createdDate"])
         item["name"] = (
             event["summary"] if (event["summary"] is not None and event["summary"] != "") else event["description"]
         )
@@ -217,6 +217,17 @@ class OnclusiveFeedParser(FeedParser):
             parsed_time = datetime.time.fromisoformat(time)
             parsed = parsed.replace(hour=parsed_time.hour, minute=parsed_time.minute, second=parsed_time.second)
         return parsed.replace(microsecond=0).astimezone(datetime.timezone.utc)
+
+    def server_datetime(self, date):
+        """Convert datetime from server timezone to utc.
+
+        Eventually this will be in utc, so make it configurable.
+        """
+        timezone = app.config.get("ONCLUSIVE_SERVER_TIMEZONE", "Europe/London")
+        parsed = datetime.datetime.fromisoformat(date.split(".")[0]).replace(microsecond=0)
+        if timezone:
+            return local_to_utc(timezone, parsed)
+        return parsed
 
     def parse_contact_info(self, event, item):
         for contact_info in event.get("pressContacts"):
