@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import Resource
-from superdesk.resource import not_analyzed
+from superdesk.resource import not_analyzed, string_with_analyzer
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
@@ -70,6 +70,8 @@ events_schema = {
     "internal_note": {"type": "string"},
     "registration_details": {"type": "string"},
     "invitation_details": {"type": "string"},
+    "accreditation_info": {"type": "string"},
+    "accreditation_deadline": {"type": "datetime"},
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
     "anpa_category": metadata_schema["anpa_category"],
@@ -219,6 +221,10 @@ events_schema = {
         "mapping": not_analyzed,
     },
     "language": metadata_schema["language"],
+    "languages": {
+        "type": "list",
+        "mapping": not_analyzed,
+    },
     # These next two are for spiking/unspiking and purging events
     "state": WORKFLOW_STATE_SCHEMA,
     "expiry": {"type": "datetime", "nullable": True},
@@ -311,4 +317,15 @@ events_schema = {
         },
     },
     "extra": metadata_schema["extra"],
+    "translations": {
+        "type": "list",
+        "mapping": {
+            "type": "nested",
+            "properties": {
+                "field": not_analyzed,
+                "language": not_analyzed,
+                "value": string_with_analyzer,
+            },
+        },
+    },
 }  # end events_schema

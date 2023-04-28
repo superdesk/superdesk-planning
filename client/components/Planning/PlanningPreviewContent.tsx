@@ -146,6 +146,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                         language: getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                         schema: formProfile?.planning.schema,
+                        profile: formProfile?.planning,
                     },
                     {},
                 )}

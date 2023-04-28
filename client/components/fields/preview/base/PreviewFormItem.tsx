@@ -55,7 +55,7 @@ export class PreviewFormItem extends React.PureComponent<IBasePreviewProps> {
             <div className="form__row" data-test-id={this.props.testId}>
                 {this.props.label == undefined ? null : (
                     <label className={labelClass}>
-                        {this.props.label}
+                        {this.props.label}:
                     </label>
                 )}
                 {children}

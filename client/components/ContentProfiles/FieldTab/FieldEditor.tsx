@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import {IProfileFieldEntry} from '../../../interfaces';
-import {superdeskApi} from '../../../superdeskApi';
+import {IProfileFieldEntry, IPlanningContentProfile, IProfileSchemaTypeString} from '../../../interfaces';
+import {superdeskApi, planningApi} from '../../../superdeskApi';
 
 import {getFieldNameTranslated} from '../../../utils/contentProfiles';
 
@@ -10,6 +10,7 @@ import {renderFieldsForPanel} from '../../fields';
 
 interface IProps {
     item: IProfileFieldEntry;
+    profile: IPlanningContentProfile;
     isDirty: boolean;
     disableMinMax: boolean;
     disableRequired: boolean;
@@ -19,14 +20,21 @@ interface IProps {
     updateField(field: string, value: string | number | boolean | Array<string>): void;
 }
 
-export class FieldEditor extends React.PureComponent<IProps> {
+interface IState {
+    errors: {[field: string]: string};
+}
+
+export class FieldEditor extends React.Component<IProps, IState> {
     containerRef: React.RefObject<HTMLDivElement>
 
     constructor(props) {
         super(props);
 
+        this.state = {errors: {}};
+
         this.containerRef = React.createRef();
         this.onChange = this.onChange.bind(this);
+        this.saveField = this.saveField.bind(this);
     }
 
     componentDidMount() {
@@ -38,12 +46,43 @@ export class FieldEditor extends React.PureComponent<IProps> {
         this.props.updateField(field, value);
     }
 
+    saveField() {
+        if (this.props.item.name === 'language') {
+            const schema = (this.props.item.schema as IProfileSchemaTypeString);
+
+            if (schema.multilingual === true) {
+                const {gettext} = superdeskApi.localization;
+                const errors = {};
+
+                if ((schema.languages?.length ?? 0) < 2) {
+                    errors['schema.languages'] = gettext('At least 2 languages must be selected');
+                }
+                if (!schema.default_language?.length) {
+                    errors['schema.default_language'] = gettext('Default language is a required field');
+                }
+
+                this.setState({errors});
+
+                if (Object.keys(errors).length) {
+                    return;
+                }
+            }
+        }
+
+        this.props.saveField();
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema.type);
         const fieldType = this.props.item.schema?.type !== 'string' ?
             null :
             this.props.item.schema.field_type;
+        const {multilingual} = planningApi.contentProfiles;
+
+        const isMultilingual = this.props.item.name === 'language' ?
+            (this.props.item.schema as IProfileSchemaTypeString).multilingual === true :
+            multilingual.isEnabled(this.props.profile);
 
         const fieldProps = {
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
@@ -56,6 +95,15 @@ export class FieldEditor extends React.PureComponent<IProps> {
             'schema.vocabularies': {enabled: this.props.item.name === 'custom_vocabularies'},
             'field.all_day.enabled': {enabled: this.props.item.name === 'dates'},
             'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
+            'schema.languages': {enabled: (this.props.item.name === 'language' && isMultilingual)},
+            'schema.default_language': {enabled: (this.props.item.name === 'language' && isMultilingual)},
+            'schema.multilingual': {enabled: (
+                this.props.item.name === 'language' || (
+                    this.props.item.schema.type === 'string' &&
+                    isMultilingual &&
+                    !['language', 'location'].includes(this.props.item.name)
+                )
+            )},
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)
@@ -64,7 +112,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
         );
 
         return (
-            <div className="side-panel side-panel--right">
+            <div className="side-panel side-panel--right" data-test-id="content-field--editor">
                 <div className="side-panel__header">
                     <div className="side-panel__heading">
                         {gettext('Details')}
@@ -81,7 +129,7 @@ export class FieldEditor extends React.PureComponent<IProps> {
                             {noOptionsAvailable ? null : (
                                 <Button
                                     text={gettext('Save')}
-                                    onClick={() => this.props.saveField()}
+                                    onClick={this.saveField}
                                     type="primary"
                                     disabled={!this.props.isDirty}
                                 />
@@ -136,10 +184,14 @@ export class FieldEditor extends React.PureComponent<IProps> {
                                             'schema.vocabularies': {enabled: true, index: 8},
                                             'field.all_day.enabled': {enabled: true, index: 9},
                                             'field.default_duration_on_change': {enabled: true, index: 10},
+                                            'schema.multilingual': {enabled: true, index: 11},
+                                            'schema.languages': {enabled: true, index: 12},
+                                            'schema.default_language': {enabled: true, index: 13},
                                         },
                                         {
                                             item: this.props.item,
                                             onChange: this.onChange,
+                                            errors: this.state.errors,
                                         },
                                         fieldProps
                                     )}

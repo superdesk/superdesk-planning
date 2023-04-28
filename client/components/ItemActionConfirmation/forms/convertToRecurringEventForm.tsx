@@ -17,7 +17,11 @@ import {updateFormValues, eventUtils, timeUtils, gettext} from '../../../utils';
 
 import '../style.scss';
 
-export class ConvertToRecurringEventComponent extends React.Component {
+export interface IProps {
+    original: any;
+    formProfiles: any;
+}
+export class ConvertToRecurringEventComponent extends React.Component <IProps> {
     constructor(props) {
         super(props);
         this.state = {
@@ -115,7 +119,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     render() {
-        const {original} = this.props;
+        const {original, formProfiles} = this.props;
         const timeZone = get(original, 'dates.tz') || appConfig.default_timezone;
 
         return (
@@ -157,6 +161,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     onChange={this.onChange}
                     showRepeatToggle={false}
                     showErrors={true}
+                    formProfile={formProfiles.event}
                     errors={this.state.errors}
                     popupContainer={this.getPopupContainer}
                 />

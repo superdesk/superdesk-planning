@@ -87,6 +87,11 @@
         position: relative;
     }
 
+    i {
+        padding-inline-start: 2px;
+        padding-top: 2px;
+    }
+
     &--hover {
         border-top: 1px solid var(--color-input-border-hover);
     }

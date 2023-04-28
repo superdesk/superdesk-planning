@@ -93,6 +93,7 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         include_scheduled_updates: params.includeScheduledUpdates,
         no_agenda_assigned: params.noAgendaAssigned,
         agendas: params.agendas,
+        coverage_user_id: params.coverage_user_id,
     };
 }
 
@@ -107,6 +108,7 @@ export function searchParamsToPlanningParams(params: ISearchParams): IPlanningSe
         excludeRescheduledAndCancelled: params.exclude_rescheduled_and_cancelled,
         featured: params.featured,
         includeScheduledUpdates: params.include_scheduled_updates,
+        coverage_user_id: params.coverage_user_id,
         advancedSearch: {
             ...common.advancedSearch,
             featured: params.featured,
@@ -149,6 +151,7 @@ export function combinedParamsToSearchParams(params: ICombinedSearchParams): ISe
     return {
         ...commonParamsToSearchParams(params),
         reference: params.advancedSearch?.reference,
+        coverage_user_id: params.coverage_user_id,
     };
 }
 
@@ -157,6 +160,7 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
 
     return {
         ...common,
+        coverage_user_id: params.coverage_user_id,
         advancedSearch: {
             ...common.advancedSearch,
             reference: params.reference,

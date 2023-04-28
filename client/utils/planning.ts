@@ -1236,6 +1236,7 @@ function shouldLockPlanningForEdit(item: IPlanningItem, privileges: IPrivileges)
 }
 
 function defaultPlanningValues(currentAgenda: IAgenda, defaultPlaceList: Array<IPlace>): Partial<IPlanningItem> {
+    const language = planningApi.contentProfiles.getDefaultLanguage(planningApi.contentProfiles.get('planning'));
     const newPlanning: Partial<IPlanningItem> = {
         type: 'planning',
         planning_date: moment(),
@@ -1243,7 +1244,8 @@ function defaultPlanningValues(currentAgenda: IAgenda, defaultPlaceList: Array<I
             [getItemId(currentAgenda)] : [],
         state: 'draft',
         item_class: 'plinat:newscoverage',
-        language: getUsersDefaultLanguage(true),
+        language: language,
+        languages: [language],
     };
 
     if (defaultPlaceList) {

@@ -1,4 +1,12 @@
-import {IPlanningContentProfile, IPlanningAPI} from '../interfaces';
+import {appConfig} from 'appConfig';
+import {IVocabularyItem} from 'superdesk-api';
+import {
+    IPlanningContentProfile,
+    IPlanningAPI,
+    IEventOrPlanningItem,
+    IProfileMultilingualDetails,
+    IProfileSchemaTypeString,
+} from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {profiles} from '../selectors/forms';
@@ -8,10 +16,11 @@ import {sortProfileGroups} from '../utils/contentProfiles';
 
 import {showModalConnectedToStore} from '../utils/ui';
 import {ContentProfileModal} from '../components/ContentProfiles/ContentProfileModal';
+import {getUsersDefaultLanguage} from '../utils/users';
 
 const RESOURCE = 'planning_types';
 
-function getAll() {
+function getAll(): Promise<Array<IPlanningContentProfile>> {
     return superdeskApi.dataApi.query<IPlanningContentProfile>(
         RESOURCE,
         1,
@@ -26,13 +35,62 @@ function getAll() {
         });
 }
 
-function getProfile(contentType: string) {
+function getProfile(contentType: string): IPlanningContentProfile {
     const {getState} = planningApi.redux.store;
 
     return profiles(getState())[contentType];
 }
 
-function patch(original: IPlanningContentProfile, updates: IPlanningContentProfile) {
+function getLanguageSchema(profile: IPlanningContentProfile): IProfileSchemaTypeString {
+    return profile?.schema?.language as IProfileSchemaTypeString ?? {
+        type: 'string',
+        required: false,
+        field_type: 'single_line',
+        languages: [appConfig.default_language],
+        multilingual: false,
+        default_language: appConfig.default_language,
+    };
+}
+
+function isMultilingualEnabled(profile: IPlanningContentProfile): boolean {
+    return getLanguageSchema(profile).multilingual === true;
+}
+
+function getProfileLanguages(profile: IPlanningContentProfile): Array<IVocabularyItem['qcode']> {
+    return getLanguageSchema(profile).languages || [];
+}
+
+function getProfileDefaultLanguage(profile: IPlanningContentProfile): IVocabularyItem['qcode'] {
+    return getLanguageSchema(profile).default_language || getUsersDefaultLanguage(true) || appConfig.default_language;
+}
+
+function getMultilingualFields(profile: IPlanningContentProfile): Array<keyof IEventOrPlanningItem> {
+    const languageSchema = getLanguageSchema(profile);
+
+    if (languageSchema.multilingual !== true) {
+        return [];
+    }
+
+    return (Object.keys(profile.schema) as Array<keyof IEventOrPlanningItem>)
+        .filter((fieldName) => {
+            const field = profile.schema[fieldName];
+
+            return fieldName !== 'language' && field?.type === 'string' && field?.multilingual === true;
+        });
+}
+
+function getMultilingualConfig(contentType: string): IProfileMultilingualDetails {
+    const profile = getProfile(contentType);
+
+    return {
+        isEnabled: isMultilingualEnabled(profile),
+        defaultLanguage: getProfileDefaultLanguage(profile),
+        languages: getProfileLanguages(profile),
+        fields: getMultilingualFields(profile),
+    };
+}
+
+function patch(original: IPlanningContentProfile, updates: IPlanningContentProfile): Promise<IPlanningContentProfile> {
     if (original._id == null) {
         delete updates._created;
         delete updates._updated;
@@ -45,7 +103,7 @@ function patch(original: IPlanningContentProfile, updates: IPlanningContentProfi
     }
 }
 
-function showManagePlanningProfileModal() {
+function showManagePlanningProfileModal(): Promise<void> {
     const {gettext} = superdeskApi.localization;
 
     return showModalConnectedToStore(
@@ -94,7 +152,7 @@ function showManagePlanningProfileModal() {
     );
 }
 
-function showManageEventProfileModal() {
+function showManageEventProfileModal(): Promise<void> {
     const {gettext} = superdeskApi.localization;
 
     return showModalConnectedToStore(
@@ -119,7 +177,7 @@ function showManageEventProfileModal() {
     );
 }
 
-function updateProfilesInStore() {
+function updateProfilesInStore(): Promise<void> {
     const {dispatch} = planningApi.redux.store;
 
     return getAll().then((profileArray) => {
@@ -141,4 +199,12 @@ export const contentProfiles: IPlanningAPI['contentProfiles'] = {
     showManagePlanningProfileModal: showManagePlanningProfileModal,
     showManageEventProfileModal: showManageEventProfileModal,
     updateProfilesInStore: updateProfilesInStore,
+    multilingual: {
+        getLanguageSchema: getLanguageSchema,
+        isEnabled: isMultilingualEnabled,
+        getLanguages: getProfileLanguages,
+        getFields: getMultilingualFields,
+        getConfig: getMultilingualConfig,
+    },
+    getDefaultLanguage: getProfileDefaultLanguage,
 };

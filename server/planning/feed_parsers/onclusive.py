@@ -12,6 +12,7 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.errors import ParserError
+from superdesk.utc import utcnow
 from planning.common import POST_STATE
 from flask import current_app as app
 
@@ -106,9 +107,10 @@ class OnclusiveFeedParser(FeedParser):
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
         item["language"] = event.get("locale") or self.default_locale
-        if event.get("embargoTime"):
-            embargoed = datetime.datetime.fromisoformat(event["embargoTime"])
-            if embargoed > datetime.datetime.utcnow():
+        if event.get("embargoTime") and event.get("timezone") and event["timezone"].get("timezoneOffset"):
+            tz = datetime.timezone(datetime.timedelta(hours=event["timezone"]["timezoneOffset"]))
+            embargoed = datetime.datetime.fromisoformat(event["embargoTime"]).replace(tzinfo=tz)
+            if embargoed > utcnow():
                 raise EmbargoedException()
 
     def parse_event_details(self, event, item):
@@ -246,5 +248,6 @@ class OnclusiveFeedParser(FeedParser):
                 item["event_contact_info"].append(bson.ObjectId(data["_id"]))
             else:
                 logger.debug("Existing contact %s %s", contact_uri, data.get("organisation"))
-                get_resource_service("contacts").patch(existing_contact["_id"], data)
-                item["event_contact_info"].append(bson.ObjectId(existing_contact["_id"]))
+                existing_contact_id = bson.ObjectId(existing_contact["_id"])
+                get_resource_service("contacts").patch(existing_contact_id, data)
+                item["event_contact_info"].append(existing_contact_id)

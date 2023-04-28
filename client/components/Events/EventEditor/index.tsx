@@ -11,11 +11,11 @@ import {
     EDITOR_TYPE,
     ILocation,
 } from '../../../interfaces';
+import {IVocabularyItem} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
@@ -38,6 +38,8 @@ interface IProps {
     activeNav?: string;
     inModalView?: boolean;
     editorType: EDITOR_TYPE;
+    showAllLanguages: boolean;
+    language: IVocabularyItem['qcode'];
 
     onChangeHandler(field: string | {[key: string]: any}, value?: any): void;
     onPopupOpen(): void;
@@ -150,7 +152,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const editor = planningApi.editor(this.props.editorType);
-        const language = this.props.diff.language ?? getUserInterfaceLanguageFromCV();
 
         return (
             <EditorForm
@@ -161,13 +162,16 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                 editorType={this.props.editorType}
                 globalProps={{
                     item: this.props.diff,
-                    language: language,
+                    language: this.props.language,
                     onChange: this.props.onChangeHandler,
                     errors: this.props.errors,
                     disabled: this.props.readOnly,
                     showErrors: this.props.submitFailed,
                     profile: this.props.formProfile,
                     editorType: this.props.editorType,
+                    setMainLanguage: editor.form.setMainLanguage,
+                    toggleAllLanguages: editor.form.toggleAllLanguages,
+                    showAllLanguages: this.props.showAllLanguages,
                 }}
                 schema={this.props.formProfile.schema}
                 fieldProps={{

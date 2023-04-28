@@ -85,11 +85,12 @@ export class AutoSave {
             planningApi.autosave.save(this.autosaveItem, updates)
                 .then((autosaveItem) => {
                     this.autosaveItem = autosaveItem;
-
-                    return !changeState ?
-                        Promise.resolve() :
-                        this.setState({submitting: false});
                 })
+                .then(() => (
+                    !changeState ?
+                        Promise.resolve() :
+                        this.setState({submitting: false})
+                ))
                 .then(() => Promise.resolve(this.autosaveItem))
         ));
     }

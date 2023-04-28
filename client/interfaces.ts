@@ -7,6 +7,7 @@ import {
     IDesk,
     IContentProfile,
     IArticle,
+    IVocabularyItem,
     RICH_FORMATTING_OPTION,
 } from 'superdesk-api';
 import {Dispatch, Store} from 'redux';
@@ -498,7 +499,8 @@ export interface IEventItem extends IBaseRestApiResponse {
         name?: string;
     }>;
     event_contact_info?: Array<string>;
-    language?: string;
+    language?: IVocabularyItem['qcode'];
+    languages?: Array<IVocabularyItem['qcode']>;
     state?: IWorkflowState;
     expiry?: string | Date;
     expired?: boolean;
@@ -527,6 +529,12 @@ export interface IEventItem extends IBaseRestApiResponse {
     _plannings?: Array<IPlanningItem>;
     template?: string;
     _sortDate?: IDateTime;
+
+    translations?: Array<{
+        field: string;
+        language: string;
+        value: string;
+    }>;
 
     // Used only to add/modify Plannings/Coverages from the Event form
     // These are only stored with the Autosave and not the actual Event
@@ -649,7 +657,8 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         name: string;
         security_exchange: string;
     }>;
-    language: string;
+    language?: IVocabularyItem['qcode'];
+    languages?: Array<IVocabularyItem['qcode']>;
     abstract: string;
     headline: string;
     slugline: string;
@@ -698,6 +707,11 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     // Attributes added by API (removed via modifyForClient)
     // The `_status` field is available when the item comes from a POST/PATCH request
     _status: any;
+    translations?: Array<{
+        field: string;
+        language: string;
+        value: string;
+    }>;
 }
 
 export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
@@ -896,6 +910,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     sortOrder?: SORT_ORDER;
     sortField?: SORT_FIELD;
     source?:string;
+    coverage_user_id?:string;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -907,6 +922,7 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
         location?: IEventLocation;
         reference?: string;
     };
+
 }
 
 export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem> {
@@ -968,6 +984,16 @@ export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string
     field_type: 'single_line' | 'multi_line' | 'editor_3';
     format_options?: Array<RICH_FORMATTING_OPTION>;
     expandable?: boolean;
+    languages: Array<IVocabularyItem['qcode']>;
+    multilingual?: boolean;
+    default_language?: IVocabularyItem['qcode'];
+}
+
+export interface IProfileMultilingualDetails {
+    isEnabled: boolean;
+    defaultLanguage: IVocabularyItem['qcode'];
+    languages: Array<ILanguage['qcode']>;
+    fields: Array<string>;
 }
 
 export interface IAdvancedSearchFormProfileField {
@@ -1319,6 +1345,7 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
+    coverage_user_id?:string;
 
     // Event Params
     reference?: string;
@@ -1370,6 +1397,7 @@ export interface ISearchAPIParams {
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
     source?: string;
+    coverage_user_id?:string;
 
     // Event Params
     reference?: string;
@@ -1471,6 +1499,7 @@ export interface IEditorFieldProps {
     editor?: IProfileEditorField;
     showErrors?: boolean;
     editorType?: EDITOR_TYPE;
+    profile?: IPlanningContentProfile;
 
     onChange(field: string | {[key: string]: any}, value: any): void;
     popupContainer?(): HTMLElement;
@@ -1481,6 +1510,7 @@ export interface IListFieldProps {
     field?: string;
     language?: string;
     schema?: IProfileSchemaType;
+    profile?: IPlanningContentProfile;
 }
 
 export type IRenderPanelType =
@@ -1802,6 +1832,8 @@ export interface IEditorState {
     itemReady: boolean;
     loading: boolean;
     initialValues: DeepPartial<IEventOrPlanningItem>;
+    mainLanguage?: IVocabularyItem['qcode'];
+    showAllLanguages: boolean;
 
     // Sidebar navigation
     activeNav?: string; // is this used anymore?
@@ -1964,6 +1996,7 @@ export interface IEditorAPI {
         onItemUpdated(newState: Partial<IEditorState>): void;
 
         onScroll(): void;
+        beforeFormUpdates(newState: Partial<IEditorState>, field: string, value: string): void;
     };
     dom: {
         popupContainer: React.RefObject<HTMLDivElement>;
@@ -1994,6 +2027,9 @@ export interface IEditorAPI {
 
         showPopupForm(component: React.ComponentClass, props: any): Promise<any>;
         closePopupForm(): void;
+        getMainLanguage(): IVocabularyItem['qcode'];
+        setMainLanguage(languageQcode?: IVocabularyItem['qcode']): void;
+        toggleAllLanguages(): void;
     };
     manager?: IFormItemManager; // Older Form API
     autosave?: IFormAutosave; // Form Autosave
@@ -2135,6 +2171,16 @@ export interface IPlanningAPI {
     contentProfiles: {
         getAll(): Promise<Array<IPlanningContentProfile>>;
         get(contentType: string): IPlanningContentProfile;
+        multilingual: {
+            getLanguageSchema(profile: IPlanningContentProfile): IProfileSchemaTypeString
+            isEnabled(profile: IPlanningContentProfile): boolean;
+            getLanguages(profile: IPlanningContentProfile): Array<IVocabularyItem['qcode']>;
+            getFields(profile: IPlanningContentProfile): Array<keyof IEventOrPlanningItem>;
+            getConfig(contentType: string): IProfileMultilingualDetails;
+        };
+        getDefaultLanguage(profile: IPlanningContentProfile): IVocabularyItem['qcode'];
+
+
         patch(original: IPlanningContentProfile, updates: IPlanningContentProfile): Promise<IPlanningContentProfile>;
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;

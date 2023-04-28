@@ -408,7 +408,7 @@ class AssignmentsService(superdesk.Service):
             event["PRIORITY"] = priority
 
             if event_item:
-                if len(event_item.get("location", [])) > 0:
+                if event_item.get("location"):
                     location = event_item["location"][0]
                     format_address(location)
                     formatted_location = (

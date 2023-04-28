@@ -156,7 +156,6 @@ class LockService(BaseComponent):
             type=item.get("type"),
         )
 
-        item = item_service.find_one(req=None, _id=item_id)
         return item
 
     def unlock_session(self, user_id, session_id, is_last_session):

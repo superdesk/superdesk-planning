@@ -2,11 +2,11 @@ import {registerEditorField} from './registerEditorFields';
 
 import {superdeskApi} from '../../../superdeskApi';
 
-import {EditorFieldDynamicTextType} from '../editor/base/dynamicTextTypeField';
+import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
 
 registerEditorField(
     'description_text',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Description'),
         field: 'description_text',
@@ -16,7 +16,7 @@ registerEditorField(
 );
 registerEditorField(
     'headline',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Headline'),
         field: 'headline',

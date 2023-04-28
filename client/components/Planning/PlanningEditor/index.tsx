@@ -17,13 +17,12 @@ import {
     IPlanningNewsCoverageStatus,
     ILockedItems,
 } from '../../../interfaces';
-import {IArticle, IDesk, IUser} from 'superdesk-api';
+import {IArticle, IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {planningUtils, eventUtils, lockUtils} from '../../../utils';
-import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
@@ -46,6 +45,8 @@ interface IProps {
     inModalView: boolean;
     activeNav?: string;
     editorType: EDITOR_TYPE;
+    showAllLanguages: boolean;
+    language: IVocabularyItem['qcode'];
 
     // State
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -443,6 +444,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
 
     render() {
         let maxCoverageCount = 0;
+        const editor = planningApi.editor(this.props.editorType);
 
         if (this.props.addNewsItemToPlanning != null) {
             maxCoverageCount = !this.props.itemExists ?
@@ -459,7 +461,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 editorType={this.props.editorType}
                 globalProps={{
                     item: this.props.diff,
-                    language: this.props.diff.language ?? getUserInterfaceLanguageFromCV(),
+                    language: this.props.language,
                     onChange: this.props.onChangeHandler,
                     errors: this.props.errors,
                     showErrors: this.props.submitFailed,
@@ -469,6 +471,9 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                     ),
                     profile: this.props.formProfile,
                     editorType: this.props.editorType,
+                    setMainLanguage: editor.form.setMainLanguage,
+                    toggleAllLanguages: editor.form.toggleAllLanguages,
+                    showAllLanguages: this.props.showAllLanguages,
                 }}
                 schema={this.props.formProfile.schema}
                 fieldProps={{
@@ -522,10 +527,10 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         onPopupOpen: this.props.onPopupOpen,
                         onPopupClose: this.props.onPopupClose,
                         getRef: (field, value: IPlanningCoverageItem) => (
-                            planningApi.editor(this.props.editorType)
-                                .item.planning.getCoverageFieldDomRef(value.coverage_id)
+                            editor.item.planning.getCoverageFieldDomRef(value.coverage_id)
                         ),
                         includeScheduledUpdates: true,
+                        language: this.props.language,
                     },
                 }}
             />

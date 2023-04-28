@@ -2,12 +2,12 @@ import {registerEditorField} from './registerEditorFields';
 
 import {superdeskApi} from '../../../superdeskApi';
 
-import {EditorFieldDynamicTextType} from '../editor/base/dynamicTextTypeField';
+import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
 import {EditorFieldEventAttachments} from '../editor/EventAttachments';
 
 registerEditorField(
     'ednote',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Ed Note'),
         field: 'ednote',
@@ -18,7 +18,7 @@ registerEditorField(
 
 registerEditorField(
     'internal_note',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Internal Note'),
         field: 'internal_note',
@@ -29,7 +29,7 @@ registerEditorField(
 
 registerEditorField(
     'name',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Name'),
         field: 'name',
@@ -40,7 +40,7 @@ registerEditorField(
 
 registerEditorField(
     'slugline',
-    EditorFieldDynamicTextType,
+    EditorFieldMultilingualText,
     () => ({
         label: superdeskApi.localization.gettext('Slugline'),
         field: 'slugline',

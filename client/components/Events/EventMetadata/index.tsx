@@ -170,6 +170,8 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                         item: event,
                         language: getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
+                        schema: this.props.formProfile?.schema,
+                        profile: this.props.formProfile,
                     },
                     {}
                 )}

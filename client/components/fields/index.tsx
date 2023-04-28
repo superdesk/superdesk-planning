@@ -189,7 +189,8 @@ export function renderGroupedFieldsForPanel(
     }, {
         name: 'details',
         title: gettext('Details'),
-    }];
+    },
+    ];
 
     return groups.map((group) => {
         const renderedFields = renderFieldsForPanel(
@@ -258,6 +259,8 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'ednote',
             'registration_details',
             'invitation_details',
+            'accreditation_info',
+            'accreditation_deadline',
         ],
     }],
     [PREVIEW_PANEL.PLANNING]: [{

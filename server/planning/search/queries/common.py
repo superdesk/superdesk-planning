@@ -25,6 +25,7 @@ from apps.auth import get_user_id
 
 from planning.search.queries import elastic
 from planning.common import POST_STATE, WORKFLOW_STATE
+from planning.content_profiles.utils import get_multilingual_fields
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,31 @@ def str_to_date(value: Union[datetime, str]):
     return _str_to_date(value)
 
 
+def search_text_field(params: Dict[str, Any], query: elastic.ElasticQuery, field: str):
+    if not len(params.get(field) or ""):
+        return
+    elif field in query.multilingual_fields:
+        query.must.append(
+            elastic.bool_or([construct_text_query(params, field), construct_multilingual_text_query(params, field)])
+        )
+    else:
+        query.must.append(elastic.query_string(text=params[field], field=field, default_operator="AND", lenient=True))
+
+
+def construct_text_query(params: Dict[str, Any], field: str):
+    return elastic.query_string(text=params[field], field=field, default_operator="AND", lenient=True)
+
+
+def construct_multilingual_text_query(params: Dict[str, Any], field: str):
+    return elastic.bool_and(
+        nested_path="translations",
+        conditions=[
+            {"term": {"translations.field": field}},
+            elastic.query_string(text=params[field], field="translations.value", default_operator="AND", lenient=True),
+        ],
+    )
+
+
 def search_item_ids(params: Dict[str, Any], query: elastic.ElasticQuery):
     ids = [str(item_id) for item_id in str_to_array(params.get("item_ids"))]
     if len(ids):
@@ -111,12 +137,39 @@ def search_item_ids(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_name(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if len(params.get("name") or ""):
-        query.must.append(elastic.query_string(text=params["name"], field="name", default_operator="AND"))
+    search_text_field(params, query, "name")
 
 
 def search_full_text(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if len(params.get("full_text") or ""):
+    if not len(params.get("full_text") or ""):
+        return
+    elif len(query.multilingual_fields):
+        query.must.append(
+            elastic.bool_or(
+                [
+                    elastic.query_string(text=params["full_text"], lenient=True, default_operator="AND"),
+                    {
+                        "nested": {
+                            "path": "translations",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {
+                                            "query_string": {
+                                                "default_operator": "AND",
+                                                "lenient": True,
+                                                "query": params["full_text"],
+                                            },
+                                        }
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                ]
+            ),
+        )
+    else:
         query.must.append(elastic.query_string(text=params["full_text"], lenient=True, default_operator="AND"))
 
 
@@ -297,10 +350,18 @@ def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery
 
 
 def construct_query(
+    repo: str,
     params: Dict[str, Any],
     filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]],
 ) -> Dict[str, Any]:
     query = elastic.ElasticQuery()
+
+    if repo == "events":
+        query.multilingual_fields = get_multilingual_fields("event")
+    elif repo == "planning":
+        query.multilingual_fields = get_multilingual_fields("planning")
+    else:
+        query.multilingual_fields = get_multilingual_fields("event").union(get_multilingual_fields("planning"))
 
     for search_filter in filters:
         search_filter(params, query)
@@ -323,6 +384,7 @@ def remove_filter_params_from_query(filter_params: Dict[str, Any], params: Dict[
 
 
 def construct_search_query(
+    repo: str,
     filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]],
     params: Dict[str, Any],
     search_params: Optional[Dict[str, Any]],
@@ -334,11 +396,11 @@ def construct_search_query(
 
         # Set `only_future` to False as `construct_query` with request params will add this if neccessary
         filter_params["only_future"] = False
-        filter_query = construct_query(filter_params, filters)
+        filter_query = construct_query(repo, filter_params, filters)
 
         remove_filter_params_from_query(filter_params, params)
 
-        param_query = construct_query(params, filters)
+        param_query = construct_query(repo, params, filters)
         query.sort = param_query.pop("sort", [])
 
         if len(param_query["query"]["bool"]):
@@ -350,7 +412,7 @@ def construct_search_query(
             filter_query["sort"] = query.sort
             return filter_query
     else:
-        return construct_query(params, filters)
+        return construct_query(repo, params, filters)
 
 
 def get_params_from_search_filter(search_filter: Optional[Dict[str, Any]]) -> Dict[str, Any]:

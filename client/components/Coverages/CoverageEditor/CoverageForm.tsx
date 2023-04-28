@@ -5,7 +5,7 @@ import moment from 'moment';
 
 import {appConfig} from 'appConfig';
 import {superdeskApi, planningApi} from '../../../superdeskApi';
-import {IArticle, IDesk} from 'superdesk-api';
+import {IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
     ICoverageFormProfile,
@@ -48,6 +48,7 @@ interface IProps {
     files: Array<IFile>;
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
+    language: IVocabularyItem['qcode'];
 
     // Functions
     onChange(field: string, value: any): void;
@@ -332,6 +333,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const defaultGenre = (appConfig.default_genre || [{}])[0];
         const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
         const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
+        const editor = planningApi.editor(this.props.editorType);
 
         const readOnlyFields = planningUtils.getCoverageReadOnlyFields(
             this.props.value,
@@ -341,11 +343,12 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         );
         const globalProps = {
             item: this.props.value,
-            language: this.props.value.planning?.language ?? getUsersDefaultLanguage(),
+            language: this.props.value.planning?.language ?? this.props.language,
             onChange: this.onChange,
             errors: this.props.errors,
             readOnly: this.props.readOnly,
             disabled: this.props.readOnly,
+            profile: this.props.formProfile,
             editorType: this.props.editorType,
         };
         const fieldProps = {
@@ -448,7 +451,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             },
         };
 
-        const editor = planningApi.editor(this.props.editorType);
         const profile = editor.item.planning.getCoverageFields();
 
         return (

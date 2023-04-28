@@ -135,6 +135,28 @@ TEMP_ID_PREFIX = "tempId-"
 TO_BE_CONFIRMED_FIELD = "_time_to_be_confirmed"
 TO_BE_CONFIRMED_FIELD_SCHEMA = {"type": "boolean"}
 
+DUPLICATE_EVENT_IGNORED_FIELDS = {
+    "_id",
+    "guid",
+    "unique_name",
+    "unique_id",
+    "lock_user",
+    "lock_time",
+    "lock_session",
+    "lock_action",
+    "_created",
+    "_updated",
+    "_etag",
+    "pubstatus",
+    "recurrence_id",
+    "previous_recurrence_id",
+    "reschedule_from",
+    "reschedule_to",
+    "_reschedule_from_schedule",
+    "expired",
+    "state_reason",
+}
+
 
 def set_item_expiry(doc):
     expiry_minutes = app.settings.get("PLANNING_EXPIRY_MINUTES", None)
@@ -425,8 +447,8 @@ def get_start_of_next_week(date=None, start_of_week=0):
 def get_event_max_multi_day_duration(current_app=None):
     """Get the max multi day duration"""
     if current_app is not None:
-        return int(current_app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))
-    return int(app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))
+        return int(current_app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 365))
+    return int(app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 365))
 
 
 def set_original_creator(doc):

@@ -279,7 +279,7 @@ export class RescheduleEventComponent extends React.Component {
                     showRepeatToggle={false}
                     showErrors={true}
                     errors={this.state.errors}
-                    formProfile={formProfiles.events}
+                    formProfile={formProfiles.event}
                     popupContainer={this.getPopupContainer}
                     showFirstEventLabel={false}
                     showToBeConfirmed

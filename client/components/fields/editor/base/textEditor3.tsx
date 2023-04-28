@@ -10,6 +10,7 @@ import {Row} from '../../../UI/Form';
 
 interface IProps extends IEditorFieldProps {
     schema: IProfileSchemaTypeString;
+    noPadding?: boolean;
 }
 
 export class EditorFieldTextEditor3 extends React.PureComponent<IProps> {
@@ -92,7 +93,7 @@ export class EditorFieldTextEditor3 extends React.PureComponent<IProps> {
             <Row
                 testId={this.props.testId}
                 refNode={this.node}
-                noPadding={true}
+                noPadding={this.props.noPadding ?? true}
             >
                 <div
                     className={

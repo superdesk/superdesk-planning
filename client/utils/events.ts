@@ -16,6 +16,7 @@ import {
     IItemSubActions,
     IEventOccurStatus,
 } from '../interfaces';
+import {planningApi} from '../superdeskApi';
 import {appConfig as config} from 'appConfig';
 
 const appConfig = config as IPlanningConfig;
@@ -566,7 +567,12 @@ function getDateStringForEvent(
     const multiDay = !isEventSameDay(start, end);
 
     if (isFullDay && !multiDay) {
-        return timezoneForEvents = start.format(dateFormat);
+        if (get(event.dates, 'all_day')) {
+            // use UTC mode to avoid any date conversion
+            return moment.utc(start).format(dateFormat);
+        }
+
+        return start.format(dateFormat);
     } else if (noEndTime && !multiDay) {
         if (withTimezone) {
             if (!useLocal) {
@@ -1111,6 +1117,7 @@ function defaultEventValues(
         qcode: 'eocstat:eos5',
         name: 'Planned, occurs certainly',
     };
+    const language = planningApi.contentProfiles.getDefaultLanguage(planningApi.contentProfiles.get('event'));
 
     let newEvent: Partial<IEventItem> = {
         type: 'event',
@@ -1124,7 +1131,8 @@ function defaultEventValues(
         state: 'draft',
         _startTime: null,
         _endTime: null,
-        language: getUsersDefaultLanguage(true),
+        language: language,
+        languages: [language],
     };
 
     if (defaultPlaceList) {

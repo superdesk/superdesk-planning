@@ -21,6 +21,7 @@ from .common import (
     search_date_non_schedule,
     get_sort_field,
     get_sort_order,
+    search_text_field,
 )
 
 
@@ -37,13 +38,11 @@ def search_events(_: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_slugline(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if len(params.get("slugline") or ""):
-        query.must.append(elastic.query_string(text=params["slugline"], field="slugline", default_operator="AND"))
+    search_text_field(params, query, "slugline")
 
 
 def search_reference(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if len(params.get("reference") or ""):
-        query.must.append(elastic.query_string(text=params["reference"], field="reference", default_operator="AND"))
+    search_text_field(params, query, "reference")
 
 
 def search_location(params: Dict[str, Any], query: elastic.ElasticQuery):

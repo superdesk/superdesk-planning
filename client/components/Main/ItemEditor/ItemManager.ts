@@ -82,6 +82,8 @@ export class ItemManager {
             itemReady: false,
             loading: false,
             initialValues: {},
+            mainLanguage: undefined,
+            showAllLanguages: true,
         };
     }
 
@@ -277,6 +279,8 @@ export class ItemManager {
                         submitting: false,
                         itemReady: true,
                         loading: false,
+                        mainLanguage: undefined,
+                        showAllLanguages: true,
                     };
 
                     // Otherwise calculate if the items are different
@@ -328,6 +332,8 @@ export class ItemManager {
                     submitting: false,
                     itemReady: true,
                     loading: false,
+                    mainLanguage: undefined,
+                    showAllLanguages: true,
                 };
 
                 this.editorApi.events.onOpenForRead(newState);
@@ -414,6 +420,8 @@ export class ItemManager {
                     submitting: false,
                     itemReady: true,
                     loading: false,
+                    mainLanguage: undefined,
+                    showAllLanguages: true,
                 };
 
                 this.validate(nextProps, newState);

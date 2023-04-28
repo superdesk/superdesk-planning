@@ -24,7 +24,8 @@ function convertCombinedParams(params: ISearchParams): Partial<ISearchAPIParams>
         calendars: cvsToString(params.calendars),
         agendas: arrayToString(params.agendas),
         include_associated_planning: params.include_associated_planning,
-        source: cvsToString(params.source, 'id')
+        source: cvsToString(params.source, 'id'),
+        coverage_user_id: params.coverage_user_id,
     };
 }
 

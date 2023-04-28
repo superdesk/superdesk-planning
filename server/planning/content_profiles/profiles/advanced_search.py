@@ -35,7 +35,7 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "filter_enabled": True,
             },
             "language": {
-                "enabled": False,
+                "enabled": True,
                 "index": 4,
                 "group": "common",
                 "search_enabled": True,

@@ -24,6 +24,7 @@ from .common import (
     search_date_non_schedule,
     get_sort_field,
     get_sort_order,
+    search_text_field,
 )
 
 
@@ -67,26 +68,47 @@ def search_exclude_rescheduled_and_cancelled(params: Dict[str, Any], query: elas
 
 def search_slugline(params: Dict[str, Any], query: elastic.ElasticQuery):
     if len(params.get("slugline") or ""):
-        conditions = [elastic.query_string(text=params["slugline"], field="slugline", default_operator="AND")]
+        or_query = elastic.ElasticQuery()
+        or_query.multilingual_fields = query.multilingual_fields
 
-        if not strtobool(params.get("no_coverage", False)):
-            conditions.append(
-                elastic.bool_and(
-                    [
-                        elastic.query_string(
-                            text=params["slugline"],
-                            field="coverages.planning.slugline",
-                            default_operator="AND",
-                        )
-                    ],
-                    "coverages",
-                )
-            )
+        search_text_field(params, or_query, "slugline")
+        search_coverage_sluglines(params, or_query)
 
-        if len(conditions) == 1:
-            query.must.append(conditions[0])
-        elif len(conditions) > 1:
-            query.must.append(elastic.bool_or(conditions))
+        if len(or_query.must) == 1:
+            query.must.append(or_query.must[0])
+        elif len(or_query.must) > 1:
+            query.must.append(elastic.bool_or(or_query.must))
+
+
+def search_coverage_sluglines(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if len(params.get("slugline") or "") and not strtobool(params.get("no_coverage", False)):
+        query.must.append(
+            elastic.bool_and(
+                [
+                    elastic.query_string(
+                        text=params["slugline"],
+                        field="coverages.planning.slugline",
+                        default_operator="AND",
+                    ),
+                ],
+                "coverages",
+            ),
+        )
+
+
+def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get("coverage_user_id") and not strtobool(params.get("no_coverage", False)):
+        query.must.append(
+            elastic.bool_and(
+                [
+                    elastic.term(
+                        field="coverages.assigned_to.user",
+                        value=params["coverage_user_id"],
+                    ),
+                ],
+                "coverages",
+            ),
+        )
 
 
 def search_urgency(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -256,6 +278,7 @@ PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], N
     search_by_events,
     search_dates,
     set_search_sort,
+    search_coverage_assigned_user,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
@@ -271,6 +294,7 @@ PLANNING_PARAMS: List[str] = [
     "featured",
     "include_scheduled_updates",
     "event_item",
+    "coverage_user_id",
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)

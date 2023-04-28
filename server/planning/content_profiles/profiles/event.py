@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, subjectField, TextField
+from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField, DateTimeField
 
 
 class EventSchema(BaseSchema):
@@ -28,10 +28,10 @@ class EventSchema(BaseSchema):
     event_contact_info = schema.ListField()
     files = schema.ListField()
     internal_note = TextField(field_type="multi_line", expandable=True)
-    language = schema.StringField()
+    language = LanguageField()
     links = schema.ListField()
     location = schema.StringField()
-    name = schema.StringField(required=True)
+    name = StringField(required=True)
     occur_status = schema.DictField()
     occur_status.schema["schema"] = {
         "qcode": {"type": "string", "required": True},
@@ -40,14 +40,16 @@ class EventSchema(BaseSchema):
     }
     place = schema.ListField()
     recurring_rules = schema.DictField()
-    reference = schema.StringField()
-    slugline = schema.StringField()
+    reference = StringField()
+    slugline = StringField()
     subject = subjectField
     custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
+    accreditation_info = TextField(field_type="single_line")
+    accreditation_deadline = DateTimeField()
 
 
 DEFAULT_EVENT_PROFILE = {
@@ -166,6 +168,8 @@ DEFAULT_EVENT_PROFILE = {
         "custom_vocabularies": {"enabled": False},
         "registration_details": {"enabled": False},
         "invitation_details": {"enabled": False},
+        "accreditation_info": {"enabled": False},
+        "accreditation_deadline": {"enabled": False},
     },
     "schema": dict(EventSchema),  # type: ignore
     "groups": {

@@ -99,6 +99,7 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                         language: getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                         schema: formProfile.schema,
+                        profile: formProfile,
                     },
                     {},
                 )}

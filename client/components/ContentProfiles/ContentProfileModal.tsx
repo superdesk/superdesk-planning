@@ -8,6 +8,7 @@ import {
     IEditorProfileGroup,
     IProfileFieldEntry,
     IG2ContentType,
+    IProfileSchemaTypeString,
 } from '../../interfaces';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 
@@ -349,7 +350,25 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
 
     _updateField<T extends IProfileStateKey>(key: T, item: IProfileFieldEntry) {
         this.setState<T>((prevState: Readonly<IState>) => {
-            const profile = {...prevState[key]};
+            const profile = cloneDeep(prevState[key]);
+
+            if (key === 'profile' && item.schema.type === 'string' && item.name === 'language') {
+                const enabledBefore = (prevState[key].schema.language as IProfileSchemaTypeString).multilingual;
+                const enabledAfter = item.schema.multilingual;
+
+                if (enabledBefore !== enabledAfter && enabledAfter === false) {
+                    item.schema.languages = null;
+                    item.schema.default_language = null;
+
+                    Object.keys(profile.schema).forEach((field) => {
+                        const schema = profile.schema[field];
+
+                        if (schema?.type === 'string') {
+                            schema.multilingual = false;
+                        }
+                    });
+                }
+            }
 
             profile.editor[item.name] = {...item.field};
             profile.schema[item.name] = {...item.schema};

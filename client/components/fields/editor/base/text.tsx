@@ -12,6 +12,7 @@ export interface IEditorFieldTextProps extends IEditorFieldProps {
     info?: string;
     inlineLabel?: boolean;
     schema?: IProfileSchemaTypeString;
+    noPadding: boolean;
 }
 
 interface IState {
@@ -73,6 +74,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
             <Row
                 testId={this.props.testId}
                 refNode={this.node}
+                noPadding={this.props.noPadding}
             >
                 <Input
                     value={value}
