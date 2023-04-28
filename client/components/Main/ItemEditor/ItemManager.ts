@@ -52,7 +52,7 @@ export class ItemManager {
         this.save = this.save.bind(this);
         this.saveAndPost = this.saveAndPost.bind(this);
         this.saveAndUnpost = this.saveAndUnpost.bind(this);
-        this.lock = this.lock.bind(this);
+        // this.lock = this.lock.bind(this);
         this.unlockThenLock = this.unlockThenLock.bind(this);
         this.changeAction = this.changeAction.bind(this);
         this.addCoverage = this.addCoverage.bind(this);
@@ -705,11 +705,8 @@ export class ItemManager {
                     this.autoSave.remove();
 
                     // If event was created by a planning item, unlock the planning item
-                    if (get(updates, '_planning_item')) {
-                        this.dispatch<any>(actions.planning.api.unlock({
-                            _id: updates._planning_item,
-                            type: ITEM_TYPE.PLANNING,
-                        }));
+                    if (updates.type === 'event' && updates._planning_item != null) {
+                        planningApi.locks.unlockItemById(updates._planning_item, 'planning');
                     }
 
                     if (closeAfter) {
@@ -811,13 +808,15 @@ export class ItemManager {
         return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
-    lock(item: IEventOrPlanningItem) {
-        return planningApi.locks.lockItem(item);
-    }
+    // TODO: Is this used anywhere
+    // lock(item: IEventOrPlanningItem) {
+    //     return planningApi.locks.lockItem(item);
+    // }
 
-    unlock() {
-        return planningApi.locks.unlockItem(this.props.item);
-    }
+    // TODO: Is this used anywhere
+    // unlock() {
+    //     return planningApi.locks.unlockItem(this.props.item);
+    // }
 
     unlockThenLock(item: IEventOrPlanningItem) {
         return this.setState({
@@ -836,7 +835,8 @@ export class ItemManager {
         let promises = [];
 
         if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
-            promises.push(this.unlock());
+            promises.push(planningApi.locks.unlockItem(this.props.item));
+            // promises.push(this.unlock());
         }
 
         // If event was created by a planning item, unlock the planning item

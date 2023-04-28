@@ -13,7 +13,6 @@ import {
 import * as selectors from '../../selectors';
 import {
     eventUtils,
-    lockUtils,
     getErrorMessage,
     isExistingItem,
     isValidFileInput,

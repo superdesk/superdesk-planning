@@ -810,15 +810,11 @@ export const eventsHistory = [
 
 export const lockedEvents = [
     {
-        _id: 'e1',
-        name: 'Event 1',
-        dates: {
-            start: '2016-10-15T13:01:11+0000',
-            end: '2016-10-15T14:01:11+0000',
-        },
+        ...events[0],
         lock_action: 'edit',
         lock_user: 'ident1',
         lock_session: 'session1',
+        lock_time: '2023-04-28T12:01:11+0000',
     },
     {
         _id: 'e2',
@@ -835,14 +831,11 @@ export const lockedEvents = [
 
 export const lockedPlannings = [
     {
-        _id: 'p1',
-        slugline: 'Planning1',
-        headline: 'Some Plan 1',
-        coverages: [],
-        agendas: [],
+        ...plannings[0],
         lock_action: 'edit',
         lock_user: 'ident1',
         lock_session: 'session1',
+        lock_time: '2023-04-28T12:01:11+0000',
     },
     {
         _id: 'p2',
@@ -856,6 +849,16 @@ export const lockedPlannings = [
         lock_session: 'session1',
     },
 ];
+
+export const lockedAssignments = [
+    {
+        ...assignments[0],
+        lock_action: 'reassign',
+        lock_user: 'ident1',
+        lock_session: 'session1',
+        lock_time: '2023-04-28T12:01:11+0000'
+    }
+]
 
 export const archive = [
     {
@@ -993,6 +996,7 @@ export const items = {
     events_history: eventsHistory,
     locked_events: lockedEvents,
     locked_plannings: lockedPlannings,
+    lockedAssignments: lockedAssignments,
     archive: archive,
     planning_search: events.concat(plannings),
     contacts: contacts,

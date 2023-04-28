@@ -131,7 +131,7 @@ function lockItem<T extends IAssignmentOrPlanningItem>(item: T, action?: string)
                 planningUtils.modifyForClient(lockedItem);
             }
 
-            addLockToStore({
+            locks.addLockToStore({
                 item: lockedItem._id,
                 type: lockedItem.type,
                 event_item: lockedItem.type === 'planning' ? lockedItem.event_item : undefined,
@@ -213,8 +213,8 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
     }
 
     const {dispatch, getState} = planningApi.redux.store;
-    const locks = getLockedItems(getState());
-    const currentLock = lockUtils.getLock(item, locks);
+    const lockedItems = getLockedItems(getState());
+    const currentLock = lockUtils.getLock(item, lockedItems);
 
     if (currentLock == null) {
         if (reloadLocksIfNotFound) {
@@ -240,7 +240,7 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
                 planningUtils.modifyForClient(unlockedItem);
             }
 
-            removeLockFromStore({
+            locks.removeLockFromStore({
                 item: unlockedItem._id,
                 type: unlockedItem.type,
                 event_item: unlockedItem.type === 'planning' ? unlockedItem.event_item : undefined,

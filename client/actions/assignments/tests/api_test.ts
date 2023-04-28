@@ -528,55 +528,6 @@ describe('actions.assignments.api', () => {
         });
     });
 
-    describe('assignments_lock', () => {
-        beforeEach(() => {
-            services.api('assignments_lock').save = sinon.spy(() => Promise.resolve(data.assignments[0]));
-            services.api('assignments_unlock').save = sinon.spy(() => Promise.resolve(data.assignments[0]));
-        });
-
-        afterEach(() => {
-            restoreSinonStub(services.api('assignments_lock').save);
-            restoreSinonStub(services.api('assignments_unlock').save);
-        });
-
-        it('calls lock endpoint if assignment not locked', (done) => {
-            store.test(done, assignmentsApi.lock(data.assignments[0]))
-                .then(() => {
-                    expect(services.api('assignments_lock').save.callCount).toBe(1);
-                    expect(services.api('assignments_lock').save.args[0]).toEqual([
-                        {},
-                        {lock_action: 'edit'},
-                    ]);
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('does not call lock endpoint if assignment already locked', (done) => {
-            store.initialState.assignment.assignments['1'] = {
-                ...store.initialState.assignment.assignments['1'],
-                lock_user: 'ident1',
-                lock_session: 'session1',
-            };
-            store.test(done, assignmentsApi.lock(store.initialState.assignment.assignments['1']))
-                .then((item) => {
-                    expect(services.api('assignments_lock').save.callCount).toBe(0);
-                    expect(item).toEqual(store.initialState.assignment.assignments[1]);
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('calls unlock endpoint', (done) => {
-            store.test(done, assignmentsApi.unlock(data.assignments[0]))
-                .then(() => {
-                    expect(services.api('assignments_unlock').save.callCount).toBe(1);
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
     it('removeAssignment', (done) => (
         store.test(done, assignmentsApi.removeAssignment(data.assignments[0]))
             .then(() => {
