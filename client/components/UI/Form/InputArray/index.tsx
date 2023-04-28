@@ -64,8 +64,7 @@ export class InputArray extends React.PureComponent<IProps> {
         const {confirm} = superdeskApi.ui;
 
         confirm(
-            gettext('Remove Coverage', {
-            })
+            gettext('Remove Coverage')
         ).then((response) => {
             if (response) {
                 this.props.onChange(
@@ -73,7 +72,7 @@ export class InputArray extends React.PureComponent<IProps> {
                     (this.props.value ?? []).filter((value, i) => i !== index)
                 );
                 notify.success(
-                    gettext('The coverage has been removed',)
+                    gettext('The coverage has been removed')
                 );
             }
         });
