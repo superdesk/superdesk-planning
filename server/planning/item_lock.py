@@ -111,9 +111,7 @@ class LockService(BaseComponent):
 
     def existing_lock_is_unchanged(self, item, user_id, session_id, action):
         return (
-            item.get(LOCK_USER) == user_id and
-            item.get(LOCK_SESSION) == session_id and
-            item.get(LOCK_ACTION) == action
+            item.get(LOCK_USER) == user_id and item.get(LOCK_SESSION) == session_id and item.get(LOCK_ACTION) == action
         )
 
     def unlock(self, item, user_id, session_id, resource):
