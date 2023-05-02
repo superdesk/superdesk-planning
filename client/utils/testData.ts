@@ -1,4 +1,4 @@
-import {ILockedItems} from '../interfaces';
+import {ILockedItems, IEventItem, IPlanningItem, ILock} from '../interfaces';
 
 export const config = {
     server: {url: 'http://server.com'},
@@ -592,7 +592,7 @@ export const templates = {templates: []};
 
 export const form = {};
 
-export const events = [
+export const events: Array<IEventItem> = [
     {
         _id: 'e1',
         type: 'event',
@@ -808,7 +808,7 @@ export const eventsHistory = [
     },
 ];
 
-export const lockedEvents = [
+export const lockedEvents: Array<IEventItem> = [
     {
         ...events[0],
         lock_action: 'edit',
@@ -817,17 +817,23 @@ export const lockedEvents = [
         lock_time: '2023-04-28T12:01:11+0000',
     },
     {
-        _id: 'e2',
-        name: 'Event 2',
-        dates: {
-            start: '2014-10-15T14:01:11+0000',
-            end: '2014-10-15T15:01:11+0000',
-        },
+        ...events[1],
         lock_action: 'edit',
         lock_user: 'ident1',
         lock_session: 'session1',
+        lock_time: '2023-04-28T13:01:11+0000',
     },
 ];
+export const eventLocks: {[key: string]: ILock} = {
+    [lockedEvents[0]._id]: {
+        item_id: lockedEvents[0]._id,
+        item_type: lockedEvents[0].type,
+        user: lockedEvents[0].lock_user,
+        session: lockedEvents[0].lock_session,
+        action: lockedEvents[0].lock_action,
+        time: lockedEvents[0].lock_time,
+    },
+};
 
 export const lockedPlannings = [
     {
@@ -838,17 +844,24 @@ export const lockedPlannings = [
         lock_time: '2023-04-28T12:01:11+0000',
     },
     {
-        _id: 'p2',
-        slugline: 'Planning2',
-        headline: 'Some Plan 2',
-        event_item: 'e1',
-        coverages: [],
-        agendas: ['a2'],
+        ...plannings[1],
         lock_action: 'edit',
         lock_user: 'ident1',
         lock_session: 'session1',
+        lock_time: '2023-04-28T13:01:11+0000',
     },
 ];
+
+export const planningLocks: {[key: string]: ILock} = {
+    [lockedPlannings[0]._id]: {
+        item_id: lockedPlannings[0]._id,
+        item_type: lockedPlannings[0].type,
+        user: lockedPlannings[0].lock_user,
+        session: lockedPlannings[0].lock_session,
+        action: lockedPlannings[0].lock_action,
+        time: lockedPlannings[0].lock_time,
+    },
+};
 
 export const lockedAssignments = [
     {
@@ -857,8 +870,19 @@ export const lockedAssignments = [
         lock_user: 'ident1',
         lock_session: 'session1',
         lock_time: '2023-04-28T12:01:11+0000'
-    }
+    },
 ];
+
+export const assignmentLocks: {[key: string]: ILock} = {
+    [lockedAssignments[0]._id]: {
+        item_id: lockedAssignments[0]._id,
+        item_type: lockedAssignments[0].type,
+        user: lockedAssignments[0].lock_user,
+        session: lockedAssignments[0].lock_session,
+        action: lockedAssignments[0].lock_action,
+        time: lockedAssignments[0].lock_time,
+    },
+};
 
 export const archive = [
     {

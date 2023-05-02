@@ -33,6 +33,11 @@ Object.assign(superdeskApi, {
     },
     privileges: {
         hasPrivilege: (privilege: string) => privileges[privilege] === 1
+    },
+    ui: {
+        notify: {
+            error: sinon.stub().returns(undefined),
+        }
     }
 });
 

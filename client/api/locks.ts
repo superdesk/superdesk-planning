@@ -191,7 +191,7 @@ function lockItemById<T extends IAssignmentOrPlanningItem>(
     itemType: T['type'],
     action: string
 ): Promise<T> {
-    return getItemById(itemId, itemType).then((item) => lockItem(item, action));
+    return getItemById(itemId, itemType).then((item) => locks.lockItem(item, action));
 }
 
 function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfNotFound: boolean = true): Promise<T> {
