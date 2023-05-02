@@ -52,7 +52,7 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
             self.assertEqual("refresh", updates["tokens"]["refreshToken"])
             self.assertIn("import_finished", updates["tokens"])
             self.assertEqual(updates["last_updated"], updates["tokens"]["next_start"])
-            self.assertEqual("fr", items[0][0]["language"])
+            self.assertEqual("fr-CA", items[0][0]["language"])
 
             provider.update(updates)
             updates = {}

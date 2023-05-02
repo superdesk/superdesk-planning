@@ -77,7 +77,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         LIMIT = 1000
         MAX_OFFSET = int(app.config.get("ONCLUSIVE_MAX_OFFSET", 100000))
         self.session = requests.Session()
-        self.language = "en"  # make sure there is some default
+        self.language = "en-CA"  # make sure there is some default
         parser = self.get_feed_parser(provider)
         update["tokens"] = provider.get("tokens") or {}
         with timer("onclusive:update"):
@@ -209,9 +209,9 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
 
     def set_language(self, data):
         if data.get("productId") and data["productId"] == 10:
-            self.language = "fr"
+            self.language = "fr-CA"
         else:
-            self.language = "en"
+            self.language = "en-CA"
 
 
 register_feeding_service_parser(OnclusiveApiService.NAME, OnclusiveApiService.FeedParser)
