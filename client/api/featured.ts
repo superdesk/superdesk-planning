@@ -20,7 +20,9 @@ function saveFeaturedPlanning(updates: Partial<IFeaturedPlanningItem>): Promise<
     const {getState} = planningApi.redux.store;
     const original = featuredPlanningItem(getState());
 
-    return superdeskApi.dataApi.patch<IFeaturedPlanningItem>('planning_featured', original, {...updates});
+    return original == null ?
+        superdeskApi.dataApi.create<IFeaturedPlanningItem>('planning_featured', {...updates}) :
+        superdeskApi.dataApi.patch<IFeaturedPlanningItem>('planning_featured', original, {...updates});
 }
 
 export const featured: IPlanningAPI['planning']['featured'] = {
