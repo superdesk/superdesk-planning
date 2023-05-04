@@ -12,8 +12,8 @@ import * as selectors from '../../../selectors';
 import * as List from '../../UI/List';
 import {ItemIcon} from '../../ItemIcon';
 import {AgendaNameList} from '../../Agendas';
-import {CoverageIcon} from '../../Coverages';
 import {StateLabel} from '../../StateLabel';
+import {CoverageIcons} from '../../Coverages/CoverageIcons';
 
 interface IProps {
     item: DeepPartial<IPlanningItem>;
@@ -87,15 +87,12 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                 <List.Column>
                     <List.Row>
                         <span className="sd-no-wrap sd-list-item__icon-group">
-                            {(this.props.item.coverages ?? []).map((coverage, index) => (
-                                <CoverageIcon
-                                    key={index}
-                                    coverage={coverage}
-                                    users={this.props.users}
-                                    desks={this.props.desks}
-                                    contentTypes={this.props.contentTypes}
-                                />
-                            ))}
+                            <CoverageIcons
+                                coverages={(this.props.item.coverages ?? [])}
+                                users={this.props.users}
+                                desks={this.props.desks}
+                                contentTypes={this.props.contentTypes}
+                            />
                         </span>
                     </List.Row>
                     <StateLabel

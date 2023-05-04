@@ -17,10 +17,12 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
 
-import {Icon} from 'superdesk-ui-framework/react';
+import {Avatar, AvatarPlaceholder, Icon} from 'superdesk-ui-framework/react';
 import {Row} from '../../UI/Form';
 import * as List from '../../UI/List';
-import {CoverageEditor, CoverageItem, CoverageIcon} from '../../Coverages';
+import {CoverageEditor, CoverageItem} from '../../Coverages';
+import {getAvatarForCoverage, isAvatarPlaceholder} from '../../Coverages/CoverageIcons';
+
 
 interface IProps extends IBookmarkProps {
     users: Array<IUser>;
@@ -40,6 +42,10 @@ const mapStateToProps = (state: IPlanningAppState) => ({
     contentTypes: selectors.general.contentTypes(state),
     contacts: selectors.general.contacts(state),
 });
+
+function getInitials(): string { // TODO: user proper function
+    return 'IN';
+}
 
 class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
     editorApi: IEditorAPI;
@@ -65,35 +71,38 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
         this.setState({showCoverages: !this.state.showCoverages});
     }
 
-    renderForPanel() {
-        return (this.props.item?.coverages ?? []).map((coverage) => (
-            <CoverageIcon
-                key={coverage.coverage_id}
-                coverage={coverage}
-                users={this.props.users}
-                desks={this.props.desks}
-                contentTypes={this.props.contentTypes}
-                contacts={this.props.contacts}
-                tooltipDirection="right"
-                iconWrapper={(icons) => (
-                    <button
-                        type="button"
-                        className={classNames(
-                            'sd-navbtn sd-navbtn--default',
-                            'editor-bookmark',
-                            {active: this.props.active}
-                        )}
-                        tabIndex={0}
-                        aria-label={this.props.bookmark.id}
-                        onClick={() => {
-                            this.onClick(coverage);
-                        }}
-                    >
-                        {icons}
-                    </button>
-                )}
-            />
-        ));
+    renderForPanel() {        
+        return (this.props.item?.coverages ?? []).map((coverage) => {
+            const {users} = this.props;
+            const user = users.find((u) => u._id === coverage.assigned_to?.user);
+            const maybeAvatar = getAvatarForCoverage(coverage, users);
+
+            return (
+                <button
+                    type="button"
+                    className={classNames(
+                        'sd-navbtn sd-navbtn--default',
+                        'editor-bookmark',
+                        {active: this.props.active}
+                    )}
+                    tabIndex={0}
+                    aria-label={this.props.bookmark.id}
+                    onClick={() => {
+                        this.onClick(coverage);
+                    }}
+                >
+                    {
+                        isAvatarPlaceholder(maybeAvatar)
+                            ? (
+                                <AvatarPlaceholder {...maybeAvatar} size="small" />
+                            )
+                            : (
+                                <Avatar {...maybeAvatar} size="small" />
+                            )
+                    }   
+                </button>
+            );
+        });
     }
 
     renderForPopup() {

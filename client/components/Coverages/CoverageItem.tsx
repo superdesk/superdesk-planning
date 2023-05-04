@@ -19,7 +19,7 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../components';
-import {CoverageIcon} from './CoverageIcon';
+import {CoverageIcons} from './CoverageIcons';
 import {UserAvatar} from '../UserAvatar';
 
 interface IProps {
@@ -187,8 +187,8 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
     renderFirstRow() {
         return (
             <Row paddingBottom>
-                <CoverageIcon
-                    coverage={this.props.coverage}
+                <CoverageIcons
+                    coverages={[this.props.coverage]}
                     users={this.props.users}
                     desks={this.props.desks}
                     contentTypes={this.props.contentTypes}

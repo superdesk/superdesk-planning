@@ -18,12 +18,16 @@ interface IProps {
     users: Array<IUser>;
     desks: Array<IDesk>;
     contentTypes: Array<IG2ContentType>;
-    contacts: Dictionary<IContactItem['_id'], IContactItem>;
+    contacts?: Dictionary<IContactItem['_id'], IContactItem>;
     tooltipDirection?: 'top' | 'right' | 'bottom' | 'left'; // defaults to 'right'
     iconWrapper?(children: React.ReactNode): React.ReactNode;
 }
 
-export class CoverageIcon extends React.PureComponent<IProps> {
+// TODO: make a list of fields that would be shown from this
+// component and double check the requirements if we really want to drop all fields
+// or we would need to adjust the new design to include some of them.
+
+class CoverageIcon extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const language = this.props.coverage.planning?.language ?? getUserInterfaceLanguageFromCV();

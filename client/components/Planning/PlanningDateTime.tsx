@@ -5,7 +5,8 @@ import moment from 'moment';
 
 import {planningUtils} from '../../utils/index';
 import {MAIN} from '../../constants';
-import {CoverageIcon} from '../Coverages/';
+import {CoverageIcons} from '../Coverages/CoverageIcons';
+
 
 export const PlanningDateTime = ({
     item,
@@ -50,17 +51,13 @@ export const PlanningDateTime = ({
             data-test-id="coverage-icons"
             className="sd-no-wrap sd-list-item__icon-group"
         >
-            {coverageToDisplay.map((coverage, i) => (
-                <CoverageIcon
-                    key={i}
-                    users={users}
-                    desks={desks}
-                    coverage={coverage}
-                    contentTypes={contentTypes}
-                    contacts={contacts}
-                />
-            )
-            )}
+            <CoverageIcons
+                users={users}
+                desks={desks}
+                coverages={coverageToDisplay}
+                contentTypes={contentTypes}
+                contacts={contacts}
+            />
         </span>
     );
 };
