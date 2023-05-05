@@ -880,6 +880,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     sortField?: SORT_FIELD;
     source?:string;
     coverage_user_id?:string;
+    assignedCoverage?: string;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -901,6 +902,7 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
     featured?: boolean;
     includeScheduledUpdates?: boolean;
     noAgendaAssigned?: boolean;
+    assignedCoverage?: string;
     advancedSearch?: ICommonAdvancedSearchParams & {
         featured?: boolean;
         g2_content_type?: IG2ContentType;
@@ -1139,6 +1141,7 @@ export interface IPlanningSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField;
     end_date_time: IAdvancedSearchFormProfileField;
     date_filter: IAdvancedSearchFormProfileField;
+    assignedCoverage: IAdvancedSearchFormProfileField;
 }
 
 export interface ICoverageFormProfile {
@@ -1315,7 +1318,7 @@ export interface ISearchParams {
         name?: string;
     }>;
     coverage_user_id?:string;
-
+    assignedCoverage?: string;
     // Event Params
     reference?: string;
     location?: IEventLocation;
@@ -1374,6 +1377,7 @@ export interface ISearchAPIParams {
     calendars?: string;
     no_calendar_assigned?: boolean;
     only_future?: boolean;
+    assignedCoverage?: string;
 
     // Planning Params
     agendas?: string;
