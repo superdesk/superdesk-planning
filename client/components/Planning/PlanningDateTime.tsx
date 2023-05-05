@@ -2,11 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import moment from 'moment';
-
 import {planningUtils} from '../../utils/index';
 import {MAIN} from '../../constants';
 import {CoverageIcons} from '../Coverages/CoverageIcons';
-
+import './PlanningDateTime.scss';
 
 export const PlanningDateTime = ({
     item,
@@ -47,18 +46,12 @@ export const PlanningDateTime = ({
     });
 
     return (
-        <span
-            data-test-id="coverage-icons"
-            className="sd-no-wrap sd-list-item__icon-group"
-        >
-            <CoverageIcons
-                users={users}
-                desks={desks}
-                coverages={coverageToDisplay}
-                contentTypes={contentTypes}
-                contacts={contacts}
-            />
-        </span>
+        <CoverageIcons
+            coverages={coverageToDisplay}
+            users={users}
+            desks={desks}
+            contentTypes={contentTypes}
+        />
     );
 };
 

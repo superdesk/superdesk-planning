@@ -1,17 +1,18 @@
 import * as React from 'react';
-import classNames from 'classnames';
 import moment from 'moment-timezone';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-
 import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
-const appConfig = config.appConfig as IPlanningConfig;
-
 import {getItemWorkflowStateLabel, planningUtils} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
+import {getUserInitials} from '../../components/UserAvatar';
+import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
+import {AvatarGroup} from 'superdesk-ui-framework/react';
+
+const appConfig = config.appConfig as IPlanningConfig;
 
 interface IProps {
     coverage: DeepPartial<IPlanningCoverageItem>;
@@ -22,10 +23,6 @@ interface IProps {
     tooltipDirection?: 'top' | 'right' | 'bottom' | 'left'; // defaults to 'right'
     iconWrapper?(children: React.ReactNode): React.ReactNode;
 }
-
-// TODO: make a list of fields that would be shown from this
-// component and double check the requirements if we really want to drop all fields
-// or we would need to adjust the new design to include some of them.
 
 class CoverageIcon extends React.PureComponent<IProps> {
     render() {
@@ -75,30 +72,6 @@ class CoverageIcon extends React.PureComponent<IProps> {
             'name',
             language
         );
-        const icons = (
-            <span className="sd-list-item__inline-icon icn-mix sd-list-item__item-type">
-                <i
-                    className={classNames(
-                        planningUtils.getCoverageWorkflowIcon(this.props.coverage),
-                        'icn-mix__sub-icn',
-                        'icn-mix__sub-icn--gray'
-                    )}
-                />
-                <i
-                    className={classNames(
-                        planningUtils.getCoverageIcon(
-                            planningUtils.getCoverageContentType(this.props.coverage, this.props.contentTypes) ||
-                            this.props.coverage.planning?.g2_content_type,
-                            this.props.coverage
-                        ),
-                        planningUtils.getCoverageIconColor(this.props.coverage),
-                    )}
-                />
-            </span>
-        );
-        const ContentWrapper = this.props.iconWrapper != null ?
-            this.props.iconWrapper :
-            () => icons;
 
         return (
             <OverlayTrigger
@@ -158,7 +131,26 @@ class CoverageIcon extends React.PureComponent<IProps> {
                     </Tooltip>
                 )}
             >
-                {ContentWrapper(icons)}
+                <div>
+                    <AvatarGroup
+                        size="small"
+                        items={[
+                            {
+                                initials: user == null ? null : getUserInitials(user.display_name),
+                                imageUrl: user == null ? null : user.picture_url,
+                                tooltip: null,
+                                icon: {
+                                    name: this.props.coverage.planning.g2_content_type,
+                                    color: trimStartExact(
+                                        planningUtils.getCoverageIconColor(this.props.coverage),
+                                        'icon--'
+                                    ),
+                                },
+                                kind: user == null ? 'plus-button' : null,
+                            }
+                        ]}
+                    />
+                </div>
             </OverlayTrigger>
         );
     }

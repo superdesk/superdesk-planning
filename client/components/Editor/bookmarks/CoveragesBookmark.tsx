@@ -71,7 +71,7 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
         this.setState({showCoverages: !this.state.showCoverages});
     }
 
-    renderForPanel() {        
+    renderForPanel() {
         return (this.props.item?.coverages ?? []).map((coverage) => {
             const {users} = this.props;
             const user = users.find((u) => u._id === coverage.assigned_to?.user);
@@ -79,6 +79,7 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
 
             return (
                 <button
+                    key={coverage.coverage_id}
                     type="button"
                     className={classNames(
                         'sd-navbtn sd-navbtn--default',
@@ -99,7 +100,7 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
                             : (
                                 <Avatar {...maybeAvatar} size="small" />
                             )
-                    }   
+                    }
                 </button>
             );
         });
@@ -159,9 +160,9 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
             return null;
         }
 
-        return this.props.editorType === EDITOR_TYPE.POPUP ?
-            this.renderForPopup() :
-            this.renderForPanel();
+        return this.props.editorType === EDITOR_TYPE.POPUP
+            ? this.renderForPopup()
+            : this.renderForPanel();
     }
 }
 
