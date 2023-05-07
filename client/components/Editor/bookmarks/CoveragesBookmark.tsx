@@ -43,10 +43,6 @@ const mapStateToProps = (state: IPlanningAppState) => ({
     contacts: selectors.general.contacts(state),
 });
 
-function getInitials(): string { // TODO: user proper function
-    return 'IN';
-}
-
 class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
     editorApi: IEditorAPI;
 
@@ -74,7 +70,6 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
     renderForPanel() {
         return (this.props.item?.coverages ?? []).map((coverage) => {
             const {users} = this.props;
-            const user = users.find((u) => u._id === coverage.assigned_to?.user);
             const maybeAvatar = getAvatarForCoverage(coverage, users);
 
             return (
