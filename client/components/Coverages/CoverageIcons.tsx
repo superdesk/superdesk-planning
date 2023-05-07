@@ -5,7 +5,7 @@ import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
 import {gettext} from 'superdesk-core/scripts/core/utils';
-import {AvatarGroup, ContentDivider, Icon, WithPopover} from 'superdesk-ui-framework/react';
+import {AvatarGroup, ContentDivider, Icon, WithPopover, Avatar, AvatarPlaceholder} from 'superdesk-ui-framework/react';
 import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/avatar/avatar-placeholder';
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
@@ -92,6 +92,8 @@ export class CoverageIcons extends React.PureComponent<IProps> {
 
                                 const slugline = coverage.planning?.slugline ?? '';
 
+                                const maybeAvatar = getAvatarForCoverage(coverage, users);
+
                                 return (
                                     <li className="avatar-popup__item" key={i}>
                                         <div className="avatar-popup-icon">
@@ -139,18 +141,15 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                             </div>
                                         </div>
 
-                                        <AvatarGroup
-                                            size="medium"
-                                            max={4}
-                                            items={[
-                                                {
-                                                    initials: user == null ? null : getUserInitials(user.display_name),
-                                                    imageUrl: user == null ? null : user.picture_url,
-                                                    tooltip: user == null ? null : user.display_name,
-                                                    kind: user == null ? 'plus-button' : null,
-                                                }
-                                            ]}
-                                        />
+                                        {
+                                            isAvatarPlaceholder(maybeAvatar)
+                                                ? (
+                                                    <AvatarPlaceholder {...maybeAvatar} size="medium" />
+                                                )
+                                                : (
+                                                    <Avatar {...maybeAvatar} size="medium" />
+                                                )
+                                        }
                                     </li>
                                 );
                             })}
