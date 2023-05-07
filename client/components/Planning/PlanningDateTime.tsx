@@ -5,7 +5,6 @@ import moment from 'moment';
 import {planningUtils} from '../../utils/index';
 import {MAIN} from '../../constants';
 import {CoverageIcons} from '../Coverages/CoverageIcons';
-import './PlanningDateTime.scss';
 
 export const PlanningDateTime = ({
     item,

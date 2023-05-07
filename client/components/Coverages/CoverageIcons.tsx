@@ -10,6 +10,7 @@ import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/a
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
 import {planningUtils} from '../../utils';
+import './coverage-icons.scss';
 
 interface IProps {
     coverages: Array<DeepPartial<IPlanningCoverageItem>>;
