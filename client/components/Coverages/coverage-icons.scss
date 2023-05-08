@@ -1,50 +1,23 @@
-.avatar-popup__wrapper {
+.coverages-popup {
     background-color: var(--color-dropdown-menu-Bg);
     border-radius: 5px;
     padding: 1.5rem;
     box-shadow: var(--sd-shadow__dropdown);
+    max-height: 100%;
+    overflow: auto;
 }
 
-.avatar-popup__list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.avatar-popup__item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.avatar-popup__text-light {
+.coverages-popup__text-light {
     color: var(--color-text-light);
     font-weight: 400;
     font-size: 12px;
     line-height: 14px;
 }
 
-.avatar-popup__text-bold {
+.coverages-popup__text-bold {
     color: var(--color-text);
     font-weight: 500;
     margin-left: 4px;
     font-size: 12px;
     line-height: 14px;
-}
-
-.avatar-popup-content {
-    flex-grow: 1;
-}
-
-.avatar-popup-content-bottom {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-}
-
-.avatar-popup-icon i {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    --icon-base-size: 24px !important;
 }

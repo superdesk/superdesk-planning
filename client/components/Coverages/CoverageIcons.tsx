@@ -5,7 +5,7 @@ import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
 import {gettext} from 'superdesk-core/scripts/core/utils';
-import {AvatarGroup, ContentDivider, Icon, WithPopover, Avatar, AvatarPlaceholder} from 'superdesk-ui-framework/react';
+import {AvatarGroup, ContentDivider, Icon, WithPopover, Avatar, AvatarPlaceholder, Spacer, SpacerBlock} from 'superdesk-ui-framework/react';
 import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/avatar/avatar-placeholder';
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
@@ -69,9 +69,9 @@ export class CoverageIcons extends React.PureComponent<IProps> {
         return (
             <WithPopover
                 placement="bottom-end"
-                component={({closePopup}) => (
-                    <div className="avatar-popup__wrapper">
-                        <ul className="avatar-popup__list">
+                component={() => (
+                    <div className="coverages-popup">
+                        <Spacer v gap="16">
                             {this.props.coverages.map((coverage, i) => {
                                 let scheduledStr = coverage.planning?.scheduled != null && dateFormat && timeFormat
                                     ? moment(coverage.planning.scheduled).format(dateFormat + ' ' + timeFormat)
@@ -95,8 +95,8 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                 const maybeAvatar = getAvatarForCoverage(coverage, users);
 
                                 return (
-                                    <li className="avatar-popup__item" key={i}>
-                                        <div className="avatar-popup-icon">
+                                    <Spacer h gap="8" noWrap key={i}>
+                                        <div>
                                             <Icon
                                                 size="small"
                                                 name={trimStartExact(planningUtils.getCoverageIcon(
@@ -111,49 +111,57 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                             />
                                         </div>
 
-                                        <div className="avatar-popup-content">
+                                        <div>
                                             <div>
-                                                <span className="avatar-popup__text-light">
+                                                <span className="coverages-popup__text-light">
                                                     {gettext('Due:')}
-                                                    <span className="avatar-popup__text-bold">
+                                                    <span className="coverages-popup__text-bold">
                                                         {scheduledStr}
                                                     </span>
                                                 </span>
                                             </div>
 
-                                            <div className="avatar-popup-content-bottom">
+                                            <Spacer h gap="4" noWrap>
                                                 {!desk ? null : (
-                                                    <span className="avatar-popup__text-light">
-                                                        {gettext('Due:')}
-                                                        <span className="avatar-popup__text-bold">
-                                                            {desk.desk_type}
+                                                    <div>
+                                                        <span className="coverages-popup__text-light">
+                                                            {gettext('Due:')}
+                                                            <span className="coverages-popup__text-bold">
+                                                                {desk.desk_type}
+                                                            </span>
                                                         </span>
-                                                    </span>
+                                                    </div>
                                                 )}
 
-                                                <ContentDivider margin="x-small" orientation="vertical" type="dashed" />
+                                                <div style={{flexShrink: 1}}>
+                                                    <ContentDivider margin="x-small" orientation="vertical" type="dashed" />
+                                                </div>
 
                                                 {!slugline ? null : (
-                                                    <span className="sd-text__slugline">
-                                                        {gettext('{{ slugline }}', {slugline})}
-                                                    </span>
+                                                    <div>
+                                                        <span className="sd-text__slugline">
+                                                            {slugline}
+                                                        </span>
+                                                    </div>
                                                 )}
-                                            </div>
+                                            </Spacer>
                                         </div>
 
-                                        {
-                                            isAvatarPlaceholder(maybeAvatar)
-                                                ? (
-                                                    <AvatarPlaceholder {...maybeAvatar} size="medium" />
-                                                )
-                                                : (
-                                                    <Avatar {...maybeAvatar} size="medium" />
-                                                )
-                                        }
-                                    </li>
+                                        <div>
+                                            {
+                                                isAvatarPlaceholder(maybeAvatar)
+                                                    ? (
+                                                        <AvatarPlaceholder {...maybeAvatar} size="medium" />
+                                                    )
+                                                    : (
+                                                        <Avatar {...maybeAvatar} size="medium" />
+                                                    )
+                                            }
+                                        </div>
+                                    </Spacer>
                                 );
                             })}
-                        </ul>
+                        </Spacer>
                     </div>
                 )}
             >
