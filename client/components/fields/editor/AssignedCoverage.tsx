@@ -1,10 +1,12 @@
 import * as React from 'react';
 import {superdeskApi} from '../../../superdeskApi';
-import {IG2ContentType, IEditorFieldProps} from '../../../interfaces';
+import {ICoverageAssigned, IEditorFieldProps} from '../../../interfaces';
 import {EditorFieldSelect} from './base/select';
 
 interface IProps extends IEditorFieldProps {
+    contentTypes: Array<ICoverageAssigned>;
     clearable?: boolean; // defaults to true
+    defaultValue?: ICoverageAssigned; // defaults to {}
     valueAsString?: boolean;
 }
 
@@ -13,20 +15,26 @@ export class EditorFieldAssignedCoverageComponent extends React.PureComponent<IP
         const {gettext} = superdeskApi.localization;
 
         const coverageOption = [
-            {id: 'null', name: 'No Coverage Assigned'},
-            {id: 'some', name: 'Some Coverages Assigned'},
-            {id: 'All', name: 'All Coverages Assigned'}
+            {qcode: 'null', name: 'No Coverage Assigned'},
+            {qcode: 'some', name: 'Some Coverages Assigned'},
+            {qcode: 'All', name: 'All Coverages Assigned'}
         ];
+        const {
+            refNode,
+            ...props
+        } = this.props;
 
         return (
             <EditorFieldSelect
-                field={'Coverage Assignment Status'}
+                ref={refNode}
+                {...props}
+                field={props.field ?? 'coverage_assignment_status'}
                 label={gettext('Coverage Assignment Status')}
                 options={coverageOption}
                 labelField="name"
                 clearable={true}
-                defaultValue={''}
-                valueAsString= {true}
+                defaultValue={props.defaultValue ?? {}}
+                valueAsString={true}
             />
         );
     }

@@ -143,7 +143,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     xmp_file: EditorFieldXMPFile,
     scheduled_updates: EditorFieldScheduledUpdates,
     custom_vocabularies: EditorFieldCustomVocabularies,
-    assignedCoverage: EditorFieldAssignedCoverageComponent,
+    coverage_assignment_status: EditorFieldAssignedCoverageComponent,
 };
 
 // Import resource fields so that registration happens after the above
