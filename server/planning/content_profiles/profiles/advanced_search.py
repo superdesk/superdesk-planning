@@ -319,7 +319,7 @@ DEFAULT_ADVANCED_SEARCH_PROFILE = {
                 "filter_enabled": True,
             },
             "coverage_assignment_status": {
-              "enabled": True,
+                "enabled": True,
                 "index": 6,
                 "group": "planning",
                 "search_enabled": True,

@@ -264,6 +264,16 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.sort.append({field: {"order": order}})
 
 
+def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get("coverage_assignment_status") and not strtobool(params.get("no_coverage", False)):
+        if params["coverage_assignment_status"] == "null":
+            query.must_not.append(elastic.bool_and([elastic.field_exists("coverages.coverage_id")], "coverages"))
+        elif params["coverage_assignment_status"] == "some":
+            query.must.append(elastic.bool_and([elastic.field_exists("coverages.coverage_id")], "coverages"))
+        elif params["coverage_assignment_status"] == "all":
+            pass
+
+
 PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
     search_planning,
     search_agendas,
@@ -279,6 +289,7 @@ PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], N
     search_dates,
     set_search_sort,
     search_coverage_assigned_user,
+    search_coverage_assignment_status,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
@@ -295,6 +306,7 @@ PLANNING_PARAMS: List[str] = [
     "include_scheduled_updates",
     "event_item",
     "coverage_user_id",
+    "coverage_assignment_status",
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)
