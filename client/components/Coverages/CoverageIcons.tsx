@@ -5,7 +5,15 @@ import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
 import {gettext} from 'superdesk-core/scripts/core/utils';
-import {AvatarGroup, ContentDivider, Icon, WithPopover, Avatar, AvatarPlaceholder, Spacer} from 'superdesk-ui-framework/react';
+import {
+    AvatarGroup,
+    ContentDivider,
+    Icon,
+    WithPopover,
+    Avatar,
+    AvatarPlaceholder,
+    Spacer,
+} from 'superdesk-ui-framework/react';
 import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/avatar/avatar-placeholder';
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
@@ -38,13 +46,14 @@ export function getAvatarForCoverage(
 ): Omit<IPropsAvatar, 'size'> | Omit<IPropsAvatarPlaceholder, 'size'> {
     const user = users.find((u) => u._id === coverage.assigned_to?.user);
 
-    const icon: {name: string; color: string} | undefined = coverage.planning?.g2_content_type == null ? undefined : {
-        name: coverage.planning.g2_content_type,
-        color: trimStartExact(
-            planningUtils.getCoverageIconColor(coverage),
-            'icon--'
-        ),
-    };
+    const icon: {name: string; color: string} | undefined =
+        coverage.planning?.g2_content_type == null ? undefined : {
+            name: coverage.planning.g2_content_type,
+            color: trimStartExact(
+                planningUtils.getCoverageIconColor(coverage),
+                'icon--'
+            ),
+        };
 
     if (user == null) {
         const placeholder: Omit<IPropsAvatarPlaceholder, 'size'> = {
@@ -143,7 +152,8 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                                 {(coverage.scheduled_updates ?? []).map((s) => {
                                                     if (s.planning?.scheduled != null) {
                                                         const scheduledStr2 = dateFormat && timeFormat ?
-                                                            moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) :
+                                                            moment(s.planning.scheduled)
+                                                                .format(dateFormat + ' ' + timeFormat) :
                                                             null;
 
                                                         return (
@@ -165,7 +175,11 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                                     <div>{assignmentStr}</div>
 
                                                     <div style={{flexShrink: 1}}>
-                                                        <ContentDivider margin="x-small" orientation="vertical" type="dashed" />
+                                                        <ContentDivider
+                                                            margin="x-small"
+                                                            orientation="vertical"
+                                                            type="dashed"
+                                                        />
                                                     </div>
 
                                                     {!slugline ? null : (
