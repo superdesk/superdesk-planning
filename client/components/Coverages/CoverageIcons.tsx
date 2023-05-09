@@ -38,9 +38,18 @@ export function getAvatarForCoverage(
 ): Omit<IPropsAvatar, 'size'> | Omit<IPropsAvatarPlaceholder, 'size'> {
     const user = users.find((u) => u._id === coverage.assigned_to?.user);
 
+    const icon: {name: string; color: string} | undefined = coverage.planning?.g2_content_type == null ? undefined : {
+        name: coverage.planning.g2_content_type,
+        color: trimStartExact(
+            planningUtils.getCoverageIconColor(coverage),
+            'icon--'
+        ),
+    };
+
     if (user == null) {
         const placeholder: Omit<IPropsAvatarPlaceholder, 'size'> = {
             kind: 'plus-button',
+            icon: icon,
         };
 
         return placeholder;
@@ -49,13 +58,7 @@ export function getAvatarForCoverage(
             initials: getUserInitials(user.display_name),
             imageUrl: user.picture_url,
             tooltip: user.display_name?.length > 0 ? user.display_name : null,
-            icon: coverage.planning?.g2_content_type == null ? undefined : {
-                name: coverage.planning.g2_content_type,
-                color: trimStartExact(
-                    planningUtils.getCoverageIconColor(coverage),
-                    'icon--'
-                ),
-            },
+            icon: icon,
         };
 
         return avatar;
@@ -69,6 +72,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
         return (
             <WithPopover
                 placement="bottom-end"
+                zIndex={1051}
                 component={() => (
                     <div className="coverages-popup">
                         <Spacer v gap="16">
@@ -104,74 +108,76 @@ export class CoverageIcons extends React.PureComponent<IProps> {
 
                                 return (
                                     <Spacer h gap="8" noWrap key={i}>
-                                        <div>
-                                            <span title={gettext('Type: {{ type }}', {type: contentType})}>
-                                                <Icon
-                                                    size="small"
-                                                    name={trimStartExact(
-                                                        planningUtils.getCoverageIcon(
-                                                            planningUtils.getCoverageContentType(
-                                                                coverage, this.props.contentTypes
-                                                            ) || coverage.planning?.g2_content_type,
-                                                            coverage,
-                                                        ),
-                                                        'icon-',
-                                                    )}
-                                                    color={trimStartExact(
-                                                        planningUtils.getCoverageIconColor(coverage),
-                                                        'icon--',
-                                                    )}
-                                                />
-                                            </span>
-                                        </div>
-
-                                        <div>
+                                        <Spacer h gap="8" justifyContent="start" noWrap>
                                             <div>
-                                                <span className="coverages-popup__text-light">
-                                                    {gettext('Due:')}
-                                                    <span className="coverages-popup__text-bold">
-                                                        {scheduledStr}
-                                                    </span>
+                                                <span title={gettext('Type: {{ type }}', {type: contentType})}>
+                                                    <Icon
+                                                        size="small"
+                                                        name={trimStartExact(
+                                                            planningUtils.getCoverageIcon(
+                                                                planningUtils.getCoverageContentType(
+                                                                    coverage, this.props.contentTypes
+                                                                ) || coverage.planning?.g2_content_type,
+                                                                coverage,
+                                                            ),
+                                                            'icon-',
+                                                        )}
+                                                        color={trimStartExact(
+                                                            planningUtils.getCoverageIconColor(coverage),
+                                                            'icon--',
+                                                        )}
+                                                    />
                                                 </span>
                                             </div>
 
-                                            {(coverage.scheduled_updates ?? []).map((s) => {
-                                                if (s.planning?.scheduled != null) {
-                                                    const scheduledStr2 = dateFormat && timeFormat ?
-                                                        moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) :
-                                                        null;
-
-                                                    return (
-                                                        <div>
-                                                            <span className="coverages-popup__text-light">
-                                                                {gettext('Update Due:')}
-                                                                <span className="coverages-popup__text-bold">
-                                                                    {scheduledStr2}
-                                                                </span>
-                                                            </span>
-                                                        </div>
-                                                    );
-                                                }
-
-                                                return null;
-                                            })}
-
-                                            <Spacer h gap="4" noWrap>
-                                                <div>{assignmentStr}</div>
-
-                                                <div style={{flexShrink: 1}}>
-                                                    <ContentDivider margin="x-small" orientation="vertical" type="dashed" />
+                                            <div>
+                                                <div>
+                                                    <span className="coverages-popup__text-light">
+                                                        {gettext('Due:')}
+                                                        <span className="coverages-popup__text-bold">
+                                                            {scheduledStr}
+                                                        </span>
+                                                    </span>
                                                 </div>
 
-                                                {!slugline ? null : (
-                                                    <div>
-                                                        <span className="sd-text__slugline">
-                                                            {slugline}
-                                                        </span>
+                                                {(coverage.scheduled_updates ?? []).map((s) => {
+                                                    if (s.planning?.scheduled != null) {
+                                                        const scheduledStr2 = dateFormat && timeFormat ?
+                                                            moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) :
+                                                            null;
+
+                                                        return (
+                                                            <div>
+                                                                <span className="coverages-popup__text-light">
+                                                                    {gettext('Update Due:')}
+                                                                    <span className="coverages-popup__text-bold">
+                                                                        {scheduledStr2}
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    return null;
+                                                })}
+
+                                                <Spacer h gap="4" noWrap>
+                                                    <div>{assignmentStr}</div>
+
+                                                    <div style={{flexShrink: 1}}>
+                                                        <ContentDivider margin="x-small" orientation="vertical" type="dashed" />
                                                     </div>
-                                                )}
-                                            </Spacer>
-                                        </div>
+
+                                                    {!slugline ? null : (
+                                                        <div>
+                                                            <span className="sd-text__slugline">
+                                                                {slugline}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </Spacer>
+                                            </div>
+                                        </Spacer>
 
                                         <div>
                                             {
