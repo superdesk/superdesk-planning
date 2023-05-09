@@ -267,11 +267,33 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
 def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("coverage_assignment_status") and not strtobool(params.get("no_coverage", False)):
         if params["coverage_assignment_status"] == "null":
-            query.must_not.append(elastic.bool_and([elastic.field_exists("coverages.coverage_id")], "coverages"))
+            query.must_not.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool(must=[elastic.exists(field="coverages.assigned_to.assignment_id")]),
+                )
+            )
         elif params["coverage_assignment_status"] == "some":
-            query.must.append(elastic.bool_and([elastic.field_exists("coverages.coverage_id")], "coverages"))
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool(must=[elastic.exists(field="coverages.assigned_to.assignment_id")]),
+                )
+            )
         elif params["coverage_assignment_status"] == "all":
-            pass
+            query.must.append(
+                elastic.nested(
+                    path="coverages", query=elastic.bool_and([elastic.field_exists("coverages.coverage_id")])
+                )
+            )
+            query.must_not.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_and(
+                        [elastic.bool_not([elastic.field_exists("coverages.assigned_to.assignment_id")])]
+                    ),
+                )
+            )
 
 
 PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [

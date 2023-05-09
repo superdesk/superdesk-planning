@@ -293,3 +293,32 @@ def date_range(query: ElasticRangeParams):
         return range_date(query)
     else:
         return field_range(query)
+
+
+def nested(path: str, query: Dict[str, Any], score_mode: Optional[str] = None) -> Dict[str, Any]:
+    nested_query = {"path": path, "query": query}
+    if score_mode is not None:
+        nested_query["score_mode"] = score_mode
+    return {"nested": nested_query}
+
+
+def bool(
+    must: List[Dict[str, Any]] = None,
+    must_not: List[Dict[str, Any]] = None,
+    should: List[Dict[str, Any]] = None,
+    filter: List[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    bool_query = {}
+    if must:
+        bool_query["must"] = must
+    if must_not:
+        bool_query["must_not"] = must_not
+    if should:
+        bool_query["should"] = should
+    if filter:
+        bool_query["filter"] = filter
+    return {"bool": bool_query}
+
+
+def exists(field: str) -> Dict[str, Any]:
+    return {"exists": {"field": field}}
