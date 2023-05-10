@@ -1,10 +1,8 @@
 from planning.feed_parsers.onclusive import OnclusiveFeedParser
-from planning.tests import TestCase
 from .onclusive_api_service import OnclusiveApiService
 from unittest.mock import MagicMock
-from datetime import datetime
+from datetime import datetime, timedelta
 
-import os
 import flask
 import unittest
 import requests_mock
@@ -21,6 +19,7 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
     def test_update(self):
         event = {"versioncreated": datetime.fromisoformat("2023-03-01T08:00:00")}
         with self.app.app_context():
+            now = datetime.utcnow()
             service = OnclusiveApiService()
             service.get_feed_parser = MagicMock(return_value=parser)
             parser.parse.return_value = [event]
@@ -43,10 +42,10 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
                     },
                 )
                 m.get(
-                    "https://api.abc.com/api/v2/events/between?offset=0",
+                    "https://api.abc.com/api/v2/events/date?date={}".format(now.strftime("%Y%m%d")),
                     json=[{"versioncreated": event["versioncreated"].isoformat()}],
                 )  # first returns an item
-                m.get("https://api.abc.com/api/v2/events/between?offset=1000", json=[])  # second will make it stop
+                m.get("https://api.abc.com/api/v2/events/date", json=[])  # ones won't
                 items = list(service._update(provider, updates))
             self.assertIn("tokens", updates)
             self.assertEqual("refresh", updates["tokens"]["refreshToken"])
