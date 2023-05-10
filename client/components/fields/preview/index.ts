@@ -38,6 +38,10 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('Ad Hoc Planning')}),
         getValue: getPreviewBooleanString,
     },
+    coverage_assignment_status: {
+        props: () => ({label: superdeskApi.localization.gettext('Coverage Assignment Status')}),
+        getValue: getPreviewString,
+    },
     agendas: {
         props: () => ({
             label: superdeskApi.localization.gettext('Agendas'),
