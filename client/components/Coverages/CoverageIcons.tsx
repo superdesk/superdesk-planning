@@ -243,7 +243,9 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                     >
                         <AvatarGroup
                             size="small"
-                            items={coverages.map((coverage) => getAvatarForCoverage(coverage, users, this.props.contentTypes))}
+                            items={coverages.map(
+                                (coverage) => getAvatarForCoverage(coverage, users, this.props.contentTypes),
+                            )}
                         />
                     </div>
                 )}
