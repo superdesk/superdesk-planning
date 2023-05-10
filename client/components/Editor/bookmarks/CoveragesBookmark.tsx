@@ -70,7 +70,7 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
     renderForPanel() {
         return (this.props.item?.coverages ?? []).map((coverage) => {
             const {users} = this.props;
-            const maybeAvatar = getAvatarForCoverage(coverage, users);
+            const maybeAvatar = getAvatarForCoverage(coverage, users, this.props.contentTypes);
 
             return (
                 <button

@@ -17,9 +17,9 @@ import {
 import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/avatar/avatar-placeholder';
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
+import {getItemWorkflowStateLabel, planningUtils} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
-import {planningUtils} from '../../utils';
 import './coverage-icons.scss';
 
 interface IProps {
@@ -43,12 +43,23 @@ export function isAvatarPlaceholder(
 export function getAvatarForCoverage(
     coverage: DeepPartial<IPlanningCoverageItem>,
     users: Array<IUser>,
+    contentTypes: Array<IG2ContentType>,
+    noIcon: boolean = false,
 ): Omit<IPropsAvatar, 'size'> | Omit<IPropsAvatarPlaceholder, 'size'> {
     const user = users.find((u) => u._id === coverage.assigned_to?.user);
 
     const icon: {name: string; color: string} | undefined =
-        coverage.planning?.g2_content_type == null ? undefined : {
-            name: coverage.planning.g2_content_type,
+        noIcon === true || coverage.planning?.g2_content_type == null ? undefined : {
+            name: trimStartExact(
+                planningUtils.getCoverageIcon(
+                    planningUtils.getCoverageContentType(
+                        coverage,
+                        contentTypes,
+                    ) || coverage.planning?.g2_content_type,
+                    coverage,
+                ),
+                'icon-',
+            ),
             color: trimStartExact(
                 planningUtils.getCoverageIconColor(coverage),
                 'icon--'
@@ -113,13 +124,24 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                     language
                                 );
 
-                                const maybeAvatar = getAvatarForCoverage(coverage, users);
+                                const maybeAvatar = getAvatarForCoverage(
+                                    coverage,
+                                    users,
+                                    this.props.contentTypes,
+                                    true,
+                                );
+                                const state = getItemWorkflowStateLabel(coverage.assigned_to);
 
                                 return (
                                     <Spacer h gap="8" noWrap key={i}>
                                         <Spacer h gap="8" justifyContent="start" noWrap>
                                             <div>
-                                                <span title={gettext('Type: {{ type }}', {type: contentType})}>
+                                                <span
+                                                    title={[
+                                                        gettext('Type: {{ type }}', {type: contentType}),
+                                                        gettext('Status: {{ state }}', {state: state.label})
+                                                    ].join(', ')}
+                                                >
                                                     <Icon
                                                         size="small"
                                                         name={trimStartExact(
@@ -221,7 +243,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                     >
                         <AvatarGroup
                             size="small"
-                            items={coverages.map((coverage) => getAvatarForCoverage(coverage, users))}
+                            items={coverages.map((coverage) => getAvatarForCoverage(coverage, users, this.props.contentTypes))}
                         />
                     </div>
                 )}
