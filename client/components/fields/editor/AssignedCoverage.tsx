@@ -15,9 +15,9 @@ export class EditorFieldAssignedCoverageComponent extends React.PureComponent<IP
         const {gettext} = superdeskApi.localization;
 
         const coverageOption = [
-            {qcode: 'null', name: 'No Coverage Assigned'},
-            {qcode: 'some', name: 'Some Coverages Assigned'},
-            {qcode: 'all', name: 'All Coverages Assigned'}
+            {qcode: 'null', name: gettext('No Coverage Assigned')},
+            {qcode: 'some', name: gettext('Some Coverages Assigned')},
+            {qcode: 'all', name: gettext('All Coverages Assigned')}
         ];
         const {
             refNode,
