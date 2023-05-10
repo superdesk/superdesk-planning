@@ -291,8 +291,6 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
                 )
             )
 
-            print(query.__dict__)
-
 
 PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
     search_planning,
