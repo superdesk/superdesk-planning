@@ -282,18 +282,16 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
             )
         elif params["coverage_assignment_status"] == "all":
             query.must.append(
-                elastic.nested(
-                    path="coverages", query=elastic.bool_and([elastic.field_exists("coverages.coverage_id")])
-                )
+                elastic.nested(path="coverages", query=elastic.bool(must=[elastic.exists("coverages.coverage_id")]))
             )
             query.must_not.append(
                 elastic.nested(
                     path="coverages",
-                    query=elastic.bool_and(
-                        [elastic.bool_not([elastic.field_exists("coverages.assigned_to.assignment_id")])]
-                    ),
+                    query=elastic.bool(must_not=[elastic.exists("coverages.assigned_to.assignment_id")]),
                 )
             )
+
+            print(query.__dict__)
 
 
 PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [

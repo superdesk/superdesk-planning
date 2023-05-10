@@ -17,7 +17,7 @@ export class EditorFieldAssignedCoverageComponent extends React.PureComponent<IP
         const coverageOption = [
             {qcode: 'null', name: 'No Coverage Assigned'},
             {qcode: 'some', name: 'Some Coverages Assigned'},
-            {qcode: 'All', name: 'All Coverages Assigned'}
+            {qcode: 'all', name: 'All Coverages Assigned'}
         ];
         const {
             refNode,
