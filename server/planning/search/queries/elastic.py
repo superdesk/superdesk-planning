@@ -302,7 +302,7 @@ def nested(path: str, query: Dict[str, Any], score_mode: Optional[str] = None) -
     return {"nested": nested_query}
 
 
-def bool(
+def bool_query(
     must: List[Dict[str, Any]] = None,
     must_not: List[Dict[str, Any]] = None,
     should: List[Dict[str, Any]] = None,
