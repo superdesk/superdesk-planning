@@ -57,7 +57,7 @@ export class AutopostIngestRuleEditor extends React.PureComponent<IProps> {
         return (
             <div>
                 <Switch
-                    label={{text: gettext('Post Items')}}
+                    label={{content: gettext('Post Items')}}
                     value={this.props.rule.actions.extra?.autopost === true}
                     onChange={this.updateAutopostValue}
                 />
