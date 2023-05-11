@@ -132,15 +132,20 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                 );
                                 const state = getItemWorkflowStateLabel(coverage.assigned_to);
 
+                                const iconTooltipInfo: Array<string> = [
+                                    gettext('Type: {{ type }}', {type: contentType}),
+                                ];
+
+                                if (desk != null) {
+                                    iconTooltipInfo.push(gettext('Status: {{ state }}', {state: state.label}));
+                                }
+
                                 return (
                                     <Spacer h gap="8" noWrap key={i}>
                                         <Spacer h gap="8" justifyContent="start" noWrap>
                                             <div>
                                                 <span
-                                                    title={[
-                                                        gettext('Type: {{ type }}', {type: contentType}),
-                                                        gettext('Status: {{ state }}', {state: state.label})
-                                                    ].join(', ')}
+                                                    title={iconTooltipInfo.join(', ')}
                                                 >
                                                     <Icon
                                                         size="small"
