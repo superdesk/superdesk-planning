@@ -61,7 +61,7 @@ export function getAvatarForCoverage(
                 'icon-',
             ),
             color: trimStartExact(
-                planningUtils.getCoverageIconColor(coverage),
+                planningUtils.getCoverageIconColor(coverage) ?? '',
                 'icon--'
             ),
         };

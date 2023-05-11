@@ -995,7 +995,7 @@ function getCoverageIcon(
     return get(coverageIcons, type, 'icon-file');
 }
 
-const getCoverageIconColor = (coverage) => {
+const getCoverageIconColor = (coverage): 'icon--green' | 'icon--red' | 'icon--yellow' | undefined => {
     if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
         return 'icon--green';
     } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
