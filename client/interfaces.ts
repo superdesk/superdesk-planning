@@ -45,7 +45,10 @@ export interface IUrgency {
     qcode: number;
     name: string;
 }
-
+export interface ICoverageAssigned {
+    qcode: string;
+    name: string;
+}
 export interface IAssignmentPriority {
     name: string;
     qcode: number;
@@ -879,6 +882,8 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     sortOrder?: SORT_ORDER;
     sortField?: SORT_FIELD;
     source?:string;
+    coverage_user_id?:string;
+    coverage_assignment_status?:ICoverageAssigned['qcode'];
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -890,6 +895,7 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
         location?: IEventLocation;
         reference?: string;
     };
+
 }
 
 export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem> {
@@ -899,6 +905,7 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
     featured?: boolean;
     includeScheduledUpdates?: boolean;
     noAgendaAssigned?: boolean;
+    coverage_assignment_status?:ICoverageAssigned['qcode'];
     advancedSearch?: ICommonAdvancedSearchParams & {
         featured?: boolean;
         g2_content_type?: IG2ContentType;
@@ -1137,6 +1144,7 @@ export interface IPlanningSearchProfile {
     start_date_time: IAdvancedSearchFormProfileField;
     end_date_time: IAdvancedSearchFormProfileField;
     date_filter: IAdvancedSearchFormProfileField;
+    coverage_assignment_status: IAdvancedSearchFormProfileField;
 }
 
 export interface ICoverageFormProfile {
@@ -1312,7 +1320,7 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
-
+    coverage_user_id?:string;
     // Event Params
     reference?: string;
     location?: IEventLocation;
@@ -1327,6 +1335,7 @@ export interface ISearchParams {
     no_coverage?: boolean;
     urgency?: IUrgency;
     g2_content_type?: IG2ContentType;
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: Array<IEventItem['_id']>;
@@ -1363,6 +1372,7 @@ export interface ISearchAPIParams {
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
     source?: string;
+    coverage_user_id?:string;
 
     // Event Params
     reference?: string;
@@ -1382,6 +1392,7 @@ export interface ISearchAPIParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: string;
+    coverage_assignment_status?:ICoverageAssigned['qcode']
 
     // Combined Params
     include_associated_planning?: boolean;

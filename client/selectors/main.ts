@@ -96,6 +96,10 @@ export const getCurrentSortField = createSelector(
     (params) => params.sortField ?? SORT_FIELD.SCHEDULE,
 );
 
+export const getCoverageUser = createSelector(
+    [currentSearch],
+    (params) => params.coverage_user_id
+);
 export const currentJumpInterval = createSelector(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.jumpInterval`) || MAIN.JUMP.WEEK

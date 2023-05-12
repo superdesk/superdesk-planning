@@ -53,6 +53,7 @@ import {EditorFieldCoverageContact} from './CoverageContact';
 import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
+import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
@@ -142,6 +143,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     xmp_file: EditorFieldXMPFile,
     scheduled_updates: EditorFieldScheduledUpdates,
     custom_vocabularies: EditorFieldCustomVocabularies,
+    coverage_assignment_status: EditorFieldAssignedCoverageComponent,
 };
 
 // Import resource fields so that registration happens after the above
