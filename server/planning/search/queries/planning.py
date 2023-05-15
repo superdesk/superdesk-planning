@@ -280,6 +280,13 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
                     query=elastic.bool_query(must=[elastic.exists(field="coverages.assigned_to.assignment_id")]),
                 )
             )
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(must_not=[elastic.exists(field="coverages.assigned_to.assignment_id")]),
+                )
+            )
+
         elif params["coverage_assignment_status"] == "all":
             query.must.append(
                 elastic.nested(
