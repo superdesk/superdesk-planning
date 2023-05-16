@@ -191,7 +191,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     </ButtonGroup>
                     {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
                         <div>
-                            {gettext('Assigned Coverages Items :')}
+                            {gettext('Assigned to: ')}
                             <Dropdown items={userList}>
                                 <span className="sd-margin-l--1 sd-margin-r--3">
                                     {this.props.users.find(
