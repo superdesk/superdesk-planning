@@ -274,8 +274,10 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
                 )
             )
         elif params["coverage_assignment_status"] == "some":
-
-            # Add a nested query to filter documents where at least one coverage has assigned_to.assignment_id present
+            """
+            Add a nested query to filter documents where at
+            least one coverage has assigned_to.assignment_id present
+            """
             query.must.append(
                 elastic.nested(
                     path="coverages",
@@ -283,7 +285,10 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
                 )
             )
 
-            # Add a nested query to filter documents where at least one coverage does not have assigned_to.assignment_id
+            """
+            Add a nested query to filter documents where at least 
+            one coverage does not have assigned_to.assignment_id
+            """
             query.must.append(
                 elastic.nested(
                     path="coverages",
