@@ -286,7 +286,7 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
             )
 
             """
-            Add a nested query to filter documents where at least 
+            Add a nested query to filter documents where at least
             one coverage does not have assigned_to.assignment_id
             """
             query.must.append(
