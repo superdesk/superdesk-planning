@@ -196,6 +196,8 @@ a:hover {
     flex-shrink: 0;
 }
 
-.sd-page-content--slide-in--open .btnGroup .icn-btn, .sd-page-content--slide-in--open .btnGroup .btn, .sd-page-content--slide-in--open .btnGroup > span{
-    display: none;
+@media (max-width: 1400px) {
+    .sd-page-content--slide-in--open .btnGroup .icn-btn, .sd-page-content--slide-in--open .btnGroup .btn, .sd-page-content--slide-in--open .btnGroup > span{
+        display: none;
+    }
 }
