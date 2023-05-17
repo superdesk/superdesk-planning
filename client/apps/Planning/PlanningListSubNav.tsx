@@ -203,7 +203,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                         </div>
                     )}
 
-                    <ButtonGroup className = "btnGroup" align="end">
+                    <ButtonGroup className = "hideOnMobile" align="end">
                         {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
                             <React.Fragment>
                                 <div

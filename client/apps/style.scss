@@ -197,7 +197,7 @@ a:hover {
 }
 
 @media (max-width: 1400px) {
-    .sd-page-content--slide-in--open .btnGroup .icn-btn, .sd-page-content--slide-in--open .btnGroup .btn, .sd-page-content--slide-in--open .btnGroup > span{
+    .sd-page-content--slide-in--open .hideOnMobile .icn-btn, .sd-page-content--slide-in--open .hideOnMobile .btn, .sd-page-content--slide-in--open .hideOnMobile > span{
         display: none;
     }
 }
