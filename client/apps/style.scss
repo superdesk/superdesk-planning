@@ -195,3 +195,7 @@ a:hover {
 .sd-filters-panel--fixed {
     flex-shrink: 0;
 }
+
+.sd-page-content--slide-in--open .btnGroup .icn-btn, .sd-page-content--slide-in--open .btnGroup .btn, .sd-page-content--slide-in--open .btnGroup > span{
+    display: none;
+}
