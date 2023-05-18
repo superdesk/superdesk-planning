@@ -8,6 +8,9 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
 import {getContactTypes} from '../../selectors/vocabs';
+import {IPlanningConfig} from '../../interfaces';
+import * as config from 'appConfig';
+const appConfig = config.appConfig as IPlanningConfig;
 
 import {
     Label,
@@ -32,7 +35,6 @@ export class AssignmentEditorComponent extends React.Component {
 
         const userId = get(props.value, this.FIELDS.USER);
         const user = getItemInArrayById(props.users, userId);
-
         const deskId = get(props.value, this.FIELDS.DESK);
         const desk = getItemInArrayById(props.desks, deskId);
 
@@ -137,8 +139,10 @@ export class AssignmentEditorComponent extends React.Component {
             this.props.onChange(field, value || null);
         }
 
-        // If there are no errors, then tell our parent the Assignment is valid
-        // otherwise, tell the parent the Assignment is invalid
+        // Check if PLANNING_AUTO_ASSIGN_TO_WORKFLOW is false and remove the "desk" field error
+        if (!appConfig.planning_auto_assign_to_workflow) {
+            delete errors.desk;
+        }
         this.props.setValid(isEqual(errors, {}));
     }
 
@@ -182,6 +186,14 @@ export class AssignmentEditorComponent extends React.Component {
                 desk: value,
                 filteredUsers: getUsersForDesk(value, this.props.users),
             });
+
+            // Remove the validation error for the "desk" field if PLANNING_AUTO_ASSIGN_TO_WORKFLOW is false
+            if (!appConfig.planning_auto_assign_to_workflow) {
+                const errors = cloneDeep(this.state.errors);
+
+                delete errors.desk;
+                this.setState({errors});
+            }
         }
     }
 
