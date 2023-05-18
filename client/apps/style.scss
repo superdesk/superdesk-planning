@@ -201,12 +201,10 @@ a:hover {
     container-name: subnav;
 }
 
-@container subnav (max-width: 800px) {
-    .sd-page-content--slide-in--open{
-        .hideOnMobile {
-            .icn-btn, .btn, .subnav-calendar {
-              display: none;
-            }
+@container subnav (max-width: 800px){
+    .hideOnMobile{
+        .icn-btn, .btn, .subnav-calendar{
+            display: none;
         }
     }
 }
