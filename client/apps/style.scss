@@ -196,8 +196,17 @@ a:hover {
     flex-shrink: 0;
 }
 
-@media (max-width: 1400px) {
-    .sd-page-content--slide-in--open .hideOnMobile .icn-btn, .sd-page-content--slide-in--open .hideOnMobile .btn, .sd-page-content--slide-in--open .hideOnMobile > span{
-        display: none;
+.subnav {
+    container-type: inline-size;
+    container-name: subnav;
+}
+
+@container subnav (max-width: 800px) {
+    .sd-page-content--slide-in--open{
+        .hideOnMobile {
+            .icn-btn, .btn, .subnav-calendar {
+              display: none;
+            }
+        }
     }
 }

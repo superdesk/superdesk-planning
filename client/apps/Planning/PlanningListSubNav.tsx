@@ -191,7 +191,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                     </ButtonGroup>
                     {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
                         <div>
-                            {gettext('Assigned to: ')}
+                            <span className="sd-margin-l--1 sd-opacity--75 ">{gettext('Assigned to :')}</span>
                             <Dropdown items={userList}>
                                 <span className="sd-margin-l--1 sd-margin-r--3">
                                     {this.props.users.find(
@@ -203,7 +203,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                         </div>
                     )}
 
-                    <ButtonGroup className = "hideOnMobile" align="end">
+                    <ButtonGroup className="hideOnMobile" align="end">
                         {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
                             <React.Fragment>
                                 <div
