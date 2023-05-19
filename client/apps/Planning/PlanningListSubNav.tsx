@@ -190,7 +190,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
                         {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
                             <div>
-                                {gettext('Assigned to: ')}
+                                <span className="sd-margin-l--1 sd-opacity--75 ">{gettext('Assigned to:')}</span>
                                 <Dropdown items={userList}>
                                     <span className="sd-margin-l--1 sd-margin-r--3">
                                         {this.props.users.find(
