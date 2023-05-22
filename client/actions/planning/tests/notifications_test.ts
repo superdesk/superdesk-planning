@@ -196,12 +196,12 @@ describe('actions.planning.notifications', () => {
 
     describe('onPlanningLocked', () => {
         beforeEach(() => {
-            sinon.stub(planningApi.locks, 'addLockToStore').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsLocked').returns(undefined);
             sinon.stub(planningApis, 'getPlanning').returns(Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.locks.addLockToStore);
+            restoreSinonStub(planningApi.locks.setItemAsLocked);
             restoreSinonStub(planningApis.getPlanning);
         });
 
@@ -218,7 +218,7 @@ describe('actions.planning.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(planningApi.locks.addLockToStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
                     expect(planningApis.getPlanning.callCount).toBe(1);
                     expect(planningApis.getPlanning.args[0]).toEqual([
                         'p1',
@@ -249,12 +249,12 @@ describe('actions.planning.notifications', () => {
             store.initialState.planning.plannings.p1.lock_user = 'ident1';
             store.initialState.planning.plannings.p1.lock_session = 'session1';
             store.initialState.planning.plannings.p1.lock_time = '2022-06-15T13:01:11+0000';
-            sinon.stub(planningApi.locks, 'removeLockFromStore').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
             sinon.stub(main, 'changeEditorAction').callsFake(() => Promise.resolve());
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.locks.removeLockFromStore);
+            restoreSinonStub(planningApi.locks.setItemAsUnlocked);
             restoreSinonStub(main.changeEditorAction);
         });
 
@@ -284,7 +284,7 @@ describe('actions.planning.notifications', () => {
                     user: 'ident2',
                 }))
                 .then(() => {
-                    expect(planningApi.locks.removeLockFromStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     const modalStr = 'The Planning item you were editing was unlocked by "{{ userName }}"';
 
                     expect(store.dispatch.args[2][0].type).toEqual('AUTOSAVE_REMOVE');
@@ -312,7 +312,7 @@ describe('actions.planning.notifications', () => {
                     etag: 'e123',
                 }))
                 .then(() => {
-                    expect(planningApi.locks.removeLockFromStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(store.dispatch.args[1]).toEqual([{
                         type: 'UNLOCK_PLANNING',
                         payload: {

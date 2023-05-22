@@ -235,15 +235,15 @@ describe('actions.assignments.notification', () => {
 
     describe('`assignment lock`', () => {
         beforeEach(() => {
-            sinon.stub(planningApi.locks, 'addLockToStore').returns(undefined);
-            sinon.stub(planningApi.locks, 'removeLockFromStore').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsLocked').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
                 Promise.resolve(store.initialState.assignment.assignments.as1)));
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.locks.addLockToStore);
-            restoreSinonStub(planningApi.locks.removeLockFromStore);
+            restoreSinonStub(planningApi.locks.setItemAsLocked);
+            restoreSinonStub(planningApi.locks.setItemAsUnlocked);
             restoreSinonStub(assignmentsApi.fetchAssignmentById);
         });
 
@@ -259,7 +259,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentLocked({}, payload))
                 .then(() => {
-                    expect(planningApi.locks.addLockToStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
                     expect(store.dispatch.callCount).toBe(2);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
                     expect(store.dispatch.args[1]).toEqual([{
@@ -288,7 +288,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentUnlocked({}, payload))
                 .then(() => {
-                    expect(planningApi.locks.removeLockFromStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(store.dispatch.callCount).toBe(2);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
                     expect(store.dispatch.args[1]).toEqual([{
@@ -312,7 +312,7 @@ describe('actions.assignments.notification', () => {
 
     describe('`assignment:completed`', () => {
         beforeEach(() => {
-            sinon.stub(planningApi.locks, 'removeLockFromStore').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
             sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(
                 () => () => (Promise.resolve())
             );
@@ -323,7 +323,7 @@ describe('actions.assignments.notification', () => {
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.locks.removeLockFromStore);
+            restoreSinonStub(planningApi.locks.setItemAsUnlocked);
             restoreSinonStub(assignmentsUi.reloadAssignments);
             restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
@@ -384,7 +384,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
-                    expect(planningApi.locks.removeLockFromStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
                     expect(store.dispatch.args[5]).toEqual([{
                         type: 'UNLOCK_ASSIGNMENT',

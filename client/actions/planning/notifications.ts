@@ -100,7 +100,7 @@ const onPlanningUpdated = (_e, data) => (
 const onPlanningLocked = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            planningApi.locks.addLockToStore(data);
+            planningApi.locks.setItemAsLocked(data);
 
             const sessionId = selectors.general.session(getState()).sessionId;
 
@@ -146,7 +146,7 @@ const onPlanningLocked = (e, data) => (
 function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
         if (data?.item != null) {
-            planningApi.locks.removeLockFromStore(data);
+            planningApi.locks.setItemAsUnlocked(data);
 
             const state = getState();
             let planningItem = selectors.planning.storedPlannings(state)[data.item];

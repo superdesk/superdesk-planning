@@ -25,7 +25,7 @@ describe('planningApi.locks', () => {
         restoreSinonStub(planningApi.redux.store.dispatch);
     });
 
-    it('store locks are managed through addLockToStore and removeLockFromStore functions', () => {
+    it('store locks are managed through setItemAsLocked and setItemAsUnlocked functions', () => {
         const itemLock = {
             item: testData.events[0]._id,
             type: testData.events[0].type,
@@ -41,7 +41,7 @@ describe('planningApi.locks', () => {
             assignment: {},
             recurring: {},
         });
-        planningApi.locks.addLockToStore({
+        planningApi.locks.setItemAsLocked({
             ...itemLock,
             lock_action: testData.lockedEvents[0].lock_action,
             lock_time: testData.lockedEvents[0].lock_time,
@@ -53,7 +53,7 @@ describe('planningApi.locks', () => {
             assignment: {},
             recurring: {},
         });
-        planningApi.locks.removeLockFromStore({
+        planningApi.locks.setItemAsUnlocked({
             ...itemLock,
             from_ingest: false,
         });

@@ -455,7 +455,7 @@ const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems, 
 
 function markEventPostponed(event: IEventItem, reason: string, actionedDate: string) {
     return (dispatch) => {
-        planningApi.locks.removeLockFromStore({
+        planningApi.locks.setItemAsUnlocked({
             item: event._id,
             type: event.type,
             recurrence_id: event.recurrence_id,

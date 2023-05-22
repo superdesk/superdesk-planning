@@ -2188,8 +2188,8 @@ export interface IPlanningAPI {
     };
     locks: {
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
-        addLockToStore(data: IWebsocketMessageData['ITEM_LOCKED']): void;
-        removeLockFromStore(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
+        setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
+        setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
         lockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
         lockItemById<T extends IAssignmentOrPlanningItem>(
             itemId: T['_id'],

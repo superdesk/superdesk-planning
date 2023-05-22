@@ -34,7 +34,7 @@ const onEventCreated = (_e, data) => (
 function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
         if (data?.item != null) {
-            planningApi.locks.removeLockFromStore(data);
+            planningApi.locks.setItemAsUnlocked(data);
 
             const state = getState();
             const events = selectors.events.storedEvents(state);
@@ -74,7 +74,7 @@ function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
 const onEventLocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            planningApi.locks.addLockToStore(data);
+            planningApi.locks.setItemAsLocked(data);
 
             const sessionId = selectors.general.session(getState()).sessionId;
 

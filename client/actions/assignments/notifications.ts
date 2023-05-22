@@ -154,7 +154,7 @@ const onAssignmentUpdated = (_e, data) => (
                             lock_time: null,
                         };
 
-                        planningApi.locks.removeLockFromStore({
+                        planningApi.locks.setItemAsUnlocked({
                             item: data.item,
                             etag: data.etag,
                             from_ingest: false,
@@ -199,7 +199,7 @@ const _updatePlannigRelatedToAssignment = (data) => (
 function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
     return (dispatch) => {
         if (get(data, 'item')) {
-            planningApi.locks.addLockToStore(data);
+            planningApi.locks.setItemAsLocked(data);
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     let item = {
@@ -235,7 +235,7 @@ function onAssignmentLocked(_e, data: IWebsocketMessageData['ITEM_LOCKED']) {
 function onAssignmentUnlocked(_e, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
         if (get(data, 'item')) {
-            planningApi.locks.removeLockFromStore(data);
+            planningApi.locks.setItemAsUnlocked(data);
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     const locks = selectors.locks.getLockedItems(getState());

@@ -139,12 +139,12 @@ describe('lock reducers', () => {
         expect(getInitialLocks()).toEqual(lockItems);
     });
 
-    it('LOCKS.ACTIONS.ADD_LOCK - Planning', () => {
+    it('LOCKS.ACTIONS.SET_ITEM_AS_LOCKED - Planning', () => {
         // Planning item with direct Planning lock
         let result = locks(
             initialState,
             {
-                type: LOCKS.ACTIONS.ADD_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
                 payload: getLockMessageData(lockTypes.planning.planning),
             }
         );
@@ -159,7 +159,7 @@ describe('lock reducers', () => {
         result = locks(
             initialState,
             {
-                type: LOCKS.ACTIONS.ADD_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
                 payload: getLockMessageData(lockTypes.planning.event),
             }
         );
@@ -173,7 +173,7 @@ describe('lock reducers', () => {
         result = locks(
             initialState,
             {
-                type: LOCKS.ACTIONS.ADD_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
                 payload: getLockMessageData(lockTypes.planning.recurring),
             },
         );
@@ -185,12 +185,12 @@ describe('lock reducers', () => {
         });
     });
 
-    it('LOCKS.ACTIONS.REMOVE_LOCK - Planning', () => {
+    it('LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED - Planning', () => {
         // Planning item with direct Planning lock
         let result = locks(
             getInitialLocks(),
             {
-                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED,
                 payload: getLockMessageData(lockTypes.planning.planning),
             }
         );
@@ -206,7 +206,7 @@ describe('lock reducers', () => {
         result = locks(
             getInitialLocks(),
             {
-                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED,
                 payload: getLockMessageData(lockTypes.planning.event),
             }
         );
@@ -221,7 +221,7 @@ describe('lock reducers', () => {
         result = locks(
             getInitialLocks(),
             {
-                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED,
                 payload: getLockMessageData(lockTypes.planning.recurring),
             }
         );
@@ -233,12 +233,12 @@ describe('lock reducers', () => {
         });
     });
 
-    it('LOCKS.ACTIONS.ADD_LOCK - Events', () => {
+    it('LOCKS.ACTIONS.SET_ITEM_AS_LOCKED - Events', () => {
         // Event item with direct Event lock
         let result = locks(
             initialState,
             {
-                type: LOCKS.ACTIONS.ADD_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
                 payload: getLockMessageData(lockTypes.events.event),
             }
         );
@@ -254,7 +254,7 @@ describe('lock reducers', () => {
         result = locks(
             initialState,
             {
-                type: LOCKS.ACTIONS.ADD_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
                 payload: getLockMessageData(lockTypes.events.recurring),
             }
         );
@@ -266,12 +266,12 @@ describe('lock reducers', () => {
         });
     });
 
-    it('LOCKS.ACTIONS.REMOVE_LOCK - Events', () => {
+    it('LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED - Events', () => {
         // Event item with direct Event lock
         let result = locks(
             getInitialLocks(),
             {
-                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED,
                 payload: getLockMessageData(lockTypes.events.event),
             }
         );
@@ -287,7 +287,7 @@ describe('lock reducers', () => {
         result = locks(
             getInitialLocks(),
             {
-                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED,
                 payload: getLockMessageData(lockTypes.events.recurring),
             }
         );
@@ -299,12 +299,12 @@ describe('lock reducers', () => {
         });
     });
 
-    it('LOCKS.ACTIONS.ADD_LOCK - Assignment', () => {
+    it('LOCKS.ACTIONS.SET_ITEM_AS_LOCKED - Assignment', () => {
         // Planning item with direct Planning lock
         let result = locks(
             initialState,
             {
-                type: LOCKS.ACTIONS.ADD_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
                 payload: getLockMessageData(lockTypes.assignment),
             }
         );
@@ -317,12 +317,12 @@ describe('lock reducers', () => {
         });
     });
 
-    it('LOCKS.ACTIONS.REMOVE_LOCK - Assignment', () => {
+    it('LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED - Assignment', () => {
         // Planning item with direct Planning lock
         let result = locks(
             getInitialLocks(),
             {
-                type: LOCKS.ACTIONS.REMOVE_LOCK,
+                type: LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED,
                 payload: getLockMessageData(lockTypes.assignment),
             }
         );

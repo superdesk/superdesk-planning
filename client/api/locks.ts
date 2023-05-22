@@ -76,20 +76,20 @@ function loadLockedItems(types?: Array<'events_and_planning' | 'featured_plannin
     );
 }
 
-function addLockToStore(data: IWebsocketMessageData['ITEM_LOCKED']): void {
+function setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void {
     const {dispatch} = planningApi.redux.store;
 
     dispatch({
-        type: LOCKS.ACTIONS.ADD_LOCK,
+        type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
         payload: data,
     });
 }
 
-function removeLockFromStore(data: IWebsocketMessageData['ITEM_UNLOCKED']): void {
+function setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void {
     const {dispatch} = planningApi.redux.store;
 
     dispatch({
-        type: LOCKS.ACTIONS.REMOVE_LOCK,
+        type: LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED,
         payload: data,
     });
 }
@@ -131,7 +131,7 @@ function lockItem<T extends IAssignmentOrPlanningItem>(item: T, action?: string)
                 planningUtils.modifyForClient(lockedItem);
             }
 
-            locks.addLockToStore({
+            locks.setItemAsLocked({
                 item: lockedItem._id,
                 type: lockedItem.type,
                 event_item: lockedItem.type === 'planning' ? lockedItem.event_item : undefined,
@@ -240,7 +240,7 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
                 planningUtils.modifyForClient(unlockedItem);
             }
 
-            locks.removeLockFromStore({
+            locks.setItemAsUnlocked({
                 item: unlockedItem._id,
                 type: unlockedItem.type,
                 event_item: unlockedItem.type === 'planning' ? unlockedItem.event_item : undefined,
@@ -307,8 +307,8 @@ function unlockFeaturedPlanning(): Promise<void> {
 
 export const locks: IPlanningAPI['locks'] = {
     loadLockedItems: loadLockedItems,
-    addLockToStore: addLockToStore,
-    removeLockFromStore: removeLockFromStore,
+    setItemAsLocked: setItemAsLocked,
+    setItemAsUnlocked: setItemAsUnlocked,
     lockItem: lockItem,
     lockItemById: lockItemById,
     unlockItem: unlockItem,

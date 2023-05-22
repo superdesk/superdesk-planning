@@ -57,11 +57,11 @@ export default createReducer(initialLockState, {
         }
     ),
 
-    [LOCKS.ACTIONS.ADD_LOCK]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_LOCKED']) => (
+    [LOCKS.ACTIONS.SET_ITEM_AS_LOCKED]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_LOCKED']) => (
         addLock(cloneDeep(state), payload)
     ),
 
-    [LOCKS.ACTIONS.REMOVE_LOCK]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_UNLOCKED']) => (
+    [LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_UNLOCKED']) => (
         removeLock(cloneDeep(state), payload)
     ),
 });

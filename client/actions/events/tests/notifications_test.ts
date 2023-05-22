@@ -469,12 +469,12 @@ describe('actions.events.notifications', () => {
 
     describe('onEventLocked', () => {
         beforeEach(() => {
-            sinon.stub(planningApi.locks, 'addLockToStore').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsLocked').returns(undefined);
             sinon.stub(eventsApi, 'getEvent').returns(Promise.resolve(data.events[0]));
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.locks.addLockToStore);
+            restoreSinonStub(planningApi.locks.setItemAsLocked);
             restoreSinonStub(eventsApi.getEvent);
         });
 
@@ -491,7 +491,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(planningApi.locks.addLockToStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
 
                     expect(eventsApi.getEvent.callCount).toBe(1);
                     expect(eventsApi.getEvent.args[0]).toEqual([
@@ -519,7 +519,7 @@ describe('actions.events.notifications', () => {
 
     describe('onEventUnlocked', () => {
         beforeEach(() => {
-            sinon.stub(planningApi.locks, 'removeLockFromStore').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
             store.initialState.events.events.e1.lock_user = 'ident1';
             store.initialState.events.events.e1.lock_session = 'session1';
             store.initialState.events.events.e1.lock_time = '2022-06-15T13:01:11+0000';
@@ -527,7 +527,7 @@ describe('actions.events.notifications', () => {
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.locks.removeLockFromStore);
+            restoreSinonStub(planningApi.locks.setItemAsUnlocked);
             restoreSinonStub(main.changeEditorAction);
         });
 
@@ -560,7 +560,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(planningApi.locks.removeLockFromStore.callCount).toBe(1);
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     const modalStr = 'The Event you were editing was unlocked by "{{ userName }}"';
 
                     expect(store.dispatch.args[2][0].type).toEqual('AUTOSAVE_REMOVE');
