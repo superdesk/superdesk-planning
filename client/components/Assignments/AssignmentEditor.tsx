@@ -122,16 +122,14 @@ export class AssignmentEditorComponent extends React.Component {
     }
 
     onChange(field, value, state = {}) {
-        const errors = cloneDeep(this.state.errors);
         const combinedState = {
             ...this.state,
             ...state,
         };
-        const newState = cloneDeep(state);
+
+        const errors = cloneDeep(combinedState.errors);
 
         this.props.onValidate(combinedState, errors);
-        newState.errors = errors;
-        this.setState(newState);
 
         // If a field name is provided, then call onChange so
         // the parent can update the field's value
@@ -143,7 +141,10 @@ export class AssignmentEditorComponent extends React.Component {
         if (!appConfig.planning_auto_assign_to_workflow) {
             delete errors.desk;
         }
+
         this.props.setValid(isEqual(errors, {}));
+
+        this.setState({...combinedState, errors});
     }
 
     onUserChange(field, value) {
@@ -178,22 +179,21 @@ export class AssignmentEditorComponent extends React.Component {
     }
 
     onDeskChange(field, value) {
-        const deskId = get(value, '_id');
+        const deskId = value ? value._id : null;
 
         if (deskId !== this.state.deskId) {
-            this.onChange(this.FIELDS.DESK, get(value, '_id'), {
+            const newState = {
                 deskId: deskId,
                 desk: value,
                 filteredUsers: getUsersForDesk(value, this.props.users),
-            });
+            };
 
             // Remove the validation error for the "desk" field if PLANNING_AUTO_ASSIGN_TO_WORKFLOW is false
             if (!appConfig.planning_auto_assign_to_workflow) {
-                const errors = cloneDeep(this.state.errors);
-
-                delete errors.desk;
-                this.setState({errors});
+                delete this.state.errors.desk;
             }
+
+            this.onChange(this.FIELDS.DESK, deskId, newState);
         }
     }
 
