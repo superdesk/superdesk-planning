@@ -183,10 +183,9 @@ class AssignmentsService(superdesk.Service):
                 updates["assigned_to"] = {}
 
         assigned_to = updates.get("assigned_to") or {}
-        if (assigned_to.get("user") or assigned_to.get("contact")) and (
-            planning_auto_assign_to_workflow(app) and assigned_to.get("desk")
-        ):
-            raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
+        if (assigned_to.get("user") or assigned_to.get("contact")) and planning_auto_assign_to_workflow(app):
+            if not assigned_to.get("desk"):
+                raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
         # set the assignment information
         user = get_user()
