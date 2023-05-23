@@ -1,99 +1,67 @@
+import {ILockedItems, ILock, IWebsocketMessageData} from '../interfaces';
 import {createReducer} from './createReducer';
-import {RESET_STORE, INIT_STORE, LOCKS, PLANNING, EVENTS, ASSIGNMENTS} from '../constants';
+import {RESET_STORE, INIT_STORE, LOCKS} from '../constants';
 import {cloneDeep, get} from 'lodash';
 
-const initialLockState = {
+const initialLockState: ILockedItems = {
     event: {},
     planning: {},
     recurring: {},
     assignment: {},
 };
 
-export const convertItemToLock = (item, itemType) => ({
-    action: item.lock_action,
-    session: item.lock_session,
-    time: item.lock_time,
-    user: item.lock_user,
-    item_type: itemType,
-    item_id: item._id,
-});
-
-const removeLock = (item, state, itemType) => {
-    if (get(item, 'recurrence_id')) {
-        delete state.recurring[item.recurrence_id];
-    } else if (get(item, 'event_item')) {
-        delete state.event[item.event_item];
-    }
-
-    delete state[itemType][item._id];
-    return state;
-};
-
-const addLock = (item, state, itemType) => {
-    const lock = convertItemToLock(item, itemType);
-
-    if (get(item, 'recurrence_id')) {
-        state.recurring[item.recurrence_id] = lock;
-    } else if (get(item, 'event_item')) {
-        state.event[item.event_item] = lock;
+function removeLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
+    if (data.recurrence_id != null) {
+        delete state.recurring[data.recurrence_id];
+    } else if (data.event_item != null) {
+        delete state.event[data.event_item];
     } else {
-        state[itemType][item._id] = lock;
+        delete state[data.type][data.item];
     }
 
     return state;
-};
+}
+
+function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']) {
+    const lockData: ILock = {
+        action: data.lock_action,
+        item_id: data.item,
+        session: data.lock_session,
+        time: data.lock_time,
+        user: data.user,
+        item_type: data.type,
+    };
+
+    if (data.recurrence_id != null) {
+        state.recurring[data.recurrence_id] = lockData;
+    } else if (data.event_item != null) {
+        state.event[data.event_item] = lockData;
+    } else {
+        state[data.type][data.item] = lockData;
+    }
+
+    return state;
+}
 
 export default createReducer(initialLockState, {
-    [RESET_STORE]: () => (null),
+    [RESET_STORE]: () => null,
 
-    [INIT_STORE]: () => (initialLockState),
+    [INIT_STORE]: () => initialLockState,
 
-    [PLANNING.ACTIONS.UNLOCK_PLANNING]: (state, payload) =>
-        removeLock(payload.plan, cloneDeep(state), 'planning'),
-
-    [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) =>
-        removeLock(payload.event, cloneDeep(state), 'event'),
-
-    [EVENTS.ACTIONS.LOCK_EVENT]: (state, payload) => (
-        addLock(payload.event, cloneDeep(state), 'event')
-    ),
-
-    [PLANNING.ACTIONS.LOCK_PLANNING]: (state, payload) => (
-        addLock(payload.plan, cloneDeep(state), 'planning')
-    ),
-
-    [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => (
-        addLock(payload.assignment, cloneDeep(state), 'assignment')
-    ),
-
-    [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: (state, payload) => (
-        removeLock(payload.assignment, cloneDeep(state), 'assignment')
-    ),
-
-    [LOCKS.ACTIONS.RECEIVE]: (state, payload) => {
-        const locks = {
-            event: {},
-            planning: {},
-            recurring: {},
-            assignment: {},
-        };
-
-        if (payload.events) {
-            payload.events.forEach((event) => addLock(event, locks, 'event'));
+    [LOCKS.ACTIONS.RECEIVE]: (state: ILockedItems, payload: ILockedItems) => (
+        {
+            event: payload.event || {},
+            planning: payload.planning || {},
+            recurring: payload.recurring || {},
+            assignment: payload.assignment || {},
         }
+    ),
 
-        if (payload.plans) {
-            payload.plans.forEach((plan) => addLock(plan, locks, 'planning'));
-        }
+    [LOCKS.ACTIONS.SET_ITEM_AS_LOCKED]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_LOCKED']) => (
+        addLock(cloneDeep(state), payload)
+    ),
 
-        if (payload.assignments) {
-            payload.assignments.forEach((assignment) => addLock(assignment, locks, 'assignment'));
-        }
-
-        return locks;
-    },
-
-    [EVENTS.ACTIONS.MARK_EVENT_POSTPONED]: (state, payload) => (
-        removeLock(payload.event, cloneDeep(state), 'event')
+    [LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_UNLOCKED']) => (
+        removeLock(cloneDeep(state), payload)
     ),
 });

@@ -6,7 +6,7 @@ import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {ICON_COLORS} from '../../../constants';
 
-import {planningUtils} from '../../../utils';
+import {planningUtils, lockUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 
 import * as List from '../../UI/List';
@@ -42,7 +42,7 @@ const mapStateToProps = (state) => ({
 class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const isItemLocked = planningUtils.isPlanningLocked(
+        const isItemLocked = lockUtils.isItemLocked(
             this.props.item,
             this.props.lockedItems
         );

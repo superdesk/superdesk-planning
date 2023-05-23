@@ -270,26 +270,68 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
             query.must_not.append(
                 elastic.nested(
                     path="coverages",
-                    query=elastic.bool_query(must=[elastic.exists(field="coverages.assigned_to.assignment_id")]),
+                    query=elastic.bool_query(
+                        must=[elastic.exists(field="coverages.assigned_to.assignment_id")],
+                        must_not=[elastic.term("coverages.workflow_status", "cancelled")],
+                    ),
                 )
             )
-        elif params["coverage_assignment_status"] == "some":
             query.must.append(
                 elastic.nested(
                     path="coverages",
-                    query=elastic.bool_query(must=[elastic.exists(field="coverages.assigned_to.assignment_id")]),
+                    query=elastic.bool_query(must_not=[elastic.term("coverages.workflow_status", "cancelled")]),
                 )
             )
+        elif params["coverage_assignment_status"] == "some":
+            """
+            Add a nested query to filter documents where at
+            least one coverage has assigned_to.assignment_id present
+            """
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must=[elastic.exists(field="coverages.assigned_to.assignment_id")],
+                        must_not=[elastic.term("coverages.workflow_status", "cancelled")],
+                    ),
+                )
+            )
+
+            """
+            Add a nested query to filter documents where at least
+            one coverage does not have assigned_to.assignment_id
+            """
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must_not=[
+                            elastic.exists(field="coverages.assigned_to.assignment_id"),
+                            elastic.term("coverages.workflow_status", "cancelled"),
+                        ]
+                    ),
+                )
+            )
+
         elif params["coverage_assignment_status"] == "all":
             query.must.append(
                 elastic.nested(
-                    path="coverages", query=elastic.bool_query(must=[elastic.exists("coverages.coverage_id")])
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must=[elastic.exists("coverages.assigned_to.assignment_id")],
+                        must_not=[elastic.term("coverages.workflow_status", "cancelled")],
+                    ),
                 )
             )
             query.must_not.append(
                 elastic.nested(
                     path="coverages",
-                    query=elastic.bool_query(must_not=[elastic.exists("coverages.assigned_to.assignment_id")]),
+                    query=elastic.bool_query(
+                        must_not=[
+                            elastic.exists("coverages.assigned_to.assignment_id"),
+                            elastic.term("coverages.workflow_status", "cancelled"),
+                        ]
+                    ),
                 )
             )
 

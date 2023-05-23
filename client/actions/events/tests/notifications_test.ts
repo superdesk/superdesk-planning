@@ -1,7 +1,8 @@
+import {planningApi} from '../../../superdeskApi';
 import eventsApi from '../api';
 import eventsUi from '../ui';
 import eventsPlanningUi from '../../eventsPlanning/ui';
-import planningApi from '../../planning/api';
+import planningApis from '../../planning/api';
 import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
@@ -266,13 +267,13 @@ describe('actions.events.notifications', () => {
     describe('onEventPostChanged', () => {
         beforeEach(() => {
             restoreSinonStub(eventsNotifications.onEventPostChanged);
-            sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
+            sinon.stub(planningApis, 'loadPlanningByEventId').callsFake(
                 () => (Promise.resolve())
             );
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.loadPlanningByEventId);
+            restoreSinonStub(planningApis.loadPlanningByEventId);
         });
 
         xit('dispatches `MARK_EVENT_POSTED`', (done) => (
@@ -443,7 +444,7 @@ describe('actions.events.notifications', () => {
                             pubstatus: 'cancelled',
                         },
                     }]);
-                    expect(planningApi.loadPlanningByEventId.callCount).toBe(1);
+                    expect(planningApis.loadPlanningByEventId.callCount).toBe(1);
                     done();
                 })
         ).catch(done.fail));
@@ -460,7 +461,7 @@ describe('actions.events.notifications', () => {
             ))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(6);
-                    expect(planningApi.loadPlanningByEventId.callCount).toBe(1);
+                    expect(planningApis.loadPlanningByEventId.callCount).toBe(1);
                     done();
                 })
         ).catch(done.fail));
@@ -468,10 +469,12 @@ describe('actions.events.notifications', () => {
 
     describe('onEventLocked', () => {
         beforeEach(() => {
+            sinon.stub(planningApi.locks, 'setItemAsLocked').returns(undefined);
             sinon.stub(eventsApi, 'getEvent').returns(Promise.resolve(data.events[0]));
         });
 
         afterEach(() => {
+            restoreSinonStub(planningApi.locks.setItemAsLocked);
             restoreSinonStub(eventsApi.getEvent);
         });
 
@@ -488,6 +491,8 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
+                    expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
+
                     expect(eventsApi.getEvent.callCount).toBe(1);
                     expect(eventsApi.getEvent.args[0]).toEqual([
                         'e1',
@@ -514,6 +519,7 @@ describe('actions.events.notifications', () => {
 
     describe('onEventUnlocked', () => {
         beforeEach(() => {
+            sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
             store.initialState.events.events.e1.lock_user = 'ident1';
             store.initialState.events.events.e1.lock_session = 'session1';
             store.initialState.events.events.e1.lock_time = '2022-06-15T13:01:11+0000';
@@ -521,6 +527,7 @@ describe('actions.events.notifications', () => {
         });
 
         afterEach(() => {
+            restoreSinonStub(planningApi.locks.setItemAsUnlocked);
             restoreSinonStub(main.changeEditorAction);
         });
 
@@ -553,6 +560,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     const modalStr = 'The Event you were editing was unlocked by "{{ userName }}"';
 
                     expect(store.dispatch.args[2][0].type).toEqual('AUTOSAVE_REMOVE');

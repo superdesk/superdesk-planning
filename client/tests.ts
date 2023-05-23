@@ -19,6 +19,7 @@ Object.assign(appConfig, {
     shortTimeFormat: 'HH:mm',
     default_timezone: 'Australia/Sydney',
     profileLanguages: ['en', 'fr_CA'],
+    planning_auto_assign_to_workflow: true,
 });
 
 moment.tz.setDefault('Australia/Sydney');

@@ -1,7 +1,7 @@
 import moment from 'moment-timezone';
 import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 
-import {appConfig} from 'appConfig';
+import {appConfig as config} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {
@@ -12,7 +12,18 @@ import {
     IG2ContentType,
     ISession,
     ILockedItems,
+    IPrivileges,
+    IPlanningConfig,
+    IAgenda,
+    IPlace,
+    IPlanningAppState,
+    IFeaturedPlanningItem,
+    ICoverageScheduledUpdate,
+    IDateTime,
+    IItemAction,
 } from '../interfaces';
+const appConfig = config as IPlanningConfig;
+
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 import {
@@ -24,7 +35,6 @@ import {
     ASSIGNMENTS,
     POST_STATE,
     COVERAGES,
-    ITEM_TYPE,
     TIME_COMPARISON_GRANULARITY,
 } from '../constants';
 import {
@@ -57,11 +67,18 @@ import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
-const canPostPlanning = (planning, event, session, privileges, locks) => (
-    isExistingItem(planning) &&
+function canPostPlanning(
+    planning: IPlanningItem,
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        isExistingItem(planning) &&
         !!privileges[PRIVILEGES.POST_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isPlanningLockRestricted(planning, session, locks) &&
+        !lockUtils.isLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
         (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
         !isItemSpiked(planning) &&
@@ -71,148 +88,278 @@ const canPostPlanning = (planning, event, session, privileges, locks) => (
         !isItemRescheduled(planning) &&
         !isItemRescheduled(event) &&
         !isNotForPublication(planning)
-);
+    );
+}
 
-const canUnpostPlanning = (planning, event, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.UNPOST_PLANNING] &&
+function canUnpostPlanning(
+    planning: IPlanningItem,
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !!privileges[PRIVILEGES.UNPOST_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemSpiked(planning) &&
-        !isPlanningLockRestricted(planning, session, locks) &&
+        !lockUtils.isLockRestricted(planning, session, locks) &&
         getPostedState(planning) === POST_STATE.USABLE
-);
+    );
+}
 
-const canEditPlanning = (planning, event, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isPlanningLockRestricted(planning, session, locks) &&
+function canEditPlanning(
+    planning: IPlanningItem,
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !lockUtils.isLockRestricted(planning, session, locks) &&
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
         !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
         !isItemRescheduled(planning) &&
         (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
         (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED)
-);
+    );
+}
 
-const canModifyPlanning = (planning, event, privileges, locks) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isPlanningLocked(planning, locks) &&
+function canModifyPlanning(
+    planning: IPlanningItem,
+    event: IEventItem,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !lockUtils.isItemLocked(planning, locks) &&
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
         !isItemCancelled(planning) &&
         !isItemRescheduled(planning)
-);
+    );
+}
 
-const canAddFeatured = (planning, event, session, privileges, locks) => (
-    !get(planning, 'featured', false) &&
+function canAddFeatured(
+    planning: IPlanningItem,
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !get(planning, 'featured', false) &&
         canEditPlanning(planning, event, session, privileges, locks) &&
         !!privileges[PRIVILEGES.FEATURED_STORIES] && !isItemKilled(planning) &&
         !isItemCancelled(planning)
-);
+    );
+}
 
-const canRemovedFeatured = (planning, event, session, privileges, locks) => (
-    get(planning, 'featured', false) === true &&
+function canRemovedFeatured(
+    planning: IPlanningItem,
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        get(planning, 'featured', false) === true &&
         canEditPlanning(planning, event, session, privileges, locks) &&
         !!privileges[PRIVILEGES.FEATURED_STORIES]
-);
+    );
+}
 
-const canUpdatePlanning = (planning, event, session, privileges, locks) => (
-    canEditPlanning(planning, event, session, privileges, locks) &&
+function canUpdatePlanning(
+    planning: IPlanningItem,
+    event: IEventItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        canEditPlanning(planning, event, session, privileges, locks) &&
         isItemPublic(planning) &&
         !isItemKilled(planning) &&
         !!privileges[PRIVILEGES.POST_PLANNING]
-);
+    );
+}
 
-const canSpikePlanning = (plan, session, privileges, locks) => (
-    !isItemPosted(plan) &&
+function canSpikePlanning(
+    plan: IPlanningItem,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isItemPosted(plan) &&
         getItemWorkflowState(plan) === WORKFLOW_STATE.DRAFT &&
         !!privileges[PRIVILEGES.SPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isPlanningLockRestricted(plan, session, locks) &&
-        (!isItemExpired(plan) || privileges[PRIVILEGES.EDIT_EXPIRED])
-);
+        !lockUtils.isLockRestricted(plan, session, locks) &&
+        (
+            !isItemExpired(plan) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        )
+    );
+}
 
-const canUnspikePlanning = (plan, event = null, privileges) => (
-    isItemSpiked(plan) &&
+function canUnspikePlanning(
+    plan: IPlanningItem,
+    event: IEventItem | null,
+    privileges: IPrivileges
+): boolean {
+    return (
+        isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemSpiked(event) &&
-        (!isItemExpired(plan) || privileges[PRIVILEGES.EDIT_EXPIRED])
-);
+        (
+            !isItemExpired(plan) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        )
+    );
+}
 
-const canDuplicatePlanning = (plan, event = null, session, privileges, locks) => (
-    !isItemSpiked(plan) &&
+function canDuplicatePlanning(
+    plan: IPlanningItem,
+    event: IEventItem | null,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !self.isPlanningLockRestricted(plan, session, locks) &&
+        !lockUtils.isLockRestricted(plan, session, locks) &&
         !isItemSpiked(event)
-);
+    );
+}
 
-const canCancelPlanning = (planning, event = null, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isPlanningLockRestricted(planning, session, locks) &&
+function canCancelPlanning(
+    planning: IPlanningItem,
+    event: IEventItem | null,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !lockUtils.isLockRestricted(planning, session, locks) &&
         getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
         getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
-        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
+        !(
+            getPostedState(planning) === POST_STATE.USABLE &&
+            !privileges[PRIVILEGES.POST_PLANNING]
+        ) &&
         !isItemExpired(planning)
-);
+    );
+}
 
-const canCancelAllCoverage = (planning, event = null, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemSpiked(planning) && !isPlanningLockRestricted(planning, session, locks) &&
+function canCancelAllCoverage(
+    planning: IPlanningItem,
+    event: IEventItem | null,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemSpiked(planning) &&
+        !lockUtils.isLockRestricted(planning, session, locks) &&
         getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
         canCancelAllCoverageForPlanning(planning) &&
-        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
+        !(
+            getPostedState(planning) === POST_STATE.USABLE &&
+            !privileges[PRIVILEGES.POST_PLANNING]
+        ) &&
         !isItemExpired(planning)
-);
+    );
+}
 
-const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+function canAddAsEvent(
+    planning: IPlanningItem,
+    event: IEventItem | null,
+    session: ISession,
+    privileges: IPrivileges,
+    locks: ILockedItems
+): boolean {
+    return (
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         isPlanAdHoc(planning) &&
-        !isPlanningLocked(planning, locks) &&
+        !lockUtils.isItemLocked(planning, locks) &&
         !isItemSpiked(planning) &&
         getItemWorkflowState(planning) !== WORKFLOW_STATE.KILLED &&
         !isItemExpired(planning)
-);
+    );
+}
 
-const isCoverageCancelled = (coverage) =>
-    (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
+function isCoverageCancelled(coverage: IPlanningCoverageItem): boolean {
+    return get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED;
+}
 
-const canCancelCoverage = (coverage, planning, field = 'coverage_id') =>
-    (!isCoverageCancelled(coverage) && isExistingItem(coverage, field) && (!get(coverage, 'assigned_to.state')
-        || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED)) && !isItemExpired(planning);
+function canCancelCoverage(
+    coverage: IPlanningCoverageItem,
+    planning: IPlanningItem,
+    field: string = 'coverage_id'
+): boolean {
+    return (
+        !isItemExpired(planning) &&
+        (
+            !isCoverageCancelled(coverage) &&
+            isExistingItem(coverage, field) &&
+            (
+                !get(coverage, 'assigned_to.state')
+                || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
+            )
+        )
+    );
+}
 
-const canAddCoverageToWorkflow = (coverage, planning) =>
-    isExistingItem(coverage, 'coverage_id') &&
-    isCoverageDraft(coverage) &&
-    isCoverageAssigned(coverage) &&
-    !appConfig.planning_auto_assign_to_workflow &&
-    !isItemExpired(planning);
+function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: IPlanningItem): boolean {
+    return (
+        isExistingItem(coverage, 'coverage_id') &&
+        isCoverageDraft(coverage) &&
+        isCoverageAssigned(coverage) &&
+        !appConfig.planning_auto_assign_to_workflow &&
+        !isItemExpired(planning)
+    );
+}
 
-const canRemoveCoverage = (coverage, planning) => !isItemCancelled(planning) &&
-    ([WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED].includes(get(coverage, 'workflow_status')) ||
-        get(coverage, 'previous_status') === WORKFLOW_STATE.DRAFT) && !isItemExpired(planning);
+function canRemoveCoverage(coverage: IPlanningCoverageItem, planning: IPlanningItem): boolean {
+    return (
+        !isItemCancelled(planning) &&
+        !isItemExpired(planning) &&
+        (
+            [WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED].includes(get(coverage, 'workflow_status')) ||
+            get(coverage, 'previous_status') === WORKFLOW_STATE.DRAFT
+        )
+    );
+}
 
-const canCancelAllCoverageForPlanning = (planning) => (
-    get(planning, 'coverages.length') > 0 && get(planning, 'coverages')
-        .filter((c) => canCancelCoverage(c)).length > 0
-);
+function canCancelAllCoverageForPlanning(planning: IPlanningItem): boolean {
+    return (
+        get(planning, 'coverages.length') > 0 &&
+        get(planning, 'coverages').filter((c) => canCancelCoverage(c, planning)).length > 0
+    );
+}
 
-const canAddCoverages = (planning, event, privileges, session, locks) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        isPlanningLocked(planning, locks) &&
+function canAddCoverages(
+    planning: IPlanningItem,
+    event: IEventItem,
+    privileges: IPrivileges,
+    session: ISession,
+    locks: ILockedItems
+): boolean {
+    return (
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        lockUtils.isItemLocked(planning, locks) &&
         lockUtils.isItemLockedInThisSession(planning, session, locks) &&
         (isNil(event) || !isItemCancelled(event)) &&
         (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning) &&
         !isItemExpired(planning)
-);
-
-function isPlanningLocked(plan: IPlanningItem, locks: ILockedItems): boolean {
-    return lockUtils.getLock(plan, locks) != null;
-}
-
-function isPlanningLockRestricted(plan: IPlanningItem, session: ISession, locks: ILockedItems): boolean {
-    return (
-        isPlanningLocked(plan, locks) &&
-        !lockUtils.isItemLockedInThisSession(plan, session, locks)
     );
 }
 
@@ -221,18 +368,20 @@ function isPlanningLockRestricted(plan: IPlanningItem, session: ISession, locks:
  * @param {Array} coverages
  * @returns {Array}
  */
-export const mapCoverageByDate = (coverages = []) => (
-    coverages.map((c) => ({
+export function mapCoverageByDate(coverages: Array<IPlanningCoverageItem> = []): Array<IPlanningCoverageItem> {
+    return coverages.map((c) => ({
         ...c,
         g2_content_type: c.planning.g2_content_type || '',
         assigned_to: get(c, 'assigned_to'),
-    }))
-);
+    }));
+}
 
 // ad hoc plan created directly from planning list and not from an event
-const isPlanAdHoc = (plan) => !get(plan, 'event_item');
+function isPlanAdHoc(plan: IPlanningItem): boolean {
+    return plan.event_item == null;
+}
 
-const isPlanMultiDay = (plan) => {
+function isPlanMultiDay(plan: IPlanningItem): boolean {
     const coverages = get(plan, 'coverages', []);
 
     if (coverages.length > 0) {
@@ -245,11 +394,20 @@ const isPlanMultiDay = (plan) => {
     }
 
     return false;
-};
+}
 
-export const isNotForPublication = (plan) => get(plan, 'flags.marked_for_not_publication', false);
+export function isNotForPublication(plan: IPlanningItem): boolean {
+    return plan.flags?.marked_for_not_publication === true;
+}
 
-export const getPlanningItemActions = (plan, event = null, session, privileges, actions, locks) => {
+export function getPlanningItemActions(
+    plan: IPlanningItem,
+    event: IEventItem | null,
+    session: ISession,
+    privileges: IPrivileges,
+    actions: Array<IItemAction>,
+    locks: ILockedItems
+): Array<IItemAction> {
     let itemActions = [];
     let key = 1;
 
@@ -332,17 +490,30 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
     }
 
     return itemActions;
-};
+}
 
-const getPlanningActions = ({
-    item,
-    event,
-    session,
-    privileges,
-    lockedItems,
-    agendas,
-    callBacks,
-    contentTypes}) => {
+interface IGetPlanningActionArgs {
+    item: IPlanningItem;
+    event: IEventItem | null;
+    session: ISession;
+    privileges: IPrivileges;
+    lockedItems: ILockedItems;
+    agendas: Array<IAgenda>
+    callBacks: {[key: string]: (...args: Array<any>) => any};
+    contentTypes: Array<IG2ContentType>;
+}
+function getPlanningActions(
+    {
+        item,
+        event,
+        session,
+        privileges,
+        lockedItems,
+        agendas,
+        callBacks,
+        contentTypes,
+    }: IGetPlanningActionArgs
+): Array<IItemAction> {
     if (!isExistingItem(item)) {
         return [];
     }
@@ -475,12 +646,12 @@ const getPlanningActions = ({
         actions,
         lockedItems
     );
-};
+}
 
 /**
  * Converts output from `getPlanningActions` to `Array<IMenuItem>`
  */
-export function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
+export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenuItem> {
     return actions
         .filter((item, index) => {
             // Trim dividers. Menu should not start or end with a divider.
@@ -525,11 +696,11 @@ export function toUIFrameworkInterface(actions: any): Array<IMenuItem> {
         });
 }
 
-function getPlanningActionsForUiFrameworkMenu(data): Array<IMenuItem> {
+function getPlanningActionsForUiFrameworkMenu(data: IGetPlanningActionArgs): Array<IMenuItem> {
     return toUIFrameworkInterface(getPlanningActions(data));
 }
 
-export const modifyForClient = (plan) => {
+export function modifyForClient(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
     sanitizeItemFields(plan);
 
     // The `_status` field is available when the item comes from a POST/PATCH request
@@ -559,7 +730,7 @@ export const modifyForClient = (plan) => {
     plan.coverages.forEach((coverage) => self.modifyCoverageForClient(coverage));
 
     return plan;
-};
+}
 
 function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
     const modifyGenre = (coverage) => {
@@ -592,7 +763,7 @@ function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
  * @param {object} coverage - The coverage to modify
  * @return {object} coverage item provided
  */
-const modifyCoverageForClient = (coverage) => {
+function modifyCoverageForClient(coverage: IPlanningCoverageItem): IPlanningCoverageItem {
     const modifyGenre = (coverage) => {
         // Convert genre from an Array to an Object
         if (get(coverage, 'planning.genre[0]')) {
@@ -626,15 +797,15 @@ const modifyCoverageForClient = (coverage) => {
     });
 
     return coverage;
-};
+}
 
-const createNewPlanningFromNewsItem = (
+function createNewPlanningFromNewsItem(
     addNewsItemToPlanning: IArticle,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
     user: IUser['_id'],
     contentTypes: Array<IG2ContentType>
-) => {
+) {
     const newCoverage = self.createCoverageFromNewsItem(
         addNewsItemToPlanning,
         newsCoverageStatus,
@@ -644,7 +815,7 @@ const createNewPlanningFromNewsItem = (
     );
 
     let newPlanning: Partial<IPlanningItem> = {
-        type: ITEM_TYPE.PLANNING,
+        type: 'planning',
         slugline: addNewsItemToPlanning.slugline,
         headline: get(addNewsItemToPlanning, 'headline'),
         planning_date: moment(),
@@ -666,15 +837,15 @@ const createNewPlanningFromNewsItem = (
     }
 
     return newPlanning;
-};
+}
 
-const createCoverageFromNewsItem = (
+function createCoverageFromNewsItem(
     addNewsItemToPlanning: IArticle,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     desk: IDesk['_id'],
     user: IUser['_id'],
     contentTypes: Array<IG2ContentType>
-): Partial<IPlanningCoverageItem> => {
+): Partial<IPlanningCoverageItem> {
     let newCoverage = self.defaultCoverageValues(newsCoverageStatus);
 
     newCoverage.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
@@ -722,14 +893,14 @@ const createCoverageFromNewsItem = (
 
     newCoverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
     return newCoverage;
-};
+}
 
-const getCoverageReadOnlyFields = (
+function getCoverageReadOnlyFields(
     coverage,
     readOnly,
     newsCoverageStatus,
     addNewsItemToPlanning
-) => {
+): {[key: string]: boolean} {
     const scheduledUpdatesExist = get(coverage, 'scheduled_updates.length', 0) > 0;
 
     if (addNewsItemToPlanning) {
@@ -838,21 +1009,31 @@ const getCoverageReadOnlyFields = (
             xmp_file: readOnly,
         };
     }
-};
+}
 
-const getFlattenedPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
+function getFlattenedPlanningByDate(
+    plansInList: Array<IPlanningItem>,
+    events: {[key: string]: IEventItem},
+    startDate: IDateTime,
+    endDate: IDateTime,
+    timezone?: string
+) {
     const planning = getPlanningByDate(plansInList, events, startDate, endDate, timezone);
 
-    return flatten(sortBy(planning, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
-};
+    return flatten(
+        sortBy(planning, [(e) => (e.date)])
+            .map((e) => e.events.map((k) => [e.date, k._id]))
+    );
+}
 
-const getPlanningByDate = (
-    plansInList,
-    events,
-    startDate,
-    endDate,
-    timezone = null,
-    includeScheduledUpdates = false) => {
+function getPlanningByDate(
+    plansInList: Array<IPlanningItem>,
+    events: {[key: string]: IEventItem},
+    startDate: IDateTime,
+    endDate: IDateTime,
+    timezone?: string,
+    includeScheduledUpdates?: boolean
+): Array<{[date: string]: Array<IPlanningItem>}> {
     if (!plansInList) return [];
 
     const days = {};
@@ -911,7 +1092,7 @@ const getPlanningByDate = (
     });
 
     return sortBasedOnTBC(days);
-};
+}
 
 function getFeaturedPlanningItemsForDate(items: Array<IPlanningItem>, date: moment.Moment): Array<IPlanningItem> {
     const startDate = moment.tz(moment(date.format('YYYY-MM-DD')), appConfig.default_timezone);
@@ -939,15 +1120,22 @@ function getFeaturedPlanningItemsForDate(items: Array<IPlanningItem>, date: mome
     return [];
 }
 
-const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
-    PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
+function isCoverageDraft(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): boolean {
+    return get(coverage, 'workflow_status') === WORKFLOW_STATE.DRAFT;
+}
+function isCoverageInWorkflow(coverage: IPlanningCoverageItem): boolean {
+    return (
+        !isEmpty(coverage.assigned_to) &&
+        get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT
+    );
+}
+function formatAgendaName(agenda: IAgenda): string {
+    return agenda.is_enabled ?
+        agenda.name :
+        agenda.name + ` - [${gettext('Disabled')}]`;
+}
 
-const isCoverageDraft = (coverage) => get(coverage, 'workflow_status') === WORKFLOW_STATE.DRAFT;
-const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
-    get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
-const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.name + ` - [${gettext('Disabled')}]`;
-
-function getCoverageDateTimeText(coverage: IPlanningCoverageItem) {
+function getCoverageDateTimeText(coverage: IPlanningCoverageItem): string {
     const {gettext} = superdeskApi.localization;
     const coverage_date = moment.isMoment(coverage.planning?.scheduled) ?
         coverage.planning.scheduled :
@@ -1025,7 +1213,7 @@ function getCoverageIcon(
     return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
 }
 
-const getCoverageIconColor = (coverage): 'icon--green' | 'icon--red' | 'icon--yellow' | undefined => {
+function getCoverageIconColor(coverage: IPlanningCoverageItem): 'icon--green' | 'icon--red' | 'icon--yellow' | undefined {
     if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
         return 'icon--green';
     } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
@@ -1034,9 +1222,9 @@ const getCoverageIconColor = (coverage): 'icon--green' | 'icon--red' | 'icon--ye
         // Cancelled
         return 'icon--yellow';
     }
-};
+}
 
-const getCoverageWorkflowIcon = (coverage) => {
+function getCoverageWorkflowIcon(coverage: IPlanningCoverageItem): string | null {
     if (!get(coverage, 'assigned_to.desk')) {
         return;
     }
@@ -1055,20 +1243,32 @@ const getCoverageWorkflowIcon = (coverage) => {
     case COVERAGES.WORKFLOW_STATE.ACTIVE:
         return 'icon-user';
     }
-};
+}
 
-const getCoverageContentType = (coverage, contentTypes = []) => get(contentTypes.find(
-    (c) => get(c, 'qcode') === get(coverage, 'planning.g2_content_type')), 'content item type');
+function getCoverageContentType(
+    coverage: IPlanningCoverageItem,
+    contentTypes: Array<IG2ContentType> = []
+): IG2ContentType['content item type'] {
+    return get(
+        contentTypes.find((c) => get(c, 'qcode') === get(coverage, 'planning.g2_content_type')),
+        'content item type'
+    );
+}
 
-const shouldLockPlanningForEdit = (item, privileges) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_PLANNING])
-);
+function shouldLockPlanningForEdit(item: IPlanningItem, privileges: IPrivileges): boolean {
+    return (
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        (
+            !isItemPublic(item) ||
+            !!privileges[PRIVILEGES.POST_PLANNING]
+        )
+    );
+}
 
-const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
+function defaultPlanningValues(currentAgenda: IAgenda, defaultPlaceList: Array<IPlace>): Partial<IPlanningItem> {
     const language = planningApi.contentProfiles.getDefaultLanguage(planningApi.contentProfiles.get('planning'));
-    const newPlanning = {
-        type: ITEM_TYPE.PLANNING,
+    const newPlanning: Partial<IPlanningItem> = {
+        type: 'planning',
         planning_date: moment(),
         agendas: get(currentAgenda, 'is_enabled') ?
             [getItemId(currentAgenda)] : [],
@@ -1083,18 +1283,20 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
     }
 
     return self.modifyForClient(newPlanning);
-};
+}
 
-const getDefaultCoverageStatus = (newsCoverageStatus) => newsCoverageStatus[0];
+function getDefaultCoverageStatus(newsCoverageStatus: Array<IPlanningNewsCoverageStatus>): IPlanningNewsCoverageStatus {
+    return newsCoverageStatus[0];
+}
 
-const defaultCoverageValues = (
+function defaultCoverageValues(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     planningItem?: DeepPartial<IPlanningItem>,
     eventItem?: IEventItem,
     g2contentType?: IG2ContentType['qcode'],
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
-): DeepPartial<IPlanningCoverageItem> => {
+): DeepPartial<IPlanningCoverageItem> {
     let newCoverage: DeepPartial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),
         planning: {
@@ -1183,9 +1385,14 @@ const defaultCoverageValues = (
 
     self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
     return newCoverage;
-};
+}
 
-const setDefaultAssignment = (coverage, preferredCoverageDesks, g2contentType, defaultDesk) => {
+function setDefaultAssignment(
+    coverage: DeepPartial<IPlanningCoverageItem>,
+    preferredCoverageDesks: {[key: string]: IDesk['_id']},
+    g2contentType: IG2ContentType['qcode'],
+    defaultDesk: IDesk
+) {
     if (get(preferredCoverageDesks, g2contentType)) {
         coverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
     } else if (g2contentType === 'text' && defaultDesk) {
@@ -1193,9 +1400,12 @@ const setDefaultAssignment = (coverage, preferredCoverageDesks, g2contentType, d
     } else {
         delete coverage.assigned_to;
     }
-};
+}
 
-const modifyPlanningsBeingAdded = (state, payload) => {
+function modifyPlanningsBeingAdded(
+    state: IPlanningAppState['planning'],
+    payload: IPlanningItem | Array<IPlanningItem>
+): IPlanningAppState['planning']['plannings'] {
     // payload must be an array. If not, we transform
     const plans = Array.isArray(payload) ? payload : [payload];
 
@@ -1208,9 +1418,9 @@ const modifyPlanningsBeingAdded = (state, payload) => {
     });
 
     return plannings;
-};
+}
 
-const isFeaturedPlanningUpdatedAfterPosting = (item) => {
+function isFeaturedPlanningUpdatedAfterPosting(item: IFeaturedPlanningItem): boolean {
     if (!item || !get(item, '_updated')) {
         return;
     }
@@ -1219,18 +1429,26 @@ const isFeaturedPlanningUpdatedAfterPosting = (item) => {
     const postedDate = moment(get(item, 'last_posted_time'));
 
     return updatedDate.isAfter(postedDate);
-};
+}
 
-const shouldFetchFilesForPlanning = (planning) => (
-    self.getPlanningFiles(planning).filter((f) => typeof (f) === 'string'
-            || f instanceof String).length > 0
-);
+function shouldFetchFilesForPlanning(planning: IPlanningItem): boolean {
+    return (
+        self.getPlanningFiles(planning)
+            .filter((f) => typeof (f) === 'string' || f instanceof String)
+            .length > 0
+    );
+}
 
-const getAgendaNames = (item = {}, agendas = [], onlyEnabled = false, field = 'agendas') => (
-    get(item, field, [])
+function getAgendaNames(
+    item: DeepPartial<IPlanningItem> = {},
+    agendas: Array<IAgenda> = [],
+    onlyEnabled: boolean = false,
+    field: string = 'agendas'
+): Array<IAgenda> {
+    return get(item, field, [])
         .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
-        .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled))
-);
+        .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled));
+}
 
 function getDateStringForPlanning(planning: IPlanningItem): string {
     const {gettext} = superdeskApi.localization;
@@ -1252,7 +1470,7 @@ function getDateStringForPlanning(planning: IPlanningItem): string {
         );
 }
 
-const getCoverageDateText = (coverage) => {
+function getCoverageDateText(coverage: IPlanningCoverageItem): string {
     const coverageDate = get(coverage, 'planning.scheduled');
 
     return !coverageDate ?
@@ -1264,20 +1482,37 @@ const getCoverageDateText = (coverage) => {
             ' @ ',
             false
         );
-};
+}
 
-const canAddScheduledUpdateToWorkflow = (scheduledUpdate, autoAssignToWorkflow, planning, coverage) =>
-    isExistingItem(scheduledUpdate, 'scheduled_update_id') && isCoverageInWorkflow(coverage) &&
-    isCoverageDraft(scheduledUpdate) && isCoverageAssigned(scheduledUpdate) && !autoAssignToWorkflow &&
-    !isItemExpired(planning);
+function canAddScheduledUpdateToWorkflow(
+    scheduledUpdate: ICoverageScheduledUpdate,
+    autoAssignToWorkflow: boolean,
+    planning: IPlanningItem,
+    coverage: IPlanningCoverageItem
+): boolean {
+    return (
+        isExistingItem(scheduledUpdate, 'scheduled_update_id') &&
+        isCoverageInWorkflow(coverage) &&
+        isCoverageDraft(scheduledUpdate) &&
+        isCoverageAssigned(scheduledUpdate) &&
+        !autoAssignToWorkflow &&
+        !isItemExpired(planning)
+    );
+}
 
-const setCoverageActiveValues = (coverage, newsCoverageStatus) => {
+function setCoverageActiveValues(
+    coverage: IPlanningCoverageItem | ICoverageScheduledUpdate,
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
+) {
     set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
     set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
     set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
-};
+}
 
-const getActiveCoverage = (updatedCoverage, newsCoverageStatus) => {
+function getActiveCoverage(
+    updatedCoverage: IPlanningCoverageItem,
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
+): IPlanningCoverageItem {
     const coverage = cloneDeep(updatedCoverage);
 
     setCoverageActiveValues(coverage, newsCoverageStatus);
@@ -1289,9 +1524,9 @@ const getActiveCoverage = (updatedCoverage, newsCoverageStatus) => {
     });
 
     return coverage;
-};
+}
 
-const getPlanningFiles = (planning) => {
+function getPlanningFiles(planning: IPlanningItem): IPlanningItem['files'] {
     let filesToFetch = get(planning, 'files') || [];
 
     (get(planning, 'coverages') || []).forEach((c) => {
@@ -1308,14 +1543,14 @@ const getPlanningFiles = (planning) => {
     });
 
     return filesToFetch;
-};
+}
 
-const showXMPFileUIControl = (coverage) => (
-    get(coverage, 'planning.g2_content_type') === 'picture' && (
+function showXMPFileUIControl(coverage: IPlanningCoverageItem): boolean {
+    return get(coverage, 'planning.g2_content_type') === 'picture' && (
         appConfig.planning_use_xmp_for_pic_assignments ||
         appConfig.planning_use_xmp_for_pic_slugline
-    )
-);
+    );
+}
 
 function duplicateCoverage(
     item: DeepPartial<IPlanningItem>,
@@ -1374,8 +1609,6 @@ const self = {
     canUpdatePlanning,
     mapCoverageByDate,
     getPlanningItemActions,
-    isPlanningLocked,
-    isPlanningLockRestricted,
     isPlanAdHoc,
     modifyCoverageForClient,
     isCoverageCancelled,
@@ -1390,7 +1623,6 @@ const self = {
     getFeaturedPlanningItemsForDate,
     createNewPlanningFromNewsItem,
     createCoverageFromNewsItem,
-    isLockedForAddToPlanning,
     isCoverageAssigned,
     isCoverageDraft,
     isCoverageInWorkflow,

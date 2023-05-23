@@ -1,6 +1,7 @@
 import sinon from 'sinon';
 import moment from 'moment';
 
+import {planningApi} from '../../superdeskApi';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {removeAutosaveFields, modifyForClient} from '../../utils';
 import {main} from '../';
@@ -8,7 +9,7 @@ import {AGENDA, POST_STATE} from '../../constants';
 import eventsUi from '../events/ui';
 import eventsApi from '../events/api';
 import planningUi from '../planning/ui';
-import planningApi from '../planning/api';
+import planningApis from '../planning/api';
 import eventsPlanningUi from '../eventsPlanning/ui';
 import {locks} from '../';
 
@@ -56,12 +57,12 @@ describe('actions.main', () => {
     describe('post', () => {
         beforeEach(() => {
             sinon.stub(eventsApi, 'post').returns(Promise.resolve(data.events[0]));
-            sinon.stub(planningApi, 'post').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(planningApis, 'post').returns(Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
             restoreSinonStub(eventsApi.post);
-            restoreSinonStub(planningApi.post);
+            restoreSinonStub(planningApis.post);
         });
 
         it('calls events.ui.post', (done) => (
@@ -81,8 +82,8 @@ describe('actions.main', () => {
         it('calls planning.ui.post', (done) => (
             store.test(done, main.post(data.plannings[0]))
                 .then(() => {
-                    expect(planningApi.post.callCount).toBe(1);
-                    expect(planningApi.post.args[0]).toEqual([
+                    expect(planningApis.post.callCount).toBe(1);
+                    expect(planningApis.post.args[0]).toEqual([
                         data.plannings[0],
                         {pubstatus: POST_STATE.USABLE},
                     ]);
@@ -109,12 +110,12 @@ describe('actions.main', () => {
     describe('unpost', () => {
         beforeEach(() => {
             sinon.stub(eventsApi, 'unpost').returns(Promise.resolve(data.events[0]));
-            sinon.stub(planningApi, 'unpost').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(planningApis, 'unpost').returns(Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
             restoreSinonStub(eventsApi.unpost);
-            restoreSinonStub(planningApi.unpost);
+            restoreSinonStub(planningApis.unpost);
         });
 
         it('calls events.ui.unpost', (done) => (
@@ -134,8 +135,8 @@ describe('actions.main', () => {
         it('calls planning.ui.unpost', (done) => (
             store.test(done, main.unpost(data.plannings[0]))
                 .then(() => {
-                    expect(planningApi.unpost.callCount).toBe(1);
-                    expect(planningApi.unpost.args[0]).toEqual([
+                    expect(planningApis.unpost.callCount).toBe(1);
+                    expect(planningApis.unpost.args[0]).toEqual([
                         data.plannings[0],
                         {pubstatus: POST_STATE.CANCELLED},
                     ]);
@@ -323,12 +324,12 @@ describe('actions.main', () => {
     describe('loadItem', () => {
         beforeEach(() => {
             sinon.stub(eventsApi, 'fetchById').returns(Promise.resolve(data.events[0]));
-            sinon.stub(planningApi, 'fetchById').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(planningApis, 'fetchById').returns(Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
             restoreSinonStub(eventsApi.fetchById);
-            restoreSinonStub(planningApi.fetchById);
+            restoreSinonStub(planningApis.fetchById);
         });
 
         it('loads an Event for preview', (done) => (
@@ -373,8 +374,8 @@ describe('actions.main', () => {
                     expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_PREVIEW_LOADING_START'}]);
 
-                    expect(planningApi.fetchById.callCount).toBe(1);
-                    expect(planningApi.fetchById.args[0]).toEqual(['p1', {force: false}]);
+                    expect(planningApis.fetchById.callCount).toBe(1);
+                    expect(planningApis.fetchById.args[0]).toEqual(['p1', {force: false}]);
 
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
 
@@ -390,8 +391,8 @@ describe('actions.main', () => {
                     expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_EDIT_LOADING_START'}]);
 
-                    expect(planningApi.fetchById.callCount).toBe(1);
-                    expect(planningApi.fetchById.args[0]).toEqual(['p1', {force: false}]);
+                    expect(planningApis.fetchById.callCount).toBe(1);
+                    expect(planningApis.fetchById.args[0]).toEqual(['p1', {force: false}]);
 
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
 
@@ -515,16 +516,14 @@ describe('actions.main', () => {
 
         beforeEach(() => {
             actionCallback = sinon.stub().returns(Promise.resolve());
-            sinon.stub(locks, 'unlock').callsFake((item) => Promise.resolve(item));
-            // sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(planningApi.locks, 'unlockItem').callsFake((item) => Promise.resolve(item));
             sinon.stub(main, 'openForEdit');
             sinon.stub(main, 'saveAutosave').callsFake((item) => Promise.resolve(item));
             sinon.stub(main, 'openIgnoreCancelSaveModal').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
-            restoreSinonStub(locks.unlock);
-            // restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(planningApi.locks.unlockItem);
             restoreSinonStub(main.openForEdit);
             restoreSinonStub(main.saveAutosave);
             restoreSinonStub(main.openIgnoreCancelSaveModal);
@@ -554,8 +553,8 @@ describe('actions.main', () => {
 
             return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
-                    expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([data.events[0]]);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(1);
+                    expect(planningApi.locks.unlockItem.args[0]).toEqual([data.events[0]]);
 
                     expect(actionCallback.callCount).toBe(1);
                     expect(actionCallback.args[0]).toEqual([
@@ -572,8 +571,8 @@ describe('actions.main', () => {
                     return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback));
                 })
                 .then(() => {
-                    expect(locks.unlock.callCount).toBe(2);
-                    expect(locks.unlock.args[1]).toEqual([data.events[0]]);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(2);
+                    expect(planningApi.locks.unlockItem.args[1]).toEqual([data.events[0]]);
 
                     expect(actionCallback.callCount).toBe(2);
                     expect(actionCallback.args[1]).toEqual([
@@ -868,7 +867,7 @@ describe('actions.main', () => {
         beforeEach(() => {
             sinon.stub(planningUi, 'save').callsFake((item) => (Promise.resolve(item)));
             sinon.stub(eventsUi, 'saveWithConfirmation').callsFake((item) => (Promise.resolve(item)));
-            sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
+            sinon.stub(planningApi.locks, 'unlockItem').callsFake((item) => Promise.resolve(item));
         });
 
         it('saves and unlocks planning item', (done) =>
@@ -883,8 +882,8 @@ describe('actions.main', () => {
                         {...data.plannings[0], slugline: 'New Slugger'},
                     ]);
 
-                    expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([modifyForClient(data.plannings[0])]);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(1);
+                    expect(planningApi.locks.unlockItem.args[0]).toEqual([modifyForClient(data.plannings[0])]);
 
                     done();
                 })
@@ -902,8 +901,8 @@ describe('actions.main', () => {
                         false,
                     ]);
 
-                    expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([modifyForClient(data.events[0])]);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(1);
+                    expect(planningApi.locks.unlockItem.args[0]).toEqual([modifyForClient(data.events[0])]);
 
                     done();
                 })
@@ -912,7 +911,7 @@ describe('actions.main', () => {
 
         afterEach(() => {
             restoreSinonStub(planningUi.save);
-            restoreSinonStub(locks.unlock);
+            restoreSinonStub(planningApi.locks.unlockItem);
             restoreSinonStub(eventsUi.saveWithConfirmation);
         });
     });

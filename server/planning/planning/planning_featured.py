@@ -55,7 +55,9 @@ class PlanningFeaturedService(superdesk.Service):
 
     def on_update(self, updates, original):
         # Find all planning items in the list
-        added_featured = [id for id in updates.get("items") if id not in original.get("items")]
+        added_featured = [
+            item_id for item_id in updates.get("items") or [] if item_id not in original.get("items") or []
+        ]
         self.validate_featured_attrribute(added_featured)
         updates["version_creator"] = str(get_user_id())
         self.post_featured_planning(updates, original)

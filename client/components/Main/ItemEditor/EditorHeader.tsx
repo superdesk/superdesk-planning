@@ -201,7 +201,7 @@ export class EditorHeader extends React.Component {
         states.canEditExpired = privileges[PRIVILEGES.EDIT_EXPIRED];
         states.itemLock = lockUtils.getLock(initialValues, lockedItems);
         states.isLockedInContext = addNewsItemToPlanning ?
-            planningUtils.isLockedForAddToPlanning(initialValues) :
+            lockUtils.isLockedForAddToPlanning(initialValues, lockedItems) :
             !!states.itemLock;
 
         states.lockedUser = lockUtils.getLockedUser(initialValues, lockedItems, users);

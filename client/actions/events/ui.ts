@@ -2,12 +2,12 @@ import {get} from 'lodash';
 import moment from 'moment-timezone';
 
 import {appConfig} from 'appConfig';
+import {planningApi} from '../../superdeskApi';
 import {IPlanningItem, IEventItem} from '../../interfaces';
 
-import {showModal, main, locks, addEventToCurrentAgenda} from '../index';
+import {showModal, main, addEventToCurrentAgenda} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
 import eventsApi from './api';
-import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -406,7 +406,7 @@ const _openActionModalFromEditor = ({
                                 promise.then((refetchedEvent) => (
                                     (openInEditor || openInModal) ?
                                         dispatch(main.openForEdit(refetchedEvent, !openInModal, openInModal)) :
-                                        dispatch(locks.lock(refetchedEvent, previousLock.action))
+                                        planningApi.locks.lockItem(refetchedEvent, previousLock.action)
                                 ), () => Promise.reject());
                             }
 
@@ -432,7 +432,7 @@ const _openActionModal = (
     modalProps = {}
 ) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.lock(original, lockAction))
+        planningApi.locks.lockItem(original, lockAction)
             .then((lockedEvent) => (
                 eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents)
                     .then((eventDetail) => (
@@ -795,7 +795,7 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
         }
 
         return Promise.all([
-            dispatch(planningApi.lock(plan, 'add_as_event')),
+            planningApi.locks.lockItem(plan, 'add_as_event'),
             dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent)),
         ]);
     }
@@ -829,7 +829,8 @@ const selectCalendar = (calendarId = '', params = {}) => (
 
 const onEventEditUnlock = (event) => (
     (dispatch) => (
-        get(event, '_planning_item') ? dispatch(planningApi.unlock({_id: event._planning_item})) :
+        get(event, '_planning_item') ?
+            planningApi.locks.unlockItemById(event._planning_item, 'planning') :
             Promise.resolve()
     )
 );
@@ -852,7 +853,7 @@ const lockAndSaveUpdates = (
         }
 
         // Otherwise lock, save and unlock this Event
-        return dispatch(locks.lock(event, lockAction))
+        planningApi.locks.lockItem(event, lockAction)
             .then((original) => (
                 dispatch(main.saveAndUnlockItem(original, updates, true))
                     .then((item) => {
@@ -966,7 +967,7 @@ const onMarkEventCompleted = (event, editor = false) => (
                 event,
                 gettext('Save changes before marking event as complete ?'),
                 (unlockedItem, previousLock, openInEditor, openInModal) => (
-                    dispatch(locks.lock(unlockedItem, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+                    planningApi.locks.lockItem(unlockedItem, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action)
                         .then((lockedItem) => (
                             dispatch(showModal({
                                 modalType: MODALS.CONFIRMATION,
@@ -976,15 +977,15 @@ const onMarkEventCompleted = (event, editor = false) => (
                                         dispatch(main.saveAndUnlockItem(lockedItem, updates, true)).then((result) => {
                                             if (get(previousLock, 'action') && (openInEditor || openInModal)) {
                                                 dispatch(main.openForEdit(result, true, openInModal));
-                                                dispatch(locks.lock(result, previousLock.action));
+                                                planningApi.locks.lockItem(result, previousLock.action);
                                             }
                                         }, (error) => {
-                                            dispatch(locks.unlock(lockedItem));
+                                            planningApi.locks.unlockItem(lockedItem);
                                         }),
-                                    onCancel: () => dispatch(locks.unlock(lockedItem)).then((result) => {
+                                    onCancel: () => planningApi.locks.unlockItem(lockedItem).then((result) => {
                                         if (get(previousLock, 'action') && (openInEditor || openInModal)) {
                                             dispatch(main.openForEdit(result, true, openInModal));
-                                            dispatch(locks.lock(result, previousLock.action));
+                                            planningApi.locks.lockItem(result, previousLock.action);
                                         }
                                     }),
                                     autoClose: true,
@@ -996,16 +997,16 @@ const onMarkEventCompleted = (event, editor = false) => (
         }
 
         // If actioned on list / preview
-        return dispatch(locks.lock(event, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+        return planningApi.locks.lockItem(event, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action)
             .then((original) => (
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
                     modalProps: {
                         body: gettext('Are you sure you want to mark this event as complete?'),
                         action: () => dispatch(main.saveAndUnlockItem(original, updates, true)).catch((error) => {
-                            dispatch(locks.unlock(original));
+                            planningApi.locks.unlockItem(original);
                         }),
-                        onCancel: () => dispatch(locks.unlock(original)),
+                        onCancel: () => planningApi.locks.unlockItem(original),
                         autoClose: true,
                     },
                 }))), (error) => {

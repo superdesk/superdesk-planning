@@ -188,22 +188,21 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                 <SubNav zIndex={1}>
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
+                        {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
+                            <div>
+                                <span className="sd-margin-l--1 sd-opacity--75 ">{gettext('Assigned to:')}</span>
+                                <Dropdown items={userList}>
+                                    <span className="sd-margin-l--1 sd-margin-r--3">
+                                        {this.props.users.find(
+                                            (user) => user._id == this.props.coverageUser
+                                        )?.display_name ?? gettext('ALL')}
+                                        <span className="dropdown__caret" />
+                                    </span>
+                                </Dropdown>
+                            </div>
+                        )}
                     </ButtonGroup>
-                    {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
-                        <div>
-                            {gettext('Assigned Coverages Items :')}
-                            <Dropdown items={userList}>
-                                <span className="sd-margin-l--1 sd-margin-r--3">
-                                    {this.props.users.find(
-                                        (user) => user._id == this.props.coverageUser)?.display_name ?? gettext('ALL')}
-                                    <span className="dropdown__caret" />
-                                </span>
-                            </Dropdown>
-
-                        </div>
-                    )}
-
-                    <ButtonGroup align="end">
+                    <ButtonGroup className="hideOnMobile" align="end">
                         {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
                             <React.Fragment>
                                 <div

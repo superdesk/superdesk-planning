@@ -3,12 +3,13 @@ import {get, cloneDeep, has, pick} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {IAssignmentItem} from '../../interfaces';
+import {planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
 import * as actions from '../';
 import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
 import planningUtils from '../../utils/planning';
-import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
+import {getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planning from '../planning';
 import {assignmentsViewRequiresArchiveItems} from '../../components/Assignments/AssignmentItem/fields';
 
@@ -241,24 +242,6 @@ const fetchAssignmentById = (id, force = false, recieve = true) => (
 );
 
 /**
- * Action dispatcher to query the API for all Assignments that are currently locked
- * @return Array of locked Assignments
- */
-const queryLockedAssignments = () => (
-    (dispatch, getState, {api}) => (
-        api('assignments').query({
-            source: JSON.stringify(
-                {query: {constant_score: {filter: {exists: {field: 'lock_session'}}}}}
-            ),
-        })
-            .then(
-                (data) => Promise.resolve(data._items),
-                (error) => Promise.reject(error)
-            )
-    )
-);
-
-/**
  * Action to receive the list of Assignments and store them in the store
  * Also loads all the associated contacts (if any)
  * @param {Array} assignments - An array of Assignment items
@@ -391,53 +374,6 @@ const revert = (item) => (
             item,
             {}
         )
-    )
-);
-
-/**
- * Action to lock an assignment
- * @param {IAssignmentItem} assignment - Assignment to be unlocked
- * @param {String} action - The action to assign to the lock
- * @return Promise
- */
-const lock = (assignment: IAssignmentItem, action: string = 'edit') => (
-    (dispatch, getState, {api, notify}) => {
-        if (lockUtils.isItemLockedInThisSession(
-            assignment,
-            selectors.general.session(getState()),
-            selectors.locks.getLockedItems(getState())
-        )) {
-            return Promise.resolve(assignment);
-        }
-
-        return api('assignments_lock', assignment).save({}, {lock_action: action})
-            .then(
-                (lockedItem: IAssignmentItem) => lockedItem,
-                (error) => {
-                    const msg = get(error, 'data._message') || 'Could not lock the assignment.';
-
-                    notify.error(msg);
-                    if (error) throw error;
-                });
-    }
-);
-
-/**
- * Action to unlock an assignment
- * @param {IAssignmentItem} assignment - Assignment to be unlocked
- * @return Promise
- */
-const unlock = (assignment: IAssignmentItem) => (
-    (dispatch, getState, {api, notify}) => (
-        api('assignments_unlock', assignment).save({})
-            .then(
-                (unlockedItem: IAssignmentItem) => unlockedItem,
-                (error) => {
-                    const msg = get(error, 'data._message') || 'Could not unlock the assignment.';
-
-                    notify.error(msg);
-                    throw error;
-                })
     )
 );
 
@@ -605,21 +541,21 @@ const removeAssignment = (assignment) => (
     )
 );
 
-const unlink = (assignment) => (
-    (dispatch, getState, {api, notify}) => (
+function unlink(assignment: IAssignmentItem) {
+    return (dispatch, getState, {api, notify}) => (
         api('assignments_unlink').save({}, {
             assignment_id: assignment._id,
             item_id: get(assignment, 'item_ids[0]'),
         })
             .then(() => {
                 notify.success(gettext('Assignment reverted.'));
-                return dispatch(self.unlock(assignment));
+                return planningApi.locks.unlockItem(assignment);
             }, (error) => {
                 notify.error(get(error, 'data._message') || gettext('Could not unlock the assignment.'));
                 throw error;
             })
-    )
-);
+    );
+}
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -631,9 +567,6 @@ const self = {
     createFromTemplateAndShow,
     complete,
     revert,
-    lock,
-    unlock,
-    queryLockedAssignments,
     loadPlanningAndEvent,
     loadArchiveItems,
     loadArchiveItem,
