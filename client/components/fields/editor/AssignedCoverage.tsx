@@ -1,7 +1,9 @@
 import * as React from 'react';
 import {superdeskApi} from '../../../superdeskApi';
-import {ICoverageAssigned, IEditorFieldProps} from '../../../interfaces';
+import {ICoverageAssigned, IEditorFieldProps, IPlanningConfig} from '../../../interfaces';
 import {EditorFieldSelect} from './base/select';
+import * as config from 'appConfig';
+const appConfig = config.appConfig as IPlanningConfig;
 
 interface IProps extends IEditorFieldProps {
     contentTypes: Array<ICoverageAssigned>;
@@ -13,6 +15,10 @@ interface IProps extends IEditorFieldProps {
 export class EditorFieldAssignedCoverageComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+
+        if (appConfig.planning_auto_assign_to_workflow) {
+            return null;
+        }
 
         const coverageOption = [
             {qcode: 'null', name: gettext('No Coverage Assigned')},
