@@ -8,9 +8,6 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
 import {getContactTypes} from '../../selectors/vocabs';
-import {IPlanningConfig} from '../../interfaces';
-import * as config from 'appConfig';
-const appConfig = config.appConfig as IPlanningConfig;
 
 import {
     Label,
@@ -35,6 +32,7 @@ export class AssignmentEditorComponent extends React.Component {
 
         const userId = get(props.value, this.FIELDS.USER);
         const user = getItemInArrayById(props.users, userId);
+
         const deskId = get(props.value, this.FIELDS.DESK);
         const desk = getItemInArrayById(props.desks, deskId);
 
@@ -122,14 +120,16 @@ export class AssignmentEditorComponent extends React.Component {
     }
 
     onChange(field, value, state = {}) {
+        const errors = cloneDeep(this.state.errors);
         const combinedState = {
             ...this.state,
             ...state,
         };
-
-        const errors = cloneDeep(combinedState.errors);
+        const newState = cloneDeep(state);
 
         this.props.onValidate(combinedState, errors);
+        newState.errors = errors;
+        this.setState(newState);
 
         // If a field name is provided, then call onChange so
         // the parent can update the field's value
@@ -137,14 +137,9 @@ export class AssignmentEditorComponent extends React.Component {
             this.props.onChange(field, value || null);
         }
 
-        // Check if PLANNING_AUTO_ASSIGN_TO_WORKFLOW is false and remove the "desk" field error
-        if (!appConfig.planning_auto_assign_to_workflow) {
-            delete errors.desk;
-        }
-
+        // If there are no errors, then tell our parent the Assignment is valid
+        // otherwise, tell the parent the Assignment is invalid
         this.props.setValid(isEqual(errors, {}));
-
-        this.setState({...combinedState, errors});
     }
 
     onUserChange(field, value) {
@@ -179,21 +174,14 @@ export class AssignmentEditorComponent extends React.Component {
     }
 
     onDeskChange(field, value) {
-        const deskId = value ? value._id : null;
+        const deskId = get(value, '_id');
 
         if (deskId !== this.state.deskId) {
-            const newState = {
+            this.onChange(this.FIELDS.DESK, get(value, '_id'), {
                 deskId: deskId,
                 desk: value,
                 filteredUsers: getUsersForDesk(value, this.props.users),
-            };
-
-            // Remove the validation error for the "desk" field if PLANNING_AUTO_ASSIGN_TO_WORKFLOW is false
-            if (!appConfig.planning_auto_assign_to_workflow) {
-                delete this.state.errors.desk;
-            }
-
-            this.onChange(this.FIELDS.DESK, deskId, newState);
+            });
         }
     }
 
