@@ -7,7 +7,8 @@ import {
     IG2ContentType,
     IPlanningCoverageItem,
     IPlanningItem,
-    IPlanningNewsCoverageStatus
+    IPlanningNewsCoverageStatus,
+    IPlanningConfig
 } from '../../../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
@@ -17,6 +18,8 @@ import {planningUtils, generateTempId} from '../../../../utils';
 import {ButtonGroup, Button, IconLabel} from 'superdesk-ui-framework/react';
 import {ICoverageDetails, CoverageRowForm} from './CoverageRowForm';
 import {Group} from '../../../UI/List';
+import * as config from 'appConfig';
+const appConfig = config.appConfig as IPlanningConfig;
 
 interface IProps {
     event: IEventItem;
@@ -100,7 +103,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                 Object.assign({}, coverage, updates) :
                 coverage;
 
-            if (updatedCoverage.enabled && updatedCoverage.desk == null) {
+            if (updatedCoverage.enabled && updatedCoverage.desk == null && appConfig.planning_auto_assign_to_workflow) {
                 errors[updatedCoverage.id] = {desk: gettext('Desk is required')};
             }
 

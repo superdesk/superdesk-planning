@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import {IDesk, IUser} from 'superdesk-api';
-import {IPlanningNewsCoverageStatus} from '../../../../interfaces';
+import {IPlanningNewsCoverageStatus, IPlanningConfig} from '../../../../interfaces';
 import {ICoverageDetails} from './CoverageRowForm';
 import {superdeskApi} from '../../../../superdeskApi';
 
@@ -11,6 +11,8 @@ import {Select, Option} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
 import {Row, SelectUserInput} from '../../../UI/Form';
 import {EditorFieldNewsCoverageStatus} from '../NewsCoverageStatus';
+import * as config from 'appConfig';
+const appConfig = config.appConfig as IPlanningConfig;
 
 interface IProps {
     coverage: ICoverageDetails;
@@ -76,7 +78,7 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
                                 label={gettext('Desk:')}
                                 value={coverage.desk?._id}
                                 onChange={this.onDeskChange}
-                                required={true}
+                                required={appConfig.planning_auto_assign_to_workflow}
                                 invalid={this.props.errors?.desk != null}
                                 error={this.props.errors?.desk}
                             >
