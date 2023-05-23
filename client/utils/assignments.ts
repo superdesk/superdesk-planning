@@ -2,7 +2,15 @@ import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
 
 import {IVocabularyItem} from 'superdesk-api';
-import {IAssignmentItem, ISession, IPrivileges, ASSIGNMENT_STATE} from '../interfaces';
+import {
+    IAssignmentItem,
+    ISession,
+    IPrivileges,
+    ASSIGNMENT_STATE,
+    ILockedItems,
+    IG2ContentType,
+    IItemAction,
+} from '../interfaces';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
@@ -11,9 +19,9 @@ import {gettext, planningUtils, lockUtils, getCreator, getItemInArrayById, isExi
 import {getUserInterfaceLanguageFromCV} from './users';
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 
-const isNotLockRestricted = (assignment, session) => (
+const isNotLockRestricted = (assignment, session, lockedItems) => (
     !get(assignment, 'lock_user') ||
-        lockUtils.isItemLockedInThisSession(assignment, session)
+        lockUtils.isItemLockedInThisSession(assignment, session, lockedItems)
 );
 
 const isTextAssignment = (assignment, contentTypes = []) => {
@@ -33,17 +41,24 @@ function canEditPriorityOrReassignAssignment(
     session: ISession,
     privileges: IPrivileges,
     privilege: string,
+    lockedItems: ILockedItems,
 ) {
     return !!privileges[privilege] &&
-        self.isNotLockRestricted(assignment, session) &&
+        self.isNotLockRestricted(assignment, session, lockedItems) &&
         self.isAssignmentInEditableState(assignment);
 }
 
-const canRemoveAssignment = (assignment, session, privileges, privilege) => (
-    !!privileges[privilege] &&
-        self.isNotLockRestricted(assignment, session) &&
-        self.isAssignmentInEditableState(assignment)
-);
+function canRemoveAssignment(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    privilege: string,
+    lockedItems: ILockedItems,
+) {
+    return !!privileges[privilege] &&
+        self.isNotLockRestricted(assignment, session, lockedItems) &&
+        self.isAssignmentInEditableState(assignment);
+}
 
 const canStartWorking = (assignment, session, privileges, contentTypes) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
@@ -57,11 +72,16 @@ const canStartWorking = (assignment, session, privileges, contentTypes) => (
         !isAssignedToProvider(assignment)
 );
 
-const canFulfilAssignment = (assignment, session, privileges) => (
-    !!privileges[PRIVILEGES.ARCHIVE] &&
-        isNotLockRestricted(assignment, session) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED
-);
+function canFulfilAssignment(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    lockedItems: ILockedItems
+) {
+    return !!privileges[PRIVILEGES.ARCHIVE] &&
+        isNotLockRestricted(assignment, session, lockedItems) &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED;
+}
 
 const isAssignmentInEditableState = (assignment) => (
     (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
@@ -72,10 +92,11 @@ const isAssignmentInEditableState = (assignment) => (
 function canCompleteAssignment(
     assignment: IAssignmentItem,
     session: ISession,
-    privileges: IPrivileges
+    privileges: IPrivileges,
+    lockedItems: ILockedItems,
 ): boolean {
     return !!privileges[PRIVILEGES.ARCHIVE] &&
-        self.isNotLockRestricted(assignment, session) &&
+        self.isNotLockRestricted(assignment, session, lockedItems) &&
         (
             assignment.assigned_to?.state === ASSIGNMENT_STATE.IN_PROGRESS ||
             (
@@ -89,21 +110,32 @@ function canCompleteAssignment(
         );
 }
 
-const canConfirmAvailability = (assignment, session, privileges, contentTypes) => (
-    !!privileges[PRIVILEGES.ARCHIVE] &&
-        self.isNotLockRestricted(assignment, session) &&
+function canConfirmAvailability(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    contentTypes: Array<IG2ContentType>,
+    lockedItems: ILockedItems,
+) {
+    return !!privileges[PRIVILEGES.ARCHIVE] &&
+        self.isNotLockRestricted(assignment, session, lockedItems) &&
         !self.isTextAssignment(assignment, contentTypes) &&
         (
             get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
             get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
-        )
-);
+        );
+}
 
-const canRevertAssignment = (assignment, session, privileges) => (
-    !!privileges[PRIVILEGES.ARCHIVE] &&
-        self.isNotLockRestricted(assignment, session) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
-);
+function canRevertAssignment(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    lockedItems: ILockedItems,
+) {
+    return !!privileges[PRIVILEGES.ARCHIVE] &&
+        self.isNotLockRestricted(assignment, session, lockedItems) &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED;
+}
 
 const assignmentHasContent = (assignment) => (
     get(assignment, 'item_ids.length', 0) > 0
@@ -128,7 +160,14 @@ const getContactLabel = (assignment) => (
         gettext('Coverage Contact')
 );
 
-const getAssignmentActions = (assignment, session, privileges, lockedItems, contentTypes, callBacks) => {
+function getAssignmentActions(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    lockedItems: ILockedItems,
+    contentTypes: Array<IG2ContentType>,
+    callBacks: {[key: string]: (...args: Array<any>) => any},
+) {
     if (!isExistingItem(assignment) || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
         return [];
     }
@@ -207,30 +246,37 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
         }
     });
 
-    return getAssignmentItemActions(assignment, session, privileges, contentTypes, actions);
-};
+    return getAssignmentItemActions(assignment, session, privileges, contentTypes, actions, lockedItems);
+}
 
-const getAssignmentItemActions = (assignment, session, privileges, contentTypes, actions) => {
+function getAssignmentItemActions(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    contentTypes: Array<IG2ContentType>,
+    actions: Array<IItemAction>,
+    lockedItems: ILockedItems,
+) {
     let itemActions = [];
     let key = 1;
 
     const actionsValidator = {
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: () =>
-            self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
+            self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName]: () =>
-            self.canCompleteAssignment(assignment, session, privileges),
+            self.canCompleteAssignment(assignment, session, privileges, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: () =>
-            self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
+            self.canEditPriorityOrReassignAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: () =>
             self.canStartWorking(assignment, session, privileges, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName]: () =>
-            self.canRemoveAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT),
+            self.canRemoveAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: () =>
             self.assignmentHasContent(assignment),
         [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName]: () =>
-            self.canConfirmAvailability(assignment, session, privileges, contentTypes),
+            self.canConfirmAvailability(assignment, session, privileges, contentTypes, lockedItems),
         [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName]: () =>
-            self.canRevertAssignment(assignment, session, privileges),
+            self.canRevertAssignment(assignment, session, privileges, lockedItems),
     };
 
     actions.forEach((action) => {
@@ -248,7 +294,7 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
     });
 
     return itemActions;
-};
+}
 
 const getAssignmentGroupsByStates = (groups, states) => {
     if (get(states, 'length', 0) < 1) {

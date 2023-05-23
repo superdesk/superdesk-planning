@@ -1,12 +1,15 @@
+import {get} from 'lodash';
+
+import {planningApi} from '../../superdeskApi';
 import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS} from '../../constants';
+import {WORKFLOW_STATE, EVENTS, LOCKS} from '../../constants';
+import {gettext, dispatchUtils, getErrorMessage, lockUtils} from '../../utils';
+
 import eventsApi from './api';
 import eventsUi from './ui';
 import main from '../main';
-import planningApi from '../planning/api';
-import {get} from 'lodash';
-import {gettext, dispatchUtils, getErrorMessage, lockUtils} from '../../utils';
+import planningApis from '../planning/api';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -31,6 +34,8 @@ const onEventCreated = (_e, data) => (
 function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
         if (data?.item != null) {
+            planningApi.locks.setItemAsUnlocked(data);
+
             const state = getState();
             const events = selectors.events.storedEvents(state);
             let eventInStore = get(events, data.item, {});
@@ -69,6 +74,8 @@ function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
 const onEventLocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
+            planningApi.locks.setItemAsLocked(data);
+
             const sessionId = selectors.general.session(getState()).sessionId;
 
             return dispatch(eventsApi.getEvent(data.item, false))
@@ -217,7 +224,7 @@ const onEventPostChanged = (e, data) => (
             const storedEvent = selectors.events.storedEvents(getState())[data.item];
 
             if (!posted && get(storedEvent, 'planning_ids.length', 0) > 0) {
-                dispatch(planningApi.loadPlanningByEventId(data.item));
+                dispatch(planningApis.loadPlanningByEventId(data.item));
             }
         }
         return Promise.resolve();

@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {cloneDeep} from 'lodash';
+
+import {planningApi} from '../superdeskApi';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -82,7 +84,7 @@ export class AssignmentController {
         ]));
 
         return Promise.all([
-            this.store.dispatch(actions.locks.loadAssignmentLocks()),
+            planningApi.locks.loadLockedItems(),
             this.store.dispatch(actions.fetchAgendas()),
             this.store.dispatch(actions.users.fetchAndRegisterUserPreferences())
                 .then(() => this.store.dispatch(actions.assignments.ui.loadDefaultListSort()))

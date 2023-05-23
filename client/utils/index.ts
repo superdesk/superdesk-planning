@@ -505,7 +505,7 @@ export const shouldUnLockItem = (
     ignoreSession = false
 ) =>
     isExistingItem(item) &&
-        ((currentWorkspace === WORKSPACE.AUTHORING && planningUtils.isLockedForAddToPlanning(item)) ||
+        ((currentWorkspace === WORKSPACE.AUTHORING && lockUtils.isLockedForAddToPlanning(item, lockedItems)) ||
         (currentWorkspace !== WORKSPACE.AUTHORING &&
             lockUtils.isItemLockedInThisSession(item, session, lockedItems, ignoreSession))
         );

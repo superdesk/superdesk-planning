@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 
+import {planningApi} from '../../../superdeskApi';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 
@@ -181,7 +182,7 @@ const mapDispatchToProps = (dispatch) => ({
 
     onHide: (assignment) => {
         if (assignment.lock_action === 'reassign') {
-            dispatch(actions.assignments.api.unlock(assignment));
+            planningApi.locks.unlockItem(assignment);
         }
     },
 });

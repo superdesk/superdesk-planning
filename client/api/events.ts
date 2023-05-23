@@ -109,15 +109,6 @@ export function getEventByIds(
         .then((response) => response._items);
 }
 
-export function getLockedEvents(): Promise<Array<IEventItem>> {
-    return searchEventsGetAll({
-        lock_state: LOCK_STATE.LOCKED,
-        directly_locked: true,
-        only_future: false,
-        include_killed: true,
-    });
-}
-
 function getEventEditorProfile() {
     return eventProfile(planningApi.redux.store.getState());
 }
@@ -190,7 +181,6 @@ export const events: IPlanningAPI['events'] = {
     searchGetAll: searchEventsGetAll,
     getById: getEventById,
     getByIds: getEventByIds,
-    getLocked: getLockedEvents,
     getEditorProfile: getEventEditorProfile,
     getSearchProfile: getEventSearchProfile,
     create: create,

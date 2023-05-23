@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
+import {planningApi} from '../../superdeskApi';
+
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
 import {eventUtils, lockUtils, actionUtils} from '../../utils';
 import {PRIVILEGES, EVENTS, ICON_COLORS} from '../../constants';
 import * as selectors from '../../selectors';
-import * as actions from '../../actions';
 import {get} from 'lodash';
 
 export class EventPreviewHeaderComponent extends React.PureComponent {
@@ -18,7 +20,6 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             item,
             lockedItems,
             session,
-            onUnlock,
             itemActionDispatches,
             hideItemActions,
         } = this.props;
@@ -63,7 +64,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                 calendars,
             }) : null;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
-        const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
+        const lockRestricted = lockUtils.isLockRestricted(item, session, lockedItems);
         const unlockPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT];
 
         return (
@@ -81,7 +82,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                             users={users}
                             showUnlock={unlockPrivilege}
                             withLoggedInfo={true}
-                            onUnlock={onUnlock.bind(null, item)}
+                            onUnlock={planningApi.locks.unlockItem.bind(null, item)}
                             small={false}
                             noMargin={true}
                         />
@@ -107,7 +108,6 @@ EventPreviewHeaderComponent.propTypes = {
     itemActionDispatches: PropTypes.object,
     hideItemActions: PropTypes.bool,
     duplicateEvent: PropTypes.func,
-    onUnlock: PropTypes.func,
     calendars: PropTypes.array,
 };
 
@@ -121,7 +121,6 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onUnlock: (event) => dispatch(actions.locks.unlock(event)),
     itemActionDispatches: actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: true}),
 });
 

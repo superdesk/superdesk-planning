@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
+import {planningApi} from '../../../superdeskApi';
 import * as actions from '../../../actions';
 import {get} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
@@ -136,7 +138,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         dispatch(actions.main.save(original, updates, false))
             .then((savedItem) => {
                 if (ownProps.modalProps.unlockOnClose) {
-                    dispatch(actions.events.api.unlock(savedItem));
+                    planningApi.locks.unlockItem(savedItem);
                 }
 
                 if (ownProps.resolve) {
@@ -146,7 +148,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     ),
     onHide: (event) => {
         if (ownProps.modalProps.unlockOnClose) {
-            dispatch(actions.events.api.unlock(event));
+            planningApi.locks.unlockItem(event);
         }
 
         if (ownProps.resolve) {

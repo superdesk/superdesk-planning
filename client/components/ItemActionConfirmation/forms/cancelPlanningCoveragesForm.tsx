@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import {get, cloneDeep, isEmpty} from 'lodash';
 
 import {IPlanningItem, IPlanningProfile} from '../../../interfaces';
+import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
@@ -147,7 +148,7 @@ const mapDispatchToProps = (dispatch) => ({
         return dispatch(cancelDispatch(original, updates))
             .then((updatedPlan: IPlanningItem) => {
                 if (cancelBasedLocks.includes(original.lock_action) || isItemCancelled(updatedPlan)) {
-                    return dispatch(actions.planning.api.unlock(updatedPlan));
+                    return planningApi.locks.unlockItem(updatedPlan);
                 }
 
                 return Promise.resolve(updatedPlan);
@@ -156,7 +157,7 @@ const mapDispatchToProps = (dispatch) => ({
 
     onHide: (planning: IPlanningItem) => {
         if (cancelBasedLocks.includes(planning.lock_action)) {
-            dispatch(actions.planning.api.unlock(planning));
+            planningApi.locks.unlockItem(planning);
         }
     },
 });

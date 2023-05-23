@@ -41,6 +41,10 @@ class LockService(BaseComponent):
     def lock(self, item, user_id, session_id, action, resource):
         if not item:
             raise SuperdeskApiError.notFoundError()
+        elif self.existing_lock_is_unchanged(item, user_id, session_id, action):
+            # No need to lock the item for this user, session and action
+            # as it is already locked for such a purpose
+            return item
 
         item_service = get_resource_service(resource)
         item_id = item.get(config.ID_FIELD)
@@ -88,6 +92,9 @@ class LockService(BaseComponent):
                     lock_session=str(session_id),
                     lock_action=updates.get(LOCK_ACTION),
                     etag=updates["_etag"],
+                    event_item=item.get("event_item"),
+                    recurrence_id=item.get("recurrence_id") or None,
+                    type=item.get("type"),
                 )
             else:
                 raise SuperdeskApiError.forbiddenError(message=error_message)
@@ -102,9 +109,17 @@ class LockService(BaseComponent):
             # unlock the lock :)
             unlock(lock_id, remove=True)
 
+    def existing_lock_is_unchanged(self, item, user_id, session_id, action):
+        return (
+            item.get(LOCK_USER) == user_id and item.get(LOCK_SESSION) == session_id and item.get(LOCK_ACTION) == action
+        )
+
     def unlock(self, item, user_id, session_id, resource):
         if not item:
             raise SuperdeskApiError.notFoundError()
+        if item.get(LOCK_USER) is None and item.get(LOCK_SESSION) is None and item.get(LOCK_ACTION) is None:
+            # No need to unlock the item, as it is already unlocked
+            return item
 
         item_service = get_resource_service(resource)
         item_id = item.get(config.ID_FIELD)
@@ -133,14 +148,16 @@ class LockService(BaseComponent):
             item=str(item.get(config.ID_FIELD)),
             user=str(user_id),
             lock_session=lock_session,
-            etag=item.get("_etag"),
+            etag=updates.get("_etag") or item.get("_etag"),
             event_item=item.get("event_item") or None,
             recurrence_id=item.get("recurrence_id") or None,
+            type=item.get("type"),
         )
 
         return item
 
     def unlock_session(self, user_id, session_id, is_last_session):
+        logger.info(f"planning:item_lock: Unlocking session {session_id}")
         self.unlock_session_for_resource(user_id, session_id, is_last_session, "planning")
         self.unlock_session_for_resource(user_id, session_id, is_last_session, "events")
         self.unlock_session_for_resource(user_id, session_id, is_last_session, "assignments")
@@ -155,6 +172,7 @@ class LockService(BaseComponent):
             item_service.delete_action(lookup={})
 
     def unlock_session_for_resource(self, user_id, session_id, is_last_session, resource):
+        logger.info(f"planning:item_lock: Unlocking {resource} resources")
         item_service = get_resource_service(resource)
         term_filter = {LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
         for item in item_service.search({"query": {"bool": {"filter": {"term": term_filter}}}}):
@@ -195,6 +213,7 @@ class LockService(BaseComponent):
         return True, ""
 
     def on_session_end(self, user_id, session_id, is_last_session):
+        logger.info("planning:item_lock: On session end")
         self.unlock_session(user_id, session_id, is_last_session)
 
     def validate_relationship_locks(self, item, resource_name):

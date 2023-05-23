@@ -16,6 +16,7 @@ import {
     isItemExpired,
     isItemPosted,
     onEventCapture,
+    lockUtils,
 } from '../../utils';
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
@@ -42,7 +43,8 @@ class EventItemComponent extends React.Component<IProps, IState> {
     shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
-            this.props.minTimeWidth !== nextProps.minTimeWidth;
+            this.props.minTimeWidth !== nextProps.minTimeWidth ||
+            this.props.lockedItems != nextProps.lockedItems;
     }
 
     onItemHoverOn() {
@@ -161,7 +163,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
         }
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
-        const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
+        const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
         const showRelatedPlanningLink = activeFilter === PLANNING_VIEW.COMBINED && hasPlanning;
         let borderState: 'locked' | 'active' | false = false;
 
