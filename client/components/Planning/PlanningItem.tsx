@@ -245,7 +245,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             </span>
                         )}
                     </Row>
-                    <Row style={{overflow: 'visible'}}> {/** overflow is needed for coverage icons */}
+                    <Row classes="sd-overflow--visible"> {/** overflow is needed for coverage icons */}
                         {isExpired && (
                             <Label
                                 text={gettext('Expired')}

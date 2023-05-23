@@ -4,7 +4,7 @@ import {getUserInitials} from './../../components/UserAvatar';
 import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
-import {superdeskApi} from 'superdeskApi';
+import {superdeskApi} from '../../superdeskApi';
 import {
     AvatarGroup,
     ContentDivider,
@@ -21,6 +21,7 @@ import {getItemWorkflowStateLabel, planningUtils} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import './coverage-icons.scss';
+import classNames from 'classnames';
 
 interface IProps {
     coverages: Array<DeepPartial<IPlanningCoverageItem>>;
@@ -169,9 +170,15 @@ export class CoverageIcons extends React.PureComponent<IProps> {
 
                                             <div>
                                                 <div>
-                                                    <span className="coverages-popup__text-light">
+                                                    <span className="coverages-popup__text-light sd-font-size--small">
                                                         {gettext('Due:')}
-                                                        <span className="coverages-popup__text-bold">
+                                                        <span
+                                                            className={classNames(
+                                                                'coverages-popup__text-bold',
+                                                                'sd-margin-r--1',
+                                                                'sd-font-size--x-small'
+                                                            )}
+                                                        >
                                                             {scheduledStr}
                                                         </span>
                                                     </span>
@@ -186,9 +193,20 @@ export class CoverageIcons extends React.PureComponent<IProps> {
 
                                                         return (
                                                             <div>
-                                                                <span className="coverages-popup__text-light">
+                                                                <span
+                                                                    className={classNames(
+                                                                        'coverages-popup__text-light',
+                                                                        'sd-font-size--small',
+                                                                    )}
+                                                                >
                                                                     {gettext('Update Due:')}
-                                                                    <span className="coverages-popup__text-bold">
+                                                                    <span
+                                                                        className={classNames(
+                                                                            'coverages-popup__text-bold',
+                                                                            'sd-margin-r--1',
+                                                                            'sd-font-size--x-small',
+                                                                        )}
+                                                                    >
                                                                         {scheduledStr2}
                                                                     </span>
                                                                 </span>
