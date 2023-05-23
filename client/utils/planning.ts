@@ -981,18 +981,48 @@ function getCoverageIcon(
         return 'icon-copy';
     }
 
+    const cancelled = coverage?.assigned_to == null
+        ? false
+        : getItemWorkflowState(coverage.assigned_to) === WORKFLOW_STATE.CANCELLED;
+    const iconType: 'normal' | 'cancelled' = cancelled ? 'cancelled' : 'normal';
+    const iconForUnknownType = cancelled ? 'icon-file-cancel' : 'icon-file';
+
     const coverageIcons = {
-        [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
-        [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
-        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
-        [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
-        [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
-        [PLANNING.G2_CONTENT_TYPE.GRAPHIC]: 'icon-graphic',
-        [PLANNING.G2_CONTENT_TYPE.LIVE_BLOG]: 'icon-post',
-        [PLANNING.G2_CONTENT_TYPE.VIDEO_EXPLAINER]: 'icon-play',
+        [PLANNING.G2_CONTENT_TYPE.TEXT]: {
+            normal: 'icon-text',
+            cancelled: 'icon-text-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.VIDEO]: {
+            normal: 'icon-video',
+            cancelled: 'icon-video-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: {
+            normal: 'icon-video',
+            cancelled: 'icon-video-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.AUDIO]: {
+            normal: 'icon-audio',
+            cancelled: 'icon-audio-cancel'
+        },
+        [PLANNING.G2_CONTENT_TYPE.PICTURE]: {
+            normal: 'icon-photo',
+            cancelled: 'icon-photo-cancel'
+        },
+        [PLANNING.G2_CONTENT_TYPE.GRAPHIC]: {
+            normal: 'icon-graphic',
+            cancelled: 'icon-graphic-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.LIVE_BLOG]: {
+            normal: 'icon-post',
+            cancelled: 'icon-post-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.VIDEO_EXPLAINER]: {
+            normal: 'icon-play',
+            cancelled: 'icon-play-cancel',
+        },
     };
 
-    return get(coverageIcons, type, 'icon-file');
+    return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
 }
 
 const getCoverageIconColor = (coverage): 'icon--green' | 'icon--red' | 'icon--yellow' | undefined => {
