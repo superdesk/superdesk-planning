@@ -4,7 +4,7 @@ import {getUserInitials} from './../../components/UserAvatar';
 import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
-import {gettext} from 'superdesk-core/scripts/core/utils';
+import {superdeskApi} from 'superdeskApi';
 import {
     AvatarGroup,
     ContentDivider,
@@ -88,6 +88,7 @@ export function getAvatarForCoverage(
 export class CoverageIcons extends React.PureComponent<IProps> {
     render() {
         const {coverages, users} = this.props;
+        const {gettext} = superdeskApi.localization;
 
         return (
             <WithPopover
