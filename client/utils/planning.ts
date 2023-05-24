@@ -1213,16 +1213,13 @@ function getCoverageIcon(
     return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
 }
 
-function getCoverageIconColor(
-    coverage: IPlanningCoverageItem,
-): 'icon--green' | 'icon--red' | 'icon--yellow' | undefined {
+function getCoverageIconColor(coverage: IPlanningCoverageItem): string {
     if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
-        return 'icon--green';
+        return 'var(--sd-colour-success)';
     } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
-        return 'icon--red';
-    } else if (isCoverageCancelled(coverage)) {
-        // Cancelled
-        return 'icon--yellow';
+        return 'var(--sd-colour-highlight)';
+    } else {
+        return 'var(--color-text-lighter)';
     }
 }
 

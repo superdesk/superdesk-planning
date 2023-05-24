@@ -61,10 +61,7 @@ export function getAvatarForCoverage(
                 ),
                 'icon-',
             ),
-            color: trimStartExact(
-                planningUtils.getCoverageIconColor(coverage) ?? '',
-                'icon--'
-            ),
+            color: planningUtils.getCoverageIconColor(coverage),
         };
 
     if (user == null) {
@@ -160,10 +157,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                                                             ),
                                                             'icon-',
                                                         )}
-                                                        color={trimStartExact(
-                                                            planningUtils.getCoverageIconColor(coverage),
-                                                            'icon--',
-                                                        )}
+                                                        color={planningUtils.getCoverageIconColor(coverage)}
                                                     />
                                                 </span>
                                             </div>
