@@ -22,6 +22,7 @@ import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import './coverage-icons.scss';
 import classNames from 'classnames';
+import {noop} from 'lodash';
 
 interface IProps {
     coverages: Array<DeepPartial<IPlanningCoverageItem>>;
@@ -75,7 +76,7 @@ export function getAvatarForCoverage(
         const avatar: Omit<IPropsAvatar, 'size'> = {
             initials: getUserInitials(user.display_name),
             imageUrl: user.picture_url,
-            tooltip: user.display_name?.length > 0 ? user.display_name : null,
+            displayName: user.display_name,
             icon: icon,
         };
 
@@ -264,6 +265,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
                             items={coverages.map(
                                 (coverage) => getAvatarForCoverage(coverage, users, this.props.contentTypes),
                             )}
+                            onClick={noop} // can move code from onClick, because event is not available
                         />
                     </div>
                 )}
