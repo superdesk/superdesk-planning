@@ -5,6 +5,10 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import './style.scss';
 import {gettext} from '../../utils';
 
+export function getUserInitials(displayName) {
+    return displayName.replace(/\W*(\w)\w*/g, '$1').toUpperCase();
+}
+
 export const UserAvatar = ({
     user,
     small,
@@ -42,7 +46,7 @@ export const UserAvatar = ({
                         'avatar--empty': empty,
                     })}
             >
-                {user && user.display_name && user.display_name.replace(/\W*(\w)\w*/g, '$1').toUpperCase()}
+                {user && user.display_name && getUserInitials(user.display_name)}
                 { withLoggedInfo && <div className="logged-info" /> }
             </figure>
         );

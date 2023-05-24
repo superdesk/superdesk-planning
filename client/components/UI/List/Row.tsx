@@ -7,7 +7,7 @@ import classNames from 'classnames';
  * @name Row
  * @description Row Component in a list of item where each item is a row
  */
-export const Row = ({children, classes, paddingBottom, testId}) => (
+export const Row = ({children, classes, paddingBottom, testId, style}) => (
     <div
         className={classNames(
             'sd-list-item__row',
@@ -17,6 +17,7 @@ export const Row = ({children, classes, paddingBottom, testId}) => (
             }
         )}
         data-test-id={testId}
+        style={style}
     >
         {children}
     </div>
@@ -29,6 +30,7 @@ Row.propTypes = {
     marginTop: PropTypes.bool,
     paddingBottom: PropTypes.bool,
     testId: PropTypes.string,
+    style: PropTypes.object,
 };
 
 Row.defaultProps = {

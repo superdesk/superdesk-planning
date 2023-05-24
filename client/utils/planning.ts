@@ -1169,28 +1169,57 @@ function getCoverageIcon(
         return 'icon-copy';
     }
 
+    const cancelled = coverage?.assigned_to == null
+        ? false
+        : getItemWorkflowState(coverage.assigned_to) === WORKFLOW_STATE.CANCELLED;
+    const iconType: 'normal' | 'cancelled' = cancelled ? 'cancelled' : 'normal';
+    const iconForUnknownType = cancelled ? 'icon-file-cancel' : 'icon-file';
+
     const coverageIcons = {
-        [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
-        [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
-        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
-        [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
-        [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
-        [PLANNING.G2_CONTENT_TYPE.GRAPHIC]: 'icon-graphic',
-        [PLANNING.G2_CONTENT_TYPE.LIVE_BLOG]: 'icon-post',
-        [PLANNING.G2_CONTENT_TYPE.VIDEO_EXPLAINER]: 'icon-play',
+        [PLANNING.G2_CONTENT_TYPE.TEXT]: {
+            normal: 'icon-text',
+            cancelled: 'icon-text-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.VIDEO]: {
+            normal: 'icon-video',
+            cancelled: 'icon-video-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: {
+            normal: 'icon-video',
+            cancelled: 'icon-video-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.AUDIO]: {
+            normal: 'icon-audio',
+            cancelled: 'icon-audio-cancel'
+        },
+        [PLANNING.G2_CONTENT_TYPE.PICTURE]: {
+            normal: 'icon-photo',
+            cancelled: 'icon-photo-cancel'
+        },
+        [PLANNING.G2_CONTENT_TYPE.GRAPHIC]: {
+            normal: 'icon-graphic',
+            cancelled: 'icon-graphic-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.LIVE_BLOG]: {
+            normal: 'icon-post',
+            cancelled: 'icon-post-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.VIDEO_EXPLAINER]: {
+            normal: 'icon-play',
+            cancelled: 'icon-play-cancel',
+        },
     };
 
-    return get(coverageIcons, type, 'icon-file');
+    return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
 }
 
-function getCoverageIconColor(coverage: IPlanningCoverageItem): 'icon--green' | 'icon--red' | 'icon--yellow' {
+function getCoverageIconColor(coverage: IPlanningCoverageItem): string {
     if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
-        return 'icon--green';
+        return 'var(--sd-colour-success)';
     } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
-        return 'icon--red';
-    } else if (isCoverageCancelled(coverage)) {
-        // Cancelled
-        return 'icon--yellow';
+        return 'var(--sd-colour-highlight)';
+    } else {
+        return 'var(--color-text-lighter)';
     }
 }
 
