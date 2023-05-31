@@ -171,7 +171,7 @@ const openSpikeModal = (event, post = false, modalProps = {}) => (
                 eventWithData,
                 {},
                 EVENTS.ITEM_ACTIONS.SPIKE.actionName,
-                null,
+                EVENTS.ITEM_ACTIONS.SPIKE.lock_action,
                 true,
                 post,
                 false,
@@ -187,7 +187,7 @@ const openUnspikeModal = (event, post = false) => (
         event,
         {},
         EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
-        null,
+        EVENTS.ITEM_ACTIONS.UNSPIKE.lock_action,
         true,
         post
     ))
@@ -209,7 +209,7 @@ const openUpdateTimeModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action,
             true,
             post
         );
@@ -233,7 +233,7 @@ const openCancelModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
             true,
             post
         );
@@ -256,7 +256,7 @@ const openPostponeModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
             true,
             post
         );
@@ -279,7 +279,7 @@ const openRescheduleModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
             true,
             post
         );
@@ -403,10 +403,24 @@ const _openActionModalFromEditor = ({
                                 Promise.resolve(modifiedEvent);
 
                             if (get(previousLock, 'action')) {
-                                promise.then((refetchedEvent) => (
-                                    (openInEditor || openInModal) ?
-                                        dispatch(main.openForEdit(refetchedEvent, !openInModal, openInModal)) :
-                                        planningApi.locks.lockItem(refetchedEvent, previousLock.action)
+                                promise.then((refetchedItem) => (
+                                    planningApi.locks.lockItem(refetchedItem, previousLock.action)
+                                        .then((lockedItem) => {
+                                            if (openInEditor || openInModal) {
+                                                // dispatch(main.changeEditorAction('edit', openInModal));
+                                                dispatch(main.openEditorAction(
+                                                    lockedItem,
+                                                    'edit',
+                                                    true,
+                                                    openInModal,
+                                                    // !openInModal,
+                                                    // openInModal
+                                                ));
+                                                // dispatch(main.openForEdit(lockedItem, !openInModal, openInModal));
+                                            }
+
+                                            return lockedItem;
+                                        })
                                 ), () => Promise.reject());
                             }
 
@@ -989,6 +1003,9 @@ const onMarkEventCompleted = (event, editor = false) => (
                                         }
                                     }),
                                     autoClose: true,
+                                    // Add the event to modalProps, so if this item was unlocked by someone else
+                                    // this modal will close
+                                    original: event,
                                 },
                             }))), (error) => {
                             notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));
@@ -1008,6 +1025,9 @@ const onMarkEventCompleted = (event, editor = false) => (
                         }),
                         onCancel: () => planningApi.locks.unlockItem(original),
                         autoClose: true,
+                        // Add the event to modalProps, so if this item was unlocked by someone else
+                        // this modal will close
+                        original: event,
                     },
                 }))), (error) => {
                 notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));

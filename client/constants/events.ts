@@ -32,11 +32,13 @@ export const EVENTS = {
             label: 'Spike',
             icon: 'icon-trash',
             actionName: 'onSpikeEvent',
+            lock_action: 'spike',
         },
         UNSPIKE: {
             label: 'Unspike',
             icon: 'icon-unspike',
             actionName: 'onUnspikeEvent',
+            lock_action: 'unspike',
         },
         DUPLICATE: {
             label: 'Duplicate',

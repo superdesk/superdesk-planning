@@ -3,13 +3,15 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {isEqual, get} from 'lodash';
 
-import {planningApi} from '../../../superdeskApi';
+import {IAssignmentItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {ASSIGNMENTS} from '../../../constants';
 import {gettext, getItemInArrayById} from '../../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {onItemActionModalHide} from './utils';
+
 import {Row, TextInput, ColouredValueInput} from '../../UI/Form';
 import {AbsoluteDate} from '../..';
 
@@ -167,11 +169,11 @@ const mapDispatchToProps = (dispatch) => ({
             payload: {assignment: updatedAssignment},
         })),
 
-    onHide: (assignment) => {
-        if (assignment.lock_action === 'edit_priority') {
-            planningApi.locks.unlockItem(assignment);
-        }
-    },
+    onHide: (original: IAssignmentItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.lock_action,
+        modalProps,
+    ),
 });
 
 export const EditPriorityForm = connect(

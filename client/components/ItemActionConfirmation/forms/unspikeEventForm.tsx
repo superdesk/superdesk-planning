@@ -3,12 +3,16 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {IEventItem} from '../../../interfaces';
+
 import * as actions from '../../../actions';
 import '../style.scss';
 import {WORKFLOW_STATE, EVENTS} from '../../../constants';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
+import {onItemActionModalHide} from './utils';
+
 import {Row} from '../../UI/Preview';
 
 export class UnspikeEventComponent extends React.Component {
@@ -111,6 +115,11 @@ UnspikeEventComponent.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => (dispatch(actions.events.ui.unspike(event))),
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.UNSPIKE.lock_action,
+        modalProps,
+    ),
 });
 
 export const UnspikeEventForm = connect(

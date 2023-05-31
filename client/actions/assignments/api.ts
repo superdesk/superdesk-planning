@@ -283,7 +283,7 @@ const save = (original, assignmentUpdates) => (
         return promise.then((originalItem) => {
             let updates;
 
-            if (original.lock_action === 'reassign') {
+            if (original.lock_action === ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.lock_action) {
                 updates = pick(assignmentUpdates, 'assigned_to');
                 updates.assigned_to = pick(
                     assignmentUpdates.assigned_to,

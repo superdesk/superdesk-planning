@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {IEventItem} from '../../../interfaces';
+
 import * as actions from '../../../actions';
 import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
@@ -10,6 +12,8 @@ import {RelatedEvents} from '../../index';
 import {EVENTS} from '../../../constants';
 import {EventScheduleSummary} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
+import {onItemActionModalHide} from './utils';
+
 import {Row} from '../../UI/Preview';
 
 export class SpikeEventComponent extends React.Component {
@@ -123,12 +127,11 @@ SpikeEventComponent.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
-    onHide: (event, modalProps) => {
-        if (get(modalProps, 'onCloseModal')) {
-            modalProps.onCloseModal(event);
-        }
-        return Promise.resolve(event);
-    },
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.SPIKE.lock_action,
+        modalProps,
+    ),
 });
 
 export const SpikeEventForm = connect(

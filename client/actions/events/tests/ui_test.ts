@@ -89,7 +89,7 @@ describe('actions.events.ui', () => {
                     data.events[1],
                     {},
                     'onSpikeEvent',
-                    null,
+                    'spike',
                     true,
                     false,
                     false,

@@ -4,7 +4,7 @@ import {
     IPlanningAPI,
     IWebsocketMessageData,
     IAssignmentOrPlanningItem,
-    IFeaturedPlanningLock, IAssignmentItem,
+    IFeaturedPlanningLock,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 

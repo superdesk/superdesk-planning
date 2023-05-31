@@ -3,11 +3,12 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, isEmpty} from 'lodash';
 
-import {planningApi} from '../../../superdeskApi';
+import {IEventItem} from '../../../interfaces';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext} from '../../../utils';
 import {EVENTS} from '../../../constants';
+import {onItemActionModalHide} from './utils';
 
 import {EventScheduleSummary} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
@@ -198,17 +199,11 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (original, updates) => dispatch(
         actions.events.ui.cancelEvent(original, updates)
     ),
-    onHide: (original, modalProps) => {
-        const promise = original.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action ?
-            planningApi.locks.unlockItem(original) :
-            Promise.resolve(original);
-
-        if (get(modalProps, 'onCloseModal')) {
-            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
-        }
-
-        return promise;
-    },
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
+        modalProps
+    ),
 });
 
 export const CancelEventForm = connect(
