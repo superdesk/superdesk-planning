@@ -1377,13 +1377,16 @@ function onItemUnlocked(
     itemType: ITEM_TYPE,
 ) {
     return (dispatch, getState) => {
-        const lockedItems = selectors.locks.getLockedItems(getState());
+        const state = getState();
+        const lockedItems = selectors.locks.getLockedItems(state);
         const itemLock = lockUtils.getLock(item, lockedItems);
-        const sessionId = selectors.general.session(getState()).sessionId;
+        const sessionId = selectors.general.session(state).sessionId;
 
-        const editorItemId = selectors.forms.currentItemId(getState());
-        const editorModalItemId = selectors.forms.currentItemIdModal(getState());
+        const editorItemId = selectors.forms.currentItemId(state);
+        const editorModalItemId = selectors.forms.currentItemIdModal(state);
         const itemId = getItemId(item);
+
+        planningApi.locks.setItemAsUnlocked(data);
 
         if (editorItemId === itemId || editorModalItemId === itemId) {
             dispatch(self.changeEditorAction(
@@ -1397,13 +1400,18 @@ function onItemUnlocked(
             data.lock_session !== sessionId &&
             itemLock.session === sessionId
         ) {
-            const user = selectors.general.users(getState()).find((u) => u._id === data.user);
-            const autoSaves = selectors.forms.autosaves(getState());
+            const user = selectors.general.users(state).find((u) => u._id === data.user);
+            const autoSaves = selectors.forms.autosaves(state);
             const autoSaveInStore = get(autoSaves, `${itemType}['${data.item}']`);
 
             if (autoSaveInStore) {
                 // Delete the changes from the local redux
                 dispatch(autosave.removeLocalAutosave(autoSaveInStore));
+            }
+            if (selectors.general.getActionModalItemId(state) === item._id) {
+                // This item has an action modal open, such as 'Spike <item>'
+                // Close it now, so the 'Item Unlocked' Modal will be the only one in the Modal stack
+                dispatch(hideModal());
             }
 
             dispatch(showModal({
@@ -1414,7 +1422,7 @@ function onItemUnlocked(
                 },
             }));
 
-            if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(getState())
+            if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(state)
                     === WORKSPACE.AUTHORING) {
                 dispatch(self.closePreviewAndEditorForItems([item]));
             }
@@ -1534,13 +1542,17 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
     (dispatch) => {
         const onCloseModal = (updatedItem) => {
             if (!isItemSpiked(updatedItem) && get(previousLock, 'action')) {
-                if (openInEditor || openInModal) {
-                    return dispatch(
-                        self.openForEdit(updatedItem, !openInModal, openInModal)
-                    );
-                }
-
-                return planningApi.locks.lockItem(updatedItem, previousLock.action);
+                planningApi.locks.lockItem(updatedItem, previousLock.action)
+                    .then((lockedItem) => {
+                        if (openInEditor || openInModal) {
+                            dispatch(self.openEditorAction(
+                                lockedItem,
+                                'edit',
+                                true,
+                                openInModal
+                            ));
+                        }
+                    });
             }
         };
         const dispatchCall = getItemType(unlockedItem) === ITEM_TYPE.PLANNING ?

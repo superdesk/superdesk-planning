@@ -34,19 +34,17 @@ const onEventCreated = (_e, data) => (
 function onEventUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
         if (data?.item != null) {
-            planningApi.locks.setItemAsUnlocked(data);
-
             const state = getState();
             const events = selectors.events.storedEvents(state);
             let eventInStore = get(events, data.item, {});
             const isCurrentlyLocked = lockUtils.isItemLocked(eventInStore, selectors.locks.getLockedItems(state));
 
+            dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
+
             if (!isCurrentlyLocked && eventInStore?.lock_session == null) {
                 // No need to announce an unlock, as we have already done so
                 return Promise.resolve(eventInStore);
             }
-
-            dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
 
             eventInStore = {
                 recurrence_id: get(data, 'recurrence_id') || null,

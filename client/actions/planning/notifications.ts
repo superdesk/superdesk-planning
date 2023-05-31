@@ -146,18 +146,16 @@ const onPlanningLocked = (e, data) => (
 function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     return (dispatch, getState) => {
         if (data?.item != null) {
-            planningApi.locks.setItemAsUnlocked(data);
-
             const state = getState();
             let planningItem = selectors.planning.storedPlannings(state)[data.item];
             const isCurrentlyLocked = lockUtils.isItemLocked(planningItem, selectors.locks.getLockedItems(state));
+
+            dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 
             if (!isCurrentlyLocked && planningItem?.lock_session == null) {
                 // No need to announce an unlock, as we have already done so
                 return Promise.resolve();
             }
-
-            dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 
             planningItem = {
                 event_item: get(data, 'event_item') || null,
