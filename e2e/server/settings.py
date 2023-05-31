@@ -28,6 +28,7 @@ if init_data.exists():
 INSTALLED_APPS.extend([
     'planning',
     'planning_prepopulate',
+    'force_unlock_item',
 ])
 
 RENDITIONS = {
