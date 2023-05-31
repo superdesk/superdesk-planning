@@ -22,6 +22,8 @@ def force_unlock_item(item_type, item_id):
     original = get_resource_service(item_type).find_one(req=None, _id=item_id)
     lock_service = get_component(LockService)
 
+    # We can use mocked IDs here, as we aren't actually checking these against real users
+    # merely just sending them througn the websocket notifications
     user_id = ObjectId()
     session_id = ObjectId()
 
@@ -30,23 +32,3 @@ def force_unlock_item(item_type, item_id):
 
 def init_app(app):
     blueprint(bp, app)
-
-
-
-
-
-
-# from superdesk.resource import Resource
-# from superdesk.metadata.utils import item_url
-
-
-# class ForceUnlockItemResource(Resource):
-#     endpoint_name = "e2e_unlock_planning_item"
-#     url = "e2e/force_unlock/<{0}:item_id>".format(item_url)
-#     schema = {
-#         "type": {
-#             "type": "string",
-#             "required": True,
-#         },
-#
-#     }

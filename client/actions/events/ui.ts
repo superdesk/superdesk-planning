@@ -407,16 +407,12 @@ const _openActionModalFromEditor = ({
                                     planningApi.locks.lockItem(refetchedItem, previousLock.action)
                                         .then((lockedItem) => {
                                             if (openInEditor || openInModal) {
-                                                // dispatch(main.changeEditorAction('edit', openInModal));
                                                 dispatch(main.openEditorAction(
                                                     lockedItem,
                                                     'edit',
                                                     true,
                                                     openInModal,
-                                                    // !openInModal,
-                                                    // openInModal
                                                 ));
-                                                // dispatch(main.openForEdit(lockedItem, !openInModal, openInModal));
                                             }
 
                                             return lockedItem;
