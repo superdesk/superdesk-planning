@@ -21,7 +21,7 @@ from planning.common import (
     remove_autosave_on_spike,
 )
 from superdesk.notification import push_notification
-from apps.archive.common import get_user, get_auth
+from apps.auth import get_user, get_user_id, get_auth
 from superdesk import config, get_resource_service
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from eve.utils import ParsedRequest
@@ -68,6 +68,8 @@ class EventsSpikeService(EventsBaseService):
         return item
 
     def on_updated(self, updates, original):
+        super().on_updated(updates, original, False)
+
         # Spike associated planning
         planning_spike_service = get_resource_service("planning_spike")
         query = {"query": {"bool": {"must": {"term": {"event_item": str(original[config.ID_FIELD])}}}}}
@@ -249,11 +251,13 @@ class EventsUnspikeService(EventsBaseService):
     REQUIRE_LOCK = False
 
     def update_single_event(self, updates, original):
+        remove_lock_information(updates)
         self._unspike_event(updates, original)
 
     def update_recurring_events(self, updates, original, update_method):
         historic, past, future = self.get_recurring_timeline(original, spiked=True)
 
+        remove_lock_information(updates)
         self._unspike_event(updates, original)
 
         # Determine if the selected event is the first one, if so then
