@@ -897,6 +897,7 @@ export const isItemDifferent = (currentProps, nextProps) => {
         get(original, 'multiSelected') !== get(updates, 'multiSelected') ||
         get(original, 'active') !== get(updates, 'active') ||
         get(original, 'item.event') !== get(updates, 'item.event') ||
+        get(original, 'item.state') !== get(updates, 'item.state') ||
         lockUtils.isItemLocked(original.item, original.lockedItems) !==
         lockUtils.isItemLocked(updates.item, updates.lockedItems);
 };
