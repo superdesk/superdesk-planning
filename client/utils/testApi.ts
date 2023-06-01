@@ -36,6 +36,7 @@ Object.assign(superdeskApi, {
     },
     ui: {
         notify: {
+            success: sinon.stub().returns(undefined),
             error: sinon.stub().returns(undefined),
         }
     }

@@ -2057,6 +2057,7 @@ export interface IEditorAPI {
                 updates: DeepPartial<IPlanningItem>,
                 scrollOnChange: boolean
             ): void;
+            addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
             onEventDatesChanged(updates: Partial<IEventItem['dates']>): void;
         };
         planning: {
@@ -2107,6 +2108,11 @@ export interface IPlanningAPI {
                 event?: IEventItem,
                 g2contentType?: IG2ContentType['qcode']
             ): DeepPartial<IPlanningCoverageItem>;
+            addCoverageToWorkflow(
+                plan: IPlanningItem,
+                coverage: IPlanningCoverageItem,
+                index: number
+            ): Promise<IPlanningItem>;
         }
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
         update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;

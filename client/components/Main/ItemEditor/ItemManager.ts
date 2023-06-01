@@ -881,7 +881,7 @@ export class ItemManager {
     }
 
     addCoverageToWorkflow(planning, coverage, index) {
-        return this.dispatch<any>(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index))
+        return planningApi.planning.coverages.addCoverageToWorkflow(planning, coverage, index)
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 

@@ -511,27 +511,6 @@ const saveFromAuthoring = (original, updates) => (
     }
 );
 
-/**
- * Action to update the values of a single Coverage so the Assignment is placed in the workflow
- * @param {object} original - Original Planning item
- * @param {object} updatedCoverage - Coverage to update (along with any coverage fields to update as well)
- * @param {number} index - index of the Coverage in the coverages[] array
- */
-const addCoverageToWorkflow = (original, updatedCoverage, index) => (
-    (dispatch, getState, {notify}) => {
-        let updates = {coverages: cloneDeep(original.coverages)};
-
-        updates.coverages[index] = planningUtils.getActiveCoverage(updatedCoverage,
-            selectors.general.newsCoverageStatus(getState()));
-
-        return dispatch(planningApis.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Coverage added to workflow.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
 const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, scheduledUpdate, index) => (
     (dispatch, getState, {notify}) => {
         let updates = {coverages: cloneDeep(original.coverages)};
@@ -645,7 +624,6 @@ const self = {
     saveFromAuthoring,
     scheduleRefetch,
     assignToAgenda,
-    addCoverageToWorkflow,
     removeAssignment,
     _modifyPlanningFeatured,
     modifyPlanningFeatured,
