@@ -1,6 +1,12 @@
 import * as React from 'react';
 
-import {IEditorFieldProps, IEventItem, IPlanningItem, IProfileSchemaTypeList} from '../../../../interfaces';
+import {
+    IEditorFieldProps,
+    IEventItem,
+    IPlanningCoverageItem,
+    IPlanningItem,
+    IProfileSchemaTypeList
+} from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
 
 import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
@@ -18,6 +24,7 @@ interface IProps extends IEditorFieldProps {
     addPlanningItem(): void;
     removePlanningItem(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
+    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
 }
 
 export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps> {
@@ -74,6 +81,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     item={plan}
                                     removePlan={this.props.removePlanningItem}
                                     updatePlanningItem={this.props.updatePlanningItem}
+                                    addCoverageToWorkflow={this.props.addCoverageToWorkflow}
                                     disabled={false}
                                     editorType={this.props.editorType}
                                 />

@@ -25,6 +25,7 @@ interface IProps {
         updates: DeepPartial<IPlanningItem>,
         scrollOnChange: boolean
     ): void;
+    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
 }
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
@@ -40,6 +41,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         this.updateCoverage = this.updateCoverage.bind(this);
         this.removeCoverage = this.removeCoverage.bind(this);
         this.duplicateCoverage = this.duplicateCoverage.bind(this);
+        this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
     }
 
     scrollIntoView() {
@@ -78,6 +80,10 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         );
 
         this.update({coverages}, false);
+    }
+
+    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number) {
+        this.props.addCoverageToWorkflow(this.props.item, coverage, index);
     }
 
     focus() {
@@ -125,6 +131,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         updateCoverage={this.updateCoverage}
                         removeCoverage={this.removeCoverage}
                         duplicateCoverage={this.duplicateCoverage}
+                        onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
                     />
                 )}
                 {this.props.disabled ? null : (
