@@ -63,6 +63,10 @@ export class Editor {
         return this.element.find('button[title="Minimise"]');
     }
 
+    get editButton() {
+        return this.element.contains('Edit');
+    }
+
     /**
      * Returns the dom node for the action menu in the header
      * @returns {ActionMenu}

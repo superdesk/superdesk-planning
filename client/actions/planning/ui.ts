@@ -338,7 +338,7 @@ const openSpikeModal = (plan, post = false, modalProps = {}) => (
         dispatch(self._openActionModal(
             plan,
             PLANNING.ITEM_ACTIONS.SPIKE.actionName,
-            null,
+            PLANNING.ITEM_ACTIONS.SPIKE.lock_action,
             post,
             false,
             modalProps
@@ -351,7 +351,7 @@ const openUnspikeModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.UNSPIKE.actionName,
-        null,
+        PLANNING.ITEM_ACTIONS.UNSPIKE.lock_action,
         post
     ))
 );

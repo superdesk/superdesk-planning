@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {appConfig} from 'appConfig';
-import {planningApi} from '../../../superdeskApi';
+import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
@@ -11,6 +11,8 @@ import {gettext, updateFormValues, eventUtils, timeUtils} from '../../../utils';
 import {Row} from '../../UI/Preview/';
 import {RepeatEventSummary} from '../../Events';
 import {RecurringRulesInput} from '../../Events/RecurringRulesInput/index';
+import {onItemActionModalHide} from './utils';
+
 import '../style.scss';
 import {get, cloneDeep, isEqual, set} from 'lodash';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
@@ -170,17 +172,11 @@ const mapDispatchToProps = (dispatch) => ({
 
         return promise;
     },
-    onHide: (event, modalProps) => {
-        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action ?
-            planningApi.locks.unlockItem(event) :
-            Promise.resolve(event);
-
-        if (get(modalProps, 'onCloseModal')) {
-            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
-        }
-
-        return promise;
-    },
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action,
+        modalProps,
+    ),
     onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,

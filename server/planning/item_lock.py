@@ -136,7 +136,6 @@ class LockService(BaseComponent):
         # Unlock the item
         updates = {LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None}
         item_service.update(item.get(config.ID_FIELD), updates, item)
-        lock_session = item.get(LOCK_SESSION) or str(session_id)
         item = item_service.find_one(req=None, _id=item_id)
 
         # following line executes handlers attached to function:
@@ -147,7 +146,7 @@ class LockService(BaseComponent):
             resource + ":unlock",
             item=str(item.get(config.ID_FIELD)),
             user=str(user_id),
-            lock_session=lock_session,
+            lock_session=str(session_id),
             etag=updates.get("_etag") or item.get("_etag"),
             event_item=item.get("event_item") or None,
             recurrence_id=item.get("recurrence_id") or None,

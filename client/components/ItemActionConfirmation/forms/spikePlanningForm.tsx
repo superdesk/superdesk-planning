@@ -1,9 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+
+import {IPlanningItem} from '../../../interfaces';
 
 import {appConfig} from 'appConfig';
+import {PLANNING} from '../../../constants';
+import {onItemActionModalHide} from './utils';
 
 import * as actions from '../../../actions';
 import '../style.scss';
@@ -64,12 +67,11 @@ SpikePlanningComponent.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (plan) => dispatch(actions.planning.ui.spike(plan)),
-    onHide: (plan, modalProps) => {
-        if (get(modalProps, 'onCloseModal')) {
-            modalProps.onCloseModal(plan);
-        }
-        return Promise.resolve(plan);
-    },
+    onHide: (original: IPlanningItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === PLANNING.ITEM_ACTIONS.SPIKE.lock_action,
+        modalProps,
+    ),
 });
 
 export const SpikePlanningForm = connect(

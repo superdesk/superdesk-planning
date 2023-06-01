@@ -6,11 +6,13 @@ import moment from 'moment';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {planningApi} from '../../../superdeskApi';
+import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext, timeUtils} from '../../../utils';
+import {onItemActionModalHide} from './utils';
+
 import {Label, TimeInput, Row as FormRow, LineInput, Field} from '../../UI/Form/';
 import {Row} from '../../UI/Preview/';
 import {EventScheduleSummary} from '../../Events';
@@ -330,17 +332,11 @@ const mapDispatchToProps = (dispatch) => ({
 
         return promise;
     },
-    onHide: (event, modalProps) => {
-        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action ?
-            planningApi.locks.unlockItem(event) :
-            Promise.resolve(event);
-
-        if (get(modalProps, 'onCloseModal')) {
-            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
-        }
-
-        return promise;
-    },
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action,
+        modalProps,
+    ),
     onValidate: (item, profile, errors, errorMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,

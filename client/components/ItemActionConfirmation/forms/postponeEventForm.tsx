@@ -3,12 +3,13 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, isEmpty} from 'lodash';
 
-import {planningApi} from '../../../superdeskApi';
+import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {gettext} from '../../../utils';
 import {EVENTS} from '../../../constants';
+import {onItemActionModalHide} from './utils';
 
 import {EventScheduleSummary} from '../../Events';
 import {Row} from '../../UI/Preview';
@@ -176,17 +177,11 @@ const mapDispatchToProps = (dispatch) => ({
         return promise;
     },
 
-    onHide: (event, modalProps) => {
-        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action ?
-            planningApi.locks.unlockItem(event) :
-            Promise.resolve(event);
-
-        if (get(modalProps, 'onCloseModal')) {
-            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
-        }
-
-        return promise;
-    },
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
+        modalProps,
+    ),
 });
 
 export const PostponeEventForm = connect(

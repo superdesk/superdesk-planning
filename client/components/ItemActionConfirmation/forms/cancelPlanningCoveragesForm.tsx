@@ -10,6 +10,7 @@ import * as selectors from '../../../selectors';
 import {formProfile} from '../../../validators';
 import {isItemCancelled, gettext} from '../../../utils';
 import {PLANNING} from '../../../constants';
+import {onItemActionModalHide} from './utils';
 
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
@@ -154,12 +155,11 @@ const mapDispatchToProps = (dispatch) => ({
                 return Promise.resolve(updatedPlan);
             });
     },
-
-    onHide: (planning: IPlanningItem) => {
-        if (cancelBasedLocks.includes(planning.lock_action)) {
-            planningApi.locks.unlockItem(planning);
-        }
-    },
+    onHide: (original: IPlanningItem, modalProps) => onItemActionModalHide(
+        original,
+        cancelBasedLocks.includes(original.lock_action),
+        modalProps,
+    ),
 });
 
 export const CancelPlanningCoveragesForm = connect(

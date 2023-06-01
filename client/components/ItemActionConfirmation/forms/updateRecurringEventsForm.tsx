@@ -9,6 +9,8 @@ import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EVENTS} from '../../../constants';
 import {EventScheduleSummary} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
+import {onItemActionModalHide} from './utils';
+
 import {Row} from '../../UI/Preview';
 import '../style.scss';
 
@@ -146,15 +148,13 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
                 }
             })
     ),
-    onHide: (event) => {
-        if (ownProps.modalProps.unlockOnClose) {
-            planningApi.locks.unlockItem(event);
-        }
-
-        if (ownProps.resolve) {
-            ownProps.resolve();
-        }
-    },
+    onHide: (original) => (
+        onItemActionModalHide(original, ownProps?.modalProps?.unlockOnClose, ownProps?.modalProps).then(() => {
+            if (ownProps?.resolve != null) {
+                ownProps.resolve();
+            }
+        })
+    ),
 });
 
 export const UpdateRecurringEventsForm = connect(

@@ -393,7 +393,7 @@ const reassign = (assignment) => (
     (dispatch) => dispatch(self._openActionModal(
         assignment,
         ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName,
-        'reassign'
+        ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.lock_action
     ))
 );
 
@@ -405,7 +405,7 @@ const editPriority = (assignment) => (
     (dispatch) => dispatch(_openActionModal(
         assignment,
         ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName,
-        'edit_priority'
+        ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.lock_action,
     ))
 );
 
@@ -418,7 +418,7 @@ const save = (original, updates) => (
     (dispatch, getState, {notify}) => (
         dispatch(assignments.api.save(original, updates))
             .then((updatedItem) => {
-                notify.success(get(original, 'lock_action') === 'reassign' ?
+                notify.success(get(original, 'lock_action') === ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.lock_action ?
                     gettext('The assignment was reassigned.') :
                     gettext('Assignment priority has been updated.')
                 );

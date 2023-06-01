@@ -5,13 +5,14 @@ import {get, isEqual, cloneDeep, omit, isEmpty} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
-import {planningApi} from '../../../superdeskApi';
+import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
 import {formProfile, validateItem} from '../../../validators';
 import * as selectors from '../../../selectors';
 import {gettext, eventUtils, getDateTimeString, updateFormValues, timeUtils} from '../../../utils';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
+import {onItemActionModalHide} from './utils';
 
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {RelatedPlannings} from '../../';
@@ -355,17 +356,11 @@ const mapDispatchToProps = (dispatch) => ({
         return promise;
     },
 
-    onHide: (event, modalProps) => {
-        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action ?
-            planningApi.locks.unlockItem(event) :
-            Promise.resolve(event);
-
-        if (get(modalProps, 'onCloseModal')) {
-            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
-        }
-
-        return promise;
-    },
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
+        modalProps,
+    ),
 
     onValidate: (item, profile, errors, errorMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
