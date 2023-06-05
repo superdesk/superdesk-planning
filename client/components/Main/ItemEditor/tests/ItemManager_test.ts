@@ -6,8 +6,6 @@ import {appConfig} from 'appConfig';
 
 import {planningApi} from '../../../../superdeskApi';
 import {main} from '../../../../actions';
-import eventsApi from '../../../../actions/events/api';
-import planningApis from '../../../../actions/planning/api';
 import planningUi from '../../../../actions/planning/ui';
 
 import {EVENTS} from '../../../../constants';
@@ -1631,7 +1629,7 @@ describe('components.Main.ItemManager', () => {
     describe('addCoverageToWorkflow/removeAssignment', () => {
         beforeEach(() => {
             sinon.stub(manager, 'finalisePartialSave');
-            sinon.stub(planningUi, 'addCoverageToWorkflow')
+            sinon.stub(planningApi.planning.coverages, 'addCoverageToWorkflow')
                 .callsFake((planning, coverage, index) => {
                     const updates = {
                         ...cloneDeep(planning),
@@ -1665,7 +1663,7 @@ describe('components.Main.ItemManager', () => {
 
         afterEach(() => {
             restoreSinonStub(manager.finalisePartialSave);
-            restoreSinonStub(planningUi.addCoverageToWorkflow);
+            restoreSinonStub(planningApi.planning.coverages.addCoverageToWorkflow);
             restoreSinonStub(planningUi.removeAssignment);
         });
 
@@ -1676,8 +1674,8 @@ describe('components.Main.ItemManager', () => {
                 1
             )
                 .then(() => {
-                    expect(planningUi.addCoverageToWorkflow.callCount).toBe(1);
-                    expect(planningUi.addCoverageToWorkflow.args[0]).toEqual([
+                    expect(planningApi.planning.coverages.addCoverageToWorkflow.callCount).toBe(1);
+                    expect(planningApi.planning.coverages.addCoverageToWorkflow.args[0]).toEqual([
                         testData.plannings[0],
                         testData.plannings[0].coverages[1],
                         1,

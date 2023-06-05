@@ -1,20 +1,22 @@
+import {cloneDeep} from 'lodash';
+
 import {
     FILTER_TYPE, IEventItem,
-    IFeaturedPlanningLock, IG2ContentType,
+    IG2ContentType,
     IPlanningAPI,
+    IPlanningCoverageItem,
     IPlanningItem,
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    LOCK_STATE,
 } from '../interfaces';
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToString} from './search';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
-import {planningUtils} from '../utils';
+import {planningUtils, getErrorMessage} from '../utils';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
-import {PLANNING, POST_STATE} from '../constants';
+import {PLANNING} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
 
@@ -192,6 +194,37 @@ function setDefaultValues(
     );
 }
 
+function addCoverageToWorkflow(
+    plan: IPlanningItem,
+    coverage: IPlanningCoverageItem,
+    index: number
+): Promise<IPlanningItem> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const {gettext} = superdeskApi.localization;
+    const {notify} = superdeskApi.ui;
+
+    const coverageStatuses = selectors.general.newsCoverageStatus(getState());
+    const updates = {coverages: cloneDeep(plan.coverages)};
+
+    updates.coverages[index] = planningUtils.getActiveCoverage(coverage, coverageStatuses);
+
+    return planning.update(plan, updates)
+        .then((updatedPlan) => {
+            notify.success(gettext('Coverage added to workflow.'));
+            dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
+
+            return updatedPlan;
+        })
+        .catch((error) => {
+            notify.error(getErrorMessage(
+                error,
+                gettext('Failed to add coverage to workflow')
+            ));
+
+            return Promise.reject(error);
+        });
+}
+
 export const planning: IPlanningAPI['planning'] = {
     search: searchPlanning,
     searchGetAll: searchPlanningGetAll,
@@ -205,5 +238,6 @@ export const planning: IPlanningAPI['planning'] = {
     createFromEvent: createFromEvent,
     coverages: {
         setDefaultValues: setDefaultValues,
+        addCoverageToWorkflow: addCoverageToWorkflow,
     },
 };
