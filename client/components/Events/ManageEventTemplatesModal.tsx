@@ -58,24 +58,17 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
         const {getGenericHttpEntityListPageComponent} = superdeskApi.components;
         const {FormFieldType} = superdeskApi.forms;
 
-        const formConfig: IFormGroup = {
-            direction: 'vertical',
-            type: 'inline',
-            form: [
-                {
-                    label: 'Template name',
-                    type: FormFieldType.plainText,
-                    field: 'template_name',
-                    required: true,
-                },
-            ],
-        };
-
         const nameField: IFormField = {
             label: gettext('Template name'),
             type: FormFieldType.plainText,
             field: 'template_name',
             required: true,
+        };
+
+        const formConfig: IFormGroup = {
+            direction: 'vertical',
+            type: 'inline',
+            form: [nameField],
         };
 
         const EventTemplatesComponent = getGenericHttpEntityListPageComponent<IEventTemplate, unknown>(
