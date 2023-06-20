@@ -185,7 +185,7 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
 
         return (
             <div ref={this.onContainerMounted}>
-                <SubNav zIndex={1}>
+                <SubNav className="subnav-event-planning" zIndex={1}>
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
                         {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
