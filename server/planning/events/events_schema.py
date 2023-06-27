@@ -101,7 +101,10 @@ events_schema = {
                 "type": "datetime",
                 "nullable": True,
             },
-            "tz": {"type": "string"},
+            "tz": {
+                "type": "string",
+                "nullable": True,
+            },
             "end_tz": {"type": "string"},
             "all_day": {"type": "boolean"},
             "no_end_time": {"type": "boolean"},
