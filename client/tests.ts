@@ -3,11 +3,9 @@ import 'angular-mocks';
 import moment from 'moment';
 import './';
 
-import {appConfig, debugInfo} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {updateConfigAfterLoad} from './config';
 import './utils/testApi';
-
-debugInfo.translationsLoaded = true; // don't print warnings about missing translations when running unit tests
 
 Object.assign(appConfig, {
     server: {url: 'http://server.com'},
