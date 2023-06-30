@@ -13,6 +13,9 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
+import ng from 'superdesk-core/scripts/core/services/ng';
+// import {superdeskApi} from '../../../client/superdeskApi';
+// import {isContentLinkToCoverageAllowed} from '../../../client/utils/archive';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -112,6 +115,34 @@ const extension: IExtension = {
                 contributions: {
                     entities: {
                         article: {
+                            getActions: (item: IArticle) => [{
+                                label: 'Add to Planning',
+                                groupId: 'planning-actions',
+                                icon: 'calendar-list',
+                                onTrigger: () => {
+                                    const privilegesService = ng.get('privileges');
+                                    const archiveService = ng.get('archiveService');
+                                    const authoringService = ng.get('authoring');
+
+                                    if (
+                                        privilegesService.userHasPrivileges({planning_planning_management: 1}) &&
+                                        privilegesService.userHasPrivileges({archive: 1}) &&
+                                        !item.assignment_id != null &&
+                                        !archiveService.isPersonal(item) &&
+                                        // !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                                        !['correction'].includes(item.state) &&
+                                        // isContentLinkToCoverageAllowed(item) &&
+                                        (
+                                            authoringService.itemActions(item).edit ||
+                                            authoringService.itemActions(item).correct ||
+                                            authoringService.itemActions(item).deschedule
+                                        )
+                                    ) {
+                                        const customEvent = new CustomEvent("planning:addToPlanning", {detail: item});
+                                        window.dispatchEvent(customEvent)
+                                    }
+                                },
+                            }],
                             onSpike: (item: IArticle) => onSpike(superdesk, item),
                             onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                             onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
@@ -128,7 +159,7 @@ const extension: IExtension = {
                         },
                     },
                     globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
-                },
+                    },
             };
 
             return Promise.resolve(result);

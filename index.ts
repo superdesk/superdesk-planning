@@ -9,7 +9,7 @@ import planningModule from './client';
 import * as ctrl from './client/controllers';
 import {gettext} from './client/utils/gettext';
 import {isContentLinkToCoverageAllowed} from './client/utils/archive';
-
+import ng from 'superdesk-core/scripts/core/services/ng';
 
 configurePlanning.$inject = ['superdeskProvider'];
 function configurePlanning(superdesk) {
@@ -133,6 +133,35 @@ function configurePlanning(superdesk) {
                 }],
         });
 }
+
+window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
+    const newElement = document.createElement('div');
+    const jQueryElement = window.$(newElement);
+    const rootScope = ng.get('$rootScope');
+
+    newElement.className = 'modal__dialog ng-scope';
+    rootScope.locals = {
+        data: {
+            item: e.detail
+        }
+    };
+
+    rootScope.resolve = () => newElement.remove();
+
+    new ctrl.AddToPlanningController(
+        jQueryElement,
+        rootScope,
+        ng.get('sdPlanningStore'),
+        ng.get('notify'),
+        ng.get('gettext'),
+        ng.get('api'),
+        ng.get('lock'),
+        ng.get('session'),
+        ng.get('userList'),
+        ng.get('$timeout'),
+        ng.get('superdeskFlags'),
+    );
+});
 
 export default planningModule
     .config(configurePlanning);

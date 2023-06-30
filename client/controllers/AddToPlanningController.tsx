@@ -6,10 +6,11 @@ import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {locks} from '../actions';
 import {planning} from '../actions';
-import {get, isEmpty, isNumber} from 'lodash';
+import {get, isEmpty, isNumber, noop} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
-import {GET_LABEL_MAP, DEFAULT_SCHEMA} from 'superdesk-core/scripts/apps/workspace/content/constants';
+import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
+import {authoringReactViewEnabled} from 'appConfig';
 
 const DEFAULT_PLANNING_SCHEMA = {
     anpa_category: {required: true},
@@ -67,7 +68,7 @@ export class AddToPlanningController {
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
             .then(
                 this.render,
-                this.$scope.resolve
+                !authoringReactViewEnabled ? this.$scope.resolve : noop
             );
     }
 
@@ -169,7 +170,9 @@ export class AddToPlanningController {
             this.store.dispatch(actions.resetStore());
 
             if (this.superdeskFlags.flags.authoring || !this.rendered) {
-                this.$scope.resolve();
+                if (!authoringReactViewEnabled) {
+                    this.$scope.resolve();
+                }
                 return;
             }
 
@@ -184,7 +187,9 @@ export class AddToPlanningController {
                         body: this.gettext('The item was unlocked by "{{ username }}"', {username}),
                         action: () => {
                             this.newsItem.lock_session = null;
-                            this.$scope.resolve();
+                            if (!authoringReactViewEnabled) {
+                                this.$scope.resolve();
+                            }
                         },
                     },
                 })));
@@ -206,7 +211,7 @@ export class AddToPlanningController {
                 }
 
                 Object.keys(schema)
-                    .filter((field) => DEFAULT_SCHEMA.hasOwnProperty(field)) // filter out planning only fields
+                    .filter((field) => DEFAULT_PLANNING_SCHEMA.hasOwnProperty(field)) // filter out planning only fields
                     .filter((field) => get(schema[field], 'required') &&
                         isEmpty(get(newsItem, field)) &&
                         !isNumber(get(newsItem, field)))
@@ -219,7 +224,9 @@ export class AddToPlanningController {
                         this.notify.error(err);
                     });
 
-                    this.$scope.resolve('foo');
+                    if (!authoringReactViewEnabled) {
+                        this.$scope.resolve('foo');
+                    }
                     return Promise.reject('foo');
                 }
 
@@ -227,7 +234,9 @@ export class AddToPlanningController {
                     this.notify.error(
                         this.gettext('Item already locked.')
                     );
-                    this.$scope.resolve('bar');
+                    if (!authoringReactViewEnabled) {
+                        this.$scope.resolve('bar');
+                    }
                     return Promise.reject('bar');
                 }
 
@@ -240,7 +249,9 @@ export class AddToPlanningController {
                                 this.notify.error(
                                     getErrorMessage(error, this.gettext('Failed to lock the item.'))
                                 );
-                                this.$scope.resolve(error);
+                                if (!authoringReactViewEnabled) {
+                                    this.$scope.resolve(error);
+                                }
                                 return Promise.reject(error);
                             }
                         );
@@ -251,7 +262,9 @@ export class AddToPlanningController {
                 this.notify.error(
                     getErrorMessage(error, this.gettext('Failed to load the item.'))
                 );
-                this.$scope.resolve(error);
+                if (!authoringReactViewEnabled) {
+                    this.$scope.resolve(error);
+                }
                 return Promise.reject(error);
             });
     }
