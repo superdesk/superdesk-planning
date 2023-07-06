@@ -184,6 +184,7 @@ filters_schema = {
             "featured": boolean(),
             "include_scheduled_updates": boolean(),
             "event_item": list_rel("events", id_type="string"),
+            "coverage_assignment_status": string(),
         },
     },
     "schedules": {
