@@ -12,8 +12,6 @@ import {LockContainer} from '../../';
 import {AssignmentPreviewContainer} from './';
 import {AssignmentPreview} from './AssignmentPreview';
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
-import {EventPreview} from './EventPreview';
-import {PlanningPreview} from './PlanningPreview';
 import {ItemActionsMenu} from '../../ItemActionsMenu';
 
 describe('<AssignmentPreviewContainer />', () => {
@@ -57,8 +55,6 @@ describe('<AssignmentPreviewContainer />', () => {
 
         expect(wrapper.childAt(0).type()).toEqual(AssignmentPreviewHeader);
         expect(wrapper.childAt(1).hasClass('AssignmentPreview__coverage')).toBe(true);
-        expect(wrapper.childAt(2).hasClass('AssignmentPreview__planning')).toBe(true);
-        expect(wrapper.childAt(3).hasClass('AssignmentPreview__event')).toBe(true);
         expect(wrapper.find(ItemActionsMenu).length).toBe(1);
 
         wrapper = getWrapper({
@@ -71,8 +67,6 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.childAt(0).type()).toEqual(AssignmentPreviewHeader);
         expect(wrapper.childAt(1).hasClass('AssignmentPreview__fulfil')).toBe(true);
         expect(wrapper.childAt(2).hasClass('AssignmentPreview__coverage')).toBe(true);
-        expect(wrapper.childAt(3).hasClass('AssignmentPreview__planning')).toBe(true);
-        expect(wrapper.childAt(4).hasClass('AssignmentPreview__event')).toBe(true);
         expect(wrapper.find(ItemActionsMenu).length).toBe(0);
     });
 
@@ -187,36 +181,5 @@ describe('<AssignmentPreviewContainer />', () => {
 
         expect(wrapper.find(AssignmentPreview).length).toBe(1);
         expect(wrapper.find(LockContainer).length).toBe(0);
-    });
-
-    it('renders Planning preview', () => {
-        const mountWrapper = getWrapper();
-        let wrapper = mountWrapper.find('.AssignmentPreview');
-        let toggle = new helpers.toggleBox(wrapper.childAt(2));
-
-        expect(toggle.title()).toBe('Planning');
-        expect(toggle.isOpen()).toBe(false);
-        toggle.click();
-
-        wrapper = mountWrapper.find('.AssignmentPreview');
-        toggle = new helpers.toggleBox(wrapper.childAt(2));
-        expect(toggle.isOpen()).toBe(true);
-        expect(toggle.find(PlanningPreview).length).toBe(1);
-    });
-
-    it('renders Event preview', () => {
-        assignment.planning_item = 'p2';
-        const mountWrapper = getWrapper();
-        let wrapper = mountWrapper.find('.AssignmentPreview');
-        let toggle = new helpers.toggleBox(wrapper.childAt(3));
-
-        expect(toggle.title()).toBe('Event');
-        expect(toggle.isOpen()).toBe(false);
-        toggle.click();
-
-        wrapper = mountWrapper.find('.AssignmentPreview');
-        toggle = new helpers.toggleBox(wrapper.childAt(3));
-        expect(toggle.isOpen()).toBe(true);
-        expect(toggle.find(EventPreview).length).toBe(1);
     });
 });

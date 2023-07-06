@@ -32,8 +32,8 @@ interface IProps {
     files: {[key: string]: IFile};
 }
 
-const mapStateToProps = (state) => ({
-    item: selectors.events.getEventPreviewRelatedDetails(state),
+const mapStateToProps = (state, ownProps) => ({
+    item: selectors.events.getEventPreviewRelatedDetails(state) || ownProps.item,
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),

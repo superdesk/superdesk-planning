@@ -8,7 +8,7 @@ import {
     IEventItem,
     IFile,
     IFormProfiles,
-    ILockedItems,
+    ILockedItems, IPlanningCoverageItem,
     IPlanningItem,
     IPlanningNewsCoverageStatus,
     ISession,
@@ -43,14 +43,15 @@ interface IProps {
     event?: IEventItem;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     onEditEvent(): void; // TODO - match code
-    inner: boolean;
-    noPadding: boolean;
+    inner?: boolean;
+    noPadding?: boolean;
     fetchEventFiles(event: IEventItem): void; // TODO - match code
     fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
     hideRelatedItems?: boolean;
     files: Array<IFile>;
     hideEditIcon?: boolean;
     planningAllowScheduledUpdates: boolean;
+    currentCoverageId?: IPlanningCoverageItem['coverage_id'];
 }
 
 const mapStateToProps = (state, ownProps) => ({
@@ -107,6 +108,30 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
         const hasCoverage = get(item, 'coverages.length', 0) > 0;
+        const currentCoverage: IPlanningCoverageItem | null = this.props.currentCoverageId == null ?
+            null :
+            (item.coverages ?? []).find((coverage) => coverage.coverage_id === this.props.currentCoverageId);
+        const otherCoverages: Array<IPlanningCoverageItem> = this.props.currentCoverageId == null ?
+            item.coverages ?? [] :
+            (item.coverages ?? []).filter((coverage) => coverage.coverage_id !== this.props.currentCoverageId);
+
+        const renderCoverage = (coverage, index) => (
+            <CoveragePreview
+                item={item}
+                key={coverage.coverage_id}
+                index={index}
+                coverage={coverage}
+                users= {users}
+                desks= {desks}
+                newsCoverageStatus={newsCoverageStatus}
+                formProfile={formProfile.coverage}
+                inner={inner}
+                files={files}
+                createLink={getFileDownloadURL}
+                planningAllowScheduledUpdates={planningAllowScheduledUpdates}
+                scrollInView={true}
+            />
+        );
 
         return (
             <ContentBlock noPadding={noPadding}>
@@ -143,7 +168,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                     previewGroupToProfile(PREVIEW_PANEL.PLANNING, formProfile?.planning),
                     {
                         item: item,
-                        language: getUserInterfaceLanguageFromCV(),
+                        language: item.language ?? getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                         schema: formProfile?.planning.schema,
                         profile: formProfile?.planning,
@@ -189,26 +214,28 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                         hideEditIcon={hideEditIcon}
                     />
                 )}
-                {hasCoverage &&
-                    (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
-                {hasCoverage &&
-                    (item.coverages.map((c, index) => (
-                        <CoveragePreview
-                            item={item}
-                            key={c.coverage_id}
-                            index={index}
-                            coverage={c}
-                            users= {users}
-                            desks= {desks}
-                            newsCoverageStatus={newsCoverageStatus}
-                            formProfile={formProfile.coverage}
-                            inner={inner}
-                            files={files}
-                            createLink={getFileDownloadURL}
-                            planningAllowScheduledUpdates={planningAllowScheduledUpdates}
-                        />
-                    )))
-                }
+                {!hasCoverage ? null : (
+                    <React.Fragment>
+                        {currentCoverage == null ? (
+                            <React.Fragment>
+                                <h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>
+                                {otherCoverages.map(renderCoverage)}
+                            </React.Fragment>
+                        ) : (
+                            <React.Fragment>
+                                <h3 className="side-panel__heading--big">{gettext('This Coverage')}</h3>
+                                {renderCoverage(currentCoverage, 0)}
+
+                                {!otherCoverages.length ? null : (
+                                    <React.Fragment>
+                                        <h3 className="side-panel__heading--big">{gettext('Other Coverages')}</h3>
+                                        {otherCoverages.map(renderCoverage)}
+                                    </React.Fragment>
+                                )}
+                            </React.Fragment>
+                        )}
+                    </React.Fragment>
+                )}
             </ContentBlock>
         );
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {IPlanningItem} from '../../../interfaces';
+import {IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
 import {ICON_COLORS} from '../../../constants';
 import {onEventCapture, editorMenuUtils} from '../../../utils';
 
@@ -24,6 +24,7 @@ interface IProps {
     onEditPlanning?(): void;
     onOpen?(): void;
     onClick?(): void;
+    currentCoverageId?: IPlanningCoverageItem['coverage_id'];
 }
 
 export class PlanningMetaData extends React.PureComponent<IProps> {
@@ -100,6 +101,7 @@ export class PlanningMetaData extends React.PureComponent<IProps> {
                 item={this.props.plan}
                 inner={true}
                 noPadding={true}
+                currentCoverageId={this.props.currentCoverageId}
             />
         );
 

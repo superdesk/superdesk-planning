@@ -1,4 +1,5 @@
 import {superdeskApi} from '../../../superdeskApi';
+import {IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
 
 import {IPreviewHocOptions, previewHoc} from './base/PreviewHoc';
 import {PreviewSimpleListItem} from './base/PreviewSimpleListItem';
@@ -14,6 +15,7 @@ import {PreviewFieldUrgency} from './Urgency';
 import {PreviewFieldFlags} from './Flags';
 
 import * as selectors from '../../../selectors';
+import {planningUtils} from '../../../utils';
 
 import {
     getPreviewString,
@@ -176,6 +178,24 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
     accreditation_deadline: {
         props: () => ({label: superdeskApi.localization.gettext('Accreditation Deadline')}),
         getValue: getDateTimeValue,
+    },
+    genre: {
+        props: () => ({label: superdeskApi.localization.gettext('Genre')}),
+        getValue: getValueFromCV('genres'),
+        mapStateToProps: (state) => ({genres: state.genres}),
+    },
+    scheduled: {
+        props: () => ({label: superdeskApi.localization.gettext('Due')}),
+        getValue: (value: undefined, props: {item: IPlanningCoverageItem}) => (
+            !props.item.planning.scheduled ?
+                superdeskApi.localization.gettext('Not scheduled yet') :
+                planningUtils.getCoverageDateTimeText(props.item)
+        ),
+    },
+    news_coverage_status: {
+        props: () => ({label: superdeskApi.localization.gettext('Coverage Status')}),
+        getValue: getValueFromCV('news_coverage_status'),
+        mapStateToProps: (state) => ({news_coverage_status: selectors.general.newsCoverageStatus(state)}),
     },
 };
 
