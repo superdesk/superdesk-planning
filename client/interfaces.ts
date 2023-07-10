@@ -194,6 +194,8 @@ export enum PREVIEW_PANEL {
     PLANNING = 'planning',
     COVERAGE = 'coverage',
     ASSOCIATED_EVENT = 'associated_event',
+    ASSIGNMENT = 'assignment',
+    SCHEDULED_COVERAGE_UPDATE = 'scheduled_coverage_update',
 }
 
 export enum DATE_RANGE {

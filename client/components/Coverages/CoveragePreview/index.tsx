@@ -33,10 +33,10 @@ interface IProps {
     desks: Array<IDesk>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     formProfile: ICoverageFormProfile;
-    noOpen: boolean;
-    active: boolean;
+    noOpen?: boolean;
+    active?: boolean;
     scrollInView: boolean;
-    onClick(): void;
+    onClick?(): void;
     inner: boolean;
     index: number;
     item: IPlanningItem;
@@ -137,11 +137,20 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     'form-preview',
                     previewGroupToProfile(PREVIEW_PANEL.COVERAGE, formProfile),
                     {
-                        item: coverage.planning,
-                        language: getUserInterfaceLanguageFromCV(),
+                        item: coverage,
+                        language: coverage.planning.language ?? getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                     },
-                    {}
+                    {
+                        language: {field: 'planning.language', enabled: false},
+                        slugline: {field: 'planning.slugline'},
+                        ednote: {field: 'planning.ednote'},
+                        keyword: {field: 'planning.keyword'},
+                        internal_note: {field: 'planning.internal_note'},
+                        g2_content_type: {field: 'planning.g2_content_type'},
+                        genre: {field: 'planning.genre'},
+                        flags: {field: 'planning.flags'},
+                    }
                 )}
 
                 {planningUtils.showXMPFileUIControl(coverage) && (
@@ -158,13 +167,6 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     </PreviewRow>
                 )}
 
-                {get(formProfile, 'editor.genre.enabled') && coverage.planning.genre && (
-                    <PreviewRow
-                        label={gettext('Genre')}
-                        value={get(coverage, 'planning.genre.name')}
-                    />
-                )}
-
                 {get(formProfile, 'editor.files.enabled') && (
                     <PreviewRow
                         label={gettext('Attached files')}
@@ -176,26 +178,6 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                             createLink={createLink}
                             noToggle
                         />
-                    </PreviewRow>
-                )}
-
-                <PreviewRow
-                    label={gettext('Coverage Status')}
-                    value={coverageStatus.label || ''}
-                />
-
-                {get(formProfile, 'editor.scheduled.enabled') && (
-                    <PreviewRow
-                        label={gettext('Due')}
-                        value={coverageDateText}
-                    />
-                )}
-
-                {get(formProfile, 'editor.flags') && get(coverage, 'flags.no_content_linking') && (
-                    <PreviewRow>
-                        <span className="state-label not-for-publication">
-                            {gettext('Do not link content updates')}
-                        </span>
                     </PreviewRow>
                 )}
 
@@ -230,6 +212,7 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                 scrollInView={scrollInView}
                 forceScroll={active}
                 inner={inner}
+                scrollIntoViewOptions={{behavior: 'smooth'}}
             />
         );
     }

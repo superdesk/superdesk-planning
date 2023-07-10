@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
@@ -10,13 +10,14 @@ import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
 
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
 import {AssignmentPreview} from './AssignmentPreview';
-import {PlanningPreview} from './PlanningPreview';
-import {EventPreview} from './EventPreview';
-import {ToggleBox, Button} from '../../UI';
+import {Button} from '../../UI';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 
+import {RelatedPlannings} from '../../RelatedPlannings';
+import {EventMetadata} from '../../Events';
+
 class AssignmentPreviewContainerComponent extends React.Component {
-    componentWillMount() {
+    componentDidMount() {
         if (eventUtils.shouldFetchFilesForEvent(this.props.eventItem)) {
             this.props.fetchEventFiles(this.props.eventItem);
         }
@@ -75,12 +76,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
             desks,
             planningItem,
             eventItem,
-            urgencyLabel,
             priorities,
-            urgencies,
-            keywords,
             formProfile,
-            agendas,
             hideAvatar,
             currentWorkspace,
             contentTypes,
@@ -130,7 +127,6 @@ class AssignmentPreviewContainerComponent extends React.Component {
                 <ContentBlock className="AssignmentPreview__coverage" padSmall={true}>
                     <AssignmentPreview
                         assignment={assignment}
-                        keywords={keywords}
                         coverageFormProfile={formProfile.coverage}
                         planningFormProfile={formProfile.planning}
                         planningItem={planningItem}
@@ -139,41 +135,36 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     />
                 </ContentBlock>
 
-                <ContentBlock className="AssignmentPreview__planning" padSmall={true}>
-                    <ToggleBox
-                        title={gettext('Planning')}
-                        isOpen={false}
-                        style="toggle-box--circle"
-                        scrollInView={true}
-                        noMargin={true}
-                    >
-                        <PlanningPreview
-                            urgencyLabel={urgencyLabel}
-                            item={planningItem}
-                            formProfile={formProfile.planning}
-                            agendas={agendas}
-                            urgencies={urgencies}
-                        />
-                    </ToggleBox>
-                </ContentBlock>
-
                 {eventItem && (
                     <ContentBlock className="AssignmentPreview__event" padSmall={true}>
-                        <ToggleBox
-                            title={gettext('Event')}
-                            isOpen={false}
-                            style="toggle-box--circle"
-                            scrollInView={true}
-                        >
-                            <EventPreview
-                                item={eventItem}
-                                formProfile={formProfile.event}
-                                createLink={getFileDownloadURL}
-                                files={files}
-                            />
-                        </ToggleBox>
+                        <h3 className="side-panel__heading--big">
+                            {gettext('Associated Event')}
+                        </h3>
+                        <EventMetadata
+                            event={eventItem}
+                            createUploadLink={getFileDownloadURL}
+                            files={files}
+                            hideEditIcon={true}
+                        />
                     </ContentBlock>
                 )}
+
+                <ContentBlock className="AssignmentPreview__planning" padSmall={true}>
+                    <h3 className="side-panel__heading side-panel__heading--big">
+                        {gettext('Planning')}
+                    </h3>
+                    <RelatedPlannings
+                        className="related-plannings"
+                        plannings={[planningItem]}
+                        openPlanningItem={true}
+                        expandable={true}
+                        users={users}
+                        desks={desks}
+                        allowEditPlanning={false}
+                        currentCoverageId={assignment.coverage_item}
+
+                    />
+                </ContentBlock>
             </div>
         );
     }
@@ -196,14 +187,10 @@ AssignmentPreviewContainerComponent.propTypes = {
     desks: PropTypes.array,
     planningItem: PropTypes.object,
     eventItem: PropTypes.object,
-    urgencyLabel: PropTypes.string,
     priorities: PropTypes.array,
-    urgencies: PropTypes.array,
     privileges: PropTypes.object,
-    keywords: PropTypes.array,
     formProfile: PropTypes.object,
     lockedItems: PropTypes.object,
-    agendas: PropTypes.array,
     openArchivePreview: PropTypes.func,
     revertAssignment: PropTypes.func,
     hideItemActions: PropTypes.bool,
@@ -225,13 +212,9 @@ const mapStateToProps = (state) => ({
     eventItem: selectors.getCurrentAssignmentEventItem(state),
 
     priorities: get(state, 'vocabularies.assignment_priority'),
-    urgencyLabel: selectors.vocabs.urgencyLabel(state),
-    urgencies: selectors.getUrgencies(state),
     privileges: selectors.general.privileges(state),
-    keywords: get(state, 'vocabularies.keywords', []),
     formProfile: selectors.forms.profiles(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    agendas: selectors.general.agendas(state),
     currentWorkspace: selectors.general.currentWorkspace(state),
     contentTypes: selectors.general.contentTypes(state),
     files: selectors.general.files(state),

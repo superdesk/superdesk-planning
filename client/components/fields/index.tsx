@@ -296,6 +296,10 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'keyword',
             'internal_note',
             'g2_content_type',
+            'genre',
+            'news_coverage_status',
+            'scheduled',
+            'flags',
         ],
     }],
     [PREVIEW_PANEL.ASSOCIATED_EVENT]: [{
@@ -308,17 +312,49 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'definition_short',
             'event_contact_info',
         ],
+    }],
+    [PREVIEW_PANEL.ASSIGNMENT]: [{
+        name: 'no_group',
+        fields: [
+            'language',
+            'slugline',
+            'place',
+            'anpa_category',
+            'subject',
+            'genre',
+            'keyword',
+            'ednote',
+            'internal_note',
+        ],
+    }],
+    [PREVIEW_PANEL.SCHEDULED_COVERAGE_UPDATE]: [{
+        name: 'no_group',
+        fields: [
+            'genre',
+            'internal_note',
+            'news_coverage_status',
+            'scheduled',
+        ],
     }]
 };
 
-export function previewGroupToProfile(groupName: PREVIEW_PANEL, profile) {
+export function previewGroupToProfile(
+    groupName: PREVIEW_PANEL,
+    profile,
+    includeGroups = true,
+    skipFieldsMissingInProfile = false
+) {
     const previewProfile = {};
 
     PREVIEW_GROUPS[groupName]?.forEach((group) => {
         group.fields.forEach((field, index) => {
+            if (skipFieldsMissingInProfile && profile?.editor?.[field] == null) {
+                return;
+            }
+
             previewProfile[field] = {
                 index: index,
-                group: group.name,
+                group: includeGroups ? group.name : 'no_group',
                 enabled: profile?.editor?.[field]?.enabled,
             };
         });
