@@ -17,6 +17,7 @@ interface IProps {
 }
 
 export default class CustomVocabulariesFields extends React.PureComponent<IProps> {
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {
@@ -32,7 +33,10 @@ export default class CustomVocabulariesFields extends React.PureComponent<IProps
             errors,
             diff,
         } = fieldProps;
-        const language = get(diff, 'language') || getUserInterfaceLanguageFromCV();
+
+        const language = MAIN_LANGUAGE ?? get(diff, 'language') ?? getUserInterfaceLanguageFromCV();
+
+        console.log(diff, 'diff');
 
         return customVocabularies
             .map((cv) => (
