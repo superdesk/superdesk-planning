@@ -794,6 +794,14 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
             language: plan.language,
         };
 
+        if (plan.languages != null) {
+            newEvent.languages = plan.languages;
+        }
+
+        if (plan.translations != null) {
+            newEvent.translations = plan.translations;
+        }
+
         if (get(eventProfile, 'editor.slugline.enabled', false)) {
             newEvent.slugline = stringUtils.convertStringFieldForProfileFieldType(
                 'planning',
