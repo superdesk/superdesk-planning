@@ -18,7 +18,6 @@ interface IProps {
 }
 
 export default class CustomVocabulariesFields extends React.PureComponent<IProps> {
-
     render() {
         const {gettext} = superdeskApi.localization;
         const {
