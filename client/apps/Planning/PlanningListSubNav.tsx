@@ -11,6 +11,9 @@ import * as actions from '../../actions';
 
 import {Button, ButtonGroup, Dropdown, SubNav, Tooltip, IconButton} from 'superdesk-ui-framework/react';
 import {FilterSubnavDropdown} from '../../components/Main';
+
+import {Dropdown as DropdownFromPlanning, IDropdownItem} from '../../components/UI/SubNav/Dropdown';
+
 import {SubNavDatePicker} from './SubNavDatePicker';
 import {IUser} from 'superdesk-api';
 
@@ -144,9 +147,10 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     render() {
         let newOption = {_id: null, display_name: 'ALL'};
         let list = [newOption, ...this.props.users];
-        const userList = list.map((user) => ({
+        const userList: Array<IDropdownItem> = list.map((user) => ({
+            id: user._id,
             label: user.display_name,
-            onSelect: () => {
+            action: () => {
                 this.filterCoverageUser(user);
             }
         }));
@@ -188,19 +192,28 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                 <SubNav className="subnav-event-planning" zIndex={1}>
                     <ButtonGroup align="inline">
                         <FilterSubnavDropdown viewSize={this.state.viewSize} />
-                        {this.props.activefilter == PLANNING_VIEW.EVENTS ? ' ' : (
-                            <div>
-                                <span className="sd-margin-l--1 sd-opacity--75 ">{gettext('Assigned to:')}</span>
-                                <Dropdown items={userList}>
-                                    <span className="sd-margin-l--1 sd-margin-r--3">
-                                        {this.props.users.find(
-                                            (user) => user._id == this.props.coverageUser
-                                        )?.display_name ?? gettext('ALL')}
-                                        <span className="dropdown__caret" />
+
+                        {this.props.activefilter == PLANNING_VIEW.EVENTS
+                            ? ' '
+                            : (
+                                <>
+                                    <span className="sd-margin-l--1 sd-opacity--75 ">
+                                        {gettext('Assigned to:')}
                                     </span>
-                                </Dropdown>
-                            </div>
-                        )}
+
+                                    <DropdownFromPlanning
+                                        items={userList}
+                                        buttonLabel={
+                                            this.props.users.find(
+                                                (user) => user._id == this.props.coverageUser
+                                            )?.display_name ?? gettext('ALL')
+                                        }
+                                        scrollable={true}
+                                        searchable={true}
+                                    />
+                                </>
+                            )
+                        }
                     </ButtonGroup>
                     <ButtonGroup className="hideOnMobile" align="end">
                         {this.props.listViewType === LIST_VIEW_TYPE.LIST ? (
