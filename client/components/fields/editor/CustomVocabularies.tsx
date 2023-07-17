@@ -28,11 +28,11 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                 ))}
                 fieldProps={{
                     item: this.props.item,
-                    diff: this.props.item,
                     readOnly: this.props.disabled,
                     onChange: this.props.onChange,
                     errors: this.props.errors,
                 }}
+                language={this.props.language}
                 popupProps={{
                     onPopupOpen: this.props.onPopupOpen,
                     onPopupClose: this.props.onPopupClose,

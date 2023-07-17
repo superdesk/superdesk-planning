@@ -12,6 +12,7 @@ interface IProps {
     customVocabularies: Array<IVocabulary>;
     fieldProps: any;
     popupProps: any;
+    language: string;
     onFocusDetails?(): void;
     popupContainer?(): HTMLElement;
 }
@@ -31,12 +32,9 @@ export default class CustomVocabulariesFields extends React.PureComponent<IProps
 
         const {
             errors,
-            diff,
         } = fieldProps;
 
-        const language = MAIN_LANGUAGE ?? get(diff, 'language') ?? getUserInterfaceLanguageFromCV();
-
-        console.log(diff, 'diff');
+        const language = this.props.language ?? getUserInterfaceLanguageFromCV();
 
         return customVocabularies
             .map((cv) => (
