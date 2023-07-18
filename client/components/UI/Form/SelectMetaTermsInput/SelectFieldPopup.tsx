@@ -281,13 +281,16 @@ export class SelectFieldPopup extends React.Component<IProps, IState> {
         const valueNoCase = val.toLowerCase();
         const searchKey = this.props.searchKey ?? 'name';
 
+        const itemTranslation = (label: string | any) => (
+            label.toLowerCase().substr(0, val.length) === valueNoCase
+                || label.toLowerCase().indexOf(valueNoCase) >= 0
+        );
+
         let searchResults = this.props.options.filter((opt) => {
             if (opt.translations && opt.translations.name[this.props.language]) {
-                return opt.translations.name[this.props.language].toLowerCase().substr(0, val.length) === valueNoCase
-                    || opt.translations.name[this.props.language].toLowerCase().indexOf(valueNoCase) >= 0;
+                return itemTranslation(opt.translations.name[this.props.language]);
             } else {
-                return opt[searchKey].toLowerCase().substr(0, val.length) === valueNoCase
-                    || opt[searchKey].toLowerCase().indexOf(valueNoCase) >= 0;
+                return itemTranslation(opt[searchKey]);
             }
         });
 
