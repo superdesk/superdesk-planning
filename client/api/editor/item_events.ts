@@ -80,7 +80,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         const plans = cloneDeep(event.associated_plannings || []);
         const id = generateTempId();
 
-        plans.push({
+        const newPlanningItem: DeepPartial<IPlanningItem> = {
             _id: id,
             type: 'planning',
             event_item: event._id,
@@ -95,7 +95,17 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             ednote: event.ednote,
             agendas: [],
             language: event.language,
-        });
+        };
+
+        if (event.languages != null) {
+            newPlanningItem.languages = event.languages;
+        }
+
+        if (event.translations != null) {
+            newPlanningItem.translations = event.translations;
+        }
+
+        plans.push(newPlanningItem);
 
         editor.form.changeField('associated_plannings', plans)
             .then(() => {
