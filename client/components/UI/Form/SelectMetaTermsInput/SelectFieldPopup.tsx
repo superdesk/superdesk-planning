@@ -280,10 +280,13 @@ export class SelectFieldPopup extends React.Component<IProps, IState> {
 
         const valueNoCase = val.toLowerCase();
         const searchKey = this.props.searchKey ?? 'name';
-        let searchResults = this.props.options.filter((opt) => (
-            opt[searchKey].toLowerCase().substr(0, val.length) === valueNoCase ||
-                opt[searchKey].toLowerCase().indexOf(valueNoCase) >= 0
-        ));
+
+        let searchResults = this.props.options.filter((opt) => {
+            const label = opt.translations?.name?.[this.props.language] ?? opt[searchKey];
+
+            return label.toLowerCase().substr(0, val.length) === valueNoCase ||
+                label.toLowerCase().indexOf(valueNoCase) >= 0;
+        });
 
         if (this.props.multiLevel && this.props.value) {
             searchResults = differenceBy(searchResults, this.props.value, this.props.valueKey ?? 'qcode');

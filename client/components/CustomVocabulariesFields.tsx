@@ -3,8 +3,6 @@ import {get} from 'lodash';
 
 import {IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
-
-import {getUserInterfaceLanguageFromCV} from '../utils/users';
 import {SelectMetaTermsInput, Field} from './UI/Form';
 
 interface IProps {
@@ -12,6 +10,7 @@ interface IProps {
     customVocabularies: Array<IVocabulary>;
     fieldProps: any;
     popupProps: any;
+    language: string;
     onFocusDetails?(): void;
     popupContainer?(): HTMLElement;
 }
@@ -26,13 +25,12 @@ export default class CustomVocabulariesFields extends React.PureComponent<IProps
             popupProps,
             popupContainer,
             testId,
+            language,
         } = this.props;
 
         const {
             errors,
-            diff,
         } = fieldProps;
-        const language = get(diff, 'language') || getUserInterfaceLanguageFromCV();
 
         return customVocabularies
             .map((cv) => (

@@ -3,8 +3,8 @@ import {connect} from 'react-redux';
 
 import {IVocabulary} from 'superdesk-api';
 import {IEditorFieldProps, IEditorProfile} from '../../../interfaces';
-
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 
 interface IProps extends IEditorFieldProps {
     vocabularies: Array<IVocabulary>;
@@ -20,6 +20,8 @@ const mapStateToProps = (state) => ({
 
 class CustomVocabulariesComponent extends React.PureComponent<IProps> {
     render() {
+        const language = this.props.language ?? getUserInterfaceLanguageFromCV();
+
         return (
             <CustomVocabulariesFields
                 testId={this.props.testId}
@@ -28,11 +30,11 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                 ))}
                 fieldProps={{
                     item: this.props.item,
-                    diff: this.props.item,
                     readOnly: this.props.disabled,
                     onChange: this.props.onChange,
                     errors: this.props.errors,
                 }}
+                language={language}
                 popupProps={{
                     onPopupOpen: this.props.onPopupOpen,
                     onPopupClose: this.props.onPopupClose,
