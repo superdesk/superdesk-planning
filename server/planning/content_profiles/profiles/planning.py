@@ -28,7 +28,7 @@ class PlanningSchema(BaseSchema):
     headline = StringField()
     internal_note = TextField(field_type="multi_line", expandable=True)
     language = LanguageField()
-    name = StringField()
+    name = TextField(field_type="single_line")
     place = schema.ListField()
     planning_date = DateTimeField(required=True)
     slugline = StringField(required=True)
