@@ -31,7 +31,7 @@ class EventSchema(BaseSchema):
     language = LanguageField()
     links = schema.ListField()
     location = schema.StringField()
-    name = TextField(required=True, field_type="multi_line")
+    name = TextField(required=True, field_type="single_line")
     occur_status = schema.DictField()
     occur_status.schema["schema"] = {
         "qcode": {"type": "string", "required": True},
