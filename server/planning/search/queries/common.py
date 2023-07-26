@@ -203,7 +203,11 @@ def search_language(params: Dict[str, Any], query: elastic.ElasticQuery):
     languages = str_to_array(params.get("language"))
 
     if len(languages):
-        query.must.append(elastic.terms(field="language", values=languages))
+        query.must.append(
+            elastic.bool_or(
+                [elastic.terms(field="language", values=languages), elastic.terms(field="languages", values=languages)]
+            )
+        )
 
 
 def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):

@@ -184,7 +184,10 @@ class EventsService(superdesk.Service):
 
             # SDCP-638
             if not event.get("language"):
-                event["language"] = app.config["DEFAULT_LANGUAGE"]
+                try:
+                    event["language"] = event["languages"][0]
+                except (KeyError, IndexError):
+                    event["language"] = app.config["DEFAULT_LANGUAGE"]
 
             # family_id get on ingest we don't need it planning
             event.pop("family_id", None)
