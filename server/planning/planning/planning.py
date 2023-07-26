@@ -133,7 +133,10 @@ class PlanningService(superdesk.Service):
 
             # SDCP-638
             if not doc.get("language"):
-                doc["language"] = app.config["DEFAULT_LANGUAGE"]
+                try:
+                    doc["language"] = doc["languages"][0]
+                except (KeyError, IndexError):
+                    doc["language"] = app.config["DEFAULT_LANGUAGE"]
 
             self.validate_planning(doc)
             set_original_creator(doc)
