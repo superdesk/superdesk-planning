@@ -130,6 +130,7 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
                     field={`${this.props.field}.${language}`}
                     item={{[`${this.props.field}.${language}`]: this.state.fields[language] ?? ''}}
                     onChange={this.onChange}
+                    language={language}
                 />
             );
         }
@@ -147,6 +148,7 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
                         item={{[`${this.props.field}.${language}`]: this.state.fields[language] ?? ''}}
                         onChange={this.onChange}
                         noPadding={index === language.length}
+                        language={language}
                     />
                 ))}
                 <ContentDivider type="dotted" />
