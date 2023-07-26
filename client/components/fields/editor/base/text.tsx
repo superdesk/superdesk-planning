@@ -22,7 +22,6 @@ export interface IEditorFieldTextProps extends IEditorFieldProps {
 interface IState {
     key: string;
     suggestions: string[];
-    showSuggestions: boolean;
 }
 
 export class EditorFieldText extends React.Component<IEditorFieldTextProps, IState> {
@@ -37,7 +36,6 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         this.state = {
             key: uniqueId(),
             suggestions: [],
-            showSuggestions: false,
         };
     }
 
