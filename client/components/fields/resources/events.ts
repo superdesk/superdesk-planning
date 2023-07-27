@@ -21,7 +21,7 @@ registerEditorField(
     'definition_short',
     EditorFieldMultilingualText,
     () => ({
-        label: superdeskApi.localization.gettext('Description'),
+        label: superdeskApi.localization.gettext('Short Description'),
         field: 'definition_short',
     }),
     null,
