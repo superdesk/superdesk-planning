@@ -238,18 +238,9 @@ const addEventToCurrentAgenda = (
     }
 );
 
-/**
- * Action dispatcher that creates a planning item from the supplied event,
- * @param {object} event - The event used to create the planning item
- * @param {object} planningDate - The date to set for the new Planning item
- * @return Promise
- */
-const createPlanningFromEvent = (
-    event: IEventItem,
-    planningDate: Moment = null,
-    agendas: Array<string> = []
-) => {
+export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
     const newPlanningItem: Partial<IPlanningItem> = {
+        type: 'planning',
         event_item: event._id,
         slugline: stringUtils.convertStringFieldForProfileFieldType(
             'event',
@@ -258,7 +249,7 @@ const createPlanningFromEvent = (
             'slugline',
             event.slugline
         ),
-        planning_date: planningDate || event._sortDate || event.dates.start,
+        planning_date: event._sortDate || event.dates?.start,
         internal_note: stringUtils.convertStringFieldForProfileFieldType(
             'event',
             'planning',
@@ -290,7 +281,7 @@ const createPlanningFromEvent = (
             'ednote',
             event.ednote
         ),
-        agendas: agendas,
+        agendas: [],
         language: event.language,
     };
 
@@ -301,6 +292,28 @@ const createPlanningFromEvent = (
     if (event.translations != null) {
         newPlanningItem.translations = event.translations;
     }
+
+    return newPlanningItem;
+}
+
+/**
+ * Action dispatcher that creates a planning item from the supplied event,
+ * @param {object} event - The event used to create the planning item
+ * @param {object} planningDate - The date to set for the new Planning item
+ * @return Promise
+ */
+const createPlanningFromEvent = (
+    event: IEventItem,
+    planningDate: Moment = null,
+    agendas: Array<string> = []
+) => {
+    const newPlanningItem = convertEventToPlanningItem(event);
+
+    if (planningDate != null) {
+        newPlanningItem.planning_date = planningDate;
+    }
+
+    newPlanningItem.agendas = newPlanningItem.agendas.concat(agendas);
 
     return (dispatch) => (
         dispatch(planning.api.save({}, newPlanningItem))

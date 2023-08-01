@@ -21,6 +21,7 @@ import {TEMP_ID_PREFIX} from '../../constants';
 
 import {AddPlanningBookmark, AssociatedPlanningsBookmark} from '../../components/Editor/bookmarks';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
+import {convertEventToPlanningItem} from 'actions';
 
 
 export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events'] {
@@ -80,30 +81,10 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         const plans = cloneDeep(event.associated_plannings || []);
         const id = generateTempId();
 
-        const newPlanningItem: DeepPartial<IPlanningItem> = {
+        const newPlanningItem: Partial<IPlanningItem> = {
             _id: id,
-            type: 'planning',
-            event_item: event._id,
-            slugline: event.slugline,
-            planning_date: event._sortDate || event.dates?.start,
-            internal_note: event.internal_note,
-            name: event.name,
-            place: event.place,
-            subject: event.subject,
-            anpa_category: event.anpa_category,
-            description_text: event.definition_short,
-            ednote: event.ednote,
-            agendas: [],
-            language: event.language,
+            ...convertEventToPlanningItem(event as IEventItem),
         };
-
-        if (event.languages != null) {
-            newPlanningItem.languages = event.languages;
-        }
-
-        if (event.translations != null) {
-            newPlanningItem.translations = event.translations;
-        }
 
         plans.push(newPlanningItem);
 
