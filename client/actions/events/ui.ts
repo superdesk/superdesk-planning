@@ -22,6 +22,7 @@ import {
     isItemPublic,
     stringUtils,
 } from '../../utils';
+import {convertStringFields} from 'utils/strings';
 
 /**
  * Action Dispatcher to fetch events from the server
@@ -748,7 +749,7 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
             name: 'Unplanned event',
         };
         const eventProfile = selectors.forms.eventProfile(getState());
-        const newEvent: Partial<IEventItem> = {
+        let newEvent: Partial<IEventItem> = {
             dates: {
                 start: moment(plan.planning_date).clone(),
                 end: moment(plan.planning_date)
@@ -756,38 +757,9 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
                     .add(defaultDurationOnChange, 'h'),
                 tz: moment.tz.guess(),
             },
-            name: plan.name?.length ?
-                stringUtils.convertStringFieldForProfileFieldType(
-                    'planning',
-                    'event',
-                    'name',
-                    'name',
-                    plan.name
-                ) :
-                stringUtils.convertStringFieldForProfileFieldType(
-                    'planning',
-                    'event',
-                    'slugline',
-                    'name',
-                    plan.slugline
-                ),
             subject: plan.subject,
             anpa_category: plan.anpa_category,
-            definition_short: stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'event',
-                'description_text',
-                'definition_short',
-                plan.description_text
-            ),
             calendars: [],
-            internal_note: stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'event',
-                'internal_note',
-                'internal_note',
-                plan.internal_note
-            ),
             place: plan.place,
             occur_status: unplannedStatus,
             _planning_item: plan._id,
@@ -798,19 +770,29 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
             newEvent.languages = plan.languages;
         }
 
-        if (plan.translations != null) {
-            newEvent.translations = plan.translations;
+        const fieldsToConvert: Array<[keyof IPlanningItem, keyof IEventItem]> = [
+            ['description_text', 'definition_short'],
+            ['internal_note', 'internal_note'],
+            ['slugline', 'slugline'],
+        ];
+
+        if (plan.name?.length) {
+            fieldsToConvert.push(['name', 'name']);
+        } else {
+            fieldsToConvert.push(['slugline', 'name']);
         }
 
         if (get(eventProfile, 'editor.slugline.enabled', false)) {
-            newEvent.slugline = stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'event',
-                'slugline',
-                'slugline',
-                plan.slugline
-            );
+            fieldsToConvert.push(['slugline', 'slugline']);
         }
+
+        newEvent = convertStringFields(
+            plan,
+            newEvent,
+            'planning',
+            'event',
+            fieldsToConvert,
+        );
 
         return Promise.all([
             planningApi.locks.lockItem(plan, 'add_as_event'),

@@ -5,8 +5,9 @@ import {Moment} from 'moment';
 import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext, planningUtils, stringUtils} from '../utils';
+import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
+import {convertStringFields} from 'utils/strings';
 
 const openAgenda = () => (
     (dispatch) => (
@@ -239,58 +240,33 @@ const addEventToCurrentAgenda = (
 );
 
 export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
-    const newPlanningItem: Partial<IPlanningItem> = {
+    let newPlanningItem: Partial<IPlanningItem> = {
         type: 'planning',
         event_item: event._id,
-        slugline: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'slugline',
-            'slugline',
-            event.slugline
-        ),
         planning_date: event._sortDate || event.dates?.start,
-        internal_note: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'internal_note',
-            'internal_note',
-            event.internal_note
-        ),
-        name: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'name',
-            'name',
-            event.name
-        ),
         place: event.place,
         subject: event.subject,
         anpa_category: event.anpa_category,
-        description_text: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'definition_short',
-            'description_text',
-            event.definition_short
-        ),
-        ednote: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'ednote',
-            'ednote',
-            event.ednote
-        ),
         agendas: [],
         language: event.language,
     };
 
+    newPlanningItem = convertStringFields(
+        event,
+        newPlanningItem,
+        'event',
+        'planning',
+        [
+            ['slugline', 'slugline'],
+            ['internal_note', 'internal_note'],
+            ['name', 'name'],
+            ['definition_short', 'description_text'],
+            ['ednote', 'ednote'],
+        ],
+    ) as Partial<IPlanningItem>;
+
     if (event.languages != null) {
         newPlanningItem.languages = event.languages;
-    }
-
-    if (event.translations != null) {
-        newPlanningItem.translations = event.translations;
     }
 
     return newPlanningItem;
