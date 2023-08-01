@@ -22,7 +22,7 @@ import {
     isItemPublic,
     stringUtils,
 } from '../../utils';
-import {convertStringFields} from 'utils/strings';
+import {convertStringFields} from '../../utils/strings';
 
 /**
  * Action Dispatcher to fetch events from the server

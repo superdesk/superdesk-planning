@@ -21,7 +21,7 @@ import {TEMP_ID_PREFIX} from '../../constants';
 
 import {AddPlanningBookmark, AssociatedPlanningsBookmark} from '../../components/Editor/bookmarks';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
-import {convertEventToPlanningItem} from 'actions';
+import {convertEventToPlanningItem} from '../../actions';
 
 
 export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events'] {

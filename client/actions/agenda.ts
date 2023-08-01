@@ -7,7 +7,7 @@ import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
 import {AGENDA, MODALS, EVENTS} from '../constants';
 import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
-import {convertStringFields} from 'utils/strings';
+import {convertStringFields} from '../utils/strings';
 
 const openAgenda = () => (
     (dispatch) => (
