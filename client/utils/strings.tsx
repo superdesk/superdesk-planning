@@ -132,7 +132,13 @@ export function convertStringFields<Src extends IEventOrPlanningItem, Dest exten
 
     for (const [srcField, destField] of fieldsToCopy) {
         const valSrc = itemSrc[srcField] as string;
-        const valDest = convertStringFieldForProfileFieldType(srcItemType, destItemType, srcField as string, destField as string, valSrc);
+        const valDest = convertStringFieldForProfileFieldType(
+            srcItemType,
+            destItemType,
+            srcField as string,
+            destField as string,
+            valSrc,
+        );
 
         itemDest[destField as string] = valDest;
     }

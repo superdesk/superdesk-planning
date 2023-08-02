@@ -114,6 +114,7 @@ interface ResizeObserver {
     unobserve(target: Element): void;
 }
 
+// eslint-disable-next-line no-redeclare
 declare var ResizeObserver: {
     prototype: ResizeObserver;
     new(callback: ResizeObserverCallback): ResizeObserver;
@@ -126,6 +127,7 @@ interface ResizeObserverEntry {
     readonly target: Element;
 }
 
+// eslint-disable-next-line no-redeclare
 declare var ResizeObserverEntry: {
     prototype: ResizeObserverEntry;
     new(): ResizeObserverEntry;
@@ -136,6 +138,7 @@ interface ResizeObserverSize {
     readonly inlineSize: number;
 }
 
+// eslint-disable-next-line no-redeclare
 declare var ResizeObserverSize: {
     prototype: ResizeObserverSize;
     new(): ResizeObserverSize;
