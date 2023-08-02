@@ -78,6 +78,9 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too short');
             messages.push(gettext('{{ name }} is too short', {name: fieldLabel}));
         }
+    } else if (schema.required && schema.multilingual && isEmpty(fieldValue)) {
+        errors[field] = gettext('This field is required');
+        messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else {
         delete errors[field];
     }
