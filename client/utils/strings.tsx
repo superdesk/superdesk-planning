@@ -156,7 +156,9 @@ export function convertStringFields<Src extends IEventOrPlanningItem, Dest exten
             field: fieldsToCopyMap[translationSrc.field],
         }));
 
-    itemDest.translations = (itemSrc.translations ?? []).concat(translationsDest);
+    if (translationsDest.length > 0) {
+        itemDest.translations = (itemSrc.translations ?? []).concat(translationsDest);
+    }
 
     return itemDest;
 }
