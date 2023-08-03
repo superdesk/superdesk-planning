@@ -5,8 +5,9 @@ import {Moment} from 'moment';
 import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext, planningUtils, stringUtils} from '../utils';
+import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
+import {convertStringFields} from '../utils/strings';
 
 const openAgenda = () => (
     (dispatch) => (
@@ -238,6 +239,39 @@ const addEventToCurrentAgenda = (
     }
 );
 
+export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
+    let newPlanningItem: Partial<IPlanningItem> = {
+        type: 'planning',
+        event_item: event._id,
+        planning_date: event._sortDate || event.dates?.start,
+        place: event.place,
+        subject: event.subject,
+        anpa_category: event.anpa_category,
+        agendas: [],
+        language: event.language,
+    };
+
+    newPlanningItem = convertStringFields(
+        event,
+        newPlanningItem,
+        'event',
+        'planning',
+        [
+            ['slugline', 'slugline'],
+            ['internal_note', 'internal_note'],
+            ['name', 'name'],
+            ['definition_short', 'description_text'],
+            ['ednote', 'ednote'],
+        ],
+    ) as Partial<IPlanningItem>;
+
+    if (event.languages != null) {
+        newPlanningItem.languages = event.languages;
+    }
+
+    return newPlanningItem;
+}
+
 /**
  * Action dispatcher that creates a planning item from the supplied event,
  * @param {object} event - The event used to create the planning item
@@ -249,58 +283,13 @@ const createPlanningFromEvent = (
     planningDate: Moment = null,
     agendas: Array<string> = []
 ) => {
-    const newPlanningItem: Partial<IPlanningItem> = {
-        event_item: event._id,
-        slugline: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'slugline',
-            'slugline',
-            event.slugline
-        ),
-        planning_date: planningDate || event._sortDate || event.dates.start,
-        internal_note: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'internal_note',
-            'internal_note',
-            event.internal_note
-        ),
-        name: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'name',
-            'name',
-            event.name
-        ),
-        place: event.place,
-        subject: event.subject,
-        anpa_category: event.anpa_category,
-        description_text: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'definition_short',
-            'description_text',
-            event.definition_short
-        ),
-        ednote: stringUtils.convertStringFieldForProfileFieldType(
-            'event',
-            'planning',
-            'ednote',
-            'ednote',
-            event.ednote
-        ),
-        agendas: agendas,
-        language: event.language,
-    };
+    const newPlanningItem = convertEventToPlanningItem(event);
 
-    if (event.languages != null) {
-        newPlanningItem.languages = event.languages;
+    if (planningDate != null) {
+        newPlanningItem.planning_date = planningDate;
     }
 
-    if (event.translations != null) {
-        newPlanningItem.translations = event.translations;
-    }
+    newPlanningItem.agendas = newPlanningItem.agendas.concat(agendas);
 
     return (dispatch) => (
         dispatch(planning.api.save({}, newPlanningItem))

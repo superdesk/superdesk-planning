@@ -326,6 +326,7 @@ describe('agenda', () => {
                         expect(apiSpy.save.args[0]).toEqual([
                             {},
                             {
+                                type: 'planning',
                                 event_item: events[0]._id,
                                 planning_date: events[0].dates.start,
                                 slugline: events[0].slugline,
