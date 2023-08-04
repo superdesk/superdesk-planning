@@ -184,11 +184,13 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                     desk: coverage.desk?._id,
                 };
 
-                if (newCoverage.planning == null) {
-                    newCoverage.planning = {};
-                }
+                if (coverage.language != null) {
+                    if (newCoverage.planning == null) {
+                        newCoverage.planning = {};
+                    }
 
-                newCoverage.planning.language = coverage.language;
+                    newCoverage.planning.language = coverage.language;
+                }
 
                 if (coverage.status) {
                     newCoverage.news_coverage_status = coverage.status;

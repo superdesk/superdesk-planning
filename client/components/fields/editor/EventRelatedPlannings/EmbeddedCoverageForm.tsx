@@ -20,10 +20,6 @@ import {getLanguagesForTreeSelectInput} from '../../../../selectors/vocabs';
 
 const appConfig = config.appConfig as IPlanningConfig;
 
-const mapStateToProps = (state) => ({
-    languages: getLanguagesForTreeSelectInput(state),
-});
-
 interface IProps {
     coverage: ICoverageDetails;
     language?: string;
@@ -35,6 +31,52 @@ interface IProps {
     profile: IPlanningContentProfile;
 
     update(updates: Partial<ICoverageDetails>): void;
+}
+
+/**
+* return all language or only ones that satisfy multilingual scheme
+*/
+function getLanguagesForCoverage(
+    profile: IPlanningContentProfile,
+    allLanguages: Array<{value: IVocabularyItem}>,
+    event: IEventItem,
+    coverage: ICoverageDetails,
+): {
+    allLanguages: Array<{value: IVocabularyItem}>;
+    language: string;
+} {
+    const {multilingual} = planningApi.contentProfiles;
+
+    const isMultilingual = multilingual.isEnabled(profile);
+
+    const schemaLanguages = multilingual.getLanguages(profile);
+
+    const languages = isMultilingual
+        ? allLanguages.filter((language) => (
+            schemaLanguages.includes(language.value.qcode)
+        ))
+        : allLanguages;
+
+    const coverageLanguage = languages.find((qcode) => (
+        coverage.language === qcode.value.qcode
+    ));
+
+    const language = (() => {
+        if (isMultilingual) {
+            return event.languages.find((qcode) => (
+                coverageLanguage?.value?.qcode === qcode
+            ));
+        } else {
+            return event.language === coverageLanguage?.value?.qcode
+                ? coverageLanguage.value.qcode
+                : undefined;
+        }
+    })();
+
+    return {
+        allLanguages: languages,
+        language: language,
+    };
 }
 
 export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
@@ -83,33 +125,12 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
         const {gettext} = superdeskApi.localization;
         const {coverage} = this.props;
 
-        const {multilingual} = planningApi.contentProfiles;
-
-        const isMultilingual = multilingual.isEnabled(this.props.profile);
-
-        const schemaLanguages = multilingual.getLanguages(this.props.profile);
-
-        const languages = isMultilingual
-            ? this.props.languages.filter((language) => (
-                schemaLanguages.includes(language.value.qcode)
-            ))
-            : this.props.languages;
-
-        const coverageLanguage = this.props.languages.find((qcode) => (
-            this.props.coverage.language === qcode.value.qcode
-        ));
-
-        let language: string;
-
-        if (isMultilingual) {
-            language = this.props.event.languages.find((qcode) => (
-                coverageLanguage?.value?.qcode === qcode
-            ));
-        } else {
-            language = this.props.event.language === coverageLanguage?.value?.qcode
-                ? coverageLanguage?.value?.qcode
-                : undefined;
-        }
+        const {allLanguages, language} = getLanguagesForCoverage(
+            this.props.profile,
+            this.props.languages,
+            this.props.event,
+            this.props.coverage,
+        );
 
         return (
             <List.Item shadow={1} className="sd-margin-t--0">
@@ -166,7 +187,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                                 onChange={(item) => this.onLanguageChange(item)}
                             >
                                 <Option />
-                                {languages.map(
+                                {allLanguages.map(
                                     (language) => (
                                         <Option
                                             key={language.value.qcode}
@@ -194,5 +215,9 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
         );
     }
 }
+
+const mapStateToProps = (state) => ({
+    languages: getLanguagesForTreeSelectInput(state),
+});
 
 export const EmbeddedCoverageForm = connect(mapStateToProps)(EmbeddedCoverageFormComponent);
