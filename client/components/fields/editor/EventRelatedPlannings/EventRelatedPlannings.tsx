@@ -84,6 +84,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     addCoverageToWorkflow={this.props.addCoverageToWorkflow}
                                     disabled={false}
                                     editorType={this.props.editorType}
+                                    profile={this.props.profile}
                                 />
                             ))
                         )}

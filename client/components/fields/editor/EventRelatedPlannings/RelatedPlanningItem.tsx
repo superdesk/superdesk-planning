@@ -1,7 +1,14 @@
 import * as React from 'react';
 import {set} from 'lodash';
 
-import {EDITOR_TYPE, IEventItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../../../interfaces';
+import {
+    EDITOR_TYPE,
+    IEventItem,
+    IG2ContentType,
+    IPlanningContentProfile,
+    IPlanningCoverageItem,
+    IPlanningItem
+} from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
 
 import {TEMP_ID_PREFIX} from '../../../../constants';
@@ -19,6 +26,7 @@ interface IProps {
     index: number;
     disabled: boolean;
     editorType: EDITOR_TYPE;
+    profile: IPlanningContentProfile;
     removePlan(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
@@ -140,6 +148,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                             event={this.props.event}
                             item={item}
                             updatePlanningItem={this.update}
+                            profile={this.props.profile}
                         />
                     </Row>
                 )}
