@@ -34,7 +34,7 @@ interface IProps {
 }
 
 /**
-* return all language or only ones that satisfy multilingual scheme
+* return all languages or only ones that satisfy multilingual scheme
 */
 function getLanguagesForCoverage(
     profile: IPlanningContentProfile,
