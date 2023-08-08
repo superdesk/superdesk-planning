@@ -6,7 +6,8 @@ import {
     IPlanningNewsCoverageStatus,
     IPlanningConfig,
     IPlanningContentProfile,
-    IEventItem
+    IEventItem,
+    ISearchProfile
 } from '../../../../interfaces';
 import {ICoverageDetails} from './CoverageRowForm';
 import {superdeskApi, planningApi} from '../../../../superdeskApi';
@@ -29,6 +30,7 @@ interface IProps {
     languages: Array<{value: IVocabularyItem}>;
     event: IEventItem;
     profile: IPlanningContentProfile;
+    coverageProfile?: ISearchProfile;
 
     update(updates: Partial<ICoverageDetails>): void;
 }
@@ -181,23 +183,25 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                     </List.Row>
                     <List.Row>
                         <Row>
-                            <Select
-                                label={gettext('Language:')}
-                                value={language}
-                                onChange={(item) => this.onLanguageChange(item)}
-                            >
-                                <Option />
-                                {allLanguages.map(
-                                    (language) => (
-                                        <Option
-                                            key={language.value.qcode}
-                                            value={language.value.qcode}
-                                        >
-                                            {language.value.name}
-                                        </Option>
-                                    )
-                                )}
-                            </Select>
+                            {this.props.coverageProfile.language != null && (
+                                <Select
+                                    label={gettext('Language:')}
+                                    value={language}
+                                    onChange={(item) => this.onLanguageChange(item)}
+                                >
+                                    <Option />
+                                    {allLanguages.map(
+                                        (language) => (
+                                            <Option
+                                                key={language.value.qcode}
+                                                value={language.value.qcode}
+                                            >
+                                                {language.value.name}
+                                            </Option>
+                                        )
+                                    )}
+                                </Select>
+                            )}
                         </Row>
                     </List.Row>
                     <List.Row>

@@ -5,7 +5,8 @@ import {
     IEventItem,
     IPlanningCoverageItem,
     IPlanningItem,
-    IProfileSchemaTypeList
+    IProfileSchemaTypeList,
+    ISearchProfile
 } from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
 
@@ -19,6 +20,7 @@ import './style.scss';
 interface IProps extends IEditorFieldProps {
     item: IEventItem;
     schema?: IProfileSchemaTypeList;
+    coverageProfile?: ISearchProfile;
 
     getRef(value: DeepPartial<IPlanningItem>): React.RefObject<PlanningMetaData | RelatedPlanningItem>;
     addPlanningItem(): void;
@@ -85,6 +87,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     disabled={false}
                                     editorType={this.props.editorType}
                                     profile={this.props.profile}
+                                    coverageProfile={this.props.coverageProfile}
                                 />
                             ))
                         )}

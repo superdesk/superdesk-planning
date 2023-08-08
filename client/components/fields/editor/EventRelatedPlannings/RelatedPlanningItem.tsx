@@ -7,7 +7,8 @@ import {
     IG2ContentType,
     IPlanningContentProfile,
     IPlanningCoverageItem,
-    IPlanningItem
+    IPlanningItem,
+    ISearchProfile
 } from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
 
@@ -27,6 +28,7 @@ interface IProps {
     disabled: boolean;
     editorType: EDITOR_TYPE;
     profile: IPlanningContentProfile;
+    coverageProfile?: ISearchProfile;
     removePlan(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
@@ -149,6 +151,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                             item={item}
                             updatePlanningItem={this.update}
                             profile={this.props.profile}
+                            coverageProfile={this.props.coverageProfile}
                         />
                     </Row>
                 )}

@@ -97,7 +97,8 @@ export function renderFieldsForPanel(
     groupName?: string,
     enabledField: string = 'enabled',
     refs: {[key: string]: React.RefObject<any>} = {},
-    schema?: IProfileSchema
+    schema?: IProfileSchema,
+    coverageProfile?: ISearchProfile,
 ) {
     const fieldComponents = getFieldsForPanel(panelType);
     const fields: {[key: string]: IRenderFieldItem} = {};
@@ -109,6 +110,7 @@ export function renderFieldsForPanel(
                 ...globalProps,
                 testId: `field-${fieldName}`,
                 ...fieldProps[fieldName],
+                coverageProfile: coverageProfile,
             },
             name: fieldName,
             ...profile[fieldName],
