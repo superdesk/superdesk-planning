@@ -24,7 +24,7 @@ export function getCustomAvatarContent(user: IUser) {
         );
 }
 
-export class UserAvatarWithoutSpacing extends React.PureComponent<IProps> {
+export class UserAvatar extends React.PureComponent<IProps> {
     render() {
         const {user} = this.props;
         const AvatarContent = CC.UserAvatar;
@@ -56,7 +56,7 @@ export class UserAvatarWithMargin extends React.PureComponent<IProps> {
     render() {
         return (
             <div style={{display: 'inline-block', verticalAlign: 'middle', marginInlineEnd: '0.6rem'}}>
-                <UserAvatarWithoutSpacing {...this.props} />
+                <UserAvatar {...this.props} />
             </div>
         );
     }

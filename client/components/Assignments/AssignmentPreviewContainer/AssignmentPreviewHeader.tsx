@@ -17,7 +17,7 @@ import {
     ItemActionsMenu,
     Label,
 } from '../../';
-import {UserAvatarWithoutSpacing} from '../../../components/UserAvatar';
+import {UserAvatar} from '../../../components/UserAvatar';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 export const AssignmentPreviewHeader = ({
@@ -75,7 +75,7 @@ export const AssignmentPreviewHeader = ({
                         {
                             hideAvatar === true ? null : (
                                 <Column border={false}>
-                                    <UserAvatarWithoutSpacing
+                                    <UserAvatar
                                         user={assignedUser}
                                         size="large"
                                     />
