@@ -7,7 +7,7 @@ import {KEYCODES} from '../../constants';
 import {gettext, scrollListItemIfNeeded, onEventCapture} from '../../utils';
 
 import {Popup, Content} from '../../Popup';
-import {UserAvatar} from '../../../';
+import {UserAvatar} from '../../../../components/UserAvatar';
 
 import './style.scss';
 

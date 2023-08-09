@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 
-import {UserAvatar} from '../';
+import {UserAvatar} from '../../components/UserAvatar';
 import {LockContainerPopup} from './LockContainerPopup';
 
 import './style.scss';

@@ -7,7 +7,7 @@ import {KEYCODES} from '../../constants';
 import {onEventCapture} from '../../utils';
 
 import {Row, LineInput, Label, Input} from '../';
-import {UserAvatar} from '../../../';
+import {UserAvatar} from '../../../../components/UserAvatar';
 import {SelectUserPopup} from './SelectUserPopup';
 
 interface IProps {

@@ -20,7 +20,7 @@ import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 import {getAssignmentTypeInfo} from '../../../utils/assignments';
 
 import {Menu} from 'superdesk-ui-framework/react';
-import {UserAvatar} from '../../';
+import {UserAvatar} from '../../../components/UserAvatar';
 import {Item, Border, Column, Row} from '../../UI/List';
 
 import {getComponentForField, getAssignmentsListView} from './fields';

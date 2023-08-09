@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import {gettext} from '../../utils';
 
-import {UserAvatar} from '../';
+import {UserAvatar} from '../../components/UserAvatar';
 import {Popup, Header, Content, Footer} from '../UI/Popup';
 import {Button} from '../UI';
 
