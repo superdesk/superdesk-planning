@@ -20,7 +20,7 @@ import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 import {getAssignmentTypeInfo} from '../../../utils/assignments';
 
 import {Menu} from 'superdesk-ui-framework/react';
-import {UserAvatar} from '../../../components/UserAvatar';
+import {UserAvatarWithMargin} from '../../../components/UserAvatar';
 import {Item, Border, Column, Row} from '../../UI/List';
 
 import {getComponentForField, getAssignmentsListView} from './fields';
@@ -217,7 +217,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
 
         return (
             <Column border={false}>
-                <UserAvatar user={user} tooltip={tooltip} />
+                <UserAvatarWithMargin user={user} tooltip={tooltip} />
             </Column>
         );
     }

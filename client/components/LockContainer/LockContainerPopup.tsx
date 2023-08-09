@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import {gettext} from '../../utils';
 
-import {UserAvatar} from '../../components/UserAvatar';
+import {UserAvatarWithMargin} from '../../components/UserAvatar';
 import {Popup, Header, Content, Footer} from '../UI/Popup';
 import {Button} from '../UI';
 
@@ -33,7 +33,7 @@ export const LockContainerPopup = ({
                 noBorder={true}
             />
             <Content>
-                <UserAvatar user={user} size="large" />
+                <UserAvatarWithMargin user={user} size="large" />
                 <div>{user.display_name}</div>
             </Content>
             <Footer noBorder={true}>

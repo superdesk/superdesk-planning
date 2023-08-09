@@ -49,7 +49,10 @@ export class UserAvatarWithoutSpacing extends React.PureComponent<IProps> {
     }
 }
 
-export class UserAvatar extends React.PureComponent<IProps> {
+/**
+ * @deprecated use UserAvatar (without margin) instead and handle spacing at the usage level
+ */
+export class UserAvatarWithMargin extends React.PureComponent<IProps> {
     render() {
         return (
             <div style={{display: 'inline-block', verticalAlign: 'middle', marginInlineEnd: '0.6rem'}}>

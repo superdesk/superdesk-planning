@@ -7,7 +7,7 @@ import {KEYCODES} from '../../constants';
 import {onEventCapture} from '../../utils';
 
 import {Row, LineInput, Label, Input} from '../';
-import {UserAvatar} from '../../../../components/UserAvatar';
+import {UserAvatarWithMargin} from '../../../../components/UserAvatar';
 import {SelectUserPopup} from './SelectUserPopup';
 
 interface IProps {
@@ -118,7 +118,7 @@ export class SelectUserInput extends React.Component<IProps, IState> {
                                     onClick={this.openPopup}
                                     style={inline ? {margin: 0} : {}}
                                 >
-                                    <UserAvatar user={value} />
+                                    <UserAvatarWithMargin user={value} />
                                     <div className="user-search__popup-item-label">{value.display_name}</div>
                                     {!readOnly && (
                                         <button type="button" onClick={this.onUserChange.bind(null, null)}>

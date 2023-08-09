@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 
-import {UserAvatar} from '../../components/UserAvatar';
+import {UserAvatarWithMargin} from '../../components/UserAvatar';
 import {LockContainerPopup} from './LockContainerPopup';
 
 import './style.scss';
@@ -49,7 +49,7 @@ export class LockContainer extends React.Component {
                     )}
                 >
                     <a onClick={this.toggleOpenUnlockPopup}>
-                        <UserAvatar user={user} />
+                        <UserAvatarWithMargin user={user} />
                     </a>
                 </div>
                 {this.state.openUnlockPopup && (
