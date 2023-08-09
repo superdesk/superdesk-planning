@@ -1,95 +1,60 @@
-import React, {Fragment} from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+/* eslint-disable react/no-multi-comp */
+import React from 'react';
 import './style.scss';
-import {gettext} from '../../utils';
+import {IUser} from 'superdesk-api';
+import {Avatar, AvatarPlaceholder} from 'superdesk-ui-framework/react';
+import {CC} from 'superdesk-core/scripts/core/ui/configurable-ui-components';
 
 export function getUserInitials(displayName) {
     return displayName.replace(/\W*(\w)\w*/g, '$1').toUpperCase();
 }
+interface IProps {
+    user: IUser | null;
+    tooltip?: string; // TODO: pass to ui-framework, combine with UI framework tooltip
+    size?: 'small' | 'large'; // defaults to small
+}
 
-export const UserAvatar = ({
-    user,
-    small,
-    large,
-    withLoggedInfo,
-    isLoggedIn,
-    noMargin,
-    initials,
-    empty,
-    tooltip,
-    showInactive}) => {
-    let inactiveText;
+export function getCustomAvatarContent(user: IUser) {
+    const AvatarContent = CC.UserAvatar;
 
-    if (showInactive && user) {
-        if (user.is_active === false) {
-            inactiveText = gettext('inactive');
-        }
+    return AvatarContent == null
+        ? null
+        : (
+            <AvatarContent user={user} />
+        );
+}
 
-        if (user.is_enabled === false) {
-            inactiveText = gettext('disabled');
+export class UserAvatarWithoutSpacing extends React.PureComponent<IProps> {
+    render() {
+        const {user} = this.props;
+        const AvatarContent = CC.UserAvatar;
+
+        const size: IProps['size'] = this.props.size ?? 'small';
+
+        if (user == null) {
+            return ( // TODO: user kind="empty-circle"
+                <AvatarPlaceholder kind="plus-button" size="small" />
+            );
+        } else {
+            return (
+                <Avatar
+                    imageUrl={user.picture_url}
+                    displayName={user.display_name}
+                    initials={getUserInitials(user.display_name)}
+                    size={size}
+                    customContent={AvatarContent == null ? null : <AvatarContent user={user} />}
+                />
+            );
         }
     }
-    if ((user && user.display_name) || empty) {
-        const avatar = (
-            <figure
-                className={classNames('avatar',
-                    {
-                        'avatar--large': large,
-                        'avatar--small': small && !large,
-                        'avatar--no-margin': noMargin,
-                        initials: initials,
-                        planning__initials: initials,
-                        'avatar-with-info': withLoggedInfo,
-                        'user-logged': isLoggedIn,
-                        'avatar--empty': empty,
-                    })}
-            >
-                {user && user.display_name && getUserInitials(user.display_name)}
-                { withLoggedInfo && <div className="logged-info" /> }
-            </figure>
-        );
+}
 
+export class UserAvatar extends React.PureComponent<IProps> {
+    render() {
         return (
-            <Fragment>{tooltip && (
-                <OverlayTrigger
-                    placement="left"
-                    overlay={<Tooltip id="user_name">{tooltip}</Tooltip>}
-                >
-                    {avatar}
-                </OverlayTrigger>
-            ) || avatar}
-            {inactiveText && (
-                <span
-                    className={
-                        classNames('disabled-label user-inactive', {'user-inactive--small': !large})}
-                >
-                    {inactiveText}
-                </span>
-            )}</Fragment>
+            <div style={{display: 'inline-block', verticalAlign: 'middle', marginInlineEnd: '0.6rem'}}>
+                <UserAvatarWithoutSpacing {...this.props} />
+            </div>
         );
     }
-
-    return null;
-};
-
-UserAvatar.propTypes = {
-    user: PropTypes.object,
-    small: PropTypes.bool,
-    large: PropTypes.bool,
-    withLoggedInfo: PropTypes.bool,
-    isLoggedIn: PropTypes.bool,
-    noMargin: PropTypes.bool,
-    initials: PropTypes.bool,
-    empty: PropTypes.bool,
-    tooltip: PropTypes.string,
-    showInactive: PropTypes.bool,
-};
-
-UserAvatar.defaultProps = {
-    small: true,
-    noMargin: false,
-    initials: true,
-    empty: false,
-};
+}

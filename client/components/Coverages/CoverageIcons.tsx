@@ -1,6 +1,6 @@
 import * as React from 'react';
 import moment from 'moment-timezone';
-import {getUserInitials} from './../../components/UserAvatar';
+import {getCustomAvatarContent, getUserInitials} from './../../components/UserAvatar';
 import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
@@ -78,6 +78,7 @@ export function getAvatarForCoverage(
             imageUrl: user.picture_url,
             displayName: user.display_name,
             icon: icon,
+            customContent: getCustomAvatarContent(user),
         };
 
         return avatar;

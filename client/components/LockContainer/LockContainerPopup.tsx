@@ -33,7 +33,7 @@ export const LockContainerPopup = ({
                 noBorder={true}
             />
             <Content>
-                <UserAvatar user={user} large={true} />
+                <UserAvatar user={user} size="large" />
                 <div>{user.display_name}</div>
             </Content>
             <Footer noBorder={true}>

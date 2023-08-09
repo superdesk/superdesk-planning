@@ -118,6 +118,7 @@ export class SelectUserPopup extends React.Component {
                                         {'user-search__popup-item--active': index === this.state.activeIndex})}
                             >
                                 <button type="button" onClick={this.handleOnChange.bind(null, user)}>
+                                    {/* all good */}
                                     <UserAvatar user={user} />
                                     <div className="user-search__popup-item-label">{user.display_name}</div>
                                 </button>
@@ -127,7 +128,8 @@ export class SelectUserPopup extends React.Component {
                         {users.length === 0 && (
                             <li className="user-search__popup-item">
                                 <button disabled>
-                                    <UserAvatar empty={true} initials={false} />
+                                    {/* all good */}
+                                    <UserAvatar user={null} />
                                     <div className="user-search__popup-item-label">{gettext('No users found')}</div>
                                 </button>
                             </li>

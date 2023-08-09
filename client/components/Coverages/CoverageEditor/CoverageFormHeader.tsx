@@ -8,7 +8,7 @@ import {IArticle, IDesk, IUser} from 'superdesk-api';
 import {getCreator, getItemInArrayById, gettext, planningUtils, onEventCapture} from '../../../utils';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {Button} from '../../UI';
-import {UserAvatar} from '../../';
+import {UserAvatarWithoutSpacing} from '../../../components/UserAvatar';
 import {StateLabel} from '../../StateLabel';
 import * as actions from '../../../actions';
 
@@ -84,11 +84,9 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                 <Item noBg={true} noHover={true}>
                     <Border />
                     <Column border={false}>
-                        <UserAvatar
-                            empty={true}
-                            noMargin={true}
-                            large={true}
-                            initials={false}
+                        <UserAvatarWithoutSpacing
+                            user={null}
+                            size="large"
                         />
                     </Column>
                     <Column grow={true} border={false}>
@@ -121,11 +119,9 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             <Item noBg={true} noHover={true}>
                 <Border />
                 <Column border={false}>
-                    <UserAvatar
-                        user={userAssigned}
-                        noMargin={true}
-                        large={true}
-                        showInactive
+                    <UserAvatarWithoutSpacing
+                        user={userAssigned == null || typeof userAssigned === 'string' ? null : userAssigned}
+                        size="large"
                     />
                 </Column>
                 <Column grow={true} border={false}>

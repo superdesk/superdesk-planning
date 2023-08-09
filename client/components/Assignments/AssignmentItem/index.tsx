@@ -217,14 +217,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
 
         return (
             <Column border={false}>
-                <UserAvatar
-                    user={user}
-                    large={false}
-                    withLoggedInfo={isCurrentUser}
-                    isLoggedIn={isCurrentUser}
-                    tooltip={tooltip}
-                    showInactive
-                />
+                <UserAvatar user={user} tooltip={tooltip} />
             </Column>
         );
     }
