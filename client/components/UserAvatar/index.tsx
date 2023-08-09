@@ -27,7 +27,6 @@ export function getCustomAvatarContent(user: IUser) {
 export class UserAvatar extends React.PureComponent<IProps> {
     render() {
         const {user} = this.props;
-        const AvatarContent = CC.UserAvatar;
 
         const size: IProps['size'] = this.props.size ?? 'small';
 
@@ -42,7 +41,7 @@ export class UserAvatar extends React.PureComponent<IProps> {
                     displayName={user.display_name}
                     initials={getUserInitials(user.display_name)}
                     size={size}
-                    customContent={AvatarContent == null ? null : <AvatarContent user={user} />}
+                    customContent={getCustomAvatarContent(user)}
                     tooltip={this.props.tooltip}
                 />
             );
