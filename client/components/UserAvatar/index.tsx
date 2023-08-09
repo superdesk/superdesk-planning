@@ -32,8 +32,8 @@ export class UserAvatar extends React.PureComponent<IProps> {
         const size: IProps['size'] = this.props.size ?? 'small';
 
         if (user == null) {
-            return ( // TODO: user kind="empty-circle"
-                <AvatarPlaceholder kind="plus-button" size="small" />
+            return (
+                <AvatarPlaceholder kind="user-icon" size="small" />
             );
         } else {
             return (
