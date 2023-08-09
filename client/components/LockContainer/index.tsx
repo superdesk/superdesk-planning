@@ -49,9 +49,7 @@ export class LockContainer extends React.Component {
                     )}
                 >
                     <a onClick={this.toggleOpenUnlockPopup}>
-                        <UserAvatar // TODO: check if small=true is same as small=false
-                            user={user}
-                        />
+                        <UserAvatar user={user} />
                     </a>
                 </div>
                 {this.state.openUnlockPopup && (
