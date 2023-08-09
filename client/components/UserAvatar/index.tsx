@@ -33,7 +33,7 @@ export class UserAvatar extends React.PureComponent<IProps> {
 
         if (user == null) {
             return (
-                <AvatarPlaceholder kind="user-icon" size="small" />
+                <AvatarPlaceholder kind="user-icon" size={size} />
             );
         } else {
             return (
