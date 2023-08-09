@@ -10,7 +10,7 @@ export function getUserInitials(displayName) {
 }
 interface IProps {
     user: IUser | null;
-    tooltip?: string; // TODO: pass to ui-framework, combine with UI framework tooltip
+    tooltip?: string;
     size?: 'small' | 'large'; // defaults to small
 }
 
@@ -43,6 +43,7 @@ export class UserAvatar extends React.PureComponent<IProps> {
                     initials={getUserInitials(user.display_name)}
                     size={size}
                     customContent={AvatarContent == null ? null : <AvatarContent user={user} />}
+                    tooltip={this.props.tooltip}
                 />
             );
         }
