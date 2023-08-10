@@ -1,6 +1,6 @@
 import * as React from 'react';
 import moment from 'moment-timezone';
-import {getUserInitials} from './../../components/UserAvatar';
+import {getCustomAvatarContent, getUserInitials} from './../../components/UserAvatar';
 import * as config from 'appConfig';
 import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
@@ -17,7 +17,7 @@ import {
 import {IPropsAvatarPlaceholder} from 'superdesk-ui-framework/react/components/avatar/avatar-placeholder';
 import {IPropsAvatar} from 'superdesk-ui-framework/react/components/avatar/avatar';
 import {trimStartExact} from 'superdesk-core/scripts/core/helpers/utils';
-import {getItemWorkflowStateLabel, planningUtils} from '../../utils';
+import {getItemWorkflowStateLabel, gettext, planningUtils} from '../../utils';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import './coverage-icons.scss';
@@ -67,8 +67,9 @@ export function getAvatarForCoverage(
 
     if (user == null) {
         const placeholder: Omit<IPropsAvatarPlaceholder, 'size'> = {
-            kind: 'plus-button',
+            kind: 'user-icon',
             icon: icon,
+            tooltip: gettext('Unassigned'),
         };
 
         return placeholder;
@@ -78,6 +79,7 @@ export function getAvatarForCoverage(
             imageUrl: user.picture_url,
             displayName: user.display_name,
             icon: icon,
+            customContent: getCustomAvatarContent(user),
         };
 
         return avatar;
