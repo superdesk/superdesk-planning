@@ -15,7 +15,11 @@ function removeLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_UNLOC
         delete state.recurring[data.recurrence_id];
     } else if (data.event_item != null) {
         delete state.event[data.event_item];
-    } else {
+    }
+
+    // Always try and delete a lock direclty on the supplied item
+    // This can happen when adding an Event from a Planning item
+    if (state[data.type][data.item] != null) {
         delete state[data.type][data.item];
     }
 
