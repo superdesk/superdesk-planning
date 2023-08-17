@@ -9,7 +9,8 @@ import {
     IPlanningItem,
     IPlanningNewsCoverageStatus,
     IPlanningConfig,
-    IPlanningContentProfile
+    IPlanningContentProfile,
+    ISearchProfile
 } from '../../../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
@@ -26,6 +27,7 @@ interface IProps {
     event: IEventItem;
     item: DeepPartial<IPlanningItem>;
     profile: IPlanningContentProfile;
+    coverageProfile?: ISearchProfile;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     desks: Array<IDesk>;
@@ -259,6 +261,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                                 users={this.props.users}
                                 event={this.props.event}
                                 profile={this.props.profile}
+                                coverageProfile={this.props.coverageProfile}
                             />
                         ))}
                     </Group>

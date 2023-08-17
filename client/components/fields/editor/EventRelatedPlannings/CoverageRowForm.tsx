@@ -1,7 +1,13 @@
 import * as React from 'react';
 
 import {IDesk, IUser} from 'superdesk-api';
-import {IEventItem, IG2ContentType, IPlanningContentProfile, IPlanningNewsCoverageStatus} from '../../../../interfaces';
+import {
+    IEventItem,
+    IG2ContentType,
+    IPlanningContentProfile,
+    IPlanningNewsCoverageStatus,
+    ISearchProfile
+} from '../../../../interfaces';
 
 import {planningUtils} from '../../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
@@ -37,6 +43,7 @@ interface IProps {
     users: Array<IUser>;
     event: IEventItem;
     profile: IPlanningContentProfile;
+    coverageProfile?: ISearchProfile;
 }
 
 function getCoverageIconName(type: IG2ContentType): string {
@@ -134,6 +141,7 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
                         update={this.update}
                         event={this.props.event}
                         profile={this.props.profile}
+                        coverageProfile={this.props.coverageProfile}
                     />
                 )}
             </div>
