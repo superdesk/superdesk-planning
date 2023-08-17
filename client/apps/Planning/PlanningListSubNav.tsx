@@ -145,15 +145,9 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
     }
 
     render() {
+        const {SelectUser} = superdeskApi.components;
+
         let newOption = {_id: null, display_name: 'ALL'};
-        let list = [newOption, ...this.props.users];
-        const userList: Array<IDropdownItem> = list.map((user) => ({
-            id: user._id,
-            label: user.display_name,
-            action: () => {
-                this.filterCoverageUser(user);
-            }
-        }));
         const {gettext} = superdeskApi.localization;
         const {currentStartFilter} = this.props;
         let intervalText: string;
@@ -201,16 +195,25 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                                         {gettext('Assigned to:')}
                                     </span>
 
-                                    <DropdownFromPlanning
-                                        items={userList}
-                                        buttonLabel={
-                                            this.props.users.find(
-                                                (user) => user._id == this.props.coverageUser
-                                            )?.display_name ?? gettext('ALL')
-                                        }
-                                        scrollable={true}
-                                        searchable={true}
-                                    />
+                                    <div style={{minHeight: '4.8rem', display: 'flex', alignItems: 'center'}}>
+                                        <div>{/** empty div needed so styles above don't affect SelectUser component */}
+                                            <SelectUser
+                                                selectedUserId={this.props.users.find(
+                                                    (user) => user._id == this.props.coverageUser
+                                                )?._id ?? null}
+                                                autoFocus={false}
+                                                onSelect={(user) => {
+                                                    if (user != null) {
+                                                        this.filterCoverageUser(user);
+                                                    } else {
+                                                        this.filterCoverageUser(newOption);
+                                                    }
+                                                }}
+                                                horizontalSpacing={true}
+                                                clearable={true}
+                                            />
+                                        </div>
+                                    </div>
                                 </>
                             )
                         }

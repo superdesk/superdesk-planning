@@ -34,7 +34,7 @@
     "redux-logger": "~3.0.6",
     "reselect": "~3.0.1",
     "rrule": "~2.2.9",
-    "superdesk-ui-framework": "^3.0.53",
+    "superdesk-ui-framework": "^3.0.54",
     "ts-loader": "3.5.0",
     "typescript": "~4.9.5",
     "whatwg-fetch": "~2.0.4"
