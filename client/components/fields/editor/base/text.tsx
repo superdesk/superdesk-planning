@@ -106,7 +106,6 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
                 testId={this.props.testId}
                 refNode={this.node}
                 noPadding={this.props.noPadding}
-
             >
                 {this.state.suggestions.length === 0 ? (
                     <Input
@@ -116,11 +115,10 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
                         label={this.props.label}
                         required={this.props.required ?? this.props.schema?.required}
                         disabled={this.props.disabled}
-                        invalid={this.props.invalid ?? (error != null && this.props.showErrors)}
                         maxLength={this.props.maxLength ?? this.props.schema?.maxlength}
                         info={this.props.info}
                         inlineLabel={this.props.inlineLabel}
-                        error={this.props.showErrors && error}
+                        error={this.props.showErrors ? error : undefined}
                         onChange={this.onChange}
                     />
                 ) : (
@@ -133,7 +131,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
                         invalid={this.props.invalid ?? (error != null && this.props.showErrors)}
                         info={this.props.info}
                         inlineLabel={this.props.inlineLabel}
-                        error={this.props.showErrors && error}
+                        error={this.props.showErrors ? error : undefined}
                         onChange={this.onChange}
                         items={this.state.suggestions}
                     />
