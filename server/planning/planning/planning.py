@@ -1444,6 +1444,7 @@ coverage_schema = {
     "assigned_to": assigned_to_schema,
     "flags": {
         "type": "dict",
+        "allow_unknown": True,
         "schema": {"no_content_linking": {"type": "boolean", "default": False}},
     },
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
