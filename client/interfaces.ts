@@ -7,6 +7,7 @@ import {
     IDesk,
     IContentProfile,
     IArticle,
+    IVocabulary,
     IVocabularyItem,
     RICH_FORMATTING_OPTION,
 } from 'superdesk-api';
@@ -981,6 +982,7 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     read_only?: boolean;
     schema?: {[key: string]: any};
     mandatory_in_list?: {[key: string]: any};
+    vocabularies?: Array<IVocabulary['_id']>;
 }
 
 export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
@@ -1651,6 +1653,7 @@ export interface IPlanningState {
     editorOpened?: boolean;
     readOnly?: boolean;
     planningHistoryItems: Array<any>;
+    customVocabularies: Array<IVocabulary>;
 }
 
 export interface IFeaturedPlanningState {
@@ -2143,6 +2146,9 @@ export interface IPlanningAPI {
             plannings: Array<IPlanningItem>;
         }>;
     }
+    vocabularies: {
+        getCustomVocabularies(): Array<IVocabulary>;
+    };
     search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
     ui: {
         list: {

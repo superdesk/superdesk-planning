@@ -31,7 +31,14 @@ time.Datetime {
 
 .select__meta-terms {
     .sd-line-input__input {
-        background-color: var(--color-input-bg) !important;
+        background-color: var(--color-input-bg);
+    }
+
+    &.sd-line-input--invalid {
+        .sd-line-input__input {
+            background-color: rgba(228, 27, 37, 0.075);
+            border-color: #e41b21 !important;
+        }
     }
 }
 
