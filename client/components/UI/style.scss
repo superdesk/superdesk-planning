@@ -1,5 +1,6 @@
 @import '~superdesk-ui-framework/app/styles/_variables.scss';
 @import '~superdesk-ui-framework/app/styles/_mixins.scss';
+@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
 
 time.Datetime {
     padding-left: 0;
@@ -37,7 +38,7 @@ time.Datetime {
     &.sd-line-input--invalid {
         .sd-line-input__input {
             background-color: rgba(228, 27, 37, 0.075);
-            border-color: #e41b21 !important;
+            border-color: $red !important;
         }
     }
 }
