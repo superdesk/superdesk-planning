@@ -105,12 +105,12 @@ export function formProfileCustomVocabularies({field, value, profile, errors, me
 
     if (schema == null || schema.type !== 'list' || profile.editor[field]?.enabled !== true) {
         return;
-    } else if (schema.required !== true) {
+    } else if (schema.required !== true || (schema.vocabularies || []).length === 0) {
         return;
     }
 
     planningApi.vocabularies.getCustomVocabularies()
-        .filter((cv) => schema.vocabularies?.includes(cv._id))
+        .filter((cv) => schema.vocabularies.includes(cv._id))
         .forEach((cv) => {
             const values = ((diff[cv.schema_field || 'subject'] || []) as Array<ISubject>).filter((item) => (
                 item.scheme === cv._id
