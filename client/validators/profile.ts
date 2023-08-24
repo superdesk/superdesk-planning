@@ -116,7 +116,7 @@ export function formProfileCustomVocabularies({field, value, profile, errors, me
                 item.scheme === cv._id
             ));
             const fieldName = `custom_vocabularies.${cv._id}`;
-            const fieldLabel = gettext(cv.display_name).toUpperCase();
+            const fieldLabel = cv.display_name.toUpperCase();
 
             if (!values.length) {
                 errors[fieldName] = gettext('This field is required');
