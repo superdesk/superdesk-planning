@@ -49,7 +49,7 @@ ExpandableTextAreaInput.propTypes = {
     labelIcon: PropTypes.string,
     value: PropTypes.string,
     onChange: PropTypes.func,
-    maxLength: PropTypes.string,
+    maxLength: PropTypes.number,
     placeholder: PropTypes.string,
     readOnly: PropTypes.bool,
     refNode: PropTypes.func,

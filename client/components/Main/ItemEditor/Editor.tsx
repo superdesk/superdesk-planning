@@ -122,7 +122,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     updateFormValues(diff, field, value);
                 }
 
-                if (typeof field === 'object') {
+                if (typeof field === 'object' && field != null) {
                     Object.keys(field).forEach((subField) => {
                         this.editorApi.events.beforeFormUpdates(newState, subField, diff[subField]);
                     });

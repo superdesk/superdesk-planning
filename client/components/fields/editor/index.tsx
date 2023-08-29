@@ -53,6 +53,7 @@ import {EditorFieldCoverageContact} from './CoverageContact';
 import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
+import {EditCoverageAssignmentModalComponent} from 'components/Assignments/EditCoverageAssignmentModal';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
@@ -106,6 +107,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     exclude_rescheduled_and_cancelled: EditorFieldExcludeRescheduledAndCancelled,
     no_agenda_assigned: EditorFieldNoAgendaAssigned,
     ad_hoc_planning: EditorFieldAdHocPlanning,
+    coverage_assignment_status: EditCoverageAssignmentModalComponent,
     include_scheduled_updates: EditorFieldIncludeScheduledUpdates,
 
     desk: EditorFieldDeskId,
