@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, IEditorFieldProps} from '../../interfaces';
+import {IArticle} from 'superdesk-api';
 
 // KEEP IN SYNC WITH client/extension_bridge.ts
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
@@ -16,6 +17,7 @@ interface IEditorFieldVocabularyProps extends IEditorFieldProps {
 interface IExtensionBridge {
     assignments: {
         utils: {
+            isContentLinkToCoverageAllowed(item: IArticle): boolean;
             getAssignmentTypeInfo(
                 assignment: IAssignmentItem,
                 contentTypes: Array<IVocabularyItem>,

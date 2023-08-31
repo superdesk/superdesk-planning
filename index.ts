@@ -9,7 +9,7 @@ import planningModule from './client';
 import * as ctrl from './client/controllers';
 import {gettext} from './client/utils/gettext';
 import {isContentLinkToCoverageAllowed} from './client/utils/archive';
-
+import ng from 'superdesk-core/scripts/core/services/ng';
 
 configurePlanning.$inject = ['superdeskProvider'];
 function configurePlanning(superdesk) {
@@ -133,6 +133,35 @@ function configurePlanning(superdesk) {
                 }],
         });
 }
+
+window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
+    const element = window.$(document.createElement('div'));
+    const localScope = ng.get('$rootScope').$new(true);
+    const handleDestroy = () => {
+        localScope.$broadcast('$destroy');
+        element[0].remove();
+    };
+
+    localScope.resolve = handleDestroy;
+    localScope.reject = handleDestroy;
+    localScope.locals = {data: {item: event.detail}};
+
+    new ctrl.FulFilAssignmentController(
+        element,
+        localScope,
+        ng.get('sdPlanningStore'),
+        ng.get('notify'),
+        ng.get('gettext'),
+        ng.get('lock'),
+        ng.get('session'),
+        ng.get('userList'),
+        ng.get('api'),
+        ng.get('$timeout'),
+        ng.get('superdeskFlags'),
+        ng.get('desks')
+    );
+});
+
 
 export default planningModule
     .config(configurePlanning);
