@@ -13,6 +13,8 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
+import ng from 'superdesk-core/scripts/core/services/ng';
+// import {superdeskApi} from '../../../client/superdeskApi';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -112,6 +114,31 @@ const extension: IExtension = {
                 contributions: {
                     entities: {
                         article: {
+                            getActions: (item) => [
+                                {
+                                    label: 'Unlink as Coverage',
+                                    groupId: 'planning-actions',
+                                    icon: 'cut',
+                                    onTrigger: () => {
+                                        const authoring = ng.get('authoring');
+
+                                        if (
+                                            ng.get('privileges').userHasPrivileges({archive: 1}) &&
+                                            item.assignment_id != null &&
+                                            !ng.get('archiveService').isPersonal(item) &&
+                                            !superdesk.entities.article.isLockedInOtherSession(item) &&
+                                            (
+                                                authoring.itemActions(item).edit ||
+                                                authoring.itemActions(item).correct ||
+                                                authoring.itemActions(item).deschedule
+                                            )
+                                        ) {
+                                            const event = new CustomEvent("planning:unlinkfromcoverage", {detail: {item}});
+                                            window.dispatchEvent(event);
+                                        }
+                                    },
+                                }
+                            ],
                             onSpike: (item: IArticle) => onSpike(superdesk, item),
                             onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                             onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
