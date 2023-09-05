@@ -35,6 +35,17 @@ registerEditorField(
 );
 
 registerEditorField(
+    'schema.planning_auto_publish',
+    EditorFieldCheckbox,
+    () => ({
+        label: superdeskApi.localization.gettext('Planning Auto Publish'),
+        field: 'schema.planning_auto_publish',
+    }),
+    null,
+    true
+);
+
+registerEditorField(
     'schema.format_options',
     SelectEditor3FormattingOptions,
     () => ({
