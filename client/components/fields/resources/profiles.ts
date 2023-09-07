@@ -38,7 +38,7 @@ registerEditorField(
     'schema.planning_auto_publish',
     EditorFieldCheckbox,
     () => ({
-        label: superdeskApi.localization.gettext('Planning Auto Publish'),
+        label: superdeskApi.localization.gettext('Post planning items with Event'),
         field: 'schema.planning_auto_publish',
     }),
     null,
