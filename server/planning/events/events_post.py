@@ -215,8 +215,9 @@ class EventsPostService(EventsBaseService):
                         "etag": planning.get("etag"),
                         "pubstatus": POST_STATE.USABLE,
                     }
-                    for planning in plannings
+                    for planning in plannings if planning.get("version") != planning.get("posted_version")
                 ]
+            if len(docs) > 0:
                 planning_post_service.post(docs)
             return
         for planning in plannings:

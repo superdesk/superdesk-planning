@@ -125,6 +125,7 @@ class PlanningPostService(BaseService):
         updates = {
             "state": get_item_post_state(plan, new_post_state),
             "pubstatus": new_post_state,
+            "posted_version": plan.get("version")
         }
         if updates["state"] in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
             updates["state_reason"] = None

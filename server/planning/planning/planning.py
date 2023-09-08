@@ -1653,6 +1653,9 @@ planning_schema = {
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
     "_type": {"type": "string", "mapping": None},
     "extra": metadata_schema["extra"],
+    # Added fields for post planning item with events
+    "posted_version" : {"type": "number", "nullable": False},
+    "version" : {"type": "number", "default": 1},
 }  # end planning_schema
 
 
