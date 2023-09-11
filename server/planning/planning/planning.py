@@ -1653,6 +1653,7 @@ planning_schema = {
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
     "_type": {"type": "string", "mapping": None},
     "extra": metadata_schema["extra"],
+    "versionposted": {"type": "datetime", "nullable": False},
 }  # end planning_schema
 
 
