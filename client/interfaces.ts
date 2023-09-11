@@ -706,8 +706,6 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     reason: string;
     _time_to_be_confirmed: boolean;
     _cancelAllCoverage: boolean;
-    version:number;
-    posted_version:number;
 
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;

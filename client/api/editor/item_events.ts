@@ -137,10 +137,6 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             return;
         }
 
-        if (updates && original?.version == original?.posted_version) {
-            original['version'] = original?.version ? original['version'] + 1 : 1;
-        }
-
         plans[index] = {
             ...original,
             ...updates,
