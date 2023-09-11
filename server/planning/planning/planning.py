@@ -1654,8 +1654,7 @@ planning_schema = {
     "_type": {"type": "string", "mapping": None},
     "extra": metadata_schema["extra"],
     # Added fields for post planning item with events
-    "posted_version" : {"type": "number", "nullable": False},
-    "version" : {"type": "number", "default": 1},
+    "versionposted": {"type": "datetime", "nullable": False},
 }  # end planning_schema
 
 

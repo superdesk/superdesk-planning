@@ -14,6 +14,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
+from superdesk.utc import utcnow
 from copy import deepcopy
 import logging
 
@@ -125,7 +126,7 @@ class PlanningPostService(BaseService):
         updates = {
             "state": get_item_post_state(plan, new_post_state),
             "pubstatus": new_post_state,
-            "posted_version": plan.get("version")
+            "versionposted": utcnow(),
         }
         if updates["state"] in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
             updates["state_reason"] = None
