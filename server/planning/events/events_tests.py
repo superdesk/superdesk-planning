@@ -427,6 +427,7 @@ def generate_recurring_events(num_events):
         days += 1
     return events
 
+
 class EventsRelatedPlanningAutoPublish(TestCase):
     def test_planning_item_is_published_with_events(self):
         with self.app.app_context():
@@ -469,9 +470,7 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                     {
                         "coverage_id": "urn:newsml:localhost:5000:2023-09-08T17:40:56.290922:e264a179-5b1a-4b52-b73b-332660848cae",
                         "planning": {
-                            "scheduled": datetime(
-                                2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC
-                            ),
+                            "scheduled": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                             "g2_content_type": "text",
                             "language": "en",
                             "genre": "None",
@@ -524,14 +523,11 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                 ]
             )
 
-
-            event_item = events_service.find_one(req = None, _id = event_id[0])
+            event_item = events_service.find_one(req=None, _id=event_id[0])
             self.assertEqual(len([event_item]), 1)
             self.assertEqual(event_item.get("state"), "scheduled")
 
-            planning_item = planning_service.find_one(req= None, _id = planning_id[0])
+            planning_item = planning_service.find_one(req=None, _id=planning_id[0])
             self.assertEqual(len([planning_item]), 1)
             self.assertEqual(planning_item.get("state"), "scheduled")
             self.assertEqual(planning_item.get("versionposted"), utcnow())
-
-            
