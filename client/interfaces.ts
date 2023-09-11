@@ -983,7 +983,7 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     schema?: {[key: string]: any};
     mandatory_in_list?: {[key: string]: any};
     vocabularies?: Array<IVocabulary['_id']>;
-    planning_auto_publish?:boolean;
+    planning_auto_publish?: boolean;
 }
 
 export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
