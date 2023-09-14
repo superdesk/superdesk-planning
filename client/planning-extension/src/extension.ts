@@ -111,48 +111,48 @@ const extension: IExtension = {
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
 
-            const result: IExtensionActivationResult = {
-                contributions: {
-                    entities: {
-                        article: {
-                            getActions: (item) => [{
-                                label: superdesk.localization.gettext('Fulfil assignment'),
-                                groupId: 'planning-actions',
-                                icon: 'calendar-list',
-                                onTrigger: () => {
-                                    if (
-                                        !item.assignment_id &&
-                                        isContentLinkToCoverageAllowed(item) &&
-                                        !ng.get('archiveService').isPersonal(item) &&
-                                        ng.get('privileges').hasUserPrivileges({archive: 1}) &&
-                                        !superdesk.entities.article.isLockedInOtherSession(item) &&
-                                        !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
-                                    ) {
-                                        const event = new CustomEvent("planning:fulfilassignment", {detail: item});
-                                        window.dispatchEvent(event);
-                                    }
-                                },
-                            }],
-                            onSpike: (item: IArticle) => onSpike(superdesk, item),
-                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                        },
-                        ingest: {
-                            ruleHandlers: {
-                                planning_publish: {
-                                    editor: AutopostIngestRuleEditor,
-                                    preview: AutopostIngestRulePreview,
-                                },
+        const result: IExtensionActivationResult = {
+            contributions: {
+                entities: {
+                    article: {
+                        getActions: (item) => [{
+                            label: superdesk.localization.gettext('Fulfil assignment'),
+                            groupId: 'planning-actions',
+                            icon: 'calendar-list',
+                            onTrigger: () => {
+                                if (
+                                    !item.assignment_id &&
+                                    isContentLinkToCoverageAllowed(item) &&
+                                    !ng.get('archiveService').isPersonal(item) &&
+                                    ng.get('privileges').hasUserPrivileges({archive: 1}) &&
+                                    !superdesk.entities.article.isLockedInOtherSession(item) &&
+                                    !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
+                                ) {
+                                    const event = new CustomEvent("planning:fulfilassignment", {detail: item});
+                                    window.dispatchEvent(event);
+                                }
+                            },
+                        }],
+                        onSpike: (item: IArticle) => onSpike(superdesk, item),
+                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                    },
+                    ingest: {
+                        ruleHandlers: {
+                            planning_publish: {
+                                editor: AutopostIngestRuleEditor,
+                                preview: AutopostIngestRulePreview,
                             },
                         },
                     },
-                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
                 },
-            };
+                globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+            },
+        };
 
-            return Promise.resolve(result);
+        return Promise.resolve(result);
     },
 };
 
