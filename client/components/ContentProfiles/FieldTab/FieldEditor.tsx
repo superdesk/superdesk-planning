@@ -100,7 +100,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.default_language': {enabled: (this.props.item.name === 'language' && isMultilingual)},
             'schema.multilingual': {enabled: (
                 this.props.item.name === 'language' || (
-                    this.props.item.schema.type === 'string' &&
+                    this.props.item.schema?.type === 'string' &&
                     isMultilingual &&
                     !['language', 'location'].includes(this.props.item.name)
                 )
