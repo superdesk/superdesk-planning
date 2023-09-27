@@ -890,11 +890,6 @@ function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, en
     // check if search exists
     // order by date
     let sortedEvents = events.sort((a, b) => a.dates.start - b.dates.start);
-    let maxStartDate = sortedEvents[sortedEvents.length - 1].dates.start;
-
-    if (startDate.isAfter(maxStartDate, 'day')) {
-        maxStartDate = startDate;
-    }
 
     const days = {};
 
@@ -945,7 +940,7 @@ function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, en
 
                 newDate.add(i, 'days');
 
-                if (maxStartDate.isSameOrAfter(newDate, 'day') && newDate.isSameOrBefore(ending, 'day')) {
+                if (newDate.isSameOrBefore(ending, 'day')) {
                     addEventToDate(event, newDate);
                 }
             }
