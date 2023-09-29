@@ -179,7 +179,9 @@ const createNew = (itemType, item = null, updateUrl = true, modal = false) => (
 function createEventFromTemplate(template: IEventTemplate) {
     return self.createNew(ITEM_TYPE.EVENT, {
         ...template.data,
-        dates: {},
+        dates: {
+            tz: template.data.dates?.tz
+        },
     });
 }
 
