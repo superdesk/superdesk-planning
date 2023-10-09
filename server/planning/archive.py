@@ -24,7 +24,7 @@ TEMPLATE_FIELDS_TO_OVERRIDE = [
 ]
 
 
-def create_item_from_template(doc, extra_fields_to_override=None):
+def create_item_from_template(doc, extra_fields_to_override=None, translations = None):
     fields_to_override = deepcopy(TEMPLATE_FIELDS_TO_OVERRIDE)
     if extra_fields_to_override is not None:
         fields_to_override.extend(extra_fields_to_override)
@@ -37,6 +37,10 @@ def create_item_from_template(doc, extra_fields_to_override=None):
     # Then calculate the fields to override
     # and apply them if any found
     updates = {key: val for key, val in doc.items() if key in fields_to_override}
+
+    #override translated values if any
+    translated_value = {entry["field"]: entry["value"] for entry in translations or [] if entry["language"] == doc.get("language")}
+    updates = {key: val for key, val in translated_value.items() if key in fields_to_override}
 
     if len(updates):
         archive_service.patch(item_id, updates)
