@@ -38,11 +38,11 @@ def create_item_from_template(doc, extra_fields_to_override=None, translations=N
     # and apply them if any found
     updates = {key: val for key, val in doc.items() if key in fields_to_override}
 
-    # override translated values if any
-    translated_value = {
-        entry["field"]: entry["value"] for entry in translations or [] if entry["language"] == doc.get("language")
-    }
-    updates = {key: val for key, val in translated_value.items() if key in fields_to_override}
+    if translations is not None:
+        translated_value = {
+            entry["field"]: entry["value"] for entry in translations or [] if entry["language"] == doc.get("language")
+        }
+        updates.update({key: val for key, val in translated_value.items() if key in fields_to_override})
 
     if len(updates):
         archive_service.patch(item_id, updates)
