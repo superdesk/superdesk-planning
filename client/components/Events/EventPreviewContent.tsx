@@ -96,7 +96,7 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                     previewGroupToProfile(PREVIEW_PANEL.EVENT, formProfile),
                     {
                         item: item,
-                        language: getUserInterfaceLanguageFromCV(),
+                        language: item.language ?? getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                         schema: formProfile.schema,
                         profile: formProfile,
