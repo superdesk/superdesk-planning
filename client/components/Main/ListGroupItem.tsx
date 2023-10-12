@@ -1,11 +1,10 @@
 import React from 'react';
 import {debounce, indexOf} from 'lodash';
-import {connect} from 'react-redux';
 import {
     IEventListItemProps,
     IPlanningListItemProps,
     IEventOrPlanningItem,
-    IEventItem, IPlanningItem, IBaseListItemProps, ISearchAPIParams, ICommonAdvancedSearchParams
+    IEventItem, IPlanningItem, IBaseListItemProps, ICommonAdvancedSearchParams
 } from '../../interfaces';
 
 import {EventItem, EventItemWithPlanning} from '../Events';
@@ -13,7 +12,6 @@ import {PlanningItem} from '../Planning';
 
 import {ITEM_TYPE, EVENTS, PLANNING, MAIN, CLICK_DELAY} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
-import {currentSearchParams} from '../../selectors/search';
 
 interface IProps extends Omit<
     IEventListItemProps & IPlanningListItemProps,
