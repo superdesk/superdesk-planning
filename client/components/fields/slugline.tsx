@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
 import {getTranslatedValue} from '.';
+import {IFieldsProps} from '../../interfaces';
 
-export const slugline = ({item, filterLanguage}) => {
+export const slugline = ({item, filterLanguage}: IFieldsProps) => {
     if (!get(item, 'slugline', '')) {
         return null;
     }

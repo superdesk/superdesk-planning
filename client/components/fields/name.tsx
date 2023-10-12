@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
 import {getTranslatedValue} from '.';
+import {IFieldsProps} from '../../interfaces';
 
-export const name = ({item, filterLanguage}) => getTranslatedValue(filterLanguage, item, 'name') || item.name || null;
+export const name = ({item, filterLanguage}: IFieldsProps) => getTranslatedValue(filterLanguage, item, 'name') ||
+item.name || null;
 
 name.propTypes = {
     item: PropTypes.shape({

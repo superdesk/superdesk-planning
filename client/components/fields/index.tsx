@@ -1,7 +1,7 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
-import {IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
+import {IEventOrPlanningItem, IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
@@ -67,12 +67,12 @@ export function renderFields(fields, item, props = {filterLanguage: ''}) {
 }
 
 /**
- * Get translated field value based on languagei
+ * Get translated field value based on language
  * @param {String} language
- * @param {Object} item
+ * @param {IEventOrPlanningItem} item
  * @param {String} fieldName
  */
-export function getTranslatedValue(language, item, fieldName) {
+export function getTranslatedValue(language: string, item: IEventOrPlanningItem, fieldName: string): string | null {
     if (item.translations) {
         const matchingTranslation = item.translations.find(
             (translation) => translation.field === fieldName && translation.language === language

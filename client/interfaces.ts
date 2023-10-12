@@ -1581,6 +1581,11 @@ export interface IContentTemplate extends IBaseRestApiResponse {
     };
 }
 
+export interface IFieldsProps {
+    item: IEventOrPlanningItem;
+    filterLanguage?: string;
+}
+
 interface IMainStateSearch<T> {
     lastRequestParams: T;
     fulltext?: string;
