@@ -44,7 +44,8 @@ class EventItemComponent extends React.Component<IProps, IState> {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
             this.props.minTimeWidth !== nextProps.minTimeWidth ||
-            this.props.lockedItems != nextProps.lockedItems;
+            this.props.lockedItems != nextProps.lockedItems ||
+            this.props.filterLanguage !== nextProps.filterLanguage;
     }
 
     onItemHoverOn() {
@@ -216,7 +217,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {renderFields(get(listFields, 'event.primary_fields',
-                                EVENTS.LIST.PRIMARY_FIELDS), item)}
+                                EVENTS.LIST.PRIMARY_FIELDS), item, this.props)}
                         </span>
                     </Row>
                     <Row>

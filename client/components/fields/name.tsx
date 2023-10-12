@@ -1,9 +1,11 @@
 import PropTypes from 'prop-types';
+import {getTranslatedValue} from '.';
 
-export const name = ({item}) => item.name || null;
+export const name = ({item, filterLanguage}) => getTranslatedValue(filterLanguage, item, 'name') || item.name || null;
 
 name.propTypes = {
     item: PropTypes.shape({
         name: PropTypes.string,
     }).isRequired,
+    filterLanguage: PropTypes.string,
 };

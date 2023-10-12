@@ -855,6 +855,7 @@ export interface IBaseListItemProps<T> {
 export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
     relatedPlanningText?: string;
     calendars: Array<ICalendar>;
+    filterLanguage?: string;
     toggleRelatedPlanning?(event: React.MouseEvent): void;
 }
 
@@ -863,6 +864,7 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     agendas: Array<IAgenda>;
     users: Array<IUser>;
     desks: Array<IDesk>;
+    filterLanguage?: string;
     // showUnlock?: boolean; // Is this used anymore?
     hideItemActions: boolean;
     showAddCoverage: boolean;

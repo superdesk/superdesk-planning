@@ -45,7 +45,7 @@ export function registerField(id, component) {
  * @param {Object} item
  * @param {Object} props
  */
-export function renderFields(fields, item, props = {}) {
+export function renderFields(fields, item, props = {filterLanguage: ''}) {
     const language = getUserInterfaceLanguageFromCV();
 
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
@@ -64,6 +64,23 @@ export function renderFields(fields, item, props = {}) {
 
         return null;
     });
+}
+
+/**
+ * Get translated field value based on languagei
+ * @param {String} language
+ * @param {Object} item
+ * @param {String} fieldName
+ */
+export function getTranslatedValue(language, item, fieldName) {
+    if (item.translations) {
+        const matchingTranslation = item.translations.find(
+            (translation) => translation.field === fieldName && translation.language === language
+        );
+
+        return matchingTranslation ? matchingTranslation.value : null;
+    }
+    return null;
 }
 
 function getFieldsForPanel(panelType: IRenderPanelType) {

@@ -64,7 +64,8 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 planningUtils.getAgendaNames(this.props.item, this.props.agendas),
                 planningUtils.getAgendaNames(nextProps.item, nextProps.agendas)
             ) ||
-            this.props.minTimeWidth !== nextProps.minTimeWidth;
+            this.props.minTimeWidth !== nextProps.minTimeWidth ||
+            this.props.filterLanguage !== nextProps.filterLanguage;
     }
 
     onItemHoverOn() {
@@ -235,7 +236,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {renderFields(get(listFields, 'planning.primary_fields',
-                                PLANNING.LIST.PRIMARY_FIELDS), item)}
+                                PLANNING.LIST.PRIMARY_FIELDS), item, this.props)}
                         </span>
 
                         {event && (
