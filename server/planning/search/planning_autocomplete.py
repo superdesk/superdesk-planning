@@ -1,4 +1,4 @@
-from typing import Set, Dict, Any
+from typing import Dict, Any
 from datetime import timedelta
 
 from flask import current_app as app
@@ -14,7 +14,7 @@ from apps.archive.autocomplete import (
 from planning.common import WORKFLOW_STATE, POST_STATE
 
 
-def get_planning_suggestions(field: str, language: str) -> Set[str]:
+def get_planning_suggestions(field: str, language: str) -> Dict[str, int]:
     bool_query = _construct_bool_query(language)
     bool_query["should"].append(
         {
@@ -45,12 +45,10 @@ def get_planning_suggestions(field: str, language: str) -> Set[str]:
     }
 
     res = app.data.elastic.search(query, "planning", params={"size": 0})
-    suggestions = _get_aggregation_values(res.hits["aggregations"])
-
-    return suggestions
+    return _get_aggregation_values(res.hits["aggregations"])
 
 
-def get_event_suggestions(field: str, language: str) -> Set[str]:
+def get_event_suggestions(field: str, language: str) -> Dict[str, int]:
     query = {
         "query": {"bool": _construct_bool_query(language)},
         "aggs": _construct_aggs_query(field, language),
@@ -60,36 +58,28 @@ def get_event_suggestions(field: str, language: str) -> Set[str]:
     return _get_aggregation_values(res.hits["aggregations"])
 
 
-def _get_aggregation_values(aggregations) -> Set[str]:
-    suggestions = set()
+def _get_aggregation_values(aggregations) -> Dict[str, int]:
+    suggestions: Dict[str, int] = {}
 
     try:
-        base_suggestions = set(
-            [bucket["key"] for bucket in aggregations["base_field_filtered"]["base_field"]["buckets"]]
-        )
-        suggestions = base_suggestions
+        suggestions = {
+            bucket["key"]: bucket["doc_count"]
+            for bucket in aggregations["base_field_filtered"]["base_field"]["buckets"]
+        }
     except KeyError:
         pass
 
     try:
-        translated_suggestions = set(
-            [
-                bucket["key"]
-                for bucket in aggregations["translations"]["languages_filtered"]["field_languages"]["buckets"]
-            ]
-        )
-        suggestions = suggestions.union(translated_suggestions)
+        for bucket in aggregations["translations"]["languages_filtered"]["field_languages"]["buckets"]:
+            suggestions.setdefault(bucket["key"], 0)
+            suggestions[bucket["key"]] += bucket["doc_count"]
     except KeyError:
         pass
 
     try:
-        coverage_suggestions = set(
-            [
-                bucket["key"]
-                for bucket in aggregations["coverages"]["coverages_filtered"]["coverage_suggestions"]["buckets"]
-            ]
-        )
-        suggestions = suggestions.union(coverage_suggestions)
+        for bucket in aggregations["coverages"]["coverages_filtered"]["coverage_suggestions"]["buckets"]:
+            suggestions.setdefault(bucket["key"], 0)
+            suggestions[bucket["key"]] += bucket["doc_count"]
     except KeyError:
         pass
 

@@ -32,13 +32,13 @@ Feature: Planning autocomplete
         When we get "/archive_autocomplete?field=slugline&language=en"
         Then we get list with 1 items
         """
-        {"_items": [{"value": "planning-en-test"}]}
+        {"_items": [{"value": "planning-en-test", "count": 1}]}
         """
         # Suggests base field if language translation not populated
         When we get "/archive_autocomplete?field=slugline&language=fr"
         Then we get list with 1 items
         """
-        {"_items": [{"value": "planning-1"}]}
+        {"_items": [{"value": "planning-1", "count": 1}]}
         """
 
     @auth
@@ -71,8 +71,8 @@ Feature: Planning autocomplete
         Then we get list with 2 items
         """
         {"_items": [
-            {"value": "planning-1"},
-            {"value": "coverage-en-slugline"}
+            {"value": "planning-1", "count": 1},
+            {"value": "coverage-en-slugline", "count": 1}
         ]}
         """
 
@@ -101,16 +101,16 @@ Feature: Planning autocomplete
         When we get "/archive_autocomplete?field=slugline&language=en"
         Then we get list with 1 items
         """
-        {"_items": [{"value": "event-en-test"}]}
+        {"_items": [{"value": "event-en-test", "count": 1}]}
         """
         # Suggests base field if language translation not populated
         When we get "/archive_autocomplete?field=slugline&language=fr"
         Then we get list with 1 items
         """
-        {"_items": [{"value": "event-1"}]}
+        {"_items": [{"value": "event-1", "count": 1}]}
         """
 
-    @auth @wip
+    @auth
     Scenario: Can control what resources are used for suggestions
         Given "planning"
         """
@@ -154,8 +154,8 @@ Feature: Planning autocomplete
         Then we get list with 2 items
         """
         {"_items": [
-            {"value": "planning-en-test"},
-            {"value": "event-en-test"}
+            {"value": "planning-en-test", "count": 1},
+            {"value": "event-en-test", "count": 1}
         ]}
         """
         # Doesn't provide planning suggestions if ``planning`` not in resources argument
@@ -165,7 +165,7 @@ Feature: Planning autocomplete
         When we get "/archive_autocomplete?field=slugline&language=en&resources=archive,planning"
         Then we get list with 1 items
         """
-        {"_items": [{"value": "planning-en-test"}]}
+        {"_items": [{"value": "planning-en-test", "count": 1}]}
         """
         # Doesn't provide event suggestions if ``events`` not in resources argument
         When we get "/archive_autocomplete?field=slugline&language=en&resources=archive"
@@ -174,5 +174,57 @@ Feature: Planning autocomplete
         When we get "/archive_autocomplete?field=slugline&language=en&resources=archive,events"
         Then we get list with 1 items
         """
-        {"_items": [{"value": "event-en-test"}]}
+        {"_items": [{"value": "event-en-test", "count": 1}]}
+        """
+
+    @auth
+    Scenario: Counts suggestions from multiple resources
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "versioncreated": "#DATE#",
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "slugline": "package-1",
+            "language": "en",
+            "languages": ["en", "fr", "de"],
+            "planning_date": "2021-01-11T16:00:00.000Z",
+            "translations": [
+                {"field": "slugline", "language": "en", "value": "package-en-slugline"},
+                {"field": "slugline", "language": "de", "value": "package-de-slugline"}
+            ],
+            "coverages": [{
+                "planning": {"language": "en", "slugline": "package-en-slugline"},
+                "workflow_state": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int"}
+            }]
+        }]
+        """
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "slugline": "package-1",
+            "language": "en",
+            "languages": ["en", "fr", "de"],
+            "dates": {
+                "start": "2025-01-03T00:00:00+0000",
+                "end": "2025-01-04T00:00:00+0000"
+            },
+            "translations": [
+                {"field": "slugline", "language": "en", "value": "package-en-slugline"},
+                {"field": "slugline", "language": "de", "value": "package-de-slugline"}
+            ]
+        }]
+        """
+        When we get "/archive_autocomplete?field=slugline&language=en"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"value": "package-en-slugline", "count": 3}
+        ]}
         """
