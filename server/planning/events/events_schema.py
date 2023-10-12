@@ -324,7 +324,7 @@ events_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": string_with_analyzer,
+                "value": metadata_schema["slugline"]["mapping"],
             },
         },
     },
