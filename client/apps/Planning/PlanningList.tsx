@@ -16,6 +16,7 @@ import {
     LIST_VIEW_TYPE,
     IContactItem,
     SORT_FIELD,
+    ICommonSearchParams,
 } from '../../interfaces';
 
 import * as actions from '../../actions';
@@ -59,6 +60,7 @@ interface IProps {
     contacts: {[key: string]: IContactItem};
     listViewType: LIST_VIEW_TYPE;
     sortField: SORT_FIELD;
+    currentSearch: ICommonSearchParams<IEventOrPlanningItem>;
 
     openPreview(item: IEventOrPlanningItem): void;
     edit(item: IEventOrPlanningItem): void;
@@ -92,6 +94,7 @@ const mapStateToProps = (state) => ({
     contacts: selectors.general.contactsById(state),
     listViewType: selectors.main.getCurrentListViewType(state),
     sortField: selectors.main.getCurrentSortField(state),
+    currentSearch: selectors.main.currentSearch(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -168,6 +171,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             contacts,
             listViewType,
             sortField,
+            currentSearch
         } = this.props;
 
         return (
@@ -206,6 +210,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     listViewType={listViewType}
                     sortField={sortField}
                     indexItems
+                    searchParams= {currentSearch.advancedSearch}
                 />
             </React.Fragment>
         );

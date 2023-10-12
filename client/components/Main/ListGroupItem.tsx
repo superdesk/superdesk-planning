@@ -5,7 +5,7 @@ import {
     IEventListItemProps,
     IPlanningListItemProps,
     IEventOrPlanningItem,
-    IEventItem, IPlanningItem, IBaseListItemProps, ISearchAPIParams
+    IEventItem, IPlanningItem, IBaseListItemProps, ISearchAPIParams, ICommonAdvancedSearchParams
 } from '../../interfaces';
 
 import {EventItem, EventItemWithPlanning} from '../Events';
@@ -28,24 +28,20 @@ interface IProps extends Omit<
     index: number;
     navigateDown?: boolean;
     minTimeWidth?: string;
+    searchParams?: ICommonAdvancedSearchParams;
 
     onDoubleClick(item: IEventOrPlanningItem): void;
     showRelatedPlannings(item: IEventItem): void;
     navigateList(increment?: boolean): void;
     onItemActivate(item: IEventItem, forceActivate?: boolean): void;
     onItemClick(index: number, item: IEventOrPlanningItem): void;
-    currentParams:ISearchAPIParams
 }
 
 interface IState {
     clickedOnce?: boolean;
 }
 
-const mapStateToProps = (state) => ({
-    currentParams: currentSearchParams(state),
-});
-
-class ListGroupComponent extends React.Component<IProps, IState> {
+export class ListGroupItem extends React.Component<IProps, IState> {
     dom: {item: HTMLElement};
     _delayedClick: any | undefined;
 
@@ -128,7 +124,7 @@ class ListGroupComponent extends React.Component<IProps, IState> {
             listViewType,
             sortField,
             minTimeWidth,
-            currentParams
+            searchParams,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -158,7 +154,7 @@ class ListGroupComponent extends React.Component<IProps, IState> {
             ...itemProps,
             item: item as IEventItem,
             calendars: calendars,
-            filterLanguage: currentParams?.language,
+            filterLanguage: searchParams?.language,
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
@@ -201,7 +197,7 @@ class ListGroupComponent extends React.Component<IProps, IState> {
             contentTypes: contentTypes,
             agendas: agendas,
             date: date,
-            filterLanguage: currentParams?.language,
+            filterLanguage: searchParams?.language,
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
             showAddCoverage: showAddCoverage,
@@ -274,5 +270,3 @@ class ListGroupComponent extends React.Component<IProps, IState> {
         return null;
     }
 }
-
-export const ListGroupItem = connect(mapStateToProps)(ListGroupComponent);
