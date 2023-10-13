@@ -41,14 +41,14 @@ export function registerField(id, component) {
 /**
  * Render list of fields for given item
  * @param {Array|String} fields
- * @param {Object} item
+ * @param {IEventOrPlanningItem} item
  * @param {Object} props
  */
 export function renderFields(
     fields:Array<any>|string,
     item:IEventOrPlanningItem,
     props:Object = {},
-    language:string = ""
+    language:string = ''
 ) {
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
