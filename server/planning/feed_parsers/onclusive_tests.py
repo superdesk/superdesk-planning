@@ -38,7 +38,12 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.parse("onclusive_sample.json")
 
     def test_content(self):
-        item = OnclusiveFeedParser().parse([self.data])[0]
+        with self.assertLogs("planning", level=logging.INFO) as logger:
+            item = OnclusiveFeedParser().parse([self.data])[0]
+            self.assertIn(
+                "INFO:planning.feed_parsers.onclusive:Parsing event id=4112034 updated=2022-05-10T12:14:34 deleted=False",
+                logger.output,
+            )
         item["subject"].sort(key=lambda i: i["name"])
         expected_subjects = [
             {"name": "Law & Order", "qcode": "88", "scheme": "onclusive_categories"},
