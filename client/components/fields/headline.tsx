@@ -9,5 +9,5 @@ headline.propTypes = {
     item: PropTypes.shape({
         headline: PropTypes.string,
     }).isRequired,
-    filterLanguage: PropTypes.string,
+    language: PropTypes.string,
 };

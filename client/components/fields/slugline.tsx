@@ -20,5 +20,5 @@ slugline.propTypes = {
     item: PropTypes.shape({
         slugline: PropTypes.string,
     }).isRequired,
-    filterLanguage: PropTypes.string,
+    language: PropTypes.string,
 };
