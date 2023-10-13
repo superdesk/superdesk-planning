@@ -210,7 +210,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     listViewType={listViewType}
                     sortField={sortField}
                     indexItems
-                    searchParams= {currentSearch.advancedSearch}
+                    searchParams={currentSearch.advancedSearch}
                 />
             </React.Fragment>
         );
