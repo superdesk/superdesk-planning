@@ -1583,7 +1583,7 @@ export interface IContentTemplate extends IBaseRestApiResponse {
 
 export interface IFieldsProps {
     item: IEventOrPlanningItem;
-    filterLanguage?: string;
+    language?: string;
 }
 
 interface IMainStateSearch<T> {

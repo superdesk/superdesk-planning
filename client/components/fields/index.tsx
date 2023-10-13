@@ -3,7 +3,6 @@ import {sortBy} from 'lodash';
 
 import {IEventOrPlanningItem, IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
-import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -45,9 +44,12 @@ export function registerField(id, component) {
  * @param {Object} item
  * @param {Object} props
  */
-export function renderFields(fields, item, props = {filterLanguage: ''}) {
-    const language = getUserInterfaceLanguageFromCV();
-
+export function renderFields(
+    fields:Array<any>|string,
+    item:IEventOrPlanningItem,
+    props:Object = {},
+    language:string = ""
+) {
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
 

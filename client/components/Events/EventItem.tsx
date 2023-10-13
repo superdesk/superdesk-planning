@@ -22,6 +22,7 @@ import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 import {EventDateTimeColumn} from './EventDateTimeColumn';
 import * as actions from '../../actions';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 interface IState {
     hover: boolean;
@@ -157,6 +158,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
             active,
             refNode,
             listViewType,
+            filterLanguage
         } = this.props;
 
         if (!item) {
@@ -178,6 +180,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
         const isExpired = isItemExpired(item);
 
         const secondaryFields = get(listFields, 'event.secondary_fields', EVENTS.LIST.SECONDARY_FIELDS);
+        const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
         return (
             <Item
@@ -217,7 +220,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {renderFields(get(listFields, 'event.primary_fields',
-                                EVENTS.LIST.PRIMARY_FIELDS), item, this.props)}
+                                EVENTS.LIST.PRIMARY_FIELDS), item, {}, language)}
                         </span>
                     </Row>
                     <Row>

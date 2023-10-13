@@ -32,6 +32,7 @@ import {
 } from '../../utils';
 import {renderFields} from '../fields';
 import * as actions from '../../actions';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 interface IState {
     hover: boolean;
@@ -185,6 +186,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             agendas,
             contacts,
             listViewType,
+            filterLanguage
         } = this.props;
 
         if (!item) {
@@ -198,6 +200,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         const isExpired = isItemExpired(item);
         const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS);
         const {querySelectorParent} = superdeskApi.utilities;
+        const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
         return (
             <Item
@@ -236,7 +239,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {renderFields(get(listFields, 'planning.primary_fields',
-                                PLANNING.LIST.PRIMARY_FIELDS), item, this.props)}
+                                PLANNING.LIST.PRIMARY_FIELDS), item, {}, language)}
                         </span>
 
                         {event && (
