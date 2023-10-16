@@ -1,9 +1,8 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
-import {IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
+import {IEventOrPlanningItem, IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
-import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -42,12 +41,15 @@ export function registerField(id, component) {
 /**
  * Render list of fields for given item
  * @param {Array|String} fields
- * @param {Object} item
+ * @param {IEventOrPlanningItem} item
  * @param {Object} props
  */
-export function renderFields(fields, item, props = {}) {
-    const language = getUserInterfaceLanguageFromCV();
-
+export function renderFields(
+    fields: Array<any>|string,
+    item: IEventOrPlanningItem,
+    props: Object = {},
+    language: string = ''
+) {
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
 
@@ -64,6 +66,23 @@ export function renderFields(fields, item, props = {}) {
 
         return null;
     });
+}
+
+/**
+ * Get translated field value based on language
+ * @param {String} language
+ * @param {IEventOrPlanningItem} item
+ * @param {String} fieldName
+ */
+export function getTranslatedValue(language: string, item: IEventOrPlanningItem, fieldName: string): string | null {
+    if (item.translations) {
+        const matchingTranslation = item.translations.find(
+            (translation) => translation.field === fieldName && translation.language === language
+        );
+
+        return matchingTranslation ? matchingTranslation.value : null;
+    }
+    return null;
 }
 
 function getFieldsForPanel(panelType: IRenderPanelType) {
