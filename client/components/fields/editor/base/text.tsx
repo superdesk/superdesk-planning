@@ -31,6 +31,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.searchSuggestions = this.searchSuggestions.bind(this);
         this.node = React.createRef();
 
         this.state = {
@@ -81,7 +82,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         this.getInputElement()?.focus();
     }
 
-    fetchSuggestions(field, language) {
+    fetchSuggestions(field: string, language: string): Promise<Array<string>> {
         const {httpRequestJsonLocal} = superdeskApi;
 
         return httpRequestJsonLocal<IRestApiResponse<{value: string}>>({
@@ -92,8 +93,20 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
             (response) => response._items.map((_item) => _item.value).filter((value) => !!value),
             (reason) => {
                 console.warn(reason);
+                return [];
             }
         );
+    }
+
+    searchSuggestions(searchString: string, callback: (result: Array<any>) => void) {
+        const currentValue = get(this.props.item, this.props.field);
+
+        callback(this.state.suggestions.filter(
+            (name) => name.toLowerCase().includes(searchString) && name.toLowerCase() !== currentValue
+        ));
+
+        // eslint-disable-next-line no-empty-function
+        return {cancel: () => {}};
     }
 
     render() {
@@ -134,6 +147,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
                         error={this.props.showErrors ? error : undefined}
                         onChange={this.onChange}
                         items={this.state.suggestions}
+                        search={this.searchSuggestions}
                     />
                 )}
             </Row>
