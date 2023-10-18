@@ -65,7 +65,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
         const error = get(this.props.errors ?? {}, field);
 
         return (
-            <Row testId={this.props.testId} smallPadding={this.props.smallPadding}>
+            <Row testId={this.props.testId} smallPadding={this.props.smallPadding} >
                 <TreeSelect
                     kind="synchronous"
                     value={this.getViewValue()}
@@ -82,6 +82,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
                     label={this.props.label}
                     tabindex={0}
                     info={this.props.info}
+                    zIndex={1051}
                 />
             </Row>
         );
