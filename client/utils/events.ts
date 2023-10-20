@@ -899,7 +899,11 @@ const isEventInRange = (
 /*
  * Groups the events by date
  */
-function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, endDate: moment.Moment): Array<IEventItem> {
+function getEventsByDate(
+    events: Array<IEventItem>,
+    startDate: moment.Moment,
+    endDate: moment.Moment
+): Array<IEventItem> {
     if ((events?.length ?? 0) === 0) {
         return [];
     }

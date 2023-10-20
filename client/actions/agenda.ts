@@ -3,12 +3,12 @@ import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
 import {Moment} from 'moment';
 
 import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
+import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
 import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
 import {convertStringFields} from '../utils/strings';
-import {planningApi} from "../superdeskApi";
 
 const openAgenda = () => (
     (dispatch) => (
