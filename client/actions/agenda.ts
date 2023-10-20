@@ -242,9 +242,10 @@ const addEventToCurrentAgenda = (
 
 export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
     const defaultPlace = selectors.general.defaultPlaceList(planningApi.redux.store.getState());
+    const defaultValues = planningUtils.defaultPlanningValues(null, defaultPlace);
 
     let newPlanningItem: Partial<IPlanningItem> = {
-        ...planningUtils.defaultPlanningValues(null, defaultPlace),
+        ...defaultValues,
         type: 'planning',
         event_item: event._id,
         planning_date: event._sortDate || event.dates?.start,
@@ -252,7 +253,8 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
         subject: event.subject,
         anpa_category: event.anpa_category,
         agendas: [],
-        language: event.language,
+        language: event.language || defaultValues.language,
+        languages: event.languages || defaultValues.languages,
     };
 
     newPlanningItem = convertStringFields(
