@@ -753,6 +753,7 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
         };
         const eventProfile = selectors.forms.eventProfile(getState());
         let newEvent: Partial<IEventItem> = {
+            ...eventUtils.defaultEventValues(occurStatuses, defaultCalendar, defaultPlace),
             dates: {
                 start: moment(plan.planning_date).clone(),
                 end: moment(plan.planning_date)

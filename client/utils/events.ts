@@ -1134,7 +1134,7 @@ function defaultEventValues(
         qcode: 'eocstat:eos5',
         name: 'Planned, occurs certainly',
     };
-    const language = planningApi.contentProfiles.getDefaultLanguage(eventProfile);
+    const language = contentProfiles.getDefaultLanguage(eventProfile);
 
     let newEvent: Partial<IEventItem> = Object.assign(
         {

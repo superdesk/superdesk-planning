@@ -8,6 +8,7 @@ import {AGENDA, MODALS, EVENTS} from '../constants';
 import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
 import {convertStringFields} from '../utils/strings';
+import {planningApi} from "../superdeskApi";
 
 const openAgenda = () => (
     (dispatch) => (
@@ -240,11 +241,14 @@ const addEventToCurrentAgenda = (
 );
 
 export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
+    const defaultPlace = selectors.general.defaultPlaceList(planningApi.redux.store.getState());
+
     let newPlanningItem: Partial<IPlanningItem> = {
+        ...planningUtils.defaultPlanningValues(null, defaultPlace),
         type: 'planning',
         event_item: event._id,
         planning_date: event._sortDate || event.dates?.start,
-        place: event.place,
+        place: event.place || defaultPlace,
         subject: event.subject,
         anpa_category: event.anpa_category,
         agendas: [],
@@ -267,6 +271,10 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
 
     if (event.languages != null) {
         newPlanningItem.languages = event.languages;
+    }
+
+    if (event.priority != null) {
+        newPlanningItem.priority = event.priority;
     }
 
     return newPlanningItem;

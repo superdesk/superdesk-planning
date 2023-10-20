@@ -1274,7 +1274,7 @@ function shouldLockPlanningForEdit(item: IPlanningItem, privileges: IPrivileges)
     );
 }
 
-function defaultPlanningValues(currentAgenda: IAgenda, defaultPlaceList: Array<IPlace>): Partial<IPlanningItem> {
+function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array<IPlace>): Partial<IPlanningItem> {
     const {contentProfiles} = planningApi;
     const planningProfile = contentProfiles.get('planning');
     const defaultValues = contentProfiles.getDefaultValues(planningProfile) as Partial<IPlanningItem>;
