@@ -51,6 +51,7 @@ class EventSchema(BaseSchema):
     invitation_details = TextField(field_type="multi_line")
     accreditation_info = TextField(field_type="single_line")
     accreditation_deadline = DateTimeField()
+    priority = schema.IntegerField()
 
 
 DEFAULT_EVENT_PROFILE = {
@@ -109,6 +110,11 @@ DEFAULT_EVENT_PROFILE = {
             "enabled": True,
             "group": "description",
             "index": 8,
+        },
+        "priority": {
+            "enabled": False,
+            "group": "description",
+            "index": 9,
         },
         # Location Group
         "location": {

@@ -9,6 +9,7 @@ import {EditorFieldSelect} from '../editor/base/select';
 import {EditorFieldCheckbox} from '../editor/base/checkbox';
 import {EditorFieldTreeSelect, IEditorFieldTreeSelectProps} from '../editor/base/treeSelect';
 import {SelectCustomVocabulariesList} from '../editor/SelectCustomVocabulariesList';
+import {ProfileFieldDefaultValue} from '../editor/ProfileFieldDefaultValue';
 
 import {getLanguagesForTreeSelectInput} from '../../../selectors/vocabs';
 
@@ -187,4 +188,15 @@ registerEditorField<IEditorFieldTreeSelectProps, {options: Array<{value: IVocabu
         options: getLanguagesForTreeSelectInput(state),
     }),
     true,
+);
+
+registerEditorField(
+    'schema.default_value',
+    ProfileFieldDefaultValue,
+    (props) => ({
+        label: superdeskApi.localization.gettext('Default Value'),
+        field: 'schema.default_value',
+    }),
+    null,
+    true
 );

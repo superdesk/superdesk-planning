@@ -2,7 +2,10 @@ import {registerEditorField} from './registerEditorFields';
 
 import {superdeskApi} from '../../../superdeskApi';
 
+import {getPriorityQcodes} from '../../../selectors/vocabs';
+
 import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
+import {EditorFieldNumberSelect} from '../editor/base/numberSelect';
 import {EditorFieldEventAttachments} from '../editor/EventAttachments';
 
 registerEditorField(
@@ -57,5 +60,19 @@ registerEditorField(
         field: 'files',
     }),
     null,
+    false
+);
+
+registerEditorField(
+    'priority',
+    EditorFieldNumberSelect,
+    (props) => ({
+        label: superdeskApi.localization.gettext('Priority'),
+        field: 'priority',
+        multiple: false,
+    }),
+    (state) => ({
+        options: getPriorityQcodes(state),
+    }),
     false
 );

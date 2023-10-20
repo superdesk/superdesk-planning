@@ -35,6 +35,7 @@ function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams>
         source: cvsToString(params.source, 'id'),
         coverage_user_id: params.coverage_user_id,
         coverage_assignment_status: params.coverage_assignment_status
+        priority: arrayToString(params.priority),
     };
 }
 

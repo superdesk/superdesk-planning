@@ -1,10 +1,8 @@
 from planning.feed_parsers.onclusive import OnclusiveFeedParser
-from planning.tests import TestCase
 from .onclusive_api_service import OnclusiveApiService
 from unittest.mock import MagicMock
-from datetime import datetime
+from datetime import datetime, timedelta
 
-import os
 import flask
 import unittest
 import requests_mock
@@ -21,6 +19,7 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
     def test_update(self):
         event = {"versioncreated": datetime.fromisoformat("2023-03-01T08:00:00")}
         with self.app.app_context():
+            now = datetime.utcnow()
             service = OnclusiveApiService()
             service.get_feed_parser = MagicMock(return_value=parser)
             parser.parse.return_value = [event]
@@ -39,14 +38,20 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
                     json={
                         "token": "tok",
                         "refreshToken": "refresh",
+                        "productId": 10,
                     },
                 )
-                m.get("https://api.abc.com/api/v2/events/between?offset=0", json=[{}])  # first returns an item
-                m.get("https://api.abc.com/api/v2/events/between?offset=100", json=[])  # second will make it stop
-                list(service._update(provider, updates))
+                m.get(
+                    "https://api.abc.com/api/v2/events/date?date={}".format(now.strftime("%Y%m%d")),
+                    json=[{"versioncreated": event["versioncreated"].isoformat()}],
+                )  # first returns an item
+                m.get("https://api.abc.com/api/v2/events/date", json=[])  # ones won't
+                items = list(service._update(provider, updates))
             self.assertIn("tokens", updates)
             self.assertEqual("refresh", updates["tokens"]["refreshToken"])
-            self.assertEqual(event["versioncreated"], updates["tokens"]["import_finished"])
+            self.assertIn("import_finished", updates["tokens"])
+            self.assertEqual(updates["last_updated"], updates["tokens"]["next_start"])
+            self.assertEqual("fr-CA", items[0][0]["language"])
 
             provider.update(updates)
             updates = {}

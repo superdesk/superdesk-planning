@@ -534,70 +534,45 @@ function getDateStringForEvent(
     // !! Note - expects event dates as instance of moment() !! //
     const dateFormat = appConfig.planning.dateformat;
     const timeFormat = appConfig.planning.timeformat;
-    const start = get(event.dates, 'start');
-    const end = get(event.dates, 'end');
+    const start = getStartDate(event);
+    const end = getEndDate(event);
     const tz = get(event.dates, 'tz');
     const localStart = timeUtils.getLocalDate(start, tz);
-    let dateString, timezoneString = '';
-    let timezoneForEvents = '';
+    const isFullDay = event?.dates?.all_day;
+    const noEndTime = event?.dates?.no_end_time;
+    const multiDay = !start.isSame(end, 'day');
 
-    if (!start || !end)
+    let dateString, timezoneString = '';
+
+    if (!start || !end) {
         return;
+    }
 
     dateString = getTBCDateString(event, ' @ ', dateOnly);
     if (!dateString) {
-        if (start.isSame(end, 'day')) {
-            if (dateOnly) {
+        if (!multiDay) {
+            if (dateOnly || isFullDay) {
                 dateString = start.format(dateFormat);
+            } else if (noEndTime) {
+                dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false);
             } else {
                 dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
                     end.format(timeFormat);
             }
-        } else if (dateOnly) {
+        } else if (dateOnly || isFullDay) {
             dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
+        } else if (noEndTime) {
+            dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
+                end.format(dateFormat);
         } else {
             dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
-                    getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
+                getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
         }
     }
 
-    const isFullDay = event?.dates?.all_day;
-    const noEndTime = event?.dates?.no_end_time;
-
-    const multiDay = !isEventSameDay(start, end);
-
-    if (isFullDay && !multiDay) {
-        if (get(event.dates, 'all_day')) {
-            // use UTC mode to avoid any date conversion
-            return moment.utc(start).format(dateFormat);
-        }
-
-        return start.format(dateFormat);
-    } else if (noEndTime && !multiDay) {
-        if (withTimezone) {
-            if (!useLocal) {
-                timezoneForEvents =
-                `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz ? tz : 'utc')})`;
-            } else {
-                timezoneForEvents = getDateTimeString(start, dateFormat, timeFormat, ' @ ', true);
-            }
-        }
-        return timezoneForEvents;
-    } else if (isFullDay && multiDay) {
-        return timezoneForEvents = start.format(dateFormat) + ' - ' + end.format(dateFormat);
-    } else if (noEndTime && multiDay) {
-        if (withTimezone) {
-            if (!useLocal && tz) {
-                timezoneForEvents =
-                 `(${getDateTimeString(start, dateFormat, timeFormat, ' @ ', true, tz) + ' - ' +
-                 end.format(dateFormat)})`;
-            } else {
-                timezoneForEvents =
-                getDateTimeString(start, dateFormat, timeFormat, ' @ ', true) + ' - ' +
-                moment.utc(end).format(dateFormat);
-            }
-        }
-        return timezoneForEvents;
+    // no timezone info needed
+    if (isFullDay || dateOnly) {
+        return multiDay ? start.format(dateFormat) + ' - ' + end.format(dateFormat) : start.format(dateFormat);
     }
 
     if (withTimezone) {
@@ -882,34 +857,78 @@ function getFlattenedEventsByDate(events: Array<IEventItem>, startDate: moment.M
     return flatten(sortBy(eventsList, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 }
 
+
+const getStartDate = (event: IEventItem) => (
+    event.dates?.all_day ? moment.utc(event.dates.start) : moment(event.dates?.start)
+);
+
+const getEndDate = (event: IEventItem) => (
+    (event.dates?.all_day || event.dates?.no_end_time) ? moment.utc(event.dates.end) : moment(event.dates?.end)
+);
+
+const isEventInRange = (
+    event: IEventItem,
+    eventStart: moment.Moment,
+    eventEnd: moment.Moment,
+    start: moment.Moment,
+    end?: moment.Moment,
+) => {
+    let localStart = eventStart;
+    let localEnd = eventEnd;
+    let startUnit : moment.unitOfTime.StartOf = 'second';
+    let endUnit : moment.unitOfTime.StartOf = 'second';
+
+    if (event.dates?.all_day) {
+        // we have only dates in utc
+        localStart = moment(eventStart.format('YYYY-MM-DD'));
+        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
+        startUnit = 'day';
+        endUnit = 'day';
+    }
+
+    if (event.dates?.no_end_time) {
+        // we have time for start, but only date for end
+        localStart = moment(eventStart);
+        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
+        endUnit = 'day';
+    }
+
+    return localEnd.isSameOrAfter(start, endUnit) && (end == null || localStart.isSameOrBefore(end, startUnit));
+};
+
 /*
  * Groups the events by date
  */
-function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, endDate: moment.Moment) {
-    if (!get(events, 'length', 0)) return [];
+function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, endDate: moment.Moment): Array<IEventItem> {
+    if ((events?.length ?? 0) === 0) {
+        return [];
+    }
+
     // check if search exists
     // order by date
-    let sortedEvents = events.sort((a, b) => a.dates.start - b.dates.start);
+    let sortedEvents = events.sort((a, b) => {
+        const startA = getStartDate(a);
+        const startB = getStartDate(b);
 
-    const days = {};
+        return startA.diff(startB);
+    });
+
+    const days: {[date: string]: Array<IEventItem>} = {};
 
     function addEventToDate(event: IEventItem, date?: moment.Moment) {
-        let eventDate = date || event.dates.start;
-        let eventStart = event.dates.start;
-        let eventEnd = event.dates.end;
+        let eventDate = date || getStartDate(event);
+        let eventStart = getStartDate(event);
+        let eventEnd = getEndDate(event);
 
-        if (!event.dates.start.isSame(event.dates.end, 'day')) {
+        if (!eventStart.isSame(eventEnd, 'day') && !event.dates.all_day && !event.dates.no_end_time) {
             eventStart = eventDate;
-            eventEnd = event.dates.end.isSame(eventDate, 'day') ?
-                event.dates.end : moment(eventDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').add(86399, 'seconds');
+            eventEnd = eventEnd.isSame(eventDate, 'day') ?
+                eventEnd :
+                moment(eventDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').add(86399, 'seconds');
         }
 
-        if (!(isDateInRange(startDate, eventStart, eventEnd) ||
-            isDateInRange(endDate, eventStart, eventEnd))) {
-            if (!isDateInRange(eventStart, startDate, endDate) &&
-                !isDateInRange(eventEnd, startDate, endDate)) {
-                return;
-            }
+        if (!isEventInRange(event, eventDate, eventEnd, startDate, endDate)) {
+            return;
         }
 
         let eventDateFormatted = eventDate.format('YYYY-MM-DD');
@@ -920,27 +939,27 @@ function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, en
 
         let evt = cloneDeep(event);
 
-        evt._sortDate = eventDate;
-
+        evt._sortDate = eventStart;
         days[eventDateFormatted].push(evt);
     }
 
     sortedEvents.forEach((event) => {
         // compute the number of days of the event
-        let ending = event.actioned_date ? event.actioned_date : event.dates.end;
+        const eventEndDate = event.actioned_date ? moment(event.actioned_date) : getEndDate(event);
+        const eventStartDate = getStartDate(event);
 
-        if (!event.dates.start.isSame(ending, 'day')) {
-            let deltaDays = Math.max(Math.ceil(ending.diff(event.dates.start, 'days', true)), 1);
-            // if the event happens during more that one day, add it to every day
+        if (!eventStartDate.isSame(eventEndDate, 'day')) {
+            let deltaDays = Math.max(Math.ceil(eventEndDate.diff(eventStartDate, 'days', true)), 1);
+            // if the event happens during more than one day, add it to every day
             // add the event to the other days
 
-            for (let i = 1; i <= deltaDays; i++) {
-                //  clone the date
-                const newDate = moment(event.dates.start.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+            for (let i = 1; i < deltaDays; i++) {
+                // clone the date
+                const newDate = moment(eventStartDate.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
 
                 newDate.add(i, 'days');
 
-                if (newDate.isSameOrBefore(ending, 'day')) {
+                if (newDate.isSameOrBefore(eventEndDate, 'day')) {
                     addEventToDate(event, newDate);
                 }
             }
@@ -948,7 +967,7 @@ function getEventsByDate(events: Array<IEventItem>, startDate: moment.Moment, en
 
         // add event to its initial starting date
         // add an event only if it's not actioned or actioned after this event's start date
-        if (!event.actioned_date || event.actioned_date.isSameOrAfter(event.dates.start, 'date')) {
+        if (!event.actioned_date || moment(event.actioned_date).isSameOrAfter(eventStartDate, 'date')) {
             addEventToDate(event);
         }
     });
@@ -1107,28 +1126,34 @@ function defaultEventValues(
     defaultCalendars: IEventItem['calendars'],
     defaultPlaceList: IEventItem['place']
 ): Partial<IEventItem> {
+    const {contentProfiles} = planningApi;
+    const eventProfile = contentProfiles.get('event');
+    const defaultValues = contentProfiles.getDefaultValues(eventProfile) as Partial<IEventItem>;
     const occurStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
         label: 'Confirmed',
         qcode: 'eocstat:eos5',
         name: 'Planned, occurs certainly',
     };
-    const language = planningApi.contentProfiles.getDefaultLanguage(planningApi.contentProfiles.get('event'));
+    const language = planningApi.contentProfiles.getDefaultLanguage(eventProfile);
 
-    let newEvent: Partial<IEventItem> = {
-        type: 'event',
-        occur_status: occurStatus,
-        dates: {
-            start: null,
-            end: null,
-            tz: timeUtils.localTimeZone(),
+    let newEvent: Partial<IEventItem> = Object.assign(
+        {
+            type: 'event',
+            occur_status: occurStatus,
+            dates: {
+                start: null,
+                end: null,
+                tz: timeUtils.localTimeZone(),
+            },
+            calendars: defaultCalendars,
+            state: 'draft',
+            _startTime: null,
+            _endTime: null,
+            language: language,
+            languages: [language],
         },
-        calendars: defaultCalendars,
-        state: 'draft',
-        _startTime: null,
-        _endTime: null,
-        language: language,
-        languages: [language],
-    };
+        defaultValues
+    );
 
     if (defaultPlaceList) {
         newEvent.place = defaultPlaceList;
@@ -1345,6 +1370,8 @@ const self = {
     getFlattenedEventsByDate,
     isEventCompleted,
     fillEventTime,
+    getStartDate,
+    getEndDate,
 };
 
 export default self;

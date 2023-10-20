@@ -11,7 +11,7 @@ import {IRestApiResponse} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {EVENTS, TEMP_ID_PREFIX} from '../constants';
 
-import {convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
+import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
 import {eventUtils, planningUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
 import * as actions from '../actions';
@@ -23,6 +23,7 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
         location: params.location?.qcode,
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
+        priority: arrayToString(params.priority),
     };
 }
 

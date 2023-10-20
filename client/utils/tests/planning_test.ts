@@ -308,6 +308,8 @@ describe('PlanningUtils', () => {
                     ednote: 'edit my note',
                     scheduled: moment().add(1, 'hour')
                         .startOf('hour'),
+                    internal_note: undefined,
+                    language: undefined,
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -344,6 +346,8 @@ describe('PlanningUtils', () => {
                     ednote: 'edit my note',
                     scheduled: moment(newsItem.firstpublished).add(1, 'hour')
                         .startOf('hour'),
+                    internal_note: undefined,
+                    language: undefined,
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -380,6 +384,8 @@ describe('PlanningUtils', () => {
                     ednote: 'edit my note',
                     scheduled: moment(newsItem.firstpublished).add(1, 'hour')
                         .startOf('hour'),
+                    internal_note: undefined,
+                    language: undefined,
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -417,6 +423,8 @@ describe('PlanningUtils', () => {
                     ednote: 'edit my note',
                     scheduled: moment(newsItem.schedule_settings.utc_publish_schedule).add(1, 'hour')
                         .startOf('hour'),
+                    internal_note: undefined,
+                    language: undefined,
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -478,9 +486,9 @@ describe('PlanningUtils', () => {
                 urgency: 3,
                 description_text: 'some abstractions',
                 place: [{name: 'Australia'}],
-                coverages: [{
+                coverages: [jasmine.objectContaining({
                     coverage_id: jasmine.any(String),
-                    planning: {
+                    planning: jasmine.objectContaining({
                         g2_content_type: 'text',
                         slugline: 'slugger',
                         ednote: 'Edit my note!',
@@ -488,7 +496,7 @@ describe('PlanningUtils', () => {
                             .startOf('hour'),
                         _scheduledTime: moment().add(1, 'hour')
                             .startOf('hour'),
-                    },
+                    }),
                     news_coverage_status: {qcode: 'ncostat:int'},
                     workflow_status: 'active',
                     assigned_to: {
@@ -496,7 +504,7 @@ describe('PlanningUtils', () => {
                         user: 'ident1',
                         priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                     },
-                }],
+                })],
             }));
         });
 
@@ -533,9 +541,9 @@ describe('PlanningUtils', () => {
                 urgency: 3,
                 description_text: 'some abstractions',
                 flags: {marked_for_not_publication: true},
-                coverages: [{
+                coverages: [jasmine.objectContaining({
                     coverage_id: jasmine.any(String),
-                    planning: {
+                    planning: jasmine.objectContaining({
                         g2_content_type: 'text',
                         slugline: 'slugger',
                         ednote: 'Edit my note!',
@@ -543,7 +551,7 @@ describe('PlanningUtils', () => {
                             .startOf('hour'),
                         _scheduledTime: moment().add(1, 'hour')
                             .startOf('hour'),
-                    },
+                    }),
                     news_coverage_status: {qcode: 'ncostat:int'},
                     workflow_status: 'active',
                     assigned_to: {
@@ -551,7 +559,7 @@ describe('PlanningUtils', () => {
                         user: 'ident1',
                         priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                     },
-                }],
+                })],
             }));
         });
     });

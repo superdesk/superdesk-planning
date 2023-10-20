@@ -1377,3 +1377,31 @@ Feature: Events
             "assignment_id": null
         }
         """
+
+    @auth
+    Scenario: Create events without a timezone
+        When we post to "/events"
+        """
+        [{
+            "guid": "event1",
+            "name": "No timezone defined",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/events"
+        """
+        [{
+            "guid": "event2",
+            "name": "null timezone",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": null
+            }
+        }]
+        """
+        Then we get OK response

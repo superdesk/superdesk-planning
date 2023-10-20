@@ -13,7 +13,7 @@ import {
     SORT_ORDER,
 } from '../interfaces';
 import {MAIN} from '../constants';
-import {getTimeZoneOffset} from './index';
+import {getTimeZoneOffset, timeUtils} from './index';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
     return {
@@ -29,6 +29,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         lock_state: params.lock_state,
         directly_locked: params.directly_locked,
         tz_offset: params.timezoneOffset ?? getTimeZoneOffset(),
+        time_zone: timeUtils.localTimeZone(),
         anpa_category: params.advancedSearch?.anpa_category,
         date_filter: params.advancedSearch?.dates?.range,
         start_date: params.advancedSearch?.dates?.start,
@@ -43,6 +44,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_order: params.sortOrder ?? SORT_ORDER.ASCENDING,
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
+        priority: params.advancedSearch?.priority,
     };
 }
 
@@ -77,6 +79,7 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
             subject: params.subject,
             language: params.language,
             source: params.source,
+            priority: params.priority,
         },
     };
 }

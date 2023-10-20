@@ -1,10 +1,14 @@
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal} from '../../support/common';
+import {cloneDeep} from 'lodash';
+
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal, addItems} from '../../support/common';
 import {EventEditor, PlanningList} from '../../support/planning';
+import {TEST_EVENTS} from '../../fixtures/events';
+
+const list = new PlanningList();
+const editor = new EventEditor();
 
 describe('Planning.Events: edit metadata', () => {
-    const editor = new EventEditor();
     const subnav = new SubNavBar();
-    const list = new PlanningList();
     const workqueue = new Workqueue();
     const modal = new Modal();
     let event;
@@ -171,5 +175,62 @@ describe('Planning.Events: edit metadata', () => {
         editor.unpostButton
             .should('exist')
             .should('be.enabled');
+    });
+});
+
+describe('Planing.Events: edit existing events', () => {
+    beforeEach(() => {
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
+        addItems('events', [{
+            ...cloneDeep(TEST_EVENTS.date_01_02_2045),
+            dates: {
+                start: TEST_EVENTS.date_01_02_2045.dates.start,
+                end: TEST_EVENTS.date_01_02_2045.dates.end,
+            },
+        }, {
+            ...cloneDeep(TEST_EVENTS.date_02_02_2045),
+            dates: {
+                start: TEST_EVENTS.date_02_02_2045.dates.start,
+                end: TEST_EVENTS.date_02_02_2045.dates.end,
+                tz: null,
+            },
+        }]);
+        login();
+
+        waitForPageLoad.planning();
+    });
+
+    it('SDESK-6972: Edit events with no timezone', () => {
+        // Test if we can edit an Event without a timezone value
+        list.item(0)
+            .dblclick();
+        editor.waitTillOpen();
+        editor.waitLoadingComplete();
+
+        editor.type({definition_short: 'Modifying 1st event'});
+        editor.waitForAutosave();
+        editor.saveButton
+            .should('exist')
+            .click();
+        editor.closeButton
+            .should('exist')
+            .click();
+        editor.waitTillClosed();
+
+        // test if we can edit an Event with a timezone value of `null`
+        list.item(1)
+            .dblclick();
+        editor.waitTillOpen();
+        editor.waitLoadingComplete();
+
+        editor.type({definition_short: 'Modifying 2nd event'});
+        editor.waitForAutosave();
+        editor.saveButton
+            .should('exist')
+            .click();
+        editor.closeButton
+            .should('exist')
+            .click();
+        editor.waitTillClosed();
     });
 });
