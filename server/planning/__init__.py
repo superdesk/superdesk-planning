@@ -74,6 +74,7 @@ import planning.output_formatters  # noqa
 import planning.io  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 from planning.planning_locks import init_app as init_planning_locks_app
+from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
 
 __version__ = "2.7.0-dev"
 
@@ -112,6 +113,7 @@ def init_app(app):
     init_validator_app(app)
     init_planning_download_app(app)
     init_planning_locks_app(app)
+    init_planning_autocomplete_app(app)
 
     superdesk.register_resource(
         "planning_article_export",

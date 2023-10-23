@@ -1535,7 +1535,7 @@ planning_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": string_with_analyzer,
+                "value": metadata_schema["slugline"]["mapping"],
             },
         },
     },
@@ -1570,16 +1570,7 @@ planning_schema = {
                 "planning": {
                     "type": "object",
                     "properties": {
-                        "slugline": {
-                            "type": "string",
-                            "fields": {
-                                "phrase": {
-                                    "type": "string",
-                                    "analyzer": "phrase_prefix_analyzer",
-                                    "search_analyzer": "phrase_prefix_analyzer",
-                                }
-                            },
-                        },
+                        "slugline": metadata_schema["slugline"]["mapping"],
                     },
                 },
                 "assigned_to": assigned_to_schema["mapping"],

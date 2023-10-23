@@ -1,11 +1,10 @@
 import React from 'react';
 import {debounce, indexOf} from 'lodash';
-
 import {
     IEventListItemProps,
     IPlanningListItemProps,
     IEventOrPlanningItem,
-    IEventItem, IPlanningItem, IBaseListItemProps
+    IEventItem, IPlanningItem, IBaseListItemProps, ICommonAdvancedSearchParams
 } from '../../interfaces';
 
 import {EventItem, EventItemWithPlanning} from '../Events';
@@ -27,6 +26,7 @@ interface IProps extends Omit<
     index: number;
     navigateDown?: boolean;
     minTimeWidth?: string;
+    searchParams?: ICommonAdvancedSearchParams;
 
     onDoubleClick(item: IEventOrPlanningItem): void;
     showRelatedPlannings(item: IEventItem): void;
@@ -122,6 +122,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             listViewType,
             sortField,
             minTimeWidth,
+            searchParams,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -151,6 +152,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             ...itemProps,
             item: item as IEventItem,
             calendars: calendars,
+            filterLanguage: searchParams?.language,
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
@@ -193,6 +195,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             contentTypes: contentTypes,
             agendas: agendas,
             date: date,
+            filterLanguage: searchParams?.language,
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
             showAddCoverage: showAddCoverage,
