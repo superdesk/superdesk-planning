@@ -151,7 +151,9 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         slugline_elt = content_meta.find(self.qname("headline"))
         if slugline_elt is not None and slugline_elt.text:
             item["slugline"] = slugline_elt.text
-            item["name"] = slugline_elt.text
+            item["name"] = (
+                plain_text_to_html(slugline_elt.text) if is_field_editor_3("name", planning_type) else slugline_elt.text
+            )
 
         description_elt = content_meta.find(self.qname("description"))
         if description_elt is not None and description_elt.text:
