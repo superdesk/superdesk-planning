@@ -21,8 +21,8 @@ from planning.common import (
     POST_STATE,
 )
 
-from planning.content_profiles.utils import get_planning_schema, is_field_editor_3
-from superdesk.text_utils import plain_text_to_html
+from planning.content_profiles.utils import get_planning_schema
+from .utils import upgrade_rich_text_fields
 
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
@@ -96,6 +96,10 @@ class PlanningMLParser(NewsMLTwoFeedParser):
             self.parse_news_coverage_set(tree, item)
             self.parse_news_coverage_status(tree, item)
 
+            upgrade_rich_text_fields(item, "planning")
+            for coverage in item.get("coverages") or []:
+                upgrade_rich_text_fields(coverage.get("planning") or {}, "coverage")
+
             return [item]
 
         except Exception as ex:
@@ -115,9 +119,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         editor_note = meta.find(self.qname("edNote"))
         if editor_note is not None and editor_note.text:
-            item["ednote"] = (
-                plain_text_to_html(editor_note.text) if is_field_editor_3("edNote", planning_type) else editor_note.text
-            )
+            item["ednote"] = editor_note.text
 
         item_class_elt = meta.find(self.qname("itemClass"))
         if item_class_elt is not None:
@@ -151,17 +153,11 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         slugline_elt = content_meta.find(self.qname("headline"))
         if slugline_elt is not None and slugline_elt.text:
             item["slugline"] = slugline_elt.text
-            item["name"] = (
-                plain_text_to_html(slugline_elt.text) if is_field_editor_3("name", planning_type) else slugline_elt.text
-            )
+            item["name"] = slugline_elt.text
 
         description_elt = content_meta.find(self.qname("description"))
         if description_elt is not None and description_elt.text:
-            item["description_text"] = (
-                plain_text_to_html(description_elt.text)
-                if is_field_editor_3("description_text", planning_type)
-                else description_elt.text
-            )
+            item["description_text"] = description_elt.text
 
         # Assigning the planning date from subject
         subject_elt = content_meta.find(self.qname("subject"))
