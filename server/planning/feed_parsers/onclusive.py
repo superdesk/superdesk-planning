@@ -127,12 +127,14 @@ class OnclusiveFeedParser(FeedParser):
                 end=max(start_date, end_date),
                 no_end_time=True,
                 tz=tz,
+                all_day=False,
             )
         else:
             item["dates"] = dict(
                 start=self.datetime(event["startDate"], "00:00:00"),
                 end=self.datetime(event["endDate"], "00:00:00"),
                 all_day=True,
+                no_end_time=False,
             )
 
     def parse_timezone(self, start_date, event):
