@@ -275,6 +275,10 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('Accreditation Info')}),
         getValue: getPreviewString,
     },
+    priority: {
+        props: () => ({label: superdeskApi.localization.gettext('Priority:')}),
+        getValue: getPreviewString,
+    },
 };
 
 let FIELD_TO_PREVIEW_COMPONENT: {[key: string]: any} = {};

@@ -77,9 +77,22 @@ export const validateItem = ({
 
                     switch (true) {
                     case schema.required:
-                        if (isEmpty(diff[key]) && isEmpty(getSubject(diff, key))
-                            && fieldsToValidate == null
-                            || (Array.isArray(fieldsToValidate) && fieldsToValidate.includes(key))) {
+                        if (
+                            ((
+                                schema.type !== 'integer' &&
+                                isEmpty(diff[key])
+                            ) ||
+                            (
+                                schema.type === 'integer' &&
+                                diff[key] == null
+                            )) &&
+                            isEmpty(getSubject(diff, key)) &&
+                            fieldsToValidate == null ||
+                            (
+                                Array.isArray(fieldsToValidate) &&
+                                fieldsToValidate.includes(key)
+                            )
+                        ) {
                             errors[key] = gettext('This field is required');
                             messages.push(gettext('{{ key }} is a required field', {key: key.toUpperCase()}));
                         } else if (errors[key]) {

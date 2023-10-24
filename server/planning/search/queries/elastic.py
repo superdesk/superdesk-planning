@@ -9,12 +9,12 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from typing import Any, List, NamedTuple, Dict, Optional, Set
+import pytz
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from flask import current_app as app
 from eve.utils import str_to_date
 
-from superdesk.utc import get_timezone_offset, utcnow
 from planning.common import get_start_of_next_week, sanitize_query_text
 
 
@@ -113,7 +113,7 @@ class ElasticRangeParams:
         self.lt = lt
         self.lte = lte
         self.value_format = value_format
-        self.time_zone = time_zone if time_zone else get_timezone_offset(app.config["DEFAULT_TIMEZONE"], utcnow())
+        self.time_zone = time_zone or app.config.get("DEFAULT_TIMEZONE")
         self.start_of_week = int(start_of_week or 0)
         self.date_range = date_range
         self.date = str_to_date(date) if date else None
@@ -201,6 +201,35 @@ def field_range(query: ElasticRangeParams):
     if query.time_zone:
         params["time_zone"] = query.time_zone
 
+    if query.field in ("dates.start", "dates.end"):
+        # handle also all day events
+        # there we get value which is in utc,
+        # so we first convert it to local timezone
+        # and then we take only date part of it
+        local_params = params.copy()
+        local_params.pop("time_zone", None)
+        for key in ("gt", "gte", "lt", "lte"):
+            if local_params.get(key) and "T" in local_params[key] and query.time_zone:
+                tz = pytz.timezone(query.time_zone)
+                utc_value = datetime.fromisoformat(local_params[key].replace("+0000", "+00:00"))
+                local_value = utc_value.astimezone(tz)
+                local_params[key] = local_value.strftime("%Y-%m-%d")
+        return {
+            "bool": {
+                "should": [
+                    {"range": {query.field: params}},
+                    {
+                        "bool": {
+                            "must": [
+                                {"term": {"dates.all_day": True}},
+                                {"range": {query.field: local_params}},
+                            ],
+                        }
+                    },
+                ],
+            },
+        }
+
     return {"range": {query.field: params}}
 
 
@@ -244,7 +273,7 @@ def range_this_week(query: ElasticRangeParams):
     return field_range(
         ElasticRangeParams(
             field=query.field,
-            time_zone=query.time_zone or app.config["DEFAULT_TIMEZONE"],
+            time_zone=query.time_zone,
             value_format=query.value_format,
             gte=start_of_this_week(query.start_of_week),
             lt=start_of_next_week(query.start_of_week),
@@ -256,7 +285,7 @@ def range_next_week(query: ElasticRangeParams):
     return field_range(
         ElasticRangeParams(
             field=query.field,
-            time_zone=query.time_zone or app.config["DEFAULT_TIMEZONE"],
+            time_zone=query.time_zone,
             value_format=query.value_format,
             gte=start_of_next_week(query.start_of_week),
             lt=end_of_next_week(query.start_of_week),

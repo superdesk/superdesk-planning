@@ -12,8 +12,8 @@
     "cypress-terminal-report": "^5.0.2",
     "extract-text-webpack-plugin": "3.0.2",
     "lodash": "^4.17.15",
-    "moment": "2.20.1",
-    "moment-timezone": "0.5.14"
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.42"
   },
   "scripts": {
     "cypress-ui": "cypress open",

@@ -813,8 +813,9 @@ function createNewPlanningFromNewsItem(
         user,
         contentTypes
     );
-
+    const {contentProfiles} = planningApi;
     let newPlanning: Partial<IPlanningItem> = {
+        ...contentProfiles.getDefaultValues(contentProfiles.get('planning')),
         type: 'planning',
         slugline: addNewsItemToPlanning.slugline,
         headline: get(addNewsItemToPlanning, 'headline'),
@@ -827,6 +828,10 @@ function createNewPlanningFromNewsItem(
         coverages: [newCoverage],
         language: addNewsItemToPlanning.language,
     };
+
+    if (addNewsItemToPlanning.priority != null) {
+        newPlanning.priority = addNewsItemToPlanning.priority;
+    }
 
     if (get(addNewsItemToPlanning, 'flags.marked_for_not_publication')) {
         newPlanning.flags = {marked_for_not_publication: true};
@@ -856,12 +861,17 @@ function createCoverageFromNewsItem(
     );
 
     newCoverage.planning = {
+        ...newCoverage.planning,
         g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
         slugline: get(addNewsItemToPlanning, 'slugline', ''),
         ednote: get(addNewsItemToPlanning, 'ednote', ''),
         scheduled: moment().add(1, 'hour')
             .startOf('hour'),
     };
+
+    if (addNewsItemToPlanning.priority != null) {
+        newCoverage.planning.priority = addNewsItemToPlanning.priority;
+    }
 
     if (addNewsItemToPlanning.language != null) {
         newCoverage.planning.language = addNewsItemToPlanning.language;
@@ -1264,18 +1274,24 @@ function shouldLockPlanningForEdit(item: IPlanningItem, privileges: IPrivileges)
     );
 }
 
-function defaultPlanningValues(currentAgenda: IAgenda, defaultPlaceList: Array<IPlace>): Partial<IPlanningItem> {
-    const language = planningApi.contentProfiles.getDefaultLanguage(planningApi.contentProfiles.get('planning'));
-    const newPlanning: Partial<IPlanningItem> = {
-        type: 'planning',
-        planning_date: moment(),
-        agendas: get(currentAgenda, 'is_enabled') ?
-            [getItemId(currentAgenda)] : [],
-        state: 'draft',
-        item_class: 'plinat:newscoverage',
-        language: language,
-        languages: [language],
-    };
+function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array<IPlace>): Partial<IPlanningItem> {
+    const {contentProfiles} = planningApi;
+    const planningProfile = contentProfiles.get('planning');
+    const defaultValues = contentProfiles.getDefaultValues(planningProfile) as Partial<IPlanningItem>;
+    const language = contentProfiles.getDefaultLanguage(planningProfile);
+    const newPlanning: Partial<IPlanningItem> = Object.assign(
+        {
+            type: 'planning',
+            planning_date: moment(),
+            agendas: get(currentAgenda, 'is_enabled') ?
+                [getItemId(currentAgenda)] : [],
+            state: 'draft',
+            item_class: 'plinat:newscoverage',
+            language: language,
+            languages: [language],
+        },
+        defaultValues
+    );
 
     if (defaultPlaceList) {
         newPlanning.place = defaultPlaceList;
@@ -1296,37 +1312,47 @@ function defaultCoverageValues(
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
 ): DeepPartial<IPlanningCoverageItem> {
+    const {contentProfiles} = planningApi;
+    const coverageProfile = contentProfiles.get('coverage');
+    const defaultValues = (contentProfiles.getDefaultValues(coverageProfile)) as DeepPartial<IPlanningCoverageItem>;
     let newCoverage: DeepPartial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),
-        planning: {
-            slugline: stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'coverage',
-                'slugline',
-                'slugline',
-                planningItem?.slugline
-            ),
-            internal_note: stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'coverage',
-                'internal_note',
-                'internal_note',
-                planningItem?.internal_note
-            ),
-            ednote: stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'coverage',
-                'ednote',
-                'ednote',
-                planningItem?.ednote
-            ),
-            scheduled: planningItem?.planning_date || moment(),
-            g2_content_type: g2contentType,
-            language: planningItem?.language ?? eventItem?.language,
-        },
+        planning: Object.assign(
+            {
+                slugline: stringUtils.convertStringFieldForProfileFieldType(
+                    'planning',
+                    'coverage',
+                    'slugline',
+                    'slugline',
+                    planningItem?.slugline
+                ),
+                internal_note: stringUtils.convertStringFieldForProfileFieldType(
+                    'planning',
+                    'coverage',
+                    'internal_note',
+                    'internal_note',
+                    planningItem?.internal_note
+                ),
+                ednote: stringUtils.convertStringFieldForProfileFieldType(
+                    'planning',
+                    'coverage',
+                    'ednote',
+                    'ednote',
+                    planningItem?.ednote
+                ),
+                scheduled: planningItem?.planning_date || moment(),
+                g2_content_type: g2contentType,
+                language: planningItem?.language ?? eventItem?.language,
+            },
+            defaultValues
+        ),
         news_coverage_status: getDefaultCoverageStatus(newsCoverageStatus),
         workflow_status: 'draft',
     };
+
+    if (planningItem?.priority && newCoverage.planning.priority == null) {
+        newCoverage.planning.priority = planningItem.priority;
+    }
 
     if (planningItem?._time_to_be_confirmed) {
         newCoverage._time_to_be_confirmed = planningItem._time_to_be_confirmed;

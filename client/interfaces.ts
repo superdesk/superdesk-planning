@@ -426,6 +426,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     event_created?: string | Date;
     event_lastmodified?: string | Date;
     name?: string;
+    priority?: number;
     definition_short?: string;
     definition_long?: string;
     internal_note?: string;
@@ -597,6 +598,7 @@ export interface ICoveragePlanningDetails {
     slugline: string;
     internal_note: string;
     workflow_status_reason: string;
+    priority?: number;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -899,6 +901,7 @@ export interface ICommonAdvancedSearchParams {
         id?: string;
         name?: string;
     }>;
+    priority?: Array<number>;
 }
 
 export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
@@ -978,6 +981,7 @@ interface IBaseProfileSchemaType<T> {
     validate_on_post?: boolean;
     minlength?: number;
     maxlength?: number;
+    default_value?: string | number;
 }
 
 export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
@@ -1330,6 +1334,7 @@ export interface ISearchParams {
     item_ids?: Array<string>;
     name?: string;
     tz_offset?: string;
+    time_zone?: string;
     full_text?: string;
     anpa_category?: Array<IANPACategory>;
     subject?: Array<ISubject>;
@@ -1359,6 +1364,8 @@ export interface ISearchParams {
         name?: string;
     }>;
     coverage_user_id?:string;
+    priority?: Array<number>;
+
     // Event Params
     reference?: string;
     location?: IEventLocation;
@@ -1391,6 +1398,7 @@ export interface ISearchAPIParams {
     item_ids?: string;
     name?: string;
     tz_offset?: string;
+    time_zone?: string;
     full_text?: string;
     anpa_category?: string;
     subject?: string;
@@ -1411,6 +1419,7 @@ export interface ISearchAPIParams {
     filter_id?: ISearchFilter['_id'];
     source?: string;
     coverage_user_id?:string;
+    priority?: string;
 
     // Event Params
     reference?: string;
@@ -1704,6 +1713,7 @@ export interface IPlanningAppState {
     forms: IFormState;
     session: ISession;
     locks: ILockedItems;
+    vocabularies: {[id: string]: Array<IVocabularyItem>};
 }
 
 export interface INominatimLocalityFields {
@@ -2208,8 +2218,7 @@ export interface IPlanningAPI {
             getConfig(contentType: string): IProfileMultilingualDetails;
         };
         getDefaultLanguage(profile: IPlanningContentProfile): IVocabularyItem['qcode'];
-
-
+        getDefaultValues(profile: IPlanningContentProfile): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem>;
         patch(original: IPlanningContentProfile, updates: IPlanningContentProfile): Promise<IPlanningContentProfile>;
         showManagePlanningProfileModal(): Promise<void>;
         showManageEventProfileModal(): Promise<void>;

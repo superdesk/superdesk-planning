@@ -154,13 +154,13 @@ def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
 
     if date_filter or start_date or end_date:
         field_name = "_planning_schedule.scheduled"
         base_query = elastic.ElasticRangeParams(
             field=field_name,
-            time_zone=tz_offset,
+            time_zone=time_zone,
             start_of_week=int(params.get("start_of_week") or 0),
         )
 
@@ -203,7 +203,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
             )
 
             query.extra["sort_filter"] = elastic.date_range(
-                elastic.ElasticRangeParams(field=field_name, gte="now/d", time_zone=tz_offset)
+                elastic.ElasticRangeParams(field=field_name, gte="now/d", time_zone=time_zone)
             )
         else:
             query.filter.append(planning_schedule)
@@ -211,7 +211,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
     only_future = strtobool(params.get("only_future", True))
 
     if not date_filter and not start_date and not end_date and only_future:
@@ -220,7 +220,7 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
             elastic.ElasticRangeParams(
                 field=field_name,
                 gte="now/d",
-                time_zone=tz_offset,
+                time_zone=time_zone,
             )
         )
 

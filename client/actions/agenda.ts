@@ -3,6 +3,7 @@ import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
 import {Moment} from 'moment';
 
 import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
+import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
 import {getErrorMessage, gettext, planningUtils} from '../utils';
@@ -240,15 +241,20 @@ const addEventToCurrentAgenda = (
 );
 
 export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
+    const defaultPlace = selectors.general.defaultPlaceList(planningApi.redux.store.getState());
+    const defaultValues = planningUtils.defaultPlanningValues(null, defaultPlace);
+
     let newPlanningItem: Partial<IPlanningItem> = {
+        ...defaultValues,
         type: 'planning',
         event_item: event._id,
         planning_date: event._sortDate || event.dates?.start,
-        place: event.place,
+        place: event.place || defaultPlace,
         subject: event.subject,
         anpa_category: event.anpa_category,
         agendas: [],
-        language: event.language,
+        language: event.language || defaultValues.language,
+        languages: event.languages || defaultValues.languages,
     };
 
     newPlanningItem = convertStringFields(
@@ -267,6 +273,10 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
 
     if (event.languages != null) {
         newPlanningItem.languages = event.languages;
+    }
+
+    if (event.priority != null) {
+        newPlanningItem.priority = event.priority;
     }
 
     return newPlanningItem;

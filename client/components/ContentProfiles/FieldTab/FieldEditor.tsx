@@ -105,6 +105,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                     !['language', 'location'].includes(this.props.item.name)
                 )
             )},
+            'schema.default_value': {enabled: this.props.item.name === 'priority'},
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)
@@ -189,6 +190,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                             'schema.languages': {enabled: true, index: 12},
                                             'schema.default_language': {enabled: true, index: 13},
                                             'schema.planning_auto_publish': {enabled: true, index: 14},
+                                            'schema.default_value': {enabled: true, index: 11},
                                         },
                                         {
                                             item: this.props.item,

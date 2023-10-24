@@ -946,6 +946,7 @@ export const sortBasedOnTBC = (days) => {
     }
 
     pushEventsForTheDay(days);
+
     return sortBy(sortable, [(e) => (e.date)]);
 };
 
