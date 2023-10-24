@@ -12,5 +12,5 @@ node_modules
 client
 e2e/node_modules
 e2e/server/env
+e2e/dist
 server/env
-

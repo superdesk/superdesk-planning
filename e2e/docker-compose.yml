@@ -28,6 +28,7 @@ services:
             dockerfile: e2e/server/Dockerfile
         ports:
             - "5000:5000"
+            - "5100:5100"
         networks:
             - e2e
         depends_on:
@@ -37,12 +38,12 @@ services:
         environment:
             - WEB_CONCURRENCY=2
             - WEBPACK_MANIFEST_PATH=/opt/client-dist/manifest.json
-            - MONGO_URI=mongodb://mongo/superdesk
-            - ARCHIVED_MONGO_URI=mongodb://mongo/superdesk
-            - CONTENTAPI_MONGO_URI=mongodb://mongo/superdesk_capi
-            - PUBLICAPI_MONGO_URI=mongodb://mongo/superdesk_papi
-            - LEGAL_ARCHIVE_URI=mongodb://mongo/superdesk_legal
-            - ARCHIVED_URI=mongodb://mongo/superdesk_archive
+            - MONGO_URI=mongodb://mongo/e2e_superdesk
+            - ARCHIVED_MONGO_URI=mongodb://mongo/e2e_archived
+            - CONTENTAPI_MONGO_URI=mongodb://mongo/e2e_capi
+            - PUBLICAPI_MONGO_URI=mongodb://mongo/e2e_pubapi
+            - LEGAL_ARCHIVE_URI=mongodb://mongo/e2e_legal
+            - ARCHIVED_URI=mongodb://mongo/e2e_archived
             - ELASTICSEARCH_URL=http://elastic:9200
             - ELASTICSEARCH_INDEX=superdesk_e2e
             - CELERY_BROKER_URL=redis://redis:6379/1
