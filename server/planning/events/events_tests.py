@@ -513,6 +513,7 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                     }
                 ],
             )
+            now = utcnow()
             get_resource_service("events_post").post(
                 [
                     {
@@ -530,4 +531,4 @@ class EventsRelatedPlanningAutoPublish(TestCase):
             planning_item = planning_service.find_one(req=None, _id=planning_id[0])
             self.assertEqual(len([planning_item]), 1)
             self.assertEqual(planning_item.get("state"), "scheduled")
-            self.assertEqual(planning_item.get("versionposted"), utcnow())
+            self.assertEqual(planning_item.get("versionposted"), now)
