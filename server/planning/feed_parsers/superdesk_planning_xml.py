@@ -89,10 +89,8 @@ class PlanningMLParser(NewsMLTwoFeedParser):
                 "_id": guid,
             }
 
-            planning_type = get_planning_schema("planning")
-
-            self.parse_item_meta(tree, item, planning_type)
-            self.parse_content_meta(tree, item, planning_type)
+            self.parse_item_meta(tree, item)
+            self.parse_content_meta(tree, item)
             self.parse_news_coverage_set(tree, item)
             self.parse_news_coverage_status(tree, item)
 
@@ -105,7 +103,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
 
-    def parse_item_meta(self, tree, item, planning_type):
+    def parse_item_meta(self, tree, item):
         """Parse itemMeta tag
 
         :param tree: tree
@@ -131,7 +129,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         except (AttributeError, IndexError):
             item["pubstatus"] = POST_STATE.USABLE
 
-    def parse_content_meta(self, tree, item, planning_type):
+    def parse_content_meta(self, tree, item):
         """Parse contentMeta tag
 
         :param tree: tree
