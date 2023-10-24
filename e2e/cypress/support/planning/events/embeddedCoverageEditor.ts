@@ -1,5 +1,5 @@
 import {EventEditor} from './eventEditor';
-import {SelectInput, NewCheckboxInput, UserSelectInput} from '../../common';
+import {SelectInput, NewCheckboxInput, CoverageUserSelectInput} from '../../common';
 
 export class EmbeddedCoverageEditor {
     editor: EventEditor;
@@ -36,7 +36,7 @@ export class EmbeddedCoverage {
     editor: EmbeddedCoverageEditor;
     planningIndex: number;
     coverageIndex: number;
-    fields: {[key: string]: SelectInput | NewCheckboxInput | UserSelectInput};
+    fields: {[key: string]: SelectInput | NewCheckboxInput | CoverageUserSelectInput};
 
     constructor(editor: EmbeddedCoverageEditor, planningIndex: number, coverageIndex: number) {
         this.editor = editor;
@@ -48,7 +48,7 @@ export class EmbeddedCoverage {
         this.fields = {
             enabled: new NewCheckboxInput(getParent, '[data-test-id="enabled"]'),
             desk: new SelectInput(getParent, '[data-test-id="desk"] select'),
-            user: new UserSelectInput(getParent, '[data-test-id="user"]'),
+            user: new CoverageUserSelectInput(getParent, '[data-test-id="user"]'),
             status: new SelectInput(getParent, '[data-test-id="status"] select'),
         };
     }
