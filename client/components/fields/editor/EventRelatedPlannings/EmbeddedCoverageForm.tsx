@@ -126,6 +126,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {coverage} = this.props;
+        const {SelectUser} = superdeskApi.components;
 
         const {allLanguages, language} = getLanguagesForCoverage(
             this.props.profile,
@@ -172,13 +173,16 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                             testId="user"
                             noPadding={true}
                         >
-                            <SelectUserInput
-                                field="user"
-                                placeholder={gettext('Search users')}
-                                value={coverage.user}
-                                onChange={this.onUserChange}
-                                users={coverage.filteredUsers}
-                            />
+                            <Row style={{padding: '2rem 0'}}>
+                                <SelectUser
+                                    onSelect={(user) => {
+                                        this.onUserChange(null, user);
+                                    }}
+                                    autoFocus={false}
+                                    horizontalSpacing={true}
+                                    clearable={true}
+                                />
+                            </Row>
                         </Row>
                     </List.Row>
                     <List.Row>
