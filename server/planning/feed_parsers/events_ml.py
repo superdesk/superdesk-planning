@@ -238,10 +238,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
             tz=tz,
         )
 
-        if all_day:
-            item["dates"]["all_day"] = all_day
-        elif no_end_time:
-            item["dates"]["no_end_time"] = no_end_time
+        item["dates"]["all_day"] = all_day
+        item["dates"]["no_end_time"] = (not all_day and no_end_time) is True
 
     def parse_registration_details(self, event_details, item):
         event_type = get_planning_schema("event")

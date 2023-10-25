@@ -155,6 +155,8 @@ class EventsMLFeedParserTestCase(TestCase):
                 start=datetime(2022, 7, 5, 15, 0, tzinfo=utc),
                 end=datetime(2022, 7, 5, 17, 0, tzinfo=utc),
                 tz=self.app.config["DEFAULT_TIMEZONE"],
+                all_day=False,
+                no_end_time=False,
             ),
         )
 
@@ -165,6 +167,8 @@ class EventsMLFeedParserTestCase(TestCase):
                 start=datetime(2022, 7, 5, 15, 0, tzinfo=utc),
                 end=datetime(2022, 7, 5, 16, 0, tzinfo=utc),
                 tz=self.app.config["DEFAULT_TIMEZONE"],
+                all_day=False,
+                no_end_time=False,
             ),
         )
 
@@ -175,6 +179,7 @@ class EventsMLFeedParserTestCase(TestCase):
                 start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                 end=datetime(2022, 7, 5, 23, 59, 59, tzinfo=utc),
                 all_day=True,
+                no_end_time=False,
                 tz=None,
             ),
         )
@@ -187,6 +192,7 @@ class EventsMLFeedParserTestCase(TestCase):
                 start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                 end=datetime(2022, 7, 7, 23, 59, 59, tzinfo=utc),
                 all_day=True,
+                no_end_time=False,
                 tz=None,
             ),
         )

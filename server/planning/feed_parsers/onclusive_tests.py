@@ -138,6 +138,7 @@ class OnclusiveFeedParserTestCase(TestCase):
             {
                 "start": datetime.datetime(2023, 4, 18, 2, tzinfo=datetime.timezone.utc),
                 "end": datetime.datetime(2023, 4, 18, 2, tzinfo=datetime.timezone.utc),
+                "all_day": False,
                 "no_end_time": True,
                 "tz": "Asia/Macau",
             },
