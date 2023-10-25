@@ -18,7 +18,6 @@ import {Row, SelectUserInput} from '../../../UI/Form';
 import {EditorFieldNewsCoverageStatus} from '../NewsCoverageStatus';
 import * as config from 'appConfig';
 import {getLanguagesForTreeSelectInput} from '../../../../selectors/vocabs';
-import {SelectUser} from 'superdesk-core/scripts/core/ui/components/SelectUser';
 
 const appConfig = config.appConfig as IPlanningConfig;
 
@@ -127,6 +126,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {coverage} = this.props;
+        const {SelectUser} = superdeskApi.components;
 
         const {allLanguages, language} = getLanguagesForCoverage(
             this.props.profile,
