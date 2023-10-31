@@ -1,6 +1,6 @@
 /* eslint-disable react/no-multi-comp */
 
-import {IFormGroup, IBaseRestApiResponse, IGenericListPageComponent} from 'superdesk-api';
+import {IFormGroup, IBaseRestApiResponse, IFormField, IPropsGenericFormItemComponent} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 
 import React from 'react';
@@ -16,20 +16,54 @@ interface IEventTemplate extends IBaseRestApiResponse {
     template_name: string;
 }
 
+const getItemComponent = (nameField: IFormField) =>
+    class ItemComponent extends React.PureComponent<IPropsGenericFormItemComponent<any>> {
+        render(): React.ReactNode {
+            const {item, page} = this.props;
+
+            const {ListItem, ListItemColumn} = superdeskApi.components;
+            const {getFormFieldPreviewComponent} = superdeskApi.forms;
+
+            return (
+                <ListItem>
+                    <ListItemColumn ellipsisAndGrow noBorder>
+                        {getFormFieldPreviewComponent(item, nameField)}
+                    </ListItemColumn>
+                    <ListItemColumn noBorder>
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <button onClick={() => page.startEditing(item._id)}>
+                                <i className="icon-pencil" />
+                            </button>
+                            <button onClick={() => page.deleteItem(item)}>
+                                <i className="icon-trash" />
+                            </button>
+                        </div>
+                    </ListItemColumn>
+                </ListItem>
+            );
+        }
+    };
+
 export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
     static propTypes: any;
 
     render() {
         const {handleHide} = this.props;
 
-        const {getGenericHttpEntityListPageComponent, ListItemColumn, ListItem} = superdeskApi.components;
-        const {getFormFieldPreviewComponent, FormFieldType} = superdeskApi.forms;
+        const {getGenericHttpEntityListPageComponent} = superdeskApi.components;
+        const {FormFieldType} = superdeskApi.forms;
 
         const {gettext} = superdeskApi.localization;
 
         const nameField = {
             label: gettext('Template name'),
-            type: FormFieldType.textSingleLine,
+            type: FormFieldType.plainText,
             field: 'template_name',
             required: true,
         };
@@ -47,36 +81,6 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
             formConfig
         );
 
-        const renderRow = (
-            key: string,
-            item: IEventTemplate,
-            page: IGenericListPageComponent<IEventTemplate>
-        ) => (
-            <ListItem
-                key={key}
-            >
-                <ListItemColumn ellipsisAndGrow noBorder>
-                    {getFormFieldPreviewComponent(item, nameField)}
-                </ListItemColumn>
-                <ListItemColumn noBorder>
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <button onClick={() => page.startEditing(item._id)}>
-                            <i className="icon-pencil" />
-                        </button>
-                        <button onClick={() => page.deleteItem(item)}>
-                            <i className="icon-trash" />
-                        </button>
-                    </div>
-                </ListItemColumn>
-            </ListItem>
-        );
-
         return (
             <Modal xLarge={true} show={true} onHide={handleHide}>
                 <Modal.Header>
@@ -87,8 +91,8 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
                 </Modal.Header>
                 <Modal.Body noPadding={true}>
                     <EventTemplatesComponent
-                        renderRow={renderRow}
-                        formConfig={formConfig}
+                        ItemComponent={getItemComponent(nameField)}
+                        getFormConfig={() => formConfig}
                         defaultSortOption={{field: nameField.field, direction: 'ascending'}}
                         fieldForSearch={nameField}
                         refreshOnEvents={Object.keys(planningEventTemplateEvents)}

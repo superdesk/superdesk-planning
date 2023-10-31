@@ -1,5 +1,5 @@
 import React from 'react';
-import {gettext} from 'superdesk-core/scripts/core/utils';
+import {gettext} from 'superdesk-core/scripts/core/utils.tsx';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
 type Term = {[key: string]: any};

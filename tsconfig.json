@@ -6,6 +6,7 @@
         "client"
     ],
     "compilerOptions": {
+        "allowImportingTsExtensions": true,
         "baseUrl": "client",
         "skipLibCheck": true,
         "sourceMap": true,
