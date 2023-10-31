@@ -173,7 +173,7 @@ describe('Planning.Events: multilingual functionality', () => {
 
         editor = new EventEditor(['en', 'de'], ['slugline', 'name', 'definition_short']);
         editor.type({
-            language: ['English'],
+            language: ['English', 'German'],
             'slugline.de': 'slug-de',
             'slugline.en': 'slug-en',
             'name.de': 'name-de',

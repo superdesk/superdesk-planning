@@ -5,7 +5,6 @@ import * as editors from './editor';
 
 import planning from './planning/index';
 import events from './events/index';
-import locks from './locks';
 import assignments from './assignments/index';
 import autosave from './autosave';
 import main from './main';
@@ -60,7 +59,6 @@ export {
     events,
     resetStore,
     initStore,
-    locks,
     assignments,
     autosave,
     main,

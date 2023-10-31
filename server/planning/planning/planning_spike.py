@@ -16,6 +16,7 @@ from planning.common import (
     WORKFLOW_STATE,
     get_coverage_type_name,
     remove_autosave_on_spike,
+    remove_lock_information,
 )
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
@@ -23,9 +24,9 @@ from superdesk.errors import SuperdeskApiError
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth
 from superdesk import config
-from planning.item_lock import LOCK_USER, LOCK_SESSION
 from superdesk import get_resource_service
 from planning.planning_notifications import PlanningNotifications
+from planning.item_lock import LOCK_USER
 from copy import deepcopy
 
 
@@ -39,7 +40,22 @@ class PlanningSpikeResource(PlanningResource):
     privileges = {"PATCH": "planning_planning_spike"}
 
 
-class PlanningSpikeService(BaseService):
+class PlanningSpikeServiceBase(BaseService):
+    def on_updated(self, updates, original):
+        if original.get(LOCK_USER) and LOCK_USER in updates and updates[LOCK_USER] is None:
+            push_notification(
+                "planning:unlock",
+                item=str(original.get(config.ID_FIELD)),
+                user=str(get_user_id()),
+                lock_session=str(get_auth().get(config.ID_FIELD)),
+                etag=updates.get("_etag"),
+                event_item=original.get("event_item") or None,
+                recurrence_id=original.get("recurrence_id") or None,
+                type=original.get("type"),
+            )
+
+
+class PlanningSpikeService(PlanningSpikeServiceBase):
     def update(self, id, updates, original):
         if original.get("pubstatus") or original.get("state") not in [
             WORKFLOW_STATE.INGESTED,
@@ -65,14 +81,7 @@ class PlanningSpikeService(BaseService):
 
         # Mark item as unlocked directly in order to avoid more queries and notifications
         # coming from lockservice.
-        updates.update(
-            {
-                LOCK_USER: None,
-                LOCK_SESSION: None,
-                "lock_time": None,
-                "lock_action": None,
-            }
-        )
+        remove_lock_information(updates)
 
         remove_autosave_on_spike(original)
         item = self.backend.update(self.datasource, id, updates, original)
@@ -113,16 +122,7 @@ class PlanningSpikeService(BaseService):
             )
 
     def on_updated(self, updates, original):
-        if original.get("lock_user") and "lock_user" in updates and updates.get("lock_user") is None:
-            push_notification(
-                "planning:unlock",
-                item=str(original.get(config.ID_FIELD)),
-                user=str(get_user_id()),
-                lock_session=str(get_auth().get("_id")),
-                etag=updates.get("_etag"),
-                event_item=original.get("event_item") or None,
-                recurrence_id=original.get("recurrence_id") or None,
-            )
+        super().on_update(updates, original)
 
         # Delete assignments in workflow
         assignments_to_delete = []
@@ -149,25 +149,26 @@ class PlanningUnspikeResource(PlanningResource):
     privileges = {"PATCH": "planning_planning_unspike"}
 
 
-class PlanningUnspikeService(BaseService):
+class PlanningUnspikeService(PlanningSpikeServiceBase):
     def update(self, id, updates, original):
         if original.get("event_item"):
             event = get_resource_service("events").find_one(req=None, _id=original["event_item"])
             if event.get("state") == WORKFLOW_STATE.SPIKED:
                 raise SuperdeskApiError.badRequestError(message="Unspike failed. Associated event is spiked.")
 
-        user = get_user(required=True)
-
         updates[ITEM_STATE] = original.get("revert_state", WORKFLOW_STATE.DRAFT)
         updates["revert_state"] = None
         updates[ITEM_EXPIRY] = None
+        remove_lock_information(updates)
 
-        item = self.backend.update(self.datasource, id, updates, original)
+        return super().update(id, updates, original)
+
+    def on_updated(self, updates, original):
+        super().on_updated(updates, original)
         push_notification(
             "planning:unspiked",
-            item=str(id),
-            user=str(user.get(config.ID_FIELD)),
-            etag=item["_etag"],
-            state=item[ITEM_STATE],
+            item=str(original.get(config.ID_FIELD)),
+            user=str(get_user_id()),
+            etag=updates.get("_etag") or original.get("_etag"),
+            state=updates[ITEM_STATE],
         )
-        return item

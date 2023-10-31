@@ -54,6 +54,7 @@ def get_item_from_assignment(assignment, template=None):
     :return dict: item
     """
     item = {}
+    translations = {}
     if not assignment:
         return item
 
@@ -96,6 +97,9 @@ def get_item_from_assignment(assignment, template=None):
             if not item.get("flags"):
                 item["flags"] = {}
 
+            if planning.get("translations"):
+                translations = planning.get("translations")
+
             item["flags"]["marked_for_not_publication"] = (planning.get("flags") or {}).get(
                 "marked_for_not_publication"
             ) or False
@@ -133,7 +137,7 @@ def get_item_from_assignment(assignment, template=None):
     if language:
         item["language"] = language
 
-    return item
+    return item, translations
 
 
 class AssignmentsContentService(Service):
@@ -147,7 +151,7 @@ class AssignmentsContentService(Service):
         assignments_service = get_resource_service("assignments")
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop("assignment_id"))
-            item = get_item_from_assignment(assignment, doc.pop("template_name", None))
+            item, translations = get_item_from_assignment(assignment, doc.pop("template_name", None))
             item[config.VERSION] = 1
             item.setdefault("type", "text")
             item["assignment_id"] = assignment[config.ID_FIELD]
@@ -177,7 +181,7 @@ class AssignmentsContentService(Service):
                 )
             else:
                 # create content
-                item = create_item_from_template(item, FIELDS_TO_OVERRIDE)
+                item = create_item_from_template(item, FIELDS_TO_OVERRIDE, translations)
 
                 # create delivery references
                 get_resource_service("delivery").post(

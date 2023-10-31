@@ -10,6 +10,7 @@ import {get, isEmpty, isNumber} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
 import {GET_LABEL_MAP, DEFAULT_SCHEMA} from 'superdesk-core/scripts/apps/workspace/content/constants';
+import {planningApi} from '../superdeskApi';
 
 const DEFAULT_PLANNING_SCHEMA = {
     anpa_category: {required: true},
@@ -111,7 +112,7 @@ export class AddToPlanningController {
 
                 return Promise.all([
                     this.store.dispatch(actions.main.filter(MAIN.FILTERS.PLANNING)),
-                    this.store.dispatch(locks.loadAllLocks()),
+                    planningApi.locks.loadLockedItems(),
                     this.store.dispatch(actions.fetchAgendas()),
                 ]);
             });

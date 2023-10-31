@@ -19,8 +19,7 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../components';
-import {CoverageIcon} from './CoverageIcon';
-import {UserAvatar} from '../UserAvatar';
+import {CoverageIcons} from './CoverageIcons';
 
 interface IProps {
     coverage: IPlanningCoverageItem;
@@ -166,20 +165,12 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
 
         return (
             <Column border={false}>
-                {this.state.userAssigned ? (
-                    <UserAvatar
-                        user={this.state.userAssigned}
-                        small={false}
-                        showInactive
-                    />
-                ) : (
-                    <UserAvatar
-                        empty={true}
-                        noMargin={true}
-                        initials={false}
-                        small={false}
-                    />
-                )}
+                <CoverageIcons
+                    coverages={[this.props.coverage]}
+                    users={this.props.users}
+                    desks={this.props.desks}
+                    contentTypes={this.props.contentTypes}
+                />
             </Column>
         );
     }
@@ -187,12 +178,6 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
     renderFirstRow() {
         return (
             <Row paddingBottom>
-                <CoverageIcon
-                    coverage={this.props.coverage}
-                    users={this.props.users}
-                    desks={this.props.desks}
-                    contentTypes={this.props.contentTypes}
-                />
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                     {this.state.displayContentType}
                 </span>

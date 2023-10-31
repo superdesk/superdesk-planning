@@ -6,6 +6,7 @@ import * as actions from '../actions';
 import {WORKSPACE} from '../constants';
 import {PlanningApp} from '../apps';
 import eventsApi from '../actions/events/api';
+import {planningApi} from '../superdeskApi';
 
 
 export class PlanningController {
@@ -81,7 +82,7 @@ export class PlanningController {
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         return Promise.all([
-            this.store.dispatch(actions.locks.loadAllLocks()),
+            planningApi.locks.loadLockedItems(),
             this.store.dispatch(actions.fetchAgendas()),
             this.store.dispatch(actions.users.fetchAndRegisterUserPreferences()),
             this.store.dispatch(actions.events.api.fetchCalendars()),

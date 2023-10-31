@@ -168,7 +168,7 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                     previewGroupToProfile(PREVIEW_PANEL.ASSOCIATED_EVENT, this.props.formProfile),
                     {
                         item: event,
-                        language: getUserInterfaceLanguageFromCV(),
+                        language: event.language ?? getUserInterfaceLanguageFromCV(),
                         renderEmpty: true,
                         schema: this.props.formProfile?.schema,
                         profile: this.props.formProfile,
@@ -242,6 +242,7 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                 onOpen={onOpen}
                 onClick={onClick}
                 forceScroll={forceScroll}
+                scrollIntoViewOptions={{behavior: 'smooth'}}
             />
         );
     }

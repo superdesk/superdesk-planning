@@ -3,12 +3,15 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 
+import {IAssignmentItem} from '../../../interfaces';
+
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 
 import {ASSIGNMENTS} from '../../../constants';
 import {gettext, getItemInArrayById, assignmentUtils} from '../../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {onItemActionModalHide} from './utils';
 
 import {AssignmentEditor} from '../../Assignments';
 
@@ -179,11 +182,11 @@ const mapDispatchToProps = (dispatch) => ({
             payload: {assignment: updatedAssignment},
         })),
 
-    onHide: (assignment) => {
-        if (assignment.lock_action === 'reassign') {
-            dispatch(actions.assignments.api.unlock(assignment));
-        }
-    },
+    onHide: (original: IAssignmentItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.lock_action,
+        modalProps,
+    ),
 });
 
 export const UpdateAssignmentForm = connect(

@@ -111,7 +111,8 @@ Feature: Planning Search
                         }
                     }
                 ],
-                "urgency": 2
+                "urgency": 2,
+                "priority": 2
             },
             {
                 "guid": "planning_3",
@@ -136,6 +137,7 @@ Feature: Planning Search
                     }
                 ],
                 "urgency": 2,
+                "priority": 7,
                 "featured": false
             },
             {
@@ -301,6 +303,16 @@ Feature: Planning Search
             {"_id": "planning_6"}
         ]}
         """
+        When we get "/events_planning_search?repo=planning&only_future=false&priority=2,7"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "planning_2"},
+            {"_id": "planning_3"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=planning&only_future=false&priority=1"
+        Then we get list with 0 items
 
     @auth
     Scenario: Search by planning specific parameters

@@ -505,7 +505,7 @@ export const shouldUnLockItem = (
     ignoreSession = false
 ) =>
     isExistingItem(item) &&
-        ((currentWorkspace === WORKSPACE.AUTHORING && planningUtils.isLockedForAddToPlanning(item)) ||
+        ((currentWorkspace === WORKSPACE.AUTHORING && lockUtils.isLockedForAddToPlanning(item, lockedItems)) ||
         (currentWorkspace !== WORKSPACE.AUTHORING &&
             lockUtils.isItemLockedInThisSession(item, session, lockedItems, ignoreSession))
         );
@@ -897,6 +897,7 @@ export const isItemDifferent = (currentProps, nextProps) => {
         get(original, 'multiSelected') !== get(updates, 'multiSelected') ||
         get(original, 'active') !== get(updates, 'active') ||
         get(original, 'item.event') !== get(updates, 'item.event') ||
+        get(original, 'item.state') !== get(updates, 'item.state') ||
         lockUtils.isItemLocked(original.item, original.lockedItems) !==
         lockUtils.isItemLocked(updates.item, updates.lockedItems);
 };
@@ -945,6 +946,7 @@ export const sortBasedOnTBC = (days) => {
     }
 
     pushEventsForTheDay(days);
+
     return sortBy(sortable, [(e) => (e.date)]);
 };
 

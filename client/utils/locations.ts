@@ -98,11 +98,11 @@ export function convertNominatimToLocation(item: INominatimItem): Partial<ILocat
         },
     };
 
-    location.name = item.namedetails.name ??
+    location.name = item.namedetails?.name ??
         location.address.line[0];
 
     location.translations = {
-        name: item.namedetails,
+        name: item.namedetails ?? {},
     };
 
     if (item.address[item.class]) {

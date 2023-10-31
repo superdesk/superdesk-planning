@@ -1,7 +1,8 @@
 import sinon from 'sinon';
-import eventUtils from '../events';
 import moment from 'moment';
 import {cloneDeep, get} from 'lodash';
+
+import {eventUtils, lockUtils} from '../';
 import lockReducer from '../../reducers/locks';
 import {EVENTS, WORKFLOW_STATE, POST_STATE} from '../../constants';
 import {expectActions, restoreSinonStub} from '../testUtils';
@@ -146,19 +147,38 @@ describe('EventUtils', () => {
         lockedItems = lockReducer({}, {
             type: 'RECEIVE_LOCKS',
             payload: {
-                events: [
-                    locks.events.standalone.currentUser.currentSession,
-                    locks.events.standalone.currentUser.otherSession,
-                    locks.events.standalone.otherUser,
-                    locks.events.recurring.currentUser.currentSession,
-                    locks.events.recurring.currentUser.otherSession,
-                    locks.events.recurring.otherUser,
-                ],
-                plans: [
-                    locks.plans.standalone,
-                    locks.plans.recurring.direct,
-                    locks.plans.recurring.indirect,
-                ],
+                event: {
+                    [locks.events.standalone.currentUser.currentSession._id]: lockUtils.getLockFromItem(
+                        locks.events.standalone.currentUser.currentSession
+                    ),
+                    [locks.events.standalone.currentUser.otherSession._id]: lockUtils.getLockFromItem(
+                        locks.events.standalone.currentUser.otherSession
+                    ),
+                    [locks.events.standalone.otherUser._id]: lockUtils.getLockFromItem(
+                        locks.events.standalone.otherUser
+                    ),
+                    [locks.plans.standalone.event_item]: lockUtils.getLockFromItem(locks.plans.standalone),
+                },
+                recurring: {
+                    [locks.events.recurring.currentUser.currentSession.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.events.recurring.currentUser.currentSession
+                    ),
+                    [locks.events.recurring.currentUser.otherSession.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.events.recurring.currentUser.otherSession
+                    ),
+                    [locks.events.recurring.otherUser.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.events.recurring.otherUser
+                    ),
+
+                    [locks.plans.recurring.direct.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.plans.recurring.direct
+                    ),
+                    [locks.plans.recurring.indirect.recurrence_id]: lockUtils.getLockFromItem(
+                        locks.plans.recurring.indirect
+                    ),
+                },
+                planning: {},
+                assignment: {},
             },
         });
     });
@@ -227,10 +247,10 @@ describe('EventUtils', () => {
     });
 
     const isEventLocked = (event, result) => (
-        expect(eventUtils.isEventLocked(event, lockedItems)).toBe(result)
+        expect(lockUtils.isItemLocked(event, lockedItems)).toBe(result)
     );
     const isEventLockRestricted = (event, result) => (
-        expect(eventUtils.isEventLockRestricted(event, session, lockedItems)).toBe(result)
+        expect(lockUtils.isLockRestricted(event, session, lockedItems)).toBe(result)
     );
 
     it('isEventLocked', () => {

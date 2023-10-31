@@ -137,6 +137,7 @@ filters_schema = {
             "item_ids": list_strings(),
             "name": string(),
             "tz_offset": string(),
+            "time_zone": string(),
             "full_text": string(),
             "anpa_category": list_cvs(),
             "subject": list_cvs(),
@@ -184,6 +185,7 @@ filters_schema = {
             "featured": boolean(),
             "include_scheduled_updates": boolean(),
             "event_item": list_rel("events", id_type="string"),
+            "coverage_assignment_status": string(),
         },
     },
     "schedules": {

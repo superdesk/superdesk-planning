@@ -22,7 +22,7 @@
   "dependencies": {
     "dompurify": "^1.0.11",
     "moment": "^2.29.4",
-    "moment-timezone": "^0.5.41",
+    "moment-timezone": "^0.5.43",
     "nominatim-browser": "~2.0.2",
     "react-bootstrap": "0.32.1",
     "react-debounce-input": "3.2.0",
@@ -34,27 +34,26 @@
     "redux-logger": "~3.0.6",
     "reselect": "~3.0.1",
     "rrule": "~2.2.9",
-    "superdesk-ui-framework": "3.0.50",
     "ts-loader": "3.5.0",
     "typescript": "~4.9.5",
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
-    "@types/jasmine": "^3.5.11",
+    "@types/jasmine": "^3.10.7",
     "@types/lodash": "4.14.117",
     "@types/react": "16.8.23",
     "@types/react-dom": "16.8.0",
     "@types/redux-logger": "^3.0.8",
     "@types/sinon": "^9.0.4",
-    "@typescript-eslint/parser": "2.6.1",
+    "@typescript-eslint/parser": "5.57.0",
     "btoa": "^1.1.2",
     "cheerio": "1.0.0-rc.10",
     "enzyme": "~3.11.0",
-    "enzyme-adapter-react-16": "^1.15.5",
+    "enzyme-adapter-react-16": "^1.15.7",
     "eslint": "6.6.0",
     "eslint-plugin-react": "7.16.0",
     "jasmine": "^2.99.0",
-    "jasmine-reporters": "^2.3.0",
+    "jasmine-reporters": "^2.5.2",
     "karma": "^2.0.0",
     "karma-chrome-launcher": "2.2.0",
     "karma-cli": "^1.0.1",
@@ -68,6 +67,7 @@
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
     "superdesk-core": "github:superdesk/superdesk-client-core#authoring-react-post-broadcasting",
+    "superdesk-ui-framework": "^3.0.59",
     "ts-node": "~7.0.1",
     "tslint": "5.11.0",
     "typescript-eslint-parser": "^18.0.0"
@@ -78,6 +78,6 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.41",
     "react": "^16.9.0",
-    "superdesk-ui-framework": "3.0.0-rc12"
+    "superdesk-ui-framework": "^3.0.59"
   }
 }

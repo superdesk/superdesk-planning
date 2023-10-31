@@ -29,6 +29,7 @@ class CoverageSchema(BaseSchema):
     xmp_file = schema.DictField()
     no_content_linking = BooleanField()
     scheduled_updates = schema.ListField()
+    priority = schema.IntegerField()
 
 
 DEFAULT_COVERAGE_PROFILE = {
@@ -73,6 +74,7 @@ DEFAULT_COVERAGE_PROFILE = {
         "headline": {"enabled": False},
         "keyword": {"enabled": False},
         "files": {"enabled": False},
+        "priority": {"enabled": False},
         # Requires `PLANNING_LINK_UPDATES_TO_COVERAGES` enabled in config
         "no_content_linking": {"enabled": False},
     },
