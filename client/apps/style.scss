@@ -195,3 +195,16 @@ a:hover {
 .sd-filters-panel--fixed {
     flex-shrink: 0;
 }
+
+.subnav.subnav-event-planning {
+    container-type: inline-size;
+    container-name: subnav;
+}
+
+@container subnav (max-width: 800px){
+    .hideOnMobile{
+        .icn-btn, .btn, .subnav-calendar{
+            display: none;
+        }
+    }
+}

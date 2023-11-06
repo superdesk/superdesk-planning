@@ -138,10 +138,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                 <EventEditorHeader item={this.props.item} />
                 <ContentBlock padSmall={true}>
                     <EventScheduleSummary
-                        schedule={{
-                            dates: this.props.diff?.dates ?? {},
-                            _time_to_be_confirmed: this.props.diff?._time_to_be_confirmed,
-                        }}
+                        event={this.props.item}
                         noPadding={true}
                     />
                 </ContentBlock>
@@ -216,6 +213,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                         addPlanningItem: editor.item.events.addPlanningItem,
                         removePlanningItem: editor.item.events.removePlanningItem,
                         updatePlanningItem: editor.item.events.updatePlanningItem,
+                        addCoverageToWorkflow: editor.item.events.addCoverageToWorkflow,
                     },
                 }}
             />

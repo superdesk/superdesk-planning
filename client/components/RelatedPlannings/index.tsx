@@ -23,6 +23,7 @@ export const RelatedPlanningsComponent = ({
     desks,
     allowEditPlanning,
     contentTypes,
+    currentCoverageId,
 }) => (
     (
         <div>
@@ -39,7 +40,8 @@ export const RelatedPlanningsComponent = ({
                         users={users}
                         desks={desks}
                         contentTypes={contentTypes}
-                        tabEnabled
+                        tabEnabled={true}
+                        currentCoverageId={currentCoverageId}
                     />
                 ))
                 :
@@ -128,6 +130,7 @@ RelatedPlanningsComponent.propTypes = {
     onEditPlanning: PropTypes.func,
     allowEditPlanning: PropTypes.bool,
     contentTypes: PropTypes.array,
+    currentCoverageId: PropTypes.string,
 };
 
 RelatedPlanningsComponent.defaultProps = {short: false};

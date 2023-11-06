@@ -58,6 +58,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD_SCHEMA,
     update_assignment_on_link_unlink,
     get_notify_self_on_assignment,
+    planning_auto_assign_to_workflow,
 )
 from icalendar import Calendar, Event
 from flask import request, json, current_app as app
@@ -182,8 +183,9 @@ class AssignmentsService(superdesk.Service):
                 updates["assigned_to"] = {}
 
         assigned_to = updates.get("assigned_to") or {}
-        if (assigned_to.get("user") or assigned_to.get("contact")) and not assigned_to.get("desk"):
-            raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
+        if (assigned_to.get("user") or assigned_to.get("contact")) and planning_auto_assign_to_workflow(app):
+            if not assigned_to.get("desk"):
+                raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
         # set the assignment information
         user = get_user()
@@ -254,6 +256,7 @@ class AssignmentsService(superdesk.Service):
         assigned_to = doc.get("assigned_to") or {}
         kwargs = {
             "item": doc.get(config.ID_FIELD),
+            "etag": doc.get("_etag"),
             "coverage": doc.get("coverage_item"),
             "planning": doc.get("planning_item"),
             "assigned_user": assigned_to.get("user"),

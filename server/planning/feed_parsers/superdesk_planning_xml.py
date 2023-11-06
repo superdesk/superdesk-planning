@@ -21,6 +21,9 @@ from planning.common import (
     POST_STATE,
 )
 
+from planning.content_profiles.utils import get_planning_schema
+from .utils import upgrade_rich_text_fields
+
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
 
@@ -90,6 +93,10 @@ class PlanningMLParser(NewsMLTwoFeedParser):
             self.parse_content_meta(tree, item)
             self.parse_news_coverage_set(tree, item)
             self.parse_news_coverage_status(tree, item)
+
+            upgrade_rich_text_fields(item, "planning")
+            for coverage in item.get("coverages") or []:
+                upgrade_rich_text_fields(coverage.get("planning") or {}, "coverage")
 
             return [item]
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import {IEventOrPlanningItem, IProfileSchemaTypeString} from '../interfaces';
+import {IEventItem, IEventOrPlanningItem, IPlanningItem, IProfileSchemaTypeString} from '../interfaces';
 import {planningApi} from '../superdeskApi';
 
 function firstCharUpperCase(string?: string): string {
@@ -118,6 +118,49 @@ function convertStringFieldForProfileFieldType(
     }
 
     return value;
+}
+
+
+export function convertStringFields<Src extends IEventOrPlanningItem, Dest extends IEventOrPlanningItem>(
+    itemSrc: Partial<Src>,
+    _itemDest: Partial<Dest>,
+    srcItemType: IEventOrPlanningItem['type'] | 'coverage',
+    destItemType: IEventOrPlanningItem['type'] | 'coverage',
+    fieldsToCopy: Array<[keyof Src, keyof Dest]>, // array of tuples [srcField, destField]
+): Partial<Dest> {
+    const itemDest: Partial<Dest> = {..._itemDest};
+
+    for (const [srcField, destField] of fieldsToCopy) {
+        const valSrc = itemSrc[srcField] as string;
+        const valDest = convertStringFieldForProfileFieldType(
+            srcItemType,
+            destItemType,
+            srcField as string,
+            destField as string,
+            valSrc,
+        );
+
+        itemDest[destField as string] = valDest;
+    }
+
+    const fieldsToCopyMap = fieldsToCopy.reduce((acc, [srcField, destField]) => {
+        acc[srcField as string] = destField;
+
+        return acc;
+    }, {});
+
+    const translationsDest: IPlanningItem['translations'] = (itemSrc.translations ?? [])
+        .filter((itemSrc) => fieldsToCopyMap[itemSrc.field] != null)
+        .map((translationSrc: IPlanningItem['translations']['0']) => ({
+            ...translationSrc,
+            field: fieldsToCopyMap[translationSrc.field],
+        }));
+
+    if (translationsDest.length > 0) {
+        itemDest.translations = (itemSrc.translations ?? []).concat(translationsDest);
+    }
+
+    return itemDest;
 }
 
 // eslint-disable-next-line consistent-this

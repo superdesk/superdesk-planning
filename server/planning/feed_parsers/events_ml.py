@@ -27,8 +27,7 @@ from superdesk.metadata.item import (
 )
 from superdesk.errors import ParserError
 from superdesk.utc import local_to_utc, utc_to_local
-from superdesk.text_utils import plain_text_to_html
-from planning.content_profiles.utils import get_planning_schema, is_field_enabled, is_field_editor_3
+from planning.content_profiles.utils import get_planning_schema, is_field_enabled
 from planning.common import POST_STATE
 
 from . import utils
@@ -95,7 +94,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
             self.parse_content_meta(tree, item)
             self.parse_concept(tree, item)
             self.parse_event_details(tree, item)
-
+            utils.upgrade_rich_text_fields(item, "event")
             return [item]
 
         except Exception as ex:
@@ -155,10 +154,6 @@ class EventsMLParser(NewsMLTwoFeedParser):
 
         try:
             definition = concept.find(self.qname("definition")).text or ""
-            # if is_field_editor_3("event", "definition_short"):
-            if is_field_editor_3("definition_short", get_planning_schema("event")):
-                definition = plain_text_to_html(definition)
-
             item["definition_short"] = definition
         except Exception:
             pass
@@ -238,10 +233,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
             tz=tz,
         )
 
-        if all_day:
-            item["dates"]["all_day"] = all_day
-        elif no_end_time:
-            item["dates"]["no_end_time"] = no_end_time
+        item["dates"]["all_day"] = all_day
+        item["dates"]["no_end_time"] = (not all_day and no_end_time) is True
 
     def parse_registration_details(self, event_details, item):
         event_type = get_planning_schema("event")
@@ -253,9 +246,6 @@ class EventsMLParser(NewsMLTwoFeedParser):
             registration = event_details.find(self.qname("registration"))
             if registration is not None and registration.text:
                 registration_details = registration.text
-                if is_field_editor_3("registration_details", event_type):
-                    registration_details = plain_text_to_html(registration_details)
-
                 item["registration_details"] = registration_details
         except Exception:
             pass

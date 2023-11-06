@@ -9,3 +9,4 @@ export {SpikeStateInput} from './spikeStateInput';
 export {LocationInput} from './locationInput';
 export {NewCheckboxInput} from './newCheckbox';
 export {TreeSelect} from './treeSelect';
+export {CoverageUserSelectInput} from './coverageUserSelectInput';

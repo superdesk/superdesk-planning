@@ -5,7 +5,7 @@ import {superdeskApi} from '../../superdeskApi';
 import {IDesk, IUser} from 'superdesk-api';
 import {
     FILTER_TYPE,
-    IAgenda, ICalendar, IContactItem,
+    IAgenda, ICalendar, ICommonAdvancedSearchParams, IContactItem,
     IEventItem,
     IEventOrPlanningItem, IG2ContentType,
     ILockedItems,
@@ -68,6 +68,7 @@ interface IProps {
     listViewType: LIST_VIEW_TYPE;
     sortField: SORT_FIELD;
     userInitiatedSearch?: boolean;
+    searchParams?: ICommonAdvancedSearchParams
 
     onItemClick(item: IEventOrPlanningItem): void;
     onDoubleClick(item: IEventOrPlanningItem): void;
@@ -318,6 +319,7 @@ export class ListPanel extends React.Component<IProps, IState> {
             contacts,
             listViewType,
             sortField,
+            searchParams
         } = this.props;
 
         let indexFrom = 0;
@@ -396,6 +398,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 listViewType: listViewType,
                                 sortField: sortField,
                                 listBoxGroupProps: listBoxGroupProps,
+                                searchParams: searchParams,
                                 ...propsForNestedListItems,
                             };
 

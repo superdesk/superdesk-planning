@@ -50,7 +50,7 @@ export class SubNavDatePicker extends React.Component<IProps, IState> {
 
     render() {
         return (
-            <span>
+            <span className="subnav-calendar">
                 <span
                     className="subnav-calendar__date-picker sd-text__normal cursor-pointer sd-margin-r--1"
                     onClick={this.togglePopup}

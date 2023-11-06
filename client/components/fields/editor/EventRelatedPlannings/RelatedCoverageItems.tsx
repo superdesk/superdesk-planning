@@ -36,6 +36,7 @@ interface IProps {
     removeCoverage(coverage: DeepPartial<IPlanningCoverageItem>): void;
     duplicateCoverage(coverage: DeepPartial<IPlanningCoverageItem>, duplicateAs?: IG2ContentType['qcode']): void;
     setCoverageDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem>): void;
+    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number): void;
 }
 
 const mapStateToProps = (state) => ({
@@ -85,6 +86,7 @@ class RelatedCoverageItemsComponent extends React.PureComponent<IProps> {
                         remove={() => this.props.removeCoverage(coverage)}
                         onDuplicateCoverage={this.props.duplicateCoverage}
                         setCoverageDefaultDesk={() => this.props.setCoverageDefaultDesk(coverage)}
+                        onAddCoverageToWorkflow={() => this.props.onAddCoverageToWorkflow(coverage, index)}
                         openCoverageIds={[]}
                         editorType={this.props.editorType}
                     />

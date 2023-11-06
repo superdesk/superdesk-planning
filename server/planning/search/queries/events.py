@@ -12,7 +12,6 @@ from typing import Any, Dict, List, Callable
 
 from planning.search.queries import elastic
 from .common import (
-    get_time_zone,
     get_date_params,
     COMMON_SEARCH_FILTERS,
     COMMON_PARAMS,
@@ -71,7 +70,7 @@ def search_no_calendar_assigned(params: Dict[str, Any], query: elastic.ElasticQu
 
 def search_date_today(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("date_filter") == elastic.DATE_RANGE.TODAY:
-        time_zone = get_time_zone(params)
+        time_zone = params.get("time_zone")
 
         query.filter.append(
             elastic.bool_or(
@@ -103,7 +102,7 @@ def search_date_today(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_tomorrow(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("date_filter") == elastic.DATE_RANGE.TOMORROW:
-        time_zone = get_time_zone(params)
+        time_zone = params.get("time_zone")
 
         query.filter.append(
             elastic.bool_or(
@@ -135,7 +134,7 @@ def search_date_tomorrow(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_last_24_hours(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("date_filter") == elastic.DATE_RANGE.LAST_24:
-        time_zone = get_time_zone(params)
+        time_zone = params.get("time_zone")
 
         query.filter.append(
             elastic.bool_or(
@@ -163,7 +162,7 @@ def search_date_last_24_hours(params: Dict[str, Any], query: elastic.ElasticQuer
 
 def search_date_this_week(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("date_filter") == elastic.DATE_RANGE.THIS_WEEK:
-        time_zone = get_time_zone(params)
+        time_zone = params.get("time_zone")
         start_of_week = int(params.get("start_of_week") or 0)
 
         query.filter.append(
@@ -208,7 +207,7 @@ def search_date_this_week(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_next_week(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get("date_filter") == elastic.DATE_RANGE.NEXT_WEEK:
-        time_zone = get_time_zone(params)
+        time_zone = params.get("time_zone")
         start_of_week = int(params.get("start_of_week") or 0)
 
         query.filter.append(
@@ -252,17 +251,17 @@ def search_date_next_week(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date_start(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
 
     if not date_filter and start_date and not end_date:
         query.filter.append(
             elastic.bool_or(
                 [
                     elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.start", gte=start_date, time_zone=tz_offset)
+                        elastic.ElasticRangeParams(field="dates.start", gte=start_date, time_zone=time_zone)
                     ),
                     elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.end", gte=start_date, time_zone=tz_offset)
+                        elastic.ElasticRangeParams(field="dates.end", gte=start_date, time_zone=time_zone)
                     ),
                 ]
             )
@@ -270,17 +269,17 @@ def search_date_start(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date_end(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
 
     if not date_filter and not start_date and end_date:
         query.filter.append(
             elastic.bool_or(
                 [
                     elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.start", lte=end_date, time_zone=tz_offset)
+                        elastic.ElasticRangeParams(field="dates.start", lte=end_date, time_zone=time_zone)
                     ),
                     elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=tz_offset)
+                        elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
                     ),
                 ]
             )
@@ -288,7 +287,7 @@ def search_date_end(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
 
     if not date_filter and start_date and end_date:
         query.filter.append(
@@ -300,11 +299,11 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
                                 elastic.ElasticRangeParams(
                                     field="dates.start",
                                     gte=start_date,
-                                    time_zone=tz_offset,
+                                    time_zone=time_zone,
                                 )
                             ),
                             elastic.date_range(
-                                elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=tz_offset)
+                                elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
                             ),
                         ]
                     ),
@@ -314,11 +313,11 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
                                 elastic.ElasticRangeParams(
                                     field="dates.start",
                                     lt=start_date,
-                                    time_zone=tz_offset,
+                                    time_zone=time_zone,
                                 )
                             ),
                             elastic.date_range(
-                                elastic.ElasticRangeParams(field="dates.end", gt=end_date, time_zone=tz_offset)
+                                elastic.ElasticRangeParams(field="dates.end", gt=end_date, time_zone=time_zone)
                             ),
                         ]
                     ),
@@ -329,7 +328,7 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
                                     field="dates.start",
                                     gte=start_date,
                                     lte=end_date,
-                                    time_zone=tz_offset,
+                                    time_zone=time_zone,
                                 )
                             ),
                             elastic.date_range(
@@ -337,7 +336,7 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
                                     field="dates.end",
                                     gte=start_date,
                                     lte=end_date,
-                                    time_zone=tz_offset,
+                                    time_zone=time_zone,
                                 )
                             ),
                         ]
@@ -348,12 +347,12 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
     only_future = strtobool(params.get("only_future", True))
 
     if not date_filter and not start_date and not end_date and only_future:
         query.filter.append(
-            elastic.date_range(elastic.ElasticRangeParams(field="dates.end", gte="now/d", time_zone=tz_offset))
+            elastic.date_range(elastic.ElasticRangeParams(field="dates.end", gte="now/d", time_zone=time_zone))
         )
 
 

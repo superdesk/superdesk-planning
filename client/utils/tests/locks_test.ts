@@ -1,8 +1,6 @@
 import {cloneDeep} from 'lodash';
-import sinon from 'sinon';
 
-import {restoreSinonStub} from '../testUtils';
-import {eventUtils, planningUtils, lockUtils} from '../index';
+import {lockUtils} from '../index';
 import * as testData from '../testData';
 
 describe('utils.locks', () => {
@@ -94,12 +92,16 @@ describe('utils.locks', () => {
 
     it('isItemLockedInThisSession', () => {
         const expectItemLock = (result, lockedItem, currentSession) => (
-            expect(lockUtils.isItemLockedInThisSession(lockedItem, currentSession)).toBe(result)
+            expect(lockUtils.isItemLockedInThisSession(lockedItem, currentSession, lockedItems)).toBe(result)
         );
 
         let item = {
+            _id: 'e1',
+            type: 'event',
             lock_user: 'ident1',
             lock_session: 'session1',
+            lock_action: 'edit',
+            lock_time: '2099-10-15T14:30+0000',
         };
 
         let session = {
@@ -107,53 +109,35 @@ describe('utils.locks', () => {
             sessionId: 'session1',
         };
 
+        lockedItems.event.e1 = {
+            item_id: 'e1',
+            item_type: 'event',
+            user: 'ident1',
+            session: 'session1',
+            action: 'edit',
+            time: '2099-10-15T14:30+0000',
+        };
+
         // Test item locked in this session
         expectItemLock(true, item, session);
 
         // Test item not locked in this session
+        lockedItems.event.e1.session = 'session2';
         expectItemLock(false, {...item, lock_session: 'session2'}, session);
+        lockedItems.event.e1.user = 'ident2';
+        lockedItems.event.e1.session = 'session1';
         expectItemLock(false, {...item, lock_user: 'ident2'}, session);
+        lockedItems.event.e1.user = 'ident1';
         expectItemLock(false, item, {...session, identity: {_id: 'ident2'}});
         expectItemLock(false, item, {...session, sessionId: 'session2'});
 
         // Test values not defined
+        delete lockedItems.event.e1;
         expectItemLock(false, {...item, lock_user: null}, session);
         expectItemLock(false, {...item, lock_session: null}, session);
         expectItemLock(false, item, {...session, identity: {_id: null}});
         expectItemLock(false, item, {...session, sessionId: null});
         expectItemLock(false, {}, session);
         expectItemLock(false, item, {});
-    });
-
-    describe('isLockRestricted', () => {
-        beforeEach(() => {
-            sinon.stub(eventUtils, 'isEventLockRestricted').returns(true);
-            sinon.stub(planningUtils, 'isPlanningLockRestricted').returns(true);
-        });
-
-        afterEach(() => {
-            restoreSinonStub(eventUtils.isEventLockRestricted);
-            restoreSinonStub(planningUtils.isPlanningLockRestricted);
-        });
-
-        it('tests event and planning lock restriction', () => {
-            expect(lockUtils.isLockRestricted({type: 'event'}, testData.sessions[0], testData.locks)).toBe(true);
-            expect(eventUtils.isEventLockRestricted.callCount).toBe(1);
-            expect(eventUtils.isEventLockRestricted.args[0]).toEqual([
-                {type: 'event'},
-                testData.sessions[0],
-                testData.locks,
-            ]);
-
-            expect(lockUtils.isLockRestricted({type: 'planning'}, testData.sessions[0], testData.locks)).toBe(true);
-            expect(planningUtils.isPlanningLockRestricted.callCount).toBe(1);
-            expect(planningUtils.isPlanningLockRestricted.args[0]).toEqual([
-                {type: 'planning'},
-                testData.sessions[0],
-                testData.locks,
-            ]);
-
-            expect(lockUtils.isLockRestricted({}, testData.sessions[0], testData.locks)).toBe(false);
-        });
     });
 });

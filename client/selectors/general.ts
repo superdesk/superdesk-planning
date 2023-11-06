@@ -35,6 +35,8 @@ export const previousModalType = (state) => get(state, 'modal.previousState.moda
 export const previousModalProps = (state) => get(state, 'modal.previousState.modalProps') || {};
 export const modalActionInProgress = (state) => !!get(state, 'modal.actionInProgress', false);
 
+export const getActionModalItemId = (state) => get(state, 'modal.modalProps.original._id');
+
 export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const enabledAgendas = createSelector(
     [agendas],

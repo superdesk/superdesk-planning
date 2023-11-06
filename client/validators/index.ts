@@ -5,7 +5,7 @@ import {gettext} from '../utils';
 
 import {default as eventValidators} from './events';
 import {default as planningValidators} from './planning';
-import {formProfile} from './profile';
+import {formProfile, formProfileCustomVocabularies} from './profile';
 import {validateAssignment} from './assignments';
 
 export {eventValidators, formProfile, validateAssignment};
@@ -77,9 +77,22 @@ export const validateItem = ({
 
                     switch (true) {
                     case schema.required:
-                        if (isEmpty(diff[key]) && isEmpty(getSubject(diff, key))
-                            && fieldsToValidate == null
-                            || (Array.isArray(fieldsToValidate) && fieldsToValidate.includes(key))) {
+                        if (
+                            ((
+                                schema.type !== 'integer' &&
+                                isEmpty(diff[key])
+                            ) ||
+                            (
+                                schema.type === 'integer' &&
+                                diff[key] == null
+                            )) &&
+                            isEmpty(getSubject(diff, key)) &&
+                            fieldsToValidate == null ||
+                            (
+                                Array.isArray(fieldsToValidate) &&
+                                fieldsToValidate.includes(key)
+                            )
+                        ) {
                             errors[key] = gettext('This field is required');
                             messages.push(gettext('{{ key }} is a required field', {key: key.toUpperCase()}));
                         } else if (errors[key]) {
@@ -126,6 +139,15 @@ export const validators = {
         dates: [eventValidators.validateDates],
         ednote: [formProfile],
         subject: [formProfile],
+        invitation_details: [formProfile],
+        registration_details: [formProfile],
+        accreditation_infotype: [formProfile],
+        accreditation_deadline: [formProfile],
+        recurring_rules: [eventValidators.validateRecurringRules],
+        place: [formProfile],
+        reference: [formProfile],
+        custom_vocabularies: [formProfileCustomVocabularies],
+        related_plannings: [formProfile],
     },
     planning: {
         planning_date: [formProfile, planningValidators.validatePlanningScheduleDate],
@@ -139,6 +161,9 @@ export const validators = {
         subject: [formProfile],
         urgency: [formProfile],
         coverages: [planningValidators.validateCoverages],
+        custom_vocabularies: [formProfileCustomVocabularies],
+        place: [formProfile],
+        name: [formProfile],
     },
     coverage: {
         ednote: [formProfile],

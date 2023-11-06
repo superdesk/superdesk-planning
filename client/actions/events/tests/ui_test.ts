@@ -2,10 +2,11 @@ import {omit} from 'lodash';
 import sinon from 'sinon';
 import moment from 'moment';
 
+import {planningApi} from '../../../superdeskApi';
 import {LIST_VIEW_TYPE} from '../../../interfaces';
 import eventsApi from '../api';
 import eventsUi from '../ui';
-import planningApi from '../../planning/api';
+import planningApis from '../../planning/api';
 import {main} from '../../';
 import {MAIN, EVENTS, ITEM_TYPE} from '../../../constants';
 
@@ -43,19 +44,19 @@ describe('actions.events.ui', () => {
 
         sinon.stub(eventsUi, 'refetch').callsFake(() => (Promise.resolve()));
 
-        sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
+        sinon.stub(planningApis, 'loadPlanningByEventId').callsFake(
             () => (Promise.resolve(data.plannings))
         );
 
-        sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve([])));
+        sinon.stub(planningApis, 'fetch').callsFake(() => (Promise.resolve([])));
 
         sinon.stub(eventsUi, 'setEventsList').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsApi, 'loadEventDataForAction').callsFake(
             (event) => (Promise.resolve(event))
         );
 
-        sinon.stub(eventsApi, 'lock').callsFake((item) => (Promise.resolve(item)));
-        sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)));
+        sinon.stub(planningApi.locks, 'lockItem').callsFake((item) => Promise.resolve(item));
+        sinon.stub(planningApi.locks, 'unlockItem').callsFake((item) => Promise.resolve(item));
 
         sinon.stub(eventsApi, 'rescheduleEvent').callsFake(() => (Promise.resolve()));
 
@@ -72,11 +73,11 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsUi.refetch);
         restoreSinonStub(eventsUi.setEventsList);
         restoreSinonStub(eventsApi.loadEventDataForAction);
-        restoreSinonStub(eventsApi.lock);
-        restoreSinonStub(eventsApi.unlock);
+        restoreSinonStub(planningApi.locks.lockItem);
+        restoreSinonStub(planningApi.locks.unlockItem);
         restoreSinonStub(eventsApi.rescheduleEvent);
-        restoreSinonStub(planningApi.loadPlanningByEventId);
-        restoreSinonStub(planningApi.fetch);
+        restoreSinonStub(planningApis.loadPlanningByEventId);
+        restoreSinonStub(planningApis.fetch);
         restoreSinonStub(eventsUi._openActionModalFromEditor);
     });
 
@@ -88,7 +89,7 @@ describe('actions.events.ui', () => {
                     data.events[1],
                     {},
                     'onSpikeEvent',
-                    null,
+                    'spike',
                     true,
                     false,
                     false,
@@ -187,8 +188,8 @@ describe('actions.events.ui', () => {
                 true,
                 false
             )).then(() => {
-                expect(eventsApi.lock.callCount).toBe(1);
-                expect(eventsApi.lock.args[0]).toEqual([data.events[1], 'cancel']);
+                expect(planningApi.locks.lockItem.callCount).toBe(1);
+                expect(planningApi.locks.lockItem.args[0]).toEqual([data.events[1], 'cancel']);
 
                 expect(eventsApi.loadEventDataForAction.callCount).toBe(1);
                 expect(eventsApi.loadEventDataForAction.args[0]).toEqual([
@@ -198,8 +199,8 @@ describe('actions.events.ui', () => {
                     true,
                 ]);
 
-                expect(store.dispatch.callCount).toBe(2);
-                expect(store.dispatch.args[1]).toEqual([{
+                expect(store.dispatch.callCount).toBe(1);
+                expect(store.dispatch.args[0]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'ITEM_ACTIONS_MODAL',
                     modalProps: {
@@ -215,8 +216,8 @@ describe('actions.events.ui', () => {
         ).catch(done.fail));
 
         it('openActionModal displays error message if lock fails', (done) => {
-            restoreSinonStub(eventsApi.lock);
-            sinon.stub(eventsApi, 'lock').callsFake(() => (Promise.reject(errorMessage)));
+            restoreSinonStub(planningApi.locks.lockItem);
+            sinon.stub(planningApi.locks, 'lockItem').callsFake(() => Promise.reject(errorMessage));
             return store.test(done, eventsUi._openActionModal(
                 data.events[1],
                 'Cancel Event',
@@ -483,14 +484,12 @@ describe('actions.events.ui', () => {
 
     describe('rescheduleEvent', () => {
         beforeEach(() => {
-            // sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
             sinon.stub(main, 'openForEdit');
             sinon.stub(eventsApi, 'fetchById').callsFake(() => Promise.resolve(data.events[1]));
         });
 
         afterEach(() => {
             restoreSinonStub(eventsApi.rescheduleEvent);
-            // restoreSinonStub(main.lockAndEdit);
             restoreSinonStub(main.openForEdit);
             restoreSinonStub(eventsApi.fetchById);
         });
@@ -631,12 +630,10 @@ describe('actions.events.ui', () => {
 
     describe('createEventFromPlanning', () => {
         beforeEach(() => {
-            sinon.stub(planningApi, 'lock').callsFake((item) => Promise.resolve(item));
             sinon.stub(main, 'createNew').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.lock);
             restoreSinonStub(main.createNew);
         });
 
@@ -645,8 +642,8 @@ describe('actions.events.ui', () => {
 
             store.test(done, eventsUi.createEventFromPlanning(plan))
                 .then(() => {
-                    expect(planningApi.lock.callCount).toBe(1);
-                    expect(planningApi.lock.args[0]).toEqual([plan, 'add_as_event']);
+                    expect(planningApi.locks.lockItem.callCount).toBe(1);
+                    expect(planningApi.locks.lockItem.args[0]).toEqual([plan, 'add_as_event']);
 
                     expect(main.createNew.callCount).toBe(1);
                     const args = main.createNew.args[0];

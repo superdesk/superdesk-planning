@@ -1,5 +1,4 @@
 import React from 'react';
-import moment from 'moment';
 
 import {superdeskApi} from '../../superdeskApi';
 import {IEventItem} from '../../interfaces';
@@ -20,8 +19,8 @@ export class EventDateTime extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {item, ignoreAllDay, displayLocalTimezone} = this.props;
-        const start = moment(item.dates.start);
-        const end = moment(item.dates.end);
+        const start = eventUtils.getStartDate(item);
+        const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(start, end);
         const multiDay = !eventUtils.isEventSameDay(start, end);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);

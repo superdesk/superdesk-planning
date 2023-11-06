@@ -1,0 +1,16 @@
+.git
+.github
+.env
+.mypy_cache
+.pytest_cache
+.vscode
+*.egg-info
+__pycache__
+dist
+env
+node_modules
+client
+e2e/node_modules
+e2e/server/env
+e2e/dist
+server/env

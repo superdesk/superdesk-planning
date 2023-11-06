@@ -13,7 +13,7 @@
         "timezoneName": "(EDT) Eastern Daylight Savings Time",
         "timezoneOffset": -4.00
     },
-    "venue": "One King West Hotel & Residence, 1 King St W, Toronto",
+    "venue": "Karuizawa",
     "tbcVenue": false,
     "venueData": [
         {
@@ -46,8 +46,10 @@
     "plannedBy": [
         4708
     ],
-    "createdDate": "2021-05-04T21:19:10.2",
-    "lastEditDate": "2022-05-10T13:14:34.873",
+    "createdDate": "2021-05-04T22:19:10.2",
+    "createdDateUtc": "2021-05-04T20:19:10.2",
+    "lastEditDate": "2022-05-10T15:14:34.873",
+    "lastEditDateUtc": "2022-05-10T12:14:34.873",
     "deleted": false,
     "deletionDate": null,
     "website": "https://www.canadianinstitute.com/anti-money-laundering-financial-crime/",
@@ -58,7 +60,7 @@
     "linkedInPage": "",
     "regionId": 0,
     "countryId": 38,
-    "countryName": "Canada",
+    "countryName": "Japan",
     "indicator": null,
     "period": null,
     "pressContacts": [

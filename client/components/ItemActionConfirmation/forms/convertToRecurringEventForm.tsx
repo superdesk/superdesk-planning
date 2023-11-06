@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {get, isEqual, cloneDeep} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IEventItem} from '../../../interfaces';
 
 import * as actions from '../../../actions';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
@@ -13,6 +14,7 @@ import {Row} from '../../UI/Preview';
 import {Field} from '../../UI/Form';
 import {validateItem} from '../../../validators';
 import {updateFormValues, eventUtils, timeUtils, gettext} from '../../../utils';
+import {onItemActionModalHide} from './utils';
 
 import '../style.scss';
 
@@ -207,11 +209,11 @@ const mapDispatchToProps = (dispatch) => ({
         return dispatch(actions.main.save(original, newUpdates, false));
     },
 
-    onHide: (event) => {
-        if (event.lock_action === EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action) {
-            dispatch(actions.events.api.unlock(event));
-        }
-    },
+    onHide: (original: IEventItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action,
+        modalProps,
+    ),
 
     onValidate: (item, profile, errors, errorsMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,

@@ -8,7 +8,6 @@ export {fields};
 export {NotificationModal} from './NotificationModal';
 export {RelatedPlannings} from './RelatedPlannings';
 export {default as Datetime} from './Datetime/index';
-export {UserAvatar} from './UserAvatar/index';
 export {ItemActionsMenu} from './ItemActionsMenu/index';
 export {AbsoluteDate} from './AbsoluteDate';
 export {ItemActionConfirmationModal}

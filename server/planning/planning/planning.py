@@ -133,7 +133,10 @@ class PlanningService(superdesk.Service):
 
             # SDCP-638
             if not doc.get("language"):
-                doc["language"] = app.config["DEFAULT_LANGUAGE"]
+                try:
+                    doc["language"] = doc["languages"][0]
+                except (KeyError, IndexError):
+                    doc["language"] = app.config["DEFAULT_LANGUAGE"]
 
             self.validate_planning(doc)
             set_original_creator(doc)
@@ -1425,6 +1428,7 @@ coverage_schema = {
             "subject": metadata_schema["subject"],
             "internal_note": {"type": "string"},
             "workflow_status_reason": {"type": "string", "nullable": True},
+            "priority": metadata_schema["priority"],
         },  # end planning dict schema
     },  # end planning
     "news_coverage_status": {
@@ -1441,6 +1445,7 @@ coverage_schema = {
     "assigned_to": assigned_to_schema,
     "flags": {
         "type": "dict",
+        "allow_unknown": True,
         "schema": {"no_content_linking": {"type": "boolean", "default": False}},
     },
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
@@ -1531,7 +1536,7 @@ planning_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": string_with_analyzer,
+                "value": metadata_schema["slugline"]["mapping"],
             },
         },
     },
@@ -1566,16 +1571,7 @@ planning_schema = {
                 "planning": {
                     "type": "object",
                     "properties": {
-                        "slugline": {
-                            "type": "string",
-                            "fields": {
-                                "phrase": {
-                                    "type": "string",
-                                    "analyzer": "phrase_prefix_analyzer",
-                                    "search_analyzer": "phrase_prefix_analyzer",
-                                }
-                            },
-                        },
+                        "slugline": metadata_schema["slugline"]["mapping"],
                     },
                 },
                 "assigned_to": assigned_to_schema["mapping"],
@@ -1649,6 +1645,7 @@ planning_schema = {
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
     "_type": {"type": "string", "mapping": None},
     "extra": metadata_schema["extra"],
+    "versionposted": {"type": "datetime", "nullable": False},
 }  # end planning_schema
 
 

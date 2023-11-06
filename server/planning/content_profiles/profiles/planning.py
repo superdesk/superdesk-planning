@@ -28,12 +28,13 @@ class PlanningSchema(BaseSchema):
     headline = StringField()
     internal_note = TextField(field_type="multi_line", expandable=True)
     language = LanguageField()
-    name = StringField()
+    name = TextField(field_type="single_line")
     place = schema.ListField()
     planning_date = DateTimeField(required=True)
     slugline = StringField(required=True)
     subject = subjectField
     urgency = schema.IntegerField()
+    priority = schema.IntegerField()
     custom_vocabularies = schema.ListField()
     associated_event = schema.NoneField()
     coverages = schema.ListField()
@@ -140,6 +141,7 @@ DEFAULT_PLANNING_PROFILE = {
             "group": "coverages",
             "index": 1,
         },
+        "priority": {"enabled": False, "group": "details", "index": 8},
     },
     "schema": dict(PlanningSchema),  # type: ignore
     "groups": {

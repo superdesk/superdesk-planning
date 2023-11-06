@@ -203,13 +203,24 @@ class EventsPostService(EventsBaseService):
             logger.error("Failed to save planning version for event item id {}".format(event["_id"]))
 
     def post_related_plannings(self, plannings, new_post_state):
-        # Check to see if we are un-posting, we need to unpost it's planning item
-        if new_post_state != POST_STATE.CANCELLED:
-            return
-
         planning_post_service = get_resource_service("planning_post")
         planning_spike_service = get_resource_service("planning_spike")
+        event_profile_schema = get_resource_service("planning_types").find_one(req=None, name="event").get("schema", {})
         docs = []
+        if new_post_state != POST_STATE.CANCELLED:
+            if event_profile_schema.get("related_plannings", {}).get("planning_auto_publish"):
+                docs = [
+                    {
+                        "planning": planning[config.ID_FIELD],
+                        "etag": planning.get("etag"),
+                        "pubstatus": POST_STATE.USABLE,
+                    }
+                    for planning in plannings
+                    if not planning.get("versionposted")
+                ]
+            if len(docs) > 0:
+                planning_post_service.post(docs)
+            return
         for planning in plannings:
             if not planning.get("pubstatus") and planning.get("state") in [
                 WORKFLOW_STATE.INGESTED,

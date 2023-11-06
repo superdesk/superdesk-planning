@@ -7,7 +7,7 @@ import {KEYCODES} from '../../constants';
 import {gettext, scrollListItemIfNeeded, onEventCapture} from '../../utils';
 
 import {Popup, Content} from '../../Popup';
-import {UserAvatar} from '../../../';
+import {UserAvatarWithMargin} from '../../../../components/UserAvatar';
 
 import './style.scss';
 
@@ -118,7 +118,7 @@ export class SelectUserPopup extends React.Component {
                                         {'user-search__popup-item--active': index === this.state.activeIndex})}
                             >
                                 <button type="button" onClick={this.handleOnChange.bind(null, user)}>
-                                    <UserAvatar user={user} />
+                                    <UserAvatarWithMargin user={user} />
                                     <div className="user-search__popup-item-label">{user.display_name}</div>
                                 </button>
                             </li>
@@ -127,7 +127,7 @@ export class SelectUserPopup extends React.Component {
                         {users.length === 0 && (
                             <li className="user-search__popup-item">
                                 <button disabled>
-                                    <UserAvatar empty={true} initials={false} />
+                                    <UserAvatarWithMargin user={null} />
                                     <div className="user-search__popup-item-label">{gettext('No users found')}</div>
                                 </button>
                             </li>

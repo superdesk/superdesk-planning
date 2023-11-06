@@ -1,20 +1,22 @@
+import {cloneDeep} from 'lodash';
+
 import {
     FILTER_TYPE, IEventItem,
-    IFeaturedPlanningLock, IG2ContentType,
+    IG2ContentType,
     IPlanningAPI,
+    IPlanningCoverageItem,
     IPlanningItem,
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    LOCK_STATE,
 } from '../interfaces';
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToString} from './search';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
-import {planningUtils} from '../utils';
+import {planningUtils, getErrorMessage} from '../utils';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
-import {PLANNING, POST_STATE} from '../constants';
+import {PLANNING} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
 
@@ -32,6 +34,8 @@ function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams>
         g2_content_type: params.g2_content_type?.qcode,
         source: cvsToString(params.source, 'id'),
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status,
+        priority: arrayToString(params.priority),
     };
 }
 
@@ -128,35 +132,6 @@ export function getPlanningByIds(
         .then((response) => response._items);
 }
 
-export function getLockedPlanningItems(): Promise<Array<IPlanningItem>> {
-    return searchPlanningGetAll({
-        lock_state: LOCK_STATE.LOCKED,
-        directly_locked: true,
-        only_future: false,
-        include_killed: true,
-    });
-}
-
-export function getLockedFeaturedPlanning(): Promise<Array<IFeaturedPlanningLock>> {
-    return superdeskApi.dataApi.queryRawJson<IRestApiResponse<IFeaturedPlanningLock>>(
-        'planning_featured_lock',
-        {
-            source: JSON.stringify({
-                query: {
-                    constant_score: {
-                        filter: {
-                            exists: {
-                                field: 'lock_session',
-                            },
-                        },
-                    },
-                },
-            })
-        }
-    )
-        .then((response) => response._items);
-}
-
 function getPlanningEditorProfile() {
     return planningProfile(planningApi.redux.store.getState());
 }
@@ -220,13 +195,42 @@ function setDefaultValues(
     );
 }
 
+function addCoverageToWorkflow(
+    plan: IPlanningItem,
+    coverage: IPlanningCoverageItem,
+    index: number
+): Promise<IPlanningItem> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const {gettext} = superdeskApi.localization;
+    const {notify} = superdeskApi.ui;
+
+    const coverageStatuses = selectors.general.newsCoverageStatus(getState());
+    const updates = {coverages: cloneDeep(plan.coverages)};
+
+    updates.coverages[index] = planningUtils.getActiveCoverage(coverage, coverageStatuses);
+
+    return planning.update(plan, updates)
+        .then((updatedPlan) => {
+            notify.success(gettext('Coverage added to workflow.'));
+            dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
+
+            return updatedPlan;
+        })
+        .catch((error) => {
+            notify.error(getErrorMessage(
+                error,
+                gettext('Failed to add coverage to workflow')
+            ));
+
+            return Promise.reject(error);
+        });
+}
+
 export const planning: IPlanningAPI['planning'] = {
     search: searchPlanning,
     searchGetAll: searchPlanningGetAll,
     getById: getPlanningById,
     getByIds: getPlanningByIds,
-    getLocked: getLockedPlanningItems,
-    getLockedFeatured: getLockedFeaturedPlanning,
     getEditorProfile: getPlanningEditorProfile,
     getSearchProfile: getPlanningSearchProfile,
     featured: featured,
@@ -235,5 +239,6 @@ export const planning: IPlanningAPI['planning'] = {
     createFromEvent: createFromEvent,
     coverages: {
         setDefaultValues: setDefaultValues,
+        addCoverageToWorkflow: addCoverageToWorkflow,
     },
 };

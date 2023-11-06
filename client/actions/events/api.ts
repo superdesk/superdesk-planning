@@ -1,8 +1,8 @@
 import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
 
+import {planningApi} from '../../superdeskApi';
 import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
-import {planningApis} from '../../api';
 
 import {
     EVENTS,
@@ -13,7 +13,6 @@ import {
 import * as selectors from '../../selectors';
 import {
     eventUtils,
-    lockUtils,
     getErrorMessage,
     isExistingItem,
     isValidFileInput,
@@ -23,7 +22,7 @@ import {
     getTimeZoneOffset,
 } from '../../utils';
 
-import planningApi from '../planning/api';
+import planningApis from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
@@ -45,7 +44,7 @@ const loadEventsByRecurrenceId = (
     loadToStore: boolean = true
 ) => (
     (dispatch) => (
-        planningApis.events.search({
+        planningApi.events.search({
             recurrence_id: rid,
             spike_state: spikeState,
             page: page,
@@ -144,7 +143,7 @@ function query(
             }
         }
 
-        return planningApis.events.search(eventParamsToSearchParams({
+        return planningApi.events.search(eventParamsToSearchParams({
             ...params,
             itemIds: itemIds,
             filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
@@ -203,7 +202,7 @@ function loadEventDataForAction(
     _plannings: Array<IPlanningItem>;
     _relatedPlannings: Array<IPlanningItem>;
 }> {
-    return planningApis.combined.getRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents)
+    return planningApi.combined.getRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents)
         .then((items) => ({
             ...event,
             _recurring: items.events,
@@ -230,7 +229,7 @@ const loadAssociatedPlannings = (event) => (
             return Promise.resolve([]);
         }
 
-        return dispatch(planningApi.loadPlanningByEventId(event._id));
+        return dispatch(planningApis.loadPlanningByEventId(event._id));
     }
 );
 
@@ -268,68 +267,6 @@ const receiveEvents = (events, skipEvents: Array<any> = []) => ({
 });
 
 /**
- * Action to lock an Event
- * @param {Object} event - Event to be unlocked
- * @param {String} action - The lock action
- * @return Promise
- */
-const lock = (event, action = 'edit') => (
-    (dispatch, getState, {api, notify}) => {
-        if (action === null ||
-            lockUtils.isItemLockedInThisSession(
-                event,
-                selectors.general.session(getState()),
-                selectors.locks.getLockedItems(getState())
-            )
-        ) {
-            return Promise.resolve(event);
-        }
-
-        return api('events_lock', event).save({}, {lock_action: action})
-            .then(
-                (item) => {
-                    // On lock, file object in the event is lost, so, replace it from original event
-                    item.files = event.files;
-                    eventUtils.modifyForClient(item);
-
-                    dispatch({
-                        type: EVENTS.ACTIONS.LOCK_EVENT,
-                        payload: {event: item},
-                    });
-
-                    return Promise.resolve(item);
-                }, (error) => {
-                    const msg = get(error, 'data._message') || 'Could not lock the event.';
-
-                    notify.error(msg);
-                    if (error) throw error;
-                });
-    }
-);
-
-const unlock = (event) => (
-    (dispatch, getState, {api, notify}) => (
-        api('events_unlock', event).save({})
-            .then(
-                (item) => {
-                    dispatch({
-                        type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                        payload: {event: item},
-                    });
-
-                    return Promise.resolve(item);
-                },
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Could not unlock the event')
-                    );
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
  * Action Dispatcher to fetch events from the server,
  * and add them to the store without adding them to the events list
  * @param {Array, string} ids - Either an array of Event IDs or a single Event ID to fetch
@@ -343,7 +280,7 @@ function silentlyFetchEventsById(
     saveToStore: boolean = true
 ) {
     return (dispatch) => (
-        planningApis.events.getByIds(
+        planningApi.events.getByIds(
             ids.filter((v, i, a) => (a.indexOf(v) === i)),
             spikeState
         )
@@ -379,7 +316,7 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);
         } else {
-            promise = planningApis.events.getById(eventId)
+            promise = planningApi.events.getById(eventId)
                 .then((event) => {
                     if (saveToStore) {
                         dispatch(self.receiveEvents([event]));
@@ -516,14 +453,27 @@ const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems, 
     },
 });
 
-const markEventPostponed = (event, reason, actionedDate) => ({
-    type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
-    payload: {
-        event: event,
-        reason: reason,
-        actionedDate: actionedDate,
-    },
-});
+function markEventPostponed(event: IEventItem, reason: string, actionedDate: string) {
+    return (dispatch) => {
+        planningApi.locks.setItemAsUnlocked({
+            item: event._id,
+            type: event.type,
+            recurrence_id: event.recurrence_id,
+            etag: event._etag,
+            from_ingest: false,
+            user: event.lock_user,
+            lock_session: event.lock_session,
+        });
+        dispatch({
+            type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
+            payload: {
+                event: event,
+                reason: reason,
+                actionedDate: actionedDate,
+            },
+        });
+    };
+}
 
 const markEventHasPlannings = (event, planning) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
@@ -633,8 +583,8 @@ const save = (original, updates) => (
                 EVENTS.UPDATE_METHODS[0].value;
 
             return originalEvent?._id != null ?
-                planningApis.events.update(originalItem, eventUpdates) :
-                planningApis.events.create(eventUpdates);
+                planningApi.events.update(originalItem, eventUpdates) :
+                planningApi.events.create(eventUpdates);
         });
     }
 );
@@ -771,8 +721,6 @@ const self = {
     query,
     refetch,
     receiveEvents,
-    lock,
-    unlock,
     silentlyFetchEventsById,
     cancelEvent,
     markEventCancelled,
