@@ -13,7 +13,6 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
-import ng from 'superdesk-core/scripts/core/services/ng';
 import {extensionBridge} from './extension_bridge';
 const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
 
@@ -123,8 +122,8 @@ const extension: IExtension = {
                                 if (
                                     !item.assignment_id &&
                                     isContentLinkToCoverageAllowed(item) &&
-                                    !ng.get('archiveService').isPersonal(item) &&
-                                    ng.get('privileges').hasUserPrivileges({archive: 1}) &&
+                                    !superdesk.entities.article.isPersonal(item) &&
+                                    superdesk.privileges.hasPrivilege('archive') &&
                                     !superdesk.entities.article.isLockedInOtherSession(item) &&
                                     !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
                                 ) {
