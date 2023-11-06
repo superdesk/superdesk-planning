@@ -13,8 +13,6 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
-import ng from 'superdesk-core/scripts/core/services/ng';
-// import {superdeskApi} from '../../../client/superdeskApi';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -110,55 +108,56 @@ const extension: IExtension = {
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
 
-            const result: IExtensionActivationResult = {
-                contributions: {
-                    entities: {
-                        article: {
-                            getActions: (item) => [
-                                {
-                                    label: 'Unlink as Coverage',
-                                    groupId: 'planning-actions',
-                                    icon: 'cut',
-                                    onTrigger: () => {
-                                        const authoring = ng.get('authoring');
+        const result: IExtensionActivationResult = {
+            contributions: {
+                entities: {
+                    article: {
+                        getActions: (item) => [
+                            {
+                                label: 'Unlink as Coverage',
+                                groupId: 'planning-actions',
+                                icon: 'cut',
+                                onTrigger: () => {
+                                    const superdeskArticle = superdesk.entities.article;
 
-                                        if (
-                                            ng.get('privileges').userHasPrivileges({archive: 1}) &&
-                                            item.assignment_id != null &&
-                                            !ng.get('archiveService').isPersonal(item) &&
-                                            !superdesk.entities.article.isLockedInOtherSession(item) &&
-                                            (
-                                                authoring.itemActions(item).edit ||
-                                                authoring.itemActions(item).correct ||
-                                                authoring.itemActions(item).deschedule
-                                            )
-                                        ) {
-                                            const event = new CustomEvent("planning:unlinkfromcoverage", {detail: {item}});
-                                            window.dispatchEvent(event);
-                                        }
-                                    },
-                                }
-                            ],
-                            onSpike: (item: IArticle) => onSpike(superdesk, item),
-                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                        },
-                        ingest: {
-                            ruleHandlers: {
-                                planning_publish: {
-                                    editor: AutopostIngestRuleEditor,
-                                    preview: AutopostIngestRulePreview,
+                                    if (
+                                        superdesk.privileges.hasPrivilege('archive') &&
+                                        item.assignment_id != null &&
+                                        !superdeskArticle.isPersonal(item) &&
+                                        !superdeskArticle.isLockedInOtherSession(item) &&
+                                        (
+                                            superdeskArticle.itemActions(item).edit ||
+                                            superdeskArticle.itemActions(item).correct ||
+                                            superdeskArticle.itemActions(item).deschedule
+                                        )
+                                    ) {
+                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
+
+                                        window.dispatchEvent(event);
+                                    }
                                 },
+                            }
+                        ],
+                        onSpike: (item: IArticle) => onSpike(superdesk, item),
+                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                    },
+                    ingest: {
+                        ruleHandlers: {
+                            planning_publish: {
+                                editor: AutopostIngestRuleEditor,
+                                preview: AutopostIngestRulePreview,
                             },
                         },
                     },
-                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
                 },
-            };
+                globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+            },
+        };
 
-            return Promise.resolve(result);
+        return Promise.resolve(result);
     },
 };
 
