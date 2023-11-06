@@ -127,7 +127,8 @@ const extension: IExtension = {
                                     !superdesk.entities.article.isLockedInOtherSession(item) &&
                                     !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
                                 ) {
-                                    const event = new CustomEvent("planning:fulfilassignment", {detail: item});
+                                    const event = new CustomEvent('planning:fulfilassignment', {detail: item});
+
                                     window.dispatchEvent(event);
                                 }
                             },
