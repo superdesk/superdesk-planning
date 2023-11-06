@@ -7,7 +7,10 @@ import {
     IG2ContentType,
     IPlanningCoverageItem,
     IPlanningItem,
-    IPlanningNewsCoverageStatus
+    IPlanningNewsCoverageStatus,
+    IPlanningConfig,
+    IPlanningContentProfile,
+    ISearchProfile
 } from '../../../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
@@ -17,10 +20,14 @@ import {planningUtils, generateTempId} from '../../../../utils';
 import {ButtonGroup, Button, IconLabel} from 'superdesk-ui-framework/react';
 import {ICoverageDetails, CoverageRowForm} from './CoverageRowForm';
 import {Group} from '../../../UI/List';
+import * as config from 'appConfig';
+const appConfig = config.appConfig as IPlanningConfig;
 
 interface IProps {
     event: IEventItem;
     item: DeepPartial<IPlanningItem>;
+    profile: IPlanningContentProfile;
+    coverageProfile?: ISearchProfile;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     desks: Array<IDesk>;
@@ -100,7 +107,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                 Object.assign({}, coverage, updates) :
                 coverage;
 
-            if (updatedCoverage.enabled && updatedCoverage.desk == null) {
+            if (updatedCoverage.enabled && updatedCoverage.desk == null && appConfig.planning_auto_assign_to_workflow) {
                 errors[updatedCoverage.id] = {desk: gettext('Desk is required')};
             }
 
@@ -179,6 +186,14 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                     desk: coverage.desk?._id,
                 };
 
+                if (coverage.language != null) {
+                    if (newCoverage.planning == null) {
+                        newCoverage.planning = {};
+                    }
+
+                    newCoverage.planning.language = coverage.language;
+                }
+
                 if (coverage.status) {
                     newCoverage.news_coverage_status = coverage.status;
                 }
@@ -244,6 +259,9 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                                 remove={this.removeCoverage}
                                 desks={this.props.desks}
                                 users={this.props.users}
+                                event={this.props.event}
+                                profile={this.props.profile}
+                                coverageProfile={this.props.coverageProfile}
                             />
                         ))}
                     </Group>

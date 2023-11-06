@@ -1,18 +1,10 @@
 import moment from 'moment';
 
-import {IPlanningAPI, IFeaturedPlanningItem, IFeaturedPlanningLock} from '../interfaces';
-import {superdeskApi} from '../superdeskApi';
+import {IPlanningAPI, IFeaturedPlanningItem, IFeaturedPlanningSaveItem} from '../interfaces';
+import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {getIdForFeauturedPlanning} from '../utils';
-
-function lockFeaturedPlanning(): Promise<Partial<IFeaturedPlanningLock>> {
-    return superdeskApi.dataApi.create<Partial<IFeaturedPlanningLock>>('planning_featured_lock', {});
-}
-
-function unlockFeaturedPlanning(): Promise<undefined> {
-    return superdeskApi.dataApi.create('planning_featured_unlock', {})
-        .then(() => undefined);
-}
+import {featuredPlanningItem} from '../selectors/featuredPlanning';
 
 function fetchFeaturedPlanningItemById(id: string): Promise<IFeaturedPlanningItem> {
     return superdeskApi.dataApi.findOne<IFeaturedPlanningItem>('planning_featured', id);
@@ -24,9 +16,17 @@ function fetchFeaturedPlanningItemByDate(date: moment.Moment): Promise<IFeatured
     );
 }
 
+function saveFeaturedPlanning(updates: Partial<IFeaturedPlanningItem>): Promise<IFeaturedPlanningItem> {
+    const {getState} = planningApi.redux.store;
+    const original = featuredPlanningItem(getState());
+
+    return original == null ?
+        superdeskApi.dataApi.create<IFeaturedPlanningItem>('planning_featured', {...updates}) :
+        superdeskApi.dataApi.patch<IFeaturedPlanningItem>('planning_featured', original, {...updates});
+}
+
 export const featured: IPlanningAPI['planning']['featured'] = {
-    lock: lockFeaturedPlanning,
-    unlock: unlockFeaturedPlanning,
     getById: fetchFeaturedPlanningItemById,
     getByDate: fetchFeaturedPlanningItemByDate,
+    save: saveFeaturedPlanning,
 };

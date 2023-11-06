@@ -1,0 +1,20 @@
+.coverages-popup {
+    background-color: var(--color-dropdown-menu-Bg);
+    border-radius: var(--b-radius--medium);
+    padding: 1.5rem;
+    box-shadow: var(--sd-shadow__dropdown);
+    max-height: 100%;
+    overflow: auto;
+}
+
+.coverages-popup__text-light {
+    color: var(--color-text-light);
+    font-weight: 400;
+    line-height: 1.4rem;
+}
+
+.coverages-popup__text-bold {
+    color: var(--color-text);
+    font-weight: 500;
+    line-height: 1.4rem;
+}

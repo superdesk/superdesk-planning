@@ -6,6 +6,7 @@ import {get} from 'lodash';
 import {Button} from '../../';
 import {Row, LineInput} from '../';
 import './style.scss';
+import {superdeskApi} from '../../../../superdeskApi';
 
 interface IProps {
     field: string;
@@ -58,10 +59,22 @@ export class InputArray extends React.PureComponent<IProps> {
     }
 
     remove(index: number) {
-        this.props.onChange(
-            this.props.field,
-            (this.props.value ?? []).filter((value, i) => i !== index)
-        );
+        const {gettext} = superdeskApi.localization;
+        const {confirm, notify} = superdeskApi.ui;
+
+        confirm(
+            gettext('Remove Coverage')
+        ).then((response) => {
+            if (response) {
+                this.props.onChange(
+                    this.props.field,
+                    (this.props.value ?? []).filter((value, i) => i !== index)
+                );
+                notify.success(
+                    gettext('The coverage has been removed')
+                );
+            }
+        });
     }
 
     renderButton() {

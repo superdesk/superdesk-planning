@@ -90,6 +90,7 @@ events_schema = {
         },
     },
     "links": {"type": "list", "nullable": True},
+    "priority": metadata_schema["priority"],
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
     "dates": {
         "type": "dict",
@@ -102,7 +103,10 @@ events_schema = {
                 "type": "datetime",
                 "nullable": True,
             },
-            "tz": {"type": "string"},
+            "tz": {
+                "type": "string",
+                "nullable": True,
+            },
             "end_tz": {"type": "string"},
             "all_day": {"type": "boolean"},
             "no_end_time": {"type": "boolean"},
@@ -254,6 +258,7 @@ events_schema = {
         "nullable": True,
         "mapping": {
             "type": "object",
+            "dynamic": False,
             "properties": {
                 "qcode": not_analyzed,
                 "name": not_analyzed,
@@ -324,7 +329,7 @@ events_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": string_with_analyzer,
+                "value": metadata_schema["slugline"]["mapping"],
             },
         },
     },

@@ -45,3 +45,13 @@ def get_multilingual_fields(resource: str) -> Set[str]:
             )
         )
     )
+
+
+def get_editor3_fields(resource: str) -> Set[str]:
+    content_type = get_planning_schema(resource)
+    resource_schema = content_type.get("schema") or {}
+    return set(
+        field_name
+        for field_name, field_schema in resource_schema.items()
+        if (is_field_enabled(field_name, content_type) and ((field_schema or {})).get("field_type", "") == "editor_3")
+    )

@@ -1,12 +1,17 @@
 import {get} from 'lodash';
+
 import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
+import {planningApi} from '../../superdeskApi';
+
+import {gettext, lockUtils} from '../../utils';
+import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
+
 import planning from './index';
 import assignments from '../assignments/index';
-import {gettext, lockUtils} from '../../utils';
+
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, MODALS, WORKFLOW_STATE, WORKSPACE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 
@@ -95,6 +100,8 @@ const onPlanningUpdated = (_e, data) => (
 const onPlanningLocked = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
+            planningApi.locks.setItemAsLocked(data);
+
             const sessionId = selectors.general.session(getState()).sessionId;
 
             return dispatch(planning.api.getPlanning(data.item, false))
@@ -143,12 +150,12 @@ function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']
             let planningItem = selectors.planning.storedPlannings(state)[data.item];
             const isCurrentlyLocked = lockUtils.isItemLocked(planningItem, selectors.locks.getLockedItems(state));
 
+            dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
+
             if (!isCurrentlyLocked && planningItem?.lock_session == null) {
                 // No need to announce an unlock, as we have already done so
                 return Promise.resolve();
             }
-
-            dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 
             planningItem = {
                 event_item: get(data, 'event_item') || null,

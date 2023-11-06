@@ -3,10 +3,14 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {appConfig} from 'appConfig';
+import {IPlanningItem} from '../../../interfaces';
+import {PLANNING} from '../../../constants';
 
 import * as actions from '../../../actions';
 import '../style.scss';
 import {gettext, getDateTimeString} from '../../../utils';
+import {onItemActionModalHide} from './utils';
+
 import {Row} from '../../UI/Preview';
 
 export class UnspikePlanningComponent extends React.Component {
@@ -62,6 +66,11 @@ UnspikePlanningComponent.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (plan) => dispatch(actions.planning.ui.unspike(plan)),
+    onHide: (original: IPlanningItem, modalProps) => onItemActionModalHide(
+        original,
+        original.lock_action === PLANNING.ITEM_ACTIONS.UNSPIKE.lock_action,
+        modalProps,
+    ),
 });
 
 export const UnspikePlanningForm = connect(

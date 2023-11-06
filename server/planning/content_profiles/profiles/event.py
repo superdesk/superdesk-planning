@@ -31,7 +31,7 @@ class EventSchema(BaseSchema):
     language = LanguageField()
     links = schema.ListField()
     location = schema.StringField()
-    name = StringField(required=True)
+    name = TextField(required=True, field_type="single_line")
     occur_status = schema.DictField()
     occur_status.schema["schema"] = {
         "qcode": {"type": "string", "required": True},
@@ -46,10 +46,12 @@ class EventSchema(BaseSchema):
     custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
+    related_plannings.schema["planning_auto_publish"] = False
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
     accreditation_info = TextField(field_type="single_line")
     accreditation_deadline = DateTimeField()
+    priority = schema.IntegerField()
 
 
 DEFAULT_EVENT_PROFILE = {
@@ -108,6 +110,11 @@ DEFAULT_EVENT_PROFILE = {
             "enabled": True,
             "group": "description",
             "index": 8,
+        },
+        "priority": {
+            "enabled": False,
+            "group": "description",
+            "index": 9,
         },
         # Location Group
         "location": {

@@ -17,6 +17,7 @@ import itertools
 import copy
 import pytz
 import re
+from datetime import timedelta
 from eve.methods.common import resolve_document_etag
 from eve.utils import config, date_to_str
 from flask import current_app as app
@@ -184,7 +185,10 @@ class EventsService(superdesk.Service):
 
             # SDCP-638
             if not event.get("language"):
-                event["language"] = app.config["DEFAULT_LANGUAGE"]
+                try:
+                    event["language"] = event["languages"][0]
+                except (KeyError, IndexError):
+                    event["language"] = app.config["DEFAULT_LANGUAGE"]
 
             # family_id get on ingest we don't need it planning
             event.pop("family_id", None)
@@ -862,7 +866,8 @@ def setRecurringMode(event):
 
 def overwrite_event_expiry_date(event):
     if "expiry" in event:
-        event["expiry"] = event["dates"]["end"]
+        expiry_minutes = app.settings.get("PLANNING_EXPIRY_MINUTES", None)
+        event["expiry"] = event["dates"]["end"] + timedelta(minutes=expiry_minutes or 0)
 
 
 def generate_recurring_events(event):

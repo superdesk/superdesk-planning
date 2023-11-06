@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
+import {planningApi} from '../../../superdeskApi';
 import * as actions from '../../../actions';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary} from '../../Events';
@@ -111,10 +113,10 @@ AssignCalendarComponent.propTypes = {
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (original, updates) => (
         dispatch(actions.main.save(original, updates, false))
-            .then((savedItem) => dispatch(actions.events.api.unlock(savedItem)))
+            .then((savedItem) => planningApi.locks.unlockItem(savedItem))
     ),
     onHide: (event) => {
-        dispatch(actions.events.api.unlock(event));
+        planningApi.locks.unlockItem(event);
     },
 });
 

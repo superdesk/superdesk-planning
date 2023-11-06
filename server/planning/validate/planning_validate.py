@@ -78,6 +78,12 @@ class SchemaValidator(Validator):
         # Ignore this profile as it's for the front-end editor
         pass
 
+    def _validate_planning_auto_publish(self, planning_auto_publish, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+        pass
+
 
 class PlanningValidateResource(Resource):
     endpoint_name = "planning_validator"

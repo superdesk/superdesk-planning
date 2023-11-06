@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {planningApi} from '../../superdeskApi';
 import {TOOLTIPS} from '../../constants';
 import {gettext, assignmentUtils, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
@@ -78,7 +79,7 @@ export class AssignmentPreviewComponent extends React.Component {
     }
 
     onUnlock() {
-        this.props.unlockAssignment(this.props.assignment);
+        planningApi.locks.unlockItem(this.props.assignment);
     }
 
     render() {
@@ -145,7 +146,6 @@ AssignmentPreviewComponent.propTypes = {
         PropTypes.array,
         PropTypes.object,
     ]),
-    unlockAssignment: PropTypes.func,
     lockedItems: PropTypes.object,
     hideItemActions: PropTypes.bool,
     showFulfilAssignment: PropTypes.bool,
@@ -160,7 +160,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     closePanel: () => dispatch(actions.assignments.ui.closePreview()),
-    unlockAssignment: (assignment) => dispatch(actions.assignments.ui.unlockAssignment(assignment)),
 });
 
 export const AssignmentPreview = connect(

@@ -9,7 +9,7 @@ describe('<WorkqueueContainer />', () => {
     const initialState = {
         events: {
             events: {
-                event1: {
+                e1: {
                     _id: 'e1',
                     dates: {start: '2016-10-15T13:01:11+0000'},
                     definition_short: 'definition_short 1',
@@ -18,8 +18,9 @@ describe('<WorkqueueContainer />', () => {
                     lock_action: 'edit',
                     lock_user: 'user123',
                     lock_session: 'session123',
+                    lock_time: '2022-04-28T12:01:11+0000',
                 },
-                event2: {
+                e2: {
                     _id: 'e2',
                     dates: {start: '2016-10-15T13:01:11+0000'},
                     definition_short: 'definition_short 2',
@@ -33,7 +34,7 @@ describe('<WorkqueueContainer />', () => {
         },
         planning: {
             plannings: {
-                planning1: {
+                p1: {
                     _id: 'p1',
                     slugline: 'Planning1',
                     headline: 'Some Plan 1',
@@ -42,8 +43,9 @@ describe('<WorkqueueContainer />', () => {
                     lock_action: 'edit',
                     lock_user: 'user123',
                     lock_session: 'session123',
+                    lock_time: '2022-04-28T10:01:11+0000',
                 },
-                planning2: {
+                p2: {
                     _id: 'p2',
                     slugline: 'Planning2',
                     headline: 'Some Plan 2',
@@ -54,7 +56,7 @@ describe('<WorkqueueContainer />', () => {
                     lock_user: 'user123',
                     lock_session: 'session123',
                 },
-                planning3: {
+                p3: {
                     _id: 'p3',
                     slugline: 'Planning3',
                     headline: 'Some Plan 3',
@@ -81,23 +83,50 @@ describe('<WorkqueueContainer />', () => {
             identity: {_id: 'user123'},
             sessionId: 'session123',
         },
+        locks: {
+            event: {
+                e1: {
+                    item_id: 'e1',
+                    item_type: 'event',
+                    action: 'edit',
+                    user: 'user123',
+                    session: 'session123',
+                    time: '2022-04-28T12:01:11+0000',
+                },
+            },
+            planning: {
+                p1: {
+                    item_id: 'p1',
+                    item_type: 'planning',
+                    action: 'edit',
+                    user: 'user123',
+                    session: 'session123',
+                    time: '2022-04-28T10:01:11+0000',
+                },
+            },
+            recurring: {},
+            assignment: {},
+        },
     };
     const store = createTestStore({initialState});
 
-    const wrapper = mount(
-        <Provider store={store}>
-            <WorkqueueContainer />
-        </Provider>
-    );
-
     it('displays WorkqueueList', () => {
+        const wrapper = mount(
+            <Provider store={store}>
+                <WorkqueueContainer />
+            </Provider>
+        );
+
         expect(wrapper).toBeDefined();
         expect(wrapper.find(WorkqueueContainer).length).toBe(1);
     });
 
     it('contains locked events and planning items for workqueue items', () => {
-        expect(selectors.locks.getLockedEvents(store.getState()))
-            .toEqual([store.getState().events.events['event1']]);
-        expect(selectors.locks.getLockedPlannings(store.getState()).length).toBe(2);
+        const state = store.getState();
+        const workqueueItems = selectors.locks.workqueueItems(state);
+
+        expect(workqueueItems.length).toBe(2);
+        expect(workqueueItems[0]).toEqual(state.planning.plannings.p1);
+        expect(workqueueItems[1]).toEqual(state.events.events.e1);
     });
 });

@@ -154,13 +154,13 @@ def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
 
     if date_filter or start_date or end_date:
         field_name = "_planning_schedule.scheduled"
         base_query = elastic.ElasticRangeParams(
             field=field_name,
-            time_zone=tz_offset,
+            time_zone=time_zone,
             start_of_week=int(params.get("start_of_week") or 0),
         )
 
@@ -203,7 +203,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
             )
 
             query.extra["sort_filter"] = elastic.date_range(
-                elastic.ElasticRangeParams(field=field_name, gte="now/d", time_zone=tz_offset)
+                elastic.ElasticRangeParams(field=field_name, gte="now/d", time_zone=time_zone)
             )
         else:
             query.filter.append(planning_schedule)
@@ -211,7 +211,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
     only_future = strtobool(params.get("only_future", True))
 
     if not date_filter and not start_date and not end_date and only_future:
@@ -220,7 +220,7 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
             elastic.ElasticRangeParams(
                 field=field_name,
                 gte="now/d",
-                time_zone=tz_offset,
+                time_zone=time_zone,
             )
         )
 
@@ -264,6 +264,78 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.sort.append({field: {"order": order}})
 
 
+def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get("coverage_assignment_status") and not strtobool(params.get("no_coverage", False)):
+        if params["coverage_assignment_status"] == "null":
+            query.must_not.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must=[elastic.exists(field="coverages.assigned_to.assignment_id")],
+                        must_not=[elastic.term("coverages.workflow_status", "cancelled")],
+                    ),
+                )
+            )
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(must_not=[elastic.term("coverages.workflow_status", "cancelled")]),
+                )
+            )
+        elif params["coverage_assignment_status"] == "some":
+            """
+            Add a nested query to filter documents where at
+            least one coverage has assigned_to.assignment_id present
+            """
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must=[elastic.exists(field="coverages.assigned_to.assignment_id")],
+                        must_not=[elastic.term("coverages.workflow_status", "cancelled")],
+                    ),
+                )
+            )
+
+            """
+            Add a nested query to filter documents where at least
+            one coverage does not have assigned_to.assignment_id
+            """
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must_not=[
+                            elastic.exists(field="coverages.assigned_to.assignment_id"),
+                            elastic.term("coverages.workflow_status", "cancelled"),
+                        ]
+                    ),
+                )
+            )
+
+        elif params["coverage_assignment_status"] == "all":
+            query.must.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must=[elastic.exists("coverages.assigned_to.assignment_id")],
+                        must_not=[elastic.term("coverages.workflow_status", "cancelled")],
+                    ),
+                )
+            )
+            query.must_not.append(
+                elastic.nested(
+                    path="coverages",
+                    query=elastic.bool_query(
+                        must_not=[
+                            elastic.exists("coverages.assigned_to.assignment_id"),
+                            elastic.term("coverages.workflow_status", "cancelled"),
+                        ]
+                    ),
+                )
+            )
+
+
 PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
     search_planning,
     search_agendas,
@@ -279,6 +351,7 @@ PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], N
     search_dates,
     set_search_sort,
     search_coverage_assigned_user,
+    search_coverage_assignment_status,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
@@ -295,6 +368,7 @@ PLANNING_PARAMS: List[str] = [
     "include_scheduled_updates",
     "event_item",
     "coverage_user_id",
+    "coverage_assignment_status",
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)

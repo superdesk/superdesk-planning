@@ -26,8 +26,18 @@ function deleteAutosaveItem(item: IEventOrPlanningItem): Promise<void> {
     );
 }
 
+function deleteAutosaveItemById(
+    itemType: IEventOrPlanningItem['type'],
+    itemId: IEventOrPlanningItem['_id']
+): Promise<void> {
+    return planningApi.redux.store.dispatch<any>(
+        actions.autosave.removeById(itemType, itemId)
+    );
+}
+
 export const autosave: IPlanningAPI['autosave'] = {
     getById: getAutosaveItemById,
     save: saveAutosaveItem,
     delete: deleteAutosaveItem,
+    deleteById: deleteAutosaveItemById,
 };

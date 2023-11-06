@@ -3,11 +3,9 @@ import 'angular-mocks';
 import moment from 'moment';
 import './';
 
-import {appConfig, debugInfo} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {updateConfigAfterLoad} from './config';
 import './utils/testApi';
-
-debugInfo.translationsLoaded = true; // don't print warnings about missing translations when running unit tests
 
 Object.assign(appConfig, {
     server: {url: 'http://server.com'},
@@ -19,6 +17,7 @@ Object.assign(appConfig, {
     shortTimeFormat: 'HH:mm',
     default_timezone: 'Australia/Sydney',
     profileLanguages: ['en', 'fr_CA'],
+    planning_auto_assign_to_workflow: true,
 });
 
 moment.tz.setDefault('Australia/Sydney');

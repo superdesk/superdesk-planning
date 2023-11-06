@@ -231,15 +231,6 @@ const eventsReducer = createReducer<IEventState>(initialState, {
         };
     },
 
-    [LOCKS.ACTIONS.RECEIVE]: (state, payload) => (
-        get(payload, 'events.length', 0) <= 0 ?
-            state :
-            eventsReducer(state, {
-                type: EVENTS.ACTIONS.ADD_EVENTS,
-                payload: payload.events,
-            })
-    ),
-
     [EVENTS.ACTIONS.SPIKE_EVENT]: (state, payload) => {
         // If there is only 1 event and that event is not loaded
         // then disregard this action

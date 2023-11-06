@@ -1,8 +1,11 @@
 import {get, cloneDeep, forEach} from 'lodash';
 import moment from 'moment';
+
+import {planningApi} from '../../superdeskApi';
+import {IAssignmentItem} from '../../interfaces';
+
 import {showModal} from '../index';
 import assignments from './index';
-import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ASSIGNMENTS, MODALS, WORKSPACE, ALL_DESKS} from '../../constants';
@@ -390,7 +393,7 @@ const reassign = (assignment) => (
     (dispatch) => dispatch(self._openActionModal(
         assignment,
         ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName,
-        'reassign'
+        ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.lock_action
     ))
 );
 
@@ -402,7 +405,7 @@ const editPriority = (assignment) => (
     (dispatch) => dispatch(_openActionModal(
         assignment,
         ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName,
-        'edit_priority'
+        ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.lock_action,
     ))
 );
 
@@ -415,7 +418,7 @@ const save = (original, updates) => (
     (dispatch, getState, {notify}) => (
         dispatch(assignments.api.save(original, updates))
             .then((updatedItem) => {
-                notify.success(get(original, 'lock_action') === 'reassign' ?
+                notify.success(get(original, 'lock_action') === ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.lock_action ?
                     gettext('The assignment was reassigned.') :
                     gettext('Assignment priority has been updated.')
                 );
@@ -462,9 +465,9 @@ const onFulFilAssignment = (assignment) => (
     }
 );
 
-const complete = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(self.lockAssignment(item, 'complete'))
+function complete(item: IAssignmentItem) {
+    return (dispatch, getState, {notify}) => (
+        planningApi.locks.lockItem(item, 'complete')
             .then((lockedItem) => {
                 dispatch(assignments.api.complete(lockedItem))
                     .then((lockedItem) => {
@@ -474,15 +477,15 @@ const complete = (item) => (
                         notify.error(getErrorMessage(error, 'Failed to complete the assignment.'));
 
                         // unlock the assignment
-                        return dispatch(self.unlockAssignment(lockedItem));
+                        return planningApi.locks.unlockItem(lockedItem);
                     });
             }, (error) => Promise.reject(error))
-    )
-);
+    );
+}
 
-const revert = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(self.lockAssignment(item, 'revert'))
+function revert(item: IAssignmentItem) {
+    return (dispatch, getState, {notify}) => (
+        planningApi.locks.lockItem(item, 'revert')
             .then((lockedItem) => {
                 const contentTypes = selectors.general.contentTypes(getState());
 
@@ -503,15 +506,15 @@ const revert = (item) => (
                     modalProps: {
                         body: gettext('This will unlink the text item associated with the assignment. Are you sure ?'),
                         action: () => dispatch(assignments.api.unlink(lockedItem)),
-                        onCancel: () => dispatch(self.unlockAssignment(lockedItem)),
+                        onCancel: () => planningApi.locks.unlockItem(lockedItem),
                         autoClose: true,
                     },
                 }));
 
                 return Promise.resolve();
             }, (error) => Promise.reject(error))
-    )
-);
+    );
+}
 
 /**
  * Action for launching the modal form for fulfil assignment and add to planning
@@ -569,11 +572,11 @@ const canLinkItem = (item) => (
     )
 );
 
-const validateStartWorkingOnScheduledUpdate = (assignment) => (
-    (dispatch, getState, {notify}) => (
+function validateStartWorkingOnScheduledUpdate(assignment: IAssignmentItem) {
+    return (dispatch, getState, {notify}) => (
         // Validate the coverage to see if all preceeding scheduled_updates / coverage
         // is linked to an item
-        dispatch(planningApi.loadPlanningByIds([get(assignment, 'planning_item')], false)).then(
+        planningApi.planning.getById(assignment.planning_item, false).then(
             (plannings) => {
                 const planning = get(plannings, '[0]');
 
@@ -611,11 +614,11 @@ const validateStartWorkingOnScheduledUpdate = (assignment) => (
                 return Promise.resolve();
             }
         )
-    )
-);
+    );
+}
 
-const startWorking = (assignment) => (
-    (dispatch, getState, {templates, session, desks, notify}) => {
+function startWorking(assignment: IAssignmentItem) {
+    return (dispatch, getState, {templates, session, desks, notify}) => {
         let promise = Promise.resolve();
 
         if (get(assignment, 'scheduled_update_id')) {
@@ -623,7 +626,7 @@ const startWorking = (assignment) => (
         }
 
         promise.then(() =>
-            (dispatch(self.lockAssignment(assignment, 'start_working'))
+            (planningApi.locks.lockItem(assignment, 'start_working')
                 .then((lockedAssignment) => {
                     const currentDesk = assignmentUtils.getCurrentSelectedDesk(desks, getState());
                     const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
@@ -654,15 +657,12 @@ const startWorking = (assignment) => (
                                 assignment._id,
                                 template.template_name
                             )).catch((error) => {
-                                dispatch(self.unlockAssignment(assignment));
+                                planningApi.locks.unlockItem(assignment);
                                 notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
                                 return Promise.reject(error);
                             })
                         );
-
-                        const onCancel = () => (
-                            dispatch(assignments.api.unlock(lockedAssignment))
-                        );
+                        const onCancel = () => planningApi.locks.unlockItem(lockedAssignment);
 
                         return dispatch(showModal({
                             modalType: MODALS.SELECT_DESK_TEMPLATE,
@@ -678,12 +678,12 @@ const startWorking = (assignment) => (
                 }, (error) => Promise.reject(error))
             ), (error) => Promise.resolve()
         );
-    }
-);
+    };
+}
 
-const _openActionModal = (assignment, action, lockAction = null) => (
-    (dispatch) => (
-        dispatch(self.lockAssignment(assignment, lockAction))
+function _openActionModal(assignment: IAssignmentItem, action: string, lockAction: string = 'edit') {
+    return (dispatch) => (
+        planningApi.locks.lockItem(assignment, lockAction)
             .then((lockedAssignment) => (
                 dispatch(showModal({
                     modalType: MODALS.ITEM_ACTIONS_MODAL,
@@ -693,149 +693,8 @@ const _openActionModal = (assignment, action, lockAction = null) => (
                     },
                 }))
             ), (error) => Promise.reject(error))
-    )
-);
-
-/**
- * Utility Action to lock the Assignment, and display a notification
- * to the user if the lock fails
- * @param {object} assignment - The Assignment to lock
- * @param {string} action - The action for the lock
- * @return Promise - The locked Assignment item, otherwise the API error
- */
-const lockAssignment = (assignment, action) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(assignments.api.lock(assignment, action))
-            .then(
-                (lockedAssignment) => Promise.resolve(lockedAssignment),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to lock the Assignment.')
-                    );
-
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
- * Utility Action to lock a Planning item associated with an Assignment, and
- * displays a notification to the user if the lock fails
- * @param {object} assignment - The Assignment for the associated Planning item
- * @param {string} action - The action for the lock
- * @return Promise - The locked Planning item, otherwise the API error
- */
-const lockPlanning = (assignment, action) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(actions.planning.api.lock({_id: get(assignment, 'planning_item')}, action))
-            .then(
-                (lockedPlanning) => Promise.resolve(lockedPlanning),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to lock the Planning item.')
-                    );
-
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
- * Utility Action to lock both the Assignment and it's associated Planning item
- * @param {object} assignment - The Assignment to lock for
- * @param {string} action - The action for the lock
- * @return Promise - The locked Assignment item, otherwise the API error
- */
-const lockAssignmentAndPlanning = (assignment, action) => (
-    (dispatch) => {
-        let planning = null;
-
-        return dispatch(self.lockPlanning(assignment, action))
-            .then(
-                (lockedPlan) => {
-                    planning = lockedPlan;
-                    return dispatch(self.lockAssignment(assignment, action));
-                }
-            )
-            .then(
-                (lockedItem) => Promise.resolve(lockedItem),
-                (error) => {
-                    if (!planning) {
-                        return Promise.reject(error);
-                    }
-                    return dispatch(self.unlockPlanning(assignment))
-                        .then(
-                            () => Promise.reject(error),
-                            () => Promise.reject(error)
-                        );
-                }
-            );
-    }
-);
-
-/**
- * Utility Action to unlock an Assignment and display a notification
- * if the unlock fails
- * @param {object} assignment - The Assignment to unlock
- * @return Promise - The unlocked Assignment item, otherwise the API error
- */
-const unlockAssignment = (assignment) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(assignments.api.unlock(assignment))
-            .then(
-                (unlockedAssignment) => Promise.resolve(unlockedAssignment),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, gettext('Failed to unlock the Assignment'))
-                    );
-
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
- * Utility Action to unlock a Planning item associated with an Assignment, and
- * display a notification to the user if the unlock fails
- * @param assignment
- * @return Promise - The unlocked Planning item, otherwise the API error
- */
-const unlockPlanning = (assignment) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(actions.planning.api.unlock({_id: get(assignment, 'planning_item')}))
-            .then(
-                (unlockedPlanning) => Promise.resolve(unlockedPlanning),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to unlock the Planning item')
-                    );
-
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
- * Utility Action to unlock both the Assignment and it's associated Planning item
- * @param {object} assignment - The Assignment to lock for
- * @return Promise - The unlocked Assignment item, otherwise the API error
- */
-const unlockAssignmentAndPlanning = (assignment) => (
-    (dispatch) => (
-        Promise.all([
-            dispatch(self.unlockAssignment(assignment)),
-            dispatch(self.unlockPlanning(assignment)),
-        ])
-            .then(
-                (data) => Promise.resolve(data[0]),
-                (error) => Promise.reject(error)
-            )
-    )
-);
+    );
+}
 
 /**
  * Action to display the 'Remove Assignment' confirmation modal
@@ -844,9 +703,9 @@ const unlockAssignmentAndPlanning = (assignment) => (
  * @param {object} assignment - The Assignment item intended for deletion
  * @return Promise - Locked Assignment, otherwise the Lock API error
  */
-const showRemoveAssignmentModal = (assignment) => (
-    (dispatch) => (
-        dispatch(self.lockAssignment(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action))
+function showRemoveAssignmentModal(assignment: IAssignmentItem) {
+    return (dispatch) => (
+        planningApi.locks.lockItem(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action)
             .then((lockedAssignment) => {
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
@@ -854,7 +713,7 @@ const showRemoveAssignmentModal = (assignment) => (
                         body: gettext('This will also remove other linked assignments (if any, for story updates). '
                             + 'Are you sure?'),
                         action: () => dispatch(self.removeAssignment(lockedAssignment)),
-                        onCancel: () => dispatch(self.unlockAssignment(lockedAssignment)),
+                        onCancel: () => planningApi.locks.unlockItem(lockedAssignment),
                         autoClose: true,
                     },
                 }));
@@ -862,16 +721,16 @@ const showRemoveAssignmentModal = (assignment) => (
                 return Promise.resolve(lockedAssignment);
             }, (error) => Promise.reject(error)
             )
-    )
-);
+    );
+}
 
 /**
  * Action to delete the Assignment item
  * @param {object} assignment - The Assignment item to remove
  * @return Promise - Empty promise, otherwise the API error
  */
-const removeAssignment = (assignment) => (
-    (dispatch, getState, {notify}) => (
+function removeAssignment(assignment: IAssignmentItem) {
+    return (dispatch, getState, {notify}) => (
         dispatch(assignments.api.removeAssignment(assignment))
             .then(() => {
                 notify.success('Assignment removed');
@@ -880,11 +739,11 @@ const removeAssignment = (assignment) => (
                 notify.error(
                     getErrorMessage(error, 'Failed to remove the Assignment')
                 );
-                dispatch(self.unlockAssignment(assignment));
+                planningApi.locks.unlockItem(assignment);
                 return Promise.reject(error);
             })
-    )
-);
+    );
+}
 
 const setListGroups = (groupKeys) => ({
     type: ASSIGNMENTS.ACTIONS.SET_GROUP_KEYS,
@@ -1032,12 +891,6 @@ const self = {
     showRemoveAssignmentModal,
     removeAssignment,
     updatePreviewItemOnRouteUpdate,
-    lockAssignment,
-    lockPlanning,
-    lockAssignmentAndPlanning,
-    unlockAssignment,
-    unlockPlanning,
-    unlockAssignmentAndPlanning,
     openArchivePreview,
     setMyAssignmentsTotal,
     setListGroups,

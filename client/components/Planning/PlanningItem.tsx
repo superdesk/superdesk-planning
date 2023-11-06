@@ -22,6 +22,7 @@ import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 import {
     eventUtils,
     planningUtils,
+    lockUtils,
     onEventCapture,
     isItemPosted,
     getItemId,
@@ -31,6 +32,7 @@ import {
 } from '../../utils';
 import {renderFields} from '../fields';
 import * as actions from '../../actions';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 interface IState {
     hover: boolean;
@@ -63,7 +65,8 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 planningUtils.getAgendaNames(this.props.item, this.props.agendas),
                 planningUtils.getAgendaNames(nextProps.item, nextProps.agendas)
             ) ||
-            this.props.minTimeWidth !== nextProps.minTimeWidth;
+            this.props.minTimeWidth !== nextProps.minTimeWidth ||
+            this.props.filterLanguage !== nextProps.filterLanguage;
     }
 
     onItemHoverOn() {
@@ -183,6 +186,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             agendas,
             contacts,
             listViewType,
+            filterLanguage
         } = this.props;
 
         if (!item) {
@@ -190,12 +194,13 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         }
 
         const {gettext} = superdeskApi.localization;
-        const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
+        const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
         const event = get(item, 'event');
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
         const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS);
         const {querySelectorParent} = superdeskApi.utilities;
+        const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
         return (
             <Item
@@ -234,7 +239,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {renderFields(get(listFields, 'planning.primary_fields',
-                                PLANNING.LIST.PRIMARY_FIELDS), item)}
+                                PLANNING.LIST.PRIMARY_FIELDS), item, {}, language)}
                         </span>
 
                         {event && (
@@ -244,7 +249,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             </span>
                         )}
                     </Row>
-                    <Row>
+                    <Row classes="sd-overflow--visible"> {/** overflow is needed for coverage icons */}
                         {isExpired && (
                             <Label
                                 text={gettext('Expired')}
