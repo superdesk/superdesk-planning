@@ -456,7 +456,6 @@ class PlanningService(superdesk.Service):
         self._create_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity)
 
     def add_coverages(self, updates, original):
-        # print("sdjksndfndsjksdjndsjdsjdsndjsjsdjsdfjn\n\n\n\n\n\n\n\n", original)
         planning_date = original.get("planning_date") or updates.get("planning_date")
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id", "")
@@ -475,7 +474,6 @@ class PlanningService(superdesk.Service):
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
                 self.set_slugline_from_xmp(coverage, None)
-                # print("sdjksndfndsjksdjndsjdsjdsndjsjsdjsdfjn\n\n\n\n\n\n\n\n", original)
                 self._create_update_assignment(original, updates, coverage)
                 self.add_scheduled_updates(updates, original, coverage)
 
