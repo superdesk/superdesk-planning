@@ -43,8 +43,8 @@ def create_item_from_template(doc, extra_fields_to_override=None, translations=N
             entry["field"]: entry["value"] for entry in translations or [] if entry["language"] == doc.get("language")
         }
 
-        if translated_value.get("name") and "headline" in fields_to_override:
-            updates["headline"] = translated_value.get("name")
+        if not translated_value.get("headline") and translated_value.get("name") and "headline" in fields_to_override:
+            updates["headline"] = translated_value["name"]
 
         updates.update({key: val for key, val in translated_value.items() if key in fields_to_override})
 
