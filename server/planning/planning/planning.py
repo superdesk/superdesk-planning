@@ -745,6 +745,9 @@ class PlanningService(superdesk.Service):
                     if entry["language"] == doc.get("planning", {}).get("language")
                 }
             )
+
+            translated_name = translated_value.get("name", translated_value.get("headline"))
+
             doc["planning"].update(
                 {
                     key: val
@@ -761,8 +764,8 @@ class PlanningService(superdesk.Service):
                 if assigned_to.get("state") and assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                     assign_state = assigned_to.get("state")
 
-            if translated_value.get("name") and "headline" not in doc["planning"]:
-                doc["planning"]["headline"] = translated_value.get("name")
+            if translated_value and translated_name and "headline" not in doc["planning"]:
+                doc["planning"]["headline"] = translated_name
 
             assignment = {
                 "assigned_to": {
@@ -777,8 +780,8 @@ class PlanningService(superdesk.Service):
                 "priority": assigned_to.get("priority", DEFAULT_ASSIGNMENT_PRIORITY),
                 "description_text": planning.get("description_text"),
             }
-            if translated_value.get("name") and assignment.get("name") != translated_value.get("name"):
-                assignment["name"] = translated_value.get("name")
+            if translated_value and translated_name and assignment.get("name") != translated_value.get("name"):
+                assignment["name"] = translated_name
 
             if doc.get("scheduled_update_id"):
                 assignment["scheduled_update_id"] = doc["scheduled_update_id"]
@@ -869,7 +872,7 @@ class PlanningService(superdesk.Service):
 
             # If the Planning name has been changed
             if planning_original.get("name") != planning_updates.get("name"):
-                assignment["name"] = planning["name"] if not translated_value.get("name") else translated_value["name"]
+                assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
