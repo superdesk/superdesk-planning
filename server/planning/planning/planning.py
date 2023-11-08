@@ -761,7 +761,7 @@ class PlanningService(superdesk.Service):
                 if assigned_to.get("state") and assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                     assign_state = assigned_to.get("state")
 
-            if translated_value.get("name") and not "headline" in doc["planning"]:
+            if translated_value.get("name") and "headline" not in doc["planning"]:
                 doc["planning"]["headline"] = translated_value.get("name")
 
             assignment = {
