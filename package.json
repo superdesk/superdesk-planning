@@ -67,7 +67,7 @@
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
     "superdesk-core": "github:superdesk/superdesk-client-core#authoring-react-post-broadcasting",
-    "superdesk-ui-framework": "^3.0.59",
+    "superdesk-ui-framework": "^3.0.63",
     "ts-node": "~7.0.1",
     "tslint": "5.11.0",
     "typescript-eslint-parser": "^18.0.0"
