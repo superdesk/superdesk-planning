@@ -736,12 +736,15 @@ class PlanningService(superdesk.Service):
         is_coverage_draft = coverage_status == WORKFLOW_STATE.DRAFT
 
         translations = planning.get("translations")
+        translated_value = {}
         if translations is not None:
-            translated_value = {
-                entry["field"]: entry["value"]
-                for entry in translations or []
-                if entry["language"] == doc.get("planning", {}).get("language")
-            }
+            translated_value.update(
+                {
+                    entry["field"]: entry["value"]
+                    for entry in translations or []
+                    if entry["language"] == doc.get("planning", {}).get("language")
+                }
+            )
             doc["planning"].update(
                 {
                     key: val
