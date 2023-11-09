@@ -53,7 +53,7 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
         // If the entry for the default language has not been assigned to the item
         // then this item may have been created before multilingual functionality
         // therefor show the value from the parent field
-        if (translations[multilingualConfig.defaultLanguage] == null) {
+        if (translations[multilingualConfig.defaultLanguage]) {
             translations[multilingualConfig.defaultLanguage] = get(
                 this.props.item,
                 this.props.field,
