@@ -735,6 +735,28 @@ class PlanningService(superdesk.Service):
         coverage_status = updates.get("workflow_status", original.get("workflow_status"))
         is_coverage_draft = coverage_status == WORKFLOW_STATE.DRAFT
 
+        translations = planning.get("translations")
+        translated_value = {}
+        translated_name = ""
+        if translations is not None:
+            translated_value.update(
+                {
+                    entry["field"]: entry["value"]
+                    for entry in translations or []
+                    if entry["language"] == doc.get("planning", {}).get("language")
+                }
+            )
+
+            translated_name = translated_value.get("name", translated_value.get("headline"))
+
+            doc["planning"].update(
+                {
+                    key: val
+                    for key, val in translated_value.items()
+                    if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
+                }
+            )
+
         if not assigned_to.get("assignment_id") and (assigned_to.get("user") or assigned_to.get("desk")):
             # Creating a new assignment
             assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT if is_coverage_draft else ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
@@ -742,6 +764,9 @@ class PlanningService(superdesk.Service):
                 # In case of article_rewrites, this will be 'in_progress' directly
                 if assigned_to.get("state") and assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                     assign_state = assigned_to.get("state")
+
+            if translated_value and translated_name and "headline" not in doc["planning"]:
+                doc["planning"]["headline"] = translated_name
 
             assignment = {
                 "assigned_to": {
@@ -756,6 +781,8 @@ class PlanningService(superdesk.Service):
                 "priority": assigned_to.get("priority", DEFAULT_ASSIGNMENT_PRIORITY),
                 "description_text": planning.get("description_text"),
             }
+            if translated_value and translated_name and assignment.get("name") != translated_value.get("name"):
+                assignment["name"] = translated_name
 
             if doc.get("scheduled_update_id"):
                 assignment["scheduled_update_id"] = doc["scheduled_update_id"]
@@ -846,7 +873,7 @@ class PlanningService(superdesk.Service):
 
             # If the Planning name has been changed
             if planning_original.get("name") != planning_updates.get("name"):
-                assignment["name"] = planning["name"]
+                assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
