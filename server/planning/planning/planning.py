@@ -737,6 +737,7 @@ class PlanningService(superdesk.Service):
 
         translations = planning.get("translations")
         translated_value = {}
+        translated_name = ""
         if translations is not None:
             translated_value.update(
                 {
