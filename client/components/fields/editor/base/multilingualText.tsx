@@ -20,7 +20,7 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
     constructor(props: IMultilingualTextProps) {
         super(props);
 
-        this.state = {fields: this.getFieldStates()};
+        this.state = {fields: this.getFieldStates(true)};
         this.onChange = this.onChange.bind(this);
     }
 
@@ -30,12 +30,16 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
             this.updateFieldState();
         }
     }
-
-    updateFieldState() {
-        this.setState({fields: this.getFieldStates()});
+    componentDidMount() {
+        // Update the field state after mounting, indicating it's the initial mount
+        this.updateFieldState(true);
     }
 
-    getFieldStates(): IState['fields'] {
+    updateFieldState(isInitialMount: boolean = false) {
+        this.setState({fields: this.getFieldStates(isInitialMount)});
+    }
+
+    getFieldStates(isInitialMount: boolean = false): IState['fields'] {
         const multilingualConfig = planningApi.contentProfiles.multilingual.getConfig(this.props.profile?.name);
 
         if (multilingualConfig.isEnabled === false) {
@@ -50,10 +54,10 @@ export class EditorFieldMultilingualText extends React.Component<IMultilingualTe
                 return fields;
             }, {});
 
-        // If the entry for the default language has not been assigned to the item
+        // If it's the initial mount and the entry for the default language has not been assigned to the item
         // then this item may have been created before multilingual functionality
         // therefor show the value from the parent field
-        if (translations[multilingualConfig.defaultLanguage]) {
+        if (isInitialMount && translations[multilingualConfig.defaultLanguage] == null) {
             translations[multilingualConfig.defaultLanguage] = get(
                 this.props.item,
                 this.props.field,
