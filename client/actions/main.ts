@@ -833,12 +833,12 @@ function _filter(filterType: PLANNING_VIEW, params: ICombinedEventOrPlanningSear
             const calender = $location.search().calendar ||
                 get(lastParams, 'calendars[0]', null) ||
                 (get(lastParams, 'noCalendarAssigned', false) ?
-                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
-                    EVENTS.FILTER.ALL_CALENDARS
+                    {qcode: EVENTS.FILTER.NO_CALENDAR_ASSIGNED} :
+                    {qcode: EVENTS.FILTER.ALL_CALENDARS}
                 );
 
             promise = planningApi.ui.list.changeCalendarId(
-                calender,
+                calender.qcode,
                 params
             );
         } else if (filterType === PLANNING_VIEW.PLANNING) {
