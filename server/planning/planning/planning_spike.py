@@ -122,7 +122,7 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
             )
 
     def on_updated(self, updates, original):
-        super().on_update(updates, original)
+        super().on_updated(updates, original)
 
         # Delete assignments in workflow
         assignments_to_delete = []
