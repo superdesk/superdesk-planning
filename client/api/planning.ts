@@ -9,7 +9,10 @@ import {
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
+    IPlanningConfig,
 } from '../interfaces';
+import {appConfig as config} from 'appConfig';
+
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToString} from './search';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
@@ -19,6 +22,8 @@ import {featured} from './featured';
 import {PLANNING} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
+
+const appConfig = config as IPlanningConfig;
 
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -140,14 +145,11 @@ function getPlanningSearchProfile() {
     return planningSearchProfile(planningApi.redux.store.getState());
 }
 
-function create(updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
-    // If the Planning item has coverages, then we need to create the Planning first
-    // before saving the coverages
-    // As Assignments are created and require a Planning ID
-    return !updates.coverages?.length ?
-        superdeskApi.dataApi.create<IPlanningItem>('planning', updates) :
-        superdeskApi.dataApi.create<IPlanningItem>('planning', {...updates, coverages: []})
-            .then((item) => update(item, updates));
+function create(updates: Partial<IPlanningItem>, addToSeries?: boolean): Promise<IPlanningItem> {
+    return superdeskApi.dataApi.create<IPlanningItem>(
+        addToSeries === true ? 'planning?add_to_series=true' : 'planning',
+        updates
+    );
 }
 
 function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
@@ -159,20 +161,23 @@ function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promi
 }
 
 function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
-    return create(planningUtils.modifyForServer({
-        slugline: event.slugline,
-        planning_date: event._sortDate ?? event.dates.start,
-        internal_note: event.internal_note,
-        name: event.name,
-        place: event.place,
-        subject: event.subject,
-        anpa_category: event.anpa_category,
-        description_text: event.definition_short,
-        ednote: event.ednote,
-        language: event.language,
-        ...updates,
-        event_item: event._id,
-    }));
+    return create(
+        planningUtils.modifyForServer({
+            slugline: event.slugline,
+            planning_date: event._sortDate ?? event.dates.start,
+            internal_note: event.internal_note,
+            name: event.name,
+            place: event.place,
+            subject: event.subject,
+            anpa_category: event.anpa_category,
+            description_text: event.definition_short,
+            ednote: event.ednote,
+            language: event.language,
+            ...updates,
+            event_item: event._id,
+        }),
+        appConfig.planning.default_create_planning_series_with_event_series === true,
+    );
 }
 
 function setDefaultValues(

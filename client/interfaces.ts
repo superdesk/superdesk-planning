@@ -293,6 +293,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
         timeformat?: string;
         allowed_coverage_link_types?: Array<string>;
         autosave_timeout?: number;
+        default_create_planning_series_with_event_series?: boolean;
     };
 }
 

@@ -240,6 +240,10 @@ def get_notify_self_on_assignment(current_app=None):
     return (current_app or app).config.get("PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT", False)
 
 
+def get_config_default_create_planning_series_with_event_series(current_app=None):
+    return (current_app or app).config.get("DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES", False)
+
+
 def remove_lock_information(item):
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
 

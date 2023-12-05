@@ -165,6 +165,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST:
     * Default: 'ncostat:int' - Coverage Planned
     * The default CV qcode for populating planning.coverage[x].news_coverage_status on ingest
+* DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES
+    * Default: False
+    * If true, will default to creating series of Planning items with a recurring series of Events,
 
 ### Assignments Config
 * SLACK_BOT_TOKEN
