@@ -4,7 +4,7 @@ import {
     IEventListItemProps,
     IPlanningListItemProps,
     IEventOrPlanningItem,
-    IEventItem, IPlanningItem, IBaseListItemProps, ICommonAdvancedSearchParams
+    IEventItem, IPlanningItem, IBaseListItemProps, ICommonAdvancedSearchParams, ISearchFilter
 } from '../../interfaces';
 
 import {EventItem, EventItemWithPlanning} from '../Events';
@@ -27,6 +27,7 @@ interface IProps extends Omit<
     navigateDown?: boolean;
     minTimeWidth?: string;
     searchParams?: ICommonAdvancedSearchParams;
+    searchFilterParams?: ISearchFilter['params'];
 
     onDoubleClick(item: IEventOrPlanningItem): void;
     showRelatedPlannings(item: IEventItem): void;
@@ -123,6 +124,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             sortField,
             minTimeWidth,
             searchParams,
+            searchFilterParams,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -152,7 +154,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             ...itemProps,
             item: item as IEventItem,
             calendars: calendars,
-            filterLanguage: searchParams?.language,
+            filterLanguage: searchParams?.language || searchFilterParams?.language,
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
@@ -195,7 +197,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             contentTypes: contentTypes,
             agendas: agendas,
             date: date,
-            filterLanguage: searchParams?.language,
+            filterLanguage: searchParams?.language || searchFilterParams?.language,
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
             showAddCoverage: showAddCoverage,
