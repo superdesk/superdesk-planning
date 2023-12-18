@@ -157,7 +157,7 @@ class PlanningService(superdesk.Service):
             if is_ingested:
                 history_service.on_item_created([doc])
 
-            if event and strtobool(request.args.get("add_to_series", "false")):
+            if event and request and strtobool(request.args.get("add_to_series", "false")):
                 new_plans = self._add_planning_to_event_series(doc, event)
                 if is_ingested:
                     history_service.on_item_created(new_plans)
