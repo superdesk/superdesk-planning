@@ -179,6 +179,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT
     * Defaults to false
     * If true, sends a notification to a user on creating an assignment that is assigned to themselves
+* PLANNING_JSON_ASSIGNED_INFO_EXTENDED
+    * Defaults to `false`
+    * If `true`, it will add to planning JSON output additional info for coverages like assigned desk name/email and assigned user name/email.
 
 ### Authoring Config
 * PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH
