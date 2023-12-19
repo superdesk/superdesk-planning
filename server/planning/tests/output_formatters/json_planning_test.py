@@ -319,6 +319,7 @@ class JsonPlanningTestCase(TestCase):
             output_item = json.loads(output[1])
             self.assertEqual(output_item["products"], [{"code": "prod-type-planning", "name": "planning-only"}])
 
+<<<<<<< HEAD
     def test_expand_delivery_uses_ingest_id(self):
         self.app.data.insert("assignments", self.assignment)
         self.app.data.insert("delivery", self.delivery)
@@ -350,3 +351,44 @@ class JsonPlanningTestCase(TestCase):
         self.app.data.update("archive", item_id, updates, article)
         deliveries, _ = formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
         self.assertEqual(deliveries[0]["item_id"], ingest_id)
+
+    def test_assigned_desk_user(self):
+        with self.app.app_context():
+            item = deepcopy(self.item)
+            desk_id = ObjectId()
+            user_id = ObjectId()
+
+            item["coverages"][0]["assigned_to"].update(
+                desk=desk_id,
+                user=user_id,
+            )
+
+            self.app.data.insert(
+                "desks",
+                [{"_id": desk_id, "name": "sports", "email": "sports@example.com"}],
+            )
+
+            self.app.data.insert("users", [{"_id": user_id, "display_name": "John Doe", "email": "john@example.com"}])
+
+            formatter = JsonPlanningFormatter()
+            with mock.patch.dict(self.app.config, {"PLANNING_JSON_ASSIGNED_INFO_EXTENDED": True}):
+                output = formatter.format(item, {"name": "Test Subscriber"})[0]
+            output_item = json.loads(output[1])
+            coverage = output_item["coverages"][0]
+            assert coverage["assigned_user"] == {
+                "first_name": None,
+                "last_name": None,
+                "display_name": "John Doe",
+                "email": "john@example.com",
+            }
+            assert coverage["assigned_desk"] == {
+                "name": "sports",
+                "email": "sports@example.com",
+            }
+
+            # without config
+            output = formatter.format(item, {"name": "Test Subscriber"})[0]
+            output_item = json.loads(output[1])
+            coverage = output_item["coverages"][0]
+            assert "email" not in coverage["assigned_user"]
+            assert "email" not in coverage["assigned_desk"]
