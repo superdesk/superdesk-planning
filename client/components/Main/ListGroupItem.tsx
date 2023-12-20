@@ -12,6 +12,7 @@ import {PlanningItem} from '../Planning';
 
 import {ITEM_TYPE, EVENTS, PLANNING, MAIN, CLICK_DELAY} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
+import {planningApi} from '../../superdeskApi';
 
 interface IProps extends Omit<
     IEventListItemProps & IPlanningListItemProps,
@@ -198,6 +199,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             agendas: agendas,
             date: date,
             filterLanguage: searchParams?.language || searchFilterParams?.language,
+            isAgendaEnabled: planningApi.planning.getEditorProfile().editor.agendas.enabled,
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
             showAddCoverage: showAddCoverage,
