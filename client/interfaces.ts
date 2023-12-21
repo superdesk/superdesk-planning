@@ -868,6 +868,7 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     users: Array<IUser>;
     desks: Array<IDesk>;
     filterLanguage?: string;
+    isAgendaEnabled?:boolean;
     // showUnlock?: boolean; // Is this used anymore?
     hideItemActions: boolean;
     showAddCoverage: boolean;
