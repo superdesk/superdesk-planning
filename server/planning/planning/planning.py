@@ -157,7 +157,7 @@ class PlanningService(superdesk.Service):
             if is_ingested:
                 history_service.on_item_created([doc])
 
-            if event and strtobool(request.args.get("add_to_series", "false")):
+            if event and request and strtobool(request.args.get("add_to_series", "false")):
                 new_plans = self._add_planning_to_event_series(doc, event)
                 if is_ingested:
                     history_service.on_item_created(new_plans)
@@ -687,6 +687,9 @@ class PlanningService(superdesk.Service):
             self._create_update_assignment(original, updates, coverage, original_coverage)
 
     def _set_coverage(self, updates, original=None):
+        if "coverages" not in updates:
+            return
+
         if not original:
             original = {}
 
@@ -1521,7 +1524,7 @@ coverage_schema = {
             "language": metadata_schema["language"],
             "slugline": metadata_schema["slugline"],
             "subject": metadata_schema["subject"],
-            "internal_note": {"type": "string"},
+            "internal_note": {"type": "string", "nullable": True},
             "workflow_status_reason": {"type": "string", "nullable": True},
             "priority": metadata_schema["priority"],
         },  # end planning dict schema
@@ -1566,7 +1569,7 @@ coverage_schema = {
                 "planning": {
                     "type": "dict",
                     "schema": {
-                        "internal_note": {"type": "string"},
+                        "internal_note": {"type": "string", "nullable": True},
                         "contact_info": Resource.rel("contacts", type="string", nullable=True),
                         "scheduled": {"type": "datetime"},
                         "genre": metadata_schema["genre"],
