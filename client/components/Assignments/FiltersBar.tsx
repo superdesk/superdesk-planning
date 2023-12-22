@@ -26,7 +26,7 @@ export const FiltersBar = ({
     const {gettext} = superdeskApi.localization;
 
     return (
-        <SubNav zIndex={2}>
+        <SubNav>
             <StretchBar>
                 {!showDeskSelection ? (
                     <Fragment>
