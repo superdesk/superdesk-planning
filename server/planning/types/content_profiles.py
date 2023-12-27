@@ -21,5 +21,7 @@ class ContentFieldEditor(TypedDict):
 
 
 class ContentProfile(TypedDict):
+    _id: str
+    name: str
     schema: Dict[str, ContentFieldSchema]
     editor: Dict[str, ContentFieldEditor]

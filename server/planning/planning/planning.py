@@ -512,6 +512,7 @@ class PlanningService(superdesk.Service):
         if assignment and assignment.get("state") not in [
             WORKFLOW_STATE.DRAFT,
             WORKFLOW_STATE.CANCELLED,
+            None,
         ]:
             raise SuperdeskApiError.badRequestError(
                 "Assignment already exists. {} cannot be deleted.".format(entity_type.capitalize())

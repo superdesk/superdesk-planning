@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple, Dict, Any, Set
+from typing import NamedTuple, Dict, Any, Set, Tuple
 
 import re
 import time

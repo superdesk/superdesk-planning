@@ -47,7 +47,7 @@ from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 from superdesk.users.services import current_user_has_privilege
 
-from planning.types import Event, EmbeddedPlanning
+from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem
 from planning.common import (
     UPDATE_SINGLE,
     UPDATE_FUTURE,
@@ -67,6 +67,7 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
+    TEMP_ID_PREFIX,
 )
 from .events_base_service import EventsBaseService
 from .events_schema import events_schema
@@ -84,6 +85,21 @@ organizer_roles = {
     "eorol:travAgent": "Travel agent",
     "eorol:venue": "Venue organiser",
 }
+
+
+def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
+    def get_coverage_id(coverage: EmbeddedCoverageItem) -> str:
+        if not coverage.get("coverage_id"):
+            coverage["coverage_id"] = TEMP_ID_PREFIX + "-coverage"
+        return coverage["coverage_id"]
+
+    return [
+        {
+            "planning_id": planning.get("planning_id"),
+            "coverages": {get_coverage_id(coverage): coverage for coverage in planning.get("coverages") or []},
+        }
+        for planning in event.pop("embedded_planning", [])
+    ]
 
 
 class EventsService(superdesk.Service):
@@ -259,13 +275,7 @@ class EventsService(superdesk.Service):
 
         embedded_planning_lists: List[Tuple[Event, List[EmbeddedPlanning]]] = []
         for event in docs:
-            embedded_planning: List[EmbeddedPlanning] = [
-                {
-                    "planning_id": planning.get("planning_id"),
-                    "coverages": {coverage["coverage_id"]: coverage for coverage in planning.get("coverages") or []},
-                }
-                for planning in event.pop("embedded_planning", [])
-            ]
+            embedded_planning = get_events_embedded_planning(event)
             if len(embedded_planning):
                 embedded_planning_lists.append((event, embedded_planning))
 
@@ -432,13 +442,7 @@ class EventsService(superdesk.Service):
         updates.setdefault("versioncreated", utcnow())
 
         # Extract the ``embedded_planning`` from the updates
-        embedded_planning: List[EmbeddedPlanning] = [
-            {
-                "planning_id": planning.get("planning_id"),
-                "coverages": {coverage["coverage_id"]: coverage for coverage in planning.get("coverages") or []},
-            }
-            for planning in updates.pop("embedded_planning", [])
-        ]
+        embedded_planning = get_events_embedded_planning(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
 
