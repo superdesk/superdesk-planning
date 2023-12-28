@@ -1,6 +1,6 @@
 Feature: Event Embedded Planning
     @auth
-    Scenario: Create and update associated Planning with an Event
+    Scenario: Can create and update associated Planning with an Event
         # Test creating and Event with a Planning item/Coveage
         When we post to "/events"
         """
@@ -8,8 +8,8 @@ Feature: Event Embedded Planning
             "guid": "event1",
             "name": "Event1",
             "dates": {
-                "start": "2029-11-21T12:00:00.000Z",
-                "end": "2029-11-21T14:00:00.000Z",
+                "start": "2029-11-21T12:00:00+0000",
+                "end": "2029-11-21T14:00:00+0000",
                 "tz": "Australia/Sydney"
             },
             "embedded_planning": [{
@@ -151,5 +151,215 @@ Feature: Event Embedded Planning
                 "scheduled": "2029-11-21T16:00:00+0000",
                 "internal_note": "only if enough demand"
             }
+        }]}
+        """
+
+    @auth
+    Scenario: Can create multilingual Planning with multilingual Event
+        Given "vocabularies"
+        """
+        [{
+            "_id": "languages", "display_name": "Languages", "type": "manageable",
+            "unique_field": "qcode", "service": {"all": 1},
+            "items": [
+                {"qcode": "en", "name": "English", "is_active": true},
+                {"qcode": "nl", "name": "Dutch", "is_active": true}
+            ]
+        }]
+        """
+        And "planning_types"
+        """
+        [{
+            "_id": "event",
+            "name": "event",
+            "editor": {
+                "language": {"enabled": true},
+                "name": {"enabled": true},
+                "slugline": {"enabled": true},
+                "definition_short": {"enabled": true},
+                "internal_note": {"enabled": true},
+                "ednote": {"enabled": true},
+                "priority": {"enabled": true},
+                "place": {"enabled": true},
+                "subject": {"enabled": true},
+                "anpa_category": {"enabled": true}
+            },
+            "schema": {
+                "language": {
+                    "languages": ["en", "nl"],
+                    "default_language": "en",
+                    "multilingual": true,
+                    "required": true
+                },
+                "name": {"multilingual": true},
+                "slugline": {"multilingual": true},
+                "definition_short": {"multilingual": true},
+                "ednote": {"multilingual": true},
+                "internal_note": {"multilingual": true}
+            }
+        }, {
+            "_id": "planing",
+            "name": "planning",
+            "editor": {
+                "language": {"enabled": true},
+                "name": {"enabled": true},
+                "slugline": {"enabled": true},
+                "description_text": {"enabled": true},
+                "internal_note": {"enabled": true},
+                "ednote": {"enabled": true},
+                "priority": {"enabled": true},
+                "place": {"enabled": true},
+                "subject": {"enabled": true},
+                "anpa_category": {"enabled": true}
+            },
+            "schema": {
+                "language": {
+                    "languages": ["en", "nl"],
+                    "default_language": "en",
+                    "multilingual": true,
+                    "required": true
+                },
+                "name": {"multilingual": true},
+                "slugline": {"multilingual": true},
+                "description_text": {"multilingual": true},
+                "ednote": {"multilingual": true},
+                "internal_note": {"multilingual": true}
+            }
+        }, {
+            "_id": "coverage",
+            "name": "coverage",
+            "editor": {
+                "g2_content_type": {"enabled": true},
+                "slugline": {"enabled": true},
+                "ednote": {"enabled": true},
+                "internal_note": {"enabled": true},
+                "language": {"enabled": true},
+                "priority": {"enabled": true},
+                "genre": {"enabled": true}
+            }
+        }]
+        """
+        When we post to "/events"
+        """
+        [{
+            "guid": "event1",
+            "name": "name1",
+            "dates": {
+                "start": "2029-11-21T12:00:00+0000",
+                "end": "2029-11-21T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "slugline": "slugline1",
+            "definition_short": "The description",
+            "internal_note": "event internal note",
+            "ednote": "event editorial note",
+            "language": "en",
+            "languages": ["en", "nl"],
+            "priority": 2,
+            "place": [{
+                "name": "NSW",
+                "qcode": "NSW",
+                "state": "New South Wales",
+                "country": "Australia",
+                "world_region": "Oceania",
+                "group": "Australia"
+            }],
+            "subject":[{"qcode": "17004000", "name": "Statistics"}],
+            "anpa_category": [{"name": "Overseas Sport", "qcode": "s"}],
+            "translations": [
+                {"field": "name", "language": "en", "value": "name-en"},
+                {"field": "name", "language": "nl", "value": "name-nl"},
+                {"field": "slugline", "language": "en", "value": "slugline-en"},
+                {"field": "slugline", "language": "nl", "value": "slugline-nl"},
+                {"field": "definition_short", "language": "en", "value": "description en"},
+                {"field": "definition_short", "language": "nl", "value": "description nl"},
+                {"field": "ednote", "language": "en", "value": "ednote en"},
+                {"field": "ednote", "language": "nl", "value": "ednote nl"},
+                {"field": "internal_note", "language": "en", "value": "internal note en"},
+                {"field": "internal_note", "language": "nl", "value": "internal note nl"}
+            ],
+            "embedded_planning": [{
+                "coverages": [{
+                    "g2_content_type": "text",
+                    "language": "en",
+                    "news_coverage_status": "ncostat:int",
+                    "scheduled": "2029-11-21T15:00:00+0000",
+                    "genre": "Article"
+                }, {
+                    "g2_content_type": "text",
+                    "language": "nl",
+                    "news_coverage_status": "ncostat:onreq",
+                    "scheduled": "2029-11-21T16:00:00+0000",
+                    "genre": "Sidebar"
+                }]
+            }]
+        }]
+        """
+        Then we get OK response
+        When we get "/events_planning_search?repo=planning&only_future=false&event_item=event1"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "_id": "__any_value__",
+            "slugline": "slugline1",
+            "internal_note": "event internal note",
+            "name": "name1",
+            "description_text": "The description",
+            "place": [{
+                "name": "NSW",
+                "qcode": "NSW",
+                "state": "New South Wales",
+                "country": "Australia",
+                "world_region": "Oceania",
+                "group": "Australia"
+            }],
+            "subject":[{"qcode": "17004000", "name": "Statistics"}],
+            "ednote": "event editorial note",
+            "language": "en",
+            "languages": ["en", "nl"],
+            "priority": 2,
+            "translations": [
+                {"field": "name", "language": "en", "value": "name-en"},
+                {"field": "name", "language": "nl", "value": "name-nl"},
+                {"field": "slugline", "language": "en", "value": "slugline-en"},
+                {"field": "slugline", "language": "nl", "value": "slugline-nl"},
+                {"field": "description_text", "language": "en", "value": "description en"},
+                {"field": "description_text", "language": "nl", "value": "description nl"},
+                {"field": "ednote", "language": "en", "value": "ednote en"},
+                {"field": "ednote", "language": "nl", "value": "ednote nl"},
+                {"field": "internal_note", "language": "en", "value": "internal note en"},
+                {"field": "internal_note", "language": "nl", "value": "internal note nl"}
+            ],
+            "coverages": [{
+                "coverage_id": "__any_value__",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "planning": {
+                    "g2_content_type": "text",
+                    "language": "en",
+                    "scheduled": "2029-11-21T15:00:00+0000",
+                    "description_text": "description en",
+                    "ednote": "ednote en",
+                    "internal_note": "internal note en",
+                    "slugline": "slugline-en",
+                    "priority": 2,
+                    "genre": [{"qcode": "Article"}]
+                }
+            }, {
+                "coverage_id": "__any_value__",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:onreq"},
+                "planning": {
+                    "g2_content_type": "text",
+                    "language": "nl",
+                    "scheduled": "2029-11-21T16:00:00+0000",
+                    "description_text": "description nl",
+                    "ednote": "ednote nl",
+                    "internal_note": "internal note nl",
+                    "slugline": "slugline-nl",
+                    "priority": 2,
+                    "genre": [{"qcode": "Sidebar"}]
+                }
+            }]
         }]}
         """

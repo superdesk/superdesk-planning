@@ -90,7 +90,7 @@ organizer_roles = {
 def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
     def get_coverage_id(coverage: EmbeddedCoverageItem) -> str:
         if not coverage.get("coverage_id"):
-            coverage["coverage_id"] = TEMP_ID_PREFIX + "-coverage"
+            coverage["coverage_id"] = TEMP_ID_PREFIX + "-" + generate_guid(type=GUID_NEWSML)
         return coverage["coverage_id"]
 
     return [

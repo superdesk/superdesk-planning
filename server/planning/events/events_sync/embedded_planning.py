@@ -14,7 +14,7 @@ import logging
 
 from superdesk import get_resource_service
 
-from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem, Planning, Coverage
+from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem, Planning, Coverage, StringFieldTranslation
 from planning.content_profiles.utils import AllContentProfileData
 
 from .common import VocabsSyncData
@@ -45,18 +45,28 @@ def create_new_plannings_from_embedded_planning(
         if field in profiles.planning.enabled_fields
     )
     multilingual_enabled = profiles.events.is_multilingual and profiles.planning.is_multilingual
-    translations = []
-    if multilingual_enabled and "language" in planning_fields:
+    translations: List[StringFieldTranslation] = []
+    event_translations: List[StringFieldTranslation] = event.get("translations") or []
+    if multilingual_enabled and "language" in planning_fields and len(event_translations):
         planning_fields.add("languages")
+
+        def map_event_to_planning_translation(translation: StringFieldTranslation):
+            if translation["field"] == "definition_short":
+                translation["field"] = "description_text"
+            return translation
+
         translations = [
-            translation
-            for translation in event.get("translations", [])
+            map_event_to_planning_translation(translation)
+            for translation in event_translations
             if (
-                (
-                    translation.get("field") == "definition_short"
-                    and "description_text" in profiles.planning.enabled_fields
+                translation.get("field") is not None
+                and (
+                    (
+                        translation["field"] == "definition_short"
+                        and "description_text" in profiles.planning.enabled_fields
+                    )
+                    or translation["field"] in profiles.planning.enabled_fields
                 )
-                or translation.get("field") in profiles.planning.enabled_fields
             )
         ]
 
@@ -144,8 +154,8 @@ def create_new_coverage_from_event_and_planning(
     for field in coverage_planning_fields:
         new_coverage["planning"][field] = coverage.get(field) or planning.get(field) or event.get(field)  # type: ignore
 
-    if "genre" in coverage_planning_fields:
-        new_coverage["planning"]["genre"] = vocabs.genres[coverage["genre"]] if coverage.get("genre") else None
+    if "genre" in profiles.coverages.enabled_fields and coverage.get("genre") is not None:
+        new_coverage["planning"]["genre"] = [vocabs.genres.get(coverage["genre"]) or {"qcode": coverage["genre"]}]
 
     if "language" in profiles.coverages.enabled_fields:
         # If ``language`` is enabled for Coverages but not defined in ``embedded_planning``
@@ -248,7 +258,9 @@ def get_existing_plannings_from_embedded_planning(
                         "genre" in profiles.coverages.enabled_fields
                         and coverage_planning.get("genre") != embedded_coverage["genre"]
                     ):
-                        coverage_planning["genre"] = vocabs.genres[embedded_coverage["genre"]]
+                        coverage_planning["genre"] = [
+                            vocabs.genres.get(embedded_coverage["genre"]) or {"qcode": embedded_coverage["genre"]}
+                        ]
                         update_required = True
                 except KeyError:
                     pass
