@@ -1,5 +1,6 @@
 Feature: Event Embedded Planning
     @auth
+    @vocabulary
     Scenario: Can create and update associated Planning with an Event
         # Test creating and Event with a Planning item/Coveage
         When we post to "/events"
@@ -51,7 +52,7 @@ Feature: Event Embedded Planning
                 "original_creator": "#CONTEXT_USER_ID#",
                 "version_creator": "#CONTEXT_USER_ID#",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text",
                     "scheduled": "2029-11-21T15:00:00+0000"
@@ -155,19 +156,9 @@ Feature: Event Embedded Planning
         """
 
     @auth
+    @vocabulary
     Scenario: Can create multilingual Planning with multilingual Event
-        Given "vocabularies"
-        """
-        [{
-            "_id": "languages", "display_name": "Languages", "type": "manageable",
-            "unique_field": "qcode", "service": {"all": 1},
-            "items": [
-                {"qcode": "en", "name": "English", "is_active": true},
-                {"qcode": "nl", "name": "Dutch", "is_active": true}
-            ]
-        }]
-        """
-        And "planning_types"
+        Given "planning_types"
         """
         [{
             "_id": "event",
@@ -333,7 +324,7 @@ Feature: Event Embedded Planning
             "coverages": [{
                 "coverage_id": "__any_value__",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:int"},
+                "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text",
                     "language": "en",
@@ -343,12 +334,12 @@ Feature: Event Embedded Planning
                     "internal_note": "internal note en",
                     "slugline": "slugline-en",
                     "priority": 2,
-                    "genre": [{"qcode": "Article"}]
+                    "genre": [{"name": "Article (news)", "qcode": "Article"}]
                 }
             }, {
                 "coverage_id": "__any_value__",
                 "workflow_status": "draft",
-                "news_coverage_status": {"qcode": "ncostat:onreq"},
+                "news_coverage_status": {"qcode": "ncostat:onreq", "name": "coverage upon request", "label": "On request"},
                 "planning": {
                     "g2_content_type": "text",
                     "language": "nl",
@@ -358,7 +349,7 @@ Feature: Event Embedded Planning
                     "internal_note": "internal note nl",
                     "slugline": "slugline-nl",
                     "priority": 2,
-                    "genre": [{"qcode": "Sidebar"}]
+                    "genre": [{"name": "Sidebar", "qcode": "Sidebar"}]
                 }
             }]
         }]}
