@@ -791,7 +791,7 @@ class PlanningService(superdesk.Service):
         planning_id = planning.get(config.ID_FIELD)
 
         doc = deepcopy(original)
-        doc.update(updates)
+        doc.update(deepcopy(updates))
         assignment_service = get_resource_service("assignments")
         assigned_to = updates.get("assigned_to") or original.get("assigned_to")
         new_assignment_id = None
@@ -808,22 +808,23 @@ class PlanningService(superdesk.Service):
         translations = planning.get("translations")
         translated_value = {}
         translated_name = ""
-        if translations is not None:
+        doc.setdefault("planning", {})
+        if translations is not None and doc["planning"].get("language") is not None:
             translated_value.update(
                 {
                     entry["field"]: entry["value"]
                     for entry in translations or []
-                    if entry["language"] == doc.get("planning", {}).get("language")
+                    if entry["language"] == doc["planning"]["language"]
                 }
             )
 
             translated_name = translated_value.get("name", translated_value.get("headline"))
-
             doc["planning"].update(
                 {
                     key: val
                     for key, val in translated_value.items()
                     if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
+                    and doc["planning"].get(key) is None
                 }
             )
 

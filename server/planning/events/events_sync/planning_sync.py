@@ -115,6 +115,10 @@ def _sync_coverage_field(sync_data: SyncData, field: str, profiles: AllContentPr
         if field_is_multilingual and coverage_language is not None:
             try:
                 original_value = sync_data.event.original_translations[field][coverage_language]
+            except KeyError:
+                pass
+
+            try:
                 updated_value = sync_data.event.updated_translations[field][coverage_language]
             except KeyError:
                 pass

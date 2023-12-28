@@ -63,8 +63,16 @@ def sync_event_metadata_with_planning_items(
         },
     )
 
+    event_sync_data = SyncItemData(
+        original=original,
+        updates=updates,
+        original_translations=get_translated_fields(original.get("translations") or []),
+        updated_translations=get_translated_fields(updates.get("translations") or []),
+    )
+    event_translations = deepcopy(event_sync_data.updated_translations or event_sync_data.original_translations)
+
     # Create any new Planning items (and their coverages), based on the ``embedded_planning`` Event field
-    create_new_plannings_from_embedded_planning(event_updated, embedded_planning, profiles, vocabs)
+    create_new_plannings_from_embedded_planning(event_updated, event_translations, embedded_planning, profiles, vocabs)
 
     if not original:
         # If this was from the creation of a new Event, then no need to sync metadata with existing items
@@ -72,27 +80,26 @@ def sync_event_metadata_with_planning_items(
         return
 
     planning_service = get_resource_service("planning")
-    sync_fields = set(field for field in get_config_event_fields_to_sync_with_planning() if field in updates)
+    sync_fields_config = get_config_event_fields_to_sync_with_planning()
+    sync_fields = set(field for field in sync_fields_config if field in updates)
 
     if not len(sync_fields):
         # There are no fields to sync with the Event
         # So only update the Planning items based on the ``embedded_planning`` Event field
-        for original, updates, update_required in get_existing_plannings_from_embedded_planning(
-            event_updated, embedded_planning, profiles, vocabs
+        for planning_original, planning_updates, update_required in get_existing_plannings_from_embedded_planning(
+            event_updated, event_translations, embedded_planning, profiles, vocabs
         ):
             if update_required:
-                planning_service.patch(original["_id"], updates)
+                planning_service.patch(planning_original["_id"], planning_updates)
         return
 
-    event_sync_data = SyncItemData(
-        original=original,
-        updates=updates,
-        original_translations=get_translated_fields(original.get("translations") or []),
-        updated_translations=get_translated_fields(updates.get("translations") or []),
-    )
-
     coverage_sync_fields = set(field for field in sync_fields if field in COVERAGE_SYNC_FIELDS)
-    if profiles.events.is_multilingual and profiles.planning.is_multilingual and "language" in sync_fields:
+    if (
+        profiles.events.is_multilingual
+        and profiles.planning.is_multilingual
+        and "language" in sync_fields_config
+        and "languages" in updates
+    ):
         # If multilingual is enabled for both Event & Planning, then add ``languages`` to the list
         # of fields to sync
         sync_fields.add("languages")
@@ -104,19 +111,19 @@ def sync_event_metadata_with_planning_items(
 
     # Sync all the Planning items that were provided in the ``embedded_planning`` field
     processed_planning_ids: List[str] = []
-    for original, updates, update_required in get_existing_plannings_from_embedded_planning(
-        event_updated, embedded_planning, profiles, vocabs
+    for planning_original, planning_updates, update_required in get_existing_plannings_from_embedded_planning(
+        event_updated, event_translations, embedded_planning, profiles, vocabs
     ):
-        translated_fields = get_translated_fields(original.get("translations") or [])
+        translated_fields = get_translated_fields(planning_original.get("translations") or [])
         sync_data = SyncData(
             event=event_sync_data,
             planning=SyncItemData(
-                original=original,
-                updates=updates,
+                original=planning_original,
+                updates=planning_updates,
                 original_translations=translated_fields,
                 updated_translations=deepcopy(translated_fields),
             ),
-            coverage_updates=deepcopy(updates.get("coverages") or original.get("coverages") or []),
+            coverage_updates=deepcopy(planning_updates.get("coverages") or planning_original.get("coverages") or []),
             update_translations=False,
             update_coverages=update_required,
             update_planning=update_required,
@@ -128,7 +135,7 @@ def sync_event_metadata_with_planning_items(
             profiles,
             coverage_sync_fields,
         )
-        processed_planning_ids.append(original["_id"])
+        processed_planning_ids.append(planning_original["_id"])
         if sync_data.update_planning:
             planning_service.patch(sync_data.planning.original["_id"], sync_data.planning.updates)
 
