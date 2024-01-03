@@ -139,7 +139,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
 
         return (
             <div>
-                <Menu items={itemActions}>
+                <Menu zIndex={1050} items={itemActions}>
                     {
                         (toggle) => (
                             <div
