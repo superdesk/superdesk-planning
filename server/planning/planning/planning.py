@@ -512,6 +512,7 @@ class PlanningService(superdesk.Service):
         if assignment and assignment.get("state") not in [
             WORKFLOW_STATE.DRAFT,
             WORKFLOW_STATE.CANCELLED,
+            None,
         ]:
             raise SuperdeskApiError.badRequestError(
                 "Assignment already exists. {} cannot be deleted.".format(entity_type.capitalize())
@@ -687,6 +688,9 @@ class PlanningService(superdesk.Service):
             self._create_update_assignment(original, updates, coverage, original_coverage)
 
     def _set_coverage(self, updates, original=None):
+        if "coverages" not in updates:
+            return
+
         if not original:
             original = {}
 
@@ -787,7 +791,7 @@ class PlanningService(superdesk.Service):
         planning_id = planning.get(config.ID_FIELD)
 
         doc = deepcopy(original)
-        doc.update(updates)
+        doc.update(deepcopy(updates))
         assignment_service = get_resource_service("assignments")
         assigned_to = updates.get("assigned_to") or original.get("assigned_to")
         new_assignment_id = None
@@ -804,22 +808,23 @@ class PlanningService(superdesk.Service):
         translations = planning.get("translations")
         translated_value = {}
         translated_name = ""
-        if translations is not None:
+        doc.setdefault("planning", {})
+        if translations is not None and doc["planning"].get("language") is not None:
             translated_value.update(
                 {
                     entry["field"]: entry["value"]
                     for entry in translations or []
-                    if entry["language"] == doc.get("planning", {}).get("language")
+                    if entry["language"] == doc["planning"]["language"]
                 }
             )
 
             translated_name = translated_value.get("name", translated_value.get("headline"))
-
             doc["planning"].update(
                 {
                     key: val
                     for key, val in translated_value.items()
                     if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
+                    and doc["planning"].get(key) is None
                 }
             )
 
@@ -1521,7 +1526,7 @@ coverage_schema = {
             "language": metadata_schema["language"],
             "slugline": metadata_schema["slugline"],
             "subject": metadata_schema["subject"],
-            "internal_note": {"type": "string"},
+            "internal_note": {"type": "string", "nullable": True},
             "workflow_status_reason": {"type": "string", "nullable": True},
             "priority": metadata_schema["priority"],
         },  # end planning dict schema
@@ -1566,7 +1571,7 @@ coverage_schema = {
                 "planning": {
                     "type": "dict",
                     "schema": {
-                        "internal_note": {"type": "string"},
+                        "internal_note": {"type": "string", "nullable": True},
                         "contact_info": Resource.rel("contacts", type="string", nullable=True),
                         "scheduled": {"type": "datetime"},
                         "genre": metadata_schema["genre"],

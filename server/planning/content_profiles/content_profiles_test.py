@@ -11,7 +11,7 @@
 
 from planning.tests import TestCase
 
-from .utils import get_multilingual_fields
+from .utils import get_multilingual_fields, ContentProfileData
 
 
 class ContentProfilesTestCase(TestCase):
@@ -80,3 +80,38 @@ class ContentProfilesTestCase(TestCase):
         self.assertNotIn("slugline", fields)
         self.assertNotIn("definition_short", fields)
         self.assertNotIn("definition_long", fields)
+
+    def test_content_profile_data(self):
+        self.app.data.insert(
+            "planning_types",
+            [
+                {
+                    "_id": "event",
+                    "name": "event",
+                    "editor": {
+                        "language": {"enabled": True},
+                    },
+                    "schema": {
+                        "language": {
+                            "languages": ["en", "de"],
+                            "default_language": "en",
+                            "multilingual": True,
+                            "required": True,
+                        },
+                        "name": {"multilingual": True},
+                        "slugline": {"multilingual": True},
+                        "definition_short": {"multilingual": True},
+                        "anpa_category": {"required": True},
+                    },
+                }
+            ],
+        )
+
+        data = ContentProfileData("event")
+        self.assertTrue(data.profile["_id"] == data.profile["name"] == "event")
+        self.assertTrue(data.is_multilingual)
+        self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})
+        self.assertIn("name", data.enabled_fields)
+        self.assertIn("slugline", data.enabled_fields)
+        self.assertIn("definition_short", data.enabled_fields)
+        self.assertIn("anpa_category", data.enabled_fields)

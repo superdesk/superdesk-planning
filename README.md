@@ -168,6 +168,21 @@ Below sections include the config options that can be defined in settings.py.
 * DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES
     * Default: False
     * If true, will default to creating series of Planning items with a recurring series of Events,
+* SYNC_EVENT_FIELDS_TO_PLANNING
+    * Default: ""
+    * Comma separated list of Planning & Coverage fields to keep in sync with the associated Event
+    * Supported Fields:
+      * slugline
+      * internal_note
+      * name
+      * place (list CVs)
+      * subject (list CVs, exclude items with scheme)
+      * custom_vocabularies (list CVs, inside subject with scheme)
+      * anpa_category (list CVs)
+      * ednote
+      * language (includes `languages` if multilingual is enabled)
+      * definition_short (copies to Planning item's `Description Text`)
+      * priority
 
 ### Assignments Config
 * SLACK_BOT_TOKEN
