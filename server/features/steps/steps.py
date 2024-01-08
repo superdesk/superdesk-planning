@@ -193,6 +193,43 @@ def then_we_store_coverage_id(context, tag, index):
     set_placeholder(context, tag, coverage_id)
 
 
+@then('we store coverage id in "{tag}" from plan {planning_index} coverage {coverage_index}')
+def then_we_store_planning_coverage_id(context, tag, planning_index, coverage_index):
+    planning_index = int(planning_index)
+    coverage_index = int(coverage_index)
+    response = get_json_data(context.response) or {}
+
+    try:
+        planning_item = response["_items"][planning_index]
+    except (KeyError, TypeError):
+        planning_item = None
+    assert planning_item is not None, "Planning not found"
+
+    try:
+        coverage_id = planning_item["coverages"][coverage_index]["coverage_id"]
+    except (KeyError, TypeError):
+        coverage_id = None
+    assert coverage_id is not None, "Coverage ID not found"
+
+    set_placeholder(context, tag, coverage_id)
+
+
+@then("we get {coverage_count} coverages")
+def then_we_get_coverages_count(context, coverage_count):
+    coverage_count = int(coverage_count)
+    response = get_json_data(context.response) or {}
+
+    try:
+        actual_coverage_count = len(response["coverages"])
+    except (KeyError, TypeError):
+        assert actual_coverage_count > 0, "No coverages found"
+        coverage_count = 0
+
+    assert (
+        coverage_count == actual_coverage_count
+    ), f"Number of coverages {actual_coverage_count} does not match expected {coverage_count}"
+
+
 @then('we store scheduled_update id in "{tag}" from scheduled_update {index} of coverage {coverage_index}')
 def then_we_store_scheduled_update_id_from_assignment_coverage(context, tag, index, coverage_index):
     index = int(index)

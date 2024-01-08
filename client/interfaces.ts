@@ -547,6 +547,23 @@ export interface IEventItem extends IBaseRestApiResponse {
     // Used only to add/modify Plannings/Coverages from the Event form
     // These are only stored with the Autosave and not the actual Event
     associated_plannings: Array<Partial<IPlanningItem>>;
+    embedded_planning: Array<{
+        planning_id?: IPlanningItem['_id'];
+        coverages: Array<{
+            coverage_id?: IPlanningCoverageItem['coverage_id'];
+            g2_content_type: ICoveragePlanningDetails['g2_content_type'];
+            desk: IPlanningAssignedTo['desk'];
+            user: IPlanningAssignedTo['user'];
+            language: ICoveragePlanningDetails['language'];
+            news_coverage_status: IPlanningNewsCoverageStatus['qcode'];
+            scheduled: ICoveragePlanningDetails['scheduled'];
+
+            genre: ICoveragePlanningDetails['genre']['qcode'];
+            slugline: ICoveragePlanningDetails['slugline'];
+            ednote: ICoveragePlanningDetails['ednote'];
+            internal_note: ICoveragePlanningDetails['internal_note'];
+        }>;
+    }>;
 
     // Attributes added by API (removed via modifyForClient)
     // The `_status` field is available when the item comes from a POST/PATCH request
