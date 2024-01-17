@@ -2,8 +2,8 @@ import logging
 import requests
 
 from typing import Optional
-from datetime import timedelta
-from flask import current_app as app, json
+from datetime import timedelta, datetime
+from flask import current_app as app
 from flask_babel import lazy_gettext
 from superdesk.io.registry import register_feeding_service_parser
 from superdesk.io.feeding_services.http_base_service import HTTPFeedingServiceBase
@@ -73,10 +73,10 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         :type update: dict
         :return: a list of events which can be saved.
         """
-        URL = provider["config"]["url"]
-        LIMIT = 100
-        MAX_OFFSET = int(app.config.get("ONCLUSIVE_MAX_OFFSET", 100000))
+        BASE_URL = provider["config"]["url"]
+        LIMIT = 2000
         self.session = requests.Session()
+        self.language = "en-CA"  # make sure there is some default
         parser = self.get_feed_parser(provider)
         update["tokens"] = provider.get("tokens") or {}
         with timer("onclusive:update"):
@@ -87,59 +87,53 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 second=0
             )  # next time start from here, onclusive api does not use seconds
             if update["tokens"].get("import_finished"):
-                url = urljoin(URL, "/api/v2/events/latest")
-                start = update["tokens"]["import_finished"] - timedelta(
-                    hours=1
-                )  # add 1h buffer to avoid missing events
+                # populate it for cases when import was done before we introduced the field
+                update["tokens"].setdefault("next_start", update["tokens"]["import_finished"] - timedelta(hours=5))
+                url = urljoin(BASE_URL, "/api/v2/events/latest")
+                start = update["tokens"]["next_start"] - timedelta(
+                    hours=3,  # add a buffer, also not sure about timezone there
+                )
+                update["tokens"]["next_start"] = update["last_updated"]
                 logger.info("Fetching updates since %s", start.isoformat())
-                start_offset = 0
                 params = dict(
                     date=start.strftime("%Y%m%d"),
                     time=start.strftime("%H%M"),
                     limit=LIMIT,
                 )
+                iterations = range(0, LIMIT, LIMIT)
+                iterations_param = "offset"
             else:
+                iterations_param = "date"
                 days = int(provider["config"].get("days_to_ingest") or 365)
                 logger.info("Fetching %d days", days)
-                url = urljoin(URL, "/api/v2/events/between")
-                start = update["tokens"].get("start_date") or update["last_updated"]
-                update["tokens"]["start_date"] = start  # store for next time
-                end = start + timedelta(days=days)
-                start_offset = (
-                    update["tokens"].get("start_offset") or 0
-                )  # allow to continue in case this won't fininsh in single run
-                if start_offset:
-                    logger.info("Continuing from %d", start_offset)
+                url = urljoin(BASE_URL, "/api/v2/events/date")
+                update["tokens"].setdefault("start_date", update["last_updated"])  # keep for next round
+                update["tokens"].setdefault("next_start", update["last_updated"])  # after import continue from start
+                start_date = update["tokens"]["start_date"].date()
                 params = dict(
-                    startDate=start.strftime("%Y%m%d"),
-                    endDate=end.strftime("%Y%m%d"),
                     limit=LIMIT,
+                )
+                processed_date = update["tokens"].get(iterations_param, "")
+                iterations = (
+                    date
+                    for date in ((start_date + timedelta(days=i)).strftime("%Y%m%d") for i in range(0, days))
+                    if date > processed_date  # when continuing skip previously ingested days
                 )
             logger.info("ingest from onclusive %s with params %s", url, params)
             try:
-                last_updated = None
-                for offset in range(start_offset, MAX_OFFSET, LIMIT):
-                    params["offset"] = offset
-                    logger.debug("params %s", params)
+                for i in iterations:
+                    params[iterations_param] = i
+                    logger.info("Onclusive PARAMS %s", params)
                     content = self._fetch(url, params, provider, update["tokens"])
-                    if not content:
-                        logger.info("done ingesting offset=%d last_updated=%s", offset, last_updated)
-                        if last_updated:
-                            update["tokens"]["import_finished"] = last_updated
-                        break
                     items = parser.parse(content, provider)
+                    logger.info("Onclusive returned %d items", len(items))
                     for item in items:
-                        if item.get("versioncreated"):
-                            last_updated = (
-                                max(last_updated, item["versioncreated"]) if last_updated else item["versioncreated"]
-                            )
+                        item.setdefault("language", self.language)
                     yield items
-                    update["tokens"]["start_offset"] = offset
-                else:
-                    logger.warning("some items were not fetched due to the limit")
+                    update["tokens"][iterations_param] = i
+                update["tokens"].setdefault("import_finished", utcnow())
             except SoftTimeLimitExceeded:
                 logger.warning("stopped due to time limit, tokens=%s", update["tokens"])
-                # let it finish the current job and update the start_offset for next time
 
     def _fetch(self, url, params, provider, tokens):
         for i in range(5):
@@ -181,6 +175,7 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
         data = resp.json()
         if data.get("refreshToken"):
             tokens[REFRESH_TOKEN_KEY] = data["refreshToken"]
+        self.set_language(data)
         if data.get("token"):
             self.token = data["token"]
             return self.token
@@ -204,7 +199,14 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             if new_token.get("refreshToken"):
                 tokens[REFRESH_TOKEN_KEY] = new_token["refreshToken"]
             self.token = new_token["token"]
+            self.set_language(new_token)
             return self.token
+
+    def set_language(self, data):
+        if data.get("productId") and data["productId"] == 10:
+            self.language = "fr-CA"
+        else:
+            self.language = "en-CA"
 
 
 register_feeding_service_parser(OnclusiveApiService.NAME, OnclusiveApiService.FeedParser)

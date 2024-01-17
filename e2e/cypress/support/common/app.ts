@@ -64,6 +64,15 @@ export function addItems(resource, items) {
     });
 }
 
+export function forceUnlockItem(itemType, itemId) {
+    cy.log('Common.App.forceUnlockItem');
+    backendRequest({
+        uri: `/e2e/force_unlock/${itemType}/${itemId}`,
+        method: 'DELETE',
+        timeout: 40000,
+    });
+}
+
 /**
  * Helper function to log into Superdesk
  */

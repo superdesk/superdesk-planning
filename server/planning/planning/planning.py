@@ -9,22 +9,28 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
+from typing import Dict, Any, Optional, List
 from bson import ObjectId
+from copy import deepcopy
+import logging
+from datetime import datetime, timedelta
+
+from flask import json, current_app as app, request
+from eve.methods.common import resolve_document_etag
 
 import superdesk
-import logging
-from flask import json, current_app as app
-from eve.methods.common import resolve_document_etag
 from superdesk.errors import SuperdeskApiError
 from planning.errors import AssignmentApiError
+
 from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE, CONTENT_STATE
 from superdesk import get_resource_service
 from superdesk.resource import not_analyzed, string_with_analyzer
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
+from superdesk.default_settings import strtobool
+
 from apps.archive.common import get_user, get_auth, update_dates_for
-from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
@@ -55,7 +61,6 @@ from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
-from datetime import datetime
 from planning.content_profiles.utils import is_field_enabled
 from superdesk import Resource
 from lxml import etree
@@ -126,6 +131,8 @@ class PlanningService(superdesk.Service):
     def on_create(self, docs):
         """Set default metadata."""
         planning_type = get_resource_service("planning_types").find_one(req=None, name="planning")
+        history_service = get_resource_service("planning_history")
+        generated_planning_items = []
         for doc in docs:
             if "guid" not in doc:
                 doc["guid"] = generate_guid(type=GUID_NEWSML)
@@ -133,18 +140,31 @@ class PlanningService(superdesk.Service):
 
             # SDCP-638
             if not doc.get("language"):
-                doc["language"] = app.config["DEFAULT_LANGUAGE"]
+                try:
+                    doc["language"] = doc["languages"][0]
+                except (KeyError, IndexError):
+                    doc["language"] = app.config["DEFAULT_LANGUAGE"]
 
             self.validate_planning(doc)
             set_original_creator(doc)
-            self._set_planning_event_info(doc, planning_type)
+            event = self._set_planning_event_info(doc, planning_type)
             self._set_coverage(doc)
             self.set_planning_schedule(doc)
             # set timestamps
             update_dates_for(doc)
 
-            if doc["state"] == "ingested":
-                get_resource_service("planning_history").on_item_created([doc])
+            is_ingested = doc["state"] == "ingested"
+            if is_ingested:
+                history_service.on_item_created([doc])
+
+            if event and request and strtobool(request.args.get("add_to_series", "false")):
+                new_plans = self._add_planning_to_event_series(doc, event)
+                if is_ingested:
+                    history_service.on_item_created(new_plans)
+                generated_planning_items.extend(new_plans)
+
+        if len(generated_planning_items):
+            docs.extend(generated_planning_items)
 
     def on_created(self, docs):
         session_id = get_auth().get("_id")
@@ -290,25 +310,74 @@ class PlanningService(superdesk.Service):
                 if next_schedule and next_schedule["planning"]["scheduled"] > scheduled_update["planning"]["scheduled"]:
                     raise SuperdeskApiError(message="Scheduled updates of a coverage must be after the previous update")
 
-    def _set_planning_event_info(self, doc, planning_type):
+    def _set_planning_event_info(self, doc, planning_type) -> Optional[Dict[str, Any]]:
         """Set the planning event date
 
         :param dict doc: planning document
         :param dict planning_types: planning type
         """
         event_id = doc.get("event_item")
-        event = {}
-        if event_id:
-            event = get_resource_service("events").find_one(req=None, _id=event_id)
-            if event:
-                if event.get("recurrence_id"):
-                    doc["recurrence_id"] = event.get("recurrence_id")
-                # populate headline using name
-                if event.get("name") and is_field_enabled("headline", planning_type):
-                    doc.setdefault("headline", event["name"])
 
-                if event.get(TO_BE_CONFIRMED_FIELD):
-                    doc[TO_BE_CONFIRMED_FIELD] = True
+        if not event_id:
+            return None
+
+        event = get_resource_service("events").find_one(req=None, _id=event_id)
+
+        if not event:
+            plan_id = doc.get("_id")
+            logger.warning(f"Failed to find linked event {event_id} for planning {plan_id}")
+            return None
+
+        if event.get("recurrence_id"):
+            doc["recurrence_id"] = event.get("recurrence_id")
+
+        # populate headline using name
+        if event.get("name") and is_field_enabled("headline", planning_type):
+            doc.setdefault("headline", event["name"])
+
+        if event.get(TO_BE_CONFIRMED_FIELD):
+            doc[TO_BE_CONFIRMED_FIELD] = True
+
+        return event
+
+    def _add_planning_to_event_series(self, plan, event) -> List[Dict[str, Any]]:
+        recurrence_id = event.get("recurrence_id")
+        if not recurrence_id:
+            # Not a series of Events, can safely return
+            return []
+
+        planning_date_relative = plan["planning_date"] - event["dates"]["start"]
+        items = []
+        for series_entry in get_resource_service("events").find(where={"recurrence_id": recurrence_id}):
+            if series_entry["_id"] == event["_id"]:
+                # This is the Event that was provided
+                # We assume a Planning item was already created for this Event
+                continue
+
+            new_plan = deepcopy(plan)
+
+            # Set the Planning & Event IDs for the new item
+            new_plan["guid"] = new_plan["_id"] = generate_guid(type=GUID_NEWSML)
+            new_plan["event_item"] = series_entry["_id"]
+            new_plan["recurrence_id"] = recurrence_id
+
+            # Set the Planning date/time relative to the Event start date/time
+            new_plan["planning_date"] = series_entry["dates"]["start"] + planning_date_relative
+            for coverage in new_plan.get("coverages") or []:
+                # Remove the Coverage and Assignment IDs (as these will be created for us in ``self._set_coverage``)
+                coverage.pop("coverage_id", None)
+                (coverage.get("assigned_to") or {}).pop("assignment_id", None)
+
+                # Set the scheduled date/time relative to the Event start date/time
+                coverage_date_relative = coverage["planning"]["scheduled"] - event["dates"]["start"]
+                coverage["planning"]["scheduled"] = series_entry["dates"]["start"] + coverage_date_relative
+
+            self._set_coverage(new_plan)
+            self.set_planning_schedule(new_plan)
+
+            items.append(new_plan)
+
+        return items
 
     def _get_added_removed_agendas(self, updates, original):
         updated_agendas = [str(a) for a in (updates.get("agendas") or [])]
@@ -443,6 +512,7 @@ class PlanningService(superdesk.Service):
         if assignment and assignment.get("state") not in [
             WORKFLOW_STATE.DRAFT,
             WORKFLOW_STATE.CANCELLED,
+            None,
         ]:
             raise SuperdeskApiError.badRequestError(
                 "Assignment already exists. {} cannot be deleted.".format(entity_type.capitalize())
@@ -618,6 +688,9 @@ class PlanningService(superdesk.Service):
             self._create_update_assignment(original, updates, coverage, original_coverage)
 
     def _set_coverage(self, updates, original=None):
+        if "coverages" not in updates:
+            return
+
         if not original:
             original = {}
 
@@ -718,7 +791,7 @@ class PlanningService(superdesk.Service):
         planning_id = planning.get(config.ID_FIELD)
 
         doc = deepcopy(original)
-        doc.update(updates)
+        doc.update(deepcopy(updates))
         assignment_service = get_resource_service("assignments")
         assigned_to = updates.get("assigned_to") or original.get("assigned_to")
         new_assignment_id = None
@@ -732,6 +805,29 @@ class PlanningService(superdesk.Service):
         coverage_status = updates.get("workflow_status", original.get("workflow_status"))
         is_coverage_draft = coverage_status == WORKFLOW_STATE.DRAFT
 
+        translations = planning.get("translations")
+        translated_value = {}
+        translated_name = ""
+        doc.setdefault("planning", {})
+        if translations is not None and doc["planning"].get("language") is not None:
+            translated_value.update(
+                {
+                    entry["field"]: entry["value"]
+                    for entry in translations or []
+                    if entry["language"] == doc["planning"]["language"]
+                }
+            )
+
+            translated_name = translated_value.get("name", translated_value.get("headline"))
+            doc["planning"].update(
+                {
+                    key: val
+                    for key, val in translated_value.items()
+                    if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
+                    and doc["planning"].get(key) is None
+                }
+            )
+
         if not assigned_to.get("assignment_id") and (assigned_to.get("user") or assigned_to.get("desk")):
             # Creating a new assignment
             assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT if is_coverage_draft else ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
@@ -739,6 +835,9 @@ class PlanningService(superdesk.Service):
                 # In case of article_rewrites, this will be 'in_progress' directly
                 if assigned_to.get("state") and assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                     assign_state = assigned_to.get("state")
+
+            if translated_value and translated_name and "headline" not in doc["planning"]:
+                doc["planning"]["headline"] = translated_name
 
             assignment = {
                 "assigned_to": {
@@ -753,6 +852,8 @@ class PlanningService(superdesk.Service):
                 "priority": assigned_to.get("priority", DEFAULT_ASSIGNMENT_PRIORITY),
                 "description_text": planning.get("description_text"),
             }
+            if translated_value and translated_name and assignment.get("name") != translated_value.get("name"):
+                assignment["name"] = translated_name
 
             if doc.get("scheduled_update_id"):
                 assignment["scheduled_update_id"] = doc["scheduled_update_id"]
@@ -843,7 +944,7 @@ class PlanningService(superdesk.Service):
 
             # If the Planning name has been changed
             if planning_original.get("name") != planning_updates.get("name"):
-                assignment["name"] = planning["name"]
+                assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
@@ -1073,7 +1174,9 @@ class PlanningService(superdesk.Service):
         deleted_assignments = []
         assignment_service = get_resource_service("assignments")
         for coverage in coverages:
-            assign_id = coverage["assigned_to"]["assignment_id"]
+            assign_id = coverage["assigned_to"].get("assignment_id")
+            if not assign_id:
+                continue
             assign_planning = coverage.get("planning")
             try:
                 assignment_service.delete_action(lookup={"_id": assign_id})
@@ -1423,8 +1526,9 @@ coverage_schema = {
             "language": metadata_schema["language"],
             "slugline": metadata_schema["slugline"],
             "subject": metadata_schema["subject"],
-            "internal_note": {"type": "string"},
+            "internal_note": {"type": "string", "nullable": True},
             "workflow_status_reason": {"type": "string", "nullable": True},
+            "priority": metadata_schema["priority"],
         },  # end planning dict schema
     },  # end planning
     "news_coverage_status": {
@@ -1441,6 +1545,7 @@ coverage_schema = {
     "assigned_to": assigned_to_schema,
     "flags": {
         "type": "dict",
+        "allow_unknown": True,
         "schema": {"no_content_linking": {"type": "boolean", "default": False}},
     },
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
@@ -1466,7 +1571,7 @@ coverage_schema = {
                 "planning": {
                     "type": "dict",
                     "schema": {
-                        "internal_note": {"type": "string"},
+                        "internal_note": {"type": "string", "nullable": True},
                         "contact_info": Resource.rel("contacts", type="string", nullable=True),
                         "scheduled": {"type": "datetime"},
                         "genre": metadata_schema["genre"],
@@ -1531,7 +1636,7 @@ planning_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": string_with_analyzer,
+                "value": metadata_schema["slugline"]["mapping"],
             },
         },
     },
@@ -1566,16 +1671,7 @@ planning_schema = {
                 "planning": {
                     "type": "object",
                     "properties": {
-                        "slugline": {
-                            "type": "string",
-                            "fields": {
-                                "phrase": {
-                                    "type": "string",
-                                    "analyzer": "phrase_prefix_analyzer",
-                                    "search_analyzer": "phrase_prefix_analyzer",
-                                }
-                            },
-                        },
+                        "slugline": metadata_schema["slugline"]["mapping"],
                     },
                 },
                 "assigned_to": assigned_to_schema["mapping"],
@@ -1649,6 +1745,7 @@ planning_schema = {
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
     "_type": {"type": "string", "mapping": None},
     "extra": metadata_schema["extra"],
+    "versionposted": {"type": "datetime", "nullable": False},
 }  # end planning_schema
 
 

@@ -36,6 +36,7 @@ from .common import (
     get_planning_use_xmp_for_pic_slugline,
     get_planning_allowed_coverage_link_types,
     get_planning_auto_close_popup_editor,
+    get_config_default_create_planning_series_with_event_series,
 )
 from apps.common.components.utils import register_component
 from .item_lock import LockService
@@ -73,6 +74,8 @@ import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 import planning.io  # noqa
 from planning.planning_download import init_app as init_planning_download_app
+from planning.planning_locks import init_app as init_planning_locks_app
+from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
 
 __version__ = "2.7.0-dev"
 
@@ -110,6 +113,8 @@ def init_app(app):
     init_search_app(app)
     init_validator_app(app)
     init_planning_download_app(app)
+    init_planning_locks_app(app)
+    init_planning_autocomplete_app(app)
 
     superdesk.register_resource(
         "planning_article_export",
@@ -231,6 +236,9 @@ def init_app(app):
 
     app.client_config.setdefault("planning", {})
     app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types(app)
+    app.client_config["planning"][
+        "default_create_planning_series_with_event_series"
+    ] = get_config_default_create_planning_series_with_event_series(app)
 
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):

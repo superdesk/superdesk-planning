@@ -3,12 +3,14 @@ import {connect} from 'react-redux';
 import {get, cloneDeep, isEmpty} from 'lodash';
 
 import {IPlanningItem, IPlanningProfile} from '../../../interfaces';
+import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {formProfile} from '../../../validators';
 import {isItemCancelled, gettext} from '../../../utils';
 import {PLANNING} from '../../../constants';
+import {onItemActionModalHide} from './utils';
 
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
@@ -147,18 +149,17 @@ const mapDispatchToProps = (dispatch) => ({
         return dispatch(cancelDispatch(original, updates))
             .then((updatedPlan: IPlanningItem) => {
                 if (cancelBasedLocks.includes(original.lock_action) || isItemCancelled(updatedPlan)) {
-                    return dispatch(actions.planning.api.unlock(updatedPlan));
+                    return planningApi.locks.unlockItem(updatedPlan);
                 }
 
                 return Promise.resolve(updatedPlan);
             });
     },
-
-    onHide: (planning: IPlanningItem) => {
-        if (cancelBasedLocks.includes(planning.lock_action)) {
-            dispatch(actions.planning.api.unlock(planning));
-        }
-    },
+    onHide: (original: IPlanningItem, modalProps) => onItemActionModalHide(
+        original,
+        cancelBasedLocks.includes(original.lock_action),
+        modalProps,
+    ),
 });
 
 export const CancelPlanningCoveragesForm = connect(

@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import Resource
-from superdesk.resource import not_analyzed, string_with_analyzer
+from superdesk.resource import not_analyzed, not_enabled
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
@@ -20,6 +20,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_FIELD_SCHEMA,
 )
+from planning.planning.planning import planning_schema as original_planning_schema
 
 event_type = deepcopy(Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -28,6 +29,9 @@ planning_type = deepcopy(Resource.rel("planning", type="string"))
 planning_type["mapping"] = not_analyzed
 original_creator_schema = metadata_schema["original_creator"]
 original_creator_schema.update({"nullable": True})
+
+planning_schema = deepcopy(original_planning_schema)
+planning_schema["event_item"] = {"type": "string"}
 
 events_schema = {
     # Identifiers
@@ -90,6 +94,7 @@ events_schema = {
         },
     },
     "links": {"type": "list", "nullable": True},
+    "priority": metadata_schema["priority"],
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
     "dates": {
         "type": "dict",
@@ -102,7 +107,10 @@ events_schema = {
                 "type": "datetime",
                 "nullable": True,
             },
-            "tz": {"type": "string"},
+            "tz": {
+                "type": "string",
+                "nullable": True,
+            },
             "end_tz": {"type": "string"},
             "all_day": {"type": "boolean"},
             "no_end_time": {"type": "boolean"},
@@ -254,6 +262,7 @@ events_schema = {
         "nullable": True,
         "mapping": {
             "type": "object",
+            "dynamic": False,
             "properties": {
                 "qcode": not_analyzed,
                 "name": not_analyzed,
@@ -324,7 +333,40 @@ events_schema = {
             "properties": {
                 "field": not_analyzed,
                 "language": not_analyzed,
-                "value": string_with_analyzer,
+                "value": metadata_schema["slugline"]["mapping"],
+            },
+        },
+    },
+    # This is used from the EmbeddedCoverage form in the Event editor
+    # This list is NOT stored with the Event
+    "embedded_planning": {
+        "type": "list",
+        "required": False,
+        "mapping": not_enabled,
+        "schema": {
+            "type": "dict",
+            "schema": {
+                "planning_id": {"type": "string"},
+                "coverages": {
+                    "type": "list",
+                    "schema": {
+                        "type": "dict",
+                        "schema": {
+                            "coverage_id": {"type": "string"},
+                            "g2_content_type": {"type": "string"},
+                            "news_coverage_status": {"type": "string"},
+                            "scheduled": {"type": "datetime"},
+                            "desk": {"type": "string", "nullable": True},
+                            "user": {"type": "string", "nullable": True},
+                            "language": {"type": "string", "nullable": True},
+                            "genre": {"type": "string", "nullable": True},
+                            "slugline": {"type": "string", "nullable": True},
+                            "ednote": {"type": "string", "nullable": True},
+                            "internal_note": {"type": "string", "nullable": True},
+                            "priority": {"type": "integer", "nullable": True},
+                        },
+                    },
+                },
             },
         },
     },

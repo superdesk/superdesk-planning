@@ -99,7 +99,7 @@ class EventsBaseService(BaseService):
         updates.pop("skip_on_update", None)
         return self.backend.update(self.datasource, id, updates, original)
 
-    def on_updated(self, updates, original):
+    def on_updated(self, updates, original, update_post=True):
         # Because we require the original item being actioned against to be locked
         # then we can check the lock information of original and updates to check if this
         # event was the original event.
@@ -113,11 +113,13 @@ class EventsBaseService(BaseService):
                     lock_session=str(get_auth().get("_id")),
                     etag=updates.get("_etag"),
                     recurrence_id=original.get("recurrence_id") or None,
+                    type=original.get("type"),
                 )
 
             self.push_notification(self.ACTION, updates, original)
 
-        update_post_item(updates, original)
+        if update_post:
+            update_post_item(updates, original)
 
     def update_single_event(self, updates, original):
         pass

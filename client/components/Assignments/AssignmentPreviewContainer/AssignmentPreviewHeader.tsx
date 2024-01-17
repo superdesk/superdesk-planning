@@ -9,7 +9,6 @@ import {assignmentUtils, planningUtils, gettext, stringUtils} from '../../../uti
 import {Item, Column, Row} from '../../UI/List';
 import {ContentBlock, ContentBlockInner, Tools} from '../../UI/SidePanel';
 import {
-    UserAvatar,
     AbsoluteDate,
     PriorityLabel,
     StateLabel,
@@ -18,6 +17,7 @@ import {
     ItemActionsMenu,
     Label,
 } from '../../';
+import {UserAvatar} from '../../../components/UserAvatar';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 export const AssignmentPreviewHeader = ({
@@ -77,10 +77,7 @@ export const AssignmentPreviewHeader = ({
                                 <Column border={false}>
                                     <UserAvatar
                                         user={assignedUser}
-                                        large={true}
-                                        noMargin={true}
-                                        initials={false}
-                                        showInactive
+                                        size="large"
                                     />
                                 </Column>
                             )

@@ -19,6 +19,7 @@ from superdesk.metadata.utils import item_url
 
 from planning.planning.planning import planning_schema
 from planning.events.events_schema import events_schema
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class PlanningSearchService(superdesk.Service):
 
     def _get_date_fields(self, resource: str):
         datasource = self.elastic.get_datasource(resource)
-        schema = {}
+        schema: Dict[str, Any] = {}
         schema.update(app.config["DOMAIN"][datasource[0]].get("schema", {}))
         schema.update(app.config["DOMAIN"][resource].get("schema", {}))
         return get_dates(schema)

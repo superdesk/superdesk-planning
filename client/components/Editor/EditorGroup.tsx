@@ -117,6 +117,10 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         const group = this.props.group;
         const testId = `editor--group__${group.id}`;
         const profile = this.getProfile();
+
+        const editor = planningApi.editor(this.props.editorType);
+        const coverageProfile = editor.item.planning.getCoverageFields();
+
         const renderedFields = renderFieldsForPanel(
             'editor',
             profile,
@@ -126,7 +130,8 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
             null,
             'enabled',
             this.editorApi.dom.fields,
-            this.props.schema
+            this.props.schema,
+            coverageProfile,
         );
 
         return group.useToggleBox ? (

@@ -1,22 +1,29 @@
+import {cloneDeep} from 'lodash';
+
 import {
     FILTER_TYPE, IEventItem,
-    IFeaturedPlanningLock, IG2ContentType,
+    IG2ContentType,
     IPlanningAPI,
+    IPlanningCoverageItem,
     IPlanningItem,
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    LOCK_STATE,
+    IPlanningConfig,
 } from '../interfaces';
+import {appConfig as config} from 'appConfig';
+
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToString} from './search';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
-import {planningUtils} from '../utils';
+import {planningUtils, getErrorMessage} from '../utils';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
-import {PLANNING, POST_STATE} from '../constants';
+import {PLANNING} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
+
+const appConfig = config as IPlanningConfig;
 
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -32,6 +39,8 @@ function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams>
         g2_content_type: params.g2_content_type?.qcode,
         source: cvsToString(params.source, 'id'),
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status,
+        priority: arrayToString(params.priority),
     };
 }
 
@@ -128,35 +137,6 @@ export function getPlanningByIds(
         .then((response) => response._items);
 }
 
-export function getLockedPlanningItems(): Promise<Array<IPlanningItem>> {
-    return searchPlanningGetAll({
-        lock_state: LOCK_STATE.LOCKED,
-        directly_locked: true,
-        only_future: false,
-        include_killed: true,
-    });
-}
-
-export function getLockedFeaturedPlanning(): Promise<Array<IFeaturedPlanningLock>> {
-    return superdeskApi.dataApi.queryRawJson<IRestApiResponse<IFeaturedPlanningLock>>(
-        'planning_featured_lock',
-        {
-            source: JSON.stringify({
-                query: {
-                    constant_score: {
-                        filter: {
-                            exists: {
-                                field: 'lock_session',
-                            },
-                        },
-                    },
-                },
-            })
-        }
-    )
-        .then((response) => response._items);
-}
-
 function getPlanningEditorProfile() {
     return planningProfile(planningApi.redux.store.getState());
 }
@@ -165,14 +145,11 @@ function getPlanningSearchProfile() {
     return planningSearchProfile(planningApi.redux.store.getState());
 }
 
-function create(updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
-    // If the Planning item has coverages, then we need to create the Planning first
-    // before saving the coverages
-    // As Assignments are created and require a Planning ID
-    return !updates.coverages?.length ?
-        superdeskApi.dataApi.create<IPlanningItem>('planning', updates) :
-        superdeskApi.dataApi.create<IPlanningItem>('planning', {...updates, coverages: []})
-            .then((item) => update(item, updates));
+function create(updates: Partial<IPlanningItem>, addToSeries?: boolean): Promise<IPlanningItem> {
+    return superdeskApi.dataApi.create<IPlanningItem>(
+        addToSeries === true ? 'planning?add_to_series=true' : 'planning',
+        updates
+    );
 }
 
 function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
@@ -184,20 +161,23 @@ function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promi
 }
 
 function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
-    return create(planningUtils.modifyForServer({
-        slugline: event.slugline,
-        planning_date: event._sortDate ?? event.dates.start,
-        internal_note: event.internal_note,
-        name: event.name,
-        place: event.place,
-        subject: event.subject,
-        anpa_category: event.anpa_category,
-        description_text: event.definition_short,
-        ednote: event.ednote,
-        language: event.language,
-        ...updates,
-        event_item: event._id,
-    }));
+    return create(
+        planningUtils.modifyForServer({
+            slugline: event.slugline,
+            planning_date: event._sortDate ?? event.dates.start,
+            internal_note: event.internal_note,
+            name: event.name,
+            place: event.place,
+            subject: event.subject,
+            anpa_category: event.anpa_category,
+            description_text: event.definition_short,
+            ednote: event.ednote,
+            language: event.language,
+            ...updates,
+            event_item: event._id,
+        }),
+        appConfig.planning.default_create_planning_series_with_event_series === true,
+    );
 }
 
 function setDefaultValues(
@@ -220,13 +200,42 @@ function setDefaultValues(
     );
 }
 
+function addCoverageToWorkflow(
+    plan: IPlanningItem,
+    coverage: IPlanningCoverageItem,
+    index: number
+): Promise<IPlanningItem> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const {gettext} = superdeskApi.localization;
+    const {notify} = superdeskApi.ui;
+
+    const coverageStatuses = selectors.general.newsCoverageStatus(getState());
+    const updates = {coverages: cloneDeep(plan.coverages)};
+
+    updates.coverages[index] = planningUtils.getActiveCoverage(coverage, coverageStatuses);
+
+    return planning.update(plan, updates)
+        .then((updatedPlan) => {
+            notify.success(gettext('Coverage added to workflow.'));
+            dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
+
+            return updatedPlan;
+        })
+        .catch((error) => {
+            notify.error(getErrorMessage(
+                error,
+                gettext('Failed to add coverage to workflow')
+            ));
+
+            return Promise.reject(error);
+        });
+}
+
 export const planning: IPlanningAPI['planning'] = {
     search: searchPlanning,
     searchGetAll: searchPlanningGetAll,
     getById: getPlanningById,
     getByIds: getPlanningByIds,
-    getLocked: getLockedPlanningItems,
-    getLockedFeatured: getLockedFeaturedPlanning,
     getEditorProfile: getPlanningEditorProfile,
     getSearchProfile: getPlanningSearchProfile,
     featured: featured,
@@ -235,5 +244,6 @@ export const planning: IPlanningAPI['planning'] = {
     createFromEvent: createFromEvent,
     coverages: {
         setDefaultValues: setDefaultValues,
+        addCoverageToWorkflow: addCoverageToWorkflow,
     },
 };

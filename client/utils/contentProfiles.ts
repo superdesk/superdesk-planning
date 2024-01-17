@@ -235,6 +235,8 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Accreditation Info');
     case 'accreditation_deadline':
         return gettext('Accreditation Deadline');
+    case 'priority':
+        return gettext('Priority');
     }
 
     return field;

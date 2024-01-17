@@ -52,8 +52,7 @@ import {EditorFieldNoContentLinking} from './NoContentLinking';
 import {EditorFieldCoverageContact} from './CoverageContact';
 import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
-import {EditorFieldCustomVocabularies} from './CustomVocabularies';
-import {EditCoverageAssignmentModalComponent} from 'components/Assignments/EditCoverageAssignmentModal';
+import {CustomVocabulariesComponent} from './CustomVocabularies';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
@@ -147,4 +146,5 @@ export const FIELD_TO_EDITOR_COMPONENT = {
 };
 
 // Import resource fields so that registration happens after the above
-import '../resources/index';
+import '../resources/index';import {EditCoverageAssignmentModalComponent} from 'components/Assignments/EditCoverageAssignmentModal';
+

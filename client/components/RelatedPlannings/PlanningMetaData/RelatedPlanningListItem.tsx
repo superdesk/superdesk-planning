@@ -6,14 +6,14 @@ import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {ICON_COLORS} from '../../../constants';
 
-import {planningUtils} from '../../../utils';
+import {planningUtils, lockUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 
 import * as List from '../../UI/List';
 import {ItemIcon} from '../../ItemIcon';
 import {AgendaNameList} from '../../Agendas';
-import {CoverageIcon} from '../../Coverages';
 import {StateLabel} from '../../StateLabel';
+import {CoverageIcons} from '../../Coverages/CoverageIcons';
 
 interface IProps {
     item: DeepPartial<IPlanningItem>;
@@ -42,7 +42,7 @@ const mapStateToProps = (state) => ({
 class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const isItemLocked = planningUtils.isPlanningLocked(
+        const isItemLocked = lockUtils.isItemLocked(
             this.props.item,
             this.props.lockedItems
         );
@@ -87,15 +87,12 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                 <List.Column>
                     <List.Row>
                         <span className="sd-no-wrap sd-list-item__icon-group">
-                            {(this.props.item.coverages ?? []).map((coverage, index) => (
-                                <CoverageIcon
-                                    key={index}
-                                    coverage={coverage}
-                                    users={this.props.users}
-                                    desks={this.props.desks}
-                                    contentTypes={this.props.contentTypes}
-                                />
-                            ))}
+                            <CoverageIcons
+                                coverages={(this.props.item.coverages ?? [])}
+                                users={this.props.users}
+                                desks={this.props.desks}
+                                contentTypes={this.props.contentTypes}
+                            />
                         </span>
                     </List.Row>
                     <StateLabel

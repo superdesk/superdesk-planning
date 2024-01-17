@@ -449,6 +449,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     this.props.value.planning?.g2_content_type === 'text'
                 ),
             },
+            priority: {field: 'planning.priority'},
         };
 
         const profile = editor.item.planning.getCoverageFields();

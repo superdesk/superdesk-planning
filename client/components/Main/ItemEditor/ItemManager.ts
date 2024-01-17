@@ -52,7 +52,7 @@ export class ItemManager {
         this.save = this.save.bind(this);
         this.saveAndPost = this.saveAndPost.bind(this);
         this.saveAndUnpost = this.saveAndUnpost.bind(this);
-        this.lock = this.lock.bind(this);
+        // this.lock = this.lock.bind(this);
         this.unlockThenLock = this.unlockThenLock.bind(this);
         this.changeAction = this.changeAction.bind(this);
         this.addCoverage = this.addCoverage.bind(this);
@@ -358,7 +358,8 @@ export class ItemManager {
             )
                 .then((original) => {
                     initialValues = cloneDeep(original);
-                    return this.dispatch<any>(actions.locks.lock(original));
+
+                    return planningApi.locks.lockItem(original);
                 });
         } else {
             // Fetch the latest item from the API to view in read-only mode
@@ -704,11 +705,8 @@ export class ItemManager {
                     this.autoSave.remove();
 
                     // If event was created by a planning item, unlock the planning item
-                    if (get(updates, '_planning_item')) {
-                        this.dispatch<any>(actions.planning.api.unlock({
-                            _id: updates._planning_item,
-                            type: ITEM_TYPE.PLANNING,
-                        }));
+                    if (updates.type === 'event' && updates._planning_item != null) {
+                        planningApi.locks.unlockItemById(updates._planning_item, 'planning');
                     }
 
                     if (closeAfter) {
@@ -810,37 +808,24 @@ export class ItemManager {
         return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
-    lock(item: IEventOrPlanningItem) {
-        return this.dispatch<any>(
-            actions.locks.lock(item)
-        );
-    }
+    // TODO: Is this used anywhere
+    // lock(item: IEventOrPlanningItem) {
+    //     return planningApi.locks.lockItem(item);
+    // }
 
-    unlock() {
-        const {itemId, itemType} = this.props;
-        let action = actions.locks.unlock;
-
-        if (!itemId || isTemporaryId(itemId)) {
-            return Promise.resolve();
-        } else if (itemType === ITEM_TYPE.EVENT) {
-            action = actions.events.api.unlock;
-        } else if (itemType === ITEM_TYPE.PLANNING) {
-            action = actions.planning.api.unlock;
-        }
-
-        return this.dispatch<any>(action({
-            _id: itemId,
-            type: itemType,
-        }));
-    }
+    // TODO: Is this used anywhere
+    // unlock() {
+    //     return planningApi.locks.unlockItem(this.props.item);
+    // }
 
     unlockThenLock(item: IEventOrPlanningItem) {
         return this.setState({
             itemReady: false,
             loading: true,
         })
-            .then(() => this.dispatch<any>(
-                actions.locks.unlockThenLock(item, this.props.inModalView)
+            .then(() => (planningApi.locks.unlockThenLockItem(item, 'edit')))
+            .then((lockedItem) => (
+                this.dispatch<any>(actions.main.openForEdit(lockedItem, true, this.props.inModalView))
             ));
     }
 
@@ -850,15 +835,13 @@ export class ItemManager {
         let promises = [];
 
         if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
-            promises.push(this.unlock());
+            promises.push(planningApi.locks.unlockItem(this.props.item));
+            // promises.push(this.unlock());
         }
 
         // If event was created by a planning item, unlock the planning item
         if (diff?.type === 'event' && diff._planning_item) {
-            this.dispatch<any>(actions.planning.api.unlock({
-                _id: diff._planning_item,
-                type: ITEM_TYPE.PLANNING,
-            }));
+            planningApi.locks.unlockItemById(diff._planning_item, 'planning');
         }
 
         promises.push(this.autoSave.remove());
@@ -898,7 +881,7 @@ export class ItemManager {
     }
 
     addCoverageToWorkflow(planning, coverage, index) {
-        return this.dispatch<any>(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index))
+        return planningApi.planning.coverages.addCoverageToWorkflow(planning, coverage, index)
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 

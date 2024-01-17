@@ -9,7 +9,7 @@ import {stringUtils, historyUtils, getDateTimeString, getItemInArrayById, gettex
 import {Item, Column, Row, Border} from '../UI/List';
 import {ContentBlock} from '../UI/SidePanel';
 import {CollapseBox} from '../UI';
-import {CoverageIcon} from './index';
+import {CoverageIcons} from './CoverageIcons';
 
 export class CoverageHistory extends React.Component {
     getHistoryActionElement(historyItem) {
@@ -143,8 +143,8 @@ export class CoverageHistory extends React.Component {
                 <Border />
                 <Column grow={true} border={false}>
                     <Row paddingBottom>
-                        <CoverageIcon
-                            coverage={historyData}
+                        <CoverageIcons
+                            coverages={[historyData]}
                             users={users}
                             desks={desks}
                             contentTypes={contentTypes}

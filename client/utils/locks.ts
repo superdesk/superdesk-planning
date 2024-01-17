@@ -1,5 +1,3 @@
-import {isNil, get} from 'lodash';
-
 import {
     IEventItem,
     IEventOrPlanningItem,
@@ -7,23 +5,22 @@ import {
     ILockedItems,
     IPlanningItem,
     IAssignmentItem,
+    ISession,
 } from '../interfaces';
-import {ITEM_TYPE} from '../constants';
-import {getItemType, eventUtils, planningUtils, assignmentUtils, timeUtils} from './index';
+import {IUser} from 'superdesk-api';
+import {PLANNING} from '../constants';
 
-const isLockedByUser = (item, userId, action) => (
-    !isNil(get(item, 'lock_session')) &&
-        get(item, 'lock_user') === userId &&
-        (!action || get(item, 'lock_action') === action)
-);
-
-const getLockedUser = (item, lockedItems, users) => {
+function getLockedUser(
+    item: IEventOrPlanningItem | IAssignmentItem,
+    lockedItems: ILockedItems,
+    users: Array<IUser>
+): IUser | null {
     const lock = self.getLock(item, lockedItems);
 
     return (lock !== null && Array.isArray(users) && users.length > 0) ?
         users.find((u) => (u._id === lock.user)) || null :
         null;
-};
+}
 
 function getLock(item: IEventOrPlanningItem | IAssignmentItem | null, lockedItems: ILockedItems): ILock | null {
     if (item?._id == null) {
@@ -35,15 +32,6 @@ function getLock(item: IEventOrPlanningItem | IAssignmentItem | null, lockedItem
     } else if (item.type === 'assignment') {
         if (lockedItems.assignment[item._id] != null) {
             return lockedItems.assignment[item._id];
-        } else if (item.lock_session != null) {
-            return {
-                action: item.lock_action,
-                item_id: item._id,
-                item_type: item.type,
-                session: item.lock_session,
-                time: item.lock_time == null ? undefined : timeUtils.getDateAsString(item.lock_time),
-                user: item.lock_user,
-            };
         }
     }
 
@@ -57,15 +45,6 @@ function getEventLock(item: IEventItem | null, lockedItems: ILockedItems): ILock
         return lockedItems.recurring[item.recurrence_id];
     } else if (lockedItems.event[item._id] != null) {
         return lockedItems.event[item._id];
-    } else if (item.lock_session != null) {
-        return {
-            action: item.lock_action,
-            item_id: item._id,
-            item_type: item.type,
-            session: item.lock_session,
-            time: item.lock_time == null ? undefined : timeUtils.getDateAsString(item.lock_time),
-            user: item.lock_user,
-        };
     }
 
     return null;
@@ -80,69 +59,73 @@ function getPlanningLock(item: IPlanningItem | null, lockedItems: ILockedItems):
         return lockedItems.recurring[item.recurrence_id];
     } else if (item.event_item != null && lockedItems.event[item.event_item] != null) {
         return lockedItems.event[item.event_item];
-    } else if (item.lock_session != null) {
-        return {
-            action: item.lock_action,
-            item_id: item._id,
-            item_type: item.type,
-            session: item.lock_session,
-            time: item.lock_time == null ? undefined : timeUtils.getDateAsString(item.lock_time),
-            user: item.lock_user,
-        };
     }
 
     return null;
 }
 
-const getLockAction = (item, lockedItems) => (
-    get(self.getLock(item, lockedItems), 'action')
-);
+function getLockAction(item: IEventOrPlanningItem | IAssignmentItem, lockedItems: ILockedItems): string | null {
+    return self.getLock(item, lockedItems)?.action;
+}
 
-const isItemLockedInThisSession = (item, session, lockedItems = null, ignoreSession = false) => {
-    const userId = get(session, 'identity._id');
-    const sessionId = get(session, 'sessionId');
-
-    if (get(item, 'lock_user') === userId &&
-        (ignoreSession || get(item, 'lock_session') === sessionId)
-    ) {
-        return true;
-    } else if (lockedItems === null) {
-        return false;
-    }
-
+function isItemLockedInThisSession(
+    item: IEventOrPlanningItem | IAssignmentItem,
+    session: ISession,
+    lockedItems: ILockedItems,
+    ignoreSession?: boolean
+): boolean {
+    const userId = session.identity?._id;
+    const sessionId = session.sessionId;
     const lock = self.getLock(item, lockedItems);
 
-    return !!lock &&
+    return lock != null &&
         lock.user === userId &&
         (ignoreSession || lock.session === sessionId) &&
         lock.item_id === item._id;
-};
+}
 
-const isLockRestricted = (item, session, lockedItems) => {
-    switch (getItemType(item)) {
-    case ITEM_TYPE.EVENT:
-        return eventUtils.isEventLockRestricted(item, session, lockedItems);
-    case ITEM_TYPE.PLANNING:
-        return planningUtils.isPlanningLockRestricted(item, session, lockedItems);
-    case ITEM_TYPE.ASSIGNMENT:
-        return assignmentUtils.isAssignmentLockRestricted(item, session, lockedItems);
-    }
+function isLockRestricted(
+    item: IEventOrPlanningItem | IAssignmentItem,
+    session: ISession,
+    lockedItems: ILockedItems
+): boolean {
+    const lock = self.getLock(item, lockedItems);
+    const userId = session.identity?._id;
+    const sessionId = session.sessionId;
 
-    return false;
-};
+    return lock != null && !(
+        lock.user === userId &&
+        lock.session === sessionId &&
+        lock.item_id === item._id
+    );
+}
 
-const isItemLocked = (item, lockedItems) => {
-    switch (getItemType(item)) {
-    case ITEM_TYPE.EVENT:
-        return eventUtils.isEventLocked(item, lockedItems);
-    case ITEM_TYPE.PLANNING:
-        return planningUtils.isPlanningLocked(item, lockedItems);
-    case ITEM_TYPE.ASSIGNMENT:
-        return assignmentUtils.isAssignmentLocked(item, lockedItems);
-    }
+function isItemLocked(item: IEventOrPlanningItem | IAssignmentItem, lockedItems: ILockedItems): boolean {
+    return self.getLock(item, lockedItems) != null;
+}
 
-    return false;
-};
+function isLockedForAddToPlanning(item: IEventOrPlanningItem, lockedItems: ILockedItems): boolean {
+    return self.getLockAction(item, lockedItems) === PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
+}
+
+function getLockedItemIds(lockedItems: ILockedItems): Array<IEventOrPlanningItem['_id']> {
+    return [
+        ...Object.keys(lockedItems.event).map((lockId) => lockedItems.event[lockId].item_id),
+        ...Object.keys(lockedItems.recurring).map((lockId) => lockedItems.recurring[lockId].item_id),
+        ...Object.keys(lockedItems.planning).map((lockId) => lockedItems.planning[lockId].item_id),
+    ];
+}
+
+export function getLockFromItem(item: IEventOrPlanningItem): ILock {
+    return {
+        item_id: item._id,
+        item_type: item.type,
+        action: item.lock_action,
+        user: item.lock_user,
+        session: item.lock_session,
+        time: item.lock_time,
+    };
+}
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -153,8 +136,10 @@ const self = {
     getLockAction,
     isLockRestricted,
     isItemLockedInThisSession,
-    isLockedByUser,
     isItemLocked,
+    isLockedForAddToPlanning,
+    getLockedItemIds,
+    getLockFromItem,
 };
 
 export default self;

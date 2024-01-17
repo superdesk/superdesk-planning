@@ -1,6 +1,7 @@
 import {cloneDeep} from 'lodash';
 
 import {locks} from '../';
+import {lockUtils} from '../../utils';
 import * as testData from '../../utils/testData';
 
 describe('selectors.locks', () => {
@@ -53,6 +54,8 @@ describe('selectors.locks', () => {
                 _id: 'e6',
                 lock_user: users[0]._id,
                 lock_action: 'edit',
+                lock_session: sessions[1].sessionId,
+                lock_time: '2029-01-16T02:45:00+0000',
             },
             e7: {
                 _id: 'e7',
@@ -104,6 +107,8 @@ describe('selectors.locks', () => {
                 _id: 'p6',
                 lock_user: users[0]._id,
                 lock_action: 'edit',
+                lock_session: sessions[1].sessionId,
+                lock_time: '2029-01-16T02:47:00+0000',
             },
             p7: {
                 _id: 'p7',
@@ -120,12 +125,37 @@ describe('selectors.locks', () => {
 
         state.planning.plannings = lockedPlannings;
         state.events.events = lockedEvents;
+        state.locks = {
+            event: {
+                e1: lockUtils.getLockFromItem(lockedEvents.e1),
+                e2: lockUtils.getLockFromItem(lockedEvents.e2),
+                e3: lockUtils.getLockFromItem(lockedEvents.e3),
+                e4: lockUtils.getLockFromItem(lockedEvents.e4),
+                e5: lockUtils.getLockFromItem(lockedEvents.e5),
+                e6: lockUtils.getLockFromItem(lockedEvents.e6),
+                e7: lockUtils.getLockFromItem(lockedEvents.e7),
+                e8: lockUtils.getLockFromItem(lockedEvents.e8),
+            },
+            planning: {
+                p1: lockUtils.getLockFromItem(lockedPlannings.p1),
+                p2: lockUtils.getLockFromItem(lockedPlannings.p2),
+                p3: lockUtils.getLockFromItem(lockedPlannings.p3),
+                p4: lockUtils.getLockFromItem(lockedPlannings.p4),
+                p5: lockUtils.getLockFromItem(lockedPlannings.p5),
+                p6: lockUtils.getLockFromItem(lockedPlannings.p6),
+                p7: lockUtils.getLockFromItem(lockedPlannings.p7),
+                p8: lockUtils.getLockFromItem(lockedPlannings.p8),
+            },
+            recurring: {},
+            assignment: {},
+        };
     });
 
     it('getLockedPlannings returns only the locked planning items for the current user', () => {
         expect(locks.getLockedPlannings(state)).toEqual([
             lockedPlannings.p1,
             lockedPlannings.p2,
+            lockedPlannings.p6,
         ]);
     });
 
@@ -133,6 +163,7 @@ describe('selectors.locks', () => {
         expect(locks.getLockedEvents(state)).toEqual([
             lockedEvents.e1,
             lockedEvents.e2,
+            lockedEvents.e6,
         ]);
     });
 
@@ -142,6 +173,8 @@ describe('selectors.locks', () => {
             lockedEvents.e1, //    2029-01-16T02:40:00
             lockedPlannings.p2, // 2029-01-16T02:40:44
             lockedPlannings.p1, // 2029-01-16T02:41:00
+            lockedEvents.e6, //    2029-01-16T02:45:00
+            lockedPlannings.p6, // 2029-01-16T02:47:00
             lockedEvents.e2, //    2029-01-16T02:52:00
         ]);
     });

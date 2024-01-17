@@ -17,10 +17,12 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import * as selectors from '../../../selectors';
 
-import {Icon} from 'superdesk-ui-framework/react';
+import {Avatar, AvatarPlaceholder, Icon} from 'superdesk-ui-framework/react';
 import {Row} from '../../UI/Form';
 import * as List from '../../UI/List';
-import {CoverageEditor, CoverageItem, CoverageIcon} from '../../Coverages';
+import {CoverageEditor, CoverageItem} from '../../Coverages';
+import {getAvatarForCoverage, isAvatarPlaceholder} from '../../Coverages/CoverageIcons';
+
 
 interface IProps extends IBookmarkProps {
     users: Array<IUser>;
@@ -66,34 +68,37 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
     }
 
     renderForPanel() {
-        return (this.props.item?.coverages ?? []).map((coverage) => (
-            <CoverageIcon
-                key={coverage.coverage_id}
-                coverage={coverage}
-                users={this.props.users}
-                desks={this.props.desks}
-                contentTypes={this.props.contentTypes}
-                contacts={this.props.contacts}
-                tooltipDirection="right"
-                iconWrapper={(icons) => (
-                    <button
-                        type="button"
-                        className={classNames(
-                            'sd-navbtn sd-navbtn--default',
-                            'editor-bookmark',
-                            {active: this.props.active}
-                        )}
-                        tabIndex={0}
-                        aria-label={this.props.bookmark.id}
-                        onClick={() => {
-                            this.onClick(coverage);
-                        }}
-                    >
-                        {icons}
-                    </button>
-                )}
-            />
-        ));
+        return (this.props.item?.coverages ?? []).map((coverage) => {
+            const {users} = this.props;
+            const maybeAvatar = getAvatarForCoverage(coverage, users, this.props.contentTypes);
+
+            return (
+                <button
+                    key={coverage.coverage_id}
+                    type="button"
+                    className={classNames(
+                        'sd-navbtn sd-navbtn--default',
+                        'editor-bookmark',
+                        {active: this.props.active}
+                    )}
+                    tabIndex={0}
+                    aria-label={this.props.bookmark.id}
+                    onClick={() => {
+                        this.onClick(coverage);
+                    }}
+                >
+                    {
+                        isAvatarPlaceholder(maybeAvatar)
+                            ? (
+                                <AvatarPlaceholder {...maybeAvatar} size="small" />
+                            )
+                            : (
+                                <Avatar {...maybeAvatar} size="small" />
+                            )
+                    }
+                </button>
+            );
+        });
     }
 
     renderForPopup() {
@@ -150,9 +155,9 @@ class CoveragesBookmarkComponent extends React.Component<IProps, IState> {
             return null;
         }
 
-        return this.props.editorType === EDITOR_TYPE.POPUP ?
-            this.renderForPopup() :
-            this.renderForPanel();
+        return this.props.editorType === EDITOR_TYPE.POPUP
+            ? this.renderForPopup()
+            : this.renderForPanel();
     }
 }
 

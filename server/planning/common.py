@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple, Dict, Any
+from typing import NamedTuple, Dict, Any, Set, Tuple
 
 import re
 import time
@@ -238,6 +238,15 @@ def get_assignment_acceptance_email_address(current_app=None):
 
 def get_notify_self_on_assignment(current_app=None):
     return (current_app or app).config.get("PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT", False)
+
+
+def get_config_default_create_planning_series_with_event_series(current_app=None):
+    return (current_app or app).config.get("DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES", False)
+
+
+def get_config_event_fields_to_sync_with_planning(current_app=None) -> Set[str]:
+    config_value = (current_app or app).config.get("SYNC_EVENT_FIELDS_TO_PLANNING", "")
+    return set(config_value.split(",") if isinstance(config_value, str) else config_value)
 
 
 def remove_lock_information(item):

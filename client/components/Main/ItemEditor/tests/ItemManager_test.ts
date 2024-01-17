@@ -4,9 +4,8 @@ import moment from 'moment-timezone';
 
 import {appConfig} from 'appConfig';
 
-import {main, locks} from '../../../../actions';
-import eventsApi from '../../../../actions/events/api';
-import planningApi from '../../../../actions/planning/api';
+import {planningApi} from '../../../../superdeskApi';
+import {main} from '../../../../actions';
 import planningUi from '../../../../actions/planning/ui';
 
 import {EVENTS} from '../../../../constants';
@@ -96,6 +95,7 @@ describe('components.Main.ItemManager', () => {
                 defaultCalendar: [],
                 defaultPlace: [],
                 saveDiffToStore: sinon.spy(),
+                lockedItems: testData.locks,
             },
             state: {},
             setState: sinon.spy((newState, cb) => {
@@ -426,7 +426,7 @@ describe('components.Main.ItemManager', () => {
             sinon.spy(manager, 'loadItem');
             sinon.spy(manager, 'loadReadOnlyItem');
 
-            sinon.stub(locks, 'lock').callsFake(
+            sinon.stub(planningApi.locks, 'lockItem').callsFake(
                 (original) => Promise.resolve(original)
             );
             sinon.stub(main, 'fetchById').callsFake((itemId, itemType) => (
@@ -446,7 +446,7 @@ describe('components.Main.ItemManager', () => {
             restoreSinonStub(manager.loadItem);
             restoreSinonStub(manager.loadReadOnlyItem);
             restoreSinonStub(main.fetchById);
-            restoreSinonStub(locks.lock);
+            restoreSinonStub(planningApi.locks.lockItem);
         });
 
         it('createNew Event', (done) => {
@@ -553,8 +553,8 @@ describe('components.Main.ItemManager', () => {
                     expect(main.fetchById.callCount).toBe(1);
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
 
-                    expect(locks.lock.callCount).toBe(1);
-                    expect(locks.lock.args[0]).toEqual([testData.events[0]]);
+                    expect(planningApi.locks.lockItem.callCount).toBe(1);
+                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0]]);
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([
@@ -601,7 +601,7 @@ describe('components.Main.ItemManager', () => {
                         true,
                     ]);
 
-                    expect(locks.lock.callCount).toBe(0);
+                    expect(planningApi.locks.lockItem.callCount).toBe(0);
 
                     expectState({
                         initialValues: testData.events[0],
@@ -761,14 +761,14 @@ describe('components.Main.ItemManager', () => {
 
             editor.setState(states.loading);
             sinon.stub(main, 'fetchById').returns(Promise.resolve(testData.events[0]));
-            sinon.stub(locks, 'lock').returns(Promise.resolve(lockedItem));
+            sinon.stub(planningApi.locks, 'lockItem').returns(Promise.resolve(lockedItem));
             sinon.stub(manager, 'addCoverage');
             sinon.stub(manager, 'changeAction');
         });
 
         afterEach(() => {
             restoreSinonStub(main.fetchById);
-            restoreSinonStub(locks.lock);
+            restoreSinonStub(planningApi.locks.lockItem);
             restoreSinonStub(manager.addCoverage);
             restoreSinonStub(manager.changeAction);
         });
@@ -785,7 +785,7 @@ describe('components.Main.ItemManager', () => {
             manager.loadItem(editor.props)
                 .then(() => {
                     expect(main.fetchById.callCount).toBe(0);
-                    expect(locks.lock.callCount).toBe(0);
+                    expect(planningApi.locks.lockItem.callCount).toBe(0);
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([
@@ -824,8 +824,8 @@ describe('components.Main.ItemManager', () => {
                     expect(main.fetchById.callCount).toBe(1);
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
 
-                    expect(locks.lock.callCount).toBe(1);
-                    expect(locks.lock.args[0]).toEqual([testData.events[0]]);
+                    expect(planningApi.locks.lockItem.callCount).toBe(1);
+                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0]]);
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([
@@ -835,7 +835,10 @@ describe('components.Main.ItemManager', () => {
 
                     expectState({
                         initialValues: lockedItem,
-                        diff: lockedItem,
+                        diff: {
+                            ...lockedItem,
+                            associated_plannings: [testData.plannings[1]],
+                        },
                         dirty: false,
                         submitting: false,
                         itemReady: true,
@@ -860,11 +863,14 @@ describe('components.Main.ItemManager', () => {
                 .then(() => {
                     expect(main.fetchById.callCount).toBe(1);
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
-                    expect(locks.lock.callCount).toBe(0);
+                    expect(planningApi.locks.lockItem.callCount).toBe(0);
 
                     expectState({
                         initialValues: testData.events[0],
-                        diff: testData.events[0],
+                        diff: {
+                            ...testData.events[0],
+                            associated_plannings: [testData.plannings[1]],
+                        },
                         dirty: false,
                         submitting: false,
                         itemReady: true,
@@ -911,8 +917,8 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('changes the editor to read-only on failure', (done) => {
-            restoreSinonStub(locks.lock);
-            sinon.stub(locks, 'lock').returns(Promise.reject());
+            restoreSinonStub(planningApi.locks.lockItem);
+            sinon.stub(planningApi.locks, 'lockItem').returns(Promise.reject());
 
             const nextProps = {
                 itemId: 'e1',
@@ -1037,7 +1043,8 @@ describe('components.Main.ItemManager', () => {
             sinon.stub(manager, 'changeAction');
             sinon.stub(manager, 'unlockAndCancel');
             sinon.stub(manager, '_saveFromAuthoring');
-            sinon.stub(planningApi, 'unlock');
+            sinon.stub(planningApi.locks, 'unlockItem');
+            sinon.stub(planningApi.locks, 'unlockItemById');
         });
 
         afterEach(() => {
@@ -1045,7 +1052,8 @@ describe('components.Main.ItemManager', () => {
             restoreSinonStub(manager.changeAction);
             restoreSinonStub(manager.unlockAndCancel);
             restoreSinonStub(manager._saveFromAuthoring);
-            restoreSinonStub(planningApi.unlock);
+            restoreSinonStub(planningApi.locks.unlockItem);
+            restoreSinonStub(planningApi.locks.unlockItemById);
         });
 
         it('returns without saving if there are validation errors', (done) => {
@@ -1105,7 +1113,7 @@ describe('components.Main.ItemManager', () => {
                     ]);
 
                     expect(editor.autoSave.remove.callCount).toBe(1);
-                    expect(planningApi.unlock.callCount).toBe(0);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(0);
                     expect(manager.changeAction.callCount).toBe(1);
                     expect(manager.changeAction.args[0]).toEqual([
                         'edit',
@@ -1134,11 +1142,8 @@ describe('components.Main.ItemManager', () => {
 
             manager._save()
                 .then(() => {
-                    expect(planningApi.unlock.callCount).toBe(1);
-                    expect(planningApi.unlock.args[0]).toEqual([{
-                        _id: 'p1',
-                        type: 'planning',
-                    }]);
+                    expect(planningApi.locks.unlockItemById.callCount).toBe(1);
+                    expect(planningApi.locks.unlockItemById.args[0]).toEqual(['p1', 'planning']);
 
                     done();
                 })
@@ -1195,14 +1200,20 @@ describe('components.Main.ItemManager', () => {
 
                     expectState({
                         initialValues: item,
-                        diff: item,
+                        diff: {
+                            ...item,
+                            associated_plannings: [testData.plannings[1]],
+                        },
                         dirty: false,
                         submitFailed: false,
                         ...states.notLoading,
                     });
 
                     expect(editor.autoSave.saveAutosave.callCount).toBe(1);
-                    expect(editor.autoSave.saveAutosave.args[0][1]).toEqual(item);
+                    expect(editor.autoSave.saveAutosave.args[0][1]).toEqual({
+                        ...item,
+                        associated_plannings: [testData.plannings[1]],
+                    });
                     expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 
                     done();
@@ -1502,119 +1513,13 @@ describe('components.Main.ItemManager', () => {
             .catch(done.fail);
     });
 
-    describe('lock', () => {
-        afterEach(() => {
-            restoreSinonStub(locks.lock);
-        });
-
-        it('lock calls locks.lock', () => {
-            sinon.stub(locks, 'lock');
-            manager.lock(testData.events[0]);
-            expect(locks.lock.callCount).toBe(1);
-            expect(locks.lock.args[0]).toEqual([testData.events[0]]);
-        });
-    });
-
-    describe('unlock', () => {
-        beforeEach(() => {
-            sinon.stub(locks, 'unlock');
-            sinon.stub(locks, 'unlockThenLock');
-            sinon.stub(eventsApi, 'unlock');
-            sinon.stub(planningApi, 'unlock');
-        });
-
-        afterEach(() => {
-            restoreSinonStub(locks.unlock);
-            restoreSinonStub(locks.unlockThenLock);
-            restoreSinonStub(eventsApi.unlock);
-            restoreSinonStub(planningApi.unlock);
-        });
-
-        it('unlock on unknown item type calls locks.unlock', () => {
-            updateProps({
-                itemId: testData.events[0]._id,
-                itemType: 'unknown',
-            });
-            manager.unlock();
-
-            expect(eventsApi.unlock.callCount).toBe(0);
-            expect(planningApi.unlock.callCount).toBe(0);
-            expect(locks.unlock.callCount).toBe(1);
-            expect(locks.unlock.args[0]).toEqual([{
-                _id: testData.events[0]._id,
-                type: 'unknown',
-            }]);
-        });
-
-        it('unlock doesnt call any action on a temporary item', () => {
-            // No id specified
-            updateProps({itemType: newEvent.type});
-            manager.unlock();
-            expect(locks.unlock.callCount).toBe(0);
-            expect(eventsApi.unlock.callCount).toBe(0);
-            expect(planningApi.unlock.callCount).toBe(0);
-
-            // Id is for a temporary item
-            updateProps({itemId: newEvent._id});
-            manager.unlock();
-            expect(locks.unlock.callCount).toBe(0);
-            expect(eventsApi.unlock.callCount).toBe(0);
-            expect(planningApi.unlock.callCount).toBe(0);
-        });
-
-        it('unlock on Event calls events.api.unlock', () => {
-            updateProps({
-                itemId: testData.events[0]._id,
-                itemType: testData.events[0].type,
-            });
-            manager.unlock();
-
-            expect(locks.unlock.callCount).toBe(0);
-            expect(planningApi.unlock.callCount).toBe(0);
-            expect(eventsApi.unlock.callCount).toBe(1);
-            expect(eventsApi.unlock.args[0]).toEqual([{
-                _id: testData.events[0]._id,
-                type: testData.events[0].type,
-            }]);
-        });
-
-        it('unlock on Planning calls planning.api.unlock', () => {
-            updateProps({
-                itemId: testData.plannings[0]._id,
-                itemType: testData.plannings[0].type,
-            });
-            manager.unlock();
-
-            expect(locks.unlock.callCount).toBe(0);
-            expect(eventsApi.unlock.callCount).toBe(0);
-            expect(planningApi.unlock.callCount).toBe(1);
-            expect(planningApi.unlock.args[0]).toEqual([{
-                _id: testData.plannings[0]._id,
-                type: testData.plannings[0].type,
-            }]);
-        });
-
-        it('unlockThenLock calls locks.unlockThenLock', (done) => {
-            manager.unlockThenLock(testData.events[0])
-                .then(() => {
-                    expect(locks.unlockThenLock.callCount).toBe(1);
-                    expect(locks.unlockThenLock.args[0]).toEqual([testData.events[0], false]);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
     describe('unlockAndCancel', () => {
         beforeEach(() => {
-            sinon.stub(manager, 'unlock').returns(Promise.resolve());
-            sinon.stub(planningApi, 'unlock').returns(Promise.resolve());
+            sinon.stub(planningApi.locks, 'unlockItem').returns(Promise.resolve());
         });
 
         afterEach(() => {
-            restoreSinonStub(manager.unlock);
-            restoreSinonStub(planningApi.unlock);
+            restoreSinonStub(planningApi.locks.unlockItem);
         });
 
         it('doesnt call unlock if the item isnt locked', (done) => {
@@ -1625,7 +1530,7 @@ describe('components.Main.ItemManager', () => {
 
             manager.unlockAndCancel()
                 .then(() => {
-                    expect(manager.unlock.callCount).toBe(0);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
                     done();
                 })
@@ -1648,8 +1553,7 @@ describe('components.Main.ItemManager', () => {
 
             manager.unlockAndCancel()
                 .then(() => {
-                    expect(manager.unlock.callCount).toBe(1);
-                    expect(planningApi.unlock.callCount).toBe(0);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(0);
                     expect(editor.autoSave.remove.callCount).toBe(1);
                     expect(editor.closeEditor.callCount).toBe(1);
 
@@ -1671,8 +1575,7 @@ describe('components.Main.ItemManager', () => {
 
             manager.unlockAndCancel()
                 .then(() => {
-                    expect(manager.unlock.callCount).toBe(0);
-                    expect(planningApi.unlock.callCount).toBe(1);
+                    expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
                     done();
                 })
@@ -1726,7 +1629,7 @@ describe('components.Main.ItemManager', () => {
     describe('addCoverageToWorkflow/removeAssignment', () => {
         beforeEach(() => {
             sinon.stub(manager, 'finalisePartialSave');
-            sinon.stub(planningUi, 'addCoverageToWorkflow')
+            sinon.stub(planningApi.planning.coverages, 'addCoverageToWorkflow')
                 .callsFake((planning, coverage, index) => {
                     const updates = {
                         ...cloneDeep(planning),
@@ -1760,7 +1663,7 @@ describe('components.Main.ItemManager', () => {
 
         afterEach(() => {
             restoreSinonStub(manager.finalisePartialSave);
-            restoreSinonStub(planningUi.addCoverageToWorkflow);
+            restoreSinonStub(planningApi.planning.coverages.addCoverageToWorkflow);
             restoreSinonStub(planningUi.removeAssignment);
         });
 
@@ -1771,8 +1674,8 @@ describe('components.Main.ItemManager', () => {
                 1
             )
                 .then(() => {
-                    expect(planningUi.addCoverageToWorkflow.callCount).toBe(1);
-                    expect(planningUi.addCoverageToWorkflow.args[0]).toEqual([
+                    expect(planningApi.planning.coverages.addCoverageToWorkflow.callCount).toBe(1);
+                    expect(planningApi.planning.coverages.addCoverageToWorkflow.args[0]).toEqual([
                         testData.plannings[0],
                         testData.plannings[0].coverages[1],
                         1,

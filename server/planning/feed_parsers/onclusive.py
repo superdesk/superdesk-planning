@@ -12,7 +12,7 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.errors import ParserError
-from superdesk.utc import utcnow
+from superdesk.utc import utcnow, local_to_utc
 from planning.common import POST_STATE
 from flask import current_app as app
 
@@ -51,33 +51,36 @@ class OnclusiveFeedParser(FeedParser):
             return False
 
     def parse(self, content, provider=None):
-        try:
-            all_events = []
-            for event in content:
-                guid = "urn:onclusive:{}".format(event["itemId"])
+        all_events = []
+        for event in content:
+            logger.info(
+                "Parsing event id=%s updated=%s deleted=%s",
+                event["itemId"],
+                event["lastEditDateUtc"].split(".")[0],
+                event["deleted"],
+            )
 
-                item = {
-                    GUID_FIELD: guid,
-                    ITEM_TYPE: CONTENT_TYPE.EVENT,
-                    "state": CONTENT_STATE.INGESTED,
-                }
+            guid = "urn:onclusive:{}".format(event["itemId"])
 
-                try:
-                    self.set_occur_status(item)
-                    self.parse_item_meta(event, item)
-                    self.parse_location(event, item)
-                    self.parse_event_details(event, item)
-                    self.parse_category(event, item)
-                    self.parse_contact_info(event, item)
-                    all_events.append(item)
-                except EmbargoedException:
-                    logger.info("Ignoring embargoed event %s", event["itemId"])
-                except (KeyError, IndexError, TypeError) as error:
-                    logger.exception("error %s ingesting event %s", error, event)
-            return all_events
+            item = {
+                GUID_FIELD: guid,
+                ITEM_TYPE: CONTENT_TYPE.EVENT,
+                "state": CONTENT_STATE.INGESTED,
+            }
 
-        except Exception as ex:
-            raise ParserError.parseMessageError(ex, provider)
+            try:
+                self.set_occur_status(item)
+                self.parse_item_meta(event, item)
+                self.parse_location(event, item)
+                self.parse_event_details(event, item)
+                self.parse_category(event, item)
+                self.parse_contact_info(event, item)
+                all_events.append(item)
+            except EmbargoedException:
+                logger.info("Ignoring embargoed event %s", event["itemId"])
+            except Exception as error:
+                logger.exception("error %s when parsing event %s", error, event["itemId"], extra=dict(event=event))
+        return all_events
 
     def set_occur_status(self, item):
         eocstat_map = get_resource_service("vocabularies").find_one(req=None, _id="eventoccurstatus")
@@ -96,8 +99,8 @@ class OnclusiveFeedParser(FeedParser):
 
     def parse_item_meta(self, event, item):
         item["pubstatus"] = POST_STATE.CANCELLED if event.get("deleted") else POST_STATE.USABLE
-        item["versioncreated"] = self.datetime(event["lastEditDate"])
-        item["firstcreated"] = self.datetime(event["createdDate"])
+        item["versioncreated"] = self.server_datetime(event["lastEditDate"], event.get("lastEditDateUtc"))
+        item["firstcreated"] = self.server_datetime(event["createdDate"], event.get("createdDateUtc"))
         item["name"] = (
             event["summary"] if (event["summary"] is not None and event["summary"] != "") else event["description"]
         )
@@ -106,7 +109,8 @@ class OnclusiveFeedParser(FeedParser):
         )
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
-        item["language"] = event.get("locale") or self.default_locale
+        if event.get("locale"):
+            item["language"] = event["locale"].split("-")[0]
         if event.get("embargoTime") and event.get("timezone") and event["timezone"].get("timezoneOffset"):
             tz = datetime.timezone(datetime.timedelta(hours=event["timezone"]["timezoneOffset"]))
             embargoed = datetime.datetime.fromisoformat(event["embargoTime"]).replace(tzinfo=tz)
@@ -116,40 +120,52 @@ class OnclusiveFeedParser(FeedParser):
     def parse_event_details(self, event, item):
         if event.get("time"):
             start_date = self.datetime(event["startDate"], event.get("time"), event["timezone"])
-            end_date = self.datetime(event["endDate"], "23:59:59", event["timezone"])
+            end_date = self.datetime(event["endDate"], timezone=event["timezone"])
             tz = self.parse_timezone(start_date, event)
             item["dates"] = dict(
                 start=start_date,
-                end=end_date,
-                tz=tz,
+                end=max(start_date, end_date),
                 no_end_time=True,
+                tz=tz,
+                all_day=False,
             )
         else:
             item["dates"] = dict(
                 start=self.datetime(event["startDate"], "00:00:00"),
                 end=self.datetime(event["endDate"], "00:00:00"),
                 all_day=True,
+                no_end_time=False,
             )
 
     def parse_timezone(self, start_date, event):
         if event.get("timezone"):
-            timezones = app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES) + pytz.common_timezones
+            timezones = (
+                app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES)
+                + pytz.common_timezones
+                + pytz.all_timezones
+            )
             for tzname in timezones:
                 try:
-                    date = start_date.astimezone(pytz.timezone(tzname))
+                    tz = pytz.timezone(tzname)
+                    date = start_date.astimezone(tz)
                 except pytz.exceptions.UnknownTimeZoneError:
                     logger.error("Unknown Timezone %s", tzname)
                     continue
                 abbr = date.strftime("%Z")
-                if abbr == event["timezone"]["timezoneAbbreviation"]:
+                offset = date.utcoffset().total_seconds() / 3600
+                if abbr == event["timezone"]["timezoneAbbreviation"] and offset == event["timezone"]["timezoneOffset"]:
                     return tzname
             else:
-                logger.warning("Could not find timezone for %s", event["timezone"]["timezoneAbbreviation"])
+                logger.warning(
+                    "Could not find timezone for %s event %s",
+                    event["timezone"]["timezoneAbbreviation"],
+                    event["itemId"],
+                )
 
     def parse_location(self, event, item):
-        if event.get("venue") and event.get("venueData"):
+        if event.get("venue"):
             try:
-                venue_data = event["venueData"][0]
+                venue_data = event.get("venueData", [])[0]
             except (IndexError, KeyError):
                 venue_data = {}
             item["location"] = [
@@ -159,6 +175,11 @@ class OnclusiveFeedParser(FeedParser):
                     "address": self.parse_address(event),
                 }
             ]
+            if venue_data.get("locationLon") or venue_data.get("locationLat"):
+                item["location"][0].setdefault(
+                    "location", {"lat": venue_data.get("locationLat"), "lon": venue_data.get("locationLon")}
+                )
+
         elif event.get("countryName"):
             item["location"] = [
                 {
@@ -209,6 +230,21 @@ class OnclusiveFeedParser(FeedParser):
             parsed_time = datetime.time.fromisoformat(time)
             parsed = parsed.replace(hour=parsed_time.hour, minute=parsed_time.minute, second=parsed_time.second)
         return parsed.replace(microsecond=0).astimezone(datetime.timezone.utc)
+
+    def server_datetime(self, date, date_utc=None):
+        """Convert datetime from server timezone to utc.
+
+        Eventually this will be in utc, so make it configurable.
+        """
+        if date_utc:
+            return (
+                datetime.datetime.fromisoformat(date_utc.split(".")[0]).replace(microsecond=0).replace(tzinfo=pytz.utc)
+            )
+        parsed = datetime.datetime.fromisoformat(date.split(".")[0]).replace(microsecond=0)
+        timezone = app.config.get("ONCLUSIVE_SERVER_TIMEZONE", "Europe/London")
+        if timezone:
+            return local_to_utc(timezone, parsed)
+        return parsed.replace(tzinfo=pytz.utc)
 
     def parse_contact_info(self, event, item):
         for contact_info in event.get("pressContacts"):
