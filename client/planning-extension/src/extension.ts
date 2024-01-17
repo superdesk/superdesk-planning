@@ -115,7 +115,7 @@ const extension: IExtension = {
             contributions: {
                 entities: {
                     article: {
-                        getActions: (item: IArticle) => [{
+                        getActions: (item: IArticle) => Promise.resolve([{
                             label: 'Add to Planning',
                             groupId: 'planning-actions',
                             icon: 'calendar-list',
@@ -142,7 +142,7 @@ const extension: IExtension = {
                                     window.dispatchEvent(customEvent)
                                 }
                             },
-                        }],
+                        }]),
                         onSpike: (item: IArticle) => onSpike(superdesk, item),
                         onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                         onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
