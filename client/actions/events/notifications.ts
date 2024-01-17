@@ -367,16 +367,20 @@ const self = {
 
 export const planningEventTemplateEvents = {
     'events-template:created': () => {
-        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+        eventsApi.fetchEventTemplates();
+        eventsApi.getEventsRecentTemplates();
     },
     'events-template:updated': () => {
-        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+        eventsApi.fetchEventTemplates();
+        eventsApi.getEventsRecentTemplates();
     },
     'events-template:replaced': () => {
-        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+        eventsApi.fetchEventTemplates();
+        eventsApi.getEventsRecentTemplates();
     },
     'events-template:deleted': () => {
-        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+        eventsApi.fetchEventTemplates();
+        eventsApi.getEventsRecentTemplates();
     },
 };
 
