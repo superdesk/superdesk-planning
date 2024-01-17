@@ -15,6 +15,7 @@ const initialState: IEventState = {
     currentCalendarId: undefined,
     currentFilterId: undefined,
     eventTemplates: [],
+    recentEventTemplates: [],
 };
 
 const modifyEventsBeingAdded = (state, payload) => {
@@ -316,6 +317,10 @@ const eventsReducer = createReducer<IEventState>(initialState, {
         ...state,
         eventTemplates: payload,
     }),
+    [EVENTS.ACTIONS.FETCH_EVENTS_TEMPLATES]: (state, payload) => ({
+        ...state,
+        recentEventTemplates: payload,
+    })
 });
 
 const onEventPostChanged = (state, payload) => {

@@ -19,6 +19,7 @@ export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 export const currentSearch = (state) => get(state, 'main.search.EVENTS.currentSearch');
 export const fullText = (state) => get(state, 'main.search.EVENTS.fulltext', '');
 export const eventTemplates = (state) => state.events.eventTemplates;
+export const recentTemplates = (state) => state.events.recentEventTemplates;
 export const currentEventFilterId = (state: IPlanningAppState) => state?.events?.currentFilterId;
 const isEventsView = (state) => get(state, 'main.filter', '') === MAIN.FILTERS.EVENTS;
 

@@ -366,10 +366,18 @@ const self = {
 };
 
 export const planningEventTemplateEvents = {
-    'events-template:created': () => eventsApi.fetchEventTemplates,
-    'events-template:updated': () => eventsApi.fetchEventTemplates,
-    'events-template:replaced': () => eventsApi.fetchEventTemplates,
-    'events-template:deleted': () => eventsApi.fetchEventTemplates,
+    'events-template:created': () => {
+        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+    },
+    'events-template:updated': () => {
+        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+    },
+    'events-template:replaced': () => {
+        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+    },
+    'events-template:deleted': () => {
+        eventsApi.fetchEventTemplates, eventsApi.getEventsRecentTemplates;
+    },
 };
 
 // Map of notification name and Action Event to execute

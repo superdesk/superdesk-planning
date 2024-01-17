@@ -6,7 +6,7 @@ import {IEventTemplate} from '../../interfaces';
 
 import {PRIVILEGES} from '../../constants';
 import * as actions from '../../actions';
-import {eventTemplates} from '../../selectors/events';
+import {eventTemplates, recentTemplates} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
 
 interface IProps {
@@ -16,9 +16,18 @@ interface IProps {
     privileges: {[key: string]: number};
     createEventFromTemplate(template: IEventTemplate): void;
     eventTemplates: Array<IEventTemplate>;
+    recentTemplatesId: Array<string>;
 }
 
 class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
+    getTemplates(props:IProps) {
+        if (props.recentTemplatesId.length !== 0) {
+            return props.eventTemplates.filter((template) =>
+                this.props.recentTemplatesId.includes(template._id)
+            );
+        }
+        return props.eventTemplates;
+    }
     render() {
         const {gettext} = superdeskApi.localization;
         const {addEvent, addPlanning, createPlanningOnly, privileges, createEventFromTemplate} = this.props;
@@ -43,7 +52,7 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                 id: 'create_event',
             });
 
-            this.props.eventTemplates.forEach((template) => {
+            this.getTemplates(this.props).forEach((template) => {
                 items.push({
                     label: template.template_name,
                     icon: 'icon-event icon--blue',
@@ -80,11 +89,15 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
 function mapStateToProps(state) {
     return {
         eventTemplates: eventTemplates(state),
+        recentTemplatesId: recentTemplates(state),
     };
 }
 
 const mapDispatchToProps = (dispatch) => ({
-    createEventFromTemplate: (template: IEventTemplate) => dispatch(actions.main.createEventFromTemplate(template)),
+    createEventFromTemplate: (template: IEventTemplate) => {
+        dispatch(actions.main.createEventFromTemplate(template));
+        dispatch(actions.events.api.addEventRecentTemplate('templates', template._id));
+    },
 });
 
 export const CreateNewSubnavDropdown = connect(

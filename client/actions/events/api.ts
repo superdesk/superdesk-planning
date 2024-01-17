@@ -1,4 +1,4 @@
-import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
+import _, {get, isEqual, cloneDeep, pickBy, has, find, every, template} from 'lodash';
 
 import {planningApi} from '../../superdeskApi';
 import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
@@ -689,6 +689,7 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
                     })
                         .then(() => {
                             dispatch(fetchEventTemplates());
+                            dispatch(getEventsRecentTemplates());
                         }, (error) => {
                             notify.error(
                                 getErrorMessage(error, gettext('Failed to save the event template'))
@@ -712,6 +713,31 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
             });
     });
 };
+
+const PREFERENCES_KEY = 'events_templates:recent';
+
+const addEventRecentTemplate = (field, templateId) => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result = {}) => {
+            result[PREFERENCES_KEY] = result[PREFERENCES_KEY] || {};
+            result[PREFERENCES_KEY][field] = result[PREFERENCES_KEY][field] || [];
+            _.remove(result[PREFERENCES_KEY][field], (i) => i === templateId);
+            result[PREFERENCES_KEY][field].unshift(templateId);
+            return preferencesService.update(result);
+        })
+        .then(() => {
+            self.getEventsRecentTemplates();
+        })
+);
+
+const getEventsRecentTemplates = () => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result) => {
+            const templates = _.take(result[PREFERENCES_KEY]['templates'], 5);
+
+            dispatch({type: EVENTS.ACTIONS.FETCH_EVENTS_TEMPLATES, payload: templates});
+        })
+);
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -745,6 +771,8 @@ const self = {
     removeFile,
     fetchEventTemplates,
     createEventTemplate,
+    addEventRecentTemplate,
+    getEventsRecentTemplates,
 };
 
 export default self;
