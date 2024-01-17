@@ -735,7 +735,7 @@ const getEventsRecentTemplates = () => (
         .then((result) => {
             const templates = _.take(result[PREFERENCES_KEY]['templates'], 5);
 
-            dispatch({type: EVENTS.ACTIONS.FETCH_EVENTS_TEMPLATES, payload: templates});
+            dispatch({type: EVENTS.ACTIONS.EVENT_RECENT_TEMPLATES, payload: templates});
         })
 );
 
