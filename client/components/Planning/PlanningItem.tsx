@@ -66,7 +66,8 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 planningUtils.getAgendaNames(nextProps.item, nextProps.agendas)
             ) ||
             this.props.minTimeWidth !== nextProps.minTimeWidth ||
-            this.props.filterLanguage !== nextProps.filterLanguage;
+            this.props.filterLanguage !== nextProps.filterLanguage ||
+            this.props.isAgendaEnabled !== nextProps.isAgendaEnabled;
     }
 
     onItemHoverOn() {
@@ -186,7 +187,8 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             agendas,
             contacts,
             listViewType,
-            filterLanguage
+            filterLanguage,
+            isAgendaEnabled,
         } = this.props;
 
         if (!item) {
@@ -198,7 +200,9 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         const event = get(item, 'event');
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
-        const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS);
+        const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS)
+            .filter((fields) => isAgendaEnabled ? true : fields !== 'agendas');
+
         const {querySelectorParent} = superdeskApi.utilities;
         const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
