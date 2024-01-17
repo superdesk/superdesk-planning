@@ -13,6 +13,8 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
+import {extensionBridge} from './extension_bridge';
+const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -112,6 +114,25 @@ const extension: IExtension = {
             contributions: {
                 entities: {
                     article: {
+                        getActions: (item) => [{
+                            label: superdesk.localization.gettext('Fulfil assignment'),
+                            groupId: 'planning-actions',
+                            icon: 'calendar-list',
+                            onTrigger: () => {
+                                if (
+                                    !item.assignment_id &&
+                                    isContentLinkToCoverageAllowed(item) &&
+                                    !superdesk.entities.article.isPersonal(item) &&
+                                    superdesk.privileges.hasPrivilege('archive') &&
+                                    !superdesk.entities.article.isLockedInOtherSession(item) &&
+                                    !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
+                                ) {
+                                    const event = new CustomEvent('planning:fulfilassignment', {detail: item});
+
+                                    window.dispatchEvent(event);
+                                }
+                            },
+                        }],
                         onSpike: (item: IArticle) => onSpike(superdesk, item),
                         onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                         onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
