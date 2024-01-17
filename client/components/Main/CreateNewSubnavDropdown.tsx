@@ -20,18 +20,37 @@ interface IProps {
 }
 
 class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
-    getTemplates(props:IProps) {
-        if (props.recentTemplatesId.length !== 0) {
-            return props.eventTemplates.filter((template) =>
-                this.props.recentTemplatesId.includes(template._id)
+    constructor(props: IProps) {
+        super(props);
+        this.getRecentTemplates = this.getRecentTemplates.bind(this);
+    }
+
+    getRecentTemplates() {
+        const {recentTemplatesId, eventTemplates} = this.props;
+
+        if (recentTemplatesId.length !== 0) {
+            return eventTemplates.filter((template) =>
+                recentTemplatesId.includes(template._id)
             );
         }
-        return props.eventTemplates;
+        return [];
     }
     render() {
         const {gettext} = superdeskApi.localization;
-        const {addEvent, addPlanning, createPlanningOnly, privileges, createEventFromTemplate} = this.props;
+        const {
+            addEvent,
+            addPlanning,
+            createPlanningOnly,
+            privileges,
+            createEventFromTemplate,
+            recentTemplatesId,
+            eventTemplates
+        } = this.props;
         const items: Array<IDropdownItem> = [];
+
+        const recentTemplates = this.getRecentTemplates().sort(
+            (a, b) => recentTemplatesId.indexOf(a._id) - recentTemplatesId.indexOf(b._id)
+        );
 
         if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
             items.push({
@@ -52,11 +71,22 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                 id: 'create_event',
             });
 
-            this.getTemplates(this.props).forEach((template) => {
+            if (recentTemplates.length !== 0) {
+                recentTemplates.forEach((template) => {
+                    items.push({
+                        label: template.template_name,
+                        icon: 'icon-event icon--blue',
+                        group: gettext('Recent Templates'),
+                        action: () => createEventFromTemplate(template),
+                        id: template._id,
+                    });
+                });
+            }
+            eventTemplates.forEach((template) => {
                 items.push({
                     label: template.template_name,
                     icon: 'icon-event icon--blue',
-                    group: gettext('From template'),
+                    group: gettext('ALL Templates'),
                     action: () => createEventFromTemplate(template),
                     id: template._id,
                 });
@@ -97,6 +127,7 @@ const mapDispatchToProps = (dispatch) => ({
     createEventFromTemplate: (template: IEventTemplate) => {
         dispatch(actions.main.createEventFromTemplate(template));
         dispatch(actions.events.api.addEventRecentTemplate('templates', template._id));
+        dispatch(actions.events.api.getEventsRecentTemplates());
     },
 });
 

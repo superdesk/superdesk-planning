@@ -725,9 +725,6 @@ const addEventRecentTemplate = (field, templateId) => (
             result[PREFERENCES_KEY][field].unshift(templateId);
             return preferencesService.update(result);
         })
-        .then(() => {
-            self.getEventsRecentTemplates();
-        })
 );
 
 const getEventsRecentTemplates = () => (
