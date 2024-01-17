@@ -42,9 +42,15 @@ function loadLockedItems(types?: Array<'events_and_planning' | 'featured_plannin
                 }
             }
 
+            const lockedItemIds = lockUtils.getLockedItemIds(locks);
+
+            if (lockedItemIds.length === 0) {
+                return Promise.resolve();
+            }
+
             // Make sure that all items that are locked are loaded into the store
             return planningApi.combined.searchGetAll({
-                item_ids: lockUtils.getLockedItemIds(locks),
+                item_ids: lockedItemIds,
                 only_future: false,
                 include_killed: true,
                 spike_state: 'draft',
@@ -228,7 +234,16 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
         }
     }
 
-    const lockedItemId = currentLock.item_id;
+    let lockedItemId: string;
+
+    if (item.type === 'event' && item.recurrence_id === currentLock.item_id) {
+        lockedItemId = item._id;
+    } else if (item.type === 'planning' && item.recurrence_id === currentLock.item_id) {
+        lockedItemId = item.event_item;
+    } else {
+        lockedItemId = currentLock.item_id;
+    }
+
     const resource = getLockResourceName(currentLock.item_type);
     const endpoint = `${resource}/${lockedItemId}/unlock`;
 

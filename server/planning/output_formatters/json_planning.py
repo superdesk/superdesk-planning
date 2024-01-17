@@ -9,6 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 
+from flask import current_app as app
 from superdesk.publish.formatters import Formatter
 import superdesk
 import json
@@ -178,12 +179,11 @@ class JsonPlanningFormatter(Formatter):
             if delivery.get("item_state") == CONTENT_STATE.PUBLISHED:
                 item_never_published = False
 
-        if item_never_published:
-            deliveries = []
-
         return deliveries, assignment.get("assigned_to").get("state")
 
     def _expand_coverage_contacts(self, coverage):
+        EXTENDED_INFO = bool(app.config.get("PLANNING_JSON_ASSIGNED_INFO_EXTENDED"))
+
         if (coverage.get("assigned_to") or {}).get("contact"):
             expanded_contacts = expand_contact_info([coverage["assigned_to"]["contact"]])
             if expanded_contacts:
@@ -194,8 +194,26 @@ class JsonPlanningFormatter(Formatter):
 
         if (coverage.get("assigned_to") or {}).get("user"):
             user = get_resource_service("users").find_one(req=None, _id=coverage["assigned_to"]["user"])
-            if user:
+            if user and not user.get("private"):
                 coverage["assigned_user"] = {
                     "first_name": user.get("first_name"),
                     "last_name": user.get("last_name"),
+                    "display_name": user.get("display_name"),
                 }
+
+                if EXTENDED_INFO:
+                    coverage["assigned_user"].update(
+                        email=user.get("email"),
+                    )
+
+        if (coverage.get("assigned_to") or {}).get("desk"):
+            desk = get_resource_service("desks").find_one(req=None, _id=coverage["assigned_to"]["desk"])
+            if desk:
+                coverage["assigned_desk"] = {
+                    "name": desk.get("name"),
+                }
+
+                if EXTENDED_INFO:
+                    coverage["assigned_desk"].update(
+                        email=desk.get("email"),
+                    )
