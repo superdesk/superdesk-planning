@@ -60,7 +60,7 @@ import {
     shouldUnLockItem,
     timeUtils
 } from '../utils';
-import {hideModal, locks, showModal} from './';
+import {hideModal, showModal} from './';
 import {fetchSelectedAgendaPlannings} from './agenda';
 import eventsPlanningUi from './eventsPlanning/ui';
 

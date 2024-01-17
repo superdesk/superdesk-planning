@@ -100,7 +100,6 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
                         />
                     </ButtonGroup>
                     <ButtonGroup align="end" padded={true}>
-                        <label style={{textTransform: 'uppercase'}}>{gettext('Main Language:')}</label>
                         {selectedLanguages.map((language) => (
                             <Button
                                 key={language.qcode}
@@ -109,6 +108,7 @@ export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
                                 onClick={() => this.props.setMainLanguage(language.qcode)}
                                 type={this.props.language === language.qcode ? 'primary' : 'default'}
                                 style={this.props.language === language.qcode ? 'filled' : 'hollow'}
+                                tooltip={gettext('Switch Metadata Language')}
                             />
                         ))}
                     </ButtonGroup>
