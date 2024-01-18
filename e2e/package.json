@@ -17,7 +17,7 @@
   },
   "scripts": {
     "cypress-ui": "cypress open",
-    "cypress-ci": "cypress run",
+    "cypress-ci": "cypress run --browser chrome",
     "clean": "grunt clean",
     "build": "npx @superdesk/build-tools build-root-repo ./",
     "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server"
