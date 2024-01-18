@@ -9,7 +9,7 @@ import planningModule from './client';
 import * as ctrl from './client/controllers';
 import {gettext} from './client/utils/gettext';
 import {isContentLinkToCoverageAllowed} from './client/utils/archive';
-
+import ng from 'superdesk-core/scripts/core/services/ng';
 
 configurePlanning.$inject = ['superdeskProvider'];
 function configurePlanning(superdesk) {
@@ -133,6 +133,16 @@ function configurePlanning(superdesk) {
                 }],
         });
 }
+
+window.addEventListener('planning:unlinkfromcoverage', (event: CustomEvent) => {
+    ctrl.UnlinkAssignmentController(
+        event.detail,
+        ng.get('notify'),
+        ng.get('gettext'),
+        ng.get('api'),
+        ng.get('lock'),
+    );
+});
 
 export default planningModule
     .config(configurePlanning);

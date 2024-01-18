@@ -112,6 +112,32 @@ const extension: IExtension = {
             contributions: {
                 entities: {
                     article: {
+                        getActions: (item) => [
+                            {
+                                label: 'Unlink as Coverage',
+                                groupId: 'planning-actions',
+                                icon: 'cut',
+                                onTrigger: () => {
+                                    const superdeskArticle = superdesk.entities.article;
+
+                                    if (
+                                        superdesk.privileges.hasPrivilege('archive') &&
+                                        item.assignment_id != null &&
+                                        !superdeskArticle.isPersonal(item) &&
+                                        !superdeskArticle.isLockedInOtherSession(item) &&
+                                        (
+                                            superdeskArticle.itemActions(item).edit ||
+                                            superdeskArticle.itemActions(item).correct ||
+                                            superdeskArticle.itemActions(item).deschedule
+                                        )
+                                    ) {
+                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
+
+                                        window.dispatchEvent(event);
+                                    }
+                                },
+                            }
+                        ],
                         onSpike: (item: IArticle) => onSpike(superdesk, item),
                         onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                         onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
