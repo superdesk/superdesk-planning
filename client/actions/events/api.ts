@@ -1,7 +1,7 @@
-import _, {get, isEqual, cloneDeep, pickBy, has, find, every, template} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, has, find, every, take} from 'lodash';
 
 import {planningApi} from '../../superdeskApi';
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import {
@@ -714,15 +714,16 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
     });
 };
 
-const PREFERENCES_KEY = 'events_templates:recent';
+const RECENT_EVENTS_TEMPLATES_KEY = 'events_templates:recent';
 
-const addEventRecentTemplate = (field, templateId) => (
+const addEventRecentTemplate = (field: string, templateId: IEventTemplate['_id']) => (
     (dispatch, getState, {preferencesService}) => preferencesService.get()
         .then((result = {}) => {
-            result[PREFERENCES_KEY] = result[PREFERENCES_KEY] || {};
-            result[PREFERENCES_KEY][field] = result[PREFERENCES_KEY][field] || [];
-            _.remove(result[PREFERENCES_KEY][field], (i) => i === templateId);
-            result[PREFERENCES_KEY][field].unshift(templateId);
+            result[RECENT_EVENTS_TEMPLATES_KEY] = result[RECENT_EVENTS_TEMPLATES_KEY] || {};
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field] || [];
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field].filter(
+                (i) => i !== templateId);
+            result[RECENT_EVENTS_TEMPLATES_KEY][field].unshift(templateId);
             return preferencesService.update(result);
         })
 );
@@ -730,7 +731,7 @@ const addEventRecentTemplate = (field, templateId) => (
 const getEventsRecentTemplates = () => (
     (dispatch, getState, {preferencesService}) => preferencesService.get()
         .then((result) => {
-            const templates = _.take(result[PREFERENCES_KEY]['templates'], 5);
+            const templates = take(result[RECENT_EVENTS_TEMPLATES_KEY]['templates'], 5);
 
             dispatch({type: EVENTS.ACTIONS.EVENT_RECENT_TEMPLATES, payload: templates});
         })
