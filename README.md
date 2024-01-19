@@ -371,3 +371,5 @@ cd superdesk-planning/server
 behave
 cd ../..
 ```
+
+test tests
