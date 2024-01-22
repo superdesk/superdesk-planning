@@ -15,7 +15,6 @@ const initialState: IEventState = {
     currentCalendarId: undefined,
     currentFilterId: undefined,
     eventTemplates: [],
-    recentEventTemplates: [],
 };
 
 const modifyEventsBeingAdded = (state, payload) => {

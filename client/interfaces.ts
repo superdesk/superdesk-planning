@@ -1654,7 +1654,7 @@ export interface IEventState {
     currentCalendarId?: ICalendar['qcode'];
     currentFilterId?: ISearchFilter['_id'];
     eventTemplates: Array<IEventItem>;
-    recentEventTemplates: Array<string>;
+    recentEventTemplates?: Array<IEventTemplate['_id']>;
 }
 
 export interface IEditorFormState {

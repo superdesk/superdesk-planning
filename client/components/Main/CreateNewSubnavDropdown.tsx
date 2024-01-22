@@ -6,7 +6,7 @@ import {IEventTemplate} from '../../interfaces';
 
 import {PRIVILEGES} from '../../constants';
 import * as actions from '../../actions';
-import {eventTemplates, recentTemplates} from '../../selectors/events';
+import {eventTemplates, getRecentTemplatesSelector} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
 
 interface IProps {
@@ -16,25 +16,10 @@ interface IProps {
     privileges: {[key: string]: number};
     createEventFromTemplate(template: IEventTemplate): void;
     eventTemplates: Array<IEventTemplate>;
-    recentTemplatesId: Array<string>;
+    recentTemplates?: Array<IEventTemplate>;
 }
 
 class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
-    constructor(props: IProps) {
-        super(props);
-        this.getRecentTemplates = this.getRecentTemplates.bind(this);
-    }
-
-    getRecentTemplates() {
-        const {recentTemplatesId, eventTemplates} = this.props;
-
-        if (recentTemplatesId.length !== 0) {
-            return eventTemplates.filter((template) =>
-                recentTemplatesId.includes(template._id)
-            );
-        }
-        return [];
-    }
     render() {
         const {gettext} = superdeskApi.localization;
         const {
@@ -43,14 +28,10 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
             createPlanningOnly,
             privileges,
             createEventFromTemplate,
-            recentTemplatesId,
+            recentTemplates,
             eventTemplates
         } = this.props;
         const items: Array<IDropdownItem> = [];
-
-        const recentTemplates = this.getRecentTemplates().sort(
-            (a, b) => recentTemplatesId.indexOf(a._id) - recentTemplatesId.indexOf(b._id)
-        );
 
         if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
             items.push({
@@ -119,7 +100,7 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
 function mapStateToProps(state) {
     return {
         eventTemplates: eventTemplates(state),
-        recentTemplatesId: recentTemplates(state),
+        recentTemplates: getRecentTemplatesSelector(state)
     };
 }
 

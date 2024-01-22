@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IEventItem, IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
+import {IEventItem, IEventState, IEventTemplate, IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
 
 import {currentPlanning, storedPlannings} from './planning';
 import {agendas, userPreferences} from './general';
@@ -18,8 +18,8 @@ export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 export const currentSearch = (state) => get(state, 'main.search.EVENTS.currentSearch');
 export const fullText = (state) => get(state, 'main.search.EVENTS.fulltext', '');
-export const eventTemplates = (state) => state.events.eventTemplates;
-export const recentTemplates = (state) => state.events.recentEventTemplates;
+export const eventTemplates = (state:IEventState) => state.events.eventTemplates;
+export const recentTemplates = (state:IEventState) => state.events.recentEventTemplates;
 export const currentEventFilterId = (state: IPlanningAppState) => state?.events?.currentFilterId;
 const isEventsView = (state) => get(state, 'main.filter', '') === MAIN.FILTERS.EVENTS;
 
@@ -223,3 +223,21 @@ export const defaultCalendarFilter = createSelector(
     [usersDefaultCalendar],
     (calendar) => calendar || {qcode: EVENTS.FILTER.DEFAULT}
 );
+
+
+export const getRecentTemplatesSelector = createSelector<
+    IEventState,
+    Array<IEventTemplate['_id']>,
+    IEventState,
+    Array<IEventTemplate>>([recentTemplates, eventTemplates],
+        (recentTemplatesId, eventTemplates) => {
+            if (recentTemplatesId && recentTemplatesId.length !== 0) {
+                return eventTemplates.filter((template) =>
+                    recentTemplatesId.includes(template._id)
+                ).sort(
+                    (a, b) => recentTemplatesId.indexOf(a._id) - recentTemplatesId.indexOf(b._id)
+                );
+            }
+            return [];
+        }
+    );
