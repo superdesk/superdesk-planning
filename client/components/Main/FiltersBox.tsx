@@ -24,8 +24,9 @@ const mapStateToProps = (state) => ({
 });
 
 class FiltersBoxComponent extends React.PureComponent<IProps> {
-    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<{}>, snapshot?: any): void {
+    componentDidUpdate(): void {
         const {urlParams} = superdeskApi.browser.location;
+
         urlParams.setString('eventsPlanningFilter', this.props.currentFilterId);
     }
 
