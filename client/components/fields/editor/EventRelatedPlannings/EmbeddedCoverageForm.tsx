@@ -171,23 +171,21 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                     <List.Row>
                         <Row
                             testId="user"
-                            noPadding={true}
+                            style={{padding: '2rem 0'}}
                         >
-                            <Row style={{padding: '2rem 0'}}>
-                                <SelectUser
-                                    onSelect={(user) => {
-                                        this.onUserChange(null, user);
-                                    }}
-                                    autoFocus={false}
-                                    horizontalSpacing={true}
-                                    clearable={true}
-                                />
-                            </Row>
+                            <SelectUser
+                                onSelect={(user) => {
+                                    this.onUserChange(null, user);
+                                }}
+                                autoFocus={false}
+                                horizontalSpacing={true}
+                                clearable={true}
+                            />
                         </Row>
                     </List.Row>
-                    <List.Row>
-                        <Row>
-                            {this.props.coverageProfile.language != null && (
+                    {this.props.coverageProfile.language?.enabled !== true ? null : (
+                        <List.Row>
+                            <Row>
                                 <Select
                                     label={gettext('Language:')}
                                     value={language}
@@ -205,9 +203,9 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                                         )
                                     )}
                                 </Select>
-                            )}
-                        </Row>
-                    </List.Row>
+                            </Row>
+                        </List.Row>
+                    )}
                     <List.Row>
                         <EditorFieldNewsCoverageStatus
                             testId="status"

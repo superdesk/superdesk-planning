@@ -234,7 +234,16 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
         }
     }
 
-    const lockedItemId = currentLock.item_id;
+    let lockedItemId: string;
+
+    if (item.type === 'event' && item.recurrence_id === currentLock.item_id) {
+        lockedItemId = item._id;
+    } else if (item.type === 'planning' && item.recurrence_id === currentLock.item_id) {
+        lockedItemId = item.event_item;
+    } else {
+        lockedItemId = currentLock.item_id;
+    }
+
     const resource = getLockResourceName(currentLock.item_type);
     const endpoint = `${resource}/${lockedItemId}/unlock`;
 

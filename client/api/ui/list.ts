@@ -102,6 +102,7 @@ function changeFilterId(id: ISearchFilter['_id'], params: ICombinedEventOrPlanni
             type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,
             payload: id,
         });
+        urlParams.setString('eventsPlanningFilter', id);
     }
     return reloadList(params);
 }
