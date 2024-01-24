@@ -466,6 +466,9 @@ class PlanningService(superdesk.Service):
             return all_items
 
     def remove_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         for coverage in (original or {}).get("coverages") or []:
             updated_coverage = next(
                 (
@@ -525,6 +528,9 @@ class PlanningService(superdesk.Service):
         self._create_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity)
 
     def add_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         planning_date = original.get("planning_date") or updates.get("planning_date")
         original_coverage_ids = [
             coverage["coverage_id"] for coverage in original.get("coverages") or [] if coverage.get("coverage_id")
@@ -606,6 +612,9 @@ class PlanningService(superdesk.Service):
                 self._create_update_assignment(original, updates, s, original_scheduled_update, coverage)
 
     def update_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id")
             original_coverage = next(
