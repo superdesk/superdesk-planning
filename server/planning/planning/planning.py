@@ -615,7 +615,6 @@ class PlanningService(superdesk.Service):
         if "coverages" not in updates:
             return
 
-
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id")
             original_coverage = next(
