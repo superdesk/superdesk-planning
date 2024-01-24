@@ -26,7 +26,7 @@ module.exports = {
         rules: [
             {
                 test: /\.(ts|tsx)?$/,
-                exclude: /node_modules\/(?!(superdesk-core)\/).*/,
+                exclude: /node_modules\/(?!(superdesk-core|domhandler)\/).*/,
                 loader: 'ts-loader',
                 options: {
                     transpileOnly: true
@@ -34,7 +34,7 @@ module.exports = {
             },
             {
                 test: /\.(js|jsx)?$/,
-                exclude: /node_modules\/(?!(superdesk-core)\/).*/,
+                exclude: /node_modules\/(?!(superdesk-core|domhandler)\/).*/,
                 loader: 'ts-loader',
                 options: {
                     transpileOnly: true
