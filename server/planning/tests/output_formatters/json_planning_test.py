@@ -319,7 +319,6 @@ class JsonPlanningTestCase(TestCase):
             output_item = json.loads(output[1])
             self.assertEqual(output_item["products"], [{"code": "prod-type-planning", "name": "planning-only"}])
 
-<<<<<<< HEAD
     def test_expand_delivery_uses_ingest_id(self):
         self.app.data.insert("assignments", self.assignment)
         self.app.data.insert("delivery", self.delivery)
