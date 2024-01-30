@@ -31,6 +31,7 @@ class EventsTemplateResource(Resource):
     endpoint_name = "events_template"
     resource_methods = ["GET", "POST"]
     item_methods = ["GET", "DELETE", "PATCH", "PUT"]
+    allow_unknown = True
     privileges = {
         "GET": "planning_event_management",
         "POST": "planning_event_templates",
@@ -163,6 +164,8 @@ class EventsTemplateService(BaseService):
     def _fill_event_template(self, doc):
         event = self._get_event(doc["based_on_event"])
         doc["data"] = event.copy()
+        if doc.get("embedded_planning"):
+            doc["data"].setdefault("embedded_planning", doc.pop("embedded_planning"))
         for field in DUPLICATE_EVENT_IGNORED_FIELDS:
             doc["data"].pop(field, None)
 
