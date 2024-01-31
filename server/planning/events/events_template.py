@@ -32,6 +32,7 @@ class EventsTemplateResource(Resource):
     endpoint_name = "events_template"
     resource_methods = ["GET", "POST"]
     item_methods = ["GET", "DELETE", "PATCH", "PUT"]
+
     privileges = {
         "GET": "planning_event_management",
         "POST": "planning_event_templates",
@@ -39,6 +40,53 @@ class EventsTemplateResource(Resource):
         "PATCH": "planning_event_templates",
         "PUT": "planning_event_templates",
     }
+    _event_fields = {
+        "slugline": {"type": "string", "required": False, "readonly": True},
+        "name": {"type": "string", "required": False, "readonly": True},
+        "definition_short": {"type": "string", "required": False, "readonly": True},
+        "definition_long": {"type": "string", "required": False, "readonly": True},
+        "internal_note": {"type": "string", "required": False, "readonly": True},
+        "ednote": {"type": "string", "required": False, "readonly": True},
+        "links": {"type": "list", "readonly": True},
+        "occur_status": {
+            "type": "dict",
+            "allow_unknown": True,
+            "schema": {
+                "qcode": {"type": "string"},
+                "name": {"type": "string"},
+                "label": {"type": "string"},
+            },
+            "readonly": True,
+        },
+        "files": {
+            "type": "list",
+            "schema": Resource.rel("events_files"),
+            "readonly": True,
+        },
+        "calendars": {
+            "type": "list",
+            "schema": {
+                "type": "dict",
+                "allow_unknown": True,
+                "schema": {
+                    "qcode": {"type": "string"},
+                    "name": {"type": "string"},
+                    "is_active": {"type": "boolean"},
+                },
+            },
+            "readonly": True,
+        },
+        "location": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
+        "event_contact_info": {
+            "type": "list",
+            "schema": Resource.rel("contacts"),
+            "readonly": True,
+        },
+        "subject": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
+    }
+    # add embedded_planning in the templates data schema
+    _event_fields.setdefault("embedded_planning", events_schema["embedded_planning"])
+
     schema = {
         "template_name": {
             "type": "string",
@@ -52,7 +100,7 @@ class EventsTemplateResource(Resource):
             embeddable=False,
             required=True,
         ),
-        "data": {"type": "dict", "schema": events_schema},
+        "data": {"type": "dict", "schema": _event_fields, "allow_unknown": True},
     }
 
 
