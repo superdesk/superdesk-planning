@@ -17,6 +17,7 @@ import {
     IWebsocketMessageData,
     ITEM_TYPE,
     IEventTemplate,
+    IEventItem,
 } from '../interfaces';
 
 import {
@@ -176,42 +177,44 @@ const createNew = (itemType, item = null, updateUrl = true, modal = false) => (
     }, 'create', updateUrl, modal)
 );
 
-function getEventsAssociatedItems(template: IEventTemplate) {
-    return template.data.embedded_planning.map((embedded) => ({
-        _id: generateTempId(),
-        slugline: template.data.slugline,
-        language: template.data.language,
-        coverages: embedded.coverages.map((coverage) => ({
-            coverage_id: coverage.coverage_id,
-            planning: {
-                g2_content_type: coverage.g2_content_type,
-                scheduled: coverage.scheduled,
-                language: coverage.language,
-                genre: coverage.genre ? {qcode: coverage.genre} : undefined,
-                slugline: coverage.slugline,
-                ednote: coverage.ednote,
-                internal_note: coverage.internal_note,
-            },
-            assigned_to: {
-                desk: coverage.desk,
-                user: coverage.user,
-            },
-            news_coverage_status: {
-                qcode: coverage.news_coverage_status,
-            },
-        })),
-    }));
+function getEventsAssociatedItems(template: IEventTemplate): IEventItem['associated_plannings'] | [] {
+    const embeddedPlanning = template.data?.embedded_planning;
+
+    return embeddedPlanning
+        ? embeddedPlanning.map((embedded) => ({
+            _id: generateTempId(),
+            slugline: template.data?.slugline,
+            language: template.data?.language,
+            coverages: embedded.coverages.map((coverage) => ({
+                coverage_id: coverage.coverage_id,
+                planning: {
+                    g2_content_type: coverage.g2_content_type,
+                    scheduled: coverage.scheduled,
+                    language: coverage.language,
+                    genre: coverage.genre ? {qcode: coverage.genre} : undefined,
+                    slugline: coverage.slugline,
+                    ednote: coverage.ednote,
+                    internal_note: coverage.internal_note,
+                },
+                assigned_to: {
+                    desk: coverage.desk,
+                    user: coverage.user,
+                },
+                news_coverage_status: {
+                    qcode: coverage.news_coverage_status,
+                },
+            })),
+        }))
+        : [];
 }
 
 function createEventFromTemplate(template: IEventTemplate) {
-    const embeddedPlanning = template.data?.embedded_planning || [];
-
     return self.createNew(ITEM_TYPE.EVENT, {
         ...template.data,
         dates: {
             tz: template.data.dates?.tz
         },
-        associated_plannings: embeddedPlanning ? self.getEventsAssociatedItems(template) : []
+        associated_plannings: self.getEventsAssociatedItems(template)
     });
 }
 

@@ -19,6 +19,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.utils import ListCursor
 from planning.common import DUPLICATE_EVENT_IGNORED_FIELDS
 from apps.archive.common import get_user
+from .events_schema import events_schema
 
 logger = logging.getLogger(__name__)
 
@@ -31,57 +32,12 @@ class EventsTemplateResource(Resource):
     endpoint_name = "events_template"
     resource_methods = ["GET", "POST"]
     item_methods = ["GET", "DELETE", "PATCH", "PUT"]
-    allow_unknown = True
     privileges = {
         "GET": "planning_event_management",
         "POST": "planning_event_templates",
         "DELETE": "planning_event_templates",
         "PATCH": "planning_event_templates",
         "PUT": "planning_event_templates",
-    }
-    _event_fields = {
-        "slugline": {"type": "string", "required": False, "readonly": True},
-        "name": {"type": "string", "required": False, "readonly": True},
-        "definition_short": {"type": "string", "required": False, "readonly": True},
-        "definition_long": {"type": "string", "required": False, "readonly": True},
-        "internal_note": {"type": "string", "required": False, "readonly": True},
-        "ednote": {"type": "string", "required": False, "readonly": True},
-        "links": {"type": "list", "readonly": True},
-        "occur_status": {
-            "type": "dict",
-            "allow_unknown": True,
-            "schema": {
-                "qcode": {"type": "string"},
-                "name": {"type": "string"},
-                "label": {"type": "string"},
-            },
-            "readonly": True,
-        },
-        "files": {
-            "type": "list",
-            "schema": Resource.rel("events_files"),
-            "readonly": True,
-        },
-        "calendars": {
-            "type": "list",
-            "schema": {
-                "type": "dict",
-                "allow_unknown": True,
-                "schema": {
-                    "qcode": {"type": "string"},
-                    "name": {"type": "string"},
-                    "is_active": {"type": "boolean"},
-                },
-            },
-            "readonly": True,
-        },
-        "location": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
-        "event_contact_info": {
-            "type": "list",
-            "schema": Resource.rel("contacts"),
-            "readonly": True,
-        },
-        "subject": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
     }
     schema = {
         "template_name": {
@@ -96,7 +52,7 @@ class EventsTemplateResource(Resource):
             embeddable=False,
             required=True,
         ),
-        "data": {"type": "dict", "schema": _event_fields, "allow_unknown": True},
+        "data": {"type": "dict", "schema": events_schema},
     }
 
 
@@ -163,9 +119,7 @@ class EventsTemplateService(BaseService):
 
     def _fill_event_template(self, doc):
         event = self._get_event(doc["based_on_event"])
-        doc["data"] = event.copy()
-        if doc.get("embedded_planning"):
-            doc["data"].setdefault("embedded_planning", doc.pop("embedded_planning"))
+        doc["data"].update(event.copy())
         for field in DUPLICATE_EVENT_IGNORED_FIELDS:
             doc["data"].pop(field, None)
 
