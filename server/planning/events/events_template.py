@@ -119,7 +119,7 @@ class EventsTemplateService(BaseService):
 
     def _fill_event_template(self, doc):
         event = self._get_event(doc["based_on_event"])
-        doc["data"].update(event.copy())
+        doc.setdefault("data", {}).update(event.copy())
         for field in DUPLICATE_EVENT_IGNORED_FIELDS:
             doc["data"].pop(field, None)
 
