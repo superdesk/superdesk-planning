@@ -83,9 +83,8 @@ class EventsTemplateResource(Resource):
             "readonly": True,
         },
         "subject": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
+        "embedded_planning": events_schema["embedded_planning"],
     }
-    # add embedded_planning in the templates data schema
-    _event_fields.setdefault("embedded_planning", events_schema["embedded_planning"])
 
     schema = {
         "template_name": {
