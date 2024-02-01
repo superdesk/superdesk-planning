@@ -12,6 +12,7 @@
 from flask import current_app as app
 from superdesk.publish.formatters import Formatter
 import superdesk
+from apps.archive.common import ARCHIVE
 import json
 from superdesk.utils import json_serialize_datetime_objectId
 from copy import deepcopy
@@ -171,11 +172,28 @@ class JsonPlanningFormatter(Formatter):
         )
         deliveries = list(delivery_service.get(req=None, lookup={"coverage_id": coverage.get("coverage_id")}))
 
+        # Get the associated article(s) linked to the coverage(s)
+        query = {"$and": [{"_id": {"$in": [item["item_id"] for item in deliveries]}}]}
+        articles = {item["_id"]: item for item in get_resource_service(ARCHIVE).get_from_mongo(req=None, lookup=query)}
+
         # Check to see if in this delivery chain, whether the item has been published at least once
         item_never_published = True
         for delivery in deliveries:
             for f in remove_fields:
                 delivery.pop(f, None)
+
+            # TODO: This is a hack, need to find a better way of doing this
+            # If the linked article was auto-published, then use the ``ingest_id`` for the article ID
+            # This is required when the article was published using the ``NewsroomNinjsFormatter``
+            # Otherwise this coverage in Newshub would point to a non-existing wire item
+            article = articles.get(delivery["item_id"])
+            if (
+                article is not None
+                and article.get("ingest_id")
+                and (article.get("auto_publish") or (article.get("extra") or {}).get("publish_ingest_id_as_guid"))
+            ):
+                delivery["item_id"] = article["ingest_id"]
+
             if delivery.get("item_state") == CONTENT_STATE.PUBLISHED:
                 item_never_published = False
 
