@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple, Dict, Any, Set, Tuple
+from typing import NamedTuple, Dict, Any, Set, Optional
 
 import re
 import time
@@ -29,6 +29,8 @@ from werkzeug.datastructures import MultiDict
 from superdesk.etree import parse_html
 import json
 from bson import ObjectId
+
+from planning.types import Planning, Coverage
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -838,3 +840,14 @@ def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
         # The local version has been published
         # and no change to ``pubstatus`` on ingested item
         updates.pop("state")
+
+
+def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Optional[Coverage]:
+    return next(
+        (
+            coverage
+            for coverage in planning_item.get("coverages") or []
+            if coverage.get("coverage_id") == coverage_id
+        ),
+        None,
+    )
