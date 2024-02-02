@@ -250,8 +250,11 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         """
 
         coverage_id = news_coverage_elt.get("id")
-        planning = self.parse_coverage_planning(news_coverage_elt, item)
+        if coverage_id is None:
+            logger.warning("Unable to process coverage details, no coverage id found in ingest source")
+            return None
 
+        planning = self.parse_coverage_planning(news_coverage_elt, item)
         if planning is None:
             logger.warning(f"Failed to process coverage '{coverage_id}', planning details not found")
             return None

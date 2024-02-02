@@ -844,10 +844,6 @@ def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
 
 def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Optional[Coverage]:
     return next(
-        (
-            coverage
-            for coverage in planning_item.get("coverages") or []
-            if coverage.get("coverage_id") == coverage_id
-        ),
+        (coverage for coverage in planning_item.get("coverages") or [] if coverage.get("coverage_id") == coverage_id),
         None,
     )
