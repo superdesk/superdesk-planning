@@ -103,6 +103,7 @@ export class EditorFieldNumberSelect extends React.PureComponent<IProps> {
                 value={values}
                 onChange={this.onChangeMultiple}
                 allowMultiple={true}
+                zIndex={1051}
             />
         );
     }
