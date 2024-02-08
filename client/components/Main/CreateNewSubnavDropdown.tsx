@@ -9,7 +9,7 @@ import * as actions from '../../actions';
 import {eventTemplates} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
 import {showModal} from '@superdesk/common';
-import PlanningTemplatesModal from '../../components/PlanningTemplatesModal';
+import PlanningTemplatesModal from '../PlanningTemplatesModal/PlanningTemplatesModal';
 
 interface IProps {
     addEvent(): void;
@@ -20,6 +20,8 @@ interface IProps {
     eventTemplates: Array<IEventTemplate>;
     calendars: Array<ICalendar>;
 }
+
+const MORE_TEMPLATES_THRESHOLD = 5;
 
 class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
     render() {
@@ -46,9 +48,17 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                 id: 'create_event',
             });
 
-            this.props.eventTemplates
-                .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name))
-                .slice(0, 5)
+            /**
+             * Sort the templates by their name.
+             */
+            const sortedTemplates = this.props.eventTemplates
+                .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name));
+
+            /**
+             * Take the first @MORE_TEMPLATES_THRESHOLD templates and display them in the dropdown.
+             */
+            sortedTemplates
+                .slice(0, MORE_TEMPLATES_THRESHOLD)
                 .forEach((template) => {
                     items.push({
                         label: template.template_name,
@@ -59,24 +69,27 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                     });
                 });
 
-            items.push({
-                label: gettext('More templates...'),
-                icon: 'icon-event icon--blue',
-                group: gettext('From template'),
-                action: () => {
-                    showModal(({closeModal}) => (
-                        <PlanningTemplatesModal
-                            createEventFromTemplate={createEventFromTemplate}
-                            closeModal={closeModal}
-                            calendars={this.props.calendars}
-                            eventTemplates={this.props.eventTemplates
-                                .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name))
-                            }
-                        />
-                    ));
-                },
-                id: 'more_templates',
-            });
+            /**
+             * If there's no more than @MORE_TEMPLATES_THRESHOLD there's no need to show the button for more templates.
+             */
+            if (sortedTemplates.length > MORE_TEMPLATES_THRESHOLD) {
+                items.push({
+                    label: gettext('More templates...'),
+                    icon: 'icon-event icon--blue',
+                    group: gettext('From template'),
+                    action: () => {
+                        showModal(({closeModal}) => (
+                            <PlanningTemplatesModal
+                                createEventFromTemplate={createEventFromTemplate}
+                                closeModal={closeModal}
+                                calendars={this.props.calendars}
+                                eventTemplates={sortedTemplates}
+                            />
+                        ));
+                    },
+                    id: 'more_templates',
+                });
+            }
         }
 
         return items.length === 0 ? null : (
