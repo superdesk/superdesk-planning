@@ -23,7 +23,7 @@ export const TemplatesListView: React.FC<ITemplatesListViewProps> = ({
     /**
      * Groups the templates by calendar,
      * filters the templates that match the current search query,
-     * if a calendar is selected filters the groups that match the calendar are filtered,
+     * if a calendar is selected, the groups that match that calendar are filtered,
      * if not the groups that that don't have any templates are filtered out.
      */
     const filteredTemplates = calendars
