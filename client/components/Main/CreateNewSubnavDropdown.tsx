@@ -2,12 +2,14 @@ import React from 'react';
 import {connect} from 'react-redux';
 
 import {superdeskApi} from '../../superdeskApi';
-import {IEventTemplate} from '../../interfaces';
+import {ICalendar, IEventTemplate} from '../../interfaces';
 
 import {PRIVILEGES} from '../../constants';
 import * as actions from '../../actions';
 import {eventTemplates} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
+import {showModal} from '@superdesk/common';
+import PlanningTemplatesModal from '../../components/PlanningTemplatesModal';
 
 interface IProps {
     addEvent(): void;
@@ -16,6 +18,7 @@ interface IProps {
     privileges: {[key: string]: number};
     createEventFromTemplate(template: IEventTemplate): void;
     eventTemplates: Array<IEventTemplate>;
+    calendars: Array<ICalendar>;
 }
 
 class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
@@ -43,14 +46,36 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                 id: 'create_event',
             });
 
-            this.props.eventTemplates.forEach((template) => {
-                items.push({
-                    label: template.template_name,
-                    icon: 'icon-event icon--blue',
-                    group: gettext('From template'),
-                    action: () => createEventFromTemplate(template),
-                    id: template._id,
+            this.props.eventTemplates
+                .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name))
+                .slice(0, 5)
+                .forEach((template) => {
+                    items.push({
+                        label: template.template_name,
+                        icon: 'icon-event icon--blue',
+                        group: gettext('From template'),
+                        action: () => createEventFromTemplate(template),
+                        id: template._id,
+                    });
                 });
+
+            items.push({
+                label: gettext('More templates...'),
+                icon: 'icon-event icon--blue',
+                group: gettext('From template'),
+                action: () => {
+                    showModal(({closeModal}) => (
+                        <PlanningTemplatesModal
+                            createEventFromTemplate={createEventFromTemplate}
+                            closeModal={closeModal}
+                            calendars={this.props.calendars}
+                            eventTemplates={this.props.eventTemplates
+                                .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name))
+                            }
+                        />
+                    ));
+                },
+                id: 'more_templates',
             });
         }
 
@@ -79,6 +104,7 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
 
 function mapStateToProps(state) {
     return {
+        calendars: state.events.calendars,
         eventTemplates: eventTemplates(state),
     };
 }
