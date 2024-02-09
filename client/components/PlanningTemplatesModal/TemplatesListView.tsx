@@ -20,18 +20,17 @@ export const TemplatesListView: React.FC<ITemplatesListViewProps> = ({
     searchQuery,
     createEventFromTemplate,
 }: ITemplatesListViewProps) => {
-    /**
-     * Groups the templates by calendar,
-     * filters the templates that match the current search query,
-     * if a calendar is selected, the groups that match that calendar are filtered,
-     * if not the groups that that don't have any templates are filtered out.
-     */
-    const filteredTemplates = calendars
-        .map((calendar) => ({
-            calendar: calendar,
-            templates: eventTemplates
-                .filter((template) => template.data.calendars.map(({qcode}) => qcode).includes(calendar.qcode))
-                .filter((template) => template.template_name.includes(searchQuery))
+    const searchQueryTemplateMatches = eventTemplates
+        .filter((template) => template.template_name.includes(searchQuery));
+    const calendarsFiltered = activeCalendarFilter
+        ? [calendars.find(({qcode}) => activeCalendarFilter === qcode)]
+        : calendars;
+
+    const filteredTemplates = calendarsFiltered
+        .map((_calendar) => ({
+            calendar: _calendar,
+            templates: searchQueryTemplateMatches
+                .filter((template) => template.data.calendars.find(({qcode}) => qcode === _calendar.qcode)),
         }))
         .filter((group) => activeCalendarFilter
             ? group.calendar.qcode === activeCalendarFilter
@@ -40,36 +39,41 @@ export const TemplatesListView: React.FC<ITemplatesListViewProps> = ({
 
     return (
         <>
-            {
-                filteredTemplates.map(({calendar, templates}) => (
-                    <React.Fragment key={calendar.qcode}>
-                        <Heading type="h6" className="mt-2 mb-1">{calendar.name}</Heading>
-                        {
-                            templates.length > 0 ? (
-                                <BoxedList>
-                                    {templates.map((template) => (
-                                        <BoxedListItem
-                                            key={template._id}
-                                            clickable={true}
-                                            onClick={() => {
-                                                createEventFromTemplate(template);
-                                                closeModal();
-                                            }}
-                                        >
-                                            {template.template_name}
-                                        </BoxedListItem>
-                                    ))}
-                                </BoxedList>
-                            ) : (
-                                <BoxedListItem clickable={false}>
-                                    {gettext('No templates available in this calendar group.')}
-                                </BoxedListItem>
-                            )
-                        }
+            {filteredTemplates.map(({calendar, templates}) => (
+                <React.Fragment key={calendar.qcode}>
+                    <Heading type="h6" className="mt-2 mb-1">{calendar.name}</Heading>
+                    {
+                        templates?.length > 0 ? (
+                            <BoxedList>
+                                {templates.map((template) => (
+                                    <BoxedListItem
+                                        key={template._id}
+                                        clickable={true}
+                                        onClick={() => {
+                                            createEventFromTemplate(template);
+                                            closeModal();
+                                        }}
+                                    >
+                                        {template.template_name}
+                                    </BoxedListItem>
+                                ))}
+                            </BoxedList>
+                        ) : (
+                            <BoxedListItem clickable={false}>
+                                {gettext('No templates available in this calendar group.')}
+                            </BoxedListItem>
+                        )
+                    }
 
-                    </React.Fragment>
-                ))
-            }
+                </React.Fragment>
+            ))}
+            {activeCalendarFilter == null && searchQuery && filteredTemplates.length === 0 && (
+                <div className="mt-2 mb-1">
+                    <BoxedListItem clickable={false}>
+                        {gettext('No templates found.')}
+                    </BoxedListItem>
+                </div>
+            )}
         </>
     );
 };

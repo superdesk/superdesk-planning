@@ -54,9 +54,6 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
             const sortedTemplates = this.props.eventTemplates
                 .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name));
 
-            /**
-             * Take the first @MORE_TEMPLATES_THRESHOLD templates and display them in the dropdown.
-             */
             sortedTemplates
                 .slice(0, MORE_TEMPLATES_THRESHOLD)
                 .forEach((template) => {
@@ -69,9 +66,6 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                     });
                 });
 
-            /**
-             * If there's no more than @MORE_TEMPLATES_THRESHOLD there's no need to show the button for more templates.
-             */
             if (sortedTemplates.length > MORE_TEMPLATES_THRESHOLD) {
                 items.push({
                     label: gettext('More templates...'),

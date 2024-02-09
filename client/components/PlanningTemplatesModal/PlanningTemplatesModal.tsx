@@ -1,6 +1,6 @@
 import {ICalendar, IEventTemplate} from '../../interfaces';
 import React from 'react';
-import {SearchBar, Modal, TreeSelect} from 'superdesk-ui-framework/react';
+import {SearchBar, Modal, Dropdown} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 import {TemplatesListView} from './TemplatesListView';
 
@@ -29,6 +29,37 @@ export default class PlanningTemplatesModal extends React.Component<IProps, ISta
     render(): React.ReactNode {
         const {gettext} = superdeskApi.localization;
         const {closeModal, createEventFromTemplate, calendars, eventTemplates} = this.props;
+        const allCalendarsLabel = gettext('All Calendars');
+        const calendarDropdownItems = [];
+        const activeCalendarName = this.props.calendars
+            .find((cal) => cal.qcode === this.state.activeCalendarFilter)?.name;
+        const dropdownLabel = this.state.activeCalendarFilter
+            ? `${gettext('Calendar')}: ${activeCalendarName}`
+            : allCalendarsLabel;
+
+        if (this.state.activeCalendarFilter) {
+            calendarDropdownItems.push({
+                label: allCalendarsLabel,
+                onSelect: () => {
+                    this.setState({
+                        activeCalendarFilter: null,
+                    });
+                }
+            });
+        }
+
+        if ((calendars?.length ?? 0) > 0) {
+            calendarDropdownItems.push(
+                ...calendars.map((calendar) => ({
+                    label: calendar.name,
+                    onSelect: () => {
+                        this.setState({
+                            activeCalendarFilter: calendar.qcode,
+                        });
+                    }
+                }))
+            );
+        }
 
         return (
             <Modal
@@ -50,49 +81,14 @@ export default class PlanningTemplatesModal extends React.Component<IProps, ISta
                         placeholder={gettext('Search templates')}
                         boxed
                     >
-                        <div style={{width: 200}}>
-                            <TreeSelect
-                                fullWidth
-                                zIndex={3000}
-                                value={this.state.activeCalendarFilter
-                                    ? [this.props.calendars
-                                        .find(({qcode}) => this.state.activeCalendarFilter === qcode)]
-                                    : []
-                                }
-                                kind="synchronous"
-                                labelHidden
-                                inlineLabel
-                                getOptions={() => calendars.map((calendar) => ({value: calendar}))}
-                                getLabel={(item) => item.name}
-                                getId={(item) => item.qcode}
-                                placeholder={(
-                                    <div
-                                        style={{
-                                            height: '100%',
-                                            flexGrow: 1,
-                                            whiteSpace: 'nowrap',
-                                            alignContent: 'center',
-                                        }}
-                                    >
-                                        {gettext('All Calendars')}
-                                    </div>
-                                )}
-                                optionTemplate={(item: any) => <div>{item.name}</div>}
-                                valueTemplate={(item: any, Wrapper) => (
-                                    <div style={{height: '100%', flexGrow: 1, whiteSpace: 'nowrap'}}>
-                                        <Wrapper>
-                                            <span>{gettext('Calendar')}: {item.name}</span>
-                                        </Wrapper>
-                                    </div>
-                                )}
-                                onChange={([value]) => {
-                                    this.setState({
-                                        activeCalendarFilter: value?.qcode,
-                                        searchQuery: '',
-                                    });
-                                }}
-                            />
-                        </div>
+                        <Dropdown
+                            maxHeight={300}
+                            append
+                            zIndex={2001}
+                            items={calendarDropdownItems}
+                        >
+                            {dropdownLabel}
+                        </Dropdown>
                     </SearchBar>
                     <TemplatesListView
                         calendars={calendars}
