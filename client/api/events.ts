@@ -144,6 +144,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
                 internal_note: coverage.planning.internal_note,
             })),
         })),
+        update_method: updates.update_method?.value ?? updates.update_method
     })
         .then((response) => {
             const events = modifySaveResponseForClient(response);
@@ -174,6 +175,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
         associated_plannings: undefined,
         embedded_planning: updates.associated_plannings.map((planning) => ({
             planning_id: planning._id.startsWith(TEMP_ID_PREFIX) ? undefined : planning._id,
+            update_method: planning.update_method,
             coverages: planning.coverages.map((coverage) => ({
                 coverage_id: coverage.coverage_id,
                 g2_content_type: coverage.planning.g2_content_type,
@@ -188,6 +190,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 internal_note: coverage.planning.internal_note,
             })),
         })),
+        update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
     })
         .then((response) => {
             const events = modifySaveResponseForClient(response);

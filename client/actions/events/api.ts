@@ -558,21 +558,7 @@ const save = (original, updates) => (
 
         return promise.then((originalEvent) => {
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
-
-            // clone the updates as we're going to modify it
-            let eventUpdates = eventUtils.modifyForServer(
-                cloneDeep(updates),
-                true
-            );
-
-            originalItem.location = originalItem.location ? [originalItem.location] : null;
-
-            // remove all properties starting with _
-            // and updates that are the same as original
-            eventUpdates = pickBy(eventUpdates, (v, k) => (
-                (k === TO_BE_CONFIRMED_FIELD || k === '_planning_item' || !k.startsWith('_')) &&
-                !isEqual(eventUpdates[k], originalItem[k])
-            ));
+            const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
             if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
                 !isTemporaryId(originalItem._id)
