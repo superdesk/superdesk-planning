@@ -8,10 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import TypedDict, Dict, Any
+from typing import TypedDict, Dict, Any, Literal
 from datetime import datetime
 
 from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentProfile  # noqa
+
+
+UPDATE_METHOD = Literal["single", "future", "all"]
 
 
 class StringFieldTranslation(TypedDict):
@@ -30,6 +33,7 @@ class EmbeddedCoverageItem(TypedDict, total=False):
     scheduled: datetime
     genre: str
     slugline: str
+    headline: str
     ednote: str
     internal_note: str
     priority: int
@@ -37,6 +41,7 @@ class EmbeddedCoverageItem(TypedDict, total=False):
 
 class EmbeddedPlanning(TypedDict, total=False):
     planning_id: str
+    update_method: UPDATE_METHOD
     coverages: Dict[str, EmbeddedCoverageItem]
 
 

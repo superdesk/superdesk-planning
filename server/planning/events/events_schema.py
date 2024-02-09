@@ -347,6 +347,13 @@ events_schema = {
             "type": "dict",
             "schema": {
                 "planning_id": {"type": "string"},
+                # The update method used for recurring planning items
+                "update_method": {
+                    "type": "string",
+                    "allowed": UPDATE_METHODS,
+                    "mapping": not_analyzed,
+                    "nullable": True,
+                },
                 "coverages": {
                     "type": "list",
                     "schema": {
@@ -361,6 +368,7 @@ events_schema = {
                             "language": {"type": "string", "nullable": True},
                             "genre": {"type": "string", "nullable": True},
                             "slugline": {"type": "string", "nullable": True},
+                            "headline": {"type": "string", "nullable": True},
                             "ednote": {"type": "string", "nullable": True},
                             "internal_note": {"type": "string", "nullable": True},
                             "priority": {"type": "integer", "nullable": True},

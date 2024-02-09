@@ -171,6 +171,7 @@ def create_new_coverage_from_event_and_planning(
             "g2_content_type",
             "scheduled",
             "slugline",
+            "headline",
             "internal_note",
             "priority",
         ]
@@ -182,7 +183,6 @@ def create_new_coverage_from_event_and_planning(
             new_coverage["planning"][field] = coverage.get(field)
             continue
 
-        new_value = None
         if coverage_language is not None:
             # If the Coverage has a language defined, then try and get the value
             # from the Event's translations array for this field
@@ -227,6 +227,7 @@ def get_existing_plannings_from_embedded_planning(
             "scheduled",
             "language",
             "slugline",
+            "headline",
             "internal_note",
             "priority",
             "ednote",
@@ -252,13 +253,19 @@ def get_existing_plannings_from_embedded_planning(
             if coverage.get("coverage_id") and embedded_plan["coverages"].get(coverage["coverage_id"])
         ]
         update_required = len(existing_planning.get("coverages") or []) != len(embedded_plan["coverages"])
-        updates = {
+        updates: Planning = {
             "coverages": [
                 coverage
                 for coverage in deepcopy(existing_planning.get("coverages") or [])
                 if coverage.get("coverage_id") in updated_coverage_ids
             ]
         }
+
+        try:
+            updates["update_method"] = embedded_plan["update_method"]
+        except KeyError:
+            pass
+
         for existing_coverage in updates["coverages"]:
             try:
                 embedded_coverage: EmbeddedCoverageItem = embedded_plan["coverages"][existing_coverage["coverage_id"]]
@@ -275,7 +282,7 @@ def get_existing_plannings_from_embedded_planning(
             if coverage_planning is not None:
                 for field in coverage_planning_fields:
                     try:
-                        if coverage_planning.get(field) != embedded_coverage[field]:  # type: ignore
+                        if field in embedded_coverage and coverage_planning.get(field) != embedded_coverage[field]:  # type: ignore
                             coverage_planning[field] = embedded_coverage[field]  # type: ignore
                             update_required = True
                     except KeyError:

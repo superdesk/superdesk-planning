@@ -94,10 +94,11 @@ def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
         return coverage["coverage_id"]
 
     return [
-        {
-            "planning_id": planning.get("planning_id"),
-            "coverages": {get_coverage_id(coverage): coverage for coverage in planning.get("coverages") or []},
-        }
+        EmbeddedPlanning(
+            planning_id=planning.get("planning_id"),
+            update_method=planning.get("update_method") or "single",
+            coverages={get_coverage_id(coverage): coverage for coverage in planning.get("coverages") or []},
+        )
         for planning in event.pop("embedded_planning", [])
     ]
 
@@ -643,6 +644,9 @@ class EventsService(superdesk.Service):
                 # It is validated if the previous funciton did not raise an error
                 mark_complete_validated = True
 
+            # Remove ``embedded_planning`` before updating this event, as this should only be handled
+            # by the event provided to this update request
+            new_updates.pop("embedded_planning", None)
             self.patch(event_id, new_updates)
             app.on_updated_events(new_updates, {"_id": event_id})
 
