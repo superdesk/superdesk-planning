@@ -731,7 +731,7 @@ const addEventRecentTemplate = (field: string, templateId: IEventTemplate['_id']
 const getEventsRecentTemplates = () => (
     (dispatch, getState, {preferencesService}) => preferencesService.get()
         .then((result) => {
-            const templates = take(result[RECENT_EVENTS_TEMPLATES_KEY]['templates'], 5);
+            const templates = take(result?.[RECENT_EVENTS_TEMPLATES_KEY]?.['templates'], 5);
 
             dispatch({type: EVENTS.ACTIONS.EVENT_RECENT_TEMPLATES, payload: templates});
         })
