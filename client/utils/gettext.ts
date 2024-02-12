@@ -11,7 +11,7 @@ import * as utils from 'core/utils';
  * @param {Object} params
  * @return {String}
  */
-export const gettext = (text, params = null) => utils.gettext(text, params);
+export const gettext = (text, params = {}) => utils.gettext(text, params);
 
 export function gettextCatalog(text, params = null) {
     if (!text) {
