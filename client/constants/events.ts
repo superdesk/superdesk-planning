@@ -22,6 +22,7 @@ export const EVENTS = {
         RECEIVE_CALENDARS: 'RECEIVE_CALENDARS',
         RECEIVE_EVENT_TEMPLATES: 'RECEIVE_EVENT_TEMPLATES',
         EXPIRE_EVENTS: 'EXPIRE_EVENTS',
+        EVENT_RECENT_TEMPLATES: 'EVENT_RECENT_TEMPLATES',
     },
     // Number of ids to look for by single request
     // because url length must stay short
