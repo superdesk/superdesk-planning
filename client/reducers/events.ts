@@ -316,6 +316,10 @@ const eventsReducer = createReducer<IEventState>(initialState, {
         ...state,
         eventTemplates: payload,
     }),
+    [EVENTS.ACTIONS.EVENT_RECENT_TEMPLATES]: (state, payload) => ({
+        ...state,
+        recentEventTemplates: payload,
+    })
 });
 
 const onEventPostChanged = (state, payload) => {

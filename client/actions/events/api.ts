@@ -1,7 +1,7 @@
-import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, has, find, every, take} from 'lodash';
 
 import {planningApi} from '../../superdeskApi';
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import {
@@ -689,6 +689,7 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
                     })
                         .then(() => {
                             dispatch(fetchEventTemplates());
+                            dispatch(getEventsRecentTemplates());
                         }, (error) => {
                             notify.error(
                                 getErrorMessage(error, gettext('Failed to save the event template'))
@@ -712,6 +713,29 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
             });
     });
 };
+
+const RECENT_EVENTS_TEMPLATES_KEY = 'events_templates:recent';
+
+const addEventRecentTemplate = (field: string, templateId: IEventTemplate['_id']) => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result = {}) => {
+            result[RECENT_EVENTS_TEMPLATES_KEY] = result[RECENT_EVENTS_TEMPLATES_KEY] || {};
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field] || [];
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field].filter(
+                (i) => i !== templateId);
+            result[RECENT_EVENTS_TEMPLATES_KEY][field].unshift(templateId);
+            return preferencesService.update(result);
+        })
+);
+
+const getEventsRecentTemplates = () => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result) => {
+            const templates = take(result?.[RECENT_EVENTS_TEMPLATES_KEY]?.['templates'], 5);
+
+            dispatch({type: EVENTS.ACTIONS.EVENT_RECENT_TEMPLATES, payload: templates});
+        })
+);
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -745,6 +769,8 @@ const self = {
     removeFile,
     fetchEventTemplates,
     createEventTemplate,
+    addEventRecentTemplate,
+    getEventsRecentTemplates,
 };
 
 export default self;

@@ -6,7 +6,7 @@ import {ICalendar, IEventTemplate} from '../../interfaces';
 
 import {PRIVILEGES} from '../../constants';
 import * as actions from '../../actions';
-import {eventTemplates} from '../../selectors/events';
+import {eventTemplates, getRecentTemplatesSelector} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
 import {showModal} from '@superdesk/common';
 import PlanningTemplatesModal from '../PlanningTemplatesModal/PlanningTemplatesModal';
@@ -19,6 +19,7 @@ interface IProps {
     createEventFromTemplate(template: IEventTemplate): void;
     eventTemplates: Array<IEventTemplate>;
     calendars: Array<ICalendar>;
+    recentTemplates?: Array<IEventTemplate>;
 }
 
 const MORE_TEMPLATES_THRESHOLD = 5;
@@ -26,7 +27,15 @@ const MORE_TEMPLATES_THRESHOLD = 5;
 class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const {addEvent, addPlanning, createPlanningOnly, privileges, createEventFromTemplate} = this.props;
+        const {
+            addEvent,
+            addPlanning,
+            createPlanningOnly,
+            privileges,
+            createEventFromTemplate,
+            recentTemplates,
+            eventTemplates
+        } = this.props;
         const items: Array<IDropdownItem> = [];
 
         if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
@@ -51,11 +60,10 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
             /**
              * Sort the templates by their name.
              */
-            const sortedTemplates = this.props.eventTemplates
+            const sortedTemplates = eventTemplates
                 .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name));
 
-            sortedTemplates
-                .slice(0, MORE_TEMPLATES_THRESHOLD)
+            recentTemplates
                 .forEach((template) => {
                     items.push({
                         label: template.template_name,
@@ -113,11 +121,16 @@ function mapStateToProps(state) {
     return {
         calendars: state.events.calendars,
         eventTemplates: eventTemplates(state),
+        recentTemplates: getRecentTemplatesSelector(state)
     };
 }
 
 const mapDispatchToProps = (dispatch) => ({
-    createEventFromTemplate: (template: IEventTemplate) => dispatch(actions.main.createEventFromTemplate(template)),
+    createEventFromTemplate: (template: IEventTemplate) => {
+        dispatch(actions.main.createEventFromTemplate(template));
+        dispatch(actions.events.api.addEventRecentTemplate('templates', template._id));
+        dispatch(actions.events.api.getEventsRecentTemplates());
+    },
 });
 
 export const CreateNewSubnavDropdown = connect(
