@@ -370,4 +370,31 @@ events_schema = {
             },
         },
     },
-}  # end events_schema
+    "related_items": {
+        "type": "list",
+        "required": False,
+        "schema": {
+            "type": "dict",
+            "schema": {
+                "guid": {"type": "string", "required": True},
+                "type": {"type": "string"},
+                "state": {"type": "string"},
+                "version": {"type": "string"},
+                "headline": {"type": "string"},
+                "slugline": {"type": "string"},
+                "versioncreated": metadata_schema["versioncreated"],
+                "source": {"type": "string"},
+                "search_provider": {"type": "string"},
+                "pubstatus": {"type": "string"},
+                "language": {"type": "string"},
+            },
+        },
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "guid": not_analyzed,  # allow searching events by item id
+            },
+        },
+    },
+}  # end events_schema:
