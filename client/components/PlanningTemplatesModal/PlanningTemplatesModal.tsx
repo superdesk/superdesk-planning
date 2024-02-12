@@ -34,7 +34,7 @@ export default class PlanningTemplatesModal extends React.Component<IProps, ISta
         const activeCalendarName = this.props.calendars
             .find((cal) => cal.qcode === this.state.activeCalendarFilter)?.name;
         const dropdownLabel = this.state.activeCalendarFilter
-            ? `${gettext('Calendar')}: ${activeCalendarName}`
+            ? gettext('Calendar: {{activeCalendarName}}', {activeCalendarName})
             : allCalendarsLabel;
 
         if (this.state.activeCalendarFilter) {
