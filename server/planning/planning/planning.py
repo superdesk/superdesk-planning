@@ -65,7 +65,7 @@ from planning.content_profiles.utils import is_field_enabled
 from superdesk import Resource
 from lxml import etree
 from io import BytesIO
-from planning.signals import planning_created
+from planning.signals import planning_created, planning_ingested
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +85,8 @@ class PlanningService(superdesk.Service):
         resolve_document_etag(docs, self.datasource)
         ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
         self.on_created(docs)
+        for doc in docs:
+            planning_ingested.send(self, item=doc)
         return ids
 
     def patch_in_mongo(self, id, document, original):
@@ -93,6 +95,7 @@ class PlanningService(superdesk.Service):
         update_ingest_on_patch(document, original)
         response = self.backend.update_in_mongo(self.datasource, id, document, original)
         self.on_updated(document, original, from_ingest=True)
+        planning_ingested.send(self, item=document, original=original)
         return response
 
     def is_new_version(self, new_item, old_item):
@@ -463,6 +466,9 @@ class PlanningService(superdesk.Service):
             return all_items
 
     def remove_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         for coverage in (original or {}).get("coverages") or []:
             updated_coverage = next(
                 (
@@ -523,14 +529,21 @@ class PlanningService(superdesk.Service):
         self._create_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity)
 
     def add_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         planning_date = original.get("planning_date") or updates.get("planning_date")
+        original_coverage_ids = [
+            coverage["coverage_id"] for coverage in original.get("coverages") or [] if coverage.get("coverage_id")
+        ]
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id", "")
-            if not coverage_id or TEMP_ID_PREFIX in coverage_id:
+            if not coverage_id or TEMP_ID_PREFIX in coverage_id or coverage_id not in original_coverage_ids:
                 if "duplicate" in coverage_id:
                     self.duplicate_xmp_file(coverage)
                 # coverage to be created
-                coverage["coverage_id"] = generate_guid(type=GUID_NEWSML)
+                if not coverage_id or TEMP_ID_PREFIX in coverage_id:
+                    coverage["coverage_id"] = generate_guid(type=GUID_NEWSML)
                 coverage["firstcreated"] = utcnow()
 
                 # Make sure the coverage has a ``scheduled`` date
@@ -600,6 +613,9 @@ class PlanningService(superdesk.Service):
                 self._create_update_assignment(original, updates, s, original_scheduled_update, coverage)
 
     def update_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id")
             original_coverage = next(

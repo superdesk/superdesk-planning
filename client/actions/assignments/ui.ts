@@ -1,7 +1,7 @@
 import {get, cloneDeep, forEach} from 'lodash';
 import moment from 'moment';
 
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {IAssignmentItem} from '../../interfaces';
 
 import {showModal} from '../index';
@@ -628,12 +628,10 @@ function startWorking(assignment: IAssignmentItem) {
         promise.then(() =>
             (planningApi.locks.lockItem(assignment, 'start_working')
                 .then((lockedAssignment) => {
-                    const currentDesk = assignmentUtils.getCurrentSelectedDesk(desks, getState());
-                    const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
+                    const defaultTemplateId = assignmentUtils
+                        .getCurrentSelectedDesk(desks, getState())?.default_content_template ?? null;
 
-                    return templates.fetchTemplatesByUserDesk(
-                        session.identity._id,
-                        get(currentDesk, '_id') || null,
+                    return superdeskApi.entities.templates.getUserTemplates(
                         1,
                         200,
                         'create'

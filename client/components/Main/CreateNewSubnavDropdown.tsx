@@ -6,7 +6,7 @@ import {IEventTemplate} from '../../interfaces';
 
 import {PRIVILEGES} from '../../constants';
 import * as actions from '../../actions';
-import {eventTemplates} from '../../selectors/events';
+import {eventTemplates, getRecentTemplatesSelector} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
 
 interface IProps {
@@ -16,12 +16,21 @@ interface IProps {
     privileges: {[key: string]: number};
     createEventFromTemplate(template: IEventTemplate): void;
     eventTemplates: Array<IEventTemplate>;
+    recentTemplates?: Array<IEventTemplate>;
 }
 
 class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const {addEvent, addPlanning, createPlanningOnly, privileges, createEventFromTemplate} = this.props;
+        const {
+            addEvent,
+            addPlanning,
+            createPlanningOnly,
+            privileges,
+            createEventFromTemplate,
+            recentTemplates,
+            eventTemplates
+        } = this.props;
         const items: Array<IDropdownItem> = [];
 
         if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
@@ -43,11 +52,22 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                 id: 'create_event',
             });
 
-            this.props.eventTemplates.forEach((template) => {
+            if (recentTemplates.length !== 0) {
+                recentTemplates.forEach((template) => {
+                    items.push({
+                        label: template.template_name,
+                        icon: 'icon-event icon--blue',
+                        group: gettext('Recent Templates'),
+                        action: () => createEventFromTemplate(template),
+                        id: template._id,
+                    });
+                });
+            }
+            eventTemplates.forEach((template) => {
                 items.push({
                     label: template.template_name,
                     icon: 'icon-event icon--blue',
-                    group: gettext('From template'),
+                    group: gettext('ALL Templates'),
                     action: () => createEventFromTemplate(template),
                     id: template._id,
                 });
@@ -80,11 +100,16 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
 function mapStateToProps(state) {
     return {
         eventTemplates: eventTemplates(state),
+        recentTemplates: getRecentTemplatesSelector(state)
     };
 }
 
 const mapDispatchToProps = (dispatch) => ({
-    createEventFromTemplate: (template: IEventTemplate) => dispatch(actions.main.createEventFromTemplate(template)),
+    createEventFromTemplate: (template: IEventTemplate) => {
+        dispatch(actions.main.createEventFromTemplate(template));
+        dispatch(actions.events.api.addEventRecentTemplate('templates', template._id));
+        dispatch(actions.events.api.getEventsRecentTemplates());
+    },
 });
 
 export const CreateNewSubnavDropdown = connect(

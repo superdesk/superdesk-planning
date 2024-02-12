@@ -823,22 +823,15 @@ function _filter(filterType: PLANNING_VIEW, params: ICombinedEventOrPlanningSear
         if (currentFilterId != undefined || filterType === PLANNING_VIEW.COMBINED) {
             promise = planningApi.ui.list.changeFilterId(currentFilterId, params);
         } else if (filterType === PLANNING_VIEW.EVENTS) {
-            const calendar = urlParams.getString('calendar') ||
-                lastParams?.calendars?.[0] ||
-                (lastParams?.noCalendarAssigned ?
-                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
-                    EVENTS.FILTER.ALL_CALENDARS
-                );
-
-            const calender = $location.search().calendar ||
+            const calendar = $location.search().calendar ||
                 get(lastParams, 'calendars[0]', null) ||
                 (get(lastParams, 'noCalendarAssigned', false) ?
-                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
-                    EVENTS.FILTER.ALL_CALENDARS
+                    {qcode: EVENTS.FILTER.NO_CALENDAR_ASSIGNED} :
+                    {qcode: EVENTS.FILTER.ALL_CALENDARS}
                 );
 
             promise = planningApi.ui.list.changeCalendarId(
-                calender,
+                calendar.qcode,
                 params
             );
         } else if (filterType === PLANNING_VIEW.PLANNING) {
