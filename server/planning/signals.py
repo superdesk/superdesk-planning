@@ -12,8 +12,10 @@ import blinker
 
 __all__ = [
     "planning_created",
+    "planning_ingested",
 ]
 
 signals = blinker.Namespace()
 
 planning_created = signals.signal("planning:created")
+planning_ingested = signals.signal("planning:ingested")

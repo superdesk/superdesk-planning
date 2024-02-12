@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {Provider} from 'react-redux';
 import $ from 'jquery';
-
-import {planningApi, superdeskApi} from '../superdeskApi';
+import {planningApi} from '../superdeskApi';
+import {showModal} from '@superdesk/common';
 
 const scrollListItemIfNeeded = (selectedIndex, listRefElement) => {
     if (listRefElement.children.length > 0) {
@@ -29,7 +29,7 @@ export function showModalConnectedToStore<T = any>(
     Component: React.ComponentType<{closeModal(): void} & any>,
     props?: T,
 ): Promise<void> {
-    return superdeskApi.ui.showModal(
+    return showModal(
         ({closeModal}) => (
             <Provider store={planningApi.redux.store}>
                 <Component

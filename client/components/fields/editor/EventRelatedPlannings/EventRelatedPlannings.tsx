@@ -8,7 +8,7 @@ import {
     IProfileSchemaTypeList,
     ISearchProfile
 } from '../../../../interfaces';
-import {superdeskApi} from '../../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
 import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
 import {Row} from '../../../UI/Form';
@@ -32,6 +32,7 @@ interface IProps extends IEditorFieldProps {
 export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const isAgendaEnabled = planningApi.planning.getEditorProfile().editor.agendas.enabled;
         const disabled = this.props.disabled || this.props.schema?.read_only;
 
         return (
@@ -88,6 +89,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     editorType={this.props.editorType}
                                     profile={this.props.profile}
                                     coverageProfile={this.props.coverageProfile}
+                                    isAgendaEnabled={isAgendaEnabled}
                                 />
                             ))
                         )}

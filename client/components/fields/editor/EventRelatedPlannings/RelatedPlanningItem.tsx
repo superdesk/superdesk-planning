@@ -36,6 +36,7 @@ interface IProps {
         scrollOnChange: boolean
     ): void;
     addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
+    isAgendaEnabled: boolean;
 }
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
@@ -104,7 +105,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const {item} = this.props;
+        const {item, isAgendaEnabled} = this.props;
         const hideRemoveIcon = !this.props.item._id.startsWith(TEMP_ID_PREFIX) || this.props.disabled;
 
         return (
@@ -118,6 +119,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 <Row noPadding={true}>
                     <RelatedPlanningListItem
                         item={item}
+                        isAgendaEnabled={isAgendaEnabled}
                         showIcon={true}
                         shadow={1}
                         editPlanningComponent={hideRemoveIcon ? null : (

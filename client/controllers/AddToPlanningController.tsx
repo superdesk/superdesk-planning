@@ -9,7 +9,7 @@ import {planning} from '../actions';
 import {get, isEmpty, isNumber} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
-import {GET_LABEL_MAP, DEFAULT_SCHEMA} from 'superdesk-core/scripts/apps/workspace/content/constants';
+import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
 import {planningApi} from '../superdeskApi';
 
 const DEFAULT_PLANNING_SCHEMA = {
@@ -207,7 +207,6 @@ export class AddToPlanningController {
                 }
 
                 Object.keys(schema)
-                    .filter((field) => DEFAULT_SCHEMA.hasOwnProperty(field)) // filter out planning only fields
                     .filter((field) => get(schema[field], 'required') &&
                         isEmpty(get(newsItem, field)) &&
                         !isNumber(get(newsItem, field)))
