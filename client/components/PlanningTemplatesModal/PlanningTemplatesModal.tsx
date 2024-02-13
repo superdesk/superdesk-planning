@@ -30,7 +30,7 @@ export default class PlanningTemplatesModal extends React.Component<IProps, ISta
         const {gettext} = superdeskApi.localization;
         const {closeModal, createEventFromTemplate, calendars, eventTemplates} = this.props;
         const allCalendarsLabel = gettext('All Calendars');
-        const calendarDropdownItems = [];
+        const calendarDropdownItems: Array<{label: string; onSelect: () => void;}> = [];
         const activeCalendarName = this.props.calendars
             .find((cal) => cal.qcode === this.state.activeCalendarFilter)?.name;
         const dropdownLabel = this.state.activeCalendarFilter
@@ -85,7 +85,7 @@ export default class PlanningTemplatesModal extends React.Component<IProps, ISta
                             maxHeight={300}
                             append
                             zIndex={2001}
-                            items={calendarDropdownItems}
+                            items={calendarDropdownItems.sort((cal1, cal2) => cal1.label.localeCompare(cal2.label))}
                         >
                             {dropdownLabel}
                         </Dropdown>

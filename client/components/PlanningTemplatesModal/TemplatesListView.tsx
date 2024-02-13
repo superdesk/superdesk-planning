@@ -30,8 +30,17 @@ export const TemplatesListView: React.FC<ITemplatesListViewProps> = ({
         .map((_calendar) => ({
             calendar: _calendar,
             templates: searchQueryTemplateMatches
-                .filter((template) => template.data.calendars.find(({qcode}) => qcode === _calendar.qcode)),
+                .filter((template) => (template.data.calendars ?? []).find(({qcode}) => qcode === _calendar.qcode)),
         }))
+        .concat({
+            calendar: {
+                name: gettext('No calendar'),
+                qcode: 'no-calendar',
+            },
+
+            // Get the templates without calendar
+            templates: searchQueryTemplateMatches.filter((template) => (template.data.calendars?.length ?? 0) < 1)
+        })
         .filter((group) => activeCalendarFilter
             ? group.calendar.qcode === activeCalendarFilter
             : group.templates.length > 0
