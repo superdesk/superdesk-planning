@@ -102,10 +102,10 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
 
     def notify_draft_coverage_on_spike(self, coverage):
         assigned_to = coverage.get("assigned_to")
-        if assigned_to:
+        if assigned_to and assigned_to.get("assignment_id"):
             user = get_user()
             assignment_service = get_resource_service("assignments")
-            assignment = assignment_service.find_one(req=None, _id=assigned_to.get("assignment_id"))
+            assignment = assignment_service.find_one(req=None, _id=assigned_to["assignment_id"])
             slugline = assignment.get("planning").get("slugline", "")
             coverage_type = assignment.get("planning").get("g2_content_type", "")
             PlanningNotifications().notify_assignment(

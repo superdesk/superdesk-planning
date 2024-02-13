@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Set
 from bson import ObjectId
 from copy import deepcopy
 import logging
@@ -32,6 +32,7 @@ from superdesk.default_settings import strtobool
 
 from apps.archive.common import get_user, get_auth, update_dates_for
 from eve.utils import config, ParsedRequest, date_to_str
+from planning.types import Planning, Coverage
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
     POST_STATE_SCHEMA,
@@ -56,6 +57,9 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
+    UPDATE_METHODS,
+    UPDATE_SINGLE,
+    UPDATE_FUTURE,
 )
 from superdesk.utc import utcnow
 from itertools import chain
@@ -68,6 +72,15 @@ from io import BytesIO
 from planning.signals import planning_created, planning_ingested
 
 logger = logging.getLogger(__name__)
+
+
+def get_coverage_by_id(
+    planning_item: Planning, coverage_id: str, field: Optional[str] = "coverage_id"
+) -> Optional[Coverage]:
+    return next(
+        (coverage for coverage in planning_item.get("coverages") or [] if coverage.get(field) == coverage_id),
+        None,
+    )
 
 
 class PlanningService(superdesk.Service):
@@ -247,6 +260,7 @@ class PlanningService(superdesk.Service):
         return item
 
     def on_update(self, updates, original):
+        update_method = updates.pop("update_method", UPDATE_SINGLE)
         user = get_user()
         self.validate_on_update(updates, original, user)
 
@@ -255,6 +269,9 @@ class PlanningService(superdesk.Service):
 
         self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
+
+        if update_method and update_method != UPDATE_SINGLE:
+            self._update_recurring_planning_items(updates, original, update_method)
 
     def validate_on_update(self, updates, original, user):
         lock_user = original.get("lock_user", None)
@@ -349,6 +366,7 @@ class PlanningService(superdesk.Service):
             # Not a series of Events, can safely return
             return []
 
+        plan["planning_recurrence_id"] = generate_guid(type=GUID_NEWSML)
         planning_date_relative = plan["planning_date"] - event["dates"]["start"]
         items = []
         for series_entry in get_resource_service("events").find(where={"recurrence_id": recurrence_id}):
@@ -368,7 +386,7 @@ class PlanningService(superdesk.Service):
             new_plan["planning_date"] = series_entry["dates"]["start"] + planning_date_relative
             for coverage in new_plan.get("coverages") or []:
                 # Remove the Coverage and Assignment IDs (as these will be created for us in ``self._set_coverage``)
-                coverage.pop("coverage_id", None)
+                coverage["original_coverage_id"] = coverage.pop("coverage_id", None)
                 (coverage.get("assigned_to") or {}).pop("assignment_id", None)
 
                 # Set the scheduled date/time relative to the Event start date/time
@@ -539,11 +557,13 @@ class PlanningService(superdesk.Service):
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id", "")
             if not coverage_id or TEMP_ID_PREFIX in coverage_id or coverage_id not in original_coverage_ids:
-                if "duplicate" in coverage_id:
+                if "duplicate" in coverage_id or coverage.get("original_coverage_id"):
                     self.duplicate_xmp_file(coverage)
                 # coverage to be created
                 if not coverage_id or TEMP_ID_PREFIX in coverage_id:
                     coverage["coverage_id"] = generate_guid(type=GUID_NEWSML)
+                if coverage.get("original_coverage_id") is None:
+                    coverage["original_coverage_id"] = coverage["coverage_id"]
                 coverage["firstcreated"] = utcnow()
 
                 # Make sure the coverage has a ``scheduled`` date
@@ -1469,6 +1489,146 @@ class PlanningService(superdesk.Service):
         planning_file_ids = get_resource_service("planning_files").post([{"media": media_id}])
         coverage["planning"]["xmp_file"] = planning_file_ids[0]
 
+    def _update_recurring_planning_items(self, updates, original, update_method):
+        SKIP_PLANNING_FIELDS = {
+            "_id",
+            "guid",
+            "unique_id",
+            "original_creator",
+            "firstcreated",
+            "lock_user",
+            "lock_time",
+            "lock_session",
+            "lock_action",
+            "revert_state",
+            "ingest_provider",
+            "source",
+            "original_source",
+            "ingest_provider_sequence",
+            "ingest_firstcreated",
+            "ingest_versioncreated",
+            "event_item",
+            "state",
+            "pubstatus",
+            "expiry",
+            "expired",
+            "featured",
+            "_planning_schedule",
+            "_updates_schedule",
+            "planning_date",
+            "state_reason",
+        }
+        SKIP_COVERAGE_FIELDS = {
+            "coverage_id",
+            "original_coverage_id",
+            "guid",
+            "original_creator",
+            "firstcreated",
+            "previous_status",
+        }
+        for plan in self._iter_recurring_plannings_to_update(updates, original, update_method):
+            plan_updates = deepcopy(updates)
+            for field in SKIP_PLANNING_FIELDS:
+                plan_updates.pop(field, None)
+
+            try:
+                planning_date_diff = updates["planning_date"] - original["planning_date"]
+                if planning_date_diff:
+                    plan_updates["planning_date"] = plan["planning_date"] + planning_date_diff
+            except KeyError:
+                pass
+
+            if len(updates.get("coverages") or []) and len(plan.get("coverages") or []):
+                plan_updates["coverages"] = deepcopy(plan["coverages"])
+                for coverage in plan_updates["coverages"]:
+                    try:
+                        original_coverage_id = coverage["original_coverage_id"]
+                    except KeyError:
+                        continue
+
+                    coverage_updates = get_coverage_by_id(updates, original_coverage_id, "original_coverage_id")
+                    if coverage_updates is None:
+                        continue
+
+                    for field, value in coverage_updates.items():
+                        if field in SKIP_COVERAGE_FIELDS:
+                            continue
+                        elif field == "assigned_to":
+                            if coverage.get("workflow_status") != WORKFLOW_STATE.DRAFT:
+                                # This coverage has already been added to the workflow
+                                # ``assigned_to`` information should be managed from the Assignment not Coverage
+                                continue
+
+                            # Copy the ``assigned_to`` data, keeping the original ``assignment_id`` (if any)
+                            original_assignment_id = coverage.get("assignment_id")
+                            coverage[field] = deepcopy(value)
+                            if original_assignment_id is not None:
+                                coverage[field]["assignment_id"] = original_assignment_id
+                        elif field == "planning":
+                            original_scheduled = (coverage.get("planning") or {}).get("scheduled")
+                            coverage["planning"] = deepcopy(value)
+                            coverage_original = get_coverage_by_id(
+                                original, original_coverage_id, "original_coverage_id"
+                            )
+                            if coverage_original is not None:
+                                scheduled_diff = value["scheduled"] - coverage_original["planning"]["scheduled"]
+                                coverage["planning"]["scheduled"] = original_scheduled + scheduled_diff
+                            else:
+                                coverage["planning"]["scheduled"] = original_scheduled
+                        else:
+                            coverage[field] = deepcopy(value)
+
+                # Add new Coverages that were added during this update request
+                for coverage in updates["coverages"]:
+                    if get_coverage_by_id(original, coverage["coverage_id"]) is not None:
+                        # Skip this one, as this Coverage exists in the original
+                        continue
+
+                    new_coverage = deepcopy(coverage)
+                    for field in SKIP_COVERAGE_FIELDS:
+                        new_coverage.pop(field, None)
+
+                    # Remove the Assignment ID (if any)
+                    try:
+                        new_coverage["assigned_to"].pop("assignment_id", None)
+                    except (KeyError, TypeError):
+                        pass
+
+                    # Set the new scheduled date, relative to the planning date
+                    try:
+                        plan_date = plan_updates.get("planning_date") or plan["planning_date"]
+                        if plan_date:
+                            scheduled_diff = coverage["planning"]["scheduled"] - (
+                                updates.get("planning_date") or original.get("planning_date")
+                            )
+                            new_coverage["planning"]["scheduled"] = plan_date + scheduled_diff
+                    except (KeyError, TypeError):
+                        pass
+
+                    plan_updates["coverages"].append(new_coverage)
+
+            self.patch(plan["_id"], plan_updates)
+            app.on_updated_planning(plan_updates, {"_id": plan["_id"]})
+
+    def _iter_recurring_plannings_to_update(self, updates, original, update_method):
+        selected_start = updates.get("planning_date") or original.get("planning_date")
+        # Make sure we are working with a datetime instance
+        if not isinstance(selected_start, datetime):
+            selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
+
+        try:
+            lookup = {"planning_recurrence_id": original["planning_recurrence_id"]}
+        except KeyError:
+            return
+
+        for plan in self.get_from_mongo(req=None, lookup=lookup):
+            if plan["_id"] == original["_id"]:
+                # Skip this Planning item, as it is the same item provided to the update request
+                continue
+            elif update_method == UPDATE_FUTURE and plan["planning_date"] < selected_start:
+                continue
+            yield plan
+
 
 event_type = deepcopy(superdesk.Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -1488,6 +1648,7 @@ assigned_to_schema = {
 coverage_schema = {
     # Identifiers
     "coverage_id": {"type": "string", "mapping": not_analyzed},
+    "original_coverage_id": {"type": "string", "mapping": not_analyzed},
     "guid": metadata_schema["guid"],
     # Audit Information
     "original_creator": metadata_schema["original_creator"],
@@ -1628,6 +1789,11 @@ planning_schema = {
         "mapping": not_analyzed,
         "nullable": True,
     },
+    "planning_recurrence_id": {
+        "type": "string",
+        "mapping": not_analyzed,
+        "nullable": True,
+    },
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
     # Planning Item Metadata - See IPTC-G2-Implementation_Guide 16.1
@@ -1762,6 +1928,13 @@ planning_schema = {
     "_type": {"type": "string", "mapping": None},
     "extra": metadata_schema["extra"],
     "versionposted": {"type": "datetime", "nullable": False},
+    # The update method used for recurring planning items
+    "update_method": {
+        "type": "string",
+        "allowed": UPDATE_METHODS,
+        "mapping": not_analyzed,
+        "nullable": True,
+    },
 }  # end planning_schema
 
 
@@ -1787,6 +1960,9 @@ class PlanningResource(superdesk.Resource):
     }
     etag_ignore_fields = ["_planning_schedule", "_updates_schedule"]
 
-    mongo_indexes = {"event_item": ([("event_item", 1)], {"background": True})}
+    mongo_indexes = {
+        "event_item": ([("event_item", 1)], {"background": True}),
+        "planning_recurrence_id": ([("planning_recurrence_id", 1)], {"background": True}),
+    }
 
     merge_nested_documents = True
