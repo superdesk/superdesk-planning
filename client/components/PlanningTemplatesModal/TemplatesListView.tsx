@@ -21,7 +21,7 @@ export const TemplatesListView: React.FC<ITemplatesListViewProps> = ({
     createEventFromTemplate,
 }: ITemplatesListViewProps) => {
     const searchQueryTemplateMatches = eventTemplates
-        .filter((template) => template.template_name.includes(searchQuery));
+        .filter((template) => template.template_name.toLowerCase().includes(searchQuery.toLowerCase()));
     const calendarsFiltered = activeCalendarFilter
         ? [calendars.find(({qcode}) => activeCalendarFilter === qcode)]
         : calendars;
