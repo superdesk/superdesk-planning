@@ -471,3 +471,16 @@ def step_impl_then_get_response_order(context):
     expected_order = json.loads(context.text)
 
     assert ids == expected_order, "{} != {}".format(",".join(ids), ",".join(expected_order))
+
+
+@when('we create "{resource}" autosave from context item "{name}"')
+def create_autosave_from_context_item(context, resource, name):
+    item = deepcopy(getattr(context, name))
+
+    # Remove system fields
+    for field in ["_created", "_updated", "_etag", "_links", "_status"]:
+        item.pop(field, None)
+
+    context.response = context.client.post(
+        get_prefixed_url(context.app, f"/{resource}_autosave"), data=json.dumps(item), headers=context.headers
+    )
