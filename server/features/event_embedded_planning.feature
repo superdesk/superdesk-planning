@@ -352,3 +352,92 @@ Feature: Event Embedded Planning
             }]
         }]}
         """
+
+    @auth
+    @vocabulary
+    Scenario: Creates Planning with null values removed
+        When we post to "/events"
+        """
+        [{
+            "guid": "event1",
+            "name": "name1",
+            "dates": {
+                "start": "2029-11-21T12:00:00+0000",
+                "end": "2029-11-21T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "embedded_planning": [{
+                "coverages": [{
+                    "g2_content_type": "text",
+                    "news_coverage_status": "ncostat:int",
+                    "scheduled": "2029-11-21T15:00:00+0000",
+                    "slugline": null
+                }]
+            }]
+        }]
+        """
+        Then we get OK response
+        When we get "/events_planning_search?repo=planning&only_future=false&event_item=event1"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "event_item": "event1",
+            "slugline": "__no_value__",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "slugline": "__no_value__"
+                }
+            }]
+        }]}
+        """
+        And we store "PLAN1" with first item
+        And we store coverage id in "COVERAGE_ID" from plan 0 coverage 0
+        When we post to "/planning/#PLAN1._id#/lock"
+        """
+        {"lock_action": "edit"}
+        """
+        Then we store response in "PLAN1"
+        When we create "planning" autosave from context item "PLAN1"
+        Then we get OK response
+        When we delete "/planning_autosave/#PLAN1._id#"
+        Then we get OK response
+        When we patch "/events/event1"
+        """
+        {
+            "embedded_planning": [{
+                "planning_id": "#PLAN1._id#",
+                "coverages": [{"coverage_id": "#COVERAGE_ID#", "slugline": "Testing"}]
+            }]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#PLAN1._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#PLAN1._id#",
+            "coverages": [{"coverage_id": "#COVERAGE_ID#", "planning": {"slugline": "Testing"}}]
+        }
+        """
+        When we patch "/events/event1"
+        """
+        {
+            "embedded_planning": [{
+                "planning_id": "#PLAN1._id#",
+                "coverages": [{"coverage_id": "#COVERAGE_ID#", "slugline": null}]
+            }]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#PLAN1._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#PLAN1._id#",
+            "coverages": [{"coverage_id": "#COVERAGE_ID#", "planning": {"slugline": ""}}]
+        }
+        """
+        Then we store response in "PLAN1"
+        When we create "planning" autosave from context item "PLAN1"
+        Then we get OK response
