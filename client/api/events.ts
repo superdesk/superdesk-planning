@@ -173,7 +173,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
     return superdeskApi.dataApi.patch<IEventItem>('events', original, {
         ...updates,
         associated_plannings: undefined,
-        embedded_planning: updates.associated_plannings.map((planning) => ({
+        embedded_planning: updates?.associated_plannings?.map((planning) => ({
             planning_id: planning._id.startsWith(TEMP_ID_PREFIX) ? undefined : planning._id,
             update_method: planning.update_method,
             coverages: planning.coverages.map((coverage) => ({
