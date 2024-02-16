@@ -63,11 +63,7 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
             const sortedTemplates = eventTemplates
                 .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name));
 
-            /**
-             * If recent templates has empty then in this case show eventtemplates.
-             */
-
-            const templates = recentTemplates.length == 0 ? sortedTemplates : recentTemplates;
+            const templates = recentTemplates.length === 0 ? sortedTemplates : recentTemplates;
 
             templates
                 .forEach((template) => {
