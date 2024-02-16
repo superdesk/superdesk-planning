@@ -63,7 +63,9 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
             const sortedTemplates = eventTemplates
                 .sort((templ1, templ2) => templ1.template_name.localeCompare(templ2.template_name));
 
-            recentTemplates
+            const templates = recentTemplates.length === 0 ? sortedTemplates : recentTemplates;
+
+            templates
                 .forEach((template) => {
                     items.push({
                         label: template.template_name,
@@ -74,7 +76,8 @@ class CreateNewSubnavDropdownFn extends React.PureComponent<IProps> {
                     });
                 });
 
-            if (sortedTemplates.length > MORE_TEMPLATES_THRESHOLD) {
+            if (recentTemplates.length < MORE_TEMPLATES_THRESHOLD ||
+                sortedTemplates.length > MORE_TEMPLATES_THRESHOLD) {
                 items.push({
                     label: gettext('More templates...'),
                     icon: 'icon-event icon--blue',
