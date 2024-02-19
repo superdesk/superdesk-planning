@@ -10,6 +10,7 @@ import {
     IVocabulary,
     IVocabularyItem,
     RICH_FORMATTING_OPTION,
+    IVocabularyItem,
 } from 'superdesk-api';
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
@@ -1394,6 +1395,8 @@ export interface ISearchParams {
         name?: string;
     }>;
     coverage_user_id?:string;
+    priority?: Array<number>;
+
     priority?: Array<number>;
 
     // Event Params
