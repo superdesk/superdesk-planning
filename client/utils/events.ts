@@ -896,45 +896,6 @@ const isEventInRange = (
     return localEnd.isSameOrAfter(start, endUnit) && (end == null || localStart.isSameOrBefore(end, startUnit));
 };
 
-
-const getStartDate = (event: IEventItem) => (
-    event.dates?.all_day ? moment.utc(event.dates.start) : moment(event.dates?.start)
-);
-
-const getEndDate = (event: IEventItem) => (
-    (event.dates?.all_day || event.dates?.no_end_time) ? moment.utc(event.dates.end) : moment(event.dates?.end)
-);
-
-const isEventInRange = (
-    event: IEventItem,
-    eventStart: moment.Moment,
-    eventEnd: moment.Moment,
-    start: moment.Moment,
-    end?: moment.Moment,
-) => {
-    let localStart = eventStart;
-    let localEnd = eventEnd;
-    let startUnit : moment.unitOfTime.StartOf = 'second';
-    let endUnit : moment.unitOfTime.StartOf = 'second';
-
-    if (event.dates?.all_day) {
-        // we have only dates in utc
-        localStart = moment(eventStart.format('YYYY-MM-DD'));
-        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
-        startUnit = 'day';
-        endUnit = 'day';
-    }
-
-    if (event.dates?.no_end_time) {
-        // we have time for start, but only date for end
-        localStart = moment(eventStart);
-        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
-        endUnit = 'day';
-    }
-
-    return localEnd.isSameOrAfter(start, endUnit) && (end == null || localStart.isSameOrBefore(end, startUnit));
-};
-
 /*
  * Groups the events by date
  */
@@ -1201,7 +1162,6 @@ function defaultEventValues(
     if (defaultPlaceList) {
         newEvent.place = defaultPlaceList;
     }
-
     return newEvent;
 }
 
