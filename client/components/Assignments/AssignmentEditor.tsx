@@ -8,6 +8,7 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
 import {getContactTypes} from '../../selectors/vocabs';
+import {superdeskApi} from '../../superdeskApi';
 
 import {
     Label,
@@ -243,6 +244,7 @@ export class AssignmentEditorComponent extends React.Component {
             showPriority,
             className,
         } = this.props;
+        const {SelectUser} = superdeskApi.components;
 
         return (
             <div className={className}>
@@ -297,15 +299,17 @@ export class AssignmentEditorComponent extends React.Component {
                         />
                     </Row>
                 ) : (
-                    <SelectUserInput
-                        field={this.FIELDS.USER}
-                        label={gettext('User')}
-                        value={this.state.user}
-                        onChange={this.onUserChange}
-                        users={this.state.filteredUsers}
-                        popupContainer={popupContainer}
-                        readOnly={disableUserSelection}
-                    />
+                    <Row testId="user" style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
+                        <SelectUser
+                            selectedUserId = {this.state.userId}
+                            onSelect={(user) => {
+                                this.onUserChange(null, user);
+                            }}
+                            autoFocus={false}
+                            horizontalSpacing={true}
+                            clearable={true}
+                        />
+                    </Row>
                 )}
 
                 {showPriority && (
