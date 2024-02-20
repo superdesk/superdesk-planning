@@ -66,7 +66,7 @@
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
-    "superdesk-core": "github:superdesk/superdesk-client-core#develop",
+    "superdesk-core": "github:superdesk/superdesk-client-core#release/2.7",
     "superdesk-ui-framework": "^3.0.72",
     "ts-node": "~7.0.1",
     "tslint": "5.11.0",
