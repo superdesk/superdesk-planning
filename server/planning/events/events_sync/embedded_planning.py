@@ -92,9 +92,11 @@ def create_new_plannings_from_embedded_planning(
             new_planning["recurrence_id"] = event["recurrence_id"]
 
         for field in planning_fields:
-            new_planning[field] = event.get(field)
+            if event.get(field):
+                # The Event item contains a value for this field (excluding ``None``), use that
+                new_planning[field] = event.get(field)
 
-        if "description_text" in profiles.planning.enabled_fields:
+        if "description_text" in profiles.planning.enabled_fields and event.get("definition_short"):
             new_planning["description_text"] = event.get("definition_short")
 
         if translations:
@@ -138,12 +140,15 @@ def create_new_coverage_from_event_and_planning(
         "news_coverage_status": vocabs.coverage_states.get(news_coverage_status) or {"qcode": news_coverage_status},
         "workflow_status": "draft",
         "flags": {"no_content_linking": False},
-        "assigned_to": {
-            "desk": coverage.get("desk"),
-            "user": coverage.get("user"),
-        },
         "planning": {},
     }
+
+    if coverage.get("desk") or coverage.get("user"):
+        new_coverage["assigned_to"] = {}
+        if coverage.get("desk"):
+            new_coverage["assigned_to"]["desk"] = coverage["desk"]
+        if coverage.get("user"):
+            new_coverage["assigned_to"]["user"] = coverage["user"]
 
     if "language" in profiles.coverages.enabled_fields:
         # If ``language`` is enabled for Coverages but not defined in ``embedded_planning``
@@ -171,6 +176,7 @@ def create_new_coverage_from_event_and_planning(
             "g2_content_type",
             "scheduled",
             "slugline",
+            "headline",
             "internal_note",
             "priority",
         ]
@@ -178,11 +184,10 @@ def create_new_coverage_from_event_and_planning(
     )
     for field in coverage_planning_fields:
         if coverage.get(field):
-            # If the value is already provided in the Coverage, then use that
+            # If the value (excluding ``None``) is already provided in the Coverage, then use that
             new_coverage["planning"][field] = coverage.get(field)
             continue
 
-        new_value = None
         if coverage_language is not None:
             # If the Coverage has a language defined, then try and get the value
             # from the Event's translations array for this field
@@ -192,8 +197,15 @@ def create_new_coverage_from_event_and_planning(
             except (KeyError, TypeError):
                 pass
 
-        # Otherwise fallback to the Planning or Event value directly
-        new_coverage["planning"][field] = planning.get(field) or event.get(field)
+        if planning.get(field):
+            # Planning item contains the value for this field (excluding ``None``), use that
+            new_coverage["planning"][field] = planning[field]
+        elif event.get(field):
+            # Event item contains the value for this field (excluding ``None``), use that
+            new_coverage["planning"][field] = event[field]
+
+        # Was unable to determine what value to give this field, leave it out of the new coverage
+        # otherwise we would be setting the value to ``None``, which is not supported in all fields (like slugline)
 
     if "genre" in profiles.coverages.enabled_fields and coverage.get("genre") is not None:
         new_coverage["planning"]["genre"] = [vocabs.genres.get(coverage["genre"]) or {"qcode": coverage["genre"]}]
@@ -227,6 +239,7 @@ def get_existing_plannings_from_embedded_planning(
             "scheduled",
             "language",
             "slugline",
+            "headline",
             "internal_note",
             "priority",
             "ednote",
@@ -252,13 +265,19 @@ def get_existing_plannings_from_embedded_planning(
             if coverage.get("coverage_id") and embedded_plan["coverages"].get(coverage["coverage_id"])
         ]
         update_required = len(existing_planning.get("coverages") or []) != len(embedded_plan["coverages"])
-        updates = {
+        updates: Planning = {
             "coverages": [
                 coverage
                 for coverage in deepcopy(existing_planning.get("coverages") or [])
                 if coverage.get("coverage_id") in updated_coverage_ids
             ]
         }
+
+        try:
+            updates["update_method"] = embedded_plan["update_method"]
+        except KeyError:
+            pass
+
         for existing_coverage in updates["coverages"]:
             try:
                 embedded_coverage: EmbeddedCoverageItem = embedded_plan["coverages"][existing_coverage["coverage_id"]]
@@ -275,9 +294,19 @@ def get_existing_plannings_from_embedded_planning(
             if coverage_planning is not None:
                 for field in coverage_planning_fields:
                     try:
-                        if coverage_planning.get(field) != embedded_coverage[field]:  # type: ignore
+                        if field not in embedded_coverage:
+                            continue
+                        elif coverage_planning.get(field) != embedded_coverage[field]:  # type: ignore
                             coverage_planning[field] = embedded_coverage[field]  # type: ignore
                             update_required = True
+
+                            if coverage_planning[field] is None and field in [
+                                "slugline",
+                                "headline",
+                                "internal_note",
+                                "ednote",
+                            ]:
+                                coverage_planning[field] = ""
                     except KeyError:
                         pass
 
@@ -307,6 +336,7 @@ def get_existing_plannings_from_embedded_planning(
 
             try:
                 if existing_coverage.get("assigned_to", {}).get("desk") != embedded_coverage["desk"]:
+                    existing_coverage.setdefault("assigned_to", {})
                     existing_coverage["assigned_to"]["desk"] = embedded_coverage["desk"]
                     update_required = True
             except KeyError:
@@ -314,6 +344,7 @@ def get_existing_plannings_from_embedded_planning(
 
             try:
                 if existing_coverage.get("assigned_to", {}).get("user") != embedded_coverage["user"]:
+                    existing_coverage.setdefault("assigned_to", {})
                     existing_coverage["assigned_to"]["user"] = embedded_coverage["user"]
                     update_required = True
             except KeyError:

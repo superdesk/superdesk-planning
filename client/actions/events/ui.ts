@@ -773,6 +773,9 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
         if (plan.languages != null) {
             newEvent.languages = plan.languages;
         }
+        if (plan.priority != null) {
+            newEvent.priority = plan.priority;
+        }
 
         const fieldsToConvert: Array<[keyof IPlanningItem, keyof IEventItem]> = [
             ['description_text', 'definition_short'],

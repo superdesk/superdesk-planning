@@ -30,6 +30,7 @@ interface IProps {
     desks: Array<IDesk>;
     contentTypes: Array<IG2ContentType>;
     lockedItems: ILockedItems;
+    isAgendaEnabled: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -75,14 +76,19 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                             <span className="sd-list-item__text-strong">{this.props.item.slugline}</span>
                         </span>
                     </List.Row>
-                    <List.Row>
-                        <span className="no-padding">
-                            <span className="sd-list-item__text-label">{gettext('Agenda:')}</span>
-                            <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
-                                <AgendaNameList agendas={this.props.item._agendas} />
+                    {this.props.isAgendaEnabled && (
+                        <List.Row>
+                            <span className="no-padding">
+                                <span className="sd-list-item__text-label">{gettext('Agenda:')}</span>
+                                <span
+                                    className="sd-overflow-ellipsis
+                                    sd-list-item__text-strong sd-list-item--element-grow"
+                                >
+                                    <AgendaNameList agendas={this.props.item._agendas} />
+                                </span>
                             </span>
-                        </span>
-                    </List.Row>
+                        </List.Row>
+                    )}
                 </List.Column>
                 <List.Column>
                     <List.Row>

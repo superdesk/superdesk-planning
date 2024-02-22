@@ -15,6 +15,7 @@ import {
     IPlanningConfig,
     IItemSubActions,
     IEventOccurStatus,
+    IEmbeddedPlanningItem, IPlanningCoverageItem, IEmbeddedCoverageItem,
 } from '../interfaces';
 import {planningApi} from '../superdeskApi';
 import {appConfig as config} from 'appConfig';
@@ -1062,6 +1063,10 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
         );
     }
 
+    if (event.files == null) {
+        event.files = [];
+    }
+
     // clean up angular artifacts
     removeFieldsStartingWith(event, '$$');
 
@@ -1330,6 +1335,40 @@ function fillEventTime(event: IEventItem) {
     }
 }
 
+function getEventDiff(original: IEventItem, updates: Partial<IEventItem>): Partial<IEventItem> {
+    const originalItem = modifyForServer(cloneDeep(original), true);
+
+    // clone the updates as we're going to modify it
+    let eventUpdates = modifyForServer(cloneDeep(updates), true);
+
+    originalItem.location = originalItem.location ? [originalItem.location] : null;
+
+    // remove all properties starting with `_`
+    // and updates that are the same as original
+    eventUpdates = pickBy(eventUpdates, (value, key) => (
+        (key === TO_BE_CONFIRMED_FIELD || key === '_planning_item' || !key.startsWith('_')) &&
+        !isEqual(eventUpdates[key] ?? '', originalItem[key] ?? '')
+    ));
+
+    return eventUpdates;
+}
+
+function convertCoverageToEventEmbedded(coverage: IPlanningCoverageItem): IEmbeddedCoverageItem {
+    return {
+        coverage_id: coverage.coverage_id,
+        g2_content_type: coverage.planning.g2_content_type,
+        desk: coverage.assigned_to.desk,
+        user: coverage.assigned_to.user,
+        language: coverage.planning.language,
+        news_coverage_status: coverage.news_coverage_status.qcode,
+        scheduled: coverage.planning.scheduled,
+        genre: coverage.planning.genre?.qcode,
+        slugline: coverage.planning.slugline,
+        headline: coverage.planning.headline,
+        ednote: coverage.planning.ednote,
+        internal_note: coverage.planning.internal_note,
+    };
+}
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -1376,6 +1415,8 @@ const self = {
     fillEventTime,
     getStartDate,
     getEndDate,
+    getEventDiff,
+    convertCoverageToEventEmbedded,
 };
 
 export default self;

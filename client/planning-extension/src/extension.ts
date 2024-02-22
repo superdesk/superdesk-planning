@@ -105,35 +105,33 @@ const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
 
-        return superdesk.privileges.getOwnPrivileges().then((privileges) => {
-            const displayTopbarWidget = privileges['planning_assignments_view'] === 1
-                && extensionConfig?.assignmentsTopBarWidget === true;
+        const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
+            && extensionConfig?.assignmentsTopBarWidget === true;
 
-            const result: IExtensionActivationResult = {
-                contributions: {
-                    entities: {
-                        article: {
-                            onSpike: (item: IArticle) => onSpike(superdesk, item),
-                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                        },
-                        ingest: {
-                            ruleHandlers: {
-                                planning_publish: {
-                                    editor: AutopostIngestRuleEditor,
-                                    preview: AutopostIngestRulePreview,
-                                },
+        const result: IExtensionActivationResult = {
+            contributions: {
+                entities: {
+                    article: {
+                        onSpike: (item: IArticle) => onSpike(superdesk, item),
+                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                    },
+                    ingest: {
+                        ruleHandlers: {
+                            planning_publish: {
+                                editor: AutopostIngestRuleEditor,
+                                preview: AutopostIngestRulePreview,
                             },
                         },
                     },
-                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
                 },
-            };
+                globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+            },
+        };
 
-            return result;
-        });
+        return Promise.resolve(result);
     },
 };
 

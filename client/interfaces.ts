@@ -408,6 +408,27 @@ export interface IItemSubActions {
 
 export type IDateTime = moment.MomentInput;
 
+export interface IEmbeddedCoverageItem {
+    coverage_id?: IPlanningCoverageItem['coverage_id'];
+    g2_content_type: ICoveragePlanningDetails['g2_content_type'];
+    desk: IPlanningAssignedTo['desk'];
+    user: IPlanningAssignedTo['user'];
+    language: ICoveragePlanningDetails['language'];
+    news_coverage_status: IPlanningNewsCoverageStatus['qcode'];
+    scheduled: ICoveragePlanningDetails['scheduled'];
+    genre: ICoveragePlanningDetails['genre']['qcode'];
+    slugline: ICoveragePlanningDetails['slugline'];
+    headline: ICoveragePlanningDetails['headline'];
+    ednote: ICoveragePlanningDetails['ednote'];
+    internal_note: ICoveragePlanningDetails['internal_note'];
+}
+
+export interface IEmbeddedPlanningItem {
+    planning_id?: IPlanningItem['_id'];
+    update_method?: IEventUpdateMethod;
+    coverages: Array<IEmbeddedCoverageItem>;
+}
+
 export interface IEventItem extends IBaseRestApiResponse {
     guid?: string;
     unique_id?: string;
@@ -547,27 +568,14 @@ export interface IEventItem extends IBaseRestApiResponse {
     // Used only to add/modify Plannings/Coverages from the Event form
     // These are only stored with the Autosave and not the actual Event
     associated_plannings: Array<Partial<IPlanningItem>>;
-    embedded_planning: Array<{
-        planning_id?: IPlanningItem['_id'];
-        coverages: Array<{
-            coverage_id?: IPlanningCoverageItem['coverage_id'];
-            g2_content_type: ICoveragePlanningDetails['g2_content_type'];
-            desk: IPlanningAssignedTo['desk'];
-            user: IPlanningAssignedTo['user'];
-            language: ICoveragePlanningDetails['language'];
-            news_coverage_status: IPlanningNewsCoverageStatus['qcode'];
-            scheduled: ICoveragePlanningDetails['scheduled'];
-
-            genre: ICoveragePlanningDetails['genre']['qcode'];
-            slugline: ICoveragePlanningDetails['slugline'];
-            ednote: ICoveragePlanningDetails['ednote'];
-            internal_note: ICoveragePlanningDetails['internal_note'];
-        }>;
-    }>;
+    embedded_planning: Array<IEmbeddedPlanningItem>;
 
     // Attributes added by API (removed via modifyForClient)
     // The `_status` field is available when the item comes from a POST/PATCH request
     _status: any;
+    _post?: boolean;
+    _events: Array<IEventItem>;
+    _relatedPlannings: Array<IPlanningItem>;
 }
 
 export interface IEventTemplate extends IBaseRestApiResponse {
@@ -640,6 +648,7 @@ export interface ICoverageScheduledUpdate {
 
 export interface IPlanningCoverageItem {
     coverage_id: string;
+    original_coverage_id: string;
     guid: string;
     original_creator: string;
     version_creator: string;
@@ -668,6 +677,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     agendas: Array<string>;
     event_item: string;
     recurrence_id: string;
+    planning_recurrence_id: string;
     item_class: string;
     ednote: string;
     description_text: string;
@@ -738,6 +748,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         language: string;
         value: string;
     }>;
+    update_method?: IEventUpdateMethod;
 }
 
 export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
@@ -1654,6 +1665,7 @@ export interface IEventState {
     currentCalendarId?: ICalendar['qcode'];
     currentFilterId?: ISearchFilter['_id'];
     eventTemplates: Array<IEventItem>;
+    recentEventTemplates?: Array<IEventTemplate['_id']>;
 }
 
 export interface IEditorFormState {

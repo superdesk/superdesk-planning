@@ -319,6 +319,38 @@ class JsonPlanningTestCase(TestCase):
             output_item = json.loads(output[1])
             self.assertEqual(output_item["products"], [{"code": "prod-type-planning", "name": "planning-only"}])
 
+    def test_expand_delivery_uses_ingest_id(self):
+        self.app.data.insert("assignments", self.assignment)
+        self.app.data.insert("delivery", self.delivery)
+        formatter = JsonPlanningFormatter()
+        item_id = self.delivery[0]["item_id"]
+        ingest_id = "urn:newsml:localhost:2024-01-24-ingest-1"
+        article = {
+            "_id": item_id,
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "ingest_id": ingest_id,
+        }
+
+        self.app.data.insert("archive", [article])
+        deliveries, _ = formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
+        self.assertNotEqual(deliveries[0]["item_id"], ingest_id)
+
+        article = self.app.data.find_one("archive", req=None, _id=item_id)
+        self.app.data.update("archive", item_id, {"auto_publish": True}, article)
+        deliveries, _ = formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
+        self.assertEqual(deliveries[0]["item_id"], ingest_id)
+
+        article = self.app.data.find_one("archive", req=None, _id=item_id)
+        updates = {
+            "auto_publish": None,
+            "extra": {"publish_ingest_id_as_guid": True},
+        }
+        self.app.data.update("archive", item_id, updates, article)
+        deliveries, _ = formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
+        self.assertEqual(deliveries[0]["item_id"], ingest_id)
+
     def test_assigned_desk_user(self):
         with self.app.app_context():
             item = deepcopy(self.item)

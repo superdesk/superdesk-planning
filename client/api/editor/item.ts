@@ -1,3 +1,4 @@
+import {cloneDeep} from 'lodash';
 import {EDITOR_TYPE, IEditorAPI} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
@@ -24,7 +25,7 @@ export function getItemInstance(type: EDITOR_TYPE): IEditorAPI['item'] {
 
         return Object.keys(plans)
             .filter((planId) => plans[planId].event_item === eventId)
-            .map((planId) => plans[planId]);
+            .map((planId) => cloneDeep(plans[planId]));
     }
 
     return {

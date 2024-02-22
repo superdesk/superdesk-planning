@@ -347,6 +347,13 @@ events_schema = {
             "type": "dict",
             "schema": {
                 "planning_id": {"type": "string"},
+                # The update method used for recurring planning items
+                "update_method": {
+                    "type": "string",
+                    "allowed": UPDATE_METHODS,
+                    "mapping": not_analyzed,
+                    "nullable": True,
+                },
                 "coverages": {
                     "type": "list",
                     "schema": {
@@ -361,6 +368,7 @@ events_schema = {
                             "language": {"type": "string", "nullable": True},
                             "genre": {"type": "string", "nullable": True},
                             "slugline": {"type": "string", "nullable": True},
+                            "headline": {"type": "string", "nullable": True},
                             "ednote": {"type": "string", "nullable": True},
                             "internal_note": {"type": "string", "nullable": True},
                             "priority": {"type": "integer", "nullable": True},
@@ -370,4 +378,31 @@ events_schema = {
             },
         },
     },
-}  # end events_schema
+    "related_items": {
+        "type": "list",
+        "required": False,
+        "schema": {
+            "type": "dict",
+            "schema": {
+                "guid": {"type": "string", "required": True},
+                "type": {"type": "string"},
+                "state": {"type": "string"},
+                "version": {"type": "string"},
+                "headline": {"type": "string"},
+                "slugline": {"type": "string"},
+                "versioncreated": metadata_schema["versioncreated"],
+                "source": {"type": "string"},
+                "search_provider": {"type": "string"},
+                "pubstatus": {"type": "string"},
+                "language": {"type": "string"},
+            },
+        },
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "guid": not_analyzed,  # allow searching events by item id
+            },
+        },
+    },
+}  # end events_schema:
