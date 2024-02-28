@@ -60,7 +60,7 @@ function eventWasUpdated(original: IEventItem, updates: Partial<IEventItem>): bo
     const originalItem = eventUtils.modifyForServer(cloneDeep(original));
     const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
     const eventFields = Object.keys(eventUpdates).filter(
-        (field) => !['associated_plannings', 'update_method', 'dates'].includes(field)
+        (field) => !['update_method', 'dates'].includes(field)
     );
 
     return eventFields.length > 0;
