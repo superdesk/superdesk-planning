@@ -102,7 +102,7 @@ function getRecurringPlanningToUpdate(
                 },
                 {}
             );
-            
+
             return !isEqual(embeddedCoverages, originalCoverages[planningItem._id]);
         })
         .map((planningItem) => planningItem._id);
