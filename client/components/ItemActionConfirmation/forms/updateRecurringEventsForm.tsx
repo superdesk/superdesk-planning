@@ -91,7 +91,7 @@ function getRecurringPlanningToUpdate(
             if (planningItem._id.startsWith(TEMP_ID_PREFIX)) {
                 // This is a temporary Planning, therefor is not part of a recurring series of items
                 return false;
-            } else if (planningItem.planning_recurrence_id == null) {
+            } else if (planningItem.recurrence_id == null) {
                 // This Planning item part of a recurring series of items
                 return false;
             }
@@ -99,7 +99,6 @@ function getRecurringPlanningToUpdate(
             const embeddedCoverages = (planningItem.coverages ?? []).reduce(
                 (embeddedCoverages, coverage) => {
                     embeddedCoverages[coverage.coverage_id] = eventUtils.convertCoverageToEventEmbedded(coverage);
-
                     return embeddedCoverages;
                 },
                 {}
