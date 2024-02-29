@@ -39,6 +39,9 @@ Object.assign(superdeskApi, {
             success: sinon.stub().returns(undefined),
             error: sinon.stub().returns(undefined),
         }
+    },
+    components: {
+        SelectUser: sinon.stub().returns('<div>Stubbed SelectUser Component</div>'),
     }
 });
 
