@@ -16,7 +16,7 @@ import {
     ColouredValueInput,
 } from '../UI/Form';
 import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
-import {SelectUser} from 'superdesk-core/scripts/core/ui/components/SelectUser';
+import {superdeskApi} from '../../superdeskApi';
 
 export class AssignmentEditorComponent extends React.Component {
     constructor(props) {
@@ -243,6 +243,7 @@ export class AssignmentEditorComponent extends React.Component {
             showPriority,
             className,
         } = this.props;
+        const {SelectUser} = superdeskApi.components;
 
         return (
             <div className={className}>
@@ -306,7 +307,6 @@ export class AssignmentEditorComponent extends React.Component {
                             autoFocus={false}
                             horizontalSpacing={true}
                             clearable={true}
-                            data-test-id= {this.FIELDS.USER}
                         />
                     </Row>
                 )}

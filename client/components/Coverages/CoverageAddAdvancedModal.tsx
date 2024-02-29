@@ -10,7 +10,7 @@ import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
 import Modal from '../Modal';
 import {SelectInput} from '../UI/Form';
-import {SelectUser} from 'superdesk-core/scripts/core/ui/components/SelectUser';
+import {superdeskApi} from '../../superdeskApi';
 
 const isInvalid = (coverage) => coverage.user && !coverage.desk;
 
@@ -219,6 +219,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
 
     render() {
         const language = getUserInterfaceLanguageFromCV();
+        const {SelectUser} = superdeskApi.components;
 
         return (
             <Modal
@@ -294,7 +295,6 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                                                             autoFocus={false}
                                                             horizontalSpacing={true}
                                                             clearable={true}
-                                                            data-test-id= {'user'}
                                                         />
                                                         <div ref={(node) => coverage.popupContainer = node} />
                                                     </div>
