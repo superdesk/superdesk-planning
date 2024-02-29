@@ -14,7 +14,6 @@ import {
     Row,
     SelectInput,
     ColouredValueInput,
-    SelectUserInput,
 } from '../UI/Form';
 import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
 import {SelectUser} from 'superdesk-core/scripts/core/ui/components/SelectUser';
@@ -300,7 +299,6 @@ export class AssignmentEditorComponent extends React.Component {
                 ) : (
                     <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
                         <SelectUser
-                            field={this.FIELDS.USER}
                             selectedUserId = {this.state.userId}
                             onSelect={(user) => {
                                 this.onUserChange(null, user);
@@ -308,6 +306,7 @@ export class AssignmentEditorComponent extends React.Component {
                             autoFocus={false}
                             horizontalSpacing={true}
                             clearable={true}
+                            data-test-id= {this.FIELDS.USER}
                         />
                     </Row>
                 )}
