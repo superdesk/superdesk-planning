@@ -8,7 +8,6 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
 import {getContactTypes} from '../../selectors/vocabs';
-import {superdeskApi} from '../../superdeskApi';
 
 import {
     Label,
@@ -301,6 +300,7 @@ export class AssignmentEditorComponent extends React.Component {
                 ) : (
                     <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
                         <SelectUser
+                            field={this.FIELDS.USER}
                             selectedUserId = {this.state.userId}
                             onSelect={(user) => {
                                 this.onUserChange(null, user);
