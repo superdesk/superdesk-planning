@@ -278,6 +278,13 @@ class AssignmentsService(superdesk.Service):
         self.notify("assignments:updated", updates, original)
         self.send_assignment_notification(updates, original)
 
+        # If Desk and/or User assignee was changed, then re-publish the Planning item
+        # So that the newly appointed assignee's will be pushed to subscribers
+        if (original.get("assigned_to") or {}).get("desk") != (updates.get("assigned_to") or {}).get("desk") or (
+            original.get("assigned_to") or {}
+        ).get("user") != (updates.get("assigned_to") or {}).get("user"):
+            self.publish_planning(original.get("planning_item"))
+
     def system_update(self, id, updates, original):
         super().system_update(id, updates, original)
         if self.is_assignment_being_activated(updates, original):
