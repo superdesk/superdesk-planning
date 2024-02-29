@@ -18,6 +18,7 @@ import {
     SelectUserInput,
 } from '../UI/Form';
 import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
+import {SelectUser} from 'superdesk-core/scripts/core/ui/components/SelectUser';
 
 export class AssignmentEditorComponent extends React.Component {
     constructor(props) {
@@ -244,7 +245,6 @@ export class AssignmentEditorComponent extends React.Component {
             showPriority,
             className,
         } = this.props;
-        const {SelectUser} = superdeskApi.components;
 
         return (
             <div className={className}>
@@ -299,7 +299,7 @@ export class AssignmentEditorComponent extends React.Component {
                         />
                     </Row>
                 ) : (
-                    <Row testId="user" style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
+                    <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
                         <SelectUser
                             selectedUserId = {this.state.userId}
                             onSelect={(user) => {
