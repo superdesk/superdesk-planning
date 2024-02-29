@@ -14,7 +14,7 @@ import {superdeskApi, planningApi} from '../../../../superdeskApi';
 import {getDesksForUser, getUsersForDesk} from '../../../../utils';
 import {Select, Option} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
-import {Row, SelectUserInput} from '../../../UI/Form';
+import {Row} from '../../../UI/Form';
 import {EditorFieldNewsCoverageStatus} from '../NewsCoverageStatus';
 import * as config from 'appConfig';
 import {getLanguagesForTreeSelectInput} from '../../../../selectors/vocabs';
