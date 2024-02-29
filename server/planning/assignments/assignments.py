@@ -285,8 +285,8 @@ class AssignmentsService(superdesk.Service):
         ).get("user") != (updates.get("assigned_to") or {}).get("user"):
             self.publish_planning(original.get("planning_item"))
 
-    def system_update(self, id, updates, original):
-        super().system_update(id, updates, original)
+    def system_update(self, id, updates, original, **kwargs):
+        super().system_update(id, updates, original, **kwargs)
         if self.is_assignment_being_activated(updates, original):
             doc = deepcopy(original)
             doc.update(updates)
