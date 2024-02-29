@@ -278,8 +278,8 @@ class AssignmentsService(superdesk.Service):
         self.notify("assignments:updated", updates, original)
         self.send_assignment_notification(updates, original)
 
-    def system_update(self, id, updates, original):
-        super().system_update(id, updates, original)
+    def system_update(self, id, updates, original, **kwargs):
+        super().system_update(id, updates, original, **kwargs)
         if self.is_assignment_being_activated(updates, original):
             doc = deepcopy(original)
             doc.update(updates)
