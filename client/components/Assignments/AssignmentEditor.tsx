@@ -299,15 +299,17 @@ export class AssignmentEditorComponent extends React.Component {
                     </Row>
                 ) : (
                     <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
-                        <SelectUser
-                            selectedUserId = {this.state.userId}
-                            onSelect={(user) => {
-                                this.onUserChange(null, user);
-                            }}
-                            autoFocus={false}
-                            horizontalSpacing={true}
-                            clearable={true}
-                        />
+                        <div data-test-id={this.FIELDS.USER}>
+                            <SelectUser
+                                selectedUserId = {this.state.userId}
+                                onSelect={(user) => {
+                                    this.onUserChange(null, user);
+                                }}
+                                autoFocus={false}
+                                horizontalSpacing={true}
+                                clearable={true}
+                            />
+                        </div>
                     </Row>
                 )}
 

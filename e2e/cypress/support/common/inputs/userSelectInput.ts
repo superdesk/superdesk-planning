@@ -1,5 +1,4 @@
 import {Input} from './input';
-import {Popup} from '../ui';
 
 /**
  * Wrapper class for a searchable user select input field
@@ -8,22 +7,21 @@ import {Popup} from '../ui';
 export class UserSelectInput extends Input {
     type(value) {
         cy.log('Common.SearchableSelectInput.type');
-        const popup = new Popup();
 
-        this.element
-            .find('input')
-            .type(value);
+        // Click on the element to open the dropdown
+        this.element.click();
 
-        popup.waitTillOpen();
-        popup.element
-            .find('li')
-            .first()
-            .click();
-        popup.waitTillClosed();
+        // Type into the input inside the dropdown panel
+        cy.get('.p-dropdown-panel input').type(value);
+
+        // Click on the first list item in the dropdown
+        cy.get('.p-dropdown-panel li').first().click();
     }
 
     expect(value) {
         cy.log('Common.SearchableSelectInput.expect');
-        this.element.should('contain.text', value);
+
+        // Ensure that the dropdown panel contains the expected text
+        cy.get('.p-dropdown-panel').should('contain.text', value);
     }
 }
