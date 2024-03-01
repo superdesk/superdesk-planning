@@ -171,7 +171,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
     submit() {
         const updates = {
             ...this.props.updates,
-            update_method: this.state.eventUpdateMethod.value,
+            update_method: this.state.eventUpdateMethod,
         };
 
         updates.associated_plannings.forEach((planningItem) => {
