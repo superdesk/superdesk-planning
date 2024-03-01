@@ -70,6 +70,7 @@ export class EditCoverageAssignmentModalComponent extends React.Component {
                 show={true}
                 onHide={handleHide}
                 fill={false}
+                removeTabIndexAttribute={true}
             >
                 <Modal.Header>
                     <h3 className="modal__heading">{gettext('Coverage Assignment Details')}</h3>
