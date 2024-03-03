@@ -230,7 +230,9 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T14:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "assigned"
+                "workflow_status": "assigned",
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -276,7 +278,9 @@ Feature: Rewrite content
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "completed",
-                "deliveries": [{"item_state": "published", "item_id": "#archive._id#"}]
+                "deliveries": [{"item_state": "published", "item_id": "#archive._id#"}],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -296,8 +300,35 @@ Feature: Rewrite content
             "assignment_id": "#firstassignment#"
         }
         """
+
+        When we transmit items
         When we get "published_planning?sort=item_id,version"
         Then we get list with 3 items
+        Then we store "PLANNING" with 3 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "in_progress", "item_id": "#REWRITE_ID#", "sequence_no": 1}
+                ],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
+            }]
+        }
+        """
         When we get "/published"
         Then we get existing resource
         """
@@ -334,9 +365,11 @@ Feature: Rewrite content
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "completed",
                 "deliveries": [
-                    {"item_state": "published", "item_id": "#archive._id#"},
-                    {"item_state": "published", "item_id": "#REWRITE_ID#"}
-                ]
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "published", "item_id": "#REWRITE_ID#", "sequence_no": 1}
+                ],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -647,7 +680,9 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T14:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "assigned"
+                "workflow_status": "assigned",
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -685,7 +720,9 @@ Feature: Rewrite content
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "completed",
-                "deliveries": [{"item_state": "published", "item_id": "#archive._id#"}]
+                "deliveries": [{"item_state": "published", "item_id": "#archive._id#"}],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -722,9 +759,11 @@ Feature: Rewrite content
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "completed",
                 "deliveries": [
-                    {"item_state": "published", "item_id": "#archive._id#"},
-                    {"item_state": "in_progress", "item_id": "#REWRITE_ID#"}
-                ]
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "in_progress", "item_id": "#REWRITE_ID#", "sequence_no": 1}
+                ],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -764,9 +803,11 @@ Feature: Rewrite content
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "completed",
                 "deliveries": [
-                    {"item_state": "published", "item_id": "#archive._id#"},
-                    {"item_state": "published", "item_id": "#REWRITE_ID#"}
-                ]
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "published", "item_id": "#REWRITE_ID#", "sequence_no": 1}
+                ],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -805,10 +846,12 @@ Feature: Rewrite content
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "completed",
                 "deliveries": [
-                    {"item_state": "published", "item_id": "#archive._id#"},
-                    {"item_state": "published", "item_id": "#rewrite1#"},
-                    {"item_state": "in_progress", "item_id": "#REWRITE_ID#"}
-                ]
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "published", "item_id": "#rewrite1#", "sequence_no": 1},
+                    {"item_state": "in_progress", "item_id": "#REWRITE_ID#", "sequence_no": 2}
+                ],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """
@@ -851,9 +894,11 @@ Feature: Rewrite content
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "completed",
                 "deliveries": [
-                    {"item_state": "published", "item_id": "#archive._id#"},
-                    {"item_state": "published", "item_id": "#rewrite1#"}
-                ]
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "published", "item_id": "#rewrite1#", "sequence_no": 1}
+                ],
+                "assigned_desk": {"name": "Sports"},
+                "assigned_user": {"display_name": "test_user"}
             }]
         }
         """

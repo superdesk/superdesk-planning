@@ -201,7 +201,6 @@ class AssignmentsContentService(Service):
             if not assignment.get("scheduled_update_id"):
                 # set the assignment to in progress
                 assignments_service.patch(assignment[config.ID_FIELD], updates)
-                assignments_service.publish_planning(assignment["planning_item"])
 
             doc.update(item)
             ids.append(doc["_id"])

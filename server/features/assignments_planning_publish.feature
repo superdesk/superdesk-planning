@@ -100,21 +100,8 @@ Feature: For posted planning item changes in assignment state post a planning it
         Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
 
-    @auth @vocabularies
+    @auth @vocabularies @planning_cvs
     Scenario: Publish Planning item on changes to assignment state.
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-            }]
-        """
         When we post to "/planning/post"
         """
         {
@@ -184,7 +171,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": "__no_value__",
+                    "assigned_user": "__no_value__"
                 }
             ]
         }
@@ -243,7 +232,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Sports"},
+                    "assigned_user": {"display_name": "test_user"}
                 }
             ]
         }
@@ -308,7 +299,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "news_coverage_status": {
                       "qcode": "ncostat:int"
                     },
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Sports"},
+                    "assigned_user": {"display_name": "test_user"}
                 }
             ]
         }
@@ -377,8 +370,26 @@ Feature: For posted planning item changes in assignment state post a planning it
             "coverage_item": "#firstcoverage#"
         }
         """
+        When we transmit items
         When we get "published_planning?sort=item_id,version"
-        Then we get list with 3 items
+        Then we get list with 4 items
+        Then we store "PLANNING" with 4 item
+        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        Then we get list with 1 items
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "coverages": [{
+                "coverage_id": "#firstcoverage#",
+                "workflow_status": "active",
+                "assigned_desk": {"name": "Politics"},
+                "assigned_user": "__no_value__"
+            }]
+        }
+        """
+
         When we publish "#ARCHIVE_ID#" with "publish" type and "published" state
         Then we get OK response
         When we get "/archive/#ARCHIVE_ID#"
@@ -394,11 +405,11 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         When we transmit items
         When we get "published_planning?sort=item_id,version"
-        Then we get list with 4 items
-        Then we store "PLANNING" with 4 item
+        Then we get list with 5 items
+        Then we store "PLANNING" with 5 item
         When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
         Then we get list with 1 items
-        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
         """
         {
             "state": "scheduled",
@@ -419,7 +430,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [{"item_id": "#ARCHIVE_ID#"}],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Politics"},
+                    "assigned_user": "__no_value__"
                 }
             ]
         }
@@ -607,21 +620,8 @@ Feature: For posted planning item changes in assignment state post a planning it
         }
         """
 
-    @auth @vocabularies
+    @auth @vocabularies @planning_cvs
     Scenario: Publish Planning item on linking and unlinking
-        Given "vocabularies"
-        """
-            [{
-              "_id": "g2_content_type",
-              "display_name": "Coverage content types",
-              "type": "manageable",
-              "unique_field": "qcode",
-              "selection_type": "do not show",
-              "items": [
-                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
-              ]
-          }]
-        """
         When we post to "/planning/post"
         """
         {
@@ -691,7 +691,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": "__no_value__",
+                    "assigned_user": "__no_value__"
                 }
             ]
         }
@@ -750,7 +752,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Sports"},
+                    "assigned_user": {"display_name": "test_user"}
                 }
             ]
         }
@@ -825,7 +829,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Sports"},
+                    "assigned_user": {"display_name": "test_user"}
                 }
             ]
         }
@@ -859,7 +865,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [{"item_id": "123"}],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Sports"},
+                    "assigned_user": {"display_name": "test_user"}
                 }
             ]
         }
@@ -916,7 +924,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Sports"},
+                    "assigned_user": {"display_name": "test_user"}
                 }
             ]
         }
@@ -974,7 +984,9 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [{"item_id": "123"}],
-                    "coverage_provider": null
+                    "coverage_provider": null,
+                    "assigned_desk": {"name": "Sports"},
+                    "assigned_user": {"display_name": "test_user"}
                 }
             ]
         }
