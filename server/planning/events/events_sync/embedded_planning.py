@@ -88,6 +88,11 @@ def create_new_plannings_from_embedded_planning(
             "coverages": [],
         }
 
+        try:
+            new_planning["update_method"] = plan["update_method"]
+        except KeyError:
+            pass
+
         if event.get("recurrence_id"):
             new_planning["recurrence_id"] = event["recurrence_id"]
 
