@@ -41,11 +41,12 @@ Feature: Recurring Events & Planning
             "dates": {"start": "2024-11-23T12:00:00+0000", "end": "2024-11-23T14:00:00+0000"}
         }]}
         """
-        When we post to "/planning?add_to_series=true"
+        When we post to "/planning"
         """
         [{
             "event_item": "#EVENT1._id#",
             "planning_date": "2024-11-21T12:00:00.000Z",
+            "update_method": "all",
             "coverages": [{
                 "workflow_status": "draft",
                 "news_coverage_status": {"qcode": "ncostat:int"},
