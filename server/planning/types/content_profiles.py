@@ -14,6 +14,7 @@ from typing import TypedDict, Dict
 class ContentFieldSchema(TypedDict, total=False):
     multilingual: bool
     field_type: str
+    planning_auto_publish: bool  # Only available in ``related_plannings`` field
 
 
 class ContentFieldEditor(TypedDict):
