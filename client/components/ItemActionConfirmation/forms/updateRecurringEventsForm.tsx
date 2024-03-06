@@ -52,6 +52,7 @@ interface IState {
     diff: Partial<IEventItem>;
     eventModified: boolean;
     recurringPlanningItemsToUpdate: Array<IPlanningItem['_id']>;
+    recurringPlanningItemsToCreate: Array<IPlanningItem['_id']>;
     planningUpdateMethods: {[planningId: string]: IEventUpdateMethod};
 }
 
@@ -109,6 +110,12 @@ function getRecurringPlanningToUpdate(
         .map((planningItem) => planningItem._id);
 }
 
+function getRecurringPlanningToCreate(updates: Partial<IEventItem>): Array<IPlanningItem['_id']> {
+    return (updates.associated_plannings ?? [])
+        .filter((planningItem) => (planningItem._id.startsWith(TEMP_ID_PREFIX)))
+        .map((planningItem) => planningItem._id);
+}
+
 export class UpdateRecurringEventsComponent extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
@@ -143,6 +150,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                 this.props.updates,
                 this.props.originalPlanningItems
             ),
+            recurringPlanningItemsToCreate: getRecurringPlanningToCreate(this.props.updates),
             planningUpdateMethods: {},
         };
 
@@ -183,8 +191,41 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
         return this.props.onSubmit(this.props.original, updates);
     }
 
+    renderPlanningCreateForm() {
+        if (this.state.recurringPlanningItemsToCreate.length > 0) {
+            return this.props.updates.associated_plannings
+                .filter((planningItem) => (
+                    this.state.recurringPlanningItemsToCreate.includes(planningItem._id)
+                ))
+                .map((planningItem) => (
+                    <div key={planningItem._id}>
+                        <Select
+                            label={gettext('Create planning for all events or just this one?')}
+                            value={this.state.planningUpdateMethods[planningItem._id] ?? EVENTS.UPDATE_METHODS[0].value}
+                            onChange={(updateMethod) => {
+                                this.onPlanningUpdateMethodChange(planningItem._id, updateMethod as IEventUpdateMethod);
+                            }}
+                        >
+                            <Option value={EVENTS.UPDATE_METHODS[0].value}>
+                                {gettext('This event only')}
+                            </Option>
+                            <Option value={EVENTS.UPDATE_METHODS[1].value}>
+                                {gettext('This and all future events')}
+                            </Option>
+                            <Option value={EVENTS.UPDATE_METHODS[2].value}>
+                                {gettext('All Events')}
+                            </Option>
+                        </Select>
+                        <PlanningMetaData plan={planningItem} />
+                    </div>
+                ));
+        }
+
+        return null;
+    }
+
     renderPlanningUpdateForm() {
-        if (Object.keys(this.state.recurringPlanningItemsToUpdate).length > 0) {
+        if (this.state.recurringPlanningItemsToUpdate.length > 0) {
             return this.props.updates.associated_plannings
                 .filter((planningItem) => (
                     this.state.recurringPlanningItemsToUpdate.includes(planningItem._id)
@@ -192,7 +233,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                 .map((planningItem) => (
                     <div key={planningItem._id}>
                         <Select
-                            label="Update all recurring planning or just this one?"
+                            label={gettext('Update all recurring planning or just this one?')}
                             value={this.state.planningUpdateMethods[planningItem._id] ?? EVENTS.UPDATE_METHODS[0].value}
                             onChange={(updateMethod) => {
                                 this.onPlanningUpdateMethodChange(planningItem._id, updateMethod as IEventUpdateMethod);
@@ -277,6 +318,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                         />
                     </div>
                 )}
+                {this.renderPlanningCreateForm()}
                 {this.renderPlanningUpdateForm()}
             </React.Fragment>
         );

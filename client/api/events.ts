@@ -6,6 +6,7 @@ import {
     ISearchParams,
     ISearchSpikeState,
     IPlanningConfig,
+    IEventUpdateMethod,
 } from '../interfaces';
 import {appConfig as config} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
@@ -122,14 +123,16 @@ function getEventSearchProfile() {
 }
 
 function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
-    const url = appConfig.planning.default_create_planning_series_with_event_series === true ?
-        'events?add_to_series=true' :
-        'events';
+    const {default_create_planning_series_with_event_series} = appConfig.planning;
+    const planningDefaultCreateMethod: IEventUpdateMethod = default_create_planning_series_with_event_series === true ?
+        'all' :
+        'single';
 
-    return superdeskApi.dataApi.create<IEventItem | IRestApiResponse<IEventItem>>(url, {
+    return superdeskApi.dataApi.create<IEventItem | IRestApiResponse<IEventItem>>('events', {
         ...updates,
         associated_plannings: undefined,
         embedded_planning: updates.associated_plannings.map((planning) => ({
+            update_method: planning.update_method ?? planningDefaultCreateMethod,
             coverages: planning.coverages.map((coverage) => ({
                 coverage_id: coverage.coverage_id,
                 g2_content_type: coverage.planning.g2_content_type,
@@ -142,6 +145,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
                 slugline: coverage.planning.slugline,
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
+                headline: coverage.planning.headline,
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method

@@ -145,11 +145,8 @@ function getPlanningSearchProfile() {
     return planningSearchProfile(planningApi.redux.store.getState());
 }
 
-function create(updates: Partial<IPlanningItem>, addToSeries?: boolean): Promise<IPlanningItem> {
-    return superdeskApi.dataApi.create<IPlanningItem>(
-        addToSeries === true ? 'planning?add_to_series=true' : 'planning',
-        updates
-    );
+function create(updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
+    return superdeskApi.dataApi.create<IPlanningItem>('planning', updates);
 }
 
 function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
@@ -161,6 +158,10 @@ function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promi
 }
 
 function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
+    if (updates.update_method == null && appConfig.planning.default_create_planning_series_with_event_series === true) {
+        updates.update_method = 'all';
+    }
+
     return create(
         planningUtils.modifyForServer({
             slugline: event.slugline,
@@ -176,7 +177,6 @@ function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Pr
             ...updates,
             event_item: event._id,
         }),
-        appConfig.planning.default_create_planning_series_with_event_series === true,
     );
 }
 
