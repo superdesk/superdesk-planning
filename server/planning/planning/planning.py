@@ -60,12 +60,13 @@ from planning.common import (
     UPDATE_SINGLE,
     UPDATE_FUTURE,
     UPDATE_ALL,
+    POST_STATE,
 )
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
-from planning.content_profiles.utils import is_field_enabled
+from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from superdesk import Resource
 from lxml import etree
 from io import BytesIO
@@ -186,10 +187,12 @@ class PlanningService(superdesk.Service):
 
     def on_created(self, docs):
         session_id = get_auth().get("_id")
+        post_planning_with_event = is_post_planning_with_event_enabled()
         for doc in docs:
+            plan_id = str(doc.get(config.ID_FIELD))
             push_notification(
                 "planning:created",
-                item=str(doc.get(config.ID_FIELD)),
+                item=plan_id,
                 user=str(doc.get("original_creator", "")),
                 added_agendas=doc.get("agendas") or [],
                 removed_agendas=[],
@@ -198,6 +201,17 @@ class PlanningService(superdesk.Service):
             )
             self._update_event_history(doc)
             planning_created.send(self, item=doc)
+
+            event_id = doc.get("event_item")
+            if event_id and post_planning_with_event:
+                event = get_resource_service("events").find_one(req=None, _id=event_id)
+                if not event:
+                    logger.warning(f"Failed to find linked event {event_id} for planning {plan_id}")
+                elif event.get("pubstatus") == POST_STATE.USABLE:
+                    updates = doc.copy()
+                    updates["pubstatus"] = POST_STATE.USABLE
+                    update_post_item(updates, doc)
+
         self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc):

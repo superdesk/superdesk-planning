@@ -18,8 +18,8 @@ from planning.common import (
     enqueue_planning_item,
     get_version_item_for_post,
 )
-
 from planning.utils import try_cast_object_id
+from planning.content_profiles.utils import is_post_planning_with_event_enabled
 
 
 class EventsPostResource(EventsResource):
@@ -205,10 +205,9 @@ class EventsPostService(EventsBaseService):
     def post_related_plannings(self, plannings, new_post_state):
         planning_post_service = get_resource_service("planning_post")
         planning_spike_service = get_resource_service("planning_spike")
-        event_profile_schema = get_resource_service("planning_types").find_one(req=None, name="event").get("schema", {})
         docs = []
         if new_post_state != POST_STATE.CANCELLED:
-            if event_profile_schema.get("related_plannings", {}).get("planning_auto_publish"):
+            if is_post_planning_with_event_enabled():
                 docs = [
                     {
                         "planning": planning[config.ID_FIELD],
