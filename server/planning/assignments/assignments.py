@@ -298,7 +298,7 @@ class AssignmentsService(superdesk.Service):
         return False
 
     def system_update(self, id, updates, original, **kwargs):
-        super().system_update(id, updates, original, **kwargs)
+        rtn = super().system_update(id, updates, original, **kwargs)
         if self.is_assignment_being_activated(updates, original):
             doc = deepcopy(original)
             doc.update(updates)
@@ -310,6 +310,7 @@ class AssignmentsService(superdesk.Service):
             and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
         ):
             app.on_updated_assignments(updates, original)
+        return rtn
 
     def is_assignment_modified(self, updates, original):
         """Checks whether the assignment is modified or not"""
@@ -1247,10 +1248,9 @@ class AssignmentsService(superdesk.Service):
         return updates.get("assigned_to", original.get("assigned_to")).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
 
     def is_assignment_being_activated(self, updates, original):
-        return (
-            original.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
-            and updates.get("assigned_to", {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-        )
+        return (original.get("assigned_to") or {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT and (
+            updates.get("assigned_to") or {}
+        ).get("state") == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
     def is_text_assignment(self, assignment):
         # scheduled_update is always for text coverages
