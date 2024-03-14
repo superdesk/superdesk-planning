@@ -279,6 +279,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'definition_long',
             'internal_note',
             'ednote',
+            'related_items',
             'registration_details',
             'invitation_details',
             'accreditation_info',

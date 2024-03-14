@@ -54,6 +54,7 @@ import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
+import {EditorFieldEventRelatedItems} from './EventRelatedPlannings/EventRelatedArticles';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
@@ -124,6 +125,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     event_contact_info: EditorFieldContacts,
     occur_status: EditorFieldEventOccurenceStatus,
     related_plannings: EditorFieldEventRelatedPlannings,
+    related_items: EditorFieldEventRelatedItems,
     planning_date: EditorFieldPlanningDateTime,
     'flags.marked_for_not_publication': EditorFieldNotForPublication,
     marked_for_not_publication: EditorFieldNotForPublication,
