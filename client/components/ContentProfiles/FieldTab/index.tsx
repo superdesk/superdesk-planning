@@ -36,6 +36,7 @@ interface IState {
 }
 
 export class FieldTab extends React.Component<IProps, IState> {
+    profile: any;
     constructor(props) {
         super(props);
 
@@ -50,6 +51,13 @@ export class FieldTab extends React.Component<IProps, IState> {
         this.updateFieldOrder = this.updateFieldOrder.bind(this);
         this.insertField = this.insertField.bind(this);
         this.removeField = this.removeField.bind(this);
+        this.profile = {
+            ...this.props.profile,
+            editor: {
+                ...this.props.profile.editor,
+                related_items: {enabled: false}
+            }
+        };
     }
 
     openEditor(field: IProfileFieldEntry) {
@@ -222,11 +230,9 @@ export class FieldTab extends React.Component<IProps, IState> {
     }
 
     render() {
-        debugger
         const unusedFields = getUnusedProfileFields(this.props.profile, this.props.groupFields);
         const systemRequiredFields = this.getSystemRequiredFields();
 
-        console.log(this.props.profile);
         return (
             <div className="sd-column-box--2">
                 <div className="sd-column-box__main-column">

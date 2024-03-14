@@ -457,7 +457,13 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             >
                 <FieldTab
                     ref={this.fieldTab}
-                    profile={this.state.profile}
+                    profile={{
+                        ...this.state.profile,
+                        editor: {
+                            ...this.state.profile.editor,
+                            related_items: {enabled: true}
+                        }
+                    }}
                     groupFields={true}
                     systemRequiredFields={this.props.mainProfile.systemRequiredFields}
                     disableMinMaxFields={this.props.mainProfile.disableMinMaxFields}
