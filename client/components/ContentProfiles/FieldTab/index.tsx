@@ -222,9 +222,11 @@ export class FieldTab extends React.Component<IProps, IState> {
     }
 
     render() {
+        debugger
         const unusedFields = getUnusedProfileFields(this.props.profile, this.props.groupFields);
         const systemRequiredFields = this.getSystemRequiredFields();
 
+        console.log(this.props.profile);
         return (
             <div className="sd-column-box--2">
                 <div className="sd-column-box__main-column">
