@@ -3,11 +3,12 @@ import {IBelgaArchiveNewsObject} from './EventsRelatedArticlesModal';
 
 interface IProps {
     article: IBelgaArchiveNewsObject;
-    selected?: boolean;
+    prevSelected?: boolean;
 }
 
-export const RelatedArticleComponent = ({article, selected}: IProps) => {
-    const [hovered, setHovered] = useState(selected ?? false);
+export const RelatedArticleComponent = ({article, prevSelected}: IProps) => {
+    const [hovered, setHovered] = useState(false);
+    const [selected, useSelected] = useState(prevSelected ?? false);
 
     return (
         <li
@@ -15,14 +16,17 @@ export const RelatedArticleComponent = ({article, selected}: IProps) => {
             draggable
             tabIndex={0}
             data-test-id="article-item"
+            onClick={() => {
+                useSelected(!selected);
+            }}
+            onMouseOver={() => {
+                setHovered(!hovered);
+            }}
         >
             <div className="media-box media-text">
                 <div>
                     <span className="state-border" />
                     <div
-                        onMouseOver={() => {
-                            setHovered(!hovered);
-                        }}
                         className="list-field type-icon sd-monitoring-item-multi-select-checkbox"
                         data-test-id="item-type-and-multi-select"
                         style={{lineHeight: 0}}
@@ -36,7 +40,7 @@ export const RelatedArticleComponent = ({article, selected}: IProps) => {
                                     aria-label="bulk actions"
                                     data-test-id="multi-select-checkbox"
                                 >
-                                    <span className="sd-checkbox checked" />
+                                    {selected ? <span className="sd-checkbox checked" /> : <span className="sd-checkbox unchecked" />}
                                 </button>
                             ) : (
                                 <i

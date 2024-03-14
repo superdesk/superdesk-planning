@@ -8,7 +8,7 @@ import {
     IProfileSchemaTypeList,
     ISearchProfile
 } from '../../../../interfaces';
-import {planningApi, superdeskApi} from '../../../../superdeskApi';
+import {superdeskApi} from '../../../../superdeskApi';
 
 import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
 import {Row} from '../../../UI/Form';
@@ -17,7 +17,7 @@ import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 
 import './style.scss';
 import {showModal} from '@superdesk/common';
-import EventsRelatedArticlesModal from 'components/EventsRelatedArticles/EventsRelatedArticlesModal';
+import EventsRelatedArticlesModal from '../../../EventsRelatedArticles/EventsRelatedArticlesModal';
 
 interface IProps extends IEditorFieldProps {
     item: IEventItem;
@@ -70,7 +70,7 @@ export class EditorFieldEventRelatedItems extends React.PureComponent<IProps> {
                                     ));
                                 }}
                             >
-                                Show search
+                                {gettext('Show search')}
                             </button>
                         </div>
                     </Row>

@@ -1,7 +1,5 @@
 import React from 'react';
-import {SearchBar, Modal, Dropdown} from 'superdesk-ui-framework/react';
-// import {superdeskApi} from '../../superdeskApi';
-import {ISuperdesk} from 'superdesk-api';
+import {SearchBar, Modal, Dropdown, Loader, Spacer} from 'superdesk-ui-framework/react';
 import {RelatedArticleComponent} from './RelatedArticleComponent';
 import {gettext} from 'superdesk-core/scripts/core/utils';
 
@@ -16,6 +14,7 @@ interface IProps {
 interface IState {
     articles: Array<IBelgaArchiveNewsObject>;
     searchQuery: string;
+    loading: boolean;
 }
 
 export interface IBelgaArchiveNewsObject {
@@ -76,6 +75,7 @@ export default class EventsRelatedArticlesModal extends React.Component<IProps, 
         this.state = {
             articles: [],
             searchQuery: '',
+            loading: true,
         };
     }
 
@@ -85,11 +85,18 @@ export default class EventsRelatedArticlesModal extends React.Component<IProps, 
             {
                 method: 'GET'
             },
-        ).then((result: IBelgaArchiveResult) => {
-            this.setState({
-                articles: result.newsObjects,
+        )
+            .then((result) => result.json())
+            .then((parsedResult: IBelgaArchiveResult) => {
+                this.setState({
+                    articles: parsedResult.newsObjects,
+                    loading: false,
+                });
             });
-        });
+    }
+
+    componentDidMount(): void {
+        this.fetchArticles();
     }
 
     render(): React.ReactNode {
@@ -104,34 +111,43 @@ export default class EventsRelatedArticlesModal extends React.Component<IProps, 
                 size="medium"
                 onHide={closeModal}
             >
-                <SearchBar
-                    value={this.state.searchQuery}
-                    onSubmit={(value: string) => {
-                        this.setState({
-                            searchQuery: value,
-                        });
-                    }}
-                    placeholder={gettext('Search articles')}
-                    boxed
-                >
-                    <Dropdown
-                        maxHeight={300}
-                        append
-                        zIndex={2001}
-                        items={[]}
+                <Spacer v gap="16">
+                    <SearchBar
+                        value={this.state.searchQuery}
+                        onSubmit={(value: string) => {
+                            this.setState({
+                                searchQuery: value,
+                            });
+                        }}
+                        placeholder={gettext('Search articles')}
+                        boxed
                     >
-                        {gettext('All searches')}
-                    </Dropdown>
-                </SearchBar>
-                <ul className="compact-view list-view">
-                    {this.state.articles.map((articleFromArchive) => (
-                        <RelatedArticleComponent
-                            selected={this.props.selectedArticles.includes(articleFromArchive.newsObjectId)}
-                            key={articleFromArchive.newsObjectId}
-                            article={articleFromArchive}
-                        />
-                    ))}
-                </ul>
+                        <Dropdown
+                            maxHeight={300}
+                            append
+                            zIndex={2001}
+                            items={[]}
+                        >
+                            {gettext('All searches')}
+                        </Dropdown>
+                    </SearchBar>
+                    <ul className="compact-view list-view">
+                        {this.state.loading ? (
+                            <div><Loader /></div>
+                        ) : (
+                            this.state.articles
+                                .filter((x) => x.headLine.toLowerCase().includes(this.state.searchQuery ?? ''))
+                                .map((articleFromArchive) => (
+                                    <RelatedArticleComponent
+                                        prevSelected={(this.props.selectedArticles ?? [])
+                                            .includes(articleFromArchive.newsObjectId)}
+                                        key={articleFromArchive.newsObjectId}
+                                        article={articleFromArchive}
+                                    />
+                                ))
+                        )}
+                    </ul>
+                </Spacer>
             </Modal>
         );
     }
