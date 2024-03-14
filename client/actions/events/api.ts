@@ -565,8 +565,9 @@ const save = (original, updates) => (
             ) {
                 delete eventUpdates.dates;
             }
-            eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
-                EVENTS.UPDATE_METHODS[0].value;
+            eventUpdates.update_method = eventUpdates.update_method == null ?
+                EVENTS.UPDATE_METHODS[0].value :
+                eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
             return originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :
