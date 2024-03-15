@@ -22,7 +22,7 @@
   "dependencies": {
     "dompurify": "^1.0.11",
     "moment": "^2.30.1",
-    "moment-timezone": "^0.5.44",
+    "moment-timezone": "^0.5.45",
     "nominatim-browser": "~2.0.2",
     "react-bootstrap": "0.32.1",
     "react-debounce-input": "3.2.0",
@@ -49,7 +49,7 @@
     "btoa": "^1.1.2",
     "cheerio": "1.0.0-rc.10",
     "enzyme": "~3.11.0",
-    "enzyme-adapter-react-16": "^1.15.7",
+    "enzyme-adapter-react-16": "^1.15.8",
     "eslint": "6.6.0",
     "eslint-plugin-react": "7.16.0",
     "jasmine": "^2.99.0",
@@ -67,7 +67,7 @@
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
     "superdesk-core": "github:superdesk/superdesk-client-core#develop",
-    "superdesk-ui-framework": "^3.0.72",
+    "superdesk-ui-framework": "^3.0.75",
     "ts-node": "~7.0.1",
     "tslint": "5.11.0",
     "typescript-eslint-parser": "^18.0.0"
