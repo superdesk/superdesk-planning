@@ -52,6 +52,7 @@ class EventSchema(BaseSchema):
     accreditation_info = TextField(field_type="single_line")
     accreditation_deadline = DateTimeField()
     priority = schema.IntegerField()
+    related_items = schema.ListField()
 
 
 DEFAULT_EVENT_PROFILE = {
@@ -177,6 +178,7 @@ DEFAULT_EVENT_PROFILE = {
         "invitation_details": {"enabled": False},
         "accreditation_info": {"enabled": False},
         "accreditation_deadline": {"enabled": False},
+        "related_items": {"enabled": False},
     },
     "schema": dict(EventSchema),  # type: ignore
     "groups": {
