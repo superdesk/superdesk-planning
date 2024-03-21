@@ -631,7 +631,7 @@ class EventsService(superdesk.Service):
         # Generated new events will be "draft"
         merged[ITEM_STATE] = WORKFLOW_STATE.DRAFT
 
-        generated_events = generate_recurring_events(merged)
+        generated_events = generate_recurring_events(merged, updates["recurrence_id"])
         updated_event = generated_events.pop(0)
 
         # Check to see if the first generated event is different from original
@@ -867,12 +867,9 @@ def overwrite_event_expiry_date(event):
         event["expiry"] = event["dates"]["end"] + timedelta(minutes=expiry_minutes or 0)
 
 
-def generate_recurring_events(event):
+def generate_recurring_events(event, recurrence_id=None):
     generated_events = []
     setRecurringMode(event)
-
-    # it will be populated based on first events guid
-    recurrence_id = None
 
     # compute the difference between start and end in the original event
     time_delta = event["dates"]["end"] - event["dates"]["start"]
