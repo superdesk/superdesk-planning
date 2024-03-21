@@ -223,7 +223,7 @@ class EventsService(superdesk.Service):
                 recurring_events = generate_recurring_events(event)
                 generated_events.extend(recurring_events)
                 # remove the event that contains the recurring rule. We don't need it anymore
-                docs.remove(event)
+                docs.remove(event)  # todo: why we remove that event and not update it?
 
                 # Set the current Event to the first Event in the new series
                 # This will make sure the ID of the Event can be used when
@@ -623,7 +623,7 @@ class EventsService(superdesk.Service):
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
         self._validate_convert_to_recurring(updates, original)
-        updates["recurrence_id"] = generate_guid(type=GUID_NEWSML)
+        updates["recurrence_id"] = original["_id"]
 
         merged = copy.deepcopy(original)
         merged.update(updates)
@@ -871,8 +871,8 @@ def generate_recurring_events(event):
     generated_events = []
     setRecurringMode(event)
 
-    # Get the recurrence_id, or generate one if it doesn't exist
-    recurrence_id = event.get("recurrence_id", generate_guid(type=GUID_NEWSML))
+    # it will be populated based on first events guid
+    recurrence_id = None
 
     # compute the difference between start and end in the original event
     time_delta = event["dates"]["end"] - event["dates"]["start"]
@@ -904,6 +904,8 @@ def generate_recurring_events(event):
         new_event["guid"] = generate_guid(type=GUID_NEWSML)
         new_event["_id"] = new_event["guid"]
         # set the recurrence id
+        if not recurrence_id:
+            recurrence_id = new_event["guid"]
         new_event["recurrence_id"] = recurrence_id
 
         # set expiry date
