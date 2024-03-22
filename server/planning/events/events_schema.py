@@ -392,6 +392,7 @@ events_schema = {
                 "slugline": {"type": "string"},
                 "versioncreated": metadata_schema["versioncreated"],
                 "source": {"type": "string"},
+                "body_html": {"type": "string"},
                 "search_provider": {"type": "string"},
                 "pubstatus": {"type": "string"},
                 "language": {"type": "string"},

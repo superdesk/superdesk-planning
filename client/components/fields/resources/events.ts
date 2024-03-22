@@ -5,7 +5,6 @@ import {superdeskApi} from '../../../superdeskApi';
 import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
 import {EditorFieldDateTime} from '../editor/base/dateTime';
 import {EditorFieldEventLinks} from '../editor/EventLinks';
-import {EditorFieldEventRelatedItems} from '../editor/EventRelatedPlannings/EventRelatedArticles';
 
 registerEditorField(
     'definition_long',
@@ -72,19 +71,6 @@ registerEditorField(
     null,
     false,
 );
-
-registerEditorField(
-    'related_items',
-    EditorFieldEventRelatedItems,
-    () => ({
-        label: superdeskApi.localization.gettext('Related Articles'),
-        field: 'related_items',
-        singleValue: true,
-    }),
-    null,
-    false,
-);
-
 
 registerEditorField(
     'accreditation_info',

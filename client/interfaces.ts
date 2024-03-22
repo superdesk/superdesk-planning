@@ -453,7 +453,20 @@ export interface IEventItem extends IBaseRestApiResponse {
     definition_long?: string;
     internal_note?: string;
     registration_details?: string;
-    related_items?: Array<string>;
+    related_items?: Array<{
+        guid: string;
+        type?: string;
+        state?: string;
+        version: string;
+        headline?: string;
+        slugline?: string;
+        versioncreated?: string;
+        source: string;
+        body_html?: string;
+        search_provider?: string;
+        pubstatus?: string;
+        language?: string;
+    }>;
     invitation_details?: string;
     anpa_category?: Array<IANPACategory>;
     files?: Array<string>;
