@@ -155,6 +155,10 @@ Below sections include the config options that can be defined in settings.py.
 * EVENT_EXPORT_BODY_TEMPLATE:
     * default: https://github.com/superdesk/superdesk-planning/blob/develop/server/planning/planning_export_templates.py#L39
     * Overrides the default event template used for event exports
+* EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME:
+    * Default: None
+    * Required By: Event field ``related_items`` (otherwise this field will be automatically disabled)
+    * Defines the name of the Search Provider to use for adding related items to an Event
 
 ### Planning Config
 * LONG_EVENT_DURATION_THRESHOLD:

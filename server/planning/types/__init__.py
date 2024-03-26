@@ -49,3 +49,18 @@ class EmbeddedPlanning(TypedDict, total=False):
 Event = Dict[str, Any]
 Planning = Dict[str, Any]
 Coverage = Dict[str, Any]
+Assignment = Dict[str, Any]
+
+
+class EventRelatedItem(TypedDict, total=False):
+    guid: str
+    type: str
+    state: str
+    version: str
+    headline: str
+    slugline: str
+    versioncreated: datetime
+    source: str
+    search_provider: str
+    pubstatus: str
+    language: str

@@ -251,6 +251,10 @@ def get_config_event_fields_to_sync_with_planning(current_app=None) -> Set[str]:
     return set(config_value.split(",") if isinstance(config_value, str) else config_value)
 
 
+def get_config_event_related_item_search_provider_name(current_app=None) -> Optional[str]:
+    return (current_app or app).config.get("EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME")
+
+
 def remove_lock_information(item):
     item.update({LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None})
 
