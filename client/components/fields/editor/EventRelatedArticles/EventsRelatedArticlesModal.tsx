@@ -25,6 +25,7 @@ import {cleanArticlesFields} from './utils';
 import {RelatedArticlesListComponent} from './RelatedArticlesListComponent';
 import '../../../../components/Archive/ArchivePreview/style.scss';
 import {PreviewArticle} from './PreviewArticle';
+import {getLanguageVocabulary} from 'superdesk-core/scripts/core/helpers/business-logic';
 
 interface IProps {
     closeModal: () => void;
@@ -40,6 +41,7 @@ interface IState {
     activeLanguage: {code: string; label: string;};
     previewItem: Partial<IArticle> | null;
     repo: string | null;
+    languages: Array<{label: string, code: string}>;
 }
 
 
@@ -55,6 +57,7 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
             activeLanguage: {label: 'All languages', code: ''},
             previewItem: null,
             repo: null,
+            languages: [],
         };
     }
 
@@ -71,6 +74,13 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
 
             this.setState({
                 repo: repoId,
+                languages: [
+                    ...getLanguageVocabulary().items.map(({name, qcode}) => ({label: name, code: qcode})),
+                    {
+                        label: 'All languages',
+                        code: ''
+                    }
+                ]
             });
         });
     }
@@ -89,29 +99,6 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
 
     render(): React.ReactNode {
         const {closeModal} = this.props;
-        const allLanguages = [
-            {
-                label: 'English',
-                code: 'en'
-            },
-            {
-                label: 'Dutch',
-                code: 'nl'
-            },
-            {
-                label: 'French',
-                code: 'fr'
-            },
-            {
-                label: 'All languages',
-                code: ''
-            }
-        ];
-        const onSelectLanguage = (lang: typeof allLanguages[0]) => {
-            this.setState({
-                activeLanguage: lang
-            });
-        };
 
         return (
             <Modal
@@ -164,9 +151,13 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                                     items={[
                                         {
                                             type: 'group',
-                                            items: allLanguages.map((language) => ({
+                                            items: this.state.languages.map((language) => ({
                                                 label: language.label,
-                                                onSelect: () => onSelectLanguage(language)
+                                                onSelect: () => {
+                                                    this.setState({
+                                                        activeLanguage: language
+                                                    });
+                                                }
                                             }))
                                         },
                                     ]}
@@ -175,8 +166,8 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                                 </Dropdown>
                             </SearchBar>
                         </div>
+                        <ContentDivider margin="none" />
                     </HeaderPanel>
-                    <ContentDivider margin="none" />
                     <MainPanel>
                         <WithPagination
                             key={this.state.activeLanguage.code + this.state.searchQuery + this.state.repo}
