@@ -11,11 +11,11 @@ import {
     PanelHeader,
     PanelContent,
     PanelContentBlock,
-    ContentDivider,
     LayoutContainer,
     HeaderPanel,
     MainPanel,
     RightPanel,
+    SubNav,
 } from 'superdesk-ui-framework/react';
 import {getProjectedFieldsArticle, gettext} from 'superdesk-core/scripts/core/utils';
 import {httpRequestJsonLocal} from 'superdesk-core/scripts/core/helpers/network';
@@ -133,7 +133,7 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
             >
                 <LayoutContainer>
                     <HeaderPanel>
-                        <div className="sd-padding-all--2 sd-panel-bg--000">
+                        <SubNav className="px-2">
                             <SearchBar
                                 value={this.state.searchQuery}
                                 onSubmit={(value: string) => {
@@ -165,8 +165,7 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                                     {this.state.activeLanguage.label}
                                 </Dropdown>
                             </SearchBar>
-                        </div>
-                        <ContentDivider margin="none" />
+                        </SubNav>
                     </HeaderPanel>
                     <MainPanel>
                         <WithPagination
