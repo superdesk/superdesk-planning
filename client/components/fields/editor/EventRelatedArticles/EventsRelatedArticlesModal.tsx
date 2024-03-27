@@ -12,6 +12,10 @@ import {
     PanelContent,
     PanelContentBlock,
     ContentDivider,
+    LayoutContainer,
+    HeaderPanel,
+    MainPanel,
+    RightPanel,
 } from 'superdesk-ui-framework/react';
 import {getProjectedFieldsArticle, gettext} from 'superdesk-core/scripts/core/utils';
 import {httpRequestJsonLocal} from 'superdesk-core/scripts/core/helpers/network';
@@ -140,135 +144,132 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                     </Spacer>
                 )}
             >
-                <Spacer v gap="0">
-                    <div className="sd-padding-all--2 sd-panel-bg--000">
-                        <SearchBar
-                            value={this.state.searchQuery}
-                            onSubmit={(value: string) => {
-                                this.setState({
-                                    searchQuery: value,
-                                });
-                            }}
-                            placeholder={gettext('Search...')}
-                            boxed
-                        >
-                            <Dropdown
-                                maxHeight={300}
-                                append
-                                zIndex={2001}
-                                items={[
-                                    {
-                                        type: 'group',
-                                        items: allLanguages.map((language) => ({
-                                            label: language.label,
-                                            onSelect: () => onSelectLanguage(language)
-                                        }))
-                                    },
-                                ]}
-                            >
-                                {this.state.activeLanguage.label}
-                            </Dropdown>
-                        </SearchBar>
-                    </div>
-                    <ContentDivider margin="none" />
-                    <Spacer h gap="0" justifyContent="start" alignItems="start" noWrap>
-                        <div
-                            className="sd-padding-all--2"
-                            style={{width: this.state.previewItem ? '65%' : '100%'}}
-                        >
-                            <WithPagination
-                                key={this.state.activeLanguage.code + this.state.searchQuery + this.state.repo}
-                                pageSize={20}
-                                getItems={(pageNo, pageSize, signal) => {
-                                    const query: Partial<ISuperdeskQuery> = {
-                                        page: pageNo,
-                                        max_results: pageSize,
-                                        sort: [{versioncreated: 'desc'}],
-                                    };
-
-                                    if (this.state.activeLanguage.code !== '') {
-                                        query.filter = {$and: [{language: {$eq: this.state.activeLanguage.code}}]};
-                                    }
-
-                                    if (this.state.searchQuery !== '') {
-                                        query.fullTextSearch = this.state.searchQuery.toLowerCase();
-                                    }
-
-                                    if (this.state.repo == null) {
-                                        return Promise.resolve({items: [], itemCount: 0});
-                                    }
-
-                                    return httpRequestJsonLocal<IRestApiResponse<Partial<IArticle>>>({
-                                        method: 'GET',
-                                        path: '/search_providers_proxy',
-                                        urlParams: {
-                                            aggregations: 0,
-                                            es_highlight: 1,
-                                            repo: this.state.repo,
-                                            projections: JSON.stringify(getProjectedFieldsArticle()),
-                                            ...toElasticQuery(query as ISuperdeskQuery),
-                                        },
-                                        abortSignal: signal,
-                                    })
-                                        .then((res) => {
-                                            this.setState({
-                                                loading: false,
-                                            });
-
-                                            return {items: res._items, itemCount: res._meta.total};
-                                        });
+                <LayoutContainer>
+                    <HeaderPanel>
+                        <div className="sd-padding-all--2 sd-panel-bg--000">
+                            <SearchBar
+                                value={this.state.searchQuery}
+                                onSubmit={(value: string) => {
+                                    this.setState({
+                                        searchQuery: value,
+                                    });
                                 }}
+                                placeholder={gettext('Search...')}
+                                boxed
                             >
-                                {
-                                    (items: Array<Partial<IArticle>>) => (
-                                        <div className="sd-padding-y--1-5">
-                                            <Spacer
-                                                v
-                                                gap="4"
-                                                justifyContent="center"
-                                                alignItems="center"
-                                                noWrap
-                                            >
-                                                {items.map((articleFromArchive) => (
-                                                    <RelatedArticlesListComponent
-                                                        key={articleFromArchive.guid}
-                                                        article={articleFromArchive}
-                                                        setPreview={(itemToPreview) => {
-                                                            this.setState({
-                                                                previewItem: itemToPreview,
-                                                            });
-                                                        }}
-                                                        removeArticle={(articleId: string) => {
-                                                            const filteredArray =
-                                                        [...(this.state.currentlySelectedArticles ?? [])]
-                                                            .filter(({guid}) => guid !== articleId);
-
-                                                            this.setState({
-                                                                currentlySelectedArticles: filteredArray
-                                                            });
-                                                        }}
-                                                        prevSelected={(this.props.selectedArticles ?? [])
-                                                            .find((x) => x.guid === articleFromArchive.guid) != null
-                                                        }
-                                                        addArticle={(article: Partial<IArticle>) => {
-                                                            this.setState({
-                                                                currentlySelectedArticles: [
-                                                                    ...(this.state.currentlySelectedArticles ?? []),
-                                                                    article,
-                                                                ]
-                                                            });
-                                                        }}
-                                                        openInPreview={
-                                                        this.state.previewItem?.guid === articleFromArchive.guid
-                                                        }
-                                                    />
-                                                ))}
-                                            </Spacer>
-                                        </div>
-                                    )
-                                }
-                            </WithPagination>
+                                <Dropdown
+                                    maxHeight={300}
+                                    append
+                                    zIndex={2001}
+                                    items={[
+                                        {
+                                            type: 'group',
+                                            items: allLanguages.map((language) => ({
+                                                label: language.label,
+                                                onSelect: () => onSelectLanguage(language)
+                                            }))
+                                        },
+                                    ]}
+                                >
+                                    {this.state.activeLanguage.label}
+                                </Dropdown>
+                            </SearchBar>
                         </div>
+                    </HeaderPanel>
+                    <ContentDivider margin="none" />
+                    <MainPanel>
+                        <WithPagination
+                            key={this.state.activeLanguage.code + this.state.searchQuery + this.state.repo}
+                            pageSize={20}
+                            getItems={(pageNo, pageSize, signal) => {
+                                const query: Partial<ISuperdeskQuery> = {
+                                    page: pageNo,
+                                    max_results: pageSize,
+                                    sort: [{versioncreated: 'desc'}],
+                                };
+
+                                if (this.state.activeLanguage.code !== '') {
+                                    query.filter = {$and: [{language: {$eq: this.state.activeLanguage.code}}]};
+                                }
+
+                                if (this.state.searchQuery !== '') {
+                                    query.fullTextSearch = this.state.searchQuery.toLowerCase();
+                                }
+
+                                if (this.state.repo == null) {
+                                    return Promise.resolve({items: [], itemCount: 0});
+                                }
+
+                                return httpRequestJsonLocal<IRestApiResponse<Partial<IArticle>>>({
+                                    method: 'GET',
+                                    path: '/search_providers_proxy',
+                                    urlParams: {
+                                        aggregations: 0,
+                                        es_highlight: 1,
+                                        repo: this.state.repo,
+                                        projections: JSON.stringify(getProjectedFieldsArticle()),
+                                        ...toElasticQuery(query as ISuperdeskQuery),
+                                    },
+                                    abortSignal: signal,
+                                })
+                                    .then((res) => {
+                                        this.setState({
+                                            loading: false,
+                                        });
+
+                                        return {items: res._items, itemCount: res._meta.total};
+                                    });
+                            }}
+                        >
+                            {
+                                (items: Array<Partial<IArticle>>) => (
+                                    <div className="sd-padding-y--1-5">
+                                        <Spacer
+                                            v
+                                            gap="4"
+                                            justifyContent="center"
+                                            alignItems="center"
+                                            noWrap
+                                        >
+                                            {items.map((articleFromArchive) => (
+                                                <RelatedArticlesListComponent
+                                                    key={articleFromArchive.guid}
+                                                    article={articleFromArchive}
+                                                    setPreview={(itemToPreview) => {
+                                                        this.setState({
+                                                            previewItem: itemToPreview,
+                                                        });
+                                                    }}
+                                                    removeArticle={(articleId: string) => {
+                                                        const filteredArray =
+                                                [...(this.state.currentlySelectedArticles ?? [])]
+                                                    .filter(({guid}) => guid !== articleId);
+
+                                                        this.setState({
+                                                            currentlySelectedArticles: filteredArray
+                                                        });
+                                                    }}
+                                                    prevSelected={(this.props.selectedArticles ?? [])
+                                                        .find((x) => x.guid === articleFromArchive.guid) != null
+                                                    }
+                                                    addArticle={(article: Partial<IArticle>) => {
+                                                        this.setState({
+                                                            currentlySelectedArticles: [
+                                                                ...(this.state.currentlySelectedArticles ?? []),
+                                                                article,
+                                                            ]
+                                                        });
+                                                    }}
+                                                    openInPreview={
+                                                this.state.previewItem?.guid === articleFromArchive.guid
+                                                    }
+                                                />
+                                            ))}
+                                        </Spacer>
+                                    </div>
+                                )
+                            }
+                        </WithPagination>
                         {this.state.loading && (
                             <div
                                 style={{
@@ -282,37 +283,30 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                                 <Loader overlay />
                             </div>
                         )}
-                        {
-                            this.state.previewItem && (
-                                <div className="sd-panel-bg--000" style={{height: '100%'}}>
-                                    <Panel
-                                        open={this.state.previewItem != null}
-                                        side="right"
-                                        size="auto"
-                                    >
-                                        <PanelHeader
-                                            title={gettext('Article preview')}
-                                            onClose={() => {
-                                                this.setState({
-                                                    previewItem: null,
-                                                });
-                                            }}
-                                        />
-                                        <PanelContent empty={this.state.previewItem == null} >
-                                            <PanelContentBlock>
-                                                {this.state.previewItem && (
-                                                    <PreviewArticle
-                                                        item={this.state.previewItem}
-                                                    />
-                                                )}
-                                            </PanelContentBlock>
-                                        </PanelContent>
-                                    </Panel>
-                                </div>
-                            )
-                        }
-                    </Spacer>
-                </Spacer>
+                    </MainPanel>
+                    <RightPanel open={this.state.previewItem != null}>
+                        <Panel
+                            open={this.state.previewItem != null}
+                            side="right"
+                            size="medium"
+                            className="sd-panel-bg--000"
+                        >
+                            <PanelHeader
+                                title={gettext('Article preview')}
+                                onClose={() => {
+                                    this.setState({
+                                        previewItem: null,
+                                    });
+                                }}
+                            />
+                            <PanelContent empty={this.state.previewItem == null} >
+                                <PanelContentBlock>
+                                    {this.state.previewItem && (<PreviewArticle item={this.state.previewItem} />)}
+                                </PanelContentBlock>
+                            </PanelContent>
+                        </Panel>
+                    </RightPanel>
+                </LayoutContainer>
             </Modal>
         );
     }

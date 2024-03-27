@@ -6,7 +6,7 @@ import {getLabelNameResolver} from 'superdesk-core/scripts/apps/workspace/helper
 import {appConfig} from 'superdesk-core/scripts/appConfig';
 import {gettext} from 'superdesk-core/scripts/core/utils';
 import {formatDate} from 'superdesk-core/scripts/core/get-superdesk-api-implementation';
-import {getSortedFields} from 'superdesk-core/scripts/apps/authoring/preview/utils';
+import {getSortedFields, getSortedFieldsFiltered} from 'superdesk-core/scripts/apps/authoring/preview/utils';
 import {fakeEditor} from './utils';
 import {ContentDivider, Heading} from 'superdesk-ui-framework/react';
 
@@ -47,10 +47,16 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
     }
 
     render() {
-        const contentFields = getSortedFields('content', fakeEditor, this.props.item, false, this.state.customFieldVocabularies);
-        const contentFieldsFiltered = contentFields.filter((field) => field.id !== 'headline' && field.id !== 'body_html');
-        const headlineField = contentFields.find(({id}) => id === 'headline');
-        const bodyField = contentFields.find(({id}) => id === 'body_html');
+        const {allFields, extractedFields} = getSortedFieldsFiltered(
+            'content',
+            fakeEditor,
+            this.props.item,
+            false,
+            this.state.customFieldVocabularies,
+            ['body_html', 'headline']
+        );
+        const headlineField = extractedFields['headline'];
+        const bodyField = extractedFields['body_html'];
 
         return (
             <div style={{width: '100%'}} className="preview-content">
@@ -104,23 +110,18 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
                             </div>
                         )
                     }
-                    {
-                        contentFieldsFiltered
-                            .map((field) => (
-                                <div key={field.id}>
-                                    {
-                                        appConfig?.authoring?.preview?.hideContentLabels === true ? <br /> : (
-                                            <Heading type="h3">
-                                                {this.getLabel(field.id)}
-                                            </Heading>
-                                        )
-                                    }
-                                    <div>
-                                        <PreviewFieldType field={field} language={this.props.item.language} />
-                                    </div>
-                                </div>
-                            ))
-                    }
+                    {allFields.map((field) => (
+                        <div key={field.id}>
+                            {appConfig?.authoring?.preview?.hideContentLabels === true ? <br /> : (
+                                <Heading type="h3">
+                                    {this.getLabel(field.id)}
+                                </Heading>
+                            )}
+                            <div>
+                                <PreviewFieldType field={field} language={this.props.item.language} />
+                            </div>
+                        </div>
+                    ))}
                     <br />
                 </div>
             </div>
