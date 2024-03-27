@@ -462,6 +462,7 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                 "place": [],
                 "language": "en",
                 "type": "planning",
+                "slugline": "slug",
                 "agendas": [],
                 "languages": ["en"],
                 "user": "12234553",

@@ -218,7 +218,7 @@ class EventsPostService(EventsBaseService):
                     if not planning.get("versionposted")
                 ]
             if len(docs) > 0:
-                planning_post_service.post(docs)
+                planning_post_service.post(docs, related_planning=True)
             return
         for planning in plannings:
             if not planning.get("pubstatus") and planning.get("state") in [
