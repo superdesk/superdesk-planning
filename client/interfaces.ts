@@ -429,6 +429,20 @@ export interface IEmbeddedPlanningItem {
     coverages: Array<IEmbeddedCoverageItem>;
 }
 
+export interface IRelatedItem {
+    guid: string;
+    type: string;
+    state: string;
+    version: string;
+    headline: string;
+    slugline: string;
+    versioncreated: string;
+    source: string;
+    search_provider: string;
+    pubstatus: string;
+    language: string;
+}
+
 export interface IEventItem extends IBaseRestApiResponse {
     guid?: string;
     unique_id?: string;
@@ -572,6 +586,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     _plannings?: Array<IPlanningItem>;
     template?: string;
     _sortDate?: IDateTime;
+    related_items?: Array<IRelatedItem>;
 
     translations?: Array<{
         field: string;

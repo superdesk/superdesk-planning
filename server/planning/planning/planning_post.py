@@ -66,7 +66,7 @@ class PlanningPostService(BaseService):
             self.validate_post_state(doc["pubstatus"])
             if event and doc["pubstatus"] == POST_STATE.USABLE:
                 self.post_associated_event(event)
-            self.post_planning(plan, doc["pubstatus"], assignments_to_delete)
+            self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
 
         get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete)
@@ -101,6 +101,15 @@ class PlanningPostService(BaseService):
             # as eve handles error responses differently between POST and PATCH methods
             abort(400, description=errors)
 
+    @staticmethod
+    def validate_related_item(doc):
+        errors = get_resource_service("planning_validator").post(
+            [{"validate_on_post": False, "type": "planning", "validate": doc}]
+        )[0]
+
+        if errors:
+            return abort(400, description=["Related planning : " + error for error in errors])
+
     def post_associated_event(self, event):
         """If the planning item is associated with an even that is not posted we need to post the event
 
@@ -121,7 +130,7 @@ class PlanningPostService(BaseService):
                     ]
                 )
 
-    def post_planning(self, plan, new_post_state, assignments_to_delete):
+    def post_planning(self, plan, new_post_state, assignments_to_delete, **kwargs):
         """Post a Planning item"""
         updates = {
             "state": get_item_post_state(plan, new_post_state),
@@ -144,6 +153,9 @@ class PlanningPostService(BaseService):
 
         updated_plan = get_resource_service("planning").update(plan["_id"], updates, plan)
         plan.update(updated_plan)
+
+        if kwargs.get("related_planning"):
+            self.validate_related_item(plan)
 
         # Set a version number
         version, plan = get_version_item_for_post(plan)
