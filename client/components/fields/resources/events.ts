@@ -5,6 +5,7 @@ import {superdeskApi} from '../../../superdeskApi';
 import {EditorFieldMultilingualText} from '../editor/base/multilingualText';
 import {EditorFieldDateTime} from '../editor/base/dateTime';
 import {EditorFieldEventLinks} from '../editor/EventLinks';
+import {EditorFieldEventRelatedItems} from '../editor/EventRelatedArticles/EditorFieldEventRelatedItems';
 
 registerEditorField(
     'definition_long',
@@ -89,6 +90,18 @@ registerEditorField(
     () => ({
         label: superdeskApi.localization.gettext('Accreditation Deadline'),
         field: 'accreditation_deadline',
+        singleValue: true,
+    }),
+    null,
+    false,
+);
+
+registerEditorField(
+    'related_items',
+    EditorFieldEventRelatedItems,
+    () => ({
+        label: superdeskApi.localization.gettext('Related Articles'),
+        field: 'related_items',
         singleValue: true,
     }),
     null,

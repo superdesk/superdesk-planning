@@ -13,6 +13,7 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
+import {extensionBridge} from './extension_bridge';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -134,5 +135,7 @@ const extension: IExtension = {
         return Promise.resolve(result);
     },
 };
+
+export const registerEditorField = extensionBridge.fields.registerEditorField;
 
 export default extension;

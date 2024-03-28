@@ -294,6 +294,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
         allowed_coverage_link_types?: Array<string>;
         autosave_timeout?: number;
         default_create_planning_series_with_event_series?: boolean;
+        event_related_item_search_provider_name?: string;
     };
 }
 
@@ -431,16 +432,17 @@ export interface IEmbeddedPlanningItem {
 
 export interface IRelatedItem {
     guid: string;
-    type: string;
-    state: string;
-    version: string;
-    headline: string;
-    slugline: string;
-    versioncreated: string;
-    source: string;
     search_provider: string;
-    pubstatus: string;
-    language: string;
+    type?: string;
+    state?: string;
+    version?: string;
+    headline?: string;
+    slugline?: string;
+    versioncreated?: string;
+    source?: string;
+    pubstatus?: string;
+    language?: string;
+    word_count?: number;
 }
 
 export interface IEventItem extends IBaseRestApiResponse {

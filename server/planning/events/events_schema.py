@@ -387,7 +387,7 @@ events_schema = {
                 "guid": {"type": "string", "required": True},
                 "type": {"type": "string"},
                 "state": {"type": "string"},
-                "version": {"type": "string"},
+                "version": metadata_schema["version"],
                 "headline": {"type": "string"},
                 "slugline": {"type": "string"},
                 "versioncreated": metadata_schema["versioncreated"],
@@ -395,6 +395,7 @@ events_schema = {
                 "search_provider": {"type": "string"},
                 "pubstatus": {"type": "string"},
                 "language": {"type": "string"},
+                "word_count": metadata_schema["word_count"],
             },
         },
         "mapping": {
