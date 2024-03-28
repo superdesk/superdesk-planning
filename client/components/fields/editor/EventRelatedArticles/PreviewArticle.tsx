@@ -1,14 +1,11 @@
 import React from 'react';
+
 import {IArticle, IVocabulary} from 'superdesk-api';
-import {PreviewFieldType} from 'superdesk-core/scripts/apps/authoring/preview/previewFieldByType';
-import {getCustomFieldVocabularies} from 'superdesk-core/scripts/core/helpers/business-logic';
-import {getLabelNameResolver} from 'superdesk-core/scripts/apps/workspace/helpers/getLabelForFieldId';
-import {appConfig} from 'superdesk-core/scripts/appConfig';
-import {gettext} from 'superdesk-core/scripts/core/utils';
-import {formatDate} from 'superdesk-core/scripts/core/get-superdesk-api-implementation';
-import {getSortedFields, getSortedFieldsFiltered} from 'superdesk-core/scripts/apps/authoring/preview/utils';
-import {fakeEditor} from './utils';
+import {superdeskApi} from '../../../../superdeskApi';
+import {appConfig} from 'appConfig';
+
 import {ContentDivider, Heading} from 'superdesk-ui-framework/react';
+import {fakeEditor} from './utils';
 
 interface IProps {
     item: Partial<IArticle>;
@@ -34,6 +31,9 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
     }
 
     componentDidMount(): void {
+        const {getLabelNameResolver} = superdeskApi.entities.article;
+        const {getCustomFieldVocabularies} = superdeskApi.entities.vocabulary;
+
         getLabelNameResolver().then((getLabel: (fieldId: string) => string) => {
             const customFieldVocabularies = getCustomFieldVocabularies();
 
@@ -47,6 +47,10 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
     }
 
     render() {
+        const {gettext, formatDate} = superdeskApi.localization;
+        const {PreviewFieldType} = superdeskApi.components.authoring;
+        const {getSortedFields, getSortedFieldsFiltered} = superdeskApi.entities.article;
+
         const {allFields, extractedFields} = getSortedFieldsFiltered(
             'content',
             fakeEditor,

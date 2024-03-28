@@ -198,10 +198,6 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         getValue: getValueFromCV('news_coverage_status'),
         mapStateToProps: (state) => ({news_coverage_status: selectors.general.newsCoverageStatus(state)}),
     },
-    related_items: {
-        props: () => ({label: superdeskApi.localization.gettext('Related Articles')}),
-        getValue: getPreviewString,
-    },
 };
 
 const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {

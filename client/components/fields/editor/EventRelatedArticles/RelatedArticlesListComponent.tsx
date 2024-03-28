@@ -1,7 +1,8 @@
 import React from 'react';
-import {ReactNode} from 'react';
+
 import {IArticle} from 'superdesk-api';
-import {gettext} from 'superdesk-core/scripts/core/utils';
+import {superdeskApi} from '../../../../superdeskApi';
+
 import {ContentListItem, IconButton, Label, Spacer} from 'superdesk-ui-framework/react';
 
 interface IProps {
@@ -33,7 +34,8 @@ export class RelatedArticlesListComponent extends React.PureComponent<IProps, IS
         };
     }
 
-    render(): ReactNode {
+    render() {
+        const {gettext} = superdeskApi.localization;
         const {
             article,
             editorPreview,

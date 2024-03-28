@@ -64,3 +64,4 @@ class EventRelatedItem(TypedDict, total=False):
     search_provider: str
     pubstatus: str
     language: str
+    word_count: int

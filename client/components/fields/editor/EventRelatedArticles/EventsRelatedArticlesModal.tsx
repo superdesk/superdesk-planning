@@ -1,4 +1,12 @@
 import React from 'react';
+
+import {IArticle, IRestApiResponse, ISuperdeskQuery} from 'superdesk-api';
+import {IPlanningConfig} from '../../../../interfaces';
+import {superdeskApi} from '../../../../superdeskApi';
+import {appConfig as config} from 'appConfig';
+
+import {cleanArticlesFields} from './utils';
+
 import {
     SearchBar,
     Modal,
@@ -17,15 +25,12 @@ import {
     RightPanel,
     SubNav,
 } from 'superdesk-ui-framework/react';
-import {getProjectedFieldsArticle, gettext} from 'superdesk-core/scripts/core/utils';
-import {httpRequestJsonLocal} from 'superdesk-core/scripts/core/helpers/network';
-import {toElasticQuery} from 'superdesk-core/scripts/core/query-formatting';
-import {IArticle, IRestApiResponse, ISuperdeskQuery} from 'superdesk-api';
-import {cleanArticlesFields} from './utils';
 import {RelatedArticlesListComponent} from './RelatedArticlesListComponent';
-import '../../../../components/Archive/ArchivePreview/style.scss';
 import {PreviewArticle} from './PreviewArticle';
-import {getLanguageVocabulary} from 'superdesk-core/scripts/core/helpers/business-logic';
+
+import '../../../../components/Archive/ArchivePreview/style.scss';
+
+const appConfig = config as IPlanningConfig;
 
 interface IProps {
     closeModal: () => void;
@@ -62,27 +67,34 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
     }
 
     componentDidMount() {
-        httpRequestJsonLocal<IRestApiResponse<any>>({
-            method: 'GET',
-            path: '/search_providers',
-            urlParams: {
-                manage: 1,
-            }
-        }).then((result) => {
-            const repoId = result._items.find((provider) =>
-                provider.source === 'http://wss-01.staging.belga.be:9000/archivenewsobjects')._id;
+        const {httpRequestJsonLocal} = superdeskApi;
+        const {getLanguageVocabulary} = superdeskApi.entities.vocabulary;
+        const searchProviderName = appConfig.planning.event_related_item_search_provider_name;
 
-            this.setState({
-                repo: repoId,
-                languages: [
-                    ...getLanguageVocabulary().items.map(({name, qcode}) => ({label: name, code: qcode})),
-                    {
-                        label: 'All languages',
-                        code: ''
-                    }
-                ]
+        if (searchProviderName != null) {
+            httpRequestJsonLocal<IRestApiResponse<any>>({
+                method: 'GET',
+                path: '/search_providers',
+                urlParams: {
+                    manage: 1,
+                }
+            }).then((result) => {
+                const repoId = result._items.find((provider) => (
+                    provider.search_provider === searchProviderName
+                ))?._id;
+
+                this.setState({
+                    repo: repoId,
+                    languages: [
+                        ...getLanguageVocabulary().items.map(({name, qcode}) => ({label: name, code: qcode})),
+                        {
+                            label: 'All languages',
+                            code: ''
+                        }
+                    ]
+                });
             });
-        });
+        }
     }
 
     componentDidUpdate(_prevProps: Readonly<IProps>, prevState: Readonly<IState>): void {
@@ -99,6 +111,10 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
 
     render(): React.ReactNode {
         const {closeModal} = this.props;
+        const {gettext} = superdeskApi.localization;
+        const {getProjectedFieldsArticle} = superdeskApi.entities.article;
+        const {httpRequestJsonLocal} = superdeskApi;
+        const {superdeskToElasticQuery} = superdeskApi.helpers;
 
         return (
             <Modal
@@ -172,33 +188,38 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                             key={this.state.activeLanguage.code + this.state.searchQuery + this.state.repo}
                             pageSize={20}
                             getItems={(pageNo, pageSize, signal) => {
-                                const query: Partial<ISuperdeskQuery> = {
+                                if (this.state.repo == null) {
+                                    return Promise.resolve({items: [], itemCount: 0});
+                                }
+
+                                const query: ISuperdeskQuery = {
+                                    filter: {},
                                     page: pageNo,
                                     max_results: pageSize,
                                     sort: [{versioncreated: 'desc'}],
                                 };
+                                const urlParams: {[key: string]: any} = {
+                                    aggregations: 0,
+                                    es_highlight: 1,
+                                    repo: this.state.repo,
+                                    projections: JSON.stringify(getProjectedFieldsArticle()),
+                                };
 
                                 if (this.state.activeLanguage.code !== '') {
-                                    query.filter = {$and: [{language: {$eq: this.state.activeLanguage.code}}]};
+                                    query.filter.language = {$eq: this.state.activeLanguage.code};
+                                    urlParams.params = {languages: this.state.activeLanguage.code};
                                 }
 
                                 if (this.state.searchQuery !== '') {
                                     query.fullTextSearch = this.state.searchQuery.toLowerCase();
                                 }
 
-                                if (this.state.repo == null) {
-                                    return Promise.resolve({items: [], itemCount: 0});
-                                }
-
                                 return httpRequestJsonLocal<IRestApiResponse<Partial<IArticle>>>({
                                     method: 'GET',
                                     path: '/search_providers_proxy',
                                     urlParams: {
-                                        aggregations: 0,
-                                        es_highlight: 1,
-                                        repo: this.state.repo,
-                                        projections: JSON.stringify(getProjectedFieldsArticle()),
-                                        ...toElasticQuery(query as ISuperdeskQuery),
+                                        ...urlParams,
+                                        ...superdeskToElasticQuery(query),
                                     },
                                     abortSignal: signal,
                                 })
@@ -246,7 +267,10 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                                                         this.setState({
                                                             currentlySelectedArticles: [
                                                                 ...(this.state.currentlySelectedArticles ?? []),
-                                                                article,
+                                                                {
+                                                                    ...article,
+                                                                    search_provider: this.state.repo,
+                                                                },
                                                             ]
                                                         });
                                                     }}

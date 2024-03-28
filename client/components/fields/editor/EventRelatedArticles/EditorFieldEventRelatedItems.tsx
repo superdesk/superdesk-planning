@@ -1,14 +1,18 @@
 import * as React from 'react';
+
+import {IArticle} from 'superdesk-api';
+import {IEditorFieldProps, IEventItem, IProfileSchemaTypeList} from 'interfaces';
+import {superdeskApi} from '../../../../superdeskApi';
+
+import {cleanArticlesFields} from './utils';
+
 import {ButtonGroup, Button, Spacer} from 'superdesk-ui-framework/react';
-import '../EventRelatedPlannings/style.scss';
 import {showModal} from '@superdesk/common';
 import {EventsRelatedArticlesModal} from './EventsRelatedArticlesModal';
-import {IArticle} from 'superdesk-api';
-import {cleanArticlesFields} from './utils';
 import {RelatedArticlesListComponent} from './RelatedArticlesListComponent';
-import {IEditorFieldProps, IEventItem, IProfileSchemaTypeList} from 'interfaces';
-import {Row} from 'superdesk-core/scripts/core/ui/components/List';
-import {gettext} from 'superdesk-core/scripts/core/utils';
+import {Row} from '../../../UI/Form';
+
+import '../EventRelatedPlannings/style.scss';
 
 interface IProps extends IEditorFieldProps {
     item: IEventItem;
@@ -41,6 +45,7 @@ export class EditorFieldEventRelatedItems extends React.PureComponent<IProps, IS
 
     render() {
         const disabled = this.props.disabled || this.props.schema?.read_only;
+        const {gettext} = superdeskApi.localization;
 
         return (
             <div className="related-plannings">

@@ -157,40 +157,30 @@ export const fakeEditor: any = {
 };
 
 export function cleanArticlesFields(articles: Array<Partial<IArticle>>) {
-    const fieldsToCleanup: Array<keyof IArticle> = [
-        '_created',
-        '_etag',
-        '_fetchable',
-        '_id',
-        '_links',
-        '_type',
-        '_updated',
-        'authors',
-        'body_html',
-        'creditline',
-        'description_text',
-        'ednote',
-        'extra',
-        'fetch_endpoint',
-        'firstcreated',
-        'ingest_provider',
-        'keywords',
-
-        // needed because proxy preprocessing adds mimetype to
-        // each article, while technically it's not a part of its interface
-        'mimetype' as any,
-        'profile',
-        'renditions',
-        'sign_off',
-        'profile',
-        'subject',
+    const fieldsToKeep: Array<keyof IArticle> = [
+        'guid',
+        'type',
+        'state',
+        'version',
+        'headline',
+        'slugline',
+        'versioncreated',
+        'source',
+        'pubstatus',
+        'language',
+        'word_count',
+        'search_provider',
     ];
 
-    fieldsToCleanup.forEach((field) => {
-        articles.forEach((article) => {
-            delete article[field];
-        });
-    });
+    for (let i = 0; i < articles.length; i++) {
+        let field: keyof IArticle;
+
+        for (field in articles[i]) {
+            if (!fieldsToKeep.includes(field)) {
+                delete articles[i][field];
+            }
+        }
+    }
 
     return articles;
 }
