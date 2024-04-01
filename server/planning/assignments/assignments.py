@@ -896,7 +896,7 @@ class AssignmentsService(superdesk.Service):
                     )
 
                 # publish planning
-                self.publish_planning(assignment.get("planning_item"))
+                self.publish_planning(assignment.get("planning_item"), assignment.get("item_user_id"))
 
                 assigned_to_user = get_resource_service("users").find_one(
                     req=None, _id=get_user().get(config.ID_FIELD, "")
@@ -1220,7 +1220,7 @@ class AssignmentsService(superdesk.Service):
             )
         if not doc.get("_to_delete") or marked_for_delete:
             # publish planning
-            self.publish_planning(doc.get("planning_item"))
+            self.publish_planning(doc.get("planning_item"), doc.get("item_user_id"))
 
     def is_assignment_draft(self, updates, original):
         return updates.get("assigned_to", original.get("assigned_to")).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
@@ -1249,7 +1249,7 @@ class AssignmentsService(superdesk.Service):
 
         return text_assignment
 
-    def publish_planning(self, planning_id):
+    def publish_planning(self, planning_id, user_id=None):
         """Publish the planning item if assignment state changes for following actions
 
         - Work is started on Assignment
@@ -1299,17 +1299,12 @@ class AssignmentsService(superdesk.Service):
             try:
                 # check if the planning item is locked
                 lock_service.validate_relationship_locks(planning_item, "planning")
-                use_published_planning = False
             except SuperdeskApiError as ex:
                 # planning item is already locked.
-                use_published_planning = True
-                logger.exception(str(ex))
+                lock_service = get_component(LockService)
+                lock_service.unlock(planning_item, user_id, get_auth()["_id"], "planning")
 
-            if use_published_planning:
-                # use the published planning and enqueue again
-                plan = published_planning_item.get("published_item")
-            else:
-                plan = planning_item
+            plan = planning_item
 
             _publish_planning(plan)
         except Exception:
