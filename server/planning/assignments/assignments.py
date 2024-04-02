@@ -896,7 +896,7 @@ class AssignmentsService(superdesk.Service):
                     )
 
                 # publish planning
-                self.publish_planning(assignment.get("planning_item"), assignment.get("item_user_id"))
+                self.publish_planning(assignment.get("planning_item"))
 
                 assigned_to_user = get_resource_service("users").find_one(
                     req=None, _id=get_user().get(config.ID_FIELD, "")
@@ -1220,7 +1220,7 @@ class AssignmentsService(superdesk.Service):
             )
         if not doc.get("_to_delete") or marked_for_delete:
             # publish planning
-            self.publish_planning(doc.get("planning_item"), doc.get("item_user_id"))
+            self.publish_planning(doc.get("planning_item"))
 
     def is_assignment_draft(self, updates, original):
         return updates.get("assigned_to", original.get("assigned_to")).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
@@ -1249,7 +1249,7 @@ class AssignmentsService(superdesk.Service):
 
         return text_assignment
 
-    def publish_planning(self, planning_id, user_id=None):
+    def publish_planning(self, planning_id):
         """Publish the planning item if assignment state changes for following actions
 
         - Work is started on Assignment
