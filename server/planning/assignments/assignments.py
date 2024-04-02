@@ -1296,22 +1296,7 @@ class AssignmentsService(superdesk.Service):
                 else:
                     logger.error("Failed to save planning version for planning item id {}".format(item["_id"]))
 
-            try:
-                # check if the planning item is locked
-                lock_service.validate_relationship_locks(planning_item, "planning")
-                use_published_planning = False
-            except SuperdeskApiError as ex:
-                # planning item is already locked.
-                use_published_planning = True
-                logger.exception(str(ex))
-
-            if use_published_planning:
-                # use the published planning and enqueue again
-                plan = published_planning_item.get("published_item")
-            else:
-                plan = planning_item
-
-            _publish_planning(plan)
+            _publish_planning(planning_item)
         except Exception:
             logger.exception("Failed to publish assignment for planning.")
 
