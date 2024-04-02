@@ -63,6 +63,9 @@ class PlanningPostService(BaseService):
             if not plan:
                 abort(412)
 
+            if kwargs.get("related_planning"):
+                self.validate_related_item(plan)
+
             self.validate_post_state(doc["pubstatus"])
             if event and doc["pubstatus"] == POST_STATE.USABLE:
                 self.post_associated_event(event)
@@ -153,9 +156,6 @@ class PlanningPostService(BaseService):
 
         updated_plan = get_resource_service("planning").update(plan["_id"], updates, plan)
         plan.update(updated_plan)
-
-        if kwargs.get("related_planning"):
-            self.validate_related_item(plan)
 
         # Set a version number
         version, plan = get_version_item_for_post(plan)
