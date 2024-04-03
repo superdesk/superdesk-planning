@@ -79,7 +79,7 @@ class OnclusiveFeedParser(FeedParser):
             except EmbargoedException:
                 logger.info("Ignoring embargoed event %s", event["itemId"])
             except Exception as error:
-                logger.exception("error %s when parsing event %s", error, event["itemId"], extra=dict(event=event))
+                logger.exception("Error when parsing Onclusive event", extra=dict(event=event, error=str(error)))
         return all_events
 
     def set_occur_status(self, item):
@@ -107,6 +107,9 @@ class OnclusiveFeedParser(FeedParser):
         item["definition_short"] = (
             event["description"] if (event["summary"] != "" and event["summary"] is not None) else ""
         )
+
+        if not item["name"]:
+            raise ValueError("Event name is empty")
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
         if event.get("locale"):
