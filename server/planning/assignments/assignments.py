@@ -10,6 +10,7 @@
 
 """Superdesk Assignments"""
 
+from typing import Dict, Any
 import superdesk
 import logging
 from copy import deepcopy
@@ -281,8 +282,26 @@ class AssignmentsService(superdesk.Service):
         self.notify("assignments:updated", updates, original)
         self.send_assignment_notification(updates, original)
 
-    def system_update(self, id, updates, original):
-        super().system_update(id, updates, original)
+        # If Desk, User and/or State was changed, then re-publish the Planning item
+        # So that the newly appointed assignee's/state will be pushed to subscribers
+        if self.assignee_details_changed(updates, original):
+            self.publish_planning(original.get("planning_item"))
+
+    def assignee_details_changed(self, updates: Dict[str, Any], original: Dict[str, Any]) -> bool:
+        if "assigned_to" not in updates:
+            return False
+
+        original_assigned_to = original.get("assigned_to") or {}
+        updated_assigned_to = updates["assigned_to"] or {}
+
+        for field in ["user", "desk", "state"]:
+            if original_assigned_to.get(field) != updated_assigned_to.get(field):
+                return True
+
+        return False
+
+    def system_update(self, id, updates, original, **kwargs):
+        rtn = super().system_update(id, updates, original, **kwargs)
         if self.is_assignment_being_activated(updates, original):
             doc = deepcopy(original)
             doc.update(updates)
@@ -294,6 +313,7 @@ class AssignmentsService(superdesk.Service):
             and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
         ):
             app.on_updated_assignments(updates, original)
+        return rtn
 
     def is_assignment_modified(self, updates, original):
         """Checks whether the assignment is modified or not"""
@@ -870,18 +890,6 @@ class AssignmentsService(superdesk.Service):
         elif operation == ITEM_PUBLISH:
             updated_assignment = self._get_empty_updates_for_assignment(assignment)
             if updates.get(ITEM_STATE, original.get(ITEM_STATE, "")) != CONTENT_STATE.SCHEDULED:
-                if updated_assignment.get("assigned_to")["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                    updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
-                        updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-                    )
-
-                    # Remove lock information as the archive item is unlocked when publishing
-                    remove_lock_information(updated_assignment)
-
-                    # Update the Assignment and send websocket notification
-                    self._update_assignment_and_notify(updated_assignment, assignment)
-                    get_resource_service("assignments_history").on_item_complete(updated_assignment, assignment)
-
                 # Update delivery record here
                 delivery_service = get_resource_service("delivery")
                 delivery = delivery_service.find_one(req=None, item_id=original[config.ID_FIELD])
@@ -895,8 +903,20 @@ class AssignmentsService(superdesk.Service):
                         },
                     )
 
-                # publish planning
-                self.publish_planning(assignment.get("planning_item"))
+                if updated_assignment.get("assigned_to")["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                    updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
+                        updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+                    )
+
+                    # Remove lock information as the archive item is unlocked when publishing
+                    remove_lock_information(updated_assignment)
+
+                    # Update the Assignment and send websocket notification
+                    self._update_assignment_and_notify(updated_assignment, assignment)
+                    get_resource_service("assignments_history").on_item_complete(updated_assignment, assignment)
+                else:
+                    # publish planning
+                    self.publish_planning(assignment.get("planning_item"))
 
                 assigned_to_user = get_resource_service("users").find_one(
                     req=None, _id=get_user().get(config.ID_FIELD, "")
@@ -1042,9 +1062,14 @@ class AssignmentsService(superdesk.Service):
         if not doc.get("assignment_id"):
             return
 
-        get_resource_service("assignments_unlink").post(
-            [{"assignment_id": doc["assignment_id"], "item_id": doc[config.ID_FIELD]}]
-        )
+        assignment_id = doc["assignment_id"]
+        assignment = self.find_one(req=None, _id=assignment_id)
+        if not assignment:
+            logger.error(f"Failed to find assignment '{assignment_id}' for archive item '{item_id}'")
+            return
+
+        get_resource_service("assignments_unlink").post([{"assignment_id": assignment_id, "item_id": item_id}])
+        self.publish_planning(assignment["planning_item"])
 
     def _update_assignment_and_notify(self, updates, original):
         self.system_update(original.get(config.ID_FIELD), updates, original)
@@ -1226,10 +1251,9 @@ class AssignmentsService(superdesk.Service):
         return updates.get("assigned_to", original.get("assigned_to")).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
 
     def is_assignment_being_activated(self, updates, original):
-        return (
-            original.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
-            and updates.get("assigned_to", {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-        )
+        return (original.get("assigned_to") or {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT and (
+            updates.get("assigned_to") or {}
+        ).get("state") == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
     def is_text_assignment(self, assignment):
         # scheduled_update is always for text coverages

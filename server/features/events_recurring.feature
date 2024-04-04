@@ -260,12 +260,11 @@ Feature: Events Recurring
             "event": "events:updated:recurring",
             "extra": {
                 "item": "#EVENT_ID#",
-                "recurrence_id": "__any_value__",
+                "recurrence_id": "#EVENT_ID#",
                 "user": "#CONTEXT_USER_ID#"
             }
         }]
         """
-        Then we store "NEW_RECURRING" from patch
         When we get "/events"
         Then we get list with 3 items
         """
@@ -276,21 +275,21 @@ Feature: Events Recurring
                     "start": "2019-11-22T12:00:00+0000",
                     "end": "2019-11-22T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "#EVENT_ID#"
             }, {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-11-29T12:00:00+0000",
                     "end": "2019-11-29T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "#EVENT_ID#"
             }, {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-12-06T12:00:00+0000",
                     "end": "2019-12-06T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "#EVENT_ID#"
             }
         ]}
         """
@@ -406,7 +405,6 @@ Feature: Events Recurring
         }
         """
         Then we get OK response
-        Then we store "NEW_RECURRING" from patch
         When we get "/events"
         Then we get list with 4 items
         """
@@ -419,7 +417,7 @@ Feature: Events Recurring
                     "end": "2019-11-21T14:00:00+0000"
                 },
                 "state": "rescheduled",
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "event1"
             },
             {
                 "name": "Weekly Friday Club",
@@ -427,21 +425,21 @@ Feature: Events Recurring
                     "start": "2019-11-22T12:00:00+0000",
                     "end": "2019-11-22T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "event1"
             }, {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-11-29T12:00:00+0000",
                     "end": "2019-11-29T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "event1"
             }, {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-12-06T12:00:00+0000",
                     "end": "2019-12-06T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "event1"
             }
         ]}
         """
@@ -451,7 +449,7 @@ Feature: Events Recurring
         {
             "_id": "event1",
             "state": "rescheduled",
-            "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            "recurrence_id": "event1"
         }
         """
         When we get "/planning/plan1"
@@ -461,7 +459,7 @@ Feature: Events Recurring
             "slugline": "TestPlan",
             "state": "rescheduled",
             "event_item": "event1",
-            "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            "recurrence_id": "event1"
         }
         """
         When we get "/events_history"
@@ -513,7 +511,6 @@ Feature: Events Recurring
         }
         """
         Then we get OK response
-        And we store "NEW_RECURRING" from patch
         When we get "/events"
         Then we get list with 3 items
         """
@@ -524,21 +521,21 @@ Feature: Events Recurring
                     "start": "2019-11-22T12:00:00+0000",
                     "end": "2019-11-22T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "#EVENT_ID#"
             }, {
                 "name": "Friday Club",
                 "dates": {
                     "start": "2019-11-29T12:00:00+0000",
                     "end": "2019-11-29T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "#EVENT_ID#"
             }, {
                 "name": "Friday Club",
                 "dates": {
                     "start": "2019-12-06T12:00:00+0000",
                     "end": "2019-12-06T14:00:00+0000"
                 },
-                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+                "recurrence_id": "#EVENT_ID#"
             }
         ]}
         """

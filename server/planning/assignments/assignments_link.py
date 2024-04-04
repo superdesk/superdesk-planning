@@ -104,7 +104,7 @@ class AssignmentsLinkService(Service):
         if len(deliveries) > 0:
             delivery_service.post(deliveries)
 
-        self.update_assignment(
+        assignment_was_updated = self.update_assignment(
             updates,
             assignment,
             actioned_item,
@@ -124,9 +124,13 @@ class AssignmentsLinkService(Service):
                 assignment_history_service.on_item_content_link(updates, assignment)
 
             if (
-                actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
-                or already_completed
-            ) and not need_complete:
+                not assignment_was_updated
+                and (
+                    actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
+                    or already_completed
+                )
+                and not need_complete
+            ):
                 # publishing planning item
                 assignments_service.publish_planning(assignment["planning_item"])
 
@@ -244,6 +248,8 @@ class AssignmentsLinkService(Service):
             get_resource_service("assignments_complete").update(assignment[config.ID_FIELD], updates, assignment)
         if updated:
             get_resource_service("assignments").patch(assignment[config.ID_FIELD], updates)
+
+        return updated
 
 
 class AssignmentsLinkResource(Resource):
