@@ -378,6 +378,11 @@ events_schema = {
             },
         },
     },
+    "associated_plannings": {  # This is used to create new planning items from the event editor
+        "type": "list",
+        "required": False,
+        "schema": {"type": "dict", "allow_unknown": True, "schema": {}},
+    },
     "related_items": {
         "type": "list",
         "required": False,
