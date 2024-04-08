@@ -455,8 +455,8 @@ class AssignmentsService(superdesk.Service):
             assignment["planning"]["ics_data"] = ical.to_ical()
 
         # get formatted contacts and event date time for email templates
-        formatted_contacts = get_formatted_contacts(event_item)
-        fomatted_event_date = get_event_formatted_dates(event_item)
+        formatted_contacts = get_formatted_contacts(event_item) if event_item else []
+        fomatted_event_date = get_event_formatted_dates(event_item) if event_item else ""
 
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):

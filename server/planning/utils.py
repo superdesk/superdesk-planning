@@ -51,12 +51,12 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
     return datetime
 
 
-def time_short(datetime: datetime) -> str:
+def time_short(datetime: datetime):
     if datetime:
         return format_time(parse_date(datetime), "HH:mm")
 
 
-def date_short(datetime: datetime) -> str:
+def date_short(datetime: datetime):
     if datetime:
         return format_datetime(parse_date(datetime), "dd/MM/yyyy")
 
