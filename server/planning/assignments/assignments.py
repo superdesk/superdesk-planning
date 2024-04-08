@@ -479,7 +479,7 @@ class AssignmentsService(superdesk.Service):
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
                         contacts=formatted_contacts,
-                        location=event["LOCATION"],
+                        location=event.get("LOCATION", ""),
                         event_date_time=fomatted_event_date,
                     )
                     # notify the desk
@@ -498,7 +498,7 @@ class AssignmentsService(superdesk.Service):
                             omit_user=True,
                             is_link=True,
                             contacts=formatted_contacts,
-                            location=event["LOCATION"],
+                            location=event.get("LOCATION", ""),
                             event_date_time=fomatted_event_date,
                         )
 
@@ -537,7 +537,7 @@ class AssignmentsService(superdesk.Service):
                             is_link=True,
                             contact_id=assigned_to.get("contact"),
                             contacts=formatted_contacts,
-                            location=event["LOCATION"],
+                            location=event.get("LOCATION", ""),
                             event_date_time=fomatted_event_date,
                         )
                     else:
@@ -562,7 +562,7 @@ class AssignmentsService(superdesk.Service):
                             is_link=True,
                             contact_id=original.get("assigned_to").get("contact"),
                             contacts=formatted_contacts,
-                            location=event["LOCATION"],
+                            location=event.get("LOCATION", ""),
                             event_date_time=fomatted_event_date,
                         )
                         # notify the assignee
@@ -588,7 +588,7 @@ class AssignmentsService(superdesk.Service):
                             is_link=True,
                             contact_id=assigned_to.get("contact"),
                             contacts=formatted_contacts,
-                            location=event["LOCATION"],
+                            location=event.get("LOCATION", ""),
                             event_date_time=fomatted_event_date,
                         )
             else:  # A new assignment
@@ -613,7 +613,7 @@ class AssignmentsService(superdesk.Service):
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
                         contacts=formatted_contacts,
-                        location=event["LOCATION"],
+                        location=event.get("LOCATION", ""),
                         event_date_time=fomatted_event_date,
                     )
         else:  # Assigned/Reassigned to a desk, notify all desk members
@@ -644,7 +644,7 @@ class AssignmentsService(superdesk.Service):
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
                         contacts=formatted_contacts,
-                        location=event["LOCATION"],
+                        location=event.get("LOCATION", ""),
                         event_date_time=fomatted_event_date,
                     )
                 else:
@@ -664,7 +664,7 @@ class AssignmentsService(superdesk.Service):
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
                         contacts=formatted_contacts,
-                        location=event["LOCATION"],
+                        location=event.get("LOCATION", ""),
                         event_date_time=fomatted_event_date,
                     )
             else:
@@ -686,7 +686,7 @@ class AssignmentsService(superdesk.Service):
                     is_link=True,
                     contact_id=assigned_to.get("contact"),
                     contacts=formatted_contacts,
-                    location=event["LOCATION"],
+                    location=event.get("LOCATION", ""),
                     event_date_time=fomatted_event_date,
                 )
 
