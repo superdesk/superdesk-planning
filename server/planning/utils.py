@@ -5,6 +5,10 @@ from datetime import timedelta, datetime
 from flask_babel import format_time, format_datetime, lazy_gettext
 from eve.utils import str_to_date
 import arrow
+from flask import current_app as app
+
+ContactDict = Dict[str, Union[str, List[str]]]
+FormattedContacts = List[ContactDict]
 
 
 def try_cast_object_id(value: str) -> Union[ObjectId, str]:
@@ -14,7 +18,7 @@ def try_cast_object_id(value: str) -> Union[ObjectId, str]:
         return value
 
 
-def get_formatted_contacts(event: Dict[str, Any]) -> List[Dict[str, Union[str, List[str]]]]:
+def get_formatted_contacts(event: Dict[str, Any]) -> FormattedContacts:
     contacts = event.get("event_contact_info", [])
     formatted_contacts = []
     for contact in contacts:
@@ -32,9 +36,9 @@ def get_formatted_contacts(event: Dict[str, Any]) -> List[Dict[str, Union[str, L
                         ]
                     ),
                     "organisation": contact.get("organisation", ""),
-                    "email": ", ".join(contact.get("contact_email", [])),
-                    "phone": ", ".join([c.get("number") for c in contact.get("contact_phone", []) if c.get("public")]),
-                    "mobile": ", ".join([c.get("number") for c in contact.get("mobile", []) if c.get("public")]),
+                    "email": contact.get("contact_email", []),
+                    "phone": [c.get("number") for c in contact.get("contact_phone", []) if c.get("public")],
+                    "mobile": [c.get("number") for c in contact.get("mobile", []) if c.get("public")],
                     "website": contact.get("website", ""),
                 }
             )
@@ -53,12 +57,12 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
 
 def time_short(datetime: datetime):
     if datetime:
-        return format_time(parse_date(datetime), "HH:mm")
+        return format_time(parse_date(datetime), app.config.get("TIME_FORMAT_SHORT", "HH:mm"))
 
 
 def date_short(datetime: datetime):
     if datetime:
-        return format_datetime(parse_date(datetime), "dd/MM/yyyy")
+        return format_datetime(parse_date(datetime), app.config.get("DATE_FORMAT_SHORT", "dd/MM/yyyy"))
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
