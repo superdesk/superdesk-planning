@@ -2184,6 +2184,7 @@ export interface IPlanningAPI {
                 coverage: IPlanningCoverageItem,
                 index: number
             ): Promise<IPlanningItem>;
+            bulkAddCoverageToWorkflow(planingItems: Array<IPlanningItem>): Array<Promise<IPlanningItem>>;
         }
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
         update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;

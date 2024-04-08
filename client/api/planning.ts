@@ -200,6 +200,38 @@ function setDefaultValues(
     );
 }
 
+function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Array<Promise<IPlanningItem>> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const {gettext} = superdeskApi.localization;
+    const {notify} = superdeskApi.ui;
+
+    const coverageStatuses = selectors.general.newsCoverageStatus(getState());
+    const planningItemsToUpdate: Array<IPlanningItem> = planningItems.filter((item) => item.lock_action !== 'edit');
+
+    return planningItemsToUpdate.map((plan) => {
+        const updates = {coverages: cloneDeep(plan.coverages)};
+
+        updates.coverages = plan.coverages
+            .map((coverage) => planningUtils.getActiveCoverage(coverage, coverageStatuses));
+
+        return planning.update(plan, updates)
+            .then((updatedPlan) => {
+                notify.success(gettext('Coverage added to workflow.'));
+                dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
+
+                return updatedPlan;
+            })
+            .catch((error) => {
+                notify.error(getErrorMessage(
+                    error,
+                    gettext('Failed to add coverage to workflow')
+                ));
+
+                return Promise.reject(error);
+            });
+    });
+}
+
 function addCoverageToWorkflow(
     plan: IPlanningItem,
     coverage: IPlanningCoverageItem,
@@ -245,5 +277,6 @@ export const planning: IPlanningAPI['planning'] = {
     coverages: {
         setDefaultValues: setDefaultValues,
         addCoverageToWorkflow: addCoverageToWorkflow,
+        bulkAddCoverageToWorkflow: bulkAddCoverageToWorkflow,
     },
 };
