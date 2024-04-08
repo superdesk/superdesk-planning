@@ -13,6 +13,7 @@ def try_cast_object_id(value: str) -> Union[ObjectId, str]:
     except InvalidId:
         return value
 
+
 def get_formatted_contacts(event: Dict[str, Any]) -> List[Dict[str, Union[str, List[str]]]]:
     contacts = event.get("event_contact_info", [])
     formatted_contacts = []
@@ -34,10 +35,11 @@ def get_formatted_contacts(event: Dict[str, Any]) -> List[Dict[str, Union[str, L
                     "email": ", ".join(contact.get("contact_email", [])),
                     "phone": ", ".join([c.get("number") for c in contact.get("contact_phone", []) if c.get("public")]),
                     "mobile": ", ".join([c.get("number") for c in contact.get("mobile", []) if c.get("public")]),
-                    "website": contact.get("website", "")
+                    "website": contact.get("website", ""),
                 }
             )
     return formatted_contacts
+
 
 def parse_date(datetime: Union[str, datetime]) -> datetime:
     """Return datetime instance for datetime."""
@@ -48,13 +50,16 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
             return arrow.get(datetime).datetime
     return datetime
 
+
 def time_short(datetime: datetime) -> str:
     if datetime:
-        return format_time(parse_date(datetime),"HH:mm")
+        return format_time(parse_date(datetime), "HH:mm")
+
 
 def date_short(datetime: datetime) -> str:
     if datetime:
         return format_datetime(parse_date(datetime), "dd/MM/yyyy")
+
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     DAY_IN_MINUTES = 24 * 60 - 1
