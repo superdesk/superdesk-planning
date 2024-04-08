@@ -8,6 +8,7 @@ from planning.tests import TestCase
 from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
+from werkzeug.exceptions import BadRequest
 
 
 class EventTestCase(TestCase):
@@ -596,3 +597,105 @@ class EventsRelatedPlanningAutoPublish(TestCase):
             planning_item = planning_service.find_one(req=None, _id=planning_id)
             self.assertIsNotNone(planning_item)
             self.assertEqual(planning_item["pubstatus"], POST_STATE.USABLE)
+
+    def test_related_planning_item_validation_on_post(self):
+        """
+        check planning item fields validation
+        if validation fails, plannning item is not posted.
+        """
+        events_service = get_resource_service("events")
+        planning_service = get_resource_service("planning")
+
+        with self.app.app_context():
+            self.app.data.insert(
+                "planning_types",
+                [
+                    {
+                        "_id": "event",
+                        "name": "event",
+                        "editor": {"related_plannings": {"enabled": True}},
+                        "schema": {"related_plannings": {"planning_auto_publish": True}},
+                    },
+                    {
+                        "_id": "planning",
+                        "name": "planning",
+                        "editor": {"slugline": {"enabled": True}},
+                        "schema": {"slugline": {"required": True}},
+                    },
+                ],
+            )
+
+        event_id = events_service.post(
+            [
+                {
+                    "type": "event",
+                    "occur_status": {
+                        "qcode": "eocstat:eos5",
+                        "name": "Planned, occurs certainly",
+                        "label": "Planned, occurs certainly",
+                    },
+                    "dates": {
+                        "start": datetime(2099, 11, 21, 11, 00, 00, tzinfo=pytz.UTC),
+                        "end": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                        "tz": "Australia/Sydney",
+                    },
+                    "state": "draft",
+                    "name": "Foo event one",
+                }
+            ]
+        )[0]
+        planning_id = planning_service.post(
+            [
+                {
+                    "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                    "name": "foo planning 1",
+                    "type": "planning",
+                    "event_item": event_id,
+                }
+            ]
+        )[0]
+        try:
+            get_resource_service("events_post").post(
+                [
+                    {
+                        "event": event_id,
+                        "pubstatus": "usable",
+                        "update_method": "single",
+                    }
+                ]
+            )
+        except BadRequest as e:
+            self.assertEqual(str(e), "400 Bad Request: ['Related planning : SLUGLINE is a required field']")
+
+        planning_item = planning_service.find_one(req=None, _id=planning_id)
+        self.assertEqual(planning_item["state"], "draft")
+
+        # try to re-post an event.
+        try:
+            get_resource_service("events_post").post(
+                [
+                    {
+                        "event": event_id,
+                        "pubstatus": "usable",
+                        "update_method": "single",
+                    }
+                ]
+            )
+        except BadRequest as e:
+            self.assertEqual(str(e), "400 Bad Request: ['Related planning : SLUGLINE is a required field']")
+
+        # udpate slugline
+        planning_service.patch(planning_id, {"slugline": "update slug"})
+
+        get_resource_service("events_post").post(
+            [
+                {
+                    "event": event_id,
+                    "pubstatus": "usable",
+                    "update_method": "single",
+                }
+            ]
+        )
+        planning_item = planning_service.find_one(req=None, _id=planning_id)
+        self.assertIsNotNone(planning_item)
+        self.assertEqual(planning_item["state"], "scheduled")
