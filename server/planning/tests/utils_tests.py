@@ -1,5 +1,5 @@
 from planning.tests import TestCase
-from datetime import datetime, timedelta
+from datetime import datetime
 from planning.utils import get_event_formatted_dates
 
 
