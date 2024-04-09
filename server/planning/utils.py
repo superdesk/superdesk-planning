@@ -17,8 +17,8 @@ class FormattedContact(TypedDict):
     website: str
 
 
-ALL_DAY_SECONDS = 89999  # Number of seconds for an all-day event
-MULTI_DAY_SECONDS = 90000  # Number of seconds for an multi-day event
+MULTI_DAY_SECONDS = 24 * 60 * 60  # Number of seconds for an multi-day event
+ALL_DAY_SECONDS = MULTI_DAY_SECONDS - 1  # Number of seconds for an all-day event
 
 
 def try_cast_object_id(value: str) -> Union[ObjectId, str]:

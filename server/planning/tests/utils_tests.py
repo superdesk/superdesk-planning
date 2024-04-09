@@ -13,7 +13,7 @@ class TestGetEventFormattedDates(TestCase):
 
     def test_all_day_event(self):
         start = datetime(2024, 4, 27, 22, 00, 00)
-        end = datetime(2024, 4, 28, 22, 59, 59)
+        end = datetime(2024, 4, 28, 21, 59, 59)
         event = {"dates": {"start": start, "end": end}}
         result = get_event_formatted_dates(event)
         self.assertEqual(result, "ALL DAY 27/04/2024")
