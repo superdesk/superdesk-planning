@@ -26,28 +26,29 @@ def try_cast_object_id(value: str) -> Union[ObjectId, str]:
 
 def get_formatted_contacts(event: Dict[str, Any]) -> List[FormattedContact]:
     contacts = event.get("event_contact_info", [])
-    formatted_contacts = []
+    formatted_contacts: List[FormattedContact] = []
+
     for contact in contacts:
         if contact.get("public", False):
-            formatted_contacts.append(
-                {
-                    "name": " ".join(
-                        [
-                            c
-                            for c in [
-                                contact.get("first_name"),
-                                contact.get("last_name"),
-                            ]
-                            if c
+            formatted_contact: FormattedContact = {
+                "name": " ".join(
+                    [
+                        c
+                        for c in [
+                            contact.get("first_name", ""),
+                            contact.get("last_name", ""),
                         ]
-                    ),
-                    "organisation": contact.get("organisation", ""),
-                    "email": contact.get("contact_email", []),
-                    "phone": [c.get("number") for c in contact.get("contact_phone", []) if c.get("public")],
-                    "mobile": [c.get("number") for c in contact.get("mobile", []) if c.get("public")],
-                    "website": contact.get("website", ""),
-                }
-            )
+                        if c
+                    ]
+                ),
+                "organisation": contact.get("organisation", ""),
+                "email": contact.get("contact_email", []),
+                "phone": [c.get("number", "") for c in contact.get("contact_phone", []) if c.get("public")],
+                "mobile": [c.get("number", "") for c in contact.get("mobile", []) if c.get("public")],
+                "website": contact.get("website", ""),
+            }
+            formatted_contacts.append(formatted_contact)
+
     return formatted_contacts
 
 
