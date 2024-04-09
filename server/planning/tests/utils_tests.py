@@ -12,8 +12,8 @@ class TestGetEventFormattedDates(TestCase):
         self.assertEqual(result, "05:00 28/05/2024 - 06:00 29/05/2024")
 
     def test_all_day_event(self):
-        start = datetime(2024, 4, 27, 21, 59, 00)
-        end = datetime(2024, 4, 28, 22, 00, 00)
+        start = datetime(2024, 4, 27, 22, 00, 00)
+        end = datetime(2024, 4, 28, 22, 59, 59)
         event = {"dates": {"start": start, "end": end}}
         result = get_event_formatted_dates(event)
         self.assertEqual(result, "ALL DAY 27/04/2024")
