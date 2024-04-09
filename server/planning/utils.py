@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Any
+from typing import Union, List, Dict, Any, TypedDict
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from datetime import timedelta, datetime
@@ -7,8 +7,14 @@ from eve.utils import str_to_date
 import arrow
 from flask import current_app as app
 
-ContactDict = Dict[str, Union[str, List[str]]]
-FormattedContacts = List[ContactDict]
+
+class FormattedContact(TypedDict):
+    name: str
+    organisation: str
+    email: List[str]
+    phone: List[str]
+    mobile: List[str]
+    website: str
 
 
 def try_cast_object_id(value: str) -> Union[ObjectId, str]:
@@ -18,7 +24,7 @@ def try_cast_object_id(value: str) -> Union[ObjectId, str]:
         return value
 
 
-def get_formatted_contacts(event: Dict[str, Any]) -> FormattedContacts:
+def get_formatted_contacts(event: Dict[str, Any]) -> List[FormattedContact]:
     contacts = event.get("event_contact_info", [])
     formatted_contacts = []
     for contact in contacts:
