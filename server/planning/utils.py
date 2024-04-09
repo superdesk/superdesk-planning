@@ -66,20 +66,21 @@ def date_short(datetime: datetime):
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
-    DAY_IN_MINUTES = 24 * 60 - 1
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
 
-    if start + timedelta(minutes=DAY_IN_MINUTES) < end:
-        # Multi day event
-        return "{} {} - {} {}".format(time_short(start), date_short(start), time_short(end), date_short(end))
+    duration_minutes = int((end - start).total_seconds() / 60)
 
-    if start + timedelta(minutes=DAY_IN_MINUTES) == end:
+    if duration_minutes == 1441:
         # All day event
         return "{} {}".format(lazy_gettext("ALL DAY"), date_short(start))
 
+    if duration_minutes >= 1440:
+        # Multi day event
+        return "{} {} - {} {}".format(time_short(start), date_short(start), time_short(end), date_short(end))
+
     if start == end:
-        # start and end dates are the same
+        # start and end are the same
         return "{} {}".format(time_short(start), date_short(start))
 
     return "{} - {}, {}".format(time_short(start), time_short(end), date_short(start))
