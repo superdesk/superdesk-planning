@@ -1,7 +1,7 @@
 from typing import Union, List, Dict, Any, TypedDict
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from datetime import timedelta, datetime
+from datetime import datetime
 from flask_babel import format_time, format_datetime, lazy_gettext
 from eve.utils import str_to_date
 import arrow
@@ -15,6 +15,10 @@ class FormattedContact(TypedDict):
     phone: List[str]
     mobile: List[str]
     website: str
+
+
+ALL_DAY_SECONDS = 86460
+MULTI_DAY_SECONDS = 86400
 
 
 def try_cast_object_id(value: str) -> Union[ObjectId, str]:
@@ -76,13 +80,13 @@ def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
 
-    duration_minutes = int((end - start).total_seconds() / 60)
+    duration_seconds = int((end - start).total_seconds())
 
-    if duration_minutes == 1441:
+    if duration_seconds == ALL_DAY_SECONDS:
         # All day event
         return "{} {}".format(lazy_gettext("ALL DAY"), date_short(start))
 
-    if duration_minutes >= 1440:
+    if duration_seconds >= MULTI_DAY_SECONDS:
         # Multi day event
         return "{} {} - {} {}".format(time_short(start), date_short(start), time_short(end), date_short(end))
 
