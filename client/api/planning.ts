@@ -200,15 +200,14 @@ function setDefaultValues(
     );
 }
 
-function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Array<Promise<IPlanningItem>> {
+function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>> {
     const {getState, dispatch} = planningApi.redux.store;
     const {gettext} = superdeskApi.localization;
     const {notify} = superdeskApi.ui;
 
     const coverageStatuses = selectors.general.newsCoverageStatus(getState());
     const planningItemsToUpdate: Array<IPlanningItem> = planningItems.filter((item) => item.lock_action !== 'edit');
-
-    return planningItemsToUpdate.map((plan) => {
+    const allUpdates = planningItemsToUpdate.map((plan) => {
         const updates = {coverages: cloneDeep(plan.coverages)};
 
         updates.coverages = plan.coverages
@@ -216,20 +215,26 @@ function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Array<P
 
         return planning.update(plan, updates)
             .then((updatedPlan) => {
-                notify.success(gettext('Coverage added to workflow.'));
                 dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
 
                 return updatedPlan;
-            })
-            .catch((error) => {
-                notify.error(getErrorMessage(
-                    error,
-                    gettext('Failed to add coverage to workflow')
-                ));
-
-                return Promise.reject(error);
             });
     });
+
+    return Promise.all(allUpdates)
+        .then((result) => {
+            notify.success(gettext('Coverages added to workflow.'));
+
+            return result;
+        })
+        .catch((error) => {
+            notify.error(getErrorMessage(
+                error,
+                gettext('Failed to add coverages to workflow')
+            ));
+
+            return Promise.reject(error);
+        });
 }
 
 function addCoverageToWorkflow(
