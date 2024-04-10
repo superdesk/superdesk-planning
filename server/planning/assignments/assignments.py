@@ -67,6 +67,7 @@ from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
+from planning.utils import get_event_formatted_dates, get_formatted_contacts
 
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel("planning", type="string"))
@@ -453,6 +454,10 @@ class AssignmentsService(superdesk.Service):
             # Add the ICS object to the assignment
             assignment["planning"]["ics_data"] = ical.to_ical()
 
+        # get formatted contacts and event date time for email templates
+        formatted_contacts = get_formatted_contacts(event_item) if event_item else []
+        fomatted_event_date = get_event_formatted_dates(event_item) if event_item else ""
+
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):
             # If it is a reassignment
@@ -473,6 +478,9 @@ class AssignmentsService(superdesk.Service):
                         event=event_item,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
                     # notify the desk
                     if assigned_to.get("desk"):
@@ -489,6 +497,9 @@ class AssignmentsService(superdesk.Service):
                             event=event_item,
                             omit_user=True,
                             is_link=True,
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
 
                 else:
@@ -525,6 +536,9 @@ class AssignmentsService(superdesk.Service):
                             omit_user=True,
                             is_link=True,
                             contact_id=assigned_to.get("contact"),
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
                     else:
                         # it is being reassigned by someone else so notify both the new assignee and the old
@@ -547,6 +561,9 @@ class AssignmentsService(superdesk.Service):
                             omit_user=True,
                             is_link=True,
                             contact_id=original.get("assigned_to").get("contact"),
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
                         # notify the assignee
                         assigned_from = original.get("assigned_to")
@@ -570,6 +587,9 @@ class AssignmentsService(superdesk.Service):
                             omit_user=True,
                             is_link=True,
                             contact_id=assigned_to.get("contact"),
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
@@ -592,6 +612,9 @@ class AssignmentsService(superdesk.Service):
                         omit_user=True,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
         else:  # Assigned/Reassigned to a desk, notify all desk members
             # if it was assigned to a desk before, test if there has been a change of desk
@@ -620,6 +643,9 @@ class AssignmentsService(superdesk.Service):
                         omit_user=True,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
                 else:
                     PlanningNotifications().notify_assignment(
@@ -637,6 +663,9 @@ class AssignmentsService(superdesk.Service):
                         event=event_item,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
             else:
                 assign_type = "reassigned" if original.get("assigned_to") else "assigned"
@@ -656,6 +685,9 @@ class AssignmentsService(superdesk.Service):
                     omit_user=True,
                     is_link=True,
                     contact_id=assigned_to.get("contact"),
+                    contacts=formatted_contacts,
+                    location=event.get("LOCATION", ""),
+                    event_date_time=fomatted_event_date,
                 )
 
     def send_assignment_cancellation_notification(
