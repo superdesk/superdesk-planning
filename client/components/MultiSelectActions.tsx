@@ -8,6 +8,7 @@ import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {Button} from './UI';
+import {planningApi} from '../superdeskApi';
 
 export class MultiSelectActionsComponent extends React.PureComponent {
     constructor(props) {
@@ -88,12 +89,24 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         let tools = [];
 
+        if (!some(selectedPlannings, 'lock_action')) {
+            tools.push(
+                <Button
+                    key={0}
+                    hollow={true}
+                    onClick={() => {
+                        planningApi.planning.coverages.bulkAddCoverageToWorkflow(this.getItemList());
+                    }}
+                    text={gettext('Add to workflow')}
+                />
+            );
+        }
         if (showExport) {
             tools.push(
                 <Button
                     key={1}
+                    hollow={true}
                     onClick={this.exportArticle}
-                    color="primary"
                     text={gettext('Export')}
                 />
             );
@@ -105,6 +118,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
                     key={2}
                     onClick={this.itemSpike}
                     color="alert"
+                    hollow={true}
                     text={gettext('Spike')}
                     icon="icon-trash"
                 />
@@ -153,7 +167,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             <Button
                 key={0}
                 onClick={this.exportArticle}
-                color="primary"
+                hollow
                 text={gettext('Export')}
             />
         ), (
@@ -182,6 +196,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
                     key={3}
                     onClick={this.itemSpike}
                     color="alert"
+                    hollow={true}
                     text={gettext('Spike')}
                     icon="icon-trash"
                 />
