@@ -37,7 +37,7 @@
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
-    "@types/jasmine": "^3.10.18",
+    "@types/jasmine": "^5.1.4",
     "@types/lodash": "4.17.0",
     "@types/react": "16.8.23",
     "@types/react-dom": "16.8.0",
@@ -50,7 +50,7 @@
     "enzyme-adapter-react-16": "^1.15.8",
     "eslint": "6.6.0",
     "eslint-plugin-react": "7.16.0",
-    "jasmine": "^2.99.0",
+    "jasmine": "^5.1.0",
     "jasmine-reporters": "^2.5.2",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "2.2.0",
