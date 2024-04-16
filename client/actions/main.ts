@@ -472,6 +472,10 @@ const post = (original, updates = {}, withConfirmation = true) => (
                             {itemType: typeString}
                         )
                     );
+                    if (error.data._error.code == 400){
+                        return dispatch(eventsApi.fetchById(original._id, {force: true}))
+                        .then((item) => Promise.resolve(item) )
+                    }
                     return Promise.reject(error);
                 }
             );
