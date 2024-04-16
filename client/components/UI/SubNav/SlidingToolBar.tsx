@@ -1,12 +1,21 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {superdeskApi} from '../../../superdeskApi';
 
 import {Button} from '../index';
-import {gettext} from '../utils';
 import './style.scss';
+
+interface IProps {
+    hide: boolean;
+    onCancel: () => void;
+    innerInfo: string;
+    innerTools: React.ReactNode;
+    tools: React.ReactNode;
+    rightCancelButton?: boolean;
+    cancelText?: string;
+    bulkAddToWorkflow: () => void;
+}
 
 /**
  * @ngdoc react
@@ -21,14 +30,15 @@ export const SlidingToolBar = ({
     onCancel,
     rightCancelButton,
     cancelText,
-}) => {
+}: IProps) => {
     const {gettext} = superdeskApi.localization;
+    const hideDefault = hide ?? true;
 
     return (
         <div
             className={classNames(
                 'subnav__sliding-toolbar',
-                {'ng-hide': hide})}
+                {'ng-hide': hideDefault})}
         >
             <div className="sliding-toolbar__inner">
                 {!rightCancelButton && <Button onClick={onCancel} text={gettext('Cancel')} />}
@@ -41,16 +51,3 @@ export const SlidingToolBar = ({
     );
 };
 
-SlidingToolBar.propTypes = {
-    hide: PropTypes.bool,
-    onCancel: PropTypes.func,
-    innerInfo: PropTypes.string,
-    innerTools: PropTypes.node,
-    tools: PropTypes.node,
-    rightCancelButton: PropTypes.bool,
-    cancelText: PropTypes.string,
-};
-
-SlidingToolBar.defaultProp = {
-    hide: true,
-};

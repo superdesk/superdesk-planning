@@ -27,7 +27,7 @@ export function PreviewFieldRelatedArticles({item, languageFilter}: IProps) {
                     {gettext('No related articles')}
                 </span>
             ) : (
-                item.related_items.map((relatedItem) => (
+                relatedItems.map((relatedItem) => (
                     <ArticleItemConcise
                         key={relatedItem.guid}
                         article={relatedItem as any as IArticle}
