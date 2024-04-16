@@ -257,7 +257,7 @@ class PlanningService(superdesk.Service):
     def on_locked_planning(self, item, user_id):
         self.generate_related_assignments([item])
 
-    def should_update(self, old_item):
+    def should_update(self, old_item, new_item, provider):
         return True
 
     @staticmethod

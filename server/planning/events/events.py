@@ -797,7 +797,7 @@ class EventsService(superdesk.Service):
             if events_using_file.count() == 0:
                 files_service.delete_action(lookup={"_id": file})
 
-    def should_update(self, old_item):
+    def should_update(self, old_item, new_item, provider):
         if (
             old_item
             and old_item.get("version_creator")
