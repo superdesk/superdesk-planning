@@ -798,14 +798,13 @@ class EventsService(superdesk.Service):
                 files_service.delete_action(lookup={"_id": file})
 
     def should_update(self, old_item, new_item, provider):
-        if (
-            old_item
-            and old_item.get("version_creator")
-            or old_item.get("pubstatus") == "cancelled"
-            or old_item.get("state") == "killed"
-        ):
-            return False
-        return True
+        return old_item is None or not any(
+            [
+                old_item.get("version_creator"),
+                old_item.get("pubstatus") == "cancelled",
+                old_item.get("state") == "killed",
+            ]
+        )
 
 
 class EventsResource(superdesk.Resource):
