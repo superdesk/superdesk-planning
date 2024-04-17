@@ -797,6 +797,15 @@ class EventsService(superdesk.Service):
             if events_using_file.count() == 0:
                 files_service.delete_action(lookup={"_id": file})
 
+    def should_update(self, old_item, new_item, provider):
+        return old_item is None or not any(
+            [
+                old_item.get("version_creator"),
+                old_item.get("pubstatus") == "cancelled",
+                old_item.get("state") == "killed",
+            ]
+        )
+
 
 class EventsResource(superdesk.Resource):
     """Resource for events data model
