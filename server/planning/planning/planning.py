@@ -257,6 +257,9 @@ class PlanningService(superdesk.Service):
     def on_locked_planning(self, item, user_id):
         self.generate_related_assignments([item])
 
+    def should_update(self, old_item, new_item, provider):
+        return True
+
     @staticmethod
     def set_ingest_provider_sequence(item, provider):
         """Sets the value of ingest_provider_sequence in item.
