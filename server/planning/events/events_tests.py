@@ -600,7 +600,7 @@ class EventsRelatedPlanningAutoPublish(TestCase):
 
     def test_related_planning_item_validation_on_post(self):
         """
-        check planning item fields validation
+        Check planning item fields validation
         if validation fails, plannning item is not posted.
         """
         events_service = get_resource_service("events")
