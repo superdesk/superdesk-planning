@@ -258,6 +258,8 @@ export const getErrorMessage = (error, defaultMessage) => {
         return get(error, '_issues.validator exception');
     } else if (typeof error === 'string') {
         return error;
+    } else if (get(error, 'error')) {
+        return get(error, 'error');
     }
 
     return defaultMessage;

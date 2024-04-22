@@ -394,7 +394,10 @@ const post = (original, updates) => (
             pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
             update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
         }).then(
-            () => dispatch(self.fetchById(original._id, {force: true})),
+            (data) => Promise.all([
+                dispatch(self.fetchById(original._id, {force: true})),
+                {itemId: data?._id?.item_id, failedPlanningIds: data?._id?.failed_planning_ids}
+            ]),
             (error) => Promise.reject(error)
         )
     )
