@@ -156,6 +156,8 @@ class EventsPostService(EventsBaseService):
             # same pubstatus or scheduled (for draft events)
             new_post_state = event.get("pubstatus", POST_STATE.USABLE)
 
+        failed_planning_ids = []
+
         new_item_state = get_item_post_state(event, new_post_state, repost)
         updates = {"state": new_item_state, "pubstatus": new_post_state}
 
