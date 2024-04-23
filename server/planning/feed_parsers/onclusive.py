@@ -66,6 +66,8 @@ class OnclusiveFeedParser(FeedParser):
                 GUID_FIELD: guid,
                 ITEM_TYPE: CONTENT_TYPE.EVENT,
                 "state": CONTENT_STATE.INGESTED,
+                # used for event status mapping
+                "is_provisional": event.get("isProvisional", False),
             }
 
             try:
