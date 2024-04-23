@@ -128,6 +128,7 @@ class EventsPostService(EventsBaseService):
         updated_event = None
         ids = []
         items = []
+        failed_planning_ids = []
         for event in posted_events:
             updated_event, failed_planning_ids = self.post_event(event, post_to_state, doc.get("repost_on_update"))
             ids.append(event[config.ID_FIELD])
