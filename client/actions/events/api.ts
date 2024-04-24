@@ -396,7 +396,7 @@ const post = (original, updates) => (
         }).then(
             (data) => Promise.all([
                 dispatch(self.fetchById(original._id, {force: true})),
-                {itemId: data?._id?.item_id, failedPlanningIds: data?._id?.failed_planning_ids}
+                {failedPlanningIds: data?._id?.failed_planning_ids}
             ]),
             (error) => Promise.reject(error)
         )
