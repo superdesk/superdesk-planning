@@ -12,6 +12,8 @@ from superdesk.utc import utcnow
 from urllib.parse import urljoin
 from superdesk.errors import ProviderError
 from celery.exceptions import SoftTimeLimitExceeded
+from superdesk.celery_task_utils import get_lock_id
+from superdesk.lock import touch
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +60,13 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             "required": False,
             "default": 365,
         },
+        {
+            "id": "days_to_reingest",
+            "type": "text",
+            "label": lazy_gettext("Days in the past to Reingest"),
+            "placeholder": lazy_gettext("Days"),
+            "required": False,
+        },
     ]
 
     HTTP_AUTH = False
@@ -86,6 +95,22 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
             update["last_updated"] = utcnow().replace(
                 second=0
             )  # next time start from here, onclusive api does not use seconds
+
+            # force reingest starting from now - days_to_reingest
+            if provider["config"].get("days_to_reingest"):
+                start_date = datetime.now() - timedelta(days=int(provider["config"]["days_to_reingest"]))
+                logger.info("Reingesting from %s", start_date.date().isoformat())
+                update["config"] = provider["config"].copy()
+                update["config"]["days_to_reingest"] = ""
+                # override to reset
+                update["tokens"]["start_date"] = start_date
+                update["tokens"]["next_start"] = start_date
+                update["tokens"]["reingesting"] = True
+                update["tokens"]["import_finished"] = None
+                update["tokens"]["date"] = ""
+
+            reingesting = update["tokens"].get("reingesting")
+
             if update["tokens"].get("import_finished"):
                 # populate it for cases when import was done before we introduced the field
                 update["tokens"].setdefault("next_start", update["tokens"]["import_finished"] - timedelta(hours=5))
@@ -120,8 +145,11 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                     if date > processed_date  # when continuing skip previously ingested days
                 )
             logger.info("ingest from onclusive %s with params %s", url, params)
+            lock_name = get_lock_id("ingest", provider["name"], provider["_id"])
             try:
                 for i in iterations:
+                    if not touch(lock_name, expire=60 * 15):
+                        break
                     params[iterations_param] = i
                     logger.info("Onclusive PARAMS %s", params)
                     content = self._fetch(url, params, provider, update["tokens"])
@@ -129,9 +157,15 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                     logger.info("Onclusive returned %d items", len(items))
                     for item in items:
                         item.setdefault("language", self.language)
-                    yield items
+                        if reingesting:
+                            item["versioncreated"] += timedelta(seconds=1)  # bump versioncreated to trigger an update
+                    if items:
+                        yield items
                     update["tokens"][iterations_param] = i
-                update["tokens"].setdefault("import_finished", utcnow())
+                else:
+                    # there was no break so we are done
+                    update["tokens"]["import_finished"] = utcnow()
+                    update["tokens"]["reingesting"] = False
             except SoftTimeLimitExceeded:
                 logger.warning("stopped due to time limit, tokens=%s", update["tokens"])
 
