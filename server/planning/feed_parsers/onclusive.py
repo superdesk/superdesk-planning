@@ -69,7 +69,7 @@ class OnclusiveFeedParser(FeedParser):
             }
 
             try:
-                self.set_occur_status(item)
+                self.set_occur_status(item, event)
                 self.parse_item_meta(event, item)
                 self.parse_location(event, item)
                 self.parse_event_details(event, item)
@@ -82,20 +82,29 @@ class OnclusiveFeedParser(FeedParser):
                 logger.exception("Error when parsing Onclusive event", extra=dict(event=event, error=str(error)))
         return all_events
 
-    def set_occur_status(self, item):
+    def set_occur_status(self, item, event):
         eocstat_map = get_resource_service("vocabularies").find_one(req=None, _id="eventoccurstatus")
+        is_provisional = event.get("isProvisional")
+
+        default_status = {
+            "qcode": "eocstat:eos3" if is_provisional else "eocstat:eos5",
+            "name": "Planned, May occur" if is_provisional else "Planned, occurs certainly",
+            "label": "Planned, May occur" if is_provisional else "Planned, occurs certainly",
+        }
+
         if not eocstat_map:
             logger.warning("CV 'eventoccurstatus' not found, inserting default from standard")
-            item["occur_status"] = {
-                "qcode": "eocstat:eos5",
-                "name": "Planned, occurs certainly",
-                "label": "Planned, occurs certainly",
-            }
+            item["occur_status"] = default_status
         else:
-            item["occur_status"] = [
-                x for x in eocstat_map.get("items", []) if x["qcode"] == "eocstat:eos5" and x.get("is_active", True)
-            ][0]
-            item["occur_status"].pop("is_active", None)
+            qcode = "eocstat:eos3" if is_provisional else "eocstat:eos5"
+            statuses = [x for x in eocstat_map.get("items", []) if x["qcode"] == qcode and x.get("is_active", True)]
+
+            if statuses:
+                item["occur_status"] = statuses[0]
+                item["occur_status"].pop("is_active", None)
+            else:
+                logger.warning(f"No matching status found for qcode {qcode}, using default")
+                item["occur_status"] = default_status
 
     def parse_item_meta(self, event, item):
         item["pubstatus"] = POST_STATE.CANCELLED if event.get("deleted") else POST_STATE.USABLE
