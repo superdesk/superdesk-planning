@@ -61,6 +61,9 @@
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^2.0.13",
     "react-test-renderer": "16.2.0",
+    "redux": "^4.2.1",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.3.0",
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
@@ -76,7 +79,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.41",
     "react": "^16.9.0",
-    "redux": "^4.0.5",
+    "redux": "^4.2.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
     "superdesk-ui-framework": "^3.0.71"
