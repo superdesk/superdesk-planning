@@ -411,4 +411,9 @@ events_schema = {
             },
         },
     },
+    "failed_planning_ids": {
+        "type": "list",
+        "required": False,
+        "schema": {"type": "dict", "schema": {}},
+    },
 }  # end events_schema:

@@ -36,6 +36,11 @@ class EventsPostResource(EventsResource):
         },
         # used to only repost an item when data changes from backend (update_repetitions)
         "repost_on_update": {"type": "boolean", "required": False, "default": False},
+        "failed_planning_ids": {
+            "type": "list",
+            "required": False,
+            "schema": {"type": "dict", "schema": {}},
+        },
     }
 
     url = "events/post"
@@ -48,7 +53,6 @@ class EventsPostResource(EventsResource):
 class EventsPostService(EventsBaseService):
     def create(self, docs):
         ids = []
-        failed_planning_ids = []
         events_service = get_resource_service("events")
         for doc in docs:
             event = events_service.find_one(req=None, _id=doc["event"])
@@ -65,9 +69,9 @@ class EventsPostService(EventsBaseService):
 
             ids.append(event_id)
             if planning_ids:
-                failed_planning_ids.extend(planning_ids)
+                doc["failed_planning_ids"].extend(planning_ids)
 
-        return [{"item_id": event_id, "failed_planning_ids": failed_planning_ids}] if failed_planning_ids else ids
+        return ids
 
     @staticmethod
     def validate_post_state(new_post_state):

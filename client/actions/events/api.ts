@@ -393,10 +393,11 @@ const post = (original, updates) => (
             etag: original._etag,
             pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
             update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
+            failed_planning_ids: get(updates, 'failed_planning_ids', []),
         }).then(
             (data) => Promise.all([
                 dispatch(self.fetchById(original._id, {force: true})),
-                {failedPlanningIds: data?._id?.failed_planning_ids}
+                {failedPlanningIds: data?.failed_planning_ids}
             ]),
             (error) => Promise.reject(error)
         )

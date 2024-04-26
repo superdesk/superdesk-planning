@@ -1242,18 +1242,12 @@ Feature: Events Post
         "event": "#EVENT1._id#",
         "etag": "#EVENT1._etag#",
         "pubstatus": "usable",
-        "update_method": "single"
+        "update_method": "single",
+        "failed_planning_ids": []
     }
     """
     Then we get OK response
     Then we get updated response
     """
-    {
-     "_id": {
-        "failed_planning_ids": [{
-            "_id": "123", "error": ["Related planning : SLUGLINE is a required field"]
-            }],
-            "item_id": "#EVENT1._id#"
-        }   
-    }
+    {"failed_planning_ids": [{"_id": "123", "error": ["Related planning : SLUGLINE is a required field"]}]}
     """

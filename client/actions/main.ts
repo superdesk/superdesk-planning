@@ -472,9 +472,7 @@ const post = (original, updates = {}, withConfirmation = true) => (
                     failedPlanningIds?.map((failedItem) => notifyError(
                         notify,
                         failedItem,
-                        gettext(
-                            'Related item {{ itemId }} Post Validation Failed',
-                            {itemId: failedItem?._id})));
+                        gettext('Some related planning item post validation failed')));
 
                     return Promise.resolve(item);
                 },
