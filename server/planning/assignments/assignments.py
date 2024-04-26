@@ -403,6 +403,7 @@ class AssignmentsService(superdesk.Service):
         # This situation won't be applicable in the production but only for the test cases.
         if not assignment["planning"].get("scheduled"):
             logger.error("Assignment has no scheduled date, cannot create an ICS file")
+            event = {}
         else:
             # Create the ICS object to be added to the email usable in google calendar.
             ical = Calendar()
