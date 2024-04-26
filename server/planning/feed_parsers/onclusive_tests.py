@@ -67,7 +67,6 @@ class OnclusiveFeedParserTestCase(TestCase):
             item["versioncreated"], datetime.datetime(2022, 5, 10, 12, 14, 34, tzinfo=datetime.timezone.utc)
         )
 
-        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
         self.assertEqual(item["language"], "en")
 
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
@@ -103,6 +102,11 @@ class OnclusiveFeedParserTestCase(TestCase):
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())
         self.assertEqual(["foo@example.com"], contact["contact_email"])
+
+        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
+        [data][0]["isProvisional"] = True
+        item = OnclusiveFeedParser().parse([data])[0]
+        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos3")
 
     def test_content_no_time(self):
         data = self.data.copy()

@@ -68,7 +68,7 @@ class EventsPostService(EventsBaseService):
                 event_id, planning_ids = self._post_recurring_events(doc, event, update_method)
 
             ids.append(event_id)
-            if planning_ids:
+            if planning_ids and doc.get("failed_planning_ids"):
                 doc["failed_planning_ids"].extend(planning_ids)
 
         return ids

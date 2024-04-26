@@ -266,6 +266,7 @@ class EventPlanningSchedule(TestCase):
                         "etag": events[0].get("etag"),
                         "pubstatus": "usable",
                         "update_method": "all",
+                        "failed_planning_ids": [],
                     }
                 ]
             )
