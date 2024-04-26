@@ -452,7 +452,16 @@ const post = (original, updates = {}, withConfirmation = true) => (
         return promise
             .then(
                 (rtn) => {
-                    if (!confirmation && rtn) {
+                    let failedPlanningIds, item;
+
+                    if (Array.isArray(rtn) && rtn.length === 2) {
+                        [item, {failedPlanningIds}] = rtn;
+                    } else {
+                        item = rtn;
+                        failedPlanningIds = [];
+                    }
+
+                    if (!confirmation && item) {
                         notify.success(
                             gettext(
                                 'The {{ itemType }} has been posted',
@@ -460,8 +469,12 @@ const post = (original, updates = {}, withConfirmation = true) => (
                             )
                         );
                     }
+                    failedPlanningIds?.map((failedItem) => notifyError(
+                        notify,
+                        failedItem,
+                        gettext('Some related planning item post validation failed')));
 
-                    return Promise.resolve(rtn);
+                    return Promise.resolve(item);
                 },
                 (error) => {
                     notifyError(

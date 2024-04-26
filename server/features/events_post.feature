@@ -1185,3 +1185,69 @@ Feature: Events Post
             }]
         }
         """
+    @auth
+    @notification
+    Scenario: Post single event with planning item
+    Given "planning_types"
+    """
+    [{
+        "_id": "event",
+        "name": "event",
+        "editor": {
+            "related_plannings": {"enabled": true}
+        },
+        "schema": {
+            "related_plannings": {"planning_auto_publish": true}
+        }
+    },
+    {
+        "_id": "planning",
+        "name": "planning",
+        "editor": {
+            "slugline": {"enabled": true}
+        },
+        "schema": {
+            "slugline": {"required": true}
+        } 
+    }
+    ]
+    """
+    When we post to "events"
+    """
+    [{
+        "name": "Friday Club",
+        "dates": {
+            "start": "2029-11-21T23:00:00.000Z",
+            "end": "2029-11-22T02:00:00.000Z",
+            "tz": "Australia/Sydney"
+        },
+        "state": "draft"
+    }]
+    """
+    Then we get OK response
+    Then we store response in "EVENT1"
+    When we post to "/planning"
+    """
+    [{
+        "headline": "test headline",
+        "guid": "123",
+        "planning_date": "2029-11-22",
+        "event_item": "#EVENT1._id#"
+    }]
+    """
+    Then we get OK response
+    When we post to "/events/post"
+    """
+    {
+        "event": "#EVENT1._id#",
+        "etag": "#EVENT1._etag#",
+        "pubstatus": "usable",
+        "update_method": "single",
+        "failed_planning_ids": []
+    }
+    """
+    Then we get OK response
+    Then we get updated response
+    """
+    {"failed_planning_ids": [{"_id": "123", "error": ["Related planning : SLUGLINE is a required field"]}]}
+    """

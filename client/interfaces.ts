@@ -593,6 +593,10 @@ export interface IEventItem extends IBaseRestApiResponse {
     _post?: boolean;
     _events: Array<IEventItem>;
     _relatedPlannings: Array<IPlanningItem>;
+    failed_planning_ids?: Array<{
+        id: string,
+        error: Array<string>
+    }>
 }
 
 export interface IEventTemplate extends IBaseRestApiResponse {
