@@ -56,6 +56,7 @@ class EventsPostService(EventsBaseService):
         events_service = get_resource_service("events")
         for doc in docs:
             event = events_service.find_one(req=None, _id=doc["event"])
+            doc["failed_planning_ids"] = []
 
             if not event:
                 abort(412)
@@ -68,7 +69,7 @@ class EventsPostService(EventsBaseService):
                 event_id, planning_ids = self._post_recurring_events(doc, event, update_method)
 
             ids.append(event_id)
-            if planning_ids and doc.get("failed_planning_ids"):
+            if planning_ids:
                 doc["failed_planning_ids"].extend(planning_ids)
 
         return ids
