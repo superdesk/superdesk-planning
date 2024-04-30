@@ -1193,22 +1193,28 @@ Feature: Events Post
     [{
         "_id": "event",
         "name": "event",
-        "editor": {
-            "related_plannings": {"enabled": true}
-        },
+        "editor": {"related_plannings": {"enabled": true}, "language": {"enabled": true}},
         "schema": {
-            "related_plannings": {"planning_auto_publish": true}
+            "related_plannings": {"planning_auto_publish": true},
+            "language": {
+                "languages": ["nl", "fr"],
+                "multilingual": true,
+                "default_language": "nl"
+            }
         }
     },
     {
         "_id": "planning",
         "name": "planning",
-        "editor": {
-            "slugline": {"enabled": true}
-        },
+        "editor": {"slugline": {"enabled": true}, "language": {"enabled": true}},
         "schema": {
-            "slugline": {"required": true}
-        } 
+            "slugline": {"required": true},
+            "language": {
+                "languages": ["nl", "fr"],
+                "multilingual": true,
+                "default_language": "nl"
+            }
+        }
     }
     ]
     """
