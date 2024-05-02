@@ -1224,7 +1224,9 @@ function getCoverageIcon(
 }
 
 function getCoverageIconColor(coverage: IPlanningCoverageItem): string {
-    if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
+    if (coverage.workflow_status === COVERAGES.WORKFLOW_STATE.ACTIVE) {
+        return 'var(--sd-colour-success)';
+    } else if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
         return 'var(--sd-colour-success)';
     } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
         return 'var(--sd-colour-highlight)';
