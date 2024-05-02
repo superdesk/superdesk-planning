@@ -273,6 +273,7 @@ MultiSelectActionsComponent.propTypes = {
     selectedEvents: PropTypes.array,
     selectAllEvents: PropTypes.func,
     deSelectAllEvents: PropTypes.func,
+    addToWorkflow: PropTypes.func,
     selectedPlannings: PropTypes.array,
     selectAllPlannings: PropTypes.func,
     deSelectAllPlannings: PropTypes.func,
