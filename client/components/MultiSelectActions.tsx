@@ -8,7 +8,6 @@ import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {Button} from './UI';
-import {planningApi} from '../superdeskApi';
 
 export class MultiSelectActionsComponent extends React.PureComponent {
     constructor(props) {
@@ -95,7 +94,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
                     key={0}
                     hollow={true}
                     onClick={() => {
-                        planningApi.planning.coverages.bulkAddCoverageToWorkflow(this.getItemList());
+                        this.props.addToWorkflow(this.getItemList());
                     }}
                     text={gettext('Add to workflow')}
                 />
@@ -312,6 +311,7 @@ const mapDispatchToProps = (dispatch) => ({
     spikeItems: (items) => dispatch(actions.multiSelect.itemBulkSpikeModal(items)),
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
     exportAsArticle: (items, download) => dispatch(actions.multiSelect.exportAsArticle(items, download)),
+    addToWorkflow: (items) => dispatch(actions.multiSelect.bulkAddPlanningCoveragesToWorkflow(items)),
 });
 
 
