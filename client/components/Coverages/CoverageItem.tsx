@@ -123,12 +123,8 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             userAssigned: null,
             displayContentType: '',
             coverageDateText: '',
-            addedToWorkflow: false,
+            addedToWorkflow: coverage.workflow_status === COVERAGES.WORKFLOW_STATE.ACTIVE,
         };
-
-        if (coverage.workflow_status === COVERAGES.WORKFLOW_STATE.ACTIVE) {
-            newState.addedToWorkflow = true;
-        }
 
         if (!isPreview) {
             newState.userAssigned = getCreator(
@@ -228,7 +224,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                     </span>
                 )}
 
-                <span className="grid">
+                <span className="grid sd-gap--x-small">
                     <InternalNoteLabel
                         item={item}
                         prefix={`${this.state.internalNoteFieldPrefix}.planning.`}
