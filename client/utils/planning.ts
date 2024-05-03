@@ -61,9 +61,9 @@ import {
     sanitizeItemFields,
     stringUtils,
 } from './index';
-import {getUsersDefaultLanguage} from './users';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
+import {planningConfig} from '../config';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -1361,34 +1361,10 @@ function defaultCoverageValues(
     }
 
     if (planningItem) {
-        let coverageTime: moment.Moment = null;
-
-        if (planningItem?.event_item == null) {
-            coverageTime = moment(planningItem?.planning_date || moment());
-        } else if (eventItem) {
-            coverageTime = moment(eventItem?.dates?.end || moment());
-        }
+        const getCoverageDueDateCallback = planningConfig.coverage?.getDueDate || getDefaultCoverageDueDate;
+        const coverageTime = getCoverageDueDateCallback(planningItem as IPlanningItem, eventItem);
 
         if (coverageTime) {
-            coverageTime.add(1, 'hour');
-
-            // Only round up to the hour if we didn't derive coverage time from an Event
-            if (!eventItem) {
-                coverageTime.minute() ?
-                    coverageTime
-                        .add(1, 'hour')
-                        .startOf('hour') :
-                    coverageTime.startOf('hour');
-            }
-
-            if (moment().isAfter(coverageTime)) {
-                coverageTime = moment();
-                coverageTime.minute() ?
-                    coverageTime
-                        .add(1, 'hour')
-                        .startOf('hour') :
-                    coverageTime.startOf('hour');
-            }
             newCoverage.planning.scheduled = coverageTime;
         }
 
@@ -1407,11 +1383,52 @@ function defaultCoverageValues(
                 }
             }
         }
+
         newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
     }
 
     self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
     return newCoverage;
+}
+
+function getDefaultCoverageDueDate(
+    planningItem: IPlanningItem,
+    eventItem?: IEventItem,
+): moment.Moment | null {
+    let coverageTime: moment.Moment = null;
+
+    if (eventItem) {
+        coverageTime = moment(eventItem?.dates?.end);
+    } else if (planningItem.planning_date) {
+        coverageTime = moment('' + planningItem.planning_date);
+    }
+
+    if (!coverageTime) {
+        return coverageTime;
+    }
+
+    coverageTime.add(1, 'hour');
+
+    // Only round up to the hour if we didn't derive coverage time from an Event
+    if (!eventItem) {
+        coverageTime.minute() ?
+            coverageTime
+                .add(1, 'hour')
+                .startOf('hour') :
+            coverageTime.startOf('hour');
+    }
+
+    // If the coverage time is in the past, set it to the current time
+    if (moment().isAfter(coverageTime)) {
+        coverageTime = moment();
+        coverageTime.minute() ?
+            coverageTime
+                .add(1, 'hour')
+                .startOf('hour') :
+            coverageTime.startOf('hour');
+    }
+
+    return coverageTime;
 }
 
 function setDefaultAssignment(

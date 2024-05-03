@@ -296,6 +296,10 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
         default_create_planning_series_with_event_series?: boolean;
         event_related_item_search_provider_name?: string;
     };
+
+    coverage?: {
+        getDueDate?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
+    };
 }
 
 export interface ISession {
