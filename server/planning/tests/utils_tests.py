@@ -1,6 +1,7 @@
 from planning.tests import TestCase
 from datetime import datetime
 from planning.utils import get_event_formatted_dates
+from planning.search.queries import elastic
 
 
 class TestGetEventFormattedDates(TestCase):
@@ -31,3 +32,33 @@ class TestGetEventFormattedDates(TestCase):
         event = {"dates": {"start": start, "end": end}}
         result = get_event_formatted_dates(event)
         self.assertEqual(result, "06:00 - 05:00, 28/05/2024")
+
+
+class TestDateRangeFunctions(TestCase):
+    def get_start_date_and_weekday(self, start_date_str):
+        start_date = datetime.strptime(start_date_str.split("||")[0], "%Y-%m-%d")
+        return start_date.weekday()
+
+    def test_start_of_next_week(self):
+        # Test with default start_of_week
+        start_date_str = elastic.start_of_next_week()
+        expected_weekday = self.get_start_date_and_weekday(start_date_str)
+        self.assertEqual(expected_weekday, 6)  # Sunday
+
+        # Test with default start_of_week = 1
+        start_date_str = elastic.start_of_next_week(start_of_week=1)
+        expected_weekday = self.get_start_date_and_weekday(start_date_str)
+        self.assertEqual(expected_weekday, 0)  # Monday
+
+    def test_end_of_next_week(self):
+        # Test with default start_of_week
+        start_date = datetime(2024, 5, 6)  # Assuming today is May 6, 2024 (Sunday)
+        end_date_str = elastic.end_of_next_week(date=start_date)
+        expected_weekday = self.get_start_date_and_weekday(end_date_str)
+        self.assertEqual(expected_weekday, 6)  # Sunday
+
+        # Test with default start_of_week = 1
+        start_date = datetime(2024, 5, 6)  # Assuming today is May 6, 2024 (Sunday)
+        end_date_str = elastic.end_of_next_week(date=start_date, start_of_week=1)
+        expected_weekday = self.get_start_date_and_weekday(end_date_str)
+        self.assertEqual(expected_weekday, 0)  # Monday
