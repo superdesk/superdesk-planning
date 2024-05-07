@@ -1397,10 +1397,10 @@ function getDefaultCoverageDueDate(
 ): moment.Moment | null {
     let coverageTime: moment.Moment = null;
 
-    if (eventItem) {
-        coverageTime = moment(eventItem?.dates?.end);
-    } else if (planningItem.planning_date) {
-        coverageTime = moment('' + planningItem.planning_date);
+    if (planningItem?.event_item == null) {
+        coverageTime = moment(planningItem?.planning_date || moment());
+    } else if (eventItem) {
+        coverageTime = moment(eventItem?.dates?.end || moment());
     }
 
     if (!coverageTime) {
