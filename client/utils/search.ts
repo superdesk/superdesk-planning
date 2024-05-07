@@ -14,6 +14,7 @@ import {
 } from '../interfaces';
 import {MAIN} from '../constants';
 import {getTimeZoneOffset, timeUtils} from './index';
+import {appConfig} from 'appConfig';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
     return {
@@ -23,7 +24,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         max_results: params.maxResults ?? MAIN.PAGE_SIZE,
         page: params.page ?? 1,
         only_future: params.onlyFuture ?? true,
-        start_of_week: params.startOfWeek,
+        start_of_week: appConfig.start_of_week,
         spike_state: params.spikeState ?? 'draft',
         filter_id: params.filter_id,
         lock_state: params.lock_state,
@@ -56,7 +57,7 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
         maxResults: params.max_results,
         page: params.page,
         onlyFuture: params.only_future,
-        startOfWeek: params.start_of_week,
+        startOfWeek: appConfig.start_of_week,
         spikeState: params.spike_state,
         filter_id: params.filter_id,
         lock_state: params.lock_state,
