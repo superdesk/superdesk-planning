@@ -394,6 +394,10 @@ def construct_search_query(
 
         # Set `only_future` to False as `construct_query` with request params will add this if neccessary
         filter_params["only_future"] = False
+
+        # Set `time_zone` and start_of_week,  SDESK - 7264
+        filter_params["time_zone"] = params.get("time_zone")
+        filter_params["start_of_week"] = params.get("start_of_week")
         filter_query = construct_query(repo, filter_params, filters)
 
         remove_filter_params_from_query(filter_params, params)

@@ -37,6 +37,7 @@ from .common import (
     get_planning_allowed_coverage_link_types,
     get_planning_auto_close_popup_editor,
     get_config_default_create_planning_series_with_event_series,
+    get_start_of_week,
 )
 from apps.common.components.utils import register_component
 from .item_lock import LockService
@@ -233,6 +234,7 @@ def init_app(app):
     app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments(app)
     app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline(app)
     app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor(app)
+    app.client_config["start_of_week"] = get_start_of_week(app)
 
     app.client_config.setdefault("planning", {})
     app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types(app)

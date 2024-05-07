@@ -232,6 +232,10 @@ def get_planning_auto_close_popup_editor(current_app=None):
     return app.config.get("PLANNING_AUTO_CLOSE_POPUP_EDITOR", True)
 
 
+def get_start_of_week(current_app=None):
+    return (current_app or app).config.get("START_OF_WEEK", 0)
+
+
 def get_assignment_acceptance_email_address(current_app=None):
     if current_app is not None:
         return current_app.config.get("PLANNING_ACCEPT_ASSIGNMENT_EMAIL", "")
