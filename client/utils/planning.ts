@@ -1369,18 +1369,16 @@ function defaultCoverageValues(
         }
 
         if (eventItem && appConfig.long_event_duration_threshold > -1) {
+            const duration = moment.duration({
+                from: eventItem?.dates?.start,
+                to: eventItem?.dates?.end
+            });
+
             if (appConfig.long_event_duration_threshold === 0) {
                 newCoverage.planning.scheduled = moment(eventItem?.dates?.end || moment());
-            } else {
-                const duration = moment.duration({
-                    from: eventItem?.dates?.start,
-                    to: eventItem?.dates?.end
-                });
-
-                if (duration.hours() > appConfig.long_event_duration_threshold) {
-                    delete newCoverage.planning.scheduled;
-                    delete newCoverage.planning._scheduledTime;
-                }
+            } else if (duration.hours() > appConfig.long_event_duration_threshold) {
+                delete newCoverage.planning.scheduled;
+                delete newCoverage.planning._scheduledTime;
             }
         }
 
