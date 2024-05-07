@@ -298,7 +298,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     };
 
     coverage?: {
-        getDueDate?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
+        getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
     };
 }
 

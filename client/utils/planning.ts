@@ -1361,8 +1361,8 @@ function defaultCoverageValues(
     }
 
     if (planningItem) {
-        const getCoverageDueDateCallback = planningConfig.coverage?.getDueDate || getDefaultCoverageDueDate;
-        const coverageTime = getCoverageDueDateCallback(planningItem as IPlanningItem, eventItem);
+        const getCoverageDueDateStrategy = planningConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
+        const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);
 
         if (coverageTime) {
             newCoverage.planning.scheduled = coverageTime;
