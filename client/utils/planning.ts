@@ -61,9 +61,9 @@ import {
     sanitizeItemFields,
     stringUtils,
 } from './index';
-import {getUsersDefaultLanguage} from './users';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
+import {planningConfig} from '../config';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -1361,57 +1361,72 @@ function defaultCoverageValues(
     }
 
     if (planningItem) {
-        let coverageTime: moment.Moment = null;
-
-        if (planningItem?.event_item == null) {
-            coverageTime = moment(planningItem?.planning_date || moment());
-        } else if (eventItem) {
-            coverageTime = moment(eventItem?.dates?.end || moment());
-        }
+        const getCoverageDueDateStrategy = planningConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
+        const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);
 
         if (coverageTime) {
-            coverageTime.add(1, 'hour');
-
-            // Only round up to the hour if we didn't derive coverage time from an Event
-            if (!eventItem) {
-                coverageTime.minute() ?
-                    coverageTime
-                        .add(1, 'hour')
-                        .startOf('hour') :
-                    coverageTime.startOf('hour');
-            }
-
-            if (moment().isAfter(coverageTime)) {
-                coverageTime = moment();
-                coverageTime.minute() ?
-                    coverageTime
-                        .add(1, 'hour')
-                        .startOf('hour') :
-                    coverageTime.startOf('hour');
-            }
             newCoverage.planning.scheduled = coverageTime;
         }
 
         if (eventItem && appConfig.long_event_duration_threshold > -1) {
+            const duration = moment.duration({
+                from: eventItem?.dates?.start,
+                to: eventItem?.dates?.end
+            });
+
             if (appConfig.long_event_duration_threshold === 0) {
                 newCoverage.planning.scheduled = moment(eventItem?.dates?.end || moment());
-            } else {
-                const duration = moment.duration({
-                    from: eventItem?.dates?.start,
-                    to: eventItem?.dates?.end
-                });
-
-                if (duration.hours() > appConfig.long_event_duration_threshold) {
-                    delete newCoverage.planning.scheduled;
-                    delete newCoverage.planning._scheduledTime;
-                }
+            } else if (duration.hours() > appConfig.long_event_duration_threshold) {
+                delete newCoverage.planning.scheduled;
+                delete newCoverage.planning._scheduledTime;
             }
         }
+
         newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
     }
 
     self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
     return newCoverage;
+}
+
+function getDefaultCoverageDueDate(
+    planningItem: IPlanningItem,
+    eventItem?: IEventItem,
+): moment.Moment | null {
+    let coverageTime: moment.Moment = null;
+
+    if (planningItem?.event_item == null) {
+        coverageTime = moment(planningItem?.planning_date || moment());
+    } else if (eventItem) {
+        coverageTime = moment(eventItem?.dates?.end || moment());
+    }
+
+    if (!coverageTime) {
+        return coverageTime;
+    }
+
+    coverageTime.add(1, 'hour');
+
+    // Only round up to the hour if we didn't derive coverage time from an Event
+    if (!eventItem) {
+        coverageTime.minute() ?
+            coverageTime
+                .add(1, 'hour')
+                .startOf('hour') :
+            coverageTime.startOf('hour');
+    }
+
+    // If the coverage time is in the past, set it to the current time
+    if (moment().isAfter(coverageTime)) {
+        coverageTime = moment();
+        coverageTime.minute() ?
+            coverageTime
+                .add(1, 'hour')
+                .startOf('hour') :
+            coverageTime.startOf('hour');
+    }
+
+    return coverageTime;
 }
 
 function setDefaultAssignment(
