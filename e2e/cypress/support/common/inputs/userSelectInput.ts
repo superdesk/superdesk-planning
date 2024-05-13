@@ -12,7 +12,7 @@ export class UserSelectInput extends Input {
         this.element.click();
 
         // Type into the input inside the dropdown panel
-        cy.get('.p-dropdown-panel input').type(value);
+        cy.get('.p-dropdown-panel input').type(value, {force: true});
 
         // Click on the first list item in the dropdown
         cy.get('.p-dropdown-panel li').first().click();

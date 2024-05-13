@@ -15,6 +15,7 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     allowMultiple?: boolean;
     valueAsString?: boolean;
     smallPadding?: boolean;
+    sortable?: boolean;
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -45,7 +46,9 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
         let viewValues;
         const options = this.props.getOptions();
 
-        if (!Array.isArray(values)) {
+        if (values == null) {
+            values = [];
+        } else if (!Array.isArray(values)) {
             values = [values];
         }
 
@@ -75,7 +78,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
                     onChange={this.onChange}
                     allowMultiple={this.props.allowMultiple}
                     invalid={error?.length > 0 || this.props.invalid}
-                    error={error}
+                    error={this.props.showErrors ? error : undefined}
                     readOnly={this.props.disabled}
                     disabled={this.props.disabled}
                     required={this.props.required}
@@ -83,6 +86,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
                     tabindex={0}
                     info={this.props.info}
                     zIndex={1051}
+                    sortable={this.props.sortable}
                 />
             </Row>
         );
