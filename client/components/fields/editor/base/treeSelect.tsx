@@ -46,7 +46,9 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
         let viewValues;
         const options = this.props.getOptions();
 
-        if (!Array.isArray(values)) {
+        if (values == null) {
+            values = [];
+        } else if (!Array.isArray(values)) {
             values = [values];
         }
 
