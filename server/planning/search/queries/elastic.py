@@ -121,23 +121,23 @@ class ElasticRangeParams:
 
 def start_of_this_week(start_of_week=0, date=None):
     start = get_start_of_next_week(date, start_of_week) - timedelta(days=7)
-    return start.strftime("%Y-%m-%d") + "||/d"
+    return start.isoformat()
 
 
 def end_of_this_week(start_of_week=0, date=None):
     end = get_start_of_next_week(date, start_of_week) - timedelta(start_of_week)
-    return end.strftime("%Y-%m-%d") + "||/d"
+    return end.isoformat()
 
 
 def start_of_next_week(start_of_week=0, date=None):
-    return get_start_of_next_week(date, start_of_week).strftime("%Y-%m-%d") + "||/d"
+    return get_start_of_next_week(date, start_of_week).isoformat()
 
 
 def end_of_next_week(start_of_week=0, date=None):
     start = get_start_of_next_week(date, start_of_week)
     end = start + timedelta(days=7)
 
-    return end.strftime("%Y-%m-%d") + "||/d"
+    return end.isoformat()
 
 
 def bool_or(conditions: List[Dict[str, Any]]):
