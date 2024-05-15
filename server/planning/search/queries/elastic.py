@@ -124,11 +124,6 @@ def start_of_this_week(start_of_week=0, date=None):
     return start.isoformat()
 
 
-def end_of_this_week(start_of_week=0, date=None):
-    end = get_start_of_next_week(date, start_of_week) - timedelta(start_of_week)
-    return end.isoformat()
-
-
 def start_of_next_week(start_of_week=0, date=None):
     return get_start_of_next_week(date, start_of_week).isoformat()
 
@@ -279,7 +274,7 @@ def range_this_week(query: ElasticRangeParams):
             time_zone=query.time_zone,
             value_format=query.value_format,
             gte=start_of_this_week(query.start_of_week),
-            lt=end_of_this_week(query.start_of_week),
+            lt=start_of_next_week(query.start_of_week),
         )
     )
 

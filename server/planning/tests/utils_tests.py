@@ -67,7 +67,7 @@ class TestDateRangeFunctions(TestCase):
         # Test events that start and end within the current week
         start_date = datetime(2024, 5, 15)  # Assuming today is May 15, 2024 (Wed)
         start = elastic.start_of_this_week(date=start_date, start_of_week=1)
-        end = elastic.end_of_this_week(date=start_date, start_of_week=1)
+        end = elastic.start_of_next_week(date=start_date, start_of_week=1)
 
         self.assertEqual(start, "2024-05-13T00:00:00")
-        self.assertEqual(end, "2024-05-19T00:00:00")
+        self.assertEqual(end, "2024-05-20T00:00:00")
