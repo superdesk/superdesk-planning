@@ -71,3 +71,21 @@ class TestDateRangeFunctions(TestCase):
 
         self.assertEqual(start, "2024-05-13||/d")
         self.assertEqual(end, "2024-05-20||/d")
+
+    def test_events_within_current_week_monday(self):
+        # Test case for Monday
+        start_date = datetime(2024, 5, 13)  # May 13, 2024 is a Monday
+        start = elastic.start_of_this_week(date=start_date, start_of_week=1)
+        end = elastic.start_of_next_week(date=start_date, start_of_week=1)
+
+        self.assertEqual(start, "2024-05-13||/d")
+        self.assertEqual(end, "2024-05-20||/d")
+
+    def test_events_within_current_week_sunday(self):
+        # Test case for Sunday
+        start_date = datetime(2024, 5, 19)  # May 19, 2024 is a Sunday
+        start = elastic.start_of_this_week(date=start_date, start_of_week=1)
+        end = elastic.start_of_next_week(date=start_date, start_of_week=1)
+
+        self.assertEqual(start, "2024-05-20||/d")
+        self.assertEqual(end, "2024-05-27||/d")
