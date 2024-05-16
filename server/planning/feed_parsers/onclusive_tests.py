@@ -4,6 +4,7 @@ import json
 import logging
 import datetime
 import superdesk
+import pytest
 
 from planning.tests import TestCase
 from superdesk.metadata.item import (
@@ -196,3 +197,12 @@ class OnclusiveFeedParserTestCase(TestCase):
 
         item = OnclusiveFeedParser().parse([data])[0]
         assert item["dates"]["tz"] == "Asia/Tokyo"
+
+    def test_error_on_empty_name(self):
+        data = self.data.copy()
+        data["summary"] = ""
+        data["description"] = ""
+
+        with self.assertLogs("planning", level=logging.ERROR) as logger:
+            OnclusiveFeedParser().parse([data])
+            assert "Error when parsing Onclusive event" in logger.output[0]
