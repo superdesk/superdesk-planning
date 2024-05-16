@@ -36,8 +36,8 @@ class TestGetEventFormattedDates(TestCase):
 
 class TestDateRangeFunctions(TestCase):
     def get_start_date_and_weekday(self, start_date_str):
-        start_date = datetime.fromisoformat(start_date_str).weekday()
-        return start_date
+        start_date = datetime.strptime(start_date_str.split("||")[0], "%Y-%m-%d")
+        return start_date.weekday()
 
     def test_start_of_next_week(self):
         # Test with default start_of_week
@@ -69,5 +69,5 @@ class TestDateRangeFunctions(TestCase):
         start = elastic.start_of_this_week(date=start_date, start_of_week=1)
         end = elastic.start_of_next_week(date=start_date, start_of_week=1)
 
-        self.assertEqual(start, "2024-05-13T00:00:00")
-        self.assertEqual(end, "2024-05-20T00:00:00")
+        self.assertEqual(start, "2024-05-13||/d")
+        self.assertEqual(end, "2024-05-20||/d")
