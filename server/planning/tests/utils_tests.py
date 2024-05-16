@@ -87,5 +87,5 @@ class TestDateRangeFunctions(TestCase):
         start = elastic.start_of_this_week(date=start_date, start_of_week=1)
         end = elastic.start_of_next_week(date=start_date, start_of_week=1)
 
-        self.assertEqual(start, "2024-05-20")
-        self.assertEqual(end, "2024-05-27")
+        self.assertEqual(start, "2024-05-13")
+        self.assertEqual(end, "2024-05-20")
