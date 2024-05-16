@@ -459,7 +459,9 @@ def get_start_of_next_week(date=None, start_of_week=0):
     current_date = (date if date else utcnow()).replace(hour=0, minute=0, second=0, microsecond=0)
     weekday = current_date.isoweekday()
     weekDay = 0 if weekday == 7 else weekday
-    diff = start_of_week - weekDay if weekday < start_of_week else 7 - weekDay + start_of_week
+    diff = (start_of_week - weekDay) % 7
+    if diff == 0:
+        diff = 7
     return current_date + timedelta(days=diff)
 
 
