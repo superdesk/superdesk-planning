@@ -34,7 +34,7 @@ function reloadList(params: ICombinedEventOrPlanningSearchParams = {}) {
 
     if (currentView === MAIN.FILTERS.PLANNING) {
         dispatch(actions.eventsPlanning.ui.clearList());
-        dispatch(actions.planning.ui.clearList());
+        dispatch(actions.events.ui.clearList());
         promise = dispatch<any>(actions.planning.ui.fetchToList({
             ...getPlanningFilterParams(getState()),
             ...params,
@@ -42,7 +42,7 @@ function reloadList(params: ICombinedEventOrPlanningSearchParams = {}) {
         }));
     } else if (currentView === MAIN.FILTERS.EVENTS) {
         dispatch(actions.eventsPlanning.ui.clearList());
-        dispatch(actions.events.ui.clearList());
+        dispatch(actions.planning.ui.clearList());
         promise = dispatch<any>(actions.events.ui.fetchEvents({
             ...getEventFilterParams(getState()),
             ...params,
