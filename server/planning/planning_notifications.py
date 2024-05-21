@@ -304,7 +304,7 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
 
     admins = app.config["ADMINS"]
 
-    data["subject"] = render_template("assignment_mail_subject" + ".txt", **data)
+    data["subject"] = render_template("assignment_mail_subject.txt", **data)
     data["system_reciepient"] = get_assignment_acceptance_email_address()
     html_message = _get_email_message_html(source, meta_message, data)
     text_message = _get_email_message_string(source, meta_message, data)
