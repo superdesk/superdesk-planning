@@ -1,1 +1,1 @@
-Superdesk assignment : {{slugline}}
+Superdesk assignment: {{slugline}}
