@@ -381,6 +381,10 @@ class AssignmentsService(superdesk.Service):
         coverage_type = updates.get("planning", original.get("planning", {})).get("g2_content_type", "")
         slugline = updates.get("planning", original.get("planning", {})).get("slugline", "with no slugline")
 
+        subject_field = app.config.get("ASSIGNMENT_MAIL_SUBJECT_FIELD")
+        if subject_field:
+            slugline = updates.get(subject_field, original.get(subject_field, slugline))
+
         client_url = app.config["CLIENT_URL"]
 
         assignment = deepcopy(original)
