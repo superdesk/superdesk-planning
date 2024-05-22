@@ -80,7 +80,7 @@ def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
-    tz_name: Optional[str] = event.get("dates", {}).get("tz") or app.config.get("DEFAULT_TIMEZONE")
+    tz_name: str = event.get("dates", {}).get("tz") or app.config.get("DEFAULT_TIMEZONE")
     tz = pytz.timezone(tz_name)
 
     duration_seconds = int((end - start).total_seconds())
