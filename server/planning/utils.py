@@ -67,12 +67,12 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
     return datetime
 
 
-def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
+def time_short(datetime: datetime, tz):
     if datetime:
         return parse_date(datetime).astimezone(tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
 
 
-def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
+def date_short(datetime: datetime, tz):
     if datetime:
         return parse_date(datetime).astimezone(tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
