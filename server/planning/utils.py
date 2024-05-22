@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Any, TypedDict
+from typing import Union, List, Dict, Any, TypedDict, Optional
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from datetime import datetime
@@ -67,12 +67,12 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
     return datetime
 
 
-def time_short(datetime: datetime, tz):
+def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
         return parse_date(datetime).astimezone(tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
 
 
-def date_short(datetime: datetime, tz):
+def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
         return parse_date(datetime).astimezone(tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
@@ -80,7 +80,7 @@ def date_short(datetime: datetime, tz):
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
-    tz_name = event.get("dates", {}).get("tz") or app.config.get("DEFAULT_TIMEZONE")
+    tz_name: Optional[str] = event.get("dates", {}).get("tz") or app.config.get("DEFAULT_TIMEZONE")
     tz = pytz.timezone(tz_name)
 
     duration_seconds = int((end - start).total_seconds())
