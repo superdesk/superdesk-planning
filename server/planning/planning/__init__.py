@@ -8,9 +8,12 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import superdesk
 from flask_babel import lazy_gettext
-from .planning import PlanningResource, PlanningService, coverage_schema  # noqa
+
+import superdesk
+
+from .planning import PlanningResource, PlanningService  # noqa
+from .planning_schema import coverage_schema  # noqa
 from .planning_spike import (
     PlanningSpikeResource,
     PlanningSpikeService,

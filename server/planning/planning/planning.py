@@ -9,32 +9,40 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
+
 from typing import Dict, Any, Optional, List
-from bson import ObjectId
 from copy import deepcopy
 import logging
 from datetime import datetime
+from itertools import chain
+from io import BytesIO
 
+from lxml import etree
+from bson import ObjectId
 from flask import json, current_app as app
 from eve.methods.common import resolve_document_etag
+from eve.utils import config, ParsedRequest, date_to_str
 
-import superdesk
+from superdesk import get_resource_service, Service, Resource
 from superdesk.errors import SuperdeskApiError
-from planning.errors import AssignmentApiError
-
+from superdesk.utc import utcnow, utc_to_local
 from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE, CONTENT_STATE
-from superdesk import get_resource_service
-from superdesk.resource import not_analyzed, string_with_analyzer
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
-
 from apps.archive.common import get_user, get_auth, update_dates_for
-from eve.utils import config, ParsedRequest, date_to_str
-from planning.types import Planning, Coverage, Event, UPDATE_METHOD
+
+from planning.errors import AssignmentApiError
+from planning.types import (
+    Planning,
+    Coverage,
+    Event,
+    UPDATE_METHOD,
+    PlanningRelatedEventLink,
+    ContentProfile,
+    PLANNING_RELATED_EVENT_LINK_TYPE,
+)
 from planning.common import (
-    WORKFLOW_STATE_SCHEMA,
-    POST_STATE_SCHEMA,
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
     ASSIGNMENT_WORKFLOW_STATE,
@@ -46,7 +54,6 @@ from planning.common import (
     DEFAULT_ASSIGNMENT_PRIORITY,
     get_planning_allow_scheduled_updates,
     TO_BE_CONFIRMED_FIELD,
-    TO_BE_CONFIRMED_FIELD_SCHEMA,
     get_planning_xmp_assignment_mapping,
     sanitize_input_data,
     get_planning_xmp_slugline_mapping,
@@ -56,21 +63,23 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
-    UPDATE_METHODS,
     UPDATE_SINGLE,
     UPDATE_FUTURE,
     UPDATE_ALL,
     POST_STATE,
 )
-from superdesk.utc import utcnow
-from itertools import chain
+
 from planning.planning_notifications import PlanningNotifications
-from superdesk.utc import utc_to_local
 from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
-from superdesk import Resource
-from lxml import etree
-from io import BytesIO
 from planning.signals import planning_created, planning_ingested
+from .planning_schema import planning_schema
+from planning.utils import (
+    get_related_planning_for_events,
+    get_related_event_links_for_planning,
+    get_related_event_ids_for_planning,
+    get_first_related_event_id_for_planning,
+    get_related_event_items_for_planning,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +93,7 @@ def get_coverage_by_id(
     )
 
 
-class PlanningService(superdesk.Service):
+class PlanningService(Service):
     """Service class for the planning model."""
 
     def post_in_mongo(self, docs, **kwargs):
@@ -164,7 +173,8 @@ class PlanningService(superdesk.Service):
 
             self.validate_planning(doc)
             set_original_creator(doc)
-            event: Event = self._set_planning_event_info(doc, planning_type)
+
+            first_event = self._set_planning_event_info(doc, planning_type)
             self._set_coverage(doc)
             self.set_planning_schedule(doc)
             # set timestamps
@@ -175,8 +185,8 @@ class PlanningService(superdesk.Service):
                 history_service.on_item_created([doc])
 
             update_method: Optional[UPDATE_METHOD] = doc.pop("update_method", None)
-            if event and update_method is not None:
-                new_plans = self._add_planning_to_event_series(doc, event, update_method)
+            if first_event and update_method is not None:
+                new_plans = self._add_planning_to_event_series(doc, first_event, update_method)
                 if len(new_plans):
                     if is_ingested:
                         history_service.on_item_created(new_plans)
@@ -197,16 +207,22 @@ class PlanningService(superdesk.Service):
                 added_agendas=doc.get("agendas") or [],
                 removed_agendas=[],
                 session=session_id,
-                event_item=doc.get("event_item", None),
+                event_ids=get_related_event_ids_for_planning(doc),  # Event IDs for both primary and secondary events
             )
             self._update_event_history(doc)
             planning_created.send(self, item=doc)
 
-            event_id = doc.get("event_item")
-            if event_id and post_planning_with_event:
-                event = get_resource_service("events").find_one(req=None, _id=event_id)
+            first_primary_event_id = get_first_related_event_id_for_planning(doc, "primary")
+            if first_primary_event_id and post_planning_with_event:
+                event = get_resource_service("events").find_one(req=None, _id=first_primary_event_id)
                 if not event:
-                    logger.warning(f"Failed to find linked event {event_id} for planning {plan_id}")
+                    logger.warning(
+                        "Failed to find linked event for planning",
+                        extra=dict(
+                            event_id=first_primary_event_id,
+                            plan_id=plan_id,
+                        ),
+                    )
                 elif event.get("pubstatus") == POST_STATE.USABLE:
                     updates = doc.copy()
                     updates["pubstatus"] = POST_STATE.USABLE
@@ -214,32 +230,25 @@ class PlanningService(superdesk.Service):
 
         self.generate_related_assignments(docs)
 
-    def _update_event_history(self, doc):
-        event_id = doc.get("event_item")
-        if not event_id:
-            return
+    def _update_event_history(self, doc: Planning):
         events_service = get_resource_service("events")
-        original_event = events_service.find_one(req=None, _id=event_id)
+        events_history_service = get_resource_service("events_history")
 
-        if not original_event:
-            logger.warning(f"Failed to update event history, Event '{event_id}' not found")
-            return
-
-        events_service.system_update(
-            doc["event_item"],
-            {
-                "expiry": None,
-                # Event hasn't actually been updated
-                # So we leave these version dates alone
-                "_updated": original_event["_updated"],
-                "versioncreated": original_event["versioncreated"],
-            },
-            original_event,
-        )
-
-        get_resource_service("events_history").on_item_updated(
-            {"planning_id": doc.get("_id")}, original_event, "planning_created"
-        )
+        for original_event in get_related_event_items_for_planning(doc, "primary"):
+            events_service.system_update(
+                original_event[config.ID_FIELD],
+                {
+                    "expiry": None,
+                    # Event hasn't actually been updated
+                    # So we leave these version dates alone
+                    "_updated": original_event["_updated"],
+                    "versioncreated": original_event["versioncreated"],
+                },
+                original_event,
+            )
+            events_history_service.on_item_updated(
+                {"planning_id": doc[config.ID_FIELD]}, original_event, "planning_created"
+            )
 
     def on_duplicated(self, doc, parent_id):
         self._update_event_history(doc)
@@ -281,6 +290,7 @@ class PlanningService(superdesk.Service):
     def on_update(self, updates, original):
         update_method = updates.pop("update_method", UPDATE_SINGLE)
         user = get_user()
+
         self.validate_on_update(updates, original, user)
 
         if user and user.get(config.ID_FIELD):
@@ -349,13 +359,13 @@ class PlanningService(superdesk.Service):
                 if next_schedule and next_schedule["planning"]["scheduled"] > scheduled_update["planning"]["scheduled"]:
                     raise SuperdeskApiError(message="Scheduled updates of a coverage must be after the previous update")
 
-    def _set_planning_event_info(self, doc, planning_type) -> Optional[Dict[str, Any]]:
+    def _set_planning_event_info(self, doc: Planning, planning_type: ContentProfile) -> Optional[Event]:
         """Set the planning event date
 
         :param dict doc: planning document
         :param dict planning_types: planning type
         """
-        event_id = doc.get("event_item")
+        event_id = get_first_related_event_id_for_planning(doc, "primary")
 
         if not event_id:
             return None
@@ -363,8 +373,13 @@ class PlanningService(superdesk.Service):
         event = get_resource_service("events").find_one(req=None, _id=event_id)
 
         if not event:
-            plan_id = doc.get("_id")
-            logger.warning(f"Failed to find linked event {event_id} for planning {plan_id}")
+            logger.warning(
+                "Failed to find linked event for planning",
+                extra=dict(
+                    event_id=event_id,
+                    plan_id=doc.get(config.ID_FIELD),
+                ),
+            )
             return None
 
         if event.get("recurrence_id"):
@@ -408,7 +423,9 @@ class PlanningService(superdesk.Service):
 
             # Set the Planning & Event IDs for the new item
             new_plan["guid"] = new_plan["_id"] = generate_guid(type=GUID_NEWSML)
-            new_plan["event_item"] = series_entry["_id"]
+            new_plan["related_events"] = [
+                PlanningRelatedEventLink(_id=series_entry["_id"], recurrence_id=recurrence_id, link_type="primary")
+            ]
             new_plan["recurrence_id"] = recurrence_id
 
             # Set the Planning date/time relative to the Event start date/time
@@ -463,7 +480,7 @@ class PlanningService(superdesk.Service):
                 user=user_id,
                 lock_session=session_id,
                 etag=updates["_etag"],
-                event_item=original.get("event_item"),
+                event_ids=get_related_event_ids_for_planning(doc),  # Event IDs for both primary and secondary events,
                 recurrence_id=original.get("recurrence_id") or None,
                 from_ingest=from_ingest,
             )
@@ -490,27 +507,24 @@ class PlanningService(superdesk.Service):
         req.args = {"source": json.dumps(query)}
         return super().get(req=req, lookup=None)
 
-    def get_all_items_in_relationship(self, item):
-        all_items = []
-        if item.get("event_item"):
-            if item.get("recurrence_id"):
-                event_param = {
-                    "_id": item.get("event_item"),
-                    "recurrence_id": item.get("recurrence_id"),
-                }
-                # One call wil get all items in the recurring series from event service
-                return get_resource_service("events").get_all_items_in_relationship(event_param)
-            else:
-                event_param = {"_id": item.get("event_item")}
-                # Get associated event
-                all_items = get_resource_service("events").find(where={"_id": item.get("event_item")})
-                # Get all associated planning items
-                return chain(
-                    all_items,
-                    get_resource_service("events").get_plannings_for_event(event_param),
-                )
+    def get_all_items_in_relationship(
+        self, item: Planning, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"
+    ):
+        event_id = get_first_related_event_id_for_planning(item, event_link_type)
+        if not event_id:
+            return []
+
+        events_service = get_resource_service("events")
+        if item.get("recurrence_id"):
+            # One call wil get all items in the recurring series from event service
+            return events_service.get_all_items_in_relationship(
+                {"recurrence_id": item["recurrence_id"]}, event_link_type
+            )
         else:
-            return all_items
+            # Get associated event
+            all_items = events_service.find(where={"_id": event_id})
+            # Get all associated planning items
+            return chain(all_items, get_related_planning_for_events([event_id], event_link_type))
 
     def remove_coverages(self, updates, original):
         if "coverages" not in updates:
@@ -1199,8 +1213,7 @@ class PlanningService(superdesk.Service):
 
         get_resource_service("planning_autosave").on_assignment_removed(planning_item[config.ID_FIELD], coverage_id)
 
-        if planning_item.get("event_item"):
-            updated_planning["event_item"] = planning_item["event_item"]
+        updated_planning["related_events"] = get_related_event_links_for_planning(planning_item)
 
         return updated_planning
 
@@ -1308,7 +1321,12 @@ class PlanningService(superdesk.Service):
             "query": {
                 "bool": {
                     "must_not": [
-                        {"constant_score": {"filter": {"exists": {"field": "event_item"}}}},
+                        {
+                            "nested": {
+                                "path": "related_events",
+                                "query": {"term": {"related_events.link_type": "primary"}},
+                            },
+                        },
                         {"term": {"expired": True}},
                         nested_filter,
                         range_filter,
@@ -1357,10 +1375,22 @@ class PlanningService(superdesk.Service):
             yield list(results.docs)
 
     def on_event_converted_to_recurring(self, updates, original):
-        items = self.find(where={"event_item": original[config.ID_FIELD]})
+        event_id = original[config.ID_FIELD]
+        for item in get_related_planning_for_events([original[config.ID_FIELD]]):
+            related_events = get_related_event_links_for_planning(item)
 
-        for item in items:
-            self.patch(item[config.ID_FIELD], {"recurrence_id": updates["recurrence_id"]})
+            # Set the ``recurrence_id`` in the ``planning.related_events`` field
+            for event in related_events:
+                if event["_id"] == event_id:
+                    event["recurrence_id"] = updates["recurrence_id"]
+                    break
+            self.patch(
+                item[config.ID_FIELD],
+                {
+                    "recurrence_id": updates["recurrence_id"],
+                    "related_events": related_events,
+                },
+            )
 
     def get_xmp_file_for_updates(self, updates_coverage, original_coverage, for_slugline=False):
         rv = False
@@ -1536,7 +1566,7 @@ class PlanningService(superdesk.Service):
             "ingest_provider_sequence",
             "ingest_firstcreated",
             "ingest_versioncreated",
-            "event_item",
+            "related_events",
             "state",
             "pubstatus",
             "expiry",
@@ -1659,315 +1689,7 @@ class PlanningService(superdesk.Service):
             yield plan
 
 
-event_type = deepcopy(superdesk.Resource.rel("events", type="string"))
-event_type["mapping"] = not_analyzed
-
-assigned_to_schema = {
-    "type": "dict",
-    "mapping": {
-        "type": "object",
-        "properties": {
-            "assignment_id": not_analyzed,
-            "state": not_analyzed,
-            "contact": not_analyzed,
-        },
-    },
-}
-
-coverage_schema = {
-    # Identifiers
-    "coverage_id": {"type": "string", "mapping": not_analyzed},
-    "original_coverage_id": {"type": "string", "mapping": not_analyzed},
-    "guid": metadata_schema["guid"],
-    # Audit Information
-    "original_creator": metadata_schema["original_creator"],
-    "version_creator": metadata_schema["version_creator"],
-    "firstcreated": metadata_schema["firstcreated"],
-    "versioncreated": metadata_schema["versioncreated"],
-    # News Coverage Details
-    # See IPTC-G2-Implementation_Guide 16.4
-    "planning": {
-        "type": "dict",
-        "schema": {
-            "ednote": metadata_schema["ednote"],
-            "g2_content_type": {"type": "string", "mapping": not_analyzed},
-            "coverage_provider": {"type": "string", "mapping": not_analyzed},
-            "contact_info": Resource.rel("contacts", type="string", nullable=True),
-            "item_class": {"type": "string", "mapping": not_analyzed},
-            "item_count": {"type": "string", "mapping": not_analyzed},
-            "scheduled": {"type": "datetime"},
-            "files": {
-                "type": "list",
-                "nullable": True,
-                "schema": Resource.rel("planning_files"),
-                "mapping": not_analyzed,
-            },
-            "xmp_file": Resource.rel("planning_files", nullable=True),
-            "service": {
-                "type": "list",
-                "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},
-            },
-            "news_content_characteristics": {
-                "type": "list",
-                "mapping": {"properties": {"name": not_analyzed, "value": not_analyzed}},
-            },
-            "planning_ext_property": {
-                "type": "list",
-                "mapping": {
-                    "properties": {
-                        "qcode": not_analyzed,
-                        "value": not_analyzed,
-                        "name": not_analyzed,
-                    }
-                },
-            },
-            # Metadata hints.  See IPTC-G2-Implementation_Guide 16.5.1.1
-            "by": {"type": "list", "mapping": {"type": "string"}},
-            "credit_line": {"type": "list", "mapping": {"type": "string"}},
-            "dateline": {"type": "list", "mapping": {"type": "string"}},
-            "description_text": metadata_schema["description_text"],
-            "genre": metadata_schema["genre"],
-            "headline": metadata_schema["headline"],
-            "keyword": {"type": "list", "mapping": {"type": "string"}},
-            "language": metadata_schema["language"],
-            "slugline": metadata_schema["slugline"],
-            "subject": metadata_schema["subject"],
-            "internal_note": {"type": "string", "nullable": True},
-            "workflow_status_reason": {"type": "string", "nullable": True},
-            "priority": metadata_schema["priority"],
-        },  # end planning dict schema
-    },  # end planning
-    "news_coverage_status": {
-        "type": "dict",
-        "allow_unknown": True,
-        "schema": {
-            "qcode": {"type": "string"},
-            "name": {"type": "string"},
-            "label": {"type": "string"},
-        },
-    },
-    "workflow_status": {"type": "string"},
-    "previous_status": {"type": "string"},
-    "assigned_to": assigned_to_schema,
-    "flags": {
-        "type": "dict",
-        "allow_unknown": True,
-        "schema": {"no_content_linking": {"type": "boolean", "default": False}},
-    },
-    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
-    "scheduled_updates": {
-        "type": "list",
-        "schema": {
-            "type": "dict",
-            "schema": {
-                "scheduled_update_id": {"type": "string", "mapping": not_analyzed},
-                "coverage_id": {"type": "string", "mapping": not_analyzed},
-                "workflow_status": {"type": "string"},
-                "assigned_to": assigned_to_schema,
-                "previous_status": {"type": "string"},
-                "news_coverage_status": {
-                    "type": "dict",
-                    "allow_unknown": True,
-                    "schema": {
-                        "qcode": {"type": "string"},
-                        "name": {"type": "string"},
-                        "label": {"type": "string"},
-                    },
-                },
-                "planning": {
-                    "type": "dict",
-                    "schema": {
-                        "internal_note": {"type": "string", "nullable": True},
-                        "contact_info": Resource.rel("contacts", type="string", nullable=True),
-                        "scheduled": {"type": "datetime"},
-                        "genre": metadata_schema["genre"],
-                        "workflow_status_reason": {"type": "string", "nullable": True},
-                    },
-                },
-            },
-        },
-    },  # end scheduled_updates
-}  # end coverage_schema
-
-planning_schema = {
-    # Identifiers
-    config.ID_FIELD: metadata_schema[config.ID_FIELD],
-    "guid": metadata_schema["guid"],
-    # Audit Information
-    "original_creator": metadata_schema["original_creator"],
-    "version_creator": metadata_schema["version_creator"],
-    "firstcreated": metadata_schema["firstcreated"],
-    "versioncreated": metadata_schema["versioncreated"],
-    # Ingest Details
-    "ingest_provider": metadata_schema["ingest_provider"],
-    "source": metadata_schema["source"],
-    "original_source": metadata_schema["original_source"],
-    "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
-    "ingest_firstcreated": metadata_schema["versioncreated"],
-    "ingest_versioncreated": metadata_schema["versioncreated"],
-    # Agenda Item details
-    "agendas": {
-        "type": "list",
-        "schema": superdesk.Resource.rel("agenda"),
-        "mapping": not_analyzed,
-    },
-    # Event Item
-    "event_item": event_type,
-    "recurrence_id": {
-        "type": "string",
-        "mapping": not_analyzed,
-        "nullable": True,
-    },
-    "planning_recurrence_id": {
-        "type": "string",
-        "mapping": not_analyzed,
-        "nullable": True,
-    },
-    # Planning Details
-    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
-    # Planning Item Metadata - See IPTC-G2-Implementation_Guide 16.1
-    "item_class": {"type": "string", "default": "plinat:newscoverage"},
-    "ednote": metadata_schema["ednote"],
-    "description_text": metadata_schema["description_text"],
-    "internal_note": {"type": "string", "nullable": True},
-    "anpa_category": metadata_schema["anpa_category"],
-    "subject": metadata_schema["subject"],
-    "genre": metadata_schema["genre"],
-    "company_codes": metadata_schema["company_codes"],
-    # Content Metadata - See IPTC-G2-Implementation_Guide 16.2
-    "language": metadata_schema["language"],
-    "languages": {
-        "type": "list",
-        "mapping": not_analyzed,
-    },
-    "translations": {
-        "type": "list",
-        "mapping": {
-            "type": "nested",
-            "properties": {
-                "field": not_analyzed,
-                "language": not_analyzed,
-                "value": metadata_schema["slugline"]["mapping"],
-            },
-        },
-    },
-    "abstract": metadata_schema["abstract"],
-    "headline": metadata_schema["headline"],
-    "slugline": metadata_schema["slugline"],
-    "keywords": metadata_schema["keywords"],
-    "word_count": metadata_schema["word_count"],
-    "priority": metadata_schema["priority"],
-    "urgency": metadata_schema["urgency"],
-    "profile": metadata_schema["profile"],
-    # These next two are for spiking/unspiking and purging of planning/agenda items
-    "state": WORKFLOW_STATE_SCHEMA,
-    "expiry": {"type": "datetime", "nullable": True},
-    "expired": {"type": "boolean", "default": False},
-    "featured": {"type": "boolean"},
-    "lock_user": metadata_schema["lock_user"],
-    "lock_time": metadata_schema["lock_time"],
-    "lock_session": metadata_schema["lock_session"],
-    "lock_action": metadata_schema["lock_action"],
-    "coverages": {
-        "type": "list",
-        "default": [],
-        "schema": {
-            "type": "dict",
-            "schema": coverage_schema,
-        },
-        "mapping": {
-            "type": "nested",
-            "properties": {
-                "coverage_id": not_analyzed,
-                "planning": {
-                    "type": "object",
-                    "properties": {
-                        "slugline": metadata_schema["slugline"]["mapping"],
-                    },
-                },
-                "assigned_to": assigned_to_schema["mapping"],
-                "original_creator": {
-                    "type": "keyword",
-                },
-            },
-        },
-    },
-    # field to sync coverage scheduled information
-    # to be used for sorting/filtering on scheduled
-    "_planning_schedule": {
-        "type": "list",
-        "mapping": {
-            "type": "nested",
-            "properties": {
-                "coverage_id": not_analyzed,
-                "scheduled": {"type": "date"},
-            },
-        },
-    },
-    # field to sync scheduled_updates scheduled information
-    # to be used for sorting/filtering on scheduled
-    "_updates_schedule": {
-        "type": "list",
-        "mapping": {
-            "type": "nested",
-            "properties": {
-                "scheduled_update_id": not_analyzed,
-                "scheduled": {"type": "date"},
-            },
-        },
-    },
-    "planning_date": {
-        "type": "datetime",
-        "nullable": False,
-    },
-    "flags": {
-        "type": "dict",
-        "schema": {
-            "marked_for_not_publication": metadata_schema["flags"]["schema"]["marked_for_not_publication"],
-            # If the config is set to create coverage items in workflow this flag will override that and allow coverages
-            # created for this planning item to be created in draft
-            "overide_auto_assign_to_workflow": {"type": "boolean", "default": False},
-        },
-    },
-    # Public/Published status
-    "pubstatus": POST_STATE_SCHEMA,
-    # The previous state the item was in before for example being spiked,
-    # when un-spiked it will revert to this state
-    "revert_state": metadata_schema["revert_state"],
-    # Item type used by superdesk publishing
-    ITEM_TYPE: {
-        "type": "string",
-        "mapping": not_analyzed,
-        "default": "planning",
-    },
-    # Identifier used to synchronise the posted planning item with an external system.
-    "unique_id": {"type": "string", "mapping": not_analyzed},
-    "place": metadata_schema["place"],
-    # Name used to identify the planning item
-    "name": {"type": "string"},
-    "files": {
-        "type": "list",
-        "nullable": True,
-        "schema": Resource.rel("planning_files"),
-        "mapping": not_analyzed,
-    },
-    # Reason (if any) for the current state (cancelled, postponed, rescheduled)
-    "state_reason": {"type": "string", "nullable": True},
-    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
-    "_type": {"type": "string", "mapping": None},
-    "extra": metadata_schema["extra"],
-    "versionposted": {"type": "datetime", "nullable": False},
-    # The update method used for recurring planning items
-    "update_method": {
-        "type": "string",
-        "allowed": UPDATE_METHODS,
-        "mapping": not_analyzed,
-        "nullable": True,
-    },
-}  # end planning_schema
-
-
-class PlanningResource(superdesk.Resource):
+class PlanningResource(Resource):
     """Resource for planning data model
 
     See IPTC-G2-Implementation_Guide (version 2.21) Section 16.5 for schema details
@@ -1990,7 +1712,6 @@ class PlanningResource(superdesk.Resource):
     etag_ignore_fields = ["_planning_schedule", "_updates_schedule"]
 
     mongo_indexes = {
-        "event_item": ([("event_item", 1)], {"background": True}),
         "planning_recurrence_id": ([("planning_recurrence_id", 1)], {"background": True}),
     }
 

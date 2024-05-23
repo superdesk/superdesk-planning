@@ -8,18 +8,23 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from typing import List
+from copy import deepcopy
+import logging
+
 from flask import abort
-from superdesk import get_resource_service, logger
+from eve.utils import config
+
+from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.utc import utcnow
-from copy import deepcopy
-import logging
 
-from eve.utils import config
-from planning.planning import PlanningResource
+from planning.types import Planning, Event
+from .planning import PlanningResource
+from planning.utils import get_related_event_items_for_planning
 from planning.common import (
     WORKFLOW_STATE,
     POST_STATE,
@@ -54,11 +59,8 @@ class PlanningPostService(BaseService):
         assignments_to_delete = []
         for doc in docs:
             plan = get_resource_service("planning").find_one(req=None, _id=doc["planning"])
-            event = None
-            if plan.get("event_item"):
-                event = get_resource_service("events").find_one(req=None, _id=plan.get("event_item"))
-
-            self.validate_item(plan, event, doc["pubstatus"])
+            related_events = get_related_event_items_for_planning(plan, "primary")
+            self.validate_item(plan, related_events, doc["pubstatus"])
 
             if not plan:
                 abort(412)
@@ -67,8 +69,11 @@ class PlanningPostService(BaseService):
                 self.validate_related_item(plan)
 
             self.validate_post_state(doc["pubstatus"])
-            if event and doc["pubstatus"] == POST_STATE.USABLE:
-                self.post_associated_event(event)
+
+            if doc["pubstatus"] == POST_STATE.USABLE:
+                for related_event in related_events:
+                    self.post_associated_event(related_event)
+
             self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
 
@@ -91,8 +96,10 @@ class PlanningPostService(BaseService):
             abort(409)
 
     @staticmethod
-    def validate_item(doc, event, new_post_status):
-        if new_post_status == POST_STATE.USABLE and event and event.get("pubstatus") == POST_STATE.CANCELLED:
+    def validate_item(doc: Planning, related_events: List[Event], new_post_status: str):
+        if new_post_status == POST_STATE.USABLE and any(
+            1 for e in related_events if e.get("pubstatus") == POST_STATE.CANCELLED
+        ):
             raise SuperdeskApiError(message="Can't post the planning item as event is already unposted/cancelled.")
 
         errors = get_resource_service("planning_validator").post(
