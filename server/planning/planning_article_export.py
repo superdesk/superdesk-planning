@@ -27,6 +27,7 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_first_paragraph_text,
 )
+from planning.utils import get_related_planning_for_events, get_first_related_event_id_for_planning
 from planning.archive import create_item_from_template
 
 
@@ -67,10 +68,13 @@ def get_items(ids, resource_type):
     events_service = get_resource_service("events")
     for item in items:
         item_type = item.get("type")
-        if item_type == "planning" and item.get("event_item"):
-            item["event"] = events_service.find_one(req=None, _id=item["event_item"])
+
+        if item_type == "planning":
+            event_id = get_first_related_event_id_for_planning(item, "primary")
+            if event_id:
+                item["event"] = events_service.find_one(req=None, _id=event_id)
         elif item_type == "event":
-            item["plannings"] = events_service.get_plannings_for_event(item)
+            item["plannings"] = get_related_planning_for_events([item["_id"]], "primary")
             item["coverages"] = []
             for plan in item["plannings"]:
                 item["coverages"].extend(plan.get("coverages") or [])
