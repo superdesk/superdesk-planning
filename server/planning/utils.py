@@ -15,9 +15,10 @@ from datetime import datetime
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from flask import current_app as app, json
-from flask_babel import format_time, format_datetime, lazy_gettext
+from flask_babel import lazy_gettext
 from eve.utils import str_to_date, ParsedRequest, config
 import arrow
+import pytz
 
 from superdesk import get_resource_service
 from superdesk.json_utils import cast_item
@@ -86,35 +87,39 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
     return datetime
 
 
-def time_short(datetime: datetime):
+def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return format_time(parse_date(datetime), app.config.get("TIME_FORMAT_SHORT", "HH:mm"))
+        return parse_date(datetime).astimezone(tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
 
 
-def date_short(datetime: datetime):
+def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return format_datetime(parse_date(datetime), app.config.get("DATE_FORMAT_SHORT", "dd/MM/yyyy"))
+        return parse_date(datetime).astimezone(tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
+    tz_name: str = event.get("dates", {}).get("tz", app.config["DEFAULT_TIMEZONE"])
+    tz = pytz.timezone(tz_name)
 
     duration_seconds = int((end - start).total_seconds())
 
     if duration_seconds == ALL_DAY_SECONDS:
         # All day event
-        return "{} {}".format(lazy_gettext("ALL DAY"), date_short(start))
+        return "{} {}".format(lazy_gettext("ALL DAY"), date_short(start, tz))
 
     if duration_seconds >= MULTI_DAY_SECONDS:
         # Multi day event
-        return "{} {} - {} {}".format(time_short(start), date_short(start), time_short(end), date_short(end))
+        return "{} {} - {} {}".format(
+            time_short(start, tz), date_short(start, tz), time_short(end, tz), date_short(end, tz)
+        )
 
     if start == end:
         # start and end are the same
-        return "{} {}".format(time_short(start), date_short(start))
+        return "{} {}".format(time_short(start, tz), date_short(start, tz))
 
-    return "{} - {}, {}".format(time_short(start), time_short(end), date_short(start))
+    return "{} - {}, {}".format(time_short(start, tz), time_short(end, tz), date_short(start, tz))
 
 
 def get_related_planning_for_events(

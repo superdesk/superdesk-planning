@@ -886,7 +886,7 @@ class PlanningService(Service):
 
         translations = planning.get("translations")
         translated_value = {}
-        translated_name = ""
+        translated_name = planning.get("name", planning.get("headline", ""))
         doc.setdefault("planning", {})
         if translations is not None and doc["planning"].get("language") is not None:
             translated_value.update(
