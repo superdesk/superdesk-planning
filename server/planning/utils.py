@@ -1,11 +1,31 @@
-from typing import Union, List, Dict, Any, TypedDict
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
+from typing import Union, List, Dict, Any, TypedDict, Optional
+import logging
+from datetime import datetime
+
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from datetime import datetime
+from flask import current_app as app, json
 from flask_babel import format_time, format_datetime, lazy_gettext
-from eve.utils import str_to_date
+from eve.utils import str_to_date, ParsedRequest, config
 import arrow
-from flask import current_app as app
+
+from superdesk import get_resource_service
+from superdesk.json_utils import cast_item
+
+from planning.types import Event, Planning, PLANNING_RELATED_EVENT_LINK_TYPE, PlanningRelatedEventLink
+
+
+logger = logging.getLogger(__name__)
 
 
 class FormattedContact(TypedDict):
@@ -95,3 +115,96 @@ def get_event_formatted_dates(event: Dict[str, Any]) -> str:
         return "{} {}".format(time_short(start), date_short(start))
 
     return "{} - {}, {}".format(time_short(start), time_short(end), date_short(start))
+
+
+def get_related_planning_for_events(
+    event_ids: List[str],
+    link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None,
+    exclude_planning_ids: Optional[List[str]] = None,
+) -> List[Planning]:
+    related_events_filters: List[Dict[str, Any]] = [{"terms": {"related_events._id": event_ids}}]
+    if link_type is not None:
+        related_events_filters.append({"term": {"related_events.link_type": link_type}})
+
+    bool_query: Dict[str, Any] = {
+        "filter": {
+            "nested": {
+                "path": "related_events",
+                "query": {"bool": {"filter": related_events_filters}},
+            },
+        }
+    }
+
+    if len(exclude_planning_ids or []) > 0:
+        bool_query["must_not"] = {"terms": {"_id": exclude_planning_ids}}
+
+    req = ParsedRequest()
+    req.args = {"source": json.dumps({"query": {"bool": bool_query}})}
+
+    return [cast_item(item) for item in get_resource_service("planning").get(req=req, lookup=None)]
+
+
+def event_has_planning_items(event_id: str, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None) -> bool:
+    return len(get_related_planning_for_events([event_id], link_type)) > 0
+
+
+def get_related_event_links_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[PlanningRelatedEventLink]:
+    related_events: List[PlanningRelatedEventLink] = plan.get("related_events") or []
+    return (
+        related_events
+        if link_type is None
+        else [related_event for related_event in related_events if related_event["link_type"] == link_type]
+    )
+
+
+def get_related_event_ids_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[str]:
+    return [related_event["_id"] for related_event in get_related_event_links_for_planning(plan, link_type)]
+
+
+def get_first_related_event_id_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> Optional[str]:
+    try:
+        return get_related_event_links_for_planning(plan, link_type)[0]["_id"]
+    except (KeyError, IndexError, TypeError):
+        return None
+
+
+def get_related_event_items_for_planning(
+    plan: Planning, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> List[Event]:
+    event_ids = get_related_event_ids_for_planning(plan, link_type)
+    if not len(event_ids):
+        return []
+
+    events = list(get_resource_service("events").find(where={"_id": {"$in": event_ids}}))
+
+    if len(event_ids) != len(events):
+        logger.warning(
+            "Not all Events were found for the Planning item",
+            extra=dict(
+                plan_id=plan[config.ID_FIELD],
+                event_ids_requested=event_ids,
+                events_ids_found=[event[config.ID_FIELD] for event in events],
+            ),
+        )
+
+    return events
+
+
+def get_first_event_item_for_planning_id(
+    planning_id: str, link_type: Optional[PLANNING_RELATED_EVENT_LINK_TYPE] = None
+) -> Optional[Event]:
+    planning_item = get_resource_service("planning").find_one(req=None, _id=planning_id)
+    if not planning_item:
+        return None
+
+    first_event_id = get_first_related_event_id_for_planning(planning_item, link_type)
+    if not first_event_id:
+        return None
+
+    return get_resource_service("events").find_one(req=None, _id=first_event_id)
