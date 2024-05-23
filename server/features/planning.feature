@@ -962,7 +962,7 @@ Feature: Planning
             {
                 "item_class": "item class value",
                 "headline": "test headline",
-                "event_item": "#events._id#",
+                "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             }
         ]
@@ -1535,6 +1535,7 @@ Feature: Planning
         """
         [{
           "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+          "planning_item": "123",
           "planning": {
               "ednote": "test coverage, I want 250 words",
               "headline": "test headline",
@@ -1642,7 +1643,7 @@ Feature: Planning
             "item_class": "item class value",
             "name": "test name",
             "slugline": "test slugline",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }
         """
@@ -1684,7 +1685,7 @@ Feature: Planning
             "item_class": "item class value",
             "name": "test name",
             "slugline": "test slugline",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }
         """
@@ -4288,3 +4289,37 @@ Feature: Planning
         """
         When we get "/planning_files/#planning_files._id#"
         Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
+
+    @auth
+    Scenario: Validate Planning related Event must exist
+        When we post to "/planning"
+        """
+        {
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}]
+        }
+        """
+        Then we get error 400
+        When we post to "/events"
+        """
+        {
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        {
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}]
+        }
+        """
+        Then we get OK response

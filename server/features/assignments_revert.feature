@@ -11,6 +11,7 @@ Feature: Assignment Revert
     """
     [{
         "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+        "planning_item": "plan1",
         "planning": {
             "ednote": "test coverage, I want 250 words",
             "headline": "test headline",
@@ -78,6 +79,7 @@ Feature: Assignment Revert
     """
     [{
         "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+        "planning_item": "plan1",
         "planning": {
             "ednote": "test coverage, I want 250 words",
             "headline": "test headline",
@@ -114,6 +116,7 @@ Feature: Assignment Revert
     """
     [{
         "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+        "planning_item": "plan1",
         "planning": {
             "ednote": "test coverage, I want 250 words",
             "headline": "test headline",

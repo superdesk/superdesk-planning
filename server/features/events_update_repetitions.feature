@@ -964,7 +964,7 @@ Feature: Events Update Repetitions
         [{
             "slugline": "Friday Club",
             "headline": "Fourth Meeting",
-            "event_item": "#EVENT4._id#",
+            "related_events": [{"_id": "#EVENT4._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """

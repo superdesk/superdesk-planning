@@ -6,6 +6,7 @@ Feature: Assignments Locking
         """
         [{
             "_id": "a123",
+            "planning_item": "plan1",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -34,6 +35,7 @@ Feature: Assignments Locking
         """
         [{
             "_id": "a123",
+            "planning_item": "plan1",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -148,6 +150,7 @@ Feature: Assignments Locking
         """
         [{
             "_id": "a123",
+            "planning_item": "plan1",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
