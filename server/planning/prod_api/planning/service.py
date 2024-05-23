@@ -12,13 +12,14 @@ from eve.utils import config
 
 from prod_api.service import ProdApiService
 
+from planning.types import Planning
 from planning.common import sync_assignment_details_to_coverages
 from planning.prod_api.common import excluded_lock_fields
 from planning.prod_api.assignments.utils import (
     get_assignment_ids_from_planning,
     construct_assignment_links,
 )
-from planning.prod_api.events.utils import construct_event_link
+from planning.prod_api.events.utils import add_related_event_links
 
 
 class PlanningService(ProdApiService):
@@ -28,14 +29,12 @@ class PlanningService(ProdApiService):
         | excluded_lock_fields
     )
 
-    def _process_fetched_object(self, doc):
+    def _process_fetched_object(self, doc: Planning):
         super()._process_fetched_object(doc)
         sync_assignment_details_to_coverages(doc)
 
         if doc.get(config.LINKS):
-            if doc.get("event_item"):
-                doc[config.LINKS]["event"] = construct_event_link(doc["event_item"])
-
+            add_related_event_links(doc, doc)
             assignment_ids = get_assignment_ids_from_planning(doc)
             if len(assignment_ids):
                 doc[config.LINKS]["assignments"] = construct_assignment_links(assignment_ids)
