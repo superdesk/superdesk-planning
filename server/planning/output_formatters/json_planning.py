@@ -8,17 +8,20 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-
-from flask import current_app as app
-from superdesk.publish.formatters import Formatter
-import superdesk
-from apps.archive.common import ARCHIVE
-import json
-from superdesk.utils import json_serialize_datetime_objectId
 from copy import deepcopy
+
+import json
+from flask import current_app as app
+
+import superdesk
 from superdesk import get_resource_service
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
+from superdesk.publish.formatters import Formatter
+from superdesk.utils import json_serialize_datetime_objectId
 from superdesk.metadata.item import CONTENT_STATE
+from apps.archive.common import ARCHIVE
+
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
+from planning.utils import get_first_related_event_id_for_planning
 from .utils import expand_contact_info, get_matching_products
 from .json_utils import translate_names
 
@@ -79,7 +82,7 @@ class JsonPlanningFormatter(Formatter):
         ]
 
     def _format_item(self, item):
-        """Format the item to json event"""
+        """Format the item to json planning"""
         output_item = deepcopy(item)
         for f in self.remove_fields:
             output_item.pop(f, None)
@@ -102,6 +105,10 @@ class JsonPlanningFormatter(Formatter):
         output_item["products"] = get_matching_products(item)
 
         translate_names(output_item)
+
+        first_primary_event_id = get_first_related_event_id_for_planning(item, "primary")
+        if first_primary_event_id:
+            output_item["event_item"] = first_primary_event_id
 
         return output_item
 
