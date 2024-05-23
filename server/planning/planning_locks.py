@@ -8,8 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-
 from enum import Enum
+
 from flask import request, json
 from eve.utils import ParsedRequest
 from eve.render import send_response
@@ -17,6 +17,7 @@ from eve.render import send_response
 from superdesk import Resource, get_resource_service, Blueprint, blueprint
 from superdesk.auth.decorator import blueprint_auth
 
+from planning.utils import get_first_related_event_id_for_planning
 from planning.search.queries.elastic import ElasticQuery, field_exists
 
 
@@ -43,7 +44,7 @@ PROJECTED_FIELDS = [
     "_id",
     "type",
     "recurrence_id",
-    "event_item",
+    "related_events",
     "lock_time",
     "lock_action",
     "lock_user",
@@ -98,10 +99,11 @@ def _get_planning_module_locks():
             "action": item.get("lock_action"),
             "time": item.get("lock_time"),
         }
+        primary_event_id = get_first_related_event_id_for_planning(item, "primary")
         if item.get("recurrence_id"):
             locks["recurring"][lock["item_id"]] = lock
-        elif item.get("event_item"):
-            locks["event"][item["event_item"]] = lock
+        elif primary_event_id is not None:
+            locks["event"][primary_event_id] = lock
         else:
             locks[item["type"]][lock["item_id"]] = lock
 
