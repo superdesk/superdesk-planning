@@ -8,9 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from flask import json, current_app as app
+from eve.utils import ParsedRequest, config
+
+from superdesk import config, get_resource_service
+from superdesk.errors import SuperdeskApiError
+from superdesk.notification import push_notification
+from apps.auth import get_user, get_user_id, get_auth
+
 from .events import EventsResource
 from .events_base_service import EventsBaseService
-from superdesk.errors import SuperdeskApiError
 from planning.common import (
     ITEM_EXPIRY,
     ITEM_STATE,
@@ -20,14 +27,12 @@ from planning.common import (
     remove_lock_information,
     remove_autosave_on_spike,
 )
-from superdesk.notification import push_notification
-from apps.auth import get_user, get_user_id, get_auth
-from superdesk import config, get_resource_service
 from planning.item_lock import LOCK_USER, LOCK_SESSION
-from eve.utils import ParsedRequest
-from flask import json
-
-from flask import current_app as app
+from planning.utils import (
+    get_related_planning_for_events,
+    event_has_planning_items,
+    get_first_related_event_id_for_planning,
+)
 
 
 class EventsSpikeResource(EventsResource):
@@ -72,42 +77,38 @@ class EventsSpikeService(EventsBaseService):
 
         # Spike associated planning
         planning_spike_service = get_resource_service("planning_spike")
-        query = {"query": {"bool": {"must": {"term": {"event_item": str(original[config.ID_FIELD])}}}}}
-        results = get_resource_service("planning").search(query)
         spiked_items = []
-        if len(results.docs) > 0:
-            for planning in results.docs:
-                if planning["state"] == WORKFLOW_STATE.DRAFT:
-                    planning_spike_service.patch(planning[config.ID_FIELD], {"state": "spiked"})
-                    spiked_items.append(str(planning[config.ID_FIELD]))
 
-            # When a planning item associated with this event is spiked
-            # If there were any failures in removing assignments
-            # Send those notifications here
-            if len(spiked_items) > 0:
-                query = {
-                    "query": {"filtered": {"filter": {"bool": {"must": {"terms": {"planning_item": spiked_items}}}}}}
-                }
+        for planning in get_related_planning_for_events([original[config.ID_FIELD]], "primary"):
+            if planning["state"] == WORKFLOW_STATE.DRAFT:
+                planning_spike_service.patch(planning[config.ID_FIELD], {"state": "spiked"})
+                spiked_items.append(str(planning[config.ID_FIELD]))
 
-                req = ParsedRequest()
-                req.args = {"source": json.dumps(query)}
+        # When a planning item associated with this event is spiked
+        # If there were any failures in removing assignments
+        # Send those notifications here
+        if len(spiked_items) > 0:
+            query = {"query": {"filtered": {"filter": {"bool": {"must": {"terms": {"planning_item": spiked_items}}}}}}}
 
-                assignments = get_resource_service("assignments").get(req=req, lookup=None)
-                if assignments.count() > 0:
-                    session_id = get_auth().get("_id")
-                    user_id = get_user().get(config.ID_FIELD)
-                    push_notification(
-                        "assignments:delete:fail",
-                        items=[
-                            {
-                                "slugline": a.get("planning").get("slugline"),
-                                "type": a.get("planning").get("g2_content_type"),
-                            }
-                            for a in assignments
-                        ],
-                        session=session_id,
-                        user=user_id,
-                    )
+            req = ParsedRequest()
+            req.args = {"source": json.dumps(query)}
+
+            assignments = get_resource_service("assignments").get(req=req, lookup=None)
+            if assignments.count() > 0:
+                session_id = get_auth().get("_id")
+                user_id = get_user().get(config.ID_FIELD)
+                push_notification(
+                    "assignments:delete:fail",
+                    items=[
+                        {
+                            "slugline": a.get("planning").get("slugline"),
+                            "type": a.get("planning").get("g2_content_type"),
+                        }
+                        for a in assignments
+                    ],
+                    session=session_id,
+                    user=user_id,
+                )
 
     @staticmethod
     def push_notification(name, updates, original):
@@ -182,7 +183,7 @@ class EventsSpikeService(EventsBaseService):
         # If yes, return error
         # Check to see if we have any related planning items for that event which is locked
         planning_service = get_resource_service("planning")
-        for planning in list(planning_service.find(where={"event_item": event[config.ID_FIELD]})):
+        for planning in get_related_planning_for_events([event[config.ID_FIELD]], "primary"):
             if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
                 raise SuperdeskApiError.forbiddenError(
                     message="Spike failed. One or more related planning items are locked."
@@ -210,21 +211,20 @@ class EventsSpikeService(EventsBaseService):
             if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
                 raise SuperdeskApiError.forbiddenError(message="Spike failed. A related planning item is locked.")
 
-            if planning["event_item"] not in events_with_plans:
-                events_with_plans.append(planning["event_item"])
+            first_event_id = get_first_related_event_id_for_planning(planning, "primary")
+            if first_event_id not in events_with_plans:
+                events_with_plans.append(first_event_id)
 
         return events_with_plans
 
     @staticmethod
     def _validate_states(event):
-        events_service = get_resource_service("events")
-
         # Public Events (except unposted) cannot be spiked
         if event.get("pubstatus") and event.get("state") != WORKFLOW_STATE.KILLED:
             raise SuperdeskApiError.badRequestError(message="Spike failed. Posted Events cannot be spiked.")
 
         # Posted Events with Planning items cannot be spiked
-        elif event.get("pubstatus") and events_service.get_plannings_for_event(event).count() > 0:
+        elif event.get("pubstatus") and event_has_planning_items(event[config.ID_FIELD], "primary"):
             raise SuperdeskApiError.badRequestError(message="Spike failed. Event has an associated Planning item.")
 
         # Event was created from a 'Reschedule' action or is 'Rescheduled'

@@ -8,11 +8,18 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
+import pytz
+from eve.utils import config
+from flask import current_app as app
+
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from apps.auth import get_user_id
+
 from planning.common import (
     remove_lock_information,
     WORKFLOW_STATE,
@@ -23,12 +30,7 @@ from planning.common import (
 from .events import EventsResource, generate_recurring_dates
 from .events_base_service import EventsBaseService
 from planning.item_lock import LOCK_ACTION
-
-from eve.utils import config
-from flask import current_app as app
-
-from copy import deepcopy
-import pytz
+from planning.utils import event_has_planning_items
 
 
 class EventsUpdateRepetitionsResource(EventsResource):
@@ -120,9 +122,6 @@ class EventsUpdateRepetitionsService(EventsBaseService):
                     event, event[config.ID_FIELD], "update_repetitions_create"
                 )
 
-        # Iterate over the events to delete/cancel
-        self._set_events_planning(deleted_events)
-
         for event in deleted_events.values():
             self._delete_event(event, events_service, updated_rule)
 
@@ -182,9 +181,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         return new_event
 
     def _delete_event(self, event, events_service, updated_rule):
-        event_plans = event.get("_plans", [])
-
-        if len(event_plans) > 0 or event.get("pubstatus", None) is not None:
+        if event.get("pubstatus", None) is not None or event_has_planning_items(event[config.ID_FIELD], "primary"):
             self._cancel_event(event, updated_rule)
         else:
             events_service.delete_action(lookup={"_id": event[config.ID_FIELD]})

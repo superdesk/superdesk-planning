@@ -1,14 +1,27 @@
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
 from datetime import datetime, timedelta
-import pytz
 from copy import deepcopy
+
+import pytz
 from mock import Mock, patch
+
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
+
 from planning.tests import TestCase
 from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
-from werkzeug.exceptions import BadRequest
+from planning.types import PlanningRelatedEventLink
 
 
 class EventTestCase(TestCase):
@@ -468,7 +481,7 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                 "agendas": [],
                 "languages": ["en"],
                 "user": "12234553",
-                "event_item": event_id[0],
+                "related_events": [PlanningRelatedEventLink(_id=event_id[0], link_type="primary")],
                 "coverages": [
                     {
                         "coverage_id": "urn:newsml:localhost:5000:2023-09-08T17:40:56.290922:e264a179-5b1a-4b52-b73b-332660848cae",
@@ -574,7 +587,7 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                         "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                         "name": "Demo 1",
                         "type": "planning",
-                        "event_item": event_id,
+                        "related_events": [PlanningRelatedEventLink(_id=event_id, link_type="primary")],
                     }
                 ]
             )[0]

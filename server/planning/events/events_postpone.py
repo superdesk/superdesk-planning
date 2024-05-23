@@ -8,20 +8,24 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
+from eve.utils import config
+from flask import current_app as app
+
 from superdesk import get_resource_service
 from superdesk.notification import push_notification
-from eve.utils import config
 from apps.archive.common import get_user, get_auth
+
 from planning.common import (
     UPDATE_FUTURE,
     WORKFLOW_STATE,
     remove_lock_information,
     set_actioned_date_to_event,
 )
-from copy import deepcopy
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
-from flask import current_app as app
+from planning.utils import get_related_planning_for_events
 
 
 event_postpone_schema = deepcopy(events_schema)
@@ -84,12 +88,10 @@ class EventsPostponeService(EventsBaseService):
 
     @staticmethod
     def _postpone_event_plannings(updates, original):
-        planning_service = get_resource_service("planning")
         planning_postpone_service = get_resource_service("planning_postpone")
         reason = updates.get("reason", None)
 
-        plans = list(planning_service.find(where={"event_item": original[config.ID_FIELD]}))
-        for plan in plans:
+        for plan in get_related_planning_for_events([original[config.ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED:
                 updated_plan = planning_postpone_service.patch(plan[config.ID_FIELD], {"reason": reason})
                 app.on_updated_planning_postpone(updated_plan, plan)
