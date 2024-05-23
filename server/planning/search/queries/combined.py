@@ -1,5 +1,16 @@
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
 from typing import Dict, Any, List, Callable
 
+from planning.utils import get_related_event_ids_for_planning
 from planning.search.queries import elastic, events, planning, common
 
 
@@ -9,16 +20,20 @@ def construct_combined_view_data_query(
     ids = set()
     for item in items:
         item_id = item.get("_id")
-        event_id = item.get("event_item")
+        event_ids = get_related_event_ids_for_planning(item, "primary")
         if common.strtobool(params.get("include_associated_planning", False)):
             ids.add(item_id)
-            if event_id:
+            for event_id in event_ids:
                 ids.add(event_id)
         else:
             # Combined search prioritises Events over Planning items
             # therefore if the Planning item is linked to an Event
             # then we want to return that Event instead
-            ids.add(event_id or item_id)
+            if len(event_ids):
+                for event_id in event_ids:
+                    ids.add(event_id)
+            else:
+                ids.add(item_id)
 
     query = elastic.ElasticQuery()
 
