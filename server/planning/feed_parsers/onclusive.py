@@ -75,6 +75,7 @@ class OnclusiveFeedParser(FeedParser):
                 self.parse_event_details(event, item)
                 self.parse_category(event, item)
                 self.parse_contact_info(event, item)
+                self.set_expiry(item, provider)
                 all_events.append(item)
             except EmbargoedException:
                 logger.info("Ignoring embargoed event %s", event["itemId"])
@@ -303,3 +304,11 @@ class OnclusiveFeedParser(FeedParser):
                 existing_contact_id = bson.ObjectId(existing_contact["_id"])
                 get_resource_service("contacts").patch(existing_contact_id, data)
                 item["event_contact_info"].append(existing_contact_id)
+
+    def set_expiry(self, event, provider) -> None:
+        expiry_minutes = (
+            int(provider.get("content_expiry") if provider else 0)
+            or int(app.config.get("INGEST_EXPIRY_MINUTES", 0))
+            or (60 * 24)
+        )
+        event["expiry"] = event["dates"]["end"] + datetime.timedelta(minutes=(expiry_minutes))
