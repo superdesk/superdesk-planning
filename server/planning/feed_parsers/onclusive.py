@@ -308,7 +308,7 @@ class OnclusiveFeedParser(FeedParser):
     def set_expiry(self, event, provider) -> None:
         expiry_minutes = (
             int(provider.get("content_expiry") if provider else 0)
-            or int(app.config.get("INGEST_EXPIRY_MINUTES"))
+            or int(app.config.get("INGEST_EXPIRY_MINUTES", 0))
             or (60 * 24)
         )
         event["expiry"] = event["dates"]["end"] + datetime.timedelta(minutes=(expiry_minutes))
