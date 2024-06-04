@@ -112,6 +112,8 @@ class OnclusiveFeedParserTestCase(TestCase):
         item = OnclusiveFeedParser().parse([data])[0]
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos3")
 
+        self.assertGreater(item["expiry"], item["dates"]["end"])
+
     def test_content_no_time(self):
         data = self.data.copy()
         data["time"] = ""
