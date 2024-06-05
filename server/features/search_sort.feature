@@ -42,7 +42,7 @@ Feature: Event Search
             "firstcreated": "2016-01-02T01:00:00+0000", "versioncreated": "2016-01-03T01:00:00+0000",
             "guid": "plan_2", "name": "plan 2", "slugline": "test2 slugline",
             "planning_date": "2016-01-01T01:00:00+0000",
-            "event_item": "event_2"
+            "related_events": [{"_id": "event_2", "link_type": "primary"}]
         }, {
             "firstcreated": "2016-01-03T01:00:00+0000", "versioncreated": "2016-01-02T01:00:00+0000",
             "guid": "plan_3", "name": "plan 3", "slugline": "test3 slugline",
@@ -51,7 +51,7 @@ Feature: Event Search
             "firstcreated": "2016-01-04T01:00:00+0000", "versioncreated": "2016-01-01T01:00:00+0000",
             "guid": "plan_4", "name": "plan 4", "slugline": "test4 slugline",
             "planning_date": "2016-01-02T01:00:00+0000",
-            "event_item": "event_4"
+            "related_events": [{"_id": "event_4", "link_type": "primary"}]
         }]
         """
 

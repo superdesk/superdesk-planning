@@ -345,7 +345,7 @@ Feature: Cancel all coverage
           "guid": "123",
           "headline": "test headline",
           "slugline": "test slugline",
-          "event_item": "#events._id#",
+          "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
           "state": "scheduled",
           "pubstatus": "usable",
           "coverages": [

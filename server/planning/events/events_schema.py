@@ -8,10 +8,11 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk import Resource
+from copy import deepcopy
+
+from superdesk import Resource, get_resource_service
 from superdesk.resource import not_analyzed, not_enabled
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
-from copy import deepcopy
 
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
@@ -20,7 +21,6 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_FIELD_SCHEMA,
 )
-from planning.planning.planning import planning_schema as original_planning_schema
 
 event_type = deepcopy(Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -29,9 +29,6 @@ planning_type = deepcopy(Resource.rel("planning", type="string"))
 planning_type["mapping"] = not_analyzed
 original_creator_schema = metadata_schema["original_creator"]
 original_creator_schema.update({"nullable": True})
-
-planning_schema = deepcopy(original_planning_schema)
-planning_schema["event_item"] = {"type": "string"}
 
 events_schema = {
     # Identifiers
@@ -322,6 +319,37 @@ events_schema = {
                         },
                     },
                 }
+            },
+        },
+    },
+    # HACK: Add ``related_events`` to elastic mapping
+    # Otherwise searching related events in combined view fails on events type
+    "related_events": {
+        "type": "list",
+        "required": False,
+        "schema": {
+            "type": "dict",
+            "allow_unknown": True,
+            "schema": {
+                "_id": Resource.rel("events", type="string", required=True),
+                "recurrence_id": {
+                    "type": "string",
+                    "nullable": True,
+                },
+                "link_type": {
+                    "type": "string",
+                    "required": True,
+                    "default": "primary",
+                    "allowed": ["primary", "secondary"],
+                },
+            },
+        },
+        "mapping": {
+            "type": "nested",
+            "properties": {
+                "_id": not_analyzed,
+                "recurrence_id": not_analyzed,
+                "link_type": not_analyzed,
             },
         },
     },

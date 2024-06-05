@@ -8,10 +8,18 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+from datetime import datetime
+from itertools import islice
+
+import pytz
+from eve.utils import config
+from flask import current_app as app
+
 from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
-from eve.utils import config
+
 from planning.common import (
     UPDATE_FUTURE,
     WORKFLOW_STATE,
@@ -20,13 +28,9 @@ from planning.common import (
     set_original_creator,
     set_actioned_date_to_event,
 )
-from copy import deepcopy
 from .events import EventsResource, events_schema, generate_recurring_dates
-from flask import current_app as app
-import pytz
-from datetime import datetime
-from itertools import islice
 from .events_base_service import EventsBaseService
+from planning.utils import get_related_planning_for_events, event_has_planning_items
 
 event_reschedule_schema = deepcopy(events_schema)
 event_reschedule_schema["reason"] = {
@@ -55,7 +59,7 @@ class EventsRescheduleService(EventsBaseService):
 
     def update_single_event(self, updates, original):
         events_service = get_resource_service("events")
-        has_plannings = events_service.has_planning_items(original)
+        has_plannings = event_has_planning_items(original[config.ID_FIELD], "primary")
 
         remove_lock_information(updates)
         reason = updates.pop("reason", None)
@@ -93,15 +97,11 @@ class EventsRescheduleService(EventsBaseService):
 
     @staticmethod
     def _reschedule_event_plannings(original, reason, plans=None, state=None):
-        planning_service = get_resource_service("planning")
         planning_cancel_service = get_resource_service("planning_cancel")
         planning_reschedule_service = get_resource_service("planning_reschedule")
 
-        if plans is None:
-            plans = list(planning_service.find(where={"event_item": original[config.ID_FIELD]}))
-
         plan_updates = {"reason": reason, "state": state}
-        for plan in plans:
+        for plan in plans or get_related_planning_for_events([original[config.ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED:
                 updated_plan = planning_reschedule_service.patch(plan[config.ID_FIELD], plan_updates)
                 get_resource_service("planning_history").on_reschedule(updated_plan, plan)
@@ -303,11 +303,8 @@ class EventsRescheduleService(EventsBaseService):
             events_service.create(new_events)
             app.on_inserted_events(new_events)
 
-        # Iterate over the events to delete/spike
-        self._set_events_planning(deleted_events)
-
         for event in deleted_events.values():
-            event_plans = event.get("_plans", [])
+            event_plans = get_related_planning_for_events([event[config.ID_FIELD]], "primary")
             is_original = event[config.ID_FIELD] == original[config.ID_FIELD]
             if len(event_plans) > 0 or event.get("pubstatus", None) is not None:
                 if is_original:

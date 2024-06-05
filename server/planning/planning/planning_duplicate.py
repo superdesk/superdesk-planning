@@ -9,16 +9,20 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import logging
+from copy import deepcopy
+
 from eve.utils import config
+from flask import request
+
 from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url, generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.utc import utcnow, utc_to_local
-from flask import request
+
 from planning.common import ITEM_STATE, WORKFLOW_STATE, TEMP_ID_PREFIX
-from copy import deepcopy
+from planning.utils import get_related_event_links_for_planning, get_related_event_items_for_planning
 
 
 logger = logging.getLogger(__name__)
@@ -56,20 +60,28 @@ class PlanningDuplicateService(BaseService):
 
     def _duplicate_planning(self, original):
         new_plan = deepcopy(original)
-        if new_plan.get("event_item") and new_plan.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
-            # if the event is cancelled remove the link to the associated event
-            event = get_resource_service("events").find_one(req=None, _id=new_plan.get("event_item"))
-            if event and event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
-                del new_plan["event_item"]
+        related_events = get_related_event_links_for_planning(original)
 
-        if (new_plan.get("expired") and new_plan.get("event_item")) or new_plan.get(
-            ITEM_STATE
-        ) == WORKFLOW_STATE.RESCHEDULED:
-            # If the Planning item has expired and is associated with an Event
-            # then we remove the link to the associated Event as the Event would have
-            # been expired also.
-            # If associated event is rescheduled then remove the associated event
-            del new_plan["event_item"]
+        if len(related_events):
+            if original.get("expired") or original.get(ITEM_STATE) == WORKFLOW_STATE.RESCHEDULED:
+                # If the Planning item has expired, or has been rescheduled, and is associated with an Event
+                # then we remove the link to the associated Events as the Event would have been expired also.
+                new_plan["related_events"] = []
+            elif original.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
+                events_to_remove = []
+
+                for related_event in get_related_event_items_for_planning(original):
+                    if related_event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
+                        # If both the Planning and Events are cancelled, then unlink this Event
+                        events_to_remove.append(related_event[config.ID_FIELD])
+
+                # Remove any of the Event's flagged to be removed from above
+                if len(events_to_remove):
+                    new_plan["related_events"] = [
+                        related_event
+                        for related_event in related_events
+                        if related_event["_id"] not in events_to_remove
+                    ]
 
         for f in (
             "_id",

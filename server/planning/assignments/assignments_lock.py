@@ -8,22 +8,23 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import request
 import logging
+from copy import deepcopy
 
+from flask import request
 from eve.utils import config
+
+from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
+from superdesk.services import BaseService
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
-from superdesk.services import BaseService
-from planning.item_lock import LockService
-from superdesk import get_resource_service
-from superdesk.errors import SuperdeskApiError
 from apps.common.components.utils import get_component
+
+from planning.item_lock import LockService
 from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from planning.assignments.assignments import assignments_schema
-
-from copy import deepcopy
 
 
 CUSTOM_HATEOAS = {"self": {"title": "Assignments", "href": "/assignments/{_id}"}}
@@ -40,6 +41,8 @@ class AssignmentsLockResource(Resource):
     endpoint_name = "assignments_lock"
     url = "assignments/<{0}:item_id>/lock".format(item_url)
     schema = deepcopy(assignments_schema)
+    schema["planning_item"]["required"] = False
+
     datasource = {"source": "assignments"}
     resource_methods = ["GET", "POST"]
     resource_title = endpoint_name
@@ -87,6 +90,8 @@ class AssignmentsUnlockResource(Resource):
     endpoint_name = "assignments_unlock"
     url = "assignments/<{0}:item_id>/unlock".format(item_url)
     schema = deepcopy(assignments_schema)
+    schema["planning_item"]["required"] = False
+
     datasource = {"source": "assignments"}
     resource_methods = ["GET", "POST"]
     resource_title = endpoint_name

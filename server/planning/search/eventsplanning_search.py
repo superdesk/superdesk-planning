@@ -168,7 +168,7 @@ class EventsPlanningService(Service):
                 "size": int((5 * max_results) * math.ceil(page / 3)),
             }
         )
-        req.args["projections"] = json.dumps(["_id", "type", "event_item"])
+        req.args["projections"] = json.dumps(["_id", "type", "related_events"])
         req.page = page
         req.max_results = max_results
         req.exec_on_fetched_resource = False  # don't call on_fetched_resource

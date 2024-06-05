@@ -14,7 +14,15 @@ import logging
 
 from superdesk import get_resource_service
 
-from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem, Planning, Coverage, StringFieldTranslation
+from planning.types import (
+    Event,
+    EmbeddedPlanning,
+    EmbeddedCoverageItem,
+    Planning,
+    Coverage,
+    StringFieldTranslation,
+    PlanningRelatedEventLink,
+)
 from planning.content_profiles.utils import AllContentProfileData
 
 from .common import VocabsSyncData
@@ -73,6 +81,10 @@ def create_new_plannings_from_embedded_planning(
             )
         ]
 
+    related_event = PlanningRelatedEventLink(_id=event["_id"], link_type="primary")
+    if event.get("recurrence_id"):
+        related_event["recurrence_id"] = event["recurrence_id"]
+
     for plan in embedded_planning:
         if plan.get("planning_id"):
             # Skip this item, as it's an existing Planning item
@@ -84,7 +96,7 @@ def create_new_plannings_from_embedded_planning(
             "state": "draft",
             "type": "planning",
             "planning_date": event["dates"]["start"],
-            "event_item": event["_id"],
+            "related_events": [related_event],
             "coverages": [],
         }
 

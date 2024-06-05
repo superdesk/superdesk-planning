@@ -8,6 +8,12 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from typing import Union
+
+from eve.utils import config
+
+from planning.types import ArchiveItem, Planning, Assignment
+from planning.utils import get_related_event_links_for_planning
 from .resource import EventsResource
 
 
@@ -16,3 +22,12 @@ def construct_event_link(event_id: str):
         "title": EventsResource.resource_title,
         "href": f"{EventsResource.url}/{event_id}",
     }
+
+
+def add_related_event_links(item: Union[ArchiveItem, Assignment, Planning], planning: Planning):
+    for related_event in get_related_event_links_for_planning(planning):
+        event_link = construct_event_link(related_event["_id"])
+        if related_event["link_type"] == "primary" and not item[config.LINKS]["event"]:
+            item[config.LINKS]["event"] = event_link
+        else:
+            item[config.LINKS].setdefault("related_events", []).append(event_link)

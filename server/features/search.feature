@@ -142,7 +142,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug123",
-                "event_item": "event_123",
+                "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "planning_date": "2016-01-02T13:00:00+0000"
             },
             {
@@ -150,7 +150,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_123",
+                "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "subject": [{"qcode": "111", "name": "test name"}],
                 "planning_date": "2016-01-02T14:00:00+0000"
             }
@@ -273,7 +273,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug123",
-                "event_item": "event_123",
+                "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "planning_date": "2016-01-02T13:00:00+0000",
                 "agendas": ["sports"]
             },
@@ -282,7 +282,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_456",
+                "related_events": [{"_id": "event_456", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
                 "agendas": ["finance"]
             },
@@ -291,7 +291,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_456",
+                "related_events": [{"_id": "event_456", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
                 "agendas": ["entertainment"]
             },
@@ -300,7 +300,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_786",
+                "related_events": [{"_id": "event_786", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
                 "agendas": ["sports", "finance"]
             },

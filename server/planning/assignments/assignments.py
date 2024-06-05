@@ -11,12 +11,17 @@
 """Superdesk Assignments"""
 
 from typing import Dict, Any
-import superdesk
-import logging
 from copy import deepcopy
+import logging
+
 from bson import ObjectId
+from icalendar import Calendar, Event
+from eve.utils import config, ParsedRequest
+from flask import request, json, current_app as app
+
+import superdesk
+from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
-from planning.errors import AssignmentApiError
 from superdesk.metadata.utils import item_url
 from superdesk.metadata.item import (
     metadata_schema,
@@ -26,6 +31,9 @@ from superdesk.metadata.item import (
 )
 from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
+from superdesk.utc import utcnow
+from superdesk.users.services import current_user_has_privilege
+
 from apps.archive.common import get_user, get_auth
 from apps.duplication.archive_move import ITEM_MOVE
 from apps.publish.enqueue import (
@@ -35,14 +43,13 @@ from apps.publish.enqueue import (
     ITEM_TAKEDOWN,
     ITEM_UNPUBLISH,
 )
-from eve.utils import config, ParsedRequest
-from superdesk.utc import utcnow
+from apps.common.components.utils import get_component
+from apps.content import push_content_notification
+
+from planning.errors import AssignmentApiError
 from planning.planning import coverage_schema
 from planning.planning.planning import planning_schema
-from superdesk import get_resource_service
-from apps.common.components.utils import get_component
 from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION, LOCK_SESSION
-from superdesk.users.services import current_user_has_privilege
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     assignment_workflow_state,
@@ -61,16 +68,21 @@ from planning.common import (
     get_notify_self_on_assignment,
     planning_auto_assign_to_workflow,
 )
-from icalendar import Calendar, Event
-from flask import request, json, current_app as app
+
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
-from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
-from planning.utils import get_event_formatted_dates, get_formatted_contacts
+from planning.utils import (
+    get_event_formatted_dates,
+    get_formatted_contacts,
+    get_related_planning_for_events,
+    get_related_event_ids_for_planning,
+    get_first_related_event_id_for_planning,
+    get_first_event_item_for_planning_id,
+)
 
 logger = logging.getLogger(__name__)
-planning_type = deepcopy(superdesk.Resource.rel("planning", type="string"))
+planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
 planning_type["mapping"] = not_analyzed
 
 
@@ -385,10 +397,18 @@ class AssignmentsService(superdesk.Service):
 
         assignment = deepcopy(original)
         assignment.update(updates)
-        planning_id = assignment.get("planning_item", -1)
-        planning_item = get_resource_service("planning").find_one(req=None, _id=planning_id)
-        if planning_item and planning_item.get("event_item"):
-            event_item = get_resource_service("events").find_one(req=None, _id=planning_item.get("event_item"))
+        planning_id = assignment.get("planning_item")
+
+        if not planning_id:
+            raise SuperdeskApiError.badRequestError(
+                message="Unable to send notifications, planning_id not found on assignment",
+                payload=dict(
+                    assignment_id=assignment_id,
+                ),
+            )
+
+        event_item = get_first_event_item_for_planning_id(planning_id, "primary")
+        if event_item:
             contacts = []
             for contact_id in event_item.get("event_contact_info", []):
                 contact_details = get_resource_service("contacts").find_one(req=None, _id=contact_id)
@@ -396,8 +416,6 @@ class AssignmentsService(superdesk.Service):
                     contacts.append(contact_details)
             if len(contacts):
                 event_item["event_contact_info"] = contacts
-        else:
-            event_item = None
 
         # Allow to create the ICS object only if there is scheduled time in the assignment.
         # This situation won't be applicable in the production but only for the test cases.
@@ -982,7 +1000,7 @@ class AssignmentsService(superdesk.Service):
 
         event = deepcopy(original)
         event.update(updates)
-        plannings = list(get_resource_service("events").get_plannings_for_event(event))
+        plannings = get_related_planning_for_events([event[config.ID_FIELD]], "primary")
 
         if not plannings:
             # If this Event has no associated Planning items
@@ -1154,14 +1172,14 @@ class AssignmentsService(superdesk.Service):
         return True, ""
 
     def is_associated_planning_or_event_locked(self, planning_item):
-        associated_event = (planning_item or {}).get("event_item")
         if is_locked_in_this_session(planning_item):
             return True
 
-        if not associated_event:
+        first_primary_event_id = get_first_related_event_id_for_planning(planning_item, "primary")
+        if not first_primary_event_id:
             return False
 
-        event = get_resource_service("events").find_one(req=None, _id=associated_event)
+        event = get_resource_service("events").find_one(req=None, _id=first_primary_event_id)
         if not planning_item.get("recurrence_id"):
             return is_locked_in_this_session(event)
         else:
@@ -1273,7 +1291,7 @@ class AssignmentsService(superdesk.Service):
                 planning=doc.get("planning_item"),
                 coverage=doc.get("coverage_item"),
                 planning_etag=updated_planning.get(config.ETAG),
-                event_item=updated_planning.get("event_item"),
+                event_ids=get_related_event_ids_for_planning(updated_planning),
                 session=get_auth().get("_id"),
             )
         if not doc.get("_to_delete") or marked_for_delete:

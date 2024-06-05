@@ -1,3 +1,13 @@
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
 from flask import abort
 from eve.utils import config
 
@@ -18,7 +28,7 @@ from planning.common import (
     enqueue_planning_item,
     get_version_item_for_post,
 )
-from planning.utils import try_cast_object_id
+from planning.utils import try_cast_object_id, get_related_planning_for_events
 from planning.content_profiles.utils import is_post_planning_with_event_enabled
 
 
@@ -185,7 +195,7 @@ class EventsPostService(EventsBaseService):
         updates["version"] = version
 
         get_resource_service("events_history")._save_history(event, updates, "post")
-        plannings = list(get_resource_service("events").get_plannings_for_event(event))
+        plannings = get_related_planning_for_events([event[config.ID_FIELD]], "primary")
 
         event["plans"] = [p.get("_id") for p in plannings]
         self.publish_event(event, version)

@@ -677,7 +677,7 @@ Feature: Events
         When we get "/planning/plan1"
         Then we get existing resource
         """
-        {"event_item": "#events._id#"}
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
         And we get notifications
         """
@@ -711,7 +711,9 @@ Feature: Events
                     "operation": "create_event",
                     "planning_id": "#planning._id#",
                     "update": {
-                        "event_item": "#events._id#"
+                        "related_events": [
+                            {"_id": "#events._id#", "link_type": "primary"}
+                        ]
                     }
                 }]
             }
@@ -1135,7 +1137,7 @@ Feature: Events
         When we get "/planning/#planning._id#"
         Then we get existing resource
         """
-        {"event_item": "#events._id#"}
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
         When we post to "/events/#events._id#/lock"
         """
@@ -1324,7 +1326,7 @@ Feature: Events
         When we get "/planning/#planning._id#"
         Then we get existing resource
         """
-        {"event_item": "#events._id#"}
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
         When we post to "/events/#events._id#/lock"
         """
@@ -1465,7 +1467,9 @@ Feature: Events
                         "assigned_to": {}
                     }
                 ],
-                "event_item": "tempId-1712220681040btveuuz"
+                "related_events": [
+                    {"_id": "tempId-1712220681040btveuuz", "link_type": "primary"}
+                ]
             }
         ],
         "related_items": [
@@ -1554,7 +1558,9 @@ Feature: Events
                         "assigned_to": {}
                     }
                 ],
-                "event_item": "tempId-1712220681040btveuuz"
+                "related_events": [
+                    {"_id": "tempId-1712220681040btveuuz", "link_type": "primary"}
+                ]
             }
         ],
         "related_items": [

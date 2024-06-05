@@ -554,7 +554,7 @@ Feature: Events Update Time
         When we post to "/planning" with success
         """
         [{
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "slugline": "Friday Club",
             "planning_date": "2016-01-02"
         }]
@@ -674,7 +674,7 @@ Feature: Events Update Time
         When we post to "/planning" with success
         """
         [{
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "slugline": "Friday Club",
             "planning_date": "2016-01-02"
         }]
@@ -775,7 +775,7 @@ Feature: Events Update Time
         When we post to "/planning" with success
         """
         [{
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "slugline": "Friday Club",
             "planning_date": "2016-01-02"
         }]

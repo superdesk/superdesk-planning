@@ -9,9 +9,9 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from typing import Dict, Any, Optional, List, Callable, Union
-
 import logging
 from datetime import datetime
+
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
 from superdesk import get_resource_service
@@ -21,6 +21,7 @@ from superdesk.users.services import current_user_has_privilege
 
 from apps.auth import get_user_id
 
+from planning.utils import get_related_event_ids_for_planning
 from planning.search.queries import elastic
 from planning.common import POST_STATE, WORKFLOW_STATE
 from planning.content_profiles.utils import get_multilingual_fields
@@ -223,7 +224,7 @@ def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
         ids = set()
         event_items = set()
         recurrence_ids = set()
-        locked_items = search_service.get_locked_items(projections=["_id", "type", "recurrence_id", "event_item"])
+        locked_items = search_service.get_locked_items(projections=["_id", "type", "recurrence_id", "related_events"])
 
         if not locked_items.count():
             # If there are no locked items there is no need to perform logic
@@ -233,15 +234,17 @@ def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
             return
 
         for item in locked_items:
+            related_primary_events = get_related_event_ids_for_planning(item, "primary")
             if item.get("recurrence_id"):
                 # This item is associated with a recurring series of events
                 # Add `recurrence_id` to the query (common field to both events & planning)
                 recurrence_ids.add(item["recurrence_id"])
-            elif item.get("event_item"):
+            elif len(related_primary_events):
                 # This is a Planning item associated with an event
-                # Add queries for `event_item` and `_id` with the ID of the Event
-                event_items.add(item["event_item"])
-                ids.add(item["event_item"])
+                # Add queries for ``related_events`` and `_id` with the ID of the Event
+                for related_event_id in related_primary_events:
+                    event_items.add(related_event_id)
+                    ids.add(related_event_id)
             else:
                 # This item is locked, add query for it's ID
                 ids.add(item["_id"])
@@ -257,7 +260,15 @@ def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
 
         if len(event_items):
             # Add query for associated Planning items of a locked Event
-            terms.append(elastic.terms(field="event_item", values=list(event_items)))
+            terms.append(
+                elastic.bool_and(
+                    [
+                        elastic.terms(field="related_events._id", values=list(event_items)),
+                        elastic.term(field="related_events.link_type", value="primary"),
+                    ],
+                    "related_events",
+                )
+            )
 
         if len(recurrence_ids):
             # Add query for any Event or Planning in a locked recurring series of events

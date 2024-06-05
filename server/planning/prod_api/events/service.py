@@ -10,7 +10,6 @@
 
 from eve.utils import config
 
-from superdesk import get_resource_service
 from prod_api.service import ProdApiService
 
 from planning.prod_api.common import excluded_lock_fields
@@ -19,6 +18,7 @@ from planning.prod_api.assignments.utils import (
     construct_assignment_links,
 )
 from planning.prod_api.planning.utils import construct_planning_link
+from planning.utils import get_related_planning_for_events
 
 
 class EventsService(ProdApiService):
@@ -27,19 +27,19 @@ class EventsService(ProdApiService):
     def _process_fetched_object(self, doc):
         super()._process_fetched_object(doc)
 
-        planning_service = get_resource_service("planning")
-        plannings = list(planning_service.find(where={"event_item": doc.get("guid")}))
+        if not doc.get(config.LINKS):
+            return
 
+        plannings = get_related_planning_for_events([doc[config.ID_FIELD]], "primary")
         if len(plannings):
             assignment_ids = []
             for plan in plannings:
                 assignment_ids.extend(get_assignment_ids_from_planning(plan))
 
-            if doc.get(config.LINKS):
-                doc[config.LINKS]["plannings"] = [construct_planning_link(item[config.ID_FIELD]) for item in plannings]
+            doc[config.LINKS]["plannings"] = [construct_planning_link(item[config.ID_FIELD]) for item in plannings]
 
-                if len(assignment_ids):
-                    doc[config.LINKS]["assignments"] = construct_assignment_links(assignment_ids)
+            if len(assignment_ids):
+                doc[config.LINKS]["assignments"] = construct_assignment_links(assignment_ids)
 
 
 class EventsHistoryService(ProdApiService):

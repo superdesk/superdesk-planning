@@ -8,18 +8,22 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
 from flask import request
+from eve.utils import config
+
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
-from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
-from planning.item_lock import LockService
 from superdesk import get_resource_service
+from apps.archive.common import get_user, get_auth
 from apps.common.components.utils import get_component
+
+from planning.item_lock import LockService
 from planning.common import update_returned_document
 from planning.planning.planning import planning_schema
-from copy import deepcopy
-from eve.utils import config
+from planning.utils import get_related_event_links_for_planning
 
 CUSTOM_HATEOAS_PLANNING = {"self": {"title": "Planning", "href": "/planning/{_id}"}}
 
@@ -50,7 +54,7 @@ class PlanningLockService(BaseService):
         lock_service = get_component(LockService)
         item = get_resource_service("planning").find_one(req=None, _id=item_id)
 
-        if item and item.get("event_item"):
+        if item and len(get_related_event_links_for_planning(item, "primary")):
             lock_service.validate_relationship_locks(item, "planning")
 
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, "planning")

@@ -1,9 +1,22 @@
-from planning.tests import TestCase
-from unittest import mock
-from planning.output_formatters.json_planning import JsonPlanningFormatter
-import json
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
 from copy import deepcopy
+from unittest import mock
+
+import json
 from bson.objectid import ObjectId
+
+from planning.tests import TestCase
+from planning.output_formatters.json_planning import JsonPlanningFormatter
+from planning.types import PlanningRelatedEventLink
 
 
 @mock.patch(
@@ -61,7 +74,12 @@ class JsonPlanningTestCase(TestCase):
         "planning_date": "2018-04-09T14:00:53.000Z",
         "headline": "Name of the event",
         "agendas": [1],
-        "event_item": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7946",
+        "related_events": [
+            PlanningRelatedEventLink(
+                _id="event_prim_1",
+                link_type="primary",
+            )
+        ],
         "place": [
             {
                 "group": "Rest Of World",
@@ -129,10 +147,10 @@ class JsonPlanningTestCase(TestCase):
         }
     ]
 
-    def format(self):
+    def format(self, item=None):
         with self.app.app_context():
             formatter = JsonPlanningFormatter()
-            output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
+            output = formatter.format(item or self.item, {"name": "Test Subscriber"})[0]
             output_item = json.loads(output[1])
             return output_item
 
@@ -352,42 +370,64 @@ class JsonPlanningTestCase(TestCase):
         self.assertEqual(deliveries[0]["item_id"], ingest_id)
 
     def test_assigned_desk_user(self):
+        item = deepcopy(self.item)
+        desk_id = ObjectId()
+        user_id = ObjectId()
+
+        item["coverages"][0]["assigned_to"].update(
+            desk=desk_id,
+            user=user_id,
+        )
+
         with self.app.app_context():
-            item = deepcopy(self.item)
-            desk_id = ObjectId()
-            user_id = ObjectId()
-
-            item["coverages"][0]["assigned_to"].update(
-                desk=desk_id,
-                user=user_id,
-            )
-
             self.app.data.insert(
                 "desks",
                 [{"_id": desk_id, "name": "sports", "email": "sports@example.com"}],
             )
-
             self.app.data.insert("users", [{"_id": user_id, "display_name": "John Doe", "email": "john@example.com"}])
 
-            formatter = JsonPlanningFormatter()
-            with mock.patch.dict(self.app.config, {"PLANNING_JSON_ASSIGNED_INFO_EXTENDED": True}):
-                output = formatter.format(item, {"name": "Test Subscriber"})[0]
-            output_item = json.loads(output[1])
-            coverage = output_item["coverages"][0]
-            assert coverage["assigned_user"] == {
-                "first_name": None,
-                "last_name": None,
-                "display_name": "John Doe",
-                "email": "john@example.com",
-            }
-            assert coverage["assigned_desk"] == {
-                "name": "sports",
-                "email": "sports@example.com",
-            }
+        with mock.patch.dict(self.app.config, {"PLANNING_JSON_ASSIGNED_INFO_EXTENDED": True}):
+            output_item = self.format(item)
+        coverage = output_item["coverages"][0]
+        assert coverage["assigned_user"] == {
+            "first_name": None,
+            "last_name": None,
+            "display_name": "John Doe",
+            "email": "john@example.com",
+        }
+        assert coverage["assigned_desk"] == {
+            "name": "sports",
+            "email": "sports@example.com",
+        }
 
-            # without config
-            output = formatter.format(item, {"name": "Test Subscriber"})[0]
-            output_item = json.loads(output[1])
-            coverage = output_item["coverages"][0]
-            assert "email" not in coverage["assigned_user"]
-            assert "email" not in coverage["assigned_desk"]
+        # without config
+        output_item = self.format(item)
+        coverage = output_item["coverages"][0]
+        assert "email" not in coverage["assigned_user"]
+        assert "email" not in coverage["assigned_desk"]
+
+    def test_related_primary_event_copies_to_event_item(self):
+        item = deepcopy(self.item)
+        self.assertEqual(self.format(item)["event_item"], "event_prim_1")
+
+        item["related_events"] = [
+            PlanningRelatedEventLink(
+                _id="event_sec_1",
+                link_type="secondary",
+            ),
+            PlanningRelatedEventLink(
+                _id="event_prim_1",
+                link_type="primary",
+            ),
+        ]
+        self.assertEqual(self.format(item)["event_item"], "event_prim_1")
+
+        item["related_events"] = [
+            PlanningRelatedEventLink(
+                _id="event_sec_1",
+                link_type="secondary",
+            )
+        ]
+        self.assertIsNone(self.format(item).get("event_item"))
+        item.pop("related_events")
+        self.assertIsNone(self.format(item).get("event_item"))

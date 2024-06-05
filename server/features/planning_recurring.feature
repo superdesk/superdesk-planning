@@ -44,7 +44,7 @@ Feature: Recurring Events & Planning
         When we post to "/planning"
         """
         [{
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "planning_date": "2024-11-21T12:00:00.000Z",
             "update_method": "all",
             "coverages": [{
@@ -86,7 +86,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN1._id#",
             "type": "planning",
             "planning_date": "2024-11-21T12:00:00+0000",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -113,7 +113,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN2._id#",
             "type": "planning",
             "planning_date": "2024-11-22T12:00:00+0000",
-            "event_item": "#EVENT2._id#",
+            "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -140,7 +140,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN3._id#",
             "type": "planning",
             "planning_date": "2024-11-23T12:00:00+0000",
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -608,7 +608,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN1._id#",
             "type": "planning",
             "planning_date": "2024-11-21T12:00:00+0000",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -637,7 +637,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN2._id#",
             "type": "planning",
             "planning_date": "2024-11-22T12:00:00+0000",
-            "event_item": "#EVENT2._id#",
+            "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
@@ -666,7 +666,7 @@ Feature: Recurring Events & Planning
             "guid": "#PLAN3._id#",
             "type": "planning",
             "planning_date": "2024-11-23T12:00:00+0000",
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#",
             "planning_recurrence_id": "#PLAN1.planning_recurrence_id#",
             "coverages": [
