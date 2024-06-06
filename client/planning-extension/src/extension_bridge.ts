@@ -1,8 +1,7 @@
 import * as React from 'react';
 import {IVocabularyItem} from 'superdesk-api';
-import {IAssignmentItem, IEditorFieldProps} from '../../interfaces';
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from '../../interfaces';
 
-// KEEP IN SYNC WITH client/extension_bridge.ts
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
     valueKey?: string;
@@ -13,6 +12,7 @@ interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     valueAsString?: boolean;
 }
 
+// KEEP IN SYNC WITH client/extension_bridge.ts
 interface IExtensionBridge {
     assignments: {
         utils: {
@@ -43,6 +43,15 @@ interface IExtensionBridge {
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
         };
+    };
+    fields: {
+        registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
+            field: string,
+            Component: React.ComponentClass<ComponentProps>,
+            props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
+            mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
+            forwardRef?: boolean
+        ): void;
     };
 }
 

@@ -378,6 +378,11 @@ events_schema = {
             },
         },
     },
+    "associated_plannings": {  # This is used to create new planning items from the event editor
+        "type": "list",
+        "required": False,
+        "schema": {"type": "dict", "allow_unknown": True, "schema": {}},
+    },
     "related_items": {
         "type": "list",
         "required": False,
@@ -387,7 +392,7 @@ events_schema = {
                 "guid": {"type": "string", "required": True},
                 "type": {"type": "string"},
                 "state": {"type": "string"},
-                "version": {"type": "string"},
+                "version": metadata_schema["version"],
                 "headline": {"type": "string"},
                 "slugline": {"type": "string"},
                 "versioncreated": metadata_schema["versioncreated"],
@@ -395,6 +400,7 @@ events_schema = {
                 "search_provider": {"type": "string"},
                 "pubstatus": {"type": "string"},
                 "language": {"type": "string"},
+                "word_count": metadata_schema["word_count"],
             },
         },
         "mapping": {
@@ -404,5 +410,10 @@ events_schema = {
                 "guid": not_analyzed,  # allow searching events by item id
             },
         },
+    },
+    "failed_planning_ids": {
+        "type": "list",
+        "required": False,
+        "schema": {"type": "dict", "schema": {}},
     },
 }  # end events_schema:

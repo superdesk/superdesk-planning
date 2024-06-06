@@ -32,6 +32,7 @@ from planning.common import (
 )
 from planning.planning_notifications import PlanningNotifications
 from planning.archive import create_item_from_template
+from planning.signals import assignment_content_create
 
 
 FIELDS_TO_COPY = ("anpa_category", "subject", "urgency", "place")
@@ -80,6 +81,7 @@ def get_item_from_assignment(assignment, template=None):
     ednote = planning_data.get("ednote")
 
     planning_item = assignment.get("planning_item")
+    planning = None
     # we now merge planning data if they are set
     if planning_item is not None:
         planning = get_resource_service("planning").find_one(req=None, _id=planning_item)
@@ -123,6 +125,7 @@ def get_item_from_assignment(assignment, template=None):
 
     # Load default content profile of the desk to the item
     content_profile_id = template["data"].get("profile", desk.get("default_content_profile", None))
+    content_profile = None
     if content_profile_id:
         content_profiles = get_resource_service("content_types").find({"_id": content_profile_id})
         # Pop those items not in the content_profile
@@ -136,6 +139,14 @@ def get_item_from_assignment(assignment, template=None):
     # as the language field may not be in the content-profile
     if language:
         item["language"] = language
+
+    assignment_content_create.send(
+        None,
+        assignment=assignment,
+        planning=planning,
+        item=item,
+        content_profile=content_profile,
+    )
 
     return item, translations
 
@@ -205,7 +216,6 @@ class AssignmentsContentService(Service):
             if not assignment.get("scheduled_update_id"):
                 # set the assignment to in progress
                 assignments_service.patch(assignment[config.ID_FIELD], updates)
-                assignments_service.publish_planning(assignment["planning_item"])
 
             doc.update(item)
             ids.append(doc["_id"])

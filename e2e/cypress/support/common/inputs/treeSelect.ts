@@ -49,4 +49,10 @@ export class TreeSelect extends Input {
         cy.get(this.selector + ' .sd-input--invalid')
             .should(valid ? 'not.exist' : 'exist');
     }
+
+    clear() {
+        cy.log('Common.TreeSelect.clear');
+        cy.get(this.selector + ' [data-test-id="item"] [data-test-id="remove"]')
+            .click({multiple: true});
+    }
 }

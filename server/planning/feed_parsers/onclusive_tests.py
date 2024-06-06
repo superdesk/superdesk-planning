@@ -4,6 +4,7 @@ import json
 import logging
 import datetime
 import superdesk
+import pytest
 
 from planning.tests import TestCase
 from superdesk.metadata.item import (
@@ -66,7 +67,6 @@ class OnclusiveFeedParserTestCase(TestCase):
             item["versioncreated"], datetime.datetime(2022, 5, 10, 12, 14, 34, tzinfo=datetime.timezone.utc)
         )
 
-        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
         self.assertEqual(item["language"], "en")
 
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
@@ -102,6 +102,11 @@ class OnclusiveFeedParserTestCase(TestCase):
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())
         self.assertEqual(["foo@example.com"], contact["contact_email"])
+
+        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
+        [data][0]["isProvisional"] = True
+        item = OnclusiveFeedParser().parse([data])[0]
+        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos3")
 
     def test_content_no_time(self):
         data = self.data.copy()
@@ -188,3 +193,12 @@ class OnclusiveFeedParserTestCase(TestCase):
 
         item = OnclusiveFeedParser().parse([data])[0]
         assert item["dates"]["tz"] == "Asia/Tokyo"
+
+    def test_error_on_empty_name(self):
+        data = self.data.copy()
+        data["summary"] = ""
+        data["description"] = ""
+
+        with self.assertLogs("planning", level=logging.ERROR) as logger:
+            OnclusiveFeedParser().parse([data])
+            assert "Error when parsing Onclusive event" in logger.output[0]

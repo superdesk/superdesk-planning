@@ -89,3 +89,10 @@ class AllContentProfileData:
         self.events = ContentProfileData("event")
         self.planning = ContentProfileData("planning")
         self.coverages = ContentProfileData("coverage")
+
+
+def is_post_planning_with_event_enabled() -> bool:
+    try:
+        return get_planning_schema("event")["schema"]["related_plannings"]["planning_auto_publish"] is True
+    except (KeyError, TypeError):
+        return False

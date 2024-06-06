@@ -287,6 +287,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     planning_xmp_assignment_mapping?: string;
     street_map_url?: string;
     planning_auto_close_popup_editor?: boolean;
+    start_of_week?: number;
 
     planning?: {
         dateformat?: string;
@@ -294,6 +295,11 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
         allowed_coverage_link_types?: Array<string>;
         autosave_timeout?: number;
         default_create_planning_series_with_event_series?: boolean;
+        event_related_item_search_provider_name?: string;
+    };
+
+    coverage?: {
+        getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
     };
 }
 
@@ -429,6 +435,21 @@ export interface IEmbeddedPlanningItem {
     coverages: Array<IEmbeddedCoverageItem>;
 }
 
+export interface IRelatedItem {
+    guid: string;
+    search_provider: string;
+    type?: string;
+    state?: string;
+    version?: string;
+    headline?: string;
+    slugline?: string;
+    versioncreated?: string;
+    source?: string;
+    pubstatus?: string;
+    language?: string;
+    word_count?: number;
+}
+
 export interface IEventItem extends IBaseRestApiResponse {
     guid?: string;
     unique_id?: string;
@@ -558,6 +579,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     _plannings?: Array<IPlanningItem>;
     template?: string;
     _sortDate?: IDateTime;
+    related_items?: Array<IRelatedItem>;
 
     translations?: Array<{
         field: string;
@@ -576,6 +598,10 @@ export interface IEventItem extends IBaseRestApiResponse {
     _post?: boolean;
     _events: Array<IEventItem>;
     _relatedPlannings: Array<IPlanningItem>;
+    failed_planning_ids?: Array<{
+        id: string,
+        error: Array<string>
+    }>
 }
 
 export interface IEventTemplate extends IBaseRestApiResponse {
@@ -2167,6 +2193,7 @@ export interface IPlanningAPI {
                 coverage: IPlanningCoverageItem,
                 index: number
             ): Promise<IPlanningItem>;
+            bulkAddCoverageToWorkflow(planingItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>>;
         }
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
         update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;

@@ -4,11 +4,11 @@ import {
     Input,
     SelectMetaTerms,
     RadioInputs,
-    SpikeStateInput,
     ToggleInput,
     SelectInput,
     LocationInput,
     UrgencyInput,
+    TreeSelect,
 } from '../common/inputs';
 import {PlanningList} from './planningList';
 
@@ -59,7 +59,7 @@ export class AdvancedSearch {
                 date: new Input(getSearchPanel, 'input[name="end_date.date"]'),
                 time: new Input(getSearchPanel, 'input[name="end_date.time"]'),
             },
-            calendars: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-calendars]'),
+            calendars: new TreeSelect(getSearchPanel, '[data-test-id=field-calendars]', true),
             agendas: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-agendas]'),
             date_filter: new RadioInputs(getSearchPanel, '[data-test-id=field-date_filter]'),
             no_calendar_assigned: new ToggleInput(

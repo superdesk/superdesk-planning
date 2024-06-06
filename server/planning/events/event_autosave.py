@@ -25,11 +25,7 @@ class EventAutosaveResource(Resource):
     item_methods = ["GET", "PUT", "PATCH", "DELETE"]
 
     schema = deepcopy(events_schema)
-    schema["associated_plannings"] = {
-        "type": "list",
-        "required": False,
-        "schema": {"type": "dict", "allow_unknown": True},
-    }
+
     datasource = {
         "source": "event_autosave",
     }

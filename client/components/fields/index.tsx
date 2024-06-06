@@ -269,6 +269,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'place',
             'location',
             'event_contact_info',
+            'related_items',
         ],
     }, {
         name: 'details',

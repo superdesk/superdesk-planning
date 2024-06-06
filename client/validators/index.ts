@@ -143,6 +143,7 @@ export const validators = {
         registration_details: [formProfile],
         accreditation_infotype: [formProfile],
         accreditation_deadline: [formProfile],
+        related_items: [formProfile],
         recurring_rules: [eventValidators.validateRecurringRules],
         place: [formProfile],
         reference: [formProfile],

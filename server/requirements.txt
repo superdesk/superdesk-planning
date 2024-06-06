@@ -3,12 +3,12 @@ nose-timer
 pep8
 flake8
 flake8-docstrings
-pydocstyle<4.0
+pydocstyle<7.0
 wooper==0.4.4
 requests
-requests-mock==1.8.0
-icalendar>=4.0.3,<4.1
-coverage==4.3.4
+requests-mock==1.12.1
+icalendar>=4.0.3,<5.1
+coverage==7.5.3
 deepdiff
 coveralls
 mock
@@ -19,4 +19,4 @@ pytest-env
 
 -e .
 # Install in editable state so we get feature fixtures
--e git+https://github.com/superdesk/superdesk-core.git@release/2.7#egg=superdesk-core
+-e git+https://github.com/superdesk/superdesk-core.git@develop#egg=superdesk-core

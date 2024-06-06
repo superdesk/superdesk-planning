@@ -9,13 +9,13 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
-from typing import Dict, Any, Optional, List, Set
+from typing import Dict, Any, Optional, List
 from bson import ObjectId
 from copy import deepcopy
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from flask import json, current_app as app, request
+from flask import json, current_app as app
 from eve.methods.common import resolve_document_etag
 
 import superdesk
@@ -28,11 +28,10 @@ from superdesk import get_resource_service
 from superdesk.resource import not_analyzed, string_with_analyzer
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
-from superdesk.default_settings import strtobool
 
 from apps.archive.common import get_user, get_auth, update_dates_for
 from eve.utils import config, ParsedRequest, date_to_str
-from planning.types import Planning, Coverage
+from planning.types import Planning, Coverage, Event, UPDATE_METHOD
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
     POST_STATE_SCHEMA,
@@ -60,12 +59,14 @@ from planning.common import (
     UPDATE_METHODS,
     UPDATE_SINGLE,
     UPDATE_FUTURE,
+    UPDATE_ALL,
+    POST_STATE,
 )
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
-from planning.content_profiles.utils import is_field_enabled
+from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from superdesk import Resource
 from lxml import etree
 from io import BytesIO
@@ -163,7 +164,7 @@ class PlanningService(superdesk.Service):
 
             self.validate_planning(doc)
             set_original_creator(doc)
-            event = self._set_planning_event_info(doc, planning_type)
+            event: Event = self._set_planning_event_info(doc, planning_type)
             self._set_coverage(doc)
             self.set_planning_schedule(doc)
             # set timestamps
@@ -173,21 +174,25 @@ class PlanningService(superdesk.Service):
             if is_ingested:
                 history_service.on_item_created([doc])
 
-            if event and request and strtobool(request.args.get("add_to_series", "false")):
-                new_plans = self._add_planning_to_event_series(doc, event)
-                if is_ingested:
-                    history_service.on_item_created(new_plans)
-                generated_planning_items.extend(new_plans)
+            update_method: Optional[UPDATE_METHOD] = doc.pop("update_method", None)
+            if event and update_method is not None:
+                new_plans = self._add_planning_to_event_series(doc, event, update_method)
+                if len(new_plans):
+                    if is_ingested:
+                        history_service.on_item_created(new_plans)
+                    generated_planning_items.extend(new_plans)
 
         if len(generated_planning_items):
             docs.extend(generated_planning_items)
 
     def on_created(self, docs):
         session_id = get_auth().get("_id")
+        post_planning_with_event = is_post_planning_with_event_enabled()
         for doc in docs:
+            plan_id = str(doc.get(config.ID_FIELD))
             push_notification(
                 "planning:created",
-                item=str(doc.get(config.ID_FIELD)),
+                item=plan_id,
                 user=str(doc.get("original_creator", "")),
                 added_agendas=doc.get("agendas") or [],
                 removed_agendas=[],
@@ -196,6 +201,17 @@ class PlanningService(superdesk.Service):
             )
             self._update_event_history(doc)
             planning_created.send(self, item=doc)
+
+            event_id = doc.get("event_item")
+            if event_id and post_planning_with_event:
+                event = get_resource_service("events").find_one(req=None, _id=event_id)
+                if not event:
+                    logger.warning(f"Failed to find linked event {event_id} for planning {plan_id}")
+                elif event.get("pubstatus") == POST_STATE.USABLE:
+                    updates = doc.copy()
+                    updates["pubstatus"] = POST_STATE.USABLE
+                    update_post_item(updates, doc)
+
         self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc):
@@ -240,6 +256,9 @@ class PlanningService(superdesk.Service):
 
     def on_locked_planning(self, item, user_id):
         self.generate_related_assignments([item])
+
+    def should_update(self, old_item, new_item, provider):
+        return True
 
     @staticmethod
     def set_ingest_provider_sequence(item, provider):
@@ -360,7 +379,12 @@ class PlanningService(superdesk.Service):
 
         return event
 
-    def _add_planning_to_event_series(self, plan, event) -> List[Dict[str, Any]]:
+    def _add_planning_to_event_series(
+        self, plan: Planning, event: Event, update_method: UPDATE_METHOD
+    ) -> List[Dict[str, Any]]:
+        if update_method not in [UPDATE_FUTURE, UPDATE_ALL]:
+            return []
+
         recurrence_id = event.get("recurrence_id")
         if not recurrence_id:
             # Not a series of Events, can safely return
@@ -369,7 +393,12 @@ class PlanningService(superdesk.Service):
         plan["planning_recurrence_id"] = generate_guid(type=GUID_NEWSML)
         planning_date_relative = plan["planning_date"] - event["dates"]["start"]
         items = []
-        for series_entry in get_resource_service("events").find(where={"recurrence_id": recurrence_id}):
+
+        events_service = get_resource_service("events")
+        historic, past, future = events_service.get_recurring_timeline(event)
+        event_series = future if update_method == UPDATE_FUTURE else historic + past + future
+
+        for series_entry in event_series:
             if series_entry["_id"] == event["_id"]:
                 # This is the Event that was provided
                 # We assume a Planning item was already created for this Event
@@ -843,7 +872,7 @@ class PlanningService(superdesk.Service):
 
         translations = planning.get("translations")
         translated_value = {}
-        translated_name = ""
+        translated_name = planning.get("name", planning.get("headline", ""))
         doc.setdefault("planning", {})
         if translations is not None and doc["planning"].get("language") is not None:
             translated_value.update(
