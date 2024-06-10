@@ -7,9 +7,11 @@ import {
     IEditorBookmark,
     IEditorFormGroup,
     IEditorState,
+    IEventItem,
     IEventOrPlanningItem,
     IFormAutosave,
     IFormItemManager,
+    IPlanningItem,
 } from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
@@ -94,8 +96,8 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
     function registerFormComponents(newState: Partial<IEditorState>) {
         const editor = planningApi.editor(type);
         const parts = newState.diff.type === 'event' ?
-            editor.item.events.getGroupsForItem(newState.diff) :
-            editor.item.planning.getGroupsForItem(newState.diff);
+            editor.item.events.getGroupsForItem(newState.diff as Partial<IEventItem>) :
+            editor.item.planning.getGroupsForItem(newState.diff as Partial<IPlanningItem>);
 
         registerFormGroups(newState, parts.groups);
         registerFormBookmarks(newState, parts.bookmarks);

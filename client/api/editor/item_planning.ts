@@ -18,6 +18,7 @@ import {
     getEditorFormGroupsFromProfile,
     getGroupFieldsSorted,
 } from '../../utils/contentProfiles';
+import {getRelatedEventLinksForPlanning} from '../../utils/planning';
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 
@@ -39,14 +40,14 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         return profile;
     }
 
-    function getGroupsForItem(item: DeepPartial<IPlanningItem>): {
+    function getGroupsForItem(item: Partial<IPlanningItem>): {
         bookmarks: Array<IEditorBookmark>,
         groups: Array<IEditorFormGroup>
     } {
         const profile = planningApi.contentProfiles.get('planning');
         const groups = getEditorFormGroupsFromProfile(profile);
 
-        if (item.event_item == null) {
+        if (getRelatedEventLinksForPlanning(item, 'primary').length === 0) {
             delete groups['associated_event'];
         }
         const bookmarks = getBookmarksFromFormGroups(groups);
