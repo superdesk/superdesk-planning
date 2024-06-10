@@ -96,12 +96,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
         }
     }
 
-    getRelatedPlanningsForEvent(): Array<IPlanningItem> {
-        return this.props.plannings?.filter(
-            (plan) => plan.event_item === this.props.item?._id
-        );
-    }
-
     showAddLocationForm(props: any): Promise<ILocation | undefined> {
         const editor = planningApi.editor(this.props.editorType);
 

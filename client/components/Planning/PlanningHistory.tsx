@@ -1,10 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
+import {IEventItem} from '../../interfaces';
 import {PLANNING, HISTORY_OPERATIONS, ITEM_TYPE} from '../../constants';
 import {getItemInArrayById, gettext, historyUtils} from '../../utils';
-import {get} from 'lodash';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+
+
 import {ContentBlock} from '../UI/SidePanel';
 import {CoverageHistory} from '../Coverages';
+
+function getFirstPrimaryEventId(historyItem: any): IEventItem['_id'] | undefined {
+    return getRelatedEventIdsForPlanning(historyItem.update, 'primary')[0];
+}
 
 export class PlanningHistory extends React.Component {
     closeAndOpenDuplicate(duplicateId, type = ITEM_TYPE.PLANNING) {
@@ -19,7 +28,8 @@ export class PlanningHistory extends React.Component {
             text = gettext('Ingested');
             break;
         case HISTORY_OPERATIONS.CREATE:
-            text = get(historyItem, 'update.event_item') ? gettext('Created from event') :
+            text = getFirstPrimaryEventId(historyItem) != null ?
+                gettext('Created from event') :
                 gettext('Created');
             break;
 
@@ -99,6 +109,7 @@ export class PlanningHistory extends React.Component {
                         const postElement = historyUtils.getPostedHistoryElement(
                             index, this.props.historyItems, this.props.users);
                         const historyElement = this.getHistoryActionElement(historyItem);
+                        const primaryEventId = getFirstPrimaryEventId(historyItem);
 
                         if (postElement || historyElement) {
                             return (
@@ -142,14 +153,15 @@ export class PlanningHistory extends React.Component {
                                                     </a>
                                                 </div>
                                             )}
-                                            {(historyItem.operation === PLANNING.HISTORY_OPERATIONS.CREATE_EVENT ||
-                                            historyItem.operation === HISTORY_OPERATIONS.CREATE) &&
-                                            get(historyItem, 'update.event_item') && (
+                                            {(
+                                                historyItem.operation === PLANNING.HISTORY_OPERATIONS.CREATE_EVENT ||
+                                                historyItem.operation === HISTORY_OPERATIONS.CREATE
+                                            ) && primaryEventId != null && (
                                                 <div className="history-list__link">
                                                     <a
                                                         onClick={this.closeAndOpenDuplicate.bind(
                                                             this,
-                                                            historyItem.update.event_item,
+                                                            primaryEventId,
                                                             ITEM_TYPE.EVENT
                                                         )}
                                                     >

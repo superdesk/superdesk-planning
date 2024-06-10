@@ -808,16 +808,6 @@ export class ItemManager {
         return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
-    // TODO: Is this used anywhere
-    // lock(item: IEventOrPlanningItem) {
-    //     return planningApi.locks.lockItem(item);
-    // }
-
-    // TODO: Is this used anywhere
-    // unlock() {
-    //     return planningApi.locks.unlockItem(this.props.item);
-    // }
-
     unlockThenLock(item: IEventOrPlanningItem) {
         return this.setState({
             itemReady: false,
