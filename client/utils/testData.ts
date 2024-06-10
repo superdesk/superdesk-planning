@@ -695,7 +695,10 @@ export const plannings = [
         slugline: 'Planning2',
         planning_date: '2016-10-15T13:01:11',
         headline: 'Some Plan 2',
-        event_item: 'e1',
+        related_events: [{
+            _id: 'e1',
+            link_type: 'primary',
+        }],
         coverages: [
             {
                 coverage_id: 'c4',

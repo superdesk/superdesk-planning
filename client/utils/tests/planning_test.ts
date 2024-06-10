@@ -53,7 +53,10 @@ describe('PlanningUtils', () => {
                         currentSession: {
                             _id: 'p5',
                             type: 'planning',
-                            event_item: 'e1',
+                            related_events: [{
+                                _id: 'e1',
+                                link_type: 'primary',
+                            }],
                             lock_user: 'ident1',
                             lock_session: 'session1',
                             lock_action: 'edit',
@@ -62,7 +65,10 @@ describe('PlanningUtils', () => {
                         otherSession: {
                             _id: 'p6',
                             type: 'planning',
-                            event_item: 'e2',
+                            related_events: [{
+                                _id: 'e2',
+                                link_type: 'primary',
+                            }],
                             lock_user: 'ident1',
                             lock_session: 'session2',
                             lock_action: 'edit',
@@ -72,7 +78,10 @@ describe('PlanningUtils', () => {
                     otherUser: {
                         _id: 'p7',
                         type: 'planning',
-                        event_item: 'e3',
+                        related_events: [{
+                            _id: 'e3',
+                            link_type: 'primary',
+                        }],
                         lock_user: 'ident2',
                         lock_session: 'session3',
                         lock_action: 'edit',
@@ -81,7 +90,10 @@ describe('PlanningUtils', () => {
                     notLocked: {
                         _id: 'p8',
                         type: 'planning',
-                        event_item: 'e4',
+                        related_events: [{
+                            _id: 'e4',
+                            link_type: 'primary',
+                        }],
                     },
                 },
                 recurring: {
@@ -89,7 +101,10 @@ describe('PlanningUtils', () => {
                         currentSession: {
                             _id: 'p9',
                             type: 'planning',
-                            event_item: 'e5',
+                            related_events: [{
+                                _id: 'e5',
+                                link_type: 'primary',
+                            }],
                             recurrence_id: 'r1',
                             lock_user: 'ident1',
                             lock_session: 'session1',
@@ -99,7 +114,10 @@ describe('PlanningUtils', () => {
                         otherSession: {
                             _id: 'p10',
                             type: 'planning',
-                            event_item: 'e6',
+                            related_events: [{
+                                _id: 'e6',
+                                link_type: 'primary',
+                            }],
                             recurrence_id: 'r2',
                             lock_user: 'ident1',
                             lock_session: 'session2',
@@ -110,7 +128,10 @@ describe('PlanningUtils', () => {
                     otherUser: {
                         _id: 'p11',
                         type: 'planning',
-                        event_item: 'e7',
+                        related_events: [{
+                            _id: 'e7',
+                            link_type: 'primary',
+                        }],
                         recurrence_id: 'r3',
                         lock_user: 'ident2',
                         lock_session: 'session3',
@@ -120,7 +141,10 @@ describe('PlanningUtils', () => {
                     notLocked: {
                         _id: 'p12',
                         type: 'planning',
-                        event_item: 'e8',
+                        related_events: [{
+                            _id: 'e8',
+                            link_type: 'primary',
+                        }],
                         recurrence_id: 'r4',
                     },
                 },
@@ -128,19 +152,28 @@ describe('PlanningUtils', () => {
                     standalone: {
                         _id: 'p13',
                         type: 'planning',
-                        event_item: 'e9',
+                        related_events: [{
+                            _id: 'e9',
+                            link_type: 'primary',
+                        }],
                     },
                     recurring: {
                         direct: {
                             _id: 'p14',
                             type: 'planning',
-                            event_item: 'e10',
+                            related_events: [{
+                                _id: 'e10',
+                                link_type: 'primary',
+                            }],
                             recurrence_id: 'r5',
                         },
                         indirect: {
                             _id: 'p15',
                             type: 'planning',
-                            event_item: 'e11',
+                            related_events: [{
+                                _id: 'e11',
+                                link_type: 'primary',
+                            }],
                             recurrence_id: 'r5',
                         },
                     },
@@ -175,13 +208,13 @@ describe('PlanningUtils', () => {
                     [locks.events.standalone._id]: lockUtils.getLockFromItem(
                         locks.events.standalone
                     ),
-                    [locks.plans.event.currentUser.currentSession.event_item]: lockUtils.getLockFromItem(
+                    [locks.plans.event.currentUser.currentSession.related_events[0]._id]: lockUtils.getLockFromItem(
                         locks.plans.event.currentUser.currentSession
                     ),
-                    [locks.plans.event.currentUser.otherSession.event_item]: lockUtils.getLockFromItem(
+                    [locks.plans.event.currentUser.otherSession.related_events[0]._id]: lockUtils.getLockFromItem(
                         locks.plans.event.currentUser.otherSession
                     ),
-                    [locks.plans.event.otherUser.event_item]: lockUtils.getLockFromItem(
+                    [locks.plans.event.otherUser.related_events[0]._id]: lockUtils.getLockFromItem(
                         locks.plans.event.otherUser
                     ),
                 },
@@ -622,7 +655,10 @@ describe('PlanningUtils', () => {
                 'Edit',
             ]);
 
-            planning.event_item = '1';
+            planning.related_events = [{
+                _id: '1',
+                link_type: 'primary',
+            }];
             event = {
                 state: 'draft',
                 planning_ids: ['1'],
@@ -654,7 +690,10 @@ describe('PlanningUtils', () => {
                 'Edit',
             ]);
 
-            planning.event_item = '1';
+            planning.related_events = [{
+                _id: '1',
+                link_type: 'primary',
+            }];
             event = {
                 state: 'postponed',
                 planning_ids: ['1'],
@@ -679,7 +718,10 @@ describe('PlanningUtils', () => {
 
             expectActions(itemActions, ['Duplicate', 'Edit']);
 
-            planning.event_item = '1';
+            planning.related_events = [{
+                _id: '1',
+                link_type: 'primary',
+            }];
             event = {
                 state: 'cancelled',
                 planning_ids: ['1'],
@@ -701,7 +743,10 @@ describe('PlanningUtils', () => {
                 'Duplicate',
             ]);
 
-            planning.event_item = '1';
+            planning.related_events = [{
+                _id: '1',
+                link_type: 'primary',
+            }];
             event = {
                 state: 'rescheduled',
                 planning_ids: ['1'],
@@ -717,7 +762,10 @@ describe('PlanningUtils', () => {
 
         it('unposted event and unposted planning', () => {
             planning.state = 'killed';
-            planning.event_item = '1';
+            planning.related_events = [{
+                _id: '1',
+                link_type: 'primary',
+            }];
             event = {
                 state: 'killed',
                 planning_ids: ['1'],
@@ -739,7 +787,10 @@ describe('PlanningUtils', () => {
 
         it('posted event and unposted planning', () => {
             planning.state = 'killed';
-            planning.event_item = '1';
+            planning.related_events = [{
+                _id: '1',
+                link_type: 'primary',
+            }];
             event = {
                 state: 'scheduled',
                 planning_ids: ['1'],
@@ -967,11 +1018,16 @@ describe('PlanningUtils', () => {
             const newsCoverageStatus = [{qcode: 'ncostat:int'}];
             const planned = moment('2119-03-15T09:00:00+11:00');
             let eventEnd = moment('2119-03-17T09:00:00+11:00');
-            const plan = {slugline: 'Test',
+            const plan = {
+                slugline: 'Test',
                 internal_note: 'Internal Note',
                 ednote: 'Ed note',
                 planning_date: planned,
-                event_item: 'xxx'};
+                related_events: [{
+                    _id: 'xxx',
+                    link_type: 'primary',
+                }],
+            };
             const event = {dates: {end: eventEnd}};
 
             let coverage = planningUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
@@ -995,11 +1051,16 @@ describe('PlanningUtils', () => {
             const planned = moment('2119-03-15T09:00:00+11:00');
             const eventStart = moment('2119-03-17T09:00:00+11:00');
             const eventEnd = moment('2119-03-17T19:00:00+11:00');
-            const plan = {slugline: 'Test',
+            const plan = {
+                slugline: 'Test',
                 internal_note: 'Internal Note',
                 ednote: 'Ed note',
                 planning_date: planned,
-                event_item: 'xxx'};
+                related_events: [{
+                    _id: 'xxx',
+                    link_type: 'primary',
+                }],
+            };
             const event = {dates: {end: eventEnd, start: eventStart}};
 
             appConfig.long_event_duration_threshold = 4;
