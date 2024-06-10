@@ -26,6 +26,7 @@ import planningApis from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -213,7 +214,7 @@ function loadEventDataForAction(
             _relatedPlannings: loadEveryRecurringPlanning ?
                 items.plannings :
                 items.plannings.filter(
-                    (item) => item.event_item === event._id
+                    (item) => getRelatedEventIdsForPlanning(item, 'primary').includes(event._id)
                 ),
         }));
 }
@@ -482,7 +483,7 @@ function markEventPostponed(event: IEventItem, reason: string, actionedDate: str
 const markEventHasPlannings = (event, planning) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
     payload: {
-        event_item: event,
+        event_id: event,
         planning_item: planning,
     },
 });

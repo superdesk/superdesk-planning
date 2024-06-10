@@ -2,7 +2,7 @@ import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
 import {Moment} from 'moment';
 
-import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
+import {IEventItem, IPlanningItem, IAgenda, IPlanningRelatedEventLink} from '../interfaces';
 import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
@@ -243,11 +243,19 @@ const addEventToCurrentAgenda = (
 export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
     const defaultPlace = selectors.general.defaultPlaceList(planningApi.redux.store.getState());
     const defaultValues = planningUtils.defaultPlanningValues(null, defaultPlace);
+    const eventLink: IPlanningRelatedEventLink = {
+        _id: event._id,
+        link_type: 'primary',
+    };
+
+    if (event.recurrence_id != null) {
+        eventLink.recurrence_id = event.recurrence_id;
+    }
 
     let newPlanningItem: Partial<IPlanningItem> = {
         ...defaultValues,
         type: 'planning',
-        event_item: event._id,
+        related_events: [eventLink],
         planning_date: event._sortDate || event.dates?.start,
         place: event.place || defaultPlace,
         subject: event.subject,
