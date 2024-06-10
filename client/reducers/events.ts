@@ -159,10 +159,10 @@ const eventsReducer = createReducer<IEventState>(initialState, {
 
     [EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS]: (state, payload) => {
         // If the event is not loaded, disregard this action
-        if (!(payload.event_item in state.events)) return state;
+        if (!(payload.event_id in state.events)) return state;
 
         let events = cloneDeep(state.events);
-        let event = events[payload.event_item];
+        let event = events[payload.event_id];
 
         const planningIds = get(event, 'planning_ids', []);
 
