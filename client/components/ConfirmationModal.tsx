@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 import {gettext} from '../utils';
 
@@ -7,7 +6,30 @@ import {Modal} from './index';
 import {ButtonList, Icon} from './UI';
 import {KEYCODES} from '../constants';
 
-export class ConfirmationModal extends React.Component {
+interface IProps {
+    handleHide(itemType?: string): void;
+    modalProps: {
+        onCancel?(): void;
+        cancelText?: string;
+        ignore?(): void;
+        showIgnore?: boolean;
+        ignoreText?: string;
+        okText?: string;
+        action?(): void;
+        title?: string;
+        body: React.ReactNode;
+        itemType?: string;
+        autoClose?: boolean;
+        large?: boolean;
+        bodyClassname?: string;
+    };
+}
+
+interface IState {
+    submitting: boolean;
+}
+
+export class ConfirmationModal extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -96,14 +118,18 @@ export class ConfirmationModal extends React.Component {
         }
 
         return (
-            <Modal show={true} onHide={this.onCancel}>
+            <Modal
+                show={true}
+                onHide={this.onCancel}
+                large={this.props.modalProps.large}
+            >
                 <Modal.Header>
                     <h3 className="modal__heading">{modalProps.title || gettext('Confirmation')}</h3>
                     <a className="icn-btn" aria-label={gettext('Close')} onClick={this.onCancel}>
                         <Icon icon="icon-close-small" />
                     </a>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body className={this.props.modalProps.bodyClassname}>
                     <div>
                         {modalProps.body || gettext('Are you sure ?')}
                     </div>
@@ -115,23 +141,3 @@ export class ConfirmationModal extends React.Component {
         );
     }
 }
-
-ConfirmationModal.propTypes = {
-    handleHide: PropTypes.func.isRequired,
-    modalProps: PropTypes.shape({
-        onCancel: PropTypes.func,
-        cancelText: PropTypes.string,
-        ignore: PropTypes.func,
-        showIgnore: PropTypes.bool,
-        ignoreText: PropTypes.string,
-        okText: PropTypes.string,
-        action: PropTypes.func,
-        title: PropTypes.string,
-        body: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.element,
-        ]),
-        itemType: PropTypes.string,
-        autoClose: PropTypes.bool,
-    }),
-};

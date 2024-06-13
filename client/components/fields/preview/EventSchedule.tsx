@@ -5,7 +5,12 @@ import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 import {EventScheduleSummary} from '../../Events/EventScheduleSummary';
 
-export class PreviewFieldEventSchedule extends React.PureComponent<IListFieldProps> {
+interface IProps extends IListFieldProps {
+    useFormLabelAndText?: boolean
+    addContentDivider?: boolean
+}
+
+export class PreviewFieldEventSchedule extends React.PureComponent<IProps> {
     render() {
         const item = this.props.item as IEventItem;
 
@@ -15,6 +20,8 @@ export class PreviewFieldEventSchedule extends React.PureComponent<IListFieldPro
                     dates: item.dates,
                     [TO_BE_CONFIRMED_FIELD]: item._time_to_be_confirmed,
                 }}
+                useFormLabelAndText={this.props.useFormLabelAndText}
+                addContentDivider={this.props.addContentDivider}
             />
         );
     }

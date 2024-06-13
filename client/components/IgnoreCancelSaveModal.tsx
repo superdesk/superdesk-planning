@@ -1,89 +1,105 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, isNil} from 'lodash';
 
-import {eventUtils, gettext, isItemPublic, isExistingItem} from '../utils';
-import {ITEM_TYPE, EVENTS} from '../constants';
+import {IEventItem, IEventOrPlanningItem, IEventUpdateMethod, IPlanningItem} from '../interfaces';
+import {gettext, isItemPublic, isExistingItem} from '../utils';
+import {EVENTS} from '../constants';
 import * as selectors from '../selectors';
 
 import {Row} from './UI/Preview';
-import {UpdateMethodSelection} from './ItemActionConfirmation';
-import {EventScheduleSummary} from './Events';
 import {ConfirmationModal} from './';
+import {UpdateRecurringEventsForm} from './ItemActionConfirmation';
 
-export class IgnoreCancelSaveModalComponent extends React.Component {
-    constructor(props) {
+interface IBaseProps<T extends IEventOrPlanningItem> {
+    handleHide(itemType: IEventOrPlanningItem['_id']): void;
+    currentEditId: T['_id'];
+    modalProps: {
+        item: T;
+        updates: Partial<T>;
+        onCancel(): void;
+        onIgnore(): void;
+        onSave(
+            withConfirmation: boolean,
+            updateMethod: string,
+            planningUpdateMethods: {[planningId: string]: IEventUpdateMethod}
+        ): void;
+        onGoTo(): void;
+        onSaveAndPost(
+            withConfirmation: boolean,
+            updateMethod: string,
+            planningUpdateMethods: {[planningId: string]: IEventUpdateMethod}
+        ): void;
+        title: string;
+        autoClose?: boolean;
+        bodyText?: string;
+        showIgnore?: boolean;
+    };
+}
+
+type IProps = IBaseProps<IEventItem> | IBaseProps<IPlanningItem>;
+
+interface IState {
+    eventUpdateMethod: IEventUpdateMethod;
+    planningUpdateMethods: {[planningId: string]: IEventUpdateMethod};
+}
+
+export class IgnoreCancelSaveModalComponent extends React.Component<IProps, IState> {
+    constructor(props: IProps) {
         super(props);
-        this.state = {eventUpdateMethod: EVENTS.UPDATE_METHODS[0]};
+        this.state = {
+            eventUpdateMethod: EVENTS.UPDATE_METHODS[0].value,
+            planningUpdateMethods: {},
+        };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
+        this.onPlanningUpdateMethodChange = this.onPlanningUpdateMethodChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    onEventUpdateMethodChange(field, option) {
+    onEventUpdateMethodChange(option: IEventUpdateMethod) {
         this.setState({eventUpdateMethod: option});
     }
 
-    renderEvent() {
-        const {modalProps} = this.props;
-
-        const {
-            item,
-            onSave,
-        } = modalProps || {};
-        const {submitting} = this.state;
-
-        const isRecurringEvent = eventUtils.isEventRecurring(item);
-
-        return (
-            <div className="MetadataView">
-                <Row
-                    enabled={!!item.slugline}
-                    label={gettext('Slugline')}
-                    value={item.slugline || ''}
-                    noPadding={true}
-                    className="slugline"
-                />
-
-                <Row
-                    label={gettext('Name')}
-                    value={item.name || ''}
-                    noPadding={true}
-                    className="strong"
-                />
-
-                <EventScheduleSummary event={item} />
-
-                {onSave && (
-                    <UpdateMethodSelection
-                        value={this.state.eventUpdateMethod}
-                        onChange={this.onEventUpdateMethodChange}
-                        showMethodSelection={isRecurringEvent}
-                        updateMethodLabel={gettext('Update all recurring events or just this one?')}
-                        showSpace={false}
-                        readOnly={submitting}
-                        action="spike"
-                    />
-                )}
-            </div>
-        );
+    onPlanningUpdateMethodChange(planningId: IPlanningItem['_id'], updateMethod: IEventUpdateMethod) {
+        this.setState((prevState) => ({
+            planningUpdateMethods: {
+                ...prevState.planningUpdateMethods,
+                [planningId]: updateMethod,
+            },
+        }));
     }
 
-    renderPlanning() {
-        const {item} = get(this.props, 'modalProps') || {};
-
-        return (
-            <div className="MetadataView">
-                <Row
-                    enabled={!!item.slugline}
-                    label={gettext('Slugline')}
-                    value={item.slugline || ''}
-                    noPadding={true}
-                    className="slugline"
+    renderItemDetails() {
+        if (this.props.modalProps.item.type === 'planning') {
+            return (
+                <div className="MetadataView">
+                    <Row
+                        enabled={!!this.props.modalProps.item.slugline}
+                        label={gettext('Slugline')}
+                        value={this.props.modalProps.item.slugline || ''}
+                        noPadding={true}
+                        className="slugline"
+                    />
+                </div>
+            );
+        } else if (this.props.modalProps.item.type === 'event') {
+            return (
+                <UpdateRecurringEventsForm
+                    original={this.props.modalProps.item}
+                    updates={this.props.modalProps.updates}
+                    onEventUpdateMethodChange={this.onEventUpdateMethodChange}
+                    onPlanningUpdateMethodChange={this.onPlanningUpdateMethodChange}
+                    modalProps={{
+                        onCloseModal: () => {
+                            this.props.handleHide(this.props.modalProps.item.type);
+                        },
+                        unlockOnClose: false,
+                    }}
                 />
-            </div>
-        );
+            );
+        }
+
+        return null;
     }
 
     onSubmit() {
@@ -94,13 +110,15 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
         } else if (onSaveAndPost) {
             return onSaveAndPost(
                 false,
-                this.state.eventUpdateMethod
+                this.state.eventUpdateMethod,
+                this.state.planningUpdateMethods,
             );
         }
 
         return onSave(
             false,
-            this.state.eventUpdateMethod
+            this.state.eventUpdateMethod,
+            this.state.planningUpdateMethods,
         );
     }
 
@@ -128,22 +146,9 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
         return okText;
     }
 
-    getRenderItem(itemType) {
-        switch (itemType) {
-        case ITEM_TYPE.EVENT:
-            return this.renderEvent();
-
-        case ITEM_TYPE.PLANNING:
-            return this.renderPlanning();
-        }
-
-        return null;
-    }
-
     render() {
         const {handleHide, modalProps} = this.props;
         const {
-            itemType,
             title,
             onIgnore,
             onCancel,
@@ -163,36 +168,21 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
                 modalProps={{
                     onCancel: onCancel,
                     cancelText: gettext('Cancel'),
-                    showIgnore: isNil(showIgnore) ? true : showIgnore,
+                    showIgnore: showIgnore !== true,
                     ignore: onIgnore,
                     ignoreText: gettext('Ignore'),
                     action: (onGoTo || onSave || onSaveAndPost) ? this.onSubmit : null,
                     okText: okText,
                     title: title || gettext('Save Changes?'),
-                    body: bodyText || this.getRenderItem(itemType),
+                    body: bodyText || this.renderItemDetails(),
                     autoClose: autoClose,
+                    large: true,
+                    bodyClassname: 'p-3',
                 }}
             />
         );
     }
 }
-
-IgnoreCancelSaveModalComponent.propTypes = {
-    handleHide: PropTypes.func.isRequired,
-    modalProps: PropTypes.shape({
-        item: PropTypes.object,
-        itemType: PropTypes.string,
-        onCancel: PropTypes.func,
-        onIgnore: PropTypes.func,
-        onSave: PropTypes.func,
-        onGoTo: PropTypes.func,
-        onSaveAndPost: PropTypes.func,
-        title: PropTypes.string,
-        autoClose: PropTypes.bool,
-        bodyText: PropTypes.string,
-    }),
-    currentEditId: PropTypes.string,
-};
 
 const mapStateToProps = (state) => ({
     currentEditId: selectors.forms.currentItemId(state),

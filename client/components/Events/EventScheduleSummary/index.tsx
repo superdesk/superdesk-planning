@@ -1,24 +1,32 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
+import {IEventItem} from 'interfaces';
+import {gettext, eventUtils, timeUtils} from '../../../utils';
+
+import {FormLabel, Text, ContentDivider} from 'superdesk-ui-framework/react';
 import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
-import {gettext, eventUtils, timeUtils} from '../../../utils';
+
 import './style.scss';
-import {IEventItem} from 'interfaces';
+
+
 interface IProps {
     event: Partial<IEventItem>,
     noPadding?: boolean,
     forUpdating?: boolean,
     useEventTimezone?: boolean
+    useFormLabelAndText?: boolean
+    addContentDivider?: boolean
 }
 
 export const EventScheduleSummary = ({
     event,
     noPadding = false,
     forUpdating = false,
-    useEventTimezone = false
+    useEventTimezone = false,
+    useFormLabelAndText = false,
+    addContentDivider = false,
 }: IProps) => {
     if (!event) {
         return null;
@@ -74,7 +82,32 @@ export const EventScheduleSummary = ({
         currentDateLabel = gettext('Current Date (Based on Event timezone)');
     }
 
-    return (
+    return useFormLabelAndText ? (
+        <React.Fragment>
+            <div>
+                <FormLabel text={forUpdating ? currentDateLabel : gettext('Date:')} />
+                <Text size="small" weight="medium">
+                    {currentDateText || ''}
+                </Text>
+            </div>
+            {addContentDivider !== true ? null : (
+                <ContentDivider type="dashed" margin="x-small" />
+            )}
+            {doesRepeat !== true ? null : (
+                <React.Fragment>
+                    <div>
+                        <FormLabel text={gettext('Repeat Summary')} />
+                        <Text size="small" weight="medium">
+                            {eventUtils.getRepeatSummaryForEvent(eventSchedule)}
+                        </Text>
+                    </div>
+                    {addContentDivider !== true ? null : (
+                        <ContentDivider type="dashed" margin="x-small" />
+                    )}
+                </React.Fragment>
+            )}
+        </React.Fragment>
+    ) : (
         <React.Fragment>
             <Row
                 label={forUpdating ? currentDateLabel : gettext('Date:')}
