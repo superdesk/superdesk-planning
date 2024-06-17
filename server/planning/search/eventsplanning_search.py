@@ -66,7 +66,8 @@ class EventsPlanningService(Service):
         query = self._construct_search_query(repo, params, search_filter)
 
         if repo == "events" or repo == "event":
-            return self._search_events(req, params, query, search_filter)
+            items = self._search_events(req, params, query, search_filter)
+            return self._get_combined_view_data(items, req, params, search_filter)
         elif repo == "planning":
             return self._search_planning(req, params, query, search_filter)
         else:
