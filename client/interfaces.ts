@@ -694,6 +694,9 @@ export interface IPlanningCoverageItem {
     scheduled_updates: Array<ICoverageScheduledUpdate>;
 }
 
+// An Event that is linked with 'primary' has side effects with the Planning and vice-versa
+// such as locks, cancelling, postponing etc.
+// Event's linked with a 'secondary' link have no side effects, ever, the link is purely informational.
 export type IPlanningRelatedEventLinkType = 'primary' | 'secondary';
 
 export interface IPlanningRelatedEventLink {

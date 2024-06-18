@@ -69,9 +69,9 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
             dispatch(main.fetchItemHistory({_id: eventId, type: ITEM_TYPE.EVENT}));
         }
 
-        const promiseResponses = [];
+        const promises = [];
 
-        promiseResponses.push(dispatch(planning.ui.scheduleRefetch())
+        promises.push(dispatch(planning.ui.scheduleRefetch())
             .then((results) => {
                 if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
                     const selectedItems = selectors.multiSelect.selectedPlannings(getState());
@@ -89,14 +89,14 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
             }));
 
         if (data.added_agendas.length > 0 || data.removed_agendas.length > 0) {
-            promiseResponses.push(dispatch(fetchAgendas()));
+            promises.push(dispatch(fetchAgendas()));
         }
 
-        promiseResponses.push(dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING})));
-        promiseResponses.push(dispatch(udpateAssignment(data.item)));
-        promiseResponses.push(dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item)));
+        promises.push(dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING})));
+        promises.push(dispatch(udpateAssignment(data.item)));
+        promises.push(dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item)));
 
-        return Promise.all(promiseResponses);
+        return Promise.all(promises);
     }
 );
 
@@ -302,20 +302,20 @@ const udpateAssignment = (planningId) => (
         }
 
         const planningItem = selectors.planning.storedPlannings(getState())[planningId];
-        const promiseResponses = [];
+        const promises = [];
 
         get(planningItem, 'coverages', []).forEach((cov) => {
             if (get(cov, 'assigned_to.assignment_id')) {
-                promiseResponses.push(
+                promises.push(
                     dispatch(assignments.api.fetchAssignmentById(cov.assigned_to.assignment_id, true))
                 );
-                promiseResponses.push(
+                promises.push(
                     dispatch(assignments.api.fetchAssignmentHistory({_id: cov.assigned_to.assignment_id}))
                 );
             }
         });
 
-        return Promise.all(promiseResponses);
+        return Promise.all(promises);
     }
 );
 
