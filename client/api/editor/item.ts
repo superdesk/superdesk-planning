@@ -5,6 +5,7 @@ import {planningApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import {getPlanningInstance} from './item_planning';
 import {getEventsInstance} from './item_events';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 export function getItemInstance(type: EDITOR_TYPE): IEditorAPI['item'] {
     const events = getEventsInstance(type);
@@ -24,7 +25,10 @@ export function getItemInstance(type: EDITOR_TYPE): IEditorAPI['item'] {
         const plans = selectors.planning.storedPlannings(state);
 
         return Object.keys(plans)
-            .filter((planId) => plans[planId].event_item === eventId)
+            .filter((planId) => (
+                plans[planId] != null &&
+                getRelatedEventIdsForPlanning(plans[planId], 'primary').includes(eventId))
+            )
             .map((planId) => cloneDeep(plans[planId]));
     }
 

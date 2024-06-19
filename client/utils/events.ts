@@ -56,8 +56,7 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
 } from './index';
-import {getUsersDefaultLanguage} from './users';
-import {toUIFrameworkInterface} from './planning';
+import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
 
 
 /**
@@ -166,11 +165,17 @@ function getRelatedEventsForRecurringEvent(
     }
 
     if (plannings.length > 0) {
-        const eventIds = map(events, '_id');
+        const eventIds = events.map((event) => event._id);
 
         plannings = plannings.filter(
-            (p) => ((eventIds.indexOf(p.event_item) > -1 || p.event_item === recurringEvent._id) &&
-                (!postedPlanningOnly || p.pubstatus === POST_STATE.USABLE))
+            (plan) => {
+                const primaryEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
+
+                return (
+                    (eventIds.includes(primaryEventIds[0]) || primaryEventIds[0] === recurringEvent._id) &&
+                    (!postedPlanningOnly || plan.pubstatus === POST_STATE.USABLE)
+                );
+            }
         );
     }
 
@@ -1357,11 +1362,13 @@ function convertCoverageToEventEmbedded(coverage: IPlanningCoverageItem): IEmbed
     return {
         coverage_id: coverage.coverage_id,
         g2_content_type: coverage.planning.g2_content_type,
-        desk: coverage.assigned_to.desk,
-        user: coverage.assigned_to.user,
+        desk: coverage.assigned_to?.desk,
+        user: coverage.assigned_to?.user,
         language: coverage.planning.language,
-        news_coverage_status: coverage.news_coverage_status.qcode,
-        scheduled: coverage.planning.scheduled,
+        news_coverage_status: coverage.news_coverage_status?.qcode ?? 'ncostat:int',
+        scheduled: coverage.planning.scheduled != null ?
+            moment(coverage.planning.scheduled).toDate() :
+            undefined,
         genre: coverage.planning.genre?.qcode,
         slugline: coverage.planning.slugline,
         headline: coverage.planning.headline,

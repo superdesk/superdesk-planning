@@ -24,6 +24,7 @@ import {
 } from '../../constants';
 import main from '../main';
 import {planningParamsToSearchParams} from '../../utils/search';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -181,24 +182,19 @@ const refetch = (page = 1, plannings = []) => (
  * @param {Array} plannings - An array of Planning items
  * @return Promise
  */
-const fetchPlanningsEvents = (plannings) => (
+const fetchPlanningsEvents = (plannings: Array<IPlanningItem>) => (
     (dispatch, getState) => {
         const loadedEvents = selectors.events.storedEvents(getState());
-        const linkedEvents = plannings
-            .map((p) => p.event_item)
-            .filter((eid) => (
-                eid && !has(loadedEvents, eid)
-            ));
+
+        const linkedEventIds = plannings
+            .map((plan) => getRelatedEventIdsForPlanning(plan, 'primary'))
+            .flat()
+            .filter((eventId) => loadedEvents[eventId] == null);
 
         // load missing events, if there are any
-        if (get(linkedEvents, 'length', 0) > 0) {
-            return dispatch(actions.events.api.silentlyFetchEventsById(
-                linkedEvents,
-                'both'
-            ));
-        }
-
-        return Promise.resolve([]);
+        return linkedEventIds.length > 0 ?
+            dispatch(actions.events.api.silentlyFetchEventsById(linkedEventIds, 'both')) :
+            Promise.resolve([]);
     }
 );
 

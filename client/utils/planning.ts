@@ -20,7 +20,7 @@ import {
     IFeaturedPlanningItem,
     ICoverageScheduledUpdate,
     IDateTime,
-    IItemAction,
+    IItemAction, IPlanningRelatedEventLink, IPlanningRelatedEventLinkType,
 } from '../interfaces';
 const appConfig = config as IPlanningConfig;
 
@@ -378,7 +378,7 @@ export function mapCoverageByDate(coverages: Array<IPlanningCoverageItem> = []):
 
 // ad hoc plan created directly from planning list and not from an event
 function isPlanAdHoc(plan: IPlanningItem): boolean {
-    return plan.event_item == null;
+    return getRelatedEventLinksForPlanning(plan, 'primary').length === 0;
 }
 
 function isPlanMultiDay(plan: IPlanningItem): boolean {
@@ -1070,8 +1070,11 @@ function getPlanningByDate(
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
             }
         };
+        const primaryEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
 
-        plan.event = get(events, get(plan, 'event_item'));
+        plan.event = primaryEventIds.length > 0 ?
+            events[primaryEventIds[0]] :
+            undefined;
         plan.coverages.forEach((coverage) => {
             setCoverageToDate(coverage);
 
@@ -1394,8 +1397,9 @@ function getDefaultCoverageDueDate(
     eventItem?: IEventItem,
 ): moment.Moment | null {
     let coverageTime: moment.Moment = null;
+    const primaryEventIds = getRelatedEventIdsForPlanning(planningItem, 'primary');
 
-    if (planningItem?.event_item == null) {
+    if (primaryEventIds.length === 0) {
         coverageTime = moment(planningItem?.planning_date || moment());
     } else if (eventItem) {
         coverageTime = moment(eventItem?.dates?.end || moment());
@@ -1639,6 +1643,20 @@ function duplicateCoverage(
     diffCoverages.push(newCoverage);
 
     return diffCoverages;
+}
+
+export function getRelatedEventLinksForPlanning(
+    plan: Partial<IPlanningItem>,
+    linkType: IPlanningRelatedEventLinkType
+): Array<IPlanningRelatedEventLink> {
+    return (plan.related_events || []).filter((link) => link.link_type === linkType);
+}
+
+export function getRelatedEventIdsForPlanning(
+    plan: Partial<IPlanningItem>,
+    linkType: IPlanningRelatedEventLinkType
+): Array<IEventItem['_id']> {
+    return getRelatedEventLinksForPlanning(plan, linkType).map((event) => event._id);
 }
 
 // eslint-disable-next-line consistent-this

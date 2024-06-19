@@ -79,7 +79,10 @@ xdescribe('<SpikeEventForm />', () => {
             headline: 'Some Plan 1',
             agendas: [data.agendas[1]._id],
             coverages: [],
-            event_item: 'e5',
+            related_events: [{
+                _id: 'e5',
+                link_type: 'primary',
+            }],
             original_creator: {display_name: 'Hue Man'},
             _agendas: [data.agendas[1]],
         }];

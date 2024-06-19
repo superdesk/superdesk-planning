@@ -1,3 +1,5 @@
+import {get, orderBy, cloneDeep} from 'lodash';
+
 import {IPlanningSearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
@@ -16,11 +18,11 @@ import {
     isExistingItem,
     planningUtils,
 } from '../../utils';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 import * as selectors from '../../selectors';
 import {PLANNING, WORKSPACE, MODALS, MAIN, COVERAGES} from '../../constants';
 import * as actions from '../index';
-import {get, orderBy, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -207,8 +209,9 @@ const duplicate = (plan) => (
             .then((newPlan) => {
                 notify.success(gettext('Planning duplicated'));
                 const openInModal = selectors.forms.currentItemIdModal(getState());
+                const relatedEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
 
-                if (get(plan, 'event_item')) {
+                if (relatedEventIds.length > 0) {
                     dispatch(main.unlockAndCancel(plan)).then(() => {
                         dispatch(main.openForEdit(newPlan, !openInModal, openInModal));
                     });

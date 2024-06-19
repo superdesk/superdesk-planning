@@ -566,7 +566,8 @@ export class ItemManager {
         withConfirmation = true,
         updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
-        updateStates = true
+        updateStates = true,
+        planningUpdateMethods = {}
     ) {
         return this._save({
             post: false,
@@ -575,6 +576,7 @@ export class ItemManager {
             updateMethod: updateMethod,
             closeAfter: closeAfter || this.shouldClose(),
             updateStates: updateStates,
+            planningUpdateMethods: planningUpdateMethods,
         });
     }
 
@@ -582,7 +584,8 @@ export class ItemManager {
         withConfirmation = true,
         updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
-        updateStates = true
+        updateStates = true,
+        planningUpdateMethods = {}
     ) {
         return this._save({
             post: true,
@@ -591,6 +594,7 @@ export class ItemManager {
             updateMethod: updateMethod,
             closeAfter: closeAfter || this.shouldClose(),
             updateStates: updateStates,
+            planningUpdateMethods: planningUpdateMethods,
         });
     }
 
@@ -644,6 +648,7 @@ export class ItemManager {
         updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
         updateStates = true,
+        planningUpdateMethods = {}
     } = {}) {
         if (!isEqual(this.state.errorMessages, [])) {
             return this.setState({
@@ -684,8 +689,16 @@ export class ItemManager {
             updates.pubstatus = POST_STATE.CANCELLED;
         }
 
-        if (this.props.itemType === ITEM_TYPE.EVENT) {
+        if (updates.type === 'event') {
             updates.update_method = updateMethod;
+
+            if (Object.keys(planningUpdateMethods).length > 0) {
+                updates.associated_plannings?.forEach((planningItem) => {
+                    if (planningUpdateMethods[planningItem._id] != null) {
+                        planningItem.update_method = planningUpdateMethods[planningItem._id];
+                    }
+                });
+            }
         }
 
         return promise.then(() => this.autoSave.flushAutosave())
@@ -807,16 +820,6 @@ export class ItemManager {
 
         return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
-
-    // TODO: Is this used anywhere
-    // lock(item: IEventOrPlanningItem) {
-    //     return planningApi.locks.lockItem(item);
-    // }
-
-    // TODO: Is this used anywhere
-    // unlock() {
-    //     return planningApi.locks.unlockItem(this.props.item);
-    // }
 
     unlockThenLock(item: IEventOrPlanningItem) {
         return this.setState({

@@ -132,13 +132,15 @@ function movePlanningToUnselectedList(item: IPlanningItem) {
 function getAndUpdateStoredPlanningItem(itemId: IPlanningItem['_id']) {
     return (dispatch, getState) => {
         if (selectors.featuredPlanning.inUse(getState())) {
-            planningApi.planning.getById(itemId, false, true).then((item) => {
+            return planningApi.planning.getById(itemId, false, true).then((item) => {
                 dispatch({
                     type: FEATURED_PLANNING.ACTIONS.UPDATE_PLANNING_AND_LISTS,
                     payload: item,
                 });
             });
         }
+
+        return Promise.resolve();
     };
 }
 

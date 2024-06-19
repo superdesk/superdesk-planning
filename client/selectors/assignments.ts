@@ -1,10 +1,12 @@
 import {get} from 'lodash';
 import {createSelector} from 'reselect';
 
+import {IEventItem, IPlanningAppState, IPlanningItem} from '../interfaces';
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {currentDeskId, currentUserId, currentWorkspace} from './general';
 import {getItemsById} from '../utils';
+import {getRelatedEventIdsForPlanning} from '../utils/planning';
 import {ASSIGNMENTS, SORT_DIRECTION} from '../constants';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
@@ -198,13 +200,22 @@ export const getCurrentAssignmentPlanningItem = createSelector(
     )
 );
 
-export const getCurrentAssignmentEventItem = createSelector(
+export const getCurrentAssignmentEventItem = createSelector<
+    IPlanningAppState,
+    IPlanningItem | null,
+    {[eventId: string]: IEventItem},
+    IEventItem | null
+>(
     [getCurrentAssignmentPlanningItem, storedEvents],
-    (planning, events) => (
-        planning ?
-            get(events, planning.event_item) :
-            null
-    )
+    (planning, events) => {
+        if (planning == null) {
+            return null;
+        }
+
+        const relatedEventIds = getRelatedEventIdsForPlanning(planning, 'primary');
+
+        return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
+    }
 );
 
 export const getCurrentAssignmentArchiveItem = createSelector(

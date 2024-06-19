@@ -4,9 +4,9 @@ import eventsApi from '../events/api';
 import planningApi from '../planning/api';
 import {EVENTS_PLANNING, MAIN, ITEM_TYPE, MODALS} from '../../constants';
 import * as selectors from '../../selectors';
-import {getItemType, dispatchUtils, getErrorMessage} from '../../utils';
+import {getItemType, dispatchUtils, getErrorMessage, gettext} from '../../utils';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import main from '../main';
-import {gettext} from '../../utils';
 import {showModal} from '../index';
 
 /**
@@ -90,7 +90,8 @@ const refetchPlanning = (planningId) => (
     (dispatch, getState) => {
         const storedPlannings = selectors.planning.storedPlannings(getState());
         const plan = get(storedPlannings, planningId);
-        const eventId = get(plan, 'event_item');
+        const relatedEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
+        const eventId = relatedEventIds.length > 0 ? relatedEventIds[0] : undefined;
         const events = selectors.eventsPlanning.getRelatedPlanningsList(getState()) || {};
 
         if (!selectors.main.isEventsPlanningView(getState()) || !eventId ||

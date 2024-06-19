@@ -12,6 +12,7 @@ import {EVENTS, LOCKS, PLANNING, WORKSPACE, ASSIGNMENTS} from '../constants';
 
 import featuredPlanning from '../actions/planning/featuredPlanning';
 import {lockUtils, getErrorMessage, eventUtils, planningUtils, isExistingItem} from '../utils';
+import {getRelatedEventIdsForPlanning, getRelatedEventLinksForPlanning} from '../utils/planning';
 import {currentWorkspace as getCurrentWorkspace} from '../selectors/general';
 import {getLockedItems} from '../selectors/locks';
 
@@ -140,7 +141,9 @@ function lockItem<T extends IAssignmentOrPlanningItem>(item: T, action?: string)
             locks.setItemAsLocked({
                 item: lockedItem._id,
                 type: lockedItem.type,
-                event_item: lockedItem.type === 'planning' ? lockedItem.event_item : undefined,
+                event_ids: lockedItem.type === 'planning' ?
+                    getRelatedEventIdsForPlanning(lockedItem, 'primary') :
+                    [],
                 recurrence_id: lockedItem.type !== 'assignment' ? lockedItem.recurrence_id : undefined,
                 etag: lockedItem._etag,
                 user: lockedItem.lock_user,
@@ -239,7 +242,13 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
     if (item.type === 'event' && item.recurrence_id === currentLock.item_id) {
         lockedItemId = item._id;
     } else if (item.type === 'planning' && item.recurrence_id === currentLock.item_id) {
-        lockedItemId = item.event_item;
+        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
+
+        if (relatedEventIds.length === 0) {
+            throw new Error('Planning is associated with an Event series, but original Event not linked');
+        }
+
+        lockedItemId = getRelatedEventIdsForPlanning(item, 'primary')[0];
     } else {
         lockedItemId = currentLock.item_id;
     }
@@ -258,7 +267,9 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
             locks.setItemAsUnlocked({
                 item: unlockedItem._id,
                 type: unlockedItem.type,
-                event_item: unlockedItem.type === 'planning' ? unlockedItem.event_item : undefined,
+                event_ids: unlockedItem.type === 'planning' ?
+                    getRelatedEventIdsForPlanning(unlockedItem, 'primary') :
+                    [],
                 recurrence_id: unlockedItem.type !== 'assignment' ? unlockedItem.recurrence_id : undefined,
                 etag: unlockedItem._etag,
                 from_ingest: false,

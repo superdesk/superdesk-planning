@@ -207,7 +207,7 @@ class PlanningService(Service):
                 added_agendas=doc.get("agendas") or [],
                 removed_agendas=[],
                 session=session_id,
-                event_ids=get_related_event_ids_for_planning(doc),  # Event IDs for both primary and secondary events
+                event_ids=get_related_event_ids_for_planning(doc, "primary"),  # Event IDs for primary events
             )
             self._update_event_history(doc)
             planning_created.send(self, item=doc)
@@ -458,6 +458,9 @@ class PlanningService(Service):
         item_id = str(original[config.ID_FIELD])
         session_id = get_auth().get(config.ID_FIELD)
         user_id = str(updates.get("version_creator", ""))
+        doc = deepcopy(original)
+        doc.update(updates)
+
         push_notification(
             "planning:updated",
             item=item_id,
@@ -465,10 +468,9 @@ class PlanningService(Service):
             added_agendas=added,
             removed_agendas=removed,
             session=session_id,
+            event_ids=get_related_event_ids_for_planning(doc, "primary"),
         )
 
-        doc = deepcopy(original)
-        doc.update(updates)
         self.generate_related_assignments([doc])
         updates["coverages"] = doc.get("coverages") or []
 
@@ -480,7 +482,7 @@ class PlanningService(Service):
                 user=user_id,
                 lock_session=session_id,
                 etag=updates["_etag"],
-                event_ids=get_related_event_ids_for_planning(doc),  # Event IDs for both primary and secondary events,
+                event_ids=get_related_event_ids_for_planning(doc, "primary"),  # Event IDs for primary events,
                 recurrence_id=original.get("recurrence_id") or None,
                 from_ingest=from_ingest,
             )

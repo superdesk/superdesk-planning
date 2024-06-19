@@ -26,6 +26,7 @@ import planningApis from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -213,7 +214,7 @@ function loadEventDataForAction(
             _relatedPlannings: loadEveryRecurringPlanning ?
                 items.plannings :
                 items.plannings.filter(
-                    (item) => item.event_item === event._id
+                    (item) => getRelatedEventIdsForPlanning(item, 'primary').includes(event._id)
                 ),
         }));
 }
@@ -482,7 +483,7 @@ function markEventPostponed(event: IEventItem, reason: string, actionedDate: str
 const markEventHasPlannings = (event, planning) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
     payload: {
-        event_item: event,
+        event_id: event,
         planning_item: planning,
     },
 });
@@ -569,8 +570,9 @@ const save = (original, updates) => (
             ) {
                 delete eventUpdates.dates;
             }
-            eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
-                EVENTS.UPDATE_METHODS[0].value;
+            eventUpdates.update_method = eventUpdates.update_method == null ?
+                EVENTS.UPDATE_METHODS[0].value :
+                eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
             return originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :

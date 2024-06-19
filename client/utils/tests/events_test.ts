@@ -113,7 +113,10 @@ describe('EventUtils', () => {
                 standalone: {
                     _id: 'p1',
                     type: 'planning',
-                    event_item: 'e9',
+                    related_events: [{
+                        _id: 'e9',
+                        link_type: 'primary',
+                    }],
                     lock_user: 'ident1',
                     lock_session: 'session1',
                     lock_action: 'edit',
@@ -123,7 +126,10 @@ describe('EventUtils', () => {
                     direct: {
                         _id: 'p2',
                         type: 'planning',
-                        event_item: 'e10',
+                        related_events: [{
+                            _id: 'e10',
+                            link_type: 'primary',
+                        }],
                         recurrence_id: 'r5',
                         lock_user: 'ident1',
                         lock_session: 'session1',
@@ -133,7 +139,10 @@ describe('EventUtils', () => {
                     indirect: {
                         _id: 'p3',
                         type: 'planning',
-                        event_item: 'e12',
+                        related_events: [{
+                            _id: 'e12',
+                            link_type: 'primary',
+                        }],
                         recurrence_id: 'r6',
                         lock_user: 'ident1',
                         lock_session: 'session1',
@@ -157,7 +166,7 @@ describe('EventUtils', () => {
                     [locks.events.standalone.otherUser._id]: lockUtils.getLockFromItem(
                         locks.events.standalone.otherUser
                     ),
-                    [locks.plans.standalone.event_item]: lockUtils.getLockFromItem(locks.plans.standalone),
+                    [locks.plans.standalone.related_events[0]._id]: lockUtils.getLockFromItem(locks.plans.standalone),
                 },
                 recurring: {
                     [locks.events.recurring.currentUser.currentSession.recurrence_id]: lockUtils.getLockFromItem(

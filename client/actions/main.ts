@@ -716,11 +716,7 @@ const openIgnoreCancelSaveModal = ({
         const storedItems = itemType === ITEM_TYPE.EVENT ?
             selectors.events.storedEvents(getState()) :
             selectors.planning.storedPlannings(getState());
-
-        const item = {
-            ...get(storedItems, itemId) || {},
-            ...autosaveData,
-        };
+        const item = get(storedItems, itemId) || {};
 
         if (!isExistingItem(item)) {
             delete item._id;
@@ -749,7 +745,7 @@ const openIgnoreCancelSaveModal = ({
                 modalType: MODALS.IGNORE_CANCEL_SAVE,
                 modalProps: {
                     item: itemWithAssociatedData,
-                    itemType: itemType,
+                    updates: autosaveData,
                     onCancel: onCancel,
                     onIgnore: onIgnore,
                     onSave: onSave,

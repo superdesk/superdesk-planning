@@ -1,18 +1,23 @@
 import React from 'react';
+import {Provider} from 'react-redux';
 import {mount} from 'enzyme';
 import sinon from 'sinon';
 import {cloneDeep} from 'lodash';
 
-import {eventUtils, generateTempId} from '../../utils';
+import {createTestStore, eventUtils, generateTempId} from '../../utils';
 import * as testData from '../../utils/testData';
 import * as helpers from './helpers';
+import {getTestActionStore} from '../../utils/testUtils';
 
 import {IgnoreCancelSaveModalComponent} from '../IgnoreCancelSaveModal';
 
 describe('<IgnoreCancelSaveModal>', () => {
+    let astore;
+    let store;
     let wrapper;
     let handleHide;
     let item;
+    let updates;
     let itemType;
     let onCancel;
     let onIgnore;
@@ -24,7 +29,9 @@ describe('<IgnoreCancelSaveModal>', () => {
     let buttons;
 
     beforeEach(() => {
+        astore = getTestActionStore();
         item = eventUtils.modifyForClient(cloneDeep(testData.events[0]));
+        updates = {};
         itemType = item.type;
         handleHide = sinon.spy();
         onCancel = sinon.spy();
@@ -33,26 +40,32 @@ describe('<IgnoreCancelSaveModal>', () => {
         onGoTo = null;
         title = 'Test Modal';
         autoClose = false;
+
+        astore.init();
+        store = createTestStore({initialState: astore.initialState});
     });
 
     const setWrapper = () => {
         wrapper = mount(
-            <IgnoreCancelSaveModalComponent
-                handleHide={handleHide}
-                modalProps={{
-                    item,
-                    itemType,
-                    onCancel,
-                    onIgnore,
-                    onSave,
-                    onGoTo,
-                    title,
-                    autoClose,
-                }}
-                dateFormat="DD/MM/YYYY"
-                timeFormat="HH:mm"
-                currentEditId={currentEditId}
-            />
+            <Provider store={store}>
+                <IgnoreCancelSaveModalComponent
+                    handleHide={handleHide}
+                    modalProps={{
+                        item,
+                        updates,
+                        itemType,
+                        onCancel,
+                        onIgnore,
+                        onSave,
+                        onGoTo,
+                        title,
+                        autoClose,
+                    }}
+                    dateFormat="DD/MM/YYYY"
+                    timeFormat="HH:mm"
+                    currentEditId={currentEditId}
+                />
+            </Provider>
         );
 
         resetButtons();

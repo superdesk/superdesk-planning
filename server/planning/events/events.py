@@ -110,6 +110,16 @@ def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
     ]
 
 
+def is_event_updated(new_item: Event, old_item: Event) -> bool:
+    if new_item.get("name") != old_item.get("name"):
+        return True
+    new_subject = set([subject.get("qcode") for subject in new_item.get("subject", [])])
+    old_subject = set([subject.get("qcode") for subject in old_item.get("subject", [])])
+    if new_subject != old_subject:
+        return True
+    return False
+
+
 class EventsService(superdesk.Service):
     """Service class for the events model."""
 
@@ -137,7 +147,7 @@ class EventsService(superdesk.Service):
         return response
 
     def is_new_version(self, new_item, old_item):
-        return is_new_version(new_item, old_item)
+        return is_new_version(new_item, old_item) or is_event_updated(new_item, old_item)
 
     def ingest_cancel(self, item, feeding_service):
         """Ignore cancelling on ingest, this will happen in ``update_post_item``"""

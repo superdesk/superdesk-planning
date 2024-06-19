@@ -2,7 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import moment from 'moment';
+
 import {planningUtils} from '../../utils/index';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import {MAIN} from '../../constants';
 import {CoverageIcons} from '../Coverages/CoverageIcons';
 
@@ -18,7 +20,7 @@ export const PlanningDateTime = ({
 }) => {
     const coverages = get(item, 'coverages', []);
     const coverageTypes = planningUtils.mapCoverageByDate(coverages);
-    const hasAssociatedEvent = !!get(item, 'event_item');
+    const hasAssociatedEvent = getRelatedEventIdsForPlanning(item, 'primary').length > 0;
     const isSameDay = (scheduled) => scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
     const coverageToDisplay = coverageTypes.filter((coverage) => {
         const scheduled = get(coverage, 'planning.scheduled');
