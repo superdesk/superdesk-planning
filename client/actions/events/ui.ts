@@ -930,6 +930,7 @@ const save = (original, updates, confirmation, unlockOnClose) => (
                 {
                     actionType: 'save',
                     unlockOnClose: unlockOnClose,
+                    large: true,
                 }
             ));
         }

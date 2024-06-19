@@ -225,22 +225,24 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     };
 
                     const onSave = (isKilled || hasErrors) ? null :
-                        (withConfirmation, updateMethod) => (
+                        (withConfirmation, updateMethod, planningUpdateMethods) => (
                             this.itemManager.save(
                                 withConfirmation,
-                                updateMethod,
+                                {name: updateMethod, value: updateMethod},
                                 true,
-                                updateStates
+                                updateStates,
+                                planningUpdateMethods
                             )
                         );
 
                     const onSaveAndPost = (!isKilled || hasErrors) ? null :
-                        (withConfirmation, updateMethod) => (
+                        (withConfirmation, updateMethod, planningUpdateMethods) => (
                             this.itemManager.saveAndPost(
                                 withConfirmation,
                                 updateMethod,
                                 true,
-                                updateStates
+                                updateStates,
+                                planningUpdateMethods
                             )
                         );
 

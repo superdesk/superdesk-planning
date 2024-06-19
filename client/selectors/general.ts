@@ -1,5 +1,7 @@
 import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
+
+import {IAgenda, IPlanningAppState} from '../interfaces';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
 import {ITEM_TYPE, COVERAGES, ASSIGNMENTS} from '../constants/index';
 
@@ -41,6 +43,21 @@ export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const enabledAgendas = createSelector(
     [agendas],
     (agendas) => getEnabledAgendas(agendas)
+);
+export const agendasById = createSelector<
+    IPlanningAppState,
+    Array<IAgenda>,
+    {[agendaId: string]: IAgenda}
+>(
+    [agendas],
+    (agendas) => agendas.reduce(
+        (agendaList, agenda) => {
+            agendaList[agenda._id] = agenda;
+
+            return agendaList;
+        },
+        {}
+    )
 );
 
 export const disabledAgendas = createSelector(

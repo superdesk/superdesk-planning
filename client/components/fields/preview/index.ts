@@ -302,9 +302,16 @@ Object.keys(multilingualFieldOptions).forEach((field) => {
 FIELD_TO_PREVIEW_COMPONENT.filter_schedule = PreviewFieldFilterSchedule;
 
 FIELD_TO_FORM_PREVIEW_COMPONENT.dates = PreviewFieldEventSchedule;
+FIELD_TO_PREVIEW_COMPONENT.dates = PreviewFieldEventSchedule;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.location = PreviewFieldLocation;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.event_contact_info = PreviewFieldContacts;
+FIELD_TO_PREVIEW_COMPONENT.event_contact_info = PreviewFieldContacts;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.custom_vocabularies = PreviewFieldCustomVocabularies;
+FIELD_TO_PREVIEW_COMPONENT.custom_vocabularies = PreviewFieldCustomVocabularies;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.urgency = PreviewFieldUrgency;
 FIELD_TO_FORM_PREVIEW_COMPONENT.flags = PreviewFieldFlags;
 

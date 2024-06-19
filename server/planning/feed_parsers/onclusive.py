@@ -75,6 +75,7 @@ class OnclusiveFeedParser(FeedParser):
                 self.parse_event_details(event, item)
                 self.parse_category(event, item)
                 self.parse_contact_info(event, item)
+                self.set_expiry(item, provider)
                 all_events.append(item)
             except EmbargoedException:
                 logger.info("Ignoring embargoed event %s", event["itemId"])
@@ -262,14 +263,20 @@ class OnclusiveFeedParser(FeedParser):
         for contact_info in event.get("pressContacts"):
             item.setdefault("event_contact_info", [])
             contact_uri = "onclusive:{}".format(contact_info["pressContactID"])
-            data = {"uri": contact_uri}
+            data = {
+                "uri": contact_uri,
+                "contact_email": [],
+                "contact_phone": [],
+                "organisation": "",
+                "first_name": "",
+                "last_name": "",
+            }
+
             if contact_info.get("pressContactEmail"):
-                data.setdefault("contact_email", []).append(contact_info["pressContactEmail"])
+                data["contact_email"].append(contact_info["pressContactEmail"])
 
             if contact_info.get("pressContactTelephone"):
-                data.setdefault("contact_phone", []).append(
-                    {"number": contact_info["pressContactTelephone"], "public": True}
-                )
+                data["contact_phone"].append({"number": contact_info["pressContactTelephone"], "public": True})
 
             if contact_info.get("pressContactOffice"):
                 data["organisation"] = contact_info["pressContactOffice"]
@@ -285,7 +292,6 @@ class OnclusiveFeedParser(FeedParser):
 
             existing_contact = get_resource_service("contacts").find_one(req=None, uri=contact_uri)
             if existing_contact is None:
-                logger.debug("New contact %s %s", contact_uri, data.get("organisation"))
                 data.update(
                     {
                         "is_active": True,
@@ -295,7 +301,14 @@ class OnclusiveFeedParser(FeedParser):
                 get_resource_service("contacts").post([data])
                 item["event_contact_info"].append(bson.ObjectId(data["_id"]))
             else:
-                logger.debug("Existing contact %s %s", contact_uri, data.get("organisation"))
                 existing_contact_id = bson.ObjectId(existing_contact["_id"])
                 get_resource_service("contacts").patch(existing_contact_id, data)
                 item["event_contact_info"].append(existing_contact_id)
+
+    def set_expiry(self, event, provider) -> None:
+        expiry_minutes = (
+            int(provider.get("content_expiry") if provider else 0)
+            or int(app.config.get("INGEST_EXPIRY_MINUTES", 0))
+            or (60 * 24)
+        )
+        event["expiry"] = event["dates"]["end"] + datetime.timedelta(minutes=(expiry_minutes))
