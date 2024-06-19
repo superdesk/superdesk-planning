@@ -10,7 +10,7 @@ import {
 import {EventItem, EventItemWithPlanning} from '../Events';
 import {PlanningItem} from '../Planning';
 
-import {ITEM_TYPE, EVENTS, PLANNING, MAIN, CLICK_DELAY} from '../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING, CLICK_DELAY} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
 import {planningApi} from '../../superdeskApi';
 
@@ -244,7 +244,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            if (eventUtils.eventHasPlanning(item) && activeFilter === MAIN.FILTERS.COMBINED) {
+            if (eventUtils.eventHasPlanning(item)) {
                 return (
                     <EventItemWithPlanning
                         eventProps={eventProps}

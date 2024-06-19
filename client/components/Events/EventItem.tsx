@@ -167,7 +167,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
-        const showRelatedPlanningLink = activeFilter === PLANNING_VIEW.COMBINED && hasPlanning;
         let borderState: 'locked' | 'active' | false = false;
 
         if (isItemLocked) {
@@ -258,7 +257,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                         {secondaryFields.includes('files') && renderFields('files', item)}
 
 
-                        {(showRelatedPlanningLink) && (
+                        {(hasPlanning) && (
                             <span
                                 className="sd-overflow-ellipsis sd-list-item__element-lm-10"
                             >

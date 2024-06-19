@@ -240,7 +240,6 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
                 expanded={this.state.openPlanningItems}
                 nestedChildren={getPlannings(eventProps.item)}
                 noMarginTop={this.props.listViewType === LIST_VIEW_TYPE.LIST}
-                refNode={this.props.refNode}
             />
         );
     }
