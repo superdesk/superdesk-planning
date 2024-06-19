@@ -2,33 +2,42 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {cloneDeep, isEqual} from 'lodash';
 
-import {IEventItem, IPlanningItem, IEventUpdateMethod, IEmbeddedCoverageItem} from '../../../interfaces';
+import {
+    IEmbeddedCoverageItem,
+    IEventFormProfile,
+    IEventItem,
+    IEventUpdateMethod,
+    IPlanningItem,
+    PREVIEW_PANEL,
+} from '../../../interfaces';
 
 import {planningApi} from '../../../superdeskApi';
 import * as actions from '../../../actions';
-import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EVENTS, TEMP_ID_PREFIX} from '../../../constants';
-import {EventScheduleSummary} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
-import {onItemActionModalHide, IModalProps} from './utils';
+import {IModalProps, onItemActionModalHide} from './utils';
 import {storedPlannings} from '../../../selectors/planning';
+import {eventProfile} from '../../../selectors/forms';
 
-import {Row} from '../../UI/Preview';
-import {Select, Option} from 'superdesk-ui-framework/react';
+import {ContentDivider, Heading, Option, Select, Text, FormLabel} from 'superdesk-ui-framework/react';
 import {PlanningMetaData} from '../../RelatedPlannings/PlanningMetaData';
+import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../../fields';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import '../style.scss';
 
 interface IOwnProps {
     original: IEventItem;
     updates: Partial<IEventItem>;
-    submitting: boolean;
     modalProps: IModalProps;
-    enableSaveInModal(): void;
-    resolve(item?: IEventItem): void;
+    enableSaveInModal?(): void;
+    resolve?(item?: IEventItem): void;
+    onEventUpdateMethodChange?(option: IEventUpdateMethod): void;
+    onPlanningUpdateMethodChange?(planningId: IPlanningItem['_id'], updateMethod: IEventUpdateMethod): void;
 }
 
 interface IStateProps {
     originalPlanningItems: {[planningId: string]: IPlanningItem};
+    eventProfile: IEventFormProfile;
 }
 
 interface IDispatchProps {
@@ -39,13 +48,8 @@ interface IDispatchProps {
 type IProps = IOwnProps & IStateProps & IDispatchProps;
 type IPlanningEmbeddedCoverageMap = {[planningId: string]: {[coverageId: string]: IEmbeddedCoverageItem}};
 
-interface IRecurringItemUpdateMethodOption {
-    name: string;
-    value: IEventUpdateMethod;
-}
-
 interface IState {
-    eventUpdateMethod: IRecurringItemUpdateMethodOption;
+    eventUpdateMethod: IEventUpdateMethod;
     relatedEvents: Array<IEventItem>;
     relatedPlannings: Array<IPlanningItem>;
     posting: boolean;
@@ -60,7 +64,7 @@ function eventWasUpdated(original: IEventItem, updates: Partial<IEventItem>): bo
     const originalItem = eventUtils.modifyForServer(cloneDeep(original));
     const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
     const eventFields = Object.keys(eventUpdates).filter(
-        (field) => !['update_method', 'dates'].includes(field)
+        (field) => !['update_method', 'dates', 'associated_plannings'].includes(field)
     );
 
     return eventFields.length > 0;
@@ -134,12 +138,12 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                 ) :
                 this.props.original;
 
-            relatedEvents = event._events;
+            relatedEvents = event._events || [];
             relatedPlannings = posting ? [] : event._relatedPlannings;
         }
 
         this.state = {
-            eventUpdateMethod: EVENTS.UPDATE_METHODS[0],
+            eventUpdateMethod: EVENTS.UPDATE_METHODS[0].value,
             relatedEvents: relatedEvents,
             relatedPlannings: relatedPlannings,
             posting: posting,
@@ -158,22 +162,27 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
     }
 
     componentDidMount() {
-        // Enable save so that the user can update just this event.
-        this.props.enableSaveInModal();
+        if (this.props.enableSaveInModal != null) {
+            // Enable save so that the user can update just this event.
+            this.props.enableSaveInModal();
+        }
     }
 
-    onEventUpdateMethodChange(field, option) {
+    onEventUpdateMethodChange(updateMethod: IEventUpdateMethod) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
             this.props.original,
-            option,
+            {value: updateMethod, name: updateMethod},
             true
         );
 
         this.setState({
-            eventUpdateMethod: option,
-            relatedEvents: event._events,
+            eventUpdateMethod: updateMethod,
+            relatedEvents: event._events || [],
             relatedPlannings: this.state.posting ? [] : event._relatedPlannings,
         });
+        if (this.props.onEventUpdateMethodChange != null) {
+            this.props.onEventUpdateMethodChange(updateMethod);
+        }
     }
 
     submit() {
@@ -191,20 +200,163 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
         return this.props.onSubmit(this.props.original, updates);
     }
 
-    renderPlanningCreateForm() {
-        if (this.state.recurringPlanningItemsToCreate.length > 0) {
-            return this.props.updates.associated_plannings
-                .filter((planningItem) => (
-                    this.state.recurringPlanningItemsToCreate.includes(planningItem._id)
-                ))
-                .map((planningItem) => (
-                    <div key={planningItem._id}>
+    renderModifiedPlanningItems() {
+        const planningsToCreate = (this.props.updates.associated_plannings || [])
+            .filter((planningItem) => (
+                this.state.recurringPlanningItemsToCreate.includes(planningItem._id)
+            ));
+        const planningsToUpdate = (this.props.updates.associated_plannings || [])
+            .filter((planningItem) => (
+                this.state.recurringPlanningItemsToUpdate.includes(planningItem._id)
+            ));
+
+        if (planningsToCreate.length === 0 && planningsToUpdate.length === 0) {
+            return null;
+        }
+
+        return (
+            <React.Fragment>
+                <Heading type="h3" className="mb-1 sd-text--strong">
+                    {gettext('Related Planning(s)')}
+                </Heading>
+                {planningsToCreate.map((item, index) => (
+                    this.renderPlanningItem(item, false, index === planningsToCreate.length - 1)
+                ))}
+                {planningsToCreate.length === 0 || planningsToUpdate.length === 0 ? null : (
+                    <ContentDivider type="dashed" margin="small" />
+                )}
+                {planningsToUpdate.map((item, index) => (
+                    this.renderPlanningItem(item, true, index === planningsToUpdate.length - 1)
+                ))}
+            </React.Fragment>
+        );
+    }
+
+    renderPlanningItem(item: Partial<IPlanningItem>, planningExists: boolean, lastItem: boolean) {
+        return (
+            <React.Fragment>
+                <Text size="small" className="mb-1">
+                    {planningExists === true ? (
+                        <React.Fragment>
+                            <strong>
+                                {gettext('You made changes to this planning item that is part of a recurring event.')}
+                            </strong>
+                            &nbsp;{gettext('Apply the changes to all recurring planning items or just this one?')}
+                        </React.Fragment>
+                    ) : (
+                        <React.Fragment>
+                            <strong>
+                                {gettext('You are creating a new planning item.')}
+                            </strong>
+                            &nbsp;{gettext('Add this item to all recurring events or just this one?')}
+                        </React.Fragment>
+                    )}
+                </Text>
+                <PlanningMetaData plan={item} />
+                <Select
+                    label={planningExists === true ?
+                        gettext('Update all recurring planning or just this one?') :
+                        gettext('Create planning for all events or just this one?')
+                    }
+                    labelHidden={true}
+                    inlineLabel={true}
+                    value={this.state.planningUpdateMethods[item._id] ?? EVENTS.UPDATE_METHODS[0].value}
+                    onChange={(updateMethod) => {
+                        this.onPlanningUpdateMethodChange(item._id, updateMethod as IEventUpdateMethod);
+                    }}
+                >
+                    <Option value={EVENTS.UPDATE_METHODS[0].value}>
+                        {planningExists === true ?
+                            gettext('This planning only') :
+                            gettext('This event only')
+                        }
+                    </Option>
+                    <Option value={EVENTS.UPDATE_METHODS[1].value}>
+                        {planningExists === true ?
+                            gettext('This and all future planning') :
+                            gettext('This and all future events')
+                        }
+                    </Option>
+                    <Option value={EVENTS.UPDATE_METHODS[2].value}>
+                        {planningExists === true ?
+                            gettext('All planning') :
+                            gettext('All Events')
+                        }
+                    </Option>
+                </Select>
+                {lastItem === true ? null : (
+                    <ContentDivider type="dashed" margin="small" />
+                )}
+            </React.Fragment>
+        );
+    }
+
+    onPlanningUpdateMethodChange(planningId: IPlanningItem['_id'], updateMethod: IEventUpdateMethod) {
+        this.setState((prevState) => ({
+            planningUpdateMethods: {
+                ...prevState.planningUpdateMethods,
+                [planningId]: updateMethod,
+            },
+        }));
+        if (this.props.onPlanningUpdateMethodChange != null) {
+            this.props.onPlanningUpdateMethodChange(planningId, updateMethod);
+        }
+    }
+
+    render() {
+        const {original} = this.props;
+        const isRecurring = !!original.recurrence_id;
+        const eventsInUse = this.state.relatedEvents.filter((e) => (
+            (e.planning_ids?.length ?? 0) > 0 || e.pubstatus != null
+        ));
+        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
+
+        return (
+            <React.Fragment>
+                <ul className="simple-list simple-list--dotted pb--0">
+                    {renderGroupedFieldsForPanel(
+                        'simple-preview',
+                        previewGroupToProfile(PREVIEW_PANEL.EVENT, this.props.eventProfile, false),
+                        {
+                            item: {
+                                ...this.props.original,
+                                ...this.props.updates,
+                            },
+                            language: this.props.updates.language ??
+                                this.props.original.language ??
+                                getUserInterfaceLanguageFromCV(),
+                            useFormLabelAndText: true,
+                            schema: this.props.eventProfile.schema,
+                            profile: this.props.eventProfile,
+                            addContentDivider: true,
+                        },
+                        {},
+                    )}
+                    {this.state.eventModified === false || isRecurring !== true ? null : (
+                        <React.Fragment>
+                            <div>
+                                <FormLabel text={gettext('No. of Events')} />
+                                <Text size="small" weight="medium">
+                                    {numEvents}
+                                </Text>
+                            </div>
+                            <ContentDivider type="dashed" margin="x-small" />
+                        </React.Fragment>
+                    )}
+                </ul>
+
+                {this.state.eventModified === false ? null : (
+                    <React.Fragment>
+                        <Text size="small" className="mb-1 mt-0-5">
+                            <strong>{gettext('This is a recurring event.')}</strong>
+                            {gettext('Update all recurring events or just this one?')}
+                        </Text>
                         <Select
-                            label={gettext('Create planning for all events or just this one?')}
-                            value={this.state.planningUpdateMethods[planningItem._id] ?? EVENTS.UPDATE_METHODS[0].value}
-                            onChange={(updateMethod) => {
-                                this.onPlanningUpdateMethodChange(planningItem._id, updateMethod as IEventUpdateMethod);
-                            }}
+                            label={gettext('Update all recurring events or just this one?')}
+                            labelHidden={true}
+                            inlineLabel={true}
+                            value={this.state.eventUpdateMethod}
+                            onChange={this.onEventUpdateMethodChange}
                         >
                             <Option value={EVENTS.UPDATE_METHODS[0].value}>
                                 {gettext('This event only')}
@@ -216,110 +368,9 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                                 {gettext('All Events')}
                             </Option>
                         </Select>
-                        <PlanningMetaData plan={planningItem} />
-                    </div>
-                ));
-        }
-
-        return null;
-    }
-
-    renderPlanningUpdateForm() {
-        if (this.state.recurringPlanningItemsToUpdate.length > 0) {
-            return this.props.updates.associated_plannings
-                .filter((planningItem) => (
-                    this.state.recurringPlanningItemsToUpdate.includes(planningItem._id)
-                ))
-                .map((planningItem) => (
-                    <div key={planningItem._id}>
-                        <Select
-                            label={gettext('Update all recurring planning or just this one?')}
-                            value={this.state.planningUpdateMethods[planningItem._id] ?? EVENTS.UPDATE_METHODS[0].value}
-                            onChange={(updateMethod) => {
-                                this.onPlanningUpdateMethodChange(planningItem._id, updateMethod as IEventUpdateMethod);
-                            }}
-                        >
-                            <Option value={EVENTS.UPDATE_METHODS[0].value}>
-                                {gettext('This planning only')}
-                            </Option>
-                            <Option value={EVENTS.UPDATE_METHODS[1].value}>
-                                {gettext('This and all future planning')}
-                            </Option>
-                            <Option value={EVENTS.UPDATE_METHODS[2].value}>
-                                {gettext('All planning')}
-                            </Option>
-                        </Select>
-                        <PlanningMetaData plan={planningItem} />
-                    </div>
-                ));
-        }
-
-        return null;
-    }
-
-    onPlanningUpdateMethodChange(planningId: string, updateMethod: IEventUpdateMethod) {
-        this.setState((prevState) => ({
-            planningUpdateMethods: {
-                ...prevState.planningUpdateMethods,
-                [planningId]: updateMethod,
-            },
-        }));
-    }
-
-    render() {
-        const {original, submitting} = this.props;
-        const isRecurring = !!original.recurrence_id;
-        const eventsInUse = this.state.relatedEvents.filter((e) => (
-            (e.planning_ids?.length ?? 0) > 0 || e.pubstatus != null
-        ));
-        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
-
-        return (
-            <React.Fragment>
-                {this.state.eventModified === false ? null : (
-                    <div className="MetadataView">
-                        <Row
-                            enabled={!!original.slugline}
-                            label={gettext('Slugline')}
-                            value={original.slugline || ''}
-                            noPadding={true}
-                            className="slugline"
-                        />
-
-                        <Row
-                            label={gettext('Name')}
-                            value={original.name || ''}
-                            noPadding={true}
-                            className="strong"
-                        />
-
-                        <EventScheduleSummary
-                            event={original}
-                            forUpdating={true}
-                            useEventTimezone={true}
-                        />
-
-                        <Row
-                            enabled={isRecurring}
-                            label={gettext('No. of Events')}
-                            value={numEvents}
-                            noPadding={true}
-                        />
-
-                        <UpdateMethodSelection
-                            value={this.state.eventUpdateMethod}
-                            onChange={this.onEventUpdateMethodChange}
-                            showMethodSelection={isRecurring}
-                            updateMethodLabel={gettext('Update all recurring events or just this one?')}
-                            showSpace={false}
-                            readOnly={submitting}
-                            action="unpost"
-                            relatedPlannings={this.state.relatedPlannings}
-                        />
-                    </div>
+                    </React.Fragment>
                 )}
-                {this.renderPlanningCreateForm()}
-                {this.renderPlanningUpdateForm()}
+                {this.renderModifiedPlanningItems()}
             </React.Fragment>
         );
     }
@@ -327,6 +378,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
 
 const mapStateToProps = (state) => ({
     originalPlanningItems: storedPlannings(state),
+    eventProfile: eventProfile(state),
 });
 
 const mapDispatchToProps = (dispatch: any, ownProps: IOwnProps) => ({
@@ -337,7 +389,7 @@ const mapDispatchToProps = (dispatch: any, ownProps: IOwnProps) => ({
                     planningApi.locks.unlockItem(savedItem);
                 }
 
-                if (ownProps.resolve) {
+                if (ownProps.resolve != null) {
                     ownProps.resolve(savedItem);
                 }
             })

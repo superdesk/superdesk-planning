@@ -1357,11 +1357,13 @@ function convertCoverageToEventEmbedded(coverage: IPlanningCoverageItem): IEmbed
     return {
         coverage_id: coverage.coverage_id,
         g2_content_type: coverage.planning.g2_content_type,
-        desk: coverage.assigned_to.desk,
-        user: coverage.assigned_to.user,
+        desk: coverage.assigned_to?.desk,
+        user: coverage.assigned_to?.user,
         language: coverage.planning.language,
-        news_coverage_status: coverage.news_coverage_status.qcode,
-        scheduled: coverage.planning.scheduled,
+        news_coverage_status: coverage.news_coverage_status?.qcode ?? 'ncostat:int',
+        scheduled: coverage.planning.scheduled != null ?
+            moment(coverage.planning.scheduled).toDate() :
+            undefined,
         genre: coverage.planning.genre?.qcode,
         slugline: coverage.planning.slugline,
         headline: coverage.planning.headline,

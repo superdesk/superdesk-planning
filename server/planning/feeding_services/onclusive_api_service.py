@@ -109,8 +109,6 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                 update["tokens"]["import_finished"] = None
                 update["tokens"]["date"] = ""
 
-            reingesting = update["tokens"].get("reingesting")
-
             if update["tokens"].get("import_finished"):
                 # populate it for cases when import was done before we introduced the field
                 update["tokens"].setdefault("next_start", update["tokens"]["import_finished"] - timedelta(hours=5))
@@ -157,15 +155,12 @@ class OnclusiveApiService(HTTPFeedingServiceBase):
                     logger.info("Onclusive returned %d items", len(items))
                     for item in items:
                         item.setdefault("language", self.language)
-                        if reingesting:
-                            item["versioncreated"] += timedelta(seconds=1)  # bump versioncreated to trigger an update
                     if items:
                         yield items
                     update["tokens"][iterations_param] = i
                 else:
                     # there was no break so we are done
                     update["tokens"]["import_finished"] = utcnow()
-                    update["tokens"]["reingesting"] = False
             except SoftTimeLimitExceeded:
                 logger.warning("stopped due to time limit, tokens=%s", update["tokens"])
 
