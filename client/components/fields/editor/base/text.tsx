@@ -102,7 +102,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         const currentValue = this.props.item[this.props.field];
 
         callback(this.state.suggestions.filter(
-            (name) => name.toLowerCase().includes(searchString.toLowerCase())
+            (name) => name.toLowerCase().includes(searchString.toLowerCase()),
         ));
 
         // eslint-disable-next-line no-empty-function
