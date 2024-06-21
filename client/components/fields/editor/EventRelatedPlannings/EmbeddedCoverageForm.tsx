@@ -204,7 +204,6 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
                         <List.Row>
                             <Row>
                                 <Select
-                                    key={this.state.selectedDeskId}
                                     label={gettext('Language:')}
                                     value={language}
                                     onChange={(item) => this.onLanguageChange(item)}
