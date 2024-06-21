@@ -86,15 +86,6 @@ interface IState {
     selectedDeskId?: string;
 }
 
-const propertiesToFilterUsersBy = [
-    'username',
-    'display_name',
-    'first_name',
-    'last_name',
-    'email',
-    'sign_off',
-];
-
 export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, IState> {
     constructor(props) {
         super(props);
@@ -199,25 +190,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
                         >
                             <SelectUser
                                 key={this.state.selectedDeskId}
-                                getItems={(searchString) => {
-                                    const getFilteredUsers = (users: Array<IUser>) => {
-                                        return users.filter((user) =>
-                                            propertiesToFilterUsersBy.some((filterProp) => {
-                                                if (user[filterProp]?.toLowerCase().includes(searchString.toLowerCase())) {
-                                                    return true;
-                                                }
-
-                                                return false;
-                                            }),
-                                        )
-                                    };
-
-                                    if (searchString === '' || searchString == null) {
-                                        return Promise.resolve(this.state.userList);
-                                    }
-
-                                    return Promise.resolve(getFilteredUsers(this.state.userList));
-                                }}
+                                deskId={this.state.selectedDeskId}
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);
                                 }}
