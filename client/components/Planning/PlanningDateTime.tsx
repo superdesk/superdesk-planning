@@ -15,6 +15,7 @@ export const PlanningDateTime = ({
     contentTypes,
     includeScheduledUpdates,
     contacts,
+    filterLanguage,
 }) => {
     const coverages = get(item, 'coverages', []);
     const coverageTypes = planningUtils.mapCoverageByDate(coverages);
@@ -22,6 +23,11 @@ export const PlanningDateTime = ({
     const isSameDay = (scheduled) => scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
     const coverageToDisplay = coverageTypes.filter((coverage) => {
         const scheduled = get(coverage, 'planning.scheduled');
+
+        // Display only the coverages that match the active filter language
+        if (filterLanguage !== '' && filterLanguage != null && coverage.planning.language != filterLanguage) {
+            return false;
+        }
 
         if (includeScheduledUpdates && get(coverage, 'scheduled_updates.length') > 0) {
             for (let i = 0; i < coverage.scheduled_updates.length; i++) {

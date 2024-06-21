@@ -11,8 +11,10 @@ export const coverages = ({
     activeFilter,
     contentTypes,
     contacts,
+    filterLanguage,
 }) => (
     <PlanningDateTime
+        filterLanguage={filterLanguage}
         item={item}
         date={date}
         users={users}
