@@ -189,7 +189,6 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
                             style={{padding: '2rem 0'}}
                         >
                             <SelectUser
-                                key={this.state.selectedDeskId}
                                 deskId={this.state.selectedDeskId}
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);
