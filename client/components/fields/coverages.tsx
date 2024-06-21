@@ -35,4 +35,5 @@ coverages.propTypes = {
     activeFilter: PropTypes.string,
     contentTypes: PropTypes.array,
     contacts: PropTypes.object,
+    filterLanguage: PropTypes.string,
 };

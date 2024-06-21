@@ -1,10 +1,23 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import moment from 'moment';
 import {planningUtils} from '../../utils/index';
 import {MAIN} from '../../constants';
 import {CoverageIcons} from '../Coverages/CoverageIcons';
+import {IDesk, IUser} from 'superdesk-api';
+import {IPlanningItem} from 'interfaces';
+
+interface IProps {
+    item: IPlanningItem;
+    date?: string;
+    users?: Array<IUser>;
+    desks?: Array<IDesk>;
+    activeFilter?: string;
+    contentTypes?: Array<any>;
+    includeScheduledUpdates?: boolean;
+    contacts?: any;
+    filterLanguage?: string;
+}
 
 export const PlanningDateTime = ({
     item,
@@ -16,7 +29,7 @@ export const PlanningDateTime = ({
     includeScheduledUpdates,
     contacts,
     filterLanguage,
-}) => {
+}: IProps) => {
     const coverages = get(item, 'coverages', []);
     const coverageTypes = planningUtils.mapCoverageByDate(coverages);
     const hasAssociatedEvent = !!get(item, 'event_item');
@@ -58,15 +71,4 @@ export const PlanningDateTime = ({
             contentTypes={contentTypes}
         />
     );
-};
-
-PlanningDateTime.propTypes = {
-    item: PropTypes.object.isRequired,
-    date: PropTypes.string,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    activeFilter: PropTypes.string,
-    contentTypes: PropTypes.array,
-    includeScheduledUpdates: PropTypes.bool,
-    contacts: PropTypes.object,
 };
