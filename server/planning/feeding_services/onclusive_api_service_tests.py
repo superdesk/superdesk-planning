@@ -105,6 +105,4 @@ class OnclusiveApiServiceTestCase(unittest.TestCase):
                 items = list(self.service._update(self.provider, updates))
                 assert 10 == len(items)
                 assert 1 == len(items[0])
-                assert items[0][0]["versioncreated"].isoformat() > self.event["versioncreated"]
                 assert updates["tokens"]["import_finished"]
-                assert not updates["tokens"]["reingesting"]

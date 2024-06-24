@@ -97,16 +97,22 @@ class OnclusiveFeedParserTestCase(TestCase):
 
         data = deepcopy(self.data)
         data["pressContacts"][0]["pressContactEmail"] = "foo@example.com"
+        data["pressContacts"][0].pop("pressContactTelephone")
+        data["pressContacts"][0]["pressContactName"] = "Foo Bar"
         item = OnclusiveFeedParser().parse([data])[0]
         self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())
         self.assertEqual(["foo@example.com"], contact["contact_email"])
+        self.assertEqual([], contact["contact_phone"])
+        self.assertEqual("Foo", contact["first_name"])
 
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
-        [data][0]["isProvisional"] = True
+        data["isProvisional"] = True
         item = OnclusiveFeedParser().parse([data])[0]
         self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos3")
+
+        self.assertGreater(item["expiry"], item["dates"]["end"])
 
     def test_content_no_time(self):
         data = self.data.copy()

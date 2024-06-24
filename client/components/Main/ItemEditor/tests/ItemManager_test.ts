@@ -1391,6 +1391,7 @@ describe('components.Main.ItemManager', () => {
                 updateMethod: EVENTS.UPDATE_METHODS[0],
                 closeAfter: false,
                 updateStates: true,
+                planningUpdateMethods: {},
             }]);
         });
 
@@ -1404,6 +1405,7 @@ describe('components.Main.ItemManager', () => {
                 updateMethod: EVENTS.UPDATE_METHODS[0],
                 closeAfter: false,
                 updateStates: true,
+                planningUpdateMethods: {},
             }]);
         });
 
