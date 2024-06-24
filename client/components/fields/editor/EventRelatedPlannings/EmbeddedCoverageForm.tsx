@@ -194,7 +194,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);
                                 }}
-                                selectedUserId={coverage.user?._id}
+                                selectedUserId={coverage.user?._id ?? null}
                                 autoFocus={false}
                                 horizontalSpacing={true}
                                 clearable={true}
