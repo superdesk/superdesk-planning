@@ -111,7 +111,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
         };
 
         if ((this.props.coverage.language ?? '').length < 1) {
-            updates.language = newDesk?.desk_language;
+            updates.language = newDesk?.desk_language ?? null;
         }
 
         this.setState({
