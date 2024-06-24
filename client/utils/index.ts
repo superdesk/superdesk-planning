@@ -545,6 +545,7 @@ export const getUsersForDesk = (desk, globalUserList = []) => {
     if (!desk) return globalUserList;
 
     const deskMembersSet = new Set(desk.members.map((member) => member.user));
+
     return globalUserList.filter(({_id}) => deskMembersSet.has(_id));
 };
 
