@@ -107,6 +107,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
         const updates: Partial<ICoverageDetails> = {
             desk: newDesk,
             filteredUsers: getUsersForDesk(newDesk, this.props.users),
+            user: null,
         };
 
         if ((this.props.coverage.language ?? '').length < 1) {
@@ -193,6 +194,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);
                                 }}
+                                selectedUserId={coverage.user?._id}
                                 autoFocus={false}
                                 horizontalSpacing={true}
                                 clearable={true}
