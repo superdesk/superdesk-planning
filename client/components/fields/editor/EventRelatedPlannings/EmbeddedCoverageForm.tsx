@@ -81,9 +81,19 @@ function getLanguagesForCoverage(
     };
 }
 
-export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
+interface IState {
+    userList: Array<IUser>;
+    selectedDeskId?: string;
+}
+
+export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, IState> {
     constructor(props) {
         super(props);
+
+        this.state = {
+            userList: this.props.users,
+            selectedDeskId: null,
+        };
 
         this.onDeskChange = this.onDeskChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
@@ -92,16 +102,22 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
     }
 
     onDeskChange(deskId?: IDesk['_id']) {
-        const newDesk = deskId == null ? null : this.props.desks.find((desk) => desk._id === deskId);
+        const newDesk = deskId == null || deskId == '' ? null : this.props.desks.find((desk) => desk._id === deskId);
 
         const updates: Partial<ICoverageDetails> = {
             desk: newDesk,
             filteredUsers: getUsersForDesk(newDesk, this.props.users),
+            user: null,
         };
 
         if ((this.props.coverage.language ?? '').length < 1) {
-            updates.language = newDesk.desk_language;
+            updates.language = newDesk?.desk_language ?? null;
         }
+
+        this.setState({
+            selectedDeskId: deskId,
+            userList: updates.filteredUsers,
+        });
 
         this.props.update(updates);
     }
@@ -155,7 +171,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                                 error={this.props.errors?.desk}
                             >
                                 <Option />
-                                {coverage.filteredDesks.map(
+                                {this.props.desks.map(
                                     (desk) => (
                                         <Option
                                             key={desk._id}
@@ -174,9 +190,11 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                             style={{padding: '2rem 0'}}
                         >
                             <SelectUser
+                                deskId={this.state.selectedDeskId}
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);
                                 }}
+                                selectedUserId={coverage.user?._id ?? null}
                                 autoFocus={false}
                                 horizontalSpacing={true}
                                 clearable={true}
@@ -191,7 +209,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps> {
                                     value={language}
                                     onChange={(item) => this.onLanguageChange(item)}
                                 >
-                                    <Option />
+                                    <Option value={null} />
                                     {allLanguages.map(
                                         (language) => (
                                             <Option
