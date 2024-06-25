@@ -286,6 +286,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             activeFilter,
                             contentTypes,
                             contacts,
+                            filterLanguage,
                         })}
                     </Row>
                 </Column>

@@ -544,8 +544,9 @@ export const getItemsById = (ids, items) => (
 export const getUsersForDesk = (desk, globalUserList = []) => {
     if (!desk) return globalUserList;
 
-    return globalUserList.filter((user) =>
-        map(desk.members, 'user').indexOf(user._id) !== -1);
+    const deskMembersSet = new Set((desk.members ?? []).map((member) => member.user));
+
+    return globalUserList.filter(({_id}) => deskMembersSet.has(_id));
 };
 
 export const getDesksForUser = (user, desksList = []) => {

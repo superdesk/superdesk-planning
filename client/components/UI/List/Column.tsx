@@ -7,7 +7,26 @@ import classNames from 'classnames';
  * @name Column
  * @description Column Component of a list item
  */
-export const Column = ({children, grow, border, noPadding, hasCheck, checked, className}) => (
+
+interface IProps {
+    children: Array<JSX.Element> | JSX.Element;
+    grow?: boolean;
+    border?: boolean;
+    noPadding?: boolean;
+    hasCheck?: boolean;
+    checked?: boolean;
+    className?: string;
+}
+
+export const Column = ({
+    children,
+    grow = false,
+    border = true,
+    noPadding = false,
+    hasCheck = false,
+    checked,
+    className,
+}: IProps) => (
     <div
         className={classNames(
             'sd-list-item__column',
@@ -24,20 +43,3 @@ export const Column = ({children, grow, border, noPadding, hasCheck, checked, cl
         {children}
     </div>
 );
-
-Column.propTypes = {
-    children: PropTypes.node.isRequired,
-    grow: PropTypes.bool,
-    border: PropTypes.bool,
-    noPadding: PropTypes.bool,
-    hasCheck: PropTypes.bool,
-    checked: PropTypes.bool,
-    className: PropTypes.string,
-};
-
-Column.defaultProps = {
-    grow: false,
-    border: true,
-    noPadding: false,
-    hasCheck: false,
-};
