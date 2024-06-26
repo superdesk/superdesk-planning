@@ -40,7 +40,7 @@ interface IStateProps {
     users: Array<IUser>;
     desks: Array<IDesk>;
     planningItem?: IPlanningItem;
-    eventItem?: IEventItem;
+    eventItems?: Array<IEventItem>;
 
     priorities: Array<IAssignmentPriority>;
     privileges: {[key: string]: number};
@@ -125,7 +125,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
             users,
             desks,
             planningItem,
-            eventItem,
+            eventItems,
             priorities,
             formProfile,
             hideAvatar,
@@ -190,26 +190,30 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                     />
                 </ContentBlock>
 
-                {eventItem && (
-                    <div className="sd-padding--2 sd-padding-b--0">
-                        <PreviewFieldRelatedArticles
-                            item={eventItem}
-                            languageFilter={assignment.planning.language}
-                        />
-                    </div>
+                {(eventItems?.length ?? 0) > 0 && (
+                    eventItems.map((eventItem) => (
+                        <div className="sd-padding--2 sd-padding-b--0">
+                            <PreviewFieldRelatedArticles
+                                item={eventItem}
+                                languageFilter={assignment.planning.language}
+                            />
+                        </div>
+                    ))
                 )}
 
-                {eventItem && (
+                {(eventItems?.length ?? 0) > 0 && (
                     <ContentBlock className="AssignmentPreview__event" padSmall={true}>
                         <h3 className="side-panel__heading side-panel__heading--big">
-                            {gettext('Associated Event')}
+                            {gettext('Associated Events')}
                         </h3>
-                        <EventMetadata
-                            event={eventItem}
-                            createUploadLink={getFileDownloadURL}
-                            files={files}
-                            hideEditIcon={true}
-                        />
+                        {eventItems.map((eventItem) => (
+                            <EventMetadata
+                                event={eventItem}
+                                createUploadLink={getFileDownloadURL}
+                                files={files}
+                                hideEditIcon={true}
+                            />
+                        ))}
                     </ContentBlock>
                 )}
 
@@ -241,7 +245,7 @@ const mapStateToProps = (state) => ({
     desks: selectors.general.desks(state),
 
     planningItem: selectors.getCurrentAssignmentPlanningItem(state),
-    eventItem: selectors.getCurrentAssignmentEventItem(state),
+    eventItems: selectors.getCurrentAssignmentEventItems(state),
 
     priorities: get(state, 'vocabularies.assignment_priority'),
     privileges: selectors.general.privileges(state),

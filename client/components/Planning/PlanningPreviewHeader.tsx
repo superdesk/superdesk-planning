@@ -122,7 +122,7 @@ PlanningPreviewHeaderComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     item: selectors.planning.currentPlanning(state),
-    event: selectors.events.planningWithEventDetails(state),
+    event: selectors.events.getRelatedEventsForPlanning(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),

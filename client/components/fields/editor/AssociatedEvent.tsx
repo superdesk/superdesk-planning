@@ -9,7 +9,7 @@ import * as selectors from '../../../selectors';
 import {EventMetadata} from '../../Events';
 
 interface IProps extends IEditorFieldProps {
-    event?: IEventItem;
+    events?: Array<IEventItem>;
     lockedItems: ILockedItems;
     files: Array<IFile>;
     tabEnabled?: boolean; // defaults to true
@@ -22,22 +22,21 @@ const mapStateToProps = (state) => ({
 
 class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
     render() {
-        return this.props.event == null ? null : (
+        return (this.props.events?.length ?? 0) < 1? null : this.props.events.map((event) => (
             <EventMetadata
                 ref={this.props.refNode}
-                testId={this.props.testId}
-                event={this.props.event}
-                lockedItems={this.props.lockedItems}
+                testId={`${this.props.testId}--${event._id}`}
+                event={event}
                 navigation={{}}
                 createUploadLink={getFileDownloadURL}
                 files={this.props.files}
                 tabEnabled={this.props.tabEnabled ?? true}
             />
-        );
+        ));
     }
 }
 
-export const EditorFieldAssociatedEvent = connect(
+export const EditorFieldAssociatedEvents = connect(
     mapStateToProps,
     null,
     null,

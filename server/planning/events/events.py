@@ -747,6 +747,7 @@ class EventsService(superdesk.Service):
         event_id = event[config.ID_FIELD]
         planning_item = planning_service.find_one(req=None, _id=plan_id)
 
+        print(planning_item.get("related_events"))
         updates = {"related_events": planning_item.get("related_events") or []}
         related_planning = PlanningRelatedEventLink(_id=event_id, link_type=link_type)
         updates["related_events"].append(related_planning)
