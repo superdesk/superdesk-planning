@@ -13,7 +13,12 @@ Feature: Assignment content
                 "data": {
                   "profile": "#content_types._id#",
                   "slugline": "Foo",
-                  "headline": "Headline From Template"
+                  "headline": "Headline From Template",
+                  "subject": [
+                    {"name": "Template subject", "qcode": "template", "scheme": "templatecv"},
+                    {"name": "Conflict", "qcode": "conflict", "scheme": "shared"},
+                    {"name": "Single A", "qcode": "singlea", "scheme": "single"}
+                  ]
                 }
             }
         ]
@@ -50,7 +55,8 @@ Feature: Assignment content
                     {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
                         "label": "On request"}
                 ]
-            }
+            },
+            {"_id": "single", "selection_type": "single selection"}
         ]
         """
         When we post to "/planning"
@@ -59,7 +65,13 @@ Feature: Assignment content
             {
                 "item_class": "item class value",
                 "slugline": "test slugline",
-                "planning_date": "2016-01-02"
+                "planning_date": "2016-01-02",
+                "subject": [
+                    {"name": "Planning subject", "qcode": "planning", "scheme": "planning-cv"},
+                    {"name": "Conflict", "qcode": "conflict", "scheme": "shared"},
+                    {"name": "Extra", "qcode": "extra", "scheme": "shared"},
+                    {"name": "Single B", "qcode": "singleb", "scheme": "single"}
+                ]
             }
         ]
         """
@@ -188,7 +200,7 @@ Feature: Assignment content
 
     @auth
     @vocabularies
-    Scenario: Create content with headline and abstract derived from the Assignment
+    Scenario: Create content will inherit metadata from template and assignment
         When we patch "/planning/#planning._id#"
         """
         {
@@ -243,7 +255,14 @@ Feature: Assignment content
             "headline": "Headline From Template",
             "abstract": "<p>test description</p>",
             "profile": "#content_types._id#",
-            "flags": {"marked_for_not_publication": false, "overide_auto_assign_to_workflow": "__no_value__"}
+            "flags": {"marked_for_not_publication": false, "overide_auto_assign_to_workflow": "__no_value__"},
+            "subject": [
+                {"name": "Template subject", "qcode": "template", "scheme": "templatecv"},
+                {"name": "Planning subject", "qcode": "planning", "scheme": "planning-cv"},
+                {"name": "Conflict", "qcode": "conflict", "scheme": "shared"},
+                {"name": "Extra", "qcode": "extra", "scheme": "shared"},
+                {"name": "Single A", "qcode": "singlea", "scheme": "single"}
+            ]
         }
         """
 

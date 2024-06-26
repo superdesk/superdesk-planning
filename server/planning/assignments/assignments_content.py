@@ -35,7 +35,7 @@ from planning.archive import create_item_from_template
 from planning.signals import assignment_content_create
 
 
-FIELDS_TO_COPY = ("anpa_category", "subject", "urgency", "place")
+FIELDS_TO_COPY = ("anpa_category", "urgency", "place")
 FIELDS_TO_OVERRIDE = [
     "urgency",
     "slugline",
@@ -89,6 +89,8 @@ def get_item_from_assignment(assignment, template=None):
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
                     item[field] = deepcopy(planning[field])
+
+                merge_subject(item, planning)
 
             if assignment.get("description_text"):
                 item["abstract"] = "<p>{}</p>".format(assignment["description_text"])
@@ -321,3 +323,26 @@ class AssignmentsContentResource(Resource):
     item_methods = []
 
     privileges = {"POST": "archive"}
+
+
+def merge_subject(item, planning):
+    vocabularies = get_resource_service("vocabularies").get_from_mongo(
+        req=None, lookup={"selection_type": "single selection"}, projection={"_id": 1}
+    )
+    single_value_vocabularies = set([v["_id"] for v in vocabularies])
+    subject = item.setdefault("subject", [])
+    if planning.get("subject"):
+        for s in planning["subject"]:
+            if s.get("scheme") in single_value_vocabularies:
+                if find_subject(subject, s.get("scheme")):
+                    continue
+            elif find_subject(subject, s.get("scheme"), s.get("qcode")):
+                continue
+
+            subject.append(s)
+
+
+def find_subject(subject, scheme, qcode=None):
+    for s in subject:
+        if s.get("scheme") == scheme and (qcode is None or s.get("qcode") == qcode):
+            return s
