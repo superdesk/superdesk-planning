@@ -18,6 +18,12 @@ Feature: Assignment content
                     {"name": "Template subject", "qcode": "template", "scheme": "templatecv"},
                     {"name": "Conflict", "qcode": "conflict", "scheme": "shared"},
                     {"name": "Single A", "qcode": "singlea", "scheme": "single"}
+                  ],
+                  "place": [
+                    {"name": "from template", "qcode": "123"}
+                  ],
+                  "anpa_category": [
+                    {"name": "from template", "qcode": "cata"}
                   ]
                 }
             }
@@ -71,6 +77,12 @@ Feature: Assignment content
                     {"name": "Conflict", "qcode": "conflict", "scheme": "shared"},
                     {"name": "Extra", "qcode": "extra", "scheme": "shared"},
                     {"name": "Single B", "qcode": "singleb", "scheme": "single"}
+                ],
+                "place": [
+                    {"name": "from planning", "qcode": "345"}
+                ],
+                "anpa_category": [
+                    {"name": "from planning", "qcode": "catb"}
                 ]
             }
         ]
@@ -262,6 +274,14 @@ Feature: Assignment content
                 {"name": "Conflict", "qcode": "conflict", "scheme": "shared"},
                 {"name": "Extra", "qcode": "extra", "scheme": "shared"},
                 {"name": "Single A", "qcode": "singlea", "scheme": "single"}
+            ],
+            "place": [
+                {"name": "from template", "qcode": "123"},
+                {"name": "from planning", "qcode": "345"}
+            ],
+            "anpa_category": [
+                {"name": "from template", "qcode": "cata"},
+                {"name": "from planning", "qcode": "catb"}
             ]
         }
         """
