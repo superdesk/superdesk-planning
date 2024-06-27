@@ -32,7 +32,7 @@ import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../fields';
-import {getRelatedEventIdsForPlanning} from 'utils/planning';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 interface IProps {
     item: IPlanningItem;
@@ -218,7 +218,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                             key={`related_event--${relatedEvent._id}`}
                             event={relatedEvent}
                             dateOnly={true}
-                            onEditEvent={onEditEvent.bind(null, event)}
+                            onEditEvent={onEditEvent.bind(null, relatedEvent)}
                             createUploadLink={getFileDownloadURL}
                             files={files}
                             hideEditIcon={hideEditIcon}
