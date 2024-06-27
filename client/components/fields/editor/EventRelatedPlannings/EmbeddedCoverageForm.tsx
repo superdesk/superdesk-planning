@@ -82,7 +82,6 @@ function getLanguagesForCoverage(
 }
 
 interface IState {
-    userList: Array<IUser>;
     selectedDeskId?: string;
 }
 
@@ -91,7 +90,6 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
         super(props);
 
         this.state = {
-            userList: this.props.users,
             selectedDeskId: null,
         };
 
@@ -102,7 +100,9 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
     }
 
     onDeskChange(deskId?: IDesk['_id']) {
-        const newDesk = deskId == null || deskId == '' ? null : this.props.desks.find((desk) => desk._id === deskId);
+        const newDesk = deskId == null || deskId == ''
+            ? null
+            : this.props.desks.find((desk) => desk._id === deskId);
 
         const updates: Partial<ICoverageDetails> = {
             desk: newDesk,
@@ -113,11 +113,6 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
         if ((this.props.coverage.language ?? '').length < 1) {
             updates.language = newDesk?.desk_language ?? null;
         }
-
-        this.setState({
-            selectedDeskId: deskId,
-            userList: updates.filteredUsers,
-        });
 
         this.props.update(updates);
     }
@@ -190,7 +185,7 @@ export class EmbeddedCoverageFormComponent extends React.PureComponent<IProps, I
                             style={{padding: '2rem 0'}}
                         >
                             <SelectUser
-                                deskId={this.state.selectedDeskId}
+                                deskId={coverage.desk?._id}
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);
                                 }}
