@@ -35,14 +35,13 @@ from planning.archive import create_item_from_template
 from planning.signals import assignment_content_create
 
 
-FIELDS_TO_COPY = ("anpa_category", "subject", "urgency", "place")
+FIELDS_TO_COPY = ("urgency",)
 FIELDS_TO_OVERRIDE = [
     "urgency",
     "slugline",
     "ednote",
     "abstract",
     "headline",
-    "ednote",
     "language",
 ]
 
@@ -89,6 +88,10 @@ def get_item_from_assignment(assignment, template=None):
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
                     item[field] = deepcopy(planning[field])
+
+                merge_subject(item, planning)
+                merge_list("place", item, planning)
+                merge_list("anpa_category", item, planning)
 
             if assignment.get("description_text"):
                 item["abstract"] = "<p>{}</p>".format(assignment["description_text"])
@@ -321,3 +324,36 @@ class AssignmentsContentResource(Resource):
     item_methods = []
 
     privileges = {"POST": "archive"}
+
+
+def merge_subject(item, planning):
+    if not planning.get("subject"):
+        return
+    subject = item.setdefault("subject", [])
+    vocabularies = get_resource_service("vocabularies").get_from_mongo(
+        req=None, lookup={"selection_type": "single selection"}, projection={"_id": 1}
+    )
+    single_value_vocabularies = set([v["_id"] for v in vocabularies])
+    for s in planning["subject"]:
+        if s.get("scheme") in single_value_vocabularies:
+            if find_subject(subject, s.get("scheme")):
+                continue
+        elif find_subject(subject, s.get("scheme"), s.get("qcode")):
+            continue
+
+        subject.append(s)
+
+
+def merge_list(field, item, planning):
+    if not planning.get(field):
+        return
+    item_values = item.setdefault(field, [])
+    for value in planning.get(field):
+        if value.get("qcode") not in set([v.get("qcode") for v in item_values]):
+            item_values.append(value)
+
+
+def find_subject(subject, scheme, qcode=None):
+    for s in subject:
+        if s.get("scheme") == scheme and (qcode is None or s.get("qcode") == qcode):
+            return s
