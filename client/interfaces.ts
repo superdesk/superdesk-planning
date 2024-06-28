@@ -398,7 +398,7 @@ export interface IItemAction {
     icon?: string;
     inactive?: boolean;
     text?: string;
-    callback?(...args: Array<any>): void;
+    callback: Array<IItemAction> | (() => void);
 }
 
 export interface IItemSubActions {
