@@ -28,6 +28,7 @@ import {ITEM_TYPE} from '../../constants';
 
 import {ListPanel} from '../../components/Main';
 import {PlanningListSubNav} from './PlanningListSubNav';
+import moment from 'moment';
 
 interface IProps {
     groups: Array<{
@@ -185,7 +186,14 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             <React.Fragment>
                 <PlanningListSubNav />
                 <ListPanel
-                    groups={groups}
+                    groups={groups.filter((group) => {
+                        const groupDateToMoment = moment(group.date);
+                        const dateFilter = currentSearch.advancedSearch?.dates?.start;
+
+                        return dateFilter != null
+                            ? groupDateToMoment.isSameOrAfter(dateFilter)
+                            : false;
+                    })}
                     onItemClick={openPreview}
                     onDoubleClick={edit}
                     agendas={agendas}
