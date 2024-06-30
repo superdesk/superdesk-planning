@@ -11,6 +11,7 @@ import {
     IPlanningCoverageItem,
     IIngestProvider,
     IFeaturedPlanningItem,
+    IEventItem,
 } from '../interfaces';
 import {IUser} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
@@ -451,7 +452,7 @@ export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
 export const isAssignment = (item) => getItemType(item) === ITEM_TYPE.ASSIGNMENT;
 export const isItemExpired = (item) => get(item, 'expired') || false;
 
-export const isItemReadOnly = (item, session, privileges, lockedItems, associatedEvent) => {
+export const isItemReadOnly = (item, session, privileges, lockedItems, associatedEvents: Array<IEventItem>) => {
     const existingItem = isExistingItem(item);
     const itemLock = lockUtils.getLock(item, lockedItems);
     const isLockRestricted = lockUtils.isLockRestricted(
@@ -471,7 +472,7 @@ export const isItemReadOnly = (item, session, privileges, lockedItems, associate
     } else if (itemType === ITEM_TYPE.PLANNING) {
         canEdit = planningUtils.canEditPlanning(
             item,
-            associatedEvent,
+            associatedEvents,
             session,
             privileges,
             lockedItems

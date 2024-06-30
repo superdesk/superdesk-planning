@@ -150,6 +150,10 @@ export const planningWithEventDetails = createSelector<
     }
 );
 
+/**
+ * @deprecated
+ * TODO: use {@link planningEditAssociatedEvents}
+ */
 export const planningEditAssociatedEvent = createSelector<
     IPlanningAppState,
     IEventOrPlanningItem | null,
@@ -168,6 +172,29 @@ export const planningEditAssociatedEvent = createSelector<
     }
 );
 
+export const planningEditAssociatedEvents = createSelector<
+    IPlanningAppState,
+    IEventOrPlanningItem | null,
+    {[eventId: string]: IEventItem},
+    Array<IEventItem> | null
+>(
+    [currentItem, storedEvents],
+    (item, events) => {
+        if (item == null || item.type === 'event') {
+            return null;
+        }
+
+        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
+
+        return relatedEventIds.length < 1 ? null : relatedEventIds.map((id) =>  events[id]);
+    }
+);
+
+/**
+ * @deprecated
+ *
+ * TODO: to be replaced with {@link planningEditAssociatedEventsModal}
+ */
 export const planningEditAssociatedEventModal = createSelector<
     IPlanningAppState,
     IEventOrPlanningItem | null,
@@ -183,6 +210,24 @@ export const planningEditAssociatedEventModal = createSelector<
         const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
 
         return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
+    }
+);
+
+export const planningEditAssociatedEventsModal = createSelector<
+    IPlanningAppState,
+    IEventOrPlanningItem | null,
+    {[eventId: string]: IEventItem},
+    Array<IEventItem> | null
+>(
+    [currentItemModal, storedEvents],
+    (item, events) => {
+        if (item == null || item.type === 'event') {
+            return null;
+        }
+
+        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
+
+        return relatedEventIds.length < 1 ? null : relatedEventIds.map((id) =>  events[id]);
     }
 );
 

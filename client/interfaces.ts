@@ -1965,6 +1965,7 @@ export interface IEditorProps {
     preferredCoverageDesks: {[key: string]: string};
     associatedPlannings?: Array<IPlanningItem>;
     associatedEvent?: IEventItem;
+    associatedEvents?: Array<IEventItem>;
     currentWorkspace: string;
     editorType: EDITOR_TYPE;
     groups: Array<IEditorFormGroup>;

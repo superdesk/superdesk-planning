@@ -22,8 +22,50 @@ import {StretchBar} from '../../UI/SubNav';
 import {LockContainer, ItemIcon} from '../../index';
 import {EditorItemActions} from './index';
 import {ButtonGroup} from 'superdesk-ui-framework';
+import {IEditorProps, IEditorState, ILockedItems, IPrivileges, ISession} from 'interfaces';
+import {IUser} from 'superdesk-api';
+import {ItemManager} from './ItemManager';
+import {AutoSave} from './AutoSave';
 
-export class EditorHeader extends React.Component {
+interface IProps {
+    diff: IEditorState['diff'];
+    initialValues: IEditorState['initialValues'];
+    cancel(): void;
+    minimize(): void;
+    submitting: boolean;
+    dirty: boolean;
+    errors: IEditorState['errors'];
+    session: ISession;
+    privileges: IPrivileges;
+    contentTypes: IEditorProps['contentTypes'];
+    lockedItems: ILockedItems;
+    openCancelModal: IEditorProps['openCancelModal'];
+    closeEditorAndOpenModal(): Promise<any>;
+    users: Array<IUser>;
+    itemActions: IEditorProps['itemActions'];
+    itemType: IEditorProps['itemType'];
+    addNewsItemToPlanning: IEditorProps['addNewsItemToPlanning'];
+    showUnlock: IEditorProps['showUnlock'];
+    createAndPost: IEditorProps['createAndPost'];
+    hideItemActions: IEditorProps['hideItemActions'];
+    hideMinimize: IEditorProps['hideMinimize'];
+    hideExternalEdit: IEditorProps['hideExternalEdit'];
+
+    /**
+     * @deprecated
+     */
+    associatedEvent: IEditorProps['associatedEvent'];
+
+    associatedEvents: IEditorProps['associatedEvents'];
+    associatedPlannings: IEditorProps['associatedPlannings'];
+
+    loading: boolean;
+    itemManager: ItemManager;
+    autoSave: AutoSave;
+    itemAction: IEditorProps['itemAction'];
+}
+
+export class EditorHeader extends React.Component<IProps> {
     constructor(props) {
         super(props);
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -107,7 +149,8 @@ export class EditorHeader extends React.Component {
             lockedItems,
             session,
             privileges,
-            associatedEvent,
+            associatedEvent, // TODO: remove
+            associatedEvents,
             addNewsItemToPlanning,
             diff,
         } = this.props;
@@ -133,9 +176,9 @@ export class EditorHeader extends React.Component {
                 states.canUnpost = planningUtils.canUnpostPlanning(initialValues,
                     associatedEvent, session, privileges, lockedItems);
                 states.canUpdate = planningUtils.canUpdatePlanning(initialValues,
-                    associatedEvent, session, privileges, lockedItems);
+                    associatedEvents, session, privileges, lockedItems);
                 states.canEdit = planningUtils.canEditPlanning(initialValues,
-                    associatedEvent, session, privileges, lockedItems);
+                    associatedEvents, session, privileges, lockedItems);
                 break;
             case 'add_to_planning':
                 states.canPost = planningUtils.canPostPlanning(
@@ -146,10 +189,10 @@ export class EditorHeader extends React.Component {
                     lockedItems
                 );
                 states.canUpdate = planningUtils.canUpdatePlanning(initialValues,
-                    associatedEvent, session, privileges, lockedItems);
+                    associatedEvents, session, privileges, lockedItems);
                 states.canEdit = planningUtils.canEditPlanning(
                     initialValues,
-                    associatedEvent,
+                    associatedEvents,
                     session,
                     privileges,
                     lockedItems
@@ -445,33 +488,3 @@ export class EditorHeader extends React.Component {
         );
     }
 }
-
-EditorHeader.propTypes = {
-    diff: PropTypes.object,
-    initialValues: PropTypes.object,
-    cancel: PropTypes.func.isRequired,
-    minimize: PropTypes.func.isRequired,
-    submitting: PropTypes.bool.isRequired,
-    dirty: PropTypes.bool.isRequired,
-    errors: PropTypes.object,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    lockedItems: PropTypes.object,
-    openCancelModal: PropTypes.func.isRequired,
-    users: PropTypes.array,
-    itemActions: PropTypes.object,
-    itemType: PropTypes.string,
-    addNewsItemToPlanning: PropTypes.object,
-    showUnlock: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    hideMinimize: PropTypes.bool,
-    createAndPost: PropTypes.bool,
-    closeEditorAndOpenModal: PropTypes.func,
-    hideExternalEdit: PropTypes.bool,
-    contentTypes: PropTypes.array,
-    associatedEvent: PropTypes.object,
-    itemManager: PropTypes.object,
-    autoSave: PropTypes.object,
-    loading: PropTypes.bool,
-    itemAction: PropTypes.string,
-};

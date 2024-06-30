@@ -73,7 +73,7 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
             session,
             privileges,
             lockedItems,
-            associatedEvent,
+            associatedEvents,
         } = getProps();
         const {initialValues} = getState();
 
@@ -82,7 +82,7 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
             session,
             privileges,
             lockedItems,
-            associatedEvent
+            associatedEvents,
         );
     }
 

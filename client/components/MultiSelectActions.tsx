@@ -8,6 +8,7 @@ import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {Button} from './UI';
+import {IEventItem} from 'interfaces';
 
 export class MultiSelectActionsComponent extends React.PureComponent {
     constructor(props) {
@@ -81,7 +82,15 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         const showUnspike = every(
             selectedPlannings,
-            (plan) => planningUtils.canUnspikePlanning(plan, plan.event, privileges)
+            (planningItem) => {
+                /**
+                 * TODO: RELATED_EVENTS - planningItem only has one event; think how to handle this properly.
+                 * I'm simply wrapping into an array for now so it doesn't block further work.
+                 */
+                const events: Array<IEventItem> = [planningItem.event];
+
+                return planningUtils.canUnspikePlanning(planningItem, events, privileges);
+            }
         );
 
         const showExport = !some(selectedPlannings, 'flags.marked_for_not_publication');

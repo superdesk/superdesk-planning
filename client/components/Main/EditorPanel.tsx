@@ -28,7 +28,8 @@ const mapStateToProps = (state: IPlanningAppState) => ({
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     associatedPlannings: selectors.events.getRelatedPlannings(state),
-    associatedEvent: selectors.events.planningEditAssociatedEvent(state),
+    associatedEvent: selectors.events.planningEditAssociatedEvent(state), // TODO: go over usages and remove
+    associatedEvents: selectors.events.planningEditAssociatedEvents(state),
     currentWorkspace: selectors.general.currentWorkspace(state),
     defaultCalendar: selectors.events.defaultCalendarValue(state),
     defaultPlace: selectors.general.defaultPlaceList(state),
@@ -55,7 +56,8 @@ const mapStateToPropsModal = (state) => ({
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     associatedPlannings: selectors.events.getRelatedPlanningsForModalEvent(state),
-    associatedEvent: selectors.events.planningEditAssociatedEventModal(state),
+    associatedEvent: selectors.events.planningEditAssociatedEventModal(state), // TODO: go over usages and remove
+    associatedEvents: selectors.events.planningEditAssociatedEventsModal(state),
     currentWorkspace: selectors.general.currentWorkspace(state),
     defaultCalendar: selectors.events.defaultCalendarValue(state),
     defaultPlace: selectors.general.defaultPlaceList(state),

@@ -12,12 +12,12 @@ import {EventEditor} from '../../Events';
 import {PlanningEditor} from '../../Planning';
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {Content, SidePanel} from '../../UI/SidePanel';
-import {EditorHeader} from './index';
 import {HistoryTab} from '../index';
 import {EditorPopupForm} from '../../Editor/EditorPopupForm';
 
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
+import {EditorHeader} from './EditorHeader';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
@@ -423,6 +423,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
                     associatedEvent={this.props.associatedEvent}
+                    associatedEvents={this.props.associatedEvents}
                     associatedPlannings={this.props.associatedPlannings}
                     loading={this.state.loading}
                     itemManager={this.itemManager}
