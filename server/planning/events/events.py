@@ -121,7 +121,6 @@ class EventsService(superdesk.Service):
 
         for doc in docs:
             self._resolve_defaults(doc)
-            doc.pop("pubstatus", None)
             set_ingest_version_datetime(doc)
 
         self.on_create(docs)
