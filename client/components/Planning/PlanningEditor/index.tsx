@@ -500,7 +500,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         files: this.props.files,
                     },
                     associated_event: {
-                        events: (this.props.item.related_events ?? []).map((relatedEvent) => this.props.events[relatedEvent._id]),
+                        events: (this.props.item.related_events ?? [])
+                            .map((relatedEvent) => this.props.events[relatedEvent._id]),
                     },
                     coverages: {
                         onChange: this.onCoverageChange,

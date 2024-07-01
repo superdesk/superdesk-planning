@@ -22,8 +22,9 @@ const mapStateToProps = (state) => ({
 
 class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
     render() {
-        return (this.props.events?.length ?? 0) < 1? null : this.props.events.map((event) => (
+        return (this.props.events?.length ?? 0) < 1 ? null : this.props.events.map((event) => (
             <EventMetadata
+                key={event._id}
                 ref={this.props.refNode}
                 testId={`${this.props.testId}--${event._id}`}
                 event={event}

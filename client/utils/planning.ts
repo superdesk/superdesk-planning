@@ -286,7 +286,8 @@ function canAddAsEvent(
     return (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        // TODO: Add check for config option, if multiple events are allowed or not, if no, disallow after there's a primary link
+        // TODO: Add check for config option, if multiple events are allowed or not,
+        // if not, disallow after there's a primary link
         !lockUtils.isItemLocked(planning, locks) &&
         !isItemSpiked(planning) &&
         getItemWorkflowState(planning) !== WORKFLOW_STATE.KILLED &&
