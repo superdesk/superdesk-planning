@@ -207,7 +207,7 @@ events_schema = {
                 "scheme": string_with_analyzer,
                 "translations": {
                     "type": "object",
-                    "dynamic": True,
+                    "dynamic": False,
                     "properties": {"name": {"type": "object", "dynamic": True}},
                 },
             },
