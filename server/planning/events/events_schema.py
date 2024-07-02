@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import Resource
-from superdesk.resource import not_analyzed, not_enabled
+from superdesk.resource import not_analyzed, not_enabled, string_with_analyzer
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
@@ -195,7 +195,31 @@ events_schema = {
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},
     },
     # Content metadata
-    "subject": metadata_schema["subject"],
+    "subject": {
+        "type": "list",
+        "mapping": {
+            "type": "nested",
+            "include_in_parent": True,
+            "dynamic": False,
+            "properties": {
+                "qcode": string_with_analyzer,
+                "name": string_with_analyzer,
+                "scheme": string_with_analyzer,
+                "translations": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "object",
+                            "properties": {
+                                "fr": string_with_analyzer,
+                                "nl": string_with_analyzer,
+                            },
+                        }
+                    },
+                },
+            },
+        },
+    },
     "slugline": metadata_schema["slugline"],
     # Item metadata
     "location": {
