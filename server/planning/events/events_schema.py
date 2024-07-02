@@ -207,15 +207,8 @@ events_schema = {
                 "scheme": string_with_analyzer,
                 "translations": {
                     "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "object",
-                            "properties": {
-                                "fr": string_with_analyzer,
-                                "nl": string_with_analyzer,
-                            },
-                        }
-                    },
+                    "dynamic": True,
+                    "properties": {"name": {"type": "object", "dynamic": True}},
                 },
             },
         },
