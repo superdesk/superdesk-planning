@@ -139,7 +139,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         );
 
         const primaryEventId = getRelatedEventIdsForPlanning(this.props.item, 'primary')[0];
-        const primaryRelatedEvent = relatedEvents.find((relatedEvent) => relatedEvent._id === primaryEventId);
+        const primaryRelatedEvent = (relatedEvents ?? []).find((relatedEvent) => relatedEvent._id === primaryEventId);
 
         return (
             <ContentBlock noPadding={noPadding}>
