@@ -152,7 +152,7 @@ export const planningWithEventDetails = createSelector<
 
 /**
  * @deprecated
- * TODO: use {@link planningEditAssociatedEvents}
+ * PR-TODO: use {@link planningEditAssociatedEvents}
  */
 export const planningEditAssociatedEvent = createSelector<
     IPlanningAppState,
@@ -193,7 +193,7 @@ export const planningEditAssociatedEvents = createSelector<
 /**
  * @deprecated
  *
- * TODO: to be replaced with {@link planningEditAssociatedEventsModal}
+ * PR-TODO: to be replaced with {@link planningEditAssociatedEventsModal}
  */
 export const planningEditAssociatedEventModal = createSelector<
     IPlanningAppState,

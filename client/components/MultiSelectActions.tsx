@@ -84,7 +84,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             selectedPlannings,
             (planningItem) => {
                 /**
-                 * TODO: RELATED_EVENTS - planningItem only has one event; think how to handle this properly.
+                 * PR-TODO: RELATED_EVENTS - planningItem only has one event; think how to handle this properly.
                  * I'm simply wrapping into an array for now so it doesn't block further work.
                  */
                 const events: Array<IEventItem> = [planningItem.event];

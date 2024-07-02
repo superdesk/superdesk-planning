@@ -149,7 +149,7 @@ export class EditorHeader extends React.Component<IProps> {
             lockedItems,
             session,
             privileges,
-            associatedEvent, // TODO: remove
+            associatedEvent, // PR-TODO: remove
             associatedEvents,
             addNewsItemToPlanning,
             diff,
