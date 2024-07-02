@@ -130,10 +130,8 @@ def get_item_from_assignment(assignment, template=None):
     content_profile_id = template["data"].get("profile", desk.get("default_content_profile", None))
     content_profile = None
     if content_profile_id:
-        content_profiles = get_resource_service("content_types").find({"_id": content_profile_id})
-        # Pop those items not in the content_profile
-        if content_profiles.count() > 0:
-            content_profile = content_profiles.next()
+        content_profile = get_resource_service("content_types").find_one(req=None, _id=content_profile_id)
+        if content_profile is not None:
             for key in content_profile.get("schema").keys():
                 if content_profile["schema"][key] is None:
                     item.pop(key, None)
