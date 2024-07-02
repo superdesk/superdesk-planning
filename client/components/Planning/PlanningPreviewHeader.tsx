@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {planningApi} from '../../superdeskApi';
@@ -10,8 +9,34 @@ import {planningUtils, lockUtils, actionUtils} from '../../utils';
 import {PLANNING, PRIVILEGES, EVENTS, ICON_COLORS} from '../../constants';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
+import {IEventItem} from 'interfaces';
 
-export class PlanningPreviewHeaderComponent extends React.Component {
+interface IOwnProps {
+    duplicateEvent(): void;
+    itemActionDispatches: any;
+    showUnlock: boolean;
+    hideItemActions: boolean;
+
+}
+
+interface IStateProps {
+    item: any;
+    events: Array<IEventItem>;
+    session: any;
+    privileges: any;
+    users: Array<any>;
+    lockedItems: any;
+    agendas: Array<any>;
+    contentTypes: Array<any>;
+}
+
+interface IDispatchProps {
+    itemActionDispatches: any;
+}
+
+type IProps = IOwnProps & IStateProps & IDispatchProps;
+
+export class PlanningPreviewHeaderComponent extends React.Component<IProps> {
     render() {
         const {
             users,
@@ -21,7 +46,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             session,
             showUnlock,
             hideItemActions,
-            event,
+            events,
             agendas,
             itemActionDispatches,
             contentTypes,
@@ -65,7 +90,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
 
         const itemActions = !hideItemActions ? planningUtils.getPlanningActions({
             item: item,
-            event: event,
+            events: events,
             session: session,
             privileges: privileges,
             lockedItems: lockedItems,
@@ -105,24 +130,9 @@ export class PlanningPreviewHeaderComponent extends React.Component {
     }
 }
 
-PlanningPreviewHeaderComponent.propTypes = {
-    item: PropTypes.object,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    users: PropTypes.array,
-    agendas: PropTypes.array,
-    lockedItems: PropTypes.object,
-    duplicateEvent: PropTypes.func,
-    event: PropTypes.object,
-    itemActionDispatches: PropTypes.object,
-    showUnlock: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    contentTypes: PropTypes.array,
-};
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state): IStateProps => ({
     item: selectors.planning.currentPlanning(state),
-    event: selectors.events.planningWithEventDetails(state),
+    events: selectors.events.planningWithEventDetails(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
@@ -131,7 +141,7 @@ const mapStateToProps = (state) => ({
     contentTypes: selectors.general.contentTypes(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch): IDispatchProps => ({
     itemActionDispatches: actionUtils.getActionDispatches({dispatch: dispatch}),
 });
 

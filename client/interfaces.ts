@@ -396,6 +396,10 @@ export function isItemAction(x: IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDE
     return x['label'] != null && x['label'] !== GENERIC_ITEM_ACTIONS.DIVIDER.label;
 }
 
+export function isMenuDivider(x: IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL): x is typeof GENERIC_ITEM_ACTIONS.DIVIDER {
+    return x['label'] != null && x['label'] === GENERIC_ITEM_ACTIONS.DIVIDER.label;
+}
+
 export interface IItemAction {
     actionName?: string;
     label: string;

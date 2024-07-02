@@ -20,7 +20,7 @@ import {
     IFeaturedPlanningItem,
     ICoverageScheduledUpdate,
     IDateTime,
-    IItemAction, IPlanningRelatedEventLink, IPlanningRelatedEventLinkType, isItemAction,
+    IItemAction, IPlanningRelatedEventLink, IPlanningRelatedEventLinkType, isItemAction, isMenuDivider,
 } from '../interfaces';
 const appConfig = config as IPlanningConfig;
 
@@ -403,11 +403,11 @@ export function isNotForPublication(plan: IPlanningItem): boolean {
 
 interface IGetPlanningActionArgs {
     item: IPlanningItem;
-    event: IEventItem | null;
+    events: Array<IEventItem> | null;
     session: ISession;
     privileges: IPrivileges;
     lockedItems: ILockedItems;
-    agendas: Array<IAgenda>
+    agendas?: Array<IAgenda>
     callBacks: {[key: string]: (...args: Array<any>) => any};
     contentTypes: Array<IG2ContentType>;
 }
@@ -415,7 +415,7 @@ interface IGetPlanningActionArgs {
 function getPlanningActions(
     {
         item,
-        event,
+        events,
         session,
         privileges,
         lockedItems,
@@ -432,7 +432,6 @@ function getPlanningActions(
     const eventActions: ReturnType<typeof getPlanningActions> = [GENERIC_ITEM_ACTIONS.DIVIDER];
 
     const isExpired = isItemExpired(item);
-    const events = [event]; // TODO: replace wrapping that's done for testing with an actual array of events
 
     function addPlanningItemAction(action: keyof typeof PLANNING.ITEM_ACTIONS, condition: () => boolean, callback?: IItemAction['callback']) {
         if (callBacks[PLANNING.ITEM_ACTIONS[action].actionName] != null && condition() === true) {
@@ -629,13 +628,12 @@ function getPlanningActions(
 /**
  * Converts output from `getPlanningActions` to `Array<IMenuItem>`
  */
-export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenuItem> {
+export function toUIFrameworkInterface(actions: Array<IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL>): Array<IMenuItem> {
     return actions
         .filter((item, index) => {
             // Trim dividers. Menu should not start or end with a divider.
             if (
-                (index === 0 && item.label === 'Divider')
-                || (index === actions.length - 1 && item.label === 'Divider')
+                isMenuDivider(item) && (index === 0 || (index === actions.length - 1))
             ) {
                 return false;
             } else {
@@ -643,7 +641,19 @@ export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenu
             }
         })
         .map((menuItemOrGroup) => {
-            if (Array.isArray(menuItemOrGroup.callback)) {
+            if (isMenuDivider(menuItemOrGroup)) {
+                var menuSeparator: IMenuItem = {
+                    separator: true,
+                };
+
+                return menuSeparator;
+            } else if (!isItemAction(menuItemOrGroup)) {
+                var menuSeparator: IMenuItem = {
+                    separator: true,
+                };
+
+                return menuSeparator;
+            } else if (Array.isArray(menuItemOrGroup.callback)) {
                 const {label, icon, callback} = menuItemOrGroup;
 
                 var menuBranch: IMenuItem = {
@@ -653,12 +663,6 @@ export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenu
                 };
 
                 return menuBranch;
-            } else if (menuItemOrGroup.label === 'Divider') {
-                var menuSeparator: IMenuItem = {
-                    separator: true,
-                };
-
-                return menuSeparator;
             } else {
                 const {label, icon, callback, inactive} = menuItemOrGroup;
 

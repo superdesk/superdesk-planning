@@ -136,7 +136,7 @@ export const planningWithEventDetails = createSelector<
     IPlanningAppState,
     IPlanningItem | null,
     {[eventId: string]: IEventItem},
-    IEventItem | null
+    Array<IEventItem> | null
 >(
     [currentPlanning, storedEvents],
     (item, events) => {
@@ -146,7 +146,7 @@ export const planningWithEventDetails = createSelector<
 
         const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
 
-        return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
+        return relatedEventIds.length > 0 ? relatedEventIds.map((id) => events[id]) : null;
     }
 );
 

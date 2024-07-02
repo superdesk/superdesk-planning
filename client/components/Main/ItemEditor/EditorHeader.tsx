@@ -434,7 +434,7 @@ export class EditorHeader extends React.Component<IProps> {
             hideExternalEdit,
             closeEditorAndOpenModal,
             contentTypes,
-            associatedEvent,
+            associatedEvents,
             loading,
             itemManager,
             autoSave,
@@ -479,7 +479,7 @@ export class EditorHeader extends React.Component<IProps> {
                         privileges={privileges}
                         lockedItems={lockedItems}
                         contentTypes={contentTypes}
-                        event={associatedEvent}
+                        events={associatedEvents}
                         itemManager={itemManager}
                         autoSave={autoSave}
                     />

@@ -12,6 +12,7 @@ import {
     IIngestProvider,
     IFeaturedPlanningItem,
     IEventItem,
+    IPlanningItem,
 } from '../interfaces';
 import {IUser} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
@@ -447,8 +448,8 @@ export const isItemPosted = (item) => [POST_STATE.USABLE, POST_STATE.CANCELLED].
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
 
-export const isEvent = (item) => getItemType(item) === ITEM_TYPE.EVENT;
-export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
+export const isEvent = (item): item is IEventItem => getItemType(item) === ITEM_TYPE.EVENT;
+export const isPlanning = (item): item is IPlanningItem => getItemType(item) === ITEM_TYPE.PLANNING;
 export const isAssignment = (item) => getItemType(item) === ITEM_TYPE.ASSIGNMENT;
 export const isItemExpired = (item) => get(item, 'expired') || false;
 

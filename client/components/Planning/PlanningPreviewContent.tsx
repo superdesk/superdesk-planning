@@ -33,30 +33,39 @@ import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../fields';
 
-interface IProps {
-    item: IPlanningItem;
-    users: Array<IUser>;
-    desks: Array<IDesk>;
-    session: ISession;
-    lockedItems: ILockedItems;
-    formProfile: IFormProfiles;
-    event?: IEventItem;
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    onEditEvent(): void; // TODO - match code
+interface IOwnProps {
     inner?: boolean;
     noPadding?: boolean;
-    fetchEventFiles(event: IEventItem): void; // TODO - match code
-    fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
     hideRelatedItems?: boolean;
-    files: Array<IFile>;
     hideEditIcon?: boolean;
-    planningAllowScheduledUpdates: boolean;
     currentCoverageId?: IPlanningCoverageItem['coverage_id'];
 }
 
-const mapStateToProps = (state, ownProps) => ({
+interface IReduxProps {
+    item: IPlanningItem;
+    events: Array<IEventItem> | null;
+    session: ISession;
+    privileges: any;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    lockedItems: ILockedItems;
+    formProfile: IFormProfiles;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    files: Array<IFile>;
+    planningAllowScheduledUpdates: boolean;
+}
+
+interface IDispatchProps {
+    onEditEvent(event: any): void; // TODO - match code
+    fetchEventFiles(event: IEventItem): void; // TODO - match code
+    fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
+}
+
+type IProps = IOwnProps & IReduxProps & IDispatchProps;
+
+const mapStateToProps = (state, ownProps): IReduxProps => ({
     item: selectors.planning.currentPlanning(state) || ownProps.item,
-    event: selectors.events.planningWithEventDetails(state),
+    events: selectors.events.planningWithEventDetails(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
@@ -68,7 +77,7 @@ const mapStateToProps = (state, ownProps) => ({
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch): IDispatchProps => ({
     onEditEvent: (event) => dispatch(actions.main.openForEdit(event)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
     fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
@@ -76,9 +85,11 @@ const mapDispatchToProps = (dispatch) => ({
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
     componentWillMount() {
+        const event = this.props.events?.[0] ?? null; // TODO: add support for multiple events
+
         // If the planning item is associated with an event, get its files
-        if (this.props.event) {
-            this.props.fetchEventFiles(this.props.event);
+        if (event) {
+            this.props.fetchEventFiles(event);
         }
 
         this.props.fetchPlanningFiles(this.props.item);
@@ -89,7 +100,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const {item,
             users,
             formProfile,
-            event,
+            events,
             desks,
             newsCoverageStatus,
             onEditEvent,
@@ -101,6 +112,9 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             files,
             planningAllowScheduledUpdates,
         } = this.props;
+
+        const event = events?.[0] ?? null; // TODO: add support for multiple events
+
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
         const creationDate = get(item, '_created');
