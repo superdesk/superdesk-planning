@@ -187,7 +187,6 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                 <PlanningListSubNav />
                 <ListPanel
                     groups={(() => {
-                        // Date filter by default has today's value
                         const dateFilter = currentSearch.advancedSearch?.dates?.start ?? moment().date();
 
                         return groups.filter((group) =>
