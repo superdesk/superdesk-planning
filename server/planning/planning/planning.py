@@ -1834,15 +1834,13 @@ planning_schema = {
     "subject": {
         "type": "list",
         "mapping": {
-            "type": "nested",
-            "include_in_parent": True,
+            "type": "object",
             "dynamic": False,
             "properties": {
                 "qcode": not_analyzed,
                 "name": {
                     "type": "string",
                     "fields": {
-                        "raw": not_analyzed,
                         "analyzed": string_with_analyzer,
                     },
                 },

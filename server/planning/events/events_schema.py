@@ -195,30 +195,7 @@ events_schema = {
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},
     },
     # Content metadata
-    "subject": {
-        "type": "list",
-        "mapping": {
-            "type": "nested",
-            "include_in_parent": True,
-            "dynamic": False,
-            "properties": {
-                "qcode": not_analyzed,
-                "name": {
-                    "type": "string",
-                    "fields": {
-                        "raw": not_analyzed,
-                        "analyzed": string_with_analyzer,
-                    },
-                },
-                "scheme": not_analyzed,
-                "translations": {
-                    "type": "object",
-                    "dynamic": False,
-                    "properties": {"name": {"type": "object", "dynamic": True}},
-                },
-            },
-        },
-    },
+    "subject": planning_schema["subject"],
     "slugline": metadata_schema["slugline"],
     # Item metadata
     "location": {
