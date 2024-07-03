@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import Resource
-from superdesk.resource import not_analyzed, not_enabled, string_with_analyzer
+from superdesk.resource import not_analyzed, not_enabled
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
