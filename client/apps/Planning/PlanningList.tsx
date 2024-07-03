@@ -187,15 +187,11 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                 <PlanningListSubNav />
                 <ListPanel
                     groups={(() => {
-                        const dateFilter = currentSearch.advancedSearch?.dates?.start;
+                        const dateFilter = currentSearch.advancedSearch?.dates?.start ?? moment().date();
 
-                        if (dateFilter != null) {
-                            return groups.filter((group) =>
-                                moment(group.date).isSameOrAfter(dateFilter),
-                            );
-                        }
-
-                        return groups;
+                        return groups.filter((group) =>
+                            moment(group.date).isSameOrAfter(dateFilter),
+                        );
                     })()}
                     onItemClick={openPreview}
                     onDoubleClick={edit}
