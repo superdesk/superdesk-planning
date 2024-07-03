@@ -422,7 +422,6 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
-                    associatedEvent={this.props.associatedEvent}
                     associatedEvents={this.props.associatedEvents}
                     associatedPlannings={this.props.associatedPlannings}
                     loading={this.state.loading}

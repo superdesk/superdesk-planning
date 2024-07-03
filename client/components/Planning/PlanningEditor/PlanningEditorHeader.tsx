@@ -56,7 +56,7 @@ class PlanningEditorHeaderComponent extends React.PureComponent<IProps> {
                         verbose={true}
                         withExpiredStatus={true}
                     />
-                    {eventUtils.isEventCompleted(event) && (
+                    {eventUtils.isEventCompleted(event) && ( // PR-DISCUSS: do we add "{{x}} of {{y}} events completed" message?
                         <Label
                             text={gettext('Event Completed')}
                             iconType="success"

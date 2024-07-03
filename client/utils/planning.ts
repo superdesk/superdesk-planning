@@ -70,31 +70,31 @@ const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
 function canPostPlanning(
     planning: IPlanningItem,
-    event: IEventItem,
+    events_: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
+    const events = events_ ?? [];
     return (
         isExistingItem(planning) &&
         !!privileges[PRIVILEGES.POST_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
-        (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
+        events.every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
         !isItemSpiked(planning) &&
-        !isItemSpiked(event) &&
+        events.every((event) => !isItemSpiked(event)) &&
         (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
-        !isItemCancelled(event) &&
+        events.every((event) => !isItemCancelled(event)) &&
         !isItemRescheduled(planning) &&
-        !isItemRescheduled(event) &&
+        events.every((event) => !isItemRescheduled(event)) &&
         !isNotForPublication(planning)
     );
 }
 
 function canUnpostPlanning(
     planning: IPlanningItem,
-    event: IEventItem,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
@@ -1294,7 +1294,7 @@ function getDefaultCoverageStatus(newsCoverageStatus: Array<IPlanningNewsCoverag
 function defaultCoverageValues(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     planningItem?: DeepPartial<IPlanningItem>,
-    eventItem?: IEventItem,
+    eventItem?: IEventItem, // PR-DISCUSS
     g2contentType?: IG2ContentType['qcode'],
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
@@ -1354,6 +1354,8 @@ function defaultCoverageValues(
         }
 
         if (eventItem && appConfig.long_event_duration_threshold > -1) {
+
+            // PR-DISCUSS: single/multi event conversion
             const duration = moment.duration({
                 from: eventItem?.dates?.start,
                 to: eventItem?.dates?.end
@@ -1580,7 +1582,7 @@ function showXMPFileUIControl(coverage: IPlanningCoverageItem): boolean {
     );
 }
 
-function duplicateCoverage(
+function duplicateCoverage( // PR-DISCUSS
     item: DeepPartial<IPlanningItem>,
     coverage: DeepPartial<IPlanningCoverageItem>,
     duplicateAs?: IG2ContentType['qcode'],
@@ -1627,6 +1629,7 @@ function duplicateCoverage(
     return diffCoverages;
 }
 
+// TODO: look into this
 export function getRelatedEventLinksForPlanning(
     plan: Partial<IPlanningItem>,
     linkType: IPlanningRelatedEventLinkType

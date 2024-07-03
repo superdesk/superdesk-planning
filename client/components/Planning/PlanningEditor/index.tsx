@@ -134,7 +134,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         });
 
         if (this.props.event != null) {
-            this.props.fetchEventFiles(this.props.event);
+            this.props.fetchEventFiles(this.props.event); // PR-DISCUSS
         }
     }
 
@@ -510,7 +510,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         addOnly: this.props.addNewsItemToPlanning != null,
                         originalCount: this.props.item?.coverages?.length ?? 0,
                         message: this.props.message,
-                        event: this.props.event,
+                        event: this.props.event, // PR-DISCUSS
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,

@@ -51,11 +51,6 @@ interface IProps {
     hideMinimize: IEditorProps['hideMinimize'];
     hideExternalEdit: IEditorProps['hideExternalEdit'];
 
-    /**
-     * @deprecated
-     */
-    associatedEvent: IEditorProps['associatedEvent'];
-
     associatedEvents: IEditorProps['associatedEvents'];
     associatedPlannings: IEditorProps['associatedPlannings'];
 
@@ -149,7 +144,6 @@ export class EditorHeader extends React.Component<IProps> {
             lockedItems,
             session,
             privileges,
-            associatedEvent, // PR-TODO: remove
             associatedEvents,
             addNewsItemToPlanning,
             diff,
@@ -172,9 +166,9 @@ export class EditorHeader extends React.Component<IProps> {
             switch (get(states, 'itemLock.action')) {
             case 'edit':
                 states.canPost = planningUtils.canPostPlanning(diff,
-                    associatedEvent, session, privileges, lockedItems);
+                    associatedEvents, session, privileges, lockedItems);
                 states.canUnpost = planningUtils.canUnpostPlanning(initialValues,
-                    associatedEvent, session, privileges, lockedItems);
+                    session, privileges, lockedItems);
                 states.canUpdate = planningUtils.canUpdatePlanning(initialValues,
                     associatedEvents, session, privileges, lockedItems);
                 states.canEdit = planningUtils.canEditPlanning(initialValues,
@@ -183,7 +177,7 @@ export class EditorHeader extends React.Component<IProps> {
             case 'add_to_planning':
                 states.canPost = planningUtils.canPostPlanning(
                     diff,
-                    associatedEvent,
+                    associatedEvents,
                     session,
                     privileges,
                     lockedItems
@@ -423,7 +417,6 @@ export class EditorHeader extends React.Component<IProps> {
 
     render() {
         const {
-            initialValues,
             minimize,
             session,
             privileges,
