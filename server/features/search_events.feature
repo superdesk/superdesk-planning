@@ -51,7 +51,7 @@ Feature: Event Search
                         "start": "2016-01-02T00:00:00+0000",
                         "end": "2016-01-03T00:00:00+0000"
                     },
-                    "subject": [{"qcode": "test qcode 2", "name": "test name"}],
+                    "subject": [{"qcode": "test qcode 2", "name": "test name", "translations": {"name": {"nl": "NL TEST"}}}],
                     "location": [{"qcode": "test qcode", "name": "test name"}],
                     "calendars": [
                         {"qcode": "entertainment", "name": "entertainment"}
@@ -222,6 +222,48 @@ Feature: Event Search
         """
         When we get "/events_planning_search?repo=events&only_future=false&priority=1"
         Then we get list with 0 items
+
+        When we get "/events_planning_search?repo=events&only_future=false&full_text=test name"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {"_id": "event_123"},
+            {"_id": "event_456"},
+            {"_id": "event_786"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&full_text=TEST NAME"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {"_id": "event_123"},
+            {"_id": "event_456"},
+            {"_id": "event_786"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&full_text=Test Name"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {"_id": "event_123"},
+            {"_id": "event_456"},
+            {"_id": "event_786"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&full_text=NL TEST"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"_id": "event_456"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&full_text=nl test"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"_id": "event_456"}
+        ]}
+        """
 
     @auth
     Scenario: Search by event specific parameters
