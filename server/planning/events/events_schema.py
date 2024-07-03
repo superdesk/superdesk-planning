@@ -202,9 +202,15 @@ events_schema = {
             "include_in_parent": True,
             "dynamic": False,
             "properties": {
-                "qcode": string_with_analyzer,
-                "name": string_with_analyzer,
-                "scheme": string_with_analyzer,
+                "qcode": not_analyzed,
+                "name": {
+                    "type": "string",
+                    "fields": {
+                        "raw": not_analyzed,
+                        "analyzed": string_with_analyzer,
+                    },
+                },
+                "scheme": not_analyzed,
                 "translations": {
                     "type": "object",
                     "dynamic": False,
