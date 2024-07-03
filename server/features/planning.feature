@@ -4323,3 +4323,43 @@ Feature: Planning
         }
         """
         Then we get OK response
+
+    @auth
+    Scenario: Planning can only have 1 primary linked event
+        Given "events"
+        """
+        [{
+            "guid": "event_1",
+            "name": "Primary Event 1",
+            "slugline": "event-1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "guid": "event_2",
+            "name": "Primary Event 2",
+            "slugline": "event-2",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        When we post to "planning"
+        """
+        {
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "planning_date": "2016-01-02".
+            "related_events": [
+                {"_id": "event_1", "link_type": "primary"},
+                {"_id": "event_2", "link_type": "primary"}
+            ]
+        }
+        """
+        Then we get error 400
