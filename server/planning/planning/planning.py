@@ -1839,7 +1839,7 @@ planning_schema = {
             "properties": {
                 "qcode": not_analyzed,
                 "name": {
-                    "type": "string",
+                    "type": "keyword",
                     "fields": {
                         "analyzed": string_with_analyzer,
                     },
