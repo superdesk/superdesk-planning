@@ -1831,7 +1831,30 @@ planning_schema = {
     "description_text": metadata_schema["description_text"],
     "internal_note": {"type": "string", "nullable": True},
     "anpa_category": metadata_schema["anpa_category"],
-    "subject": metadata_schema["subject"],
+    "subject": {
+        "type": "list",
+        "mapping": {
+            "type": "nested",
+            "include_in_parent": True,
+            "dynamic": False,
+            "properties": {
+                "qcode": not_analyzed,
+                "name": {
+                    "type": "string",
+                    "fields": {
+                        "raw": not_analyzed,
+                        "analyzed": string_with_analyzer,
+                    },
+                },
+                "scheme": not_analyzed,
+                "translations": {
+                    "type": "object",
+                    "dynamic": False,
+                    "properties": {"name": {"type": "object", "dynamic": True}},
+                },
+            },
+        },
+    },
     "genre": metadata_schema["genre"],
     "company_codes": metadata_schema["company_codes"],
     # Content Metadata - See IPTC-G2-Implementation_Guide 16.2
