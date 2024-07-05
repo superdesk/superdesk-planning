@@ -108,12 +108,14 @@ export class AssignmentsSubNavComponent extends React.Component<IProps> {
             filterByType,
             filterByPriority,
             ignoreScheduledUpdates,
+            dayField
         } = this.props;
 
         loadAssignments({
             filterBy,
             searchQuery,
             orderByField,
+            dayField,
             filterByType,
             filterByPriority,
             selectedDeskId,

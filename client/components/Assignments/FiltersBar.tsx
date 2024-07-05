@@ -1,8 +1,5 @@
 import React, {Fragment} from 'react';
-import PropTypes from 'prop-types';
-
 import {superdeskApi} from '../../superdeskApi';
-
 import {DatePicker, SubNav} from 'superdesk-ui-framework/react';
 import {StretchBar, Spacer} from '../UI/SubNav';
 import {Checkbox} from '../UI/Form';
