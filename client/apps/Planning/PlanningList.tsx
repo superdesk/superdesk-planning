@@ -191,8 +191,8 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
 
                         return groups.filter((group) => {
                             const dateStringToJSDate = new Date(group.date);
-                            dateStringToJSDate.setHours(0, 0, 0, 0);
 
+                            dateStringToJSDate.setHours(0, 0, 0, 0);
                             return dateStringToJSDate >= dateFilter;
                         });
                     })()}
