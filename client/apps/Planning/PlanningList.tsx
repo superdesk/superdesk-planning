@@ -187,7 +187,9 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                 <ListPanel
                     groups={(() => {
                         const dateFilter = currentSearch.advancedSearch?.dates?.start?.toDate()
-                            ?? new Date().setHours(0, 0, 0, 0);
+                            ?? new Date();
+
+                        dateFilter.setHours(0, 0, 0, 0);
 
                         return groups.filter((group) => {
                             const dateStringToJSDate = new Date(group.date);
