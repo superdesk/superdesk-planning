@@ -1,28 +1,43 @@
 import React, {Fragment} from 'react';
-import PropTypes from 'prop-types';
-
 import {superdeskApi} from '../../superdeskApi';
-
-import {SubNav} from 'superdesk-ui-framework/react';
+import {DatePicker, SubNav, Tooltip} from 'superdesk-ui-framework/react';
 import {StretchBar, Spacer} from '../UI/SubNav';
 import {Checkbox} from '../UI/Form';
 import {OrderFieldInput} from '../OrderBar';
 import {DesksSubnavDropdown} from './DesksSubNavDropDown';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
+interface IProps {
+    filterBy?: string;
+    myAssignmentsCount?: number;
+    orderByField?: string;
+    dayField?: string;
+    changeDayField: (value: string | null) => any;
+    changeFilter: (field: string, value: any, deskId: string) => void;
+    changeSortField: (...args: any) => any;
+    userDesks?: Array<any>;
+    selectedDeskId?: string;
+    selectAssignmentsFrom?: (...args: any) => void;
+    showDeskSelection?: boolean;
+    showAllDeskOption?: boolean;
+    showDeskAssignmentView?: boolean;
+}
 
 export const FiltersBar = ({
-    filterBy,
-    orderByField,
+    filterBy = 'Desk',
+    orderByField = 'Updated',
+    dayField,
     changeSortField,
     changeFilter,
-    myAssignmentsCount,
-    userDesks,
-    selectedDeskId,
+    changeDayField,
+    myAssignmentsCount = 0,
+    userDesks = [],
+    selectedDeskId = '',
     selectAssignmentsFrom,
-    showDeskSelection,
-    showAllDeskOption,
-    showDeskAssignmentView,
-}) => {
+    showDeskSelection = false,
+    showAllDeskOption = false,
+    showDeskAssignmentView = false,
+}: IProps) => {
     const {gettext} = superdeskApi.localization;
 
     return (
@@ -51,9 +66,11 @@ export const FiltersBar = ({
                                 labelPosition="inside"
                                 tabIndex={0}
                             />
-                            <span className="badge badge--highlight" style={{zIndex: 1005}}>
-                                {myAssignmentsCount}
-                            </span>
+                            <Tooltip text={gettext('Number of assignments in TO DO')} appendToBody>
+                                <span className="badge badge--highlight" style={{zIndex: 1005}}>
+                                    {myAssignmentsCount}
+                                </span>
+                            </Tooltip>
                         </div>
                     </Fragment>
                 ) : (
@@ -66,9 +83,21 @@ export const FiltersBar = ({
                     />
                 )}
             </StretchBar>
-
+            <DatePicker
+                label={gettext('Filter by day:')}
+                inlineLabel
+                value={dayField != null ? new Date(dayField) : null}
+                onChange={(val) => {
+                    if (val == null) {
+                        changeDayField(null);
+                    } else {
+                        changeDayField(val.toString());
+                    }
+                }}
+                dateFormat={appConfig.view.dateformat}
+                data-test-id="date-input"
+            />
             <Spacer />
-
             <div className="filter-bar__order-field">
                 <OrderFieldInput
                     value={orderByField}
@@ -84,30 +113,3 @@ export const FiltersBar = ({
         </SubNav>
     );
 };
-
-FiltersBar.propTypes = {
-    filterBy: PropTypes.string,
-    myAssignmentsCount: PropTypes.number,
-    orderByField: PropTypes.string,
-    changeFilter: PropTypes.func.isRequired,
-    changeSortField: PropTypes.func.isRequired,
-    userDesks: PropTypes.array,
-    selectedDeskId: PropTypes.string,
-    selectAssignmentsFrom: PropTypes.func,
-    showDeskSelection: PropTypes.bool,
-    showAllDeskOption: PropTypes.bool,
-    showDeskAssignmentView: PropTypes.bool,
-};
-
-FiltersBar.defaultProps = {
-    filterBy: 'Desk',
-    myAssignmentsCount: 0,
-    orderByField: 'Updated',
-    userDesks: [],
-    selectedDeskId: '',
-    workspace: '',
-    showDeskSelection: false,
-    showAllDeskOption: false,
-    showDeskAssignmentView: false,
-};
-

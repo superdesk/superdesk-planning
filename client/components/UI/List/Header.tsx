@@ -1,13 +1,19 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    title?: string;
+    id?: string;
+    marginTop?: boolean;
+    marginBottom?: boolean;
+    children?: React.ReactNode;
+}
 /**
  * @ngdoc react
  * @name Header
  * @description Header Component of a list
  */
-export const Header = ({children, title, marginTop, marginBottom, id}) => (
+export const Header = ({children, title, marginTop, marginBottom, id}: IProps) => (
     <div
         className={classNames('sd-list-header',
             {'sd-list-header--m-top': marginTop},
@@ -18,11 +24,3 @@ export const Header = ({children, title, marginTop, marginBottom, id}) => (
         {children}
     </div>
 );
-
-Header.propTypes = {
-    title: PropTypes.string,
-    id: PropTypes.string,
-    marginTop: PropTypes.bool,
-    marginBottom: PropTypes.bool,
-    children: PropTypes.node,
-};
