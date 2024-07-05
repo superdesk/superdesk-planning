@@ -21,7 +21,51 @@ const focusElement = throttle((element: HTMLElement) => {
     element.focus();
 }, 250, {leading: true});
 
-class AssignmentGroupListComponent extends React.Component {
+interface IProps {
+    filterBy?: string;
+    orderByField?: string,
+    orderDirection?: string;
+    assignments: Array<any>;
+    groupKey: string;
+    users?: Array<any>;
+    session?: any;
+    loadMoreAssignments: (groupKey: string) => any;
+    lockedItems?: any;
+    currentAssignmentId?: string;
+    reassign?: () => any;
+    completeAssignment?: () => any;
+    editAssignmentPriority?: () => any;
+    hideItemActions?: boolean;
+    privileges?: any;
+    startWorking?: () => any;
+    totalCount?: number;
+    changeAssignmentListSingleGroupView?: (groupKey: string) => any;
+    assignmentListSingleGroupView?: string;
+    preview?: () => any;
+    priorities?: Array<any>;
+    removeAssignment?: () => any;
+    openArchivePreview?: () => any;
+    revertAssignment?: () => any;
+    setMaxHeight?: boolean;
+    contentTypes?: Array<any>;
+    desks?: Array<any>;
+    groupLabel?: string;
+    groupStates?: Array<string>;
+    groupEmptyMessage?: string;
+    showCount?: boolean;
+    changeListSortOrder?: (groupKey: string, order: any, savePreferences?: boolean) => any;
+    saveSortPreferences?: boolean;
+    contacts?: any;
+    isLoading?: boolean;
+    dayField?: string;
+}
+
+interface IState {
+    isNextPageLoading: boolean;
+}
+
+class AssignmentGroupListComponent extends React.Component<IProps, IState> {
+    dom: any;
     constructor(props) {
         super(props);
         this.state = {isNextPageLoading: false};
@@ -149,7 +193,7 @@ class AssignmentGroupListComponent extends React.Component {
     }
 
     changeListOrder(order) {
-        const {changeListSortOrder, groupKey, saveSortPreferences} = this.props;
+        const {changeListSortOrder, groupKey, saveSortPreferences = true} = this.props;
 
         changeListSortOrder(groupKey, order, saveSortPreferences);
     }
@@ -206,7 +250,6 @@ class AssignmentGroupListComponent extends React.Component {
                 contentTypes={contentTypes}
                 assignedDesk={assignedDesk}
                 contacts={contacts}
-                archiveItemForAssignment={this.props.archiveItemForAssignment}
             />
         );
     }
@@ -217,10 +260,10 @@ class AssignmentGroupListComponent extends React.Component {
             assignments,
             totalCount,
             assignmentListSingleGroupView,
-            setMaxHeight,
+            setMaxHeight = true,
             groupLabel,
             groupEmptyMessage,
-            showCount,
+            showCount = true,
             changeAssignmentListSingleGroupView,
             orderDirection,
             isLoading,
@@ -229,9 +272,9 @@ class AssignmentGroupListComponent extends React.Component {
         const headingId = `heading--${this.props.groupKey}`;
         const filteredAssignments = this.props.dayField == null
             ? assignments
-            : assignments.filter((assignment) => {
-                return moment(assignment.planning.scheduled).isSameOrAfter(moment(this.props.dayField));
-            });
+            : assignments.filter((assignment) =>
+                moment(assignment.planning.scheduled).isSameOrAfter(moment(this.props.dayField)),
+            );
 
         return (
             <div data-test-id="assignment-group__list">
@@ -301,55 +344,10 @@ class AssignmentGroupListComponent extends React.Component {
     }
 }
 
-AssignmentGroupListComponent.propTypes = {
-    filterBy: PropTypes.string,
-    orderByField: PropTypes.string,
-    orderDirection: PropTypes.string,
-    assignments: PropTypes.array.isRequired,
-    groupKey: PropTypes.string.isRequired,
-    users: PropTypes.array,
-    session: PropTypes.object,
-    loadMoreAssignments: PropTypes.func.isRequired,
-    lockedItems: PropTypes.object,
-    currentAssignmentId: PropTypes.string,
-    reassign: PropTypes.func,
-    completeAssignment: PropTypes.func,
-    editAssignmentPriority: PropTypes.func,
-    hideItemActions: PropTypes.bool,
-    privileges: PropTypes.object,
-    startWorking: PropTypes.func,
-    totalCount: PropTypes.number,
-    changeAssignmentListSingleGroupView: PropTypes.func,
-    assignmentListSingleGroupView: PropTypes.string,
-    preview: PropTypes.func,
-    priorities: PropTypes.array,
-    removeAssignment: PropTypes.func,
-    openArchivePreview: PropTypes.func,
-    revertAssignment: PropTypes.func,
-    setMaxHeight: PropTypes.bool,
-    contentTypes: PropTypes.array,
-    desks: PropTypes.array,
-    groupLabel: PropTypes.string,
-    groupStates: PropTypes.arrayOf(PropTypes.string),
-    groupEmptyMessage: PropTypes.string,
-    showCount: PropTypes.bool,
-    changeListSortOrder: PropTypes.func,
-    saveSortPreferences: PropTypes.bool,
-    contacts: PropTypes.object,
-    archiveItemForAssignment: PropTypes.object,
-    isLoading: PropTypes.bool,
-};
-
-AssignmentGroupListComponent.defaultProps = {
-    setMaxHeight: true,
-    showCount: true,
-    saveSortPreferences: true,
-};
-
 const mapStateToProps = (state, ownProps) => {
     const assignmentDataSelector = selectors.getAssignmentGroupSelectors[ownProps.groupKey];
 
-    const props = {
+    return {
         dayField: selectors.getDayField(state),
         filterBy: selectors.getFilterBy(state),
         orderByField: selectors.getOrderByField(state),
@@ -368,12 +366,6 @@ const mapStateToProps = (state, ownProps) => {
         contacts: selectors.general.contactsById(state),
         isLoading: assignmentDataSelector.isLoading(state),
     };
-
-    if (assignmentsViewRequiresArchiveItems()) {
-        props.archiveItemForAssignment = selectors.getStoredArchiveItems(state);
-    }
-
-    return props;
 };
 
 const mapDispatchToProps = (dispatch) => ({

@@ -14,6 +14,7 @@ const initialState = {
     filterByType: null,
     myAssignmentsTotal: 0,
     orderByField: 'Scheduled',
+    dayField: null,
     previewOpened: false,
     readOnly: false,
     searchQuery: null,

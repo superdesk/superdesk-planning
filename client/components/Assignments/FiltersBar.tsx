@@ -26,8 +26,6 @@ interface IProps {
     showDeskAssignmentView?: boolean;
 }
 
-const DAYS_AHEAD = 6;
-
 export const FiltersBar = ({
     filterBy = 'Desk',
     orderByField = 'Updated',
@@ -87,13 +85,6 @@ export const FiltersBar = ({
                 )}
             </StretchBar>
             <DatePicker
-                minDate={new Date()}
-                maxDate={(() => {
-                    const date = new Date();
-
-                    date.setDate(date.getDate() + DAYS_AHEAD);
-                    return date;
-                })()}
                 label={gettext('Filter by day:')}
                 inlineLabel
                 value={dayField != null ? new Date(dayField) : null}
