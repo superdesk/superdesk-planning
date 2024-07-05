@@ -1,6 +1,6 @@
 import React, {Fragment} from 'react';
 import {superdeskApi} from '../../superdeskApi';
-import {DatePicker, SubNav} from 'superdesk-ui-framework/react';
+import {DatePicker, SubNav, Tooltip} from 'superdesk-ui-framework/react';
 import {StretchBar, Spacer} from '../UI/SubNav';
 import {Checkbox} from '../UI/Form';
 import {OrderFieldInput} from '../OrderBar';
@@ -66,9 +66,11 @@ export const FiltersBar = ({
                                 labelPosition="inside"
                                 tabIndex={0}
                             />
-                            <span className="badge badge--highlight" style={{zIndex: 1005}}>
-                                {myAssignmentsCount}
-                            </span>
+                            <Tooltip text={gettext('Number of assignments in TO DO')} appendToBody>
+                                <span className="badge badge--highlight" style={{zIndex: 1005}}>
+                                    {myAssignmentsCount}
+                                </span>
+                            </Tooltip>
                         </div>
                     </Fragment>
                 ) : (
