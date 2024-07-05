@@ -90,8 +90,8 @@ export const FiltersBar = ({
                 minDate={new Date()}
                 maxDate={(() => {
                     const date = new Date();
-                    date.setDate(date.getDate() + DAYS_AHEAD);
 
+                    date.setDate(date.getDate() + DAYS_AHEAD);
                     return date;
                 })()}
                 label={gettext('Filter by day:')}
@@ -101,7 +101,7 @@ export const FiltersBar = ({
                     if (val == null) {
                         changeDayField(null);
                     } else {
-                        changeDayField(val.toString())
+                        changeDayField(val.toString());
                     }
                 }}
                 dateFormat={appConfig.view.dateformat}

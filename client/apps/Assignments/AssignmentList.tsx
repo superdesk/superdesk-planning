@@ -20,7 +20,6 @@ export const AssignmentListContainer = ({
     contentTypes,
     listGroups,
     saveSortPreferences,
-    dayField,
 }) => {
     const {gettext} = superdeskApi.localization;
     const listProps = {
