@@ -6,7 +6,7 @@ interface IProps {
     id?: string;
     marginTop?: boolean;
     marginBottom?: boolean;
-    children?: JSX.Element | Array<JSX.Element>;
+    children?: React.ReactNode;
 }
 /**
  * @ngdoc react

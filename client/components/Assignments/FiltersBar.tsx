@@ -114,30 +114,3 @@ export const FiltersBar = ({
         </SubNav>
     );
 };
-
-FiltersBar.propTypes = {
-    filterBy: PropTypes.string,
-    myAssignmentsCount: PropTypes.number,
-    orderByField: PropTypes.string,
-    changeFilter: PropTypes.func.isRequired,
-    changeSortField: PropTypes.func.isRequired,
-    userDesks: PropTypes.array,
-    selectedDeskId: PropTypes.string,
-    selectAssignmentsFrom: PropTypes.func,
-    showDeskSelection: PropTypes.bool,
-    showAllDeskOption: PropTypes.bool,
-    showDeskAssignmentView: PropTypes.bool,
-};
-
-FiltersBar.defaultProps = {
-    filterBy: 'Desk',
-    myAssignmentsCount: 0,
-    orderByField: 'Updated',
-    userDesks: [],
-    selectedDeskId: '',
-    workspace: '',
-    showDeskSelection: false,
-    showAllDeskOption: false,
-    showDeskAssignmentView: false,
-};
-

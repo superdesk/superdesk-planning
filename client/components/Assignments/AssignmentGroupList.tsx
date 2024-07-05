@@ -258,7 +258,6 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
         const {
             assignments,
-            totalCount,
             assignmentListSingleGroupView,
             setMaxHeight = true,
             groupLabel,
@@ -333,7 +332,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                     )}
                     {isLoading !== true && (
                         (filteredAssignments?.length ?? 0) > 0 ? (
-                            filteredAssignments.map((assignment, index) => this.rowRenderer(index))
+                            filteredAssignments.map((_assignment, index) => this.rowRenderer(index))
                         ) : (
                             <li className="sd-list-item-group__empty-msg">{groupEmptyMessage}</li>
                         )
@@ -353,7 +352,6 @@ const mapStateToProps = (state, ownProps) => {
         orderByField: selectors.getOrderByField(state),
         orderDirection: assignmentDataSelector.sortOrder(state),
         assignments: assignmentDataSelector.assignmentsSelector(state),
-        totalCount: assignmentDataSelector.countSelector(state),
         previewOpened: selectors.getPreviewAssignmentOpened(state),
         session: selectors.general.session(state),
         users: selectors.general.users(state),

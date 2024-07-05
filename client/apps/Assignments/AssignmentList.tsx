@@ -79,7 +79,6 @@ AssignmentListContainer.defaultProps = {
 };
 
 const mapStateToProps = (state) => ({
-    dayField: selectors.getDayField(state),
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
     contentTypes: selectors.general.contentTypes(state),
     listGroups: selectors.getAssignmentGroups(state),
