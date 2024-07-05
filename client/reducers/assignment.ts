@@ -187,6 +187,11 @@ const assignmentReducer = createReducer(initialState, {
         orderByField: payload,
     }),
 
+    [ASSIGNMENTS.ACTIONS.SET_DAY_FIELD]: (state, payload) => ({
+        ...state,
+        dayField: payload,
+    }),
+
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (
         {
             ...state,

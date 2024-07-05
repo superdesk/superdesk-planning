@@ -20,6 +20,7 @@ export const AssignmentListContainer = ({
     contentTypes,
     listGroups,
     saveSortPreferences,
+    dayField,
 }) => {
     const {gettext} = superdeskApi.localization;
     const listProps = {
@@ -79,6 +80,7 @@ AssignmentListContainer.defaultProps = {
 };
 
 const mapStateToProps = (state) => ({
+    dayField: selectors.getDayField(state),
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
     contentTypes: selectors.general.contentTypes(state),
     listGroups: selectors.getAssignmentGroups(state),

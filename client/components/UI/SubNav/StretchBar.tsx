@@ -2,12 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    children: JSX.Element | Array<JSX.Element>;
+    className?: string;
+    right?: boolean;
+}
 /**
  * @ngdoc react
  * @name StretchBar
  * @description Stretch Bar of a Sub Nav bar
  */
-export const StretchBar = ({children, className, right}) => (
+export const StretchBar = ({children, className, right = false}: IProps) => (
     <div
         className={classNames(
             'subnav__stretch-bar',
@@ -18,13 +23,3 @@ export const StretchBar = ({children, className, right}) => (
         {children}
     </div>
 );
-
-StretchBar.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    right: PropTypes.bool,
-};
-
-StretchBar.defaultProps = {
-    right: false,
-};

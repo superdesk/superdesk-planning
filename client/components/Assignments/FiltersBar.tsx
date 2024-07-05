@@ -3,26 +3,46 @@ import PropTypes from 'prop-types';
 
 import {superdeskApi} from '../../superdeskApi';
 
-import {SubNav} from 'superdesk-ui-framework/react';
+import {DatePicker, SubNav} from 'superdesk-ui-framework/react';
 import {StretchBar, Spacer} from '../UI/SubNav';
 import {Checkbox} from '../UI/Form';
 import {OrderFieldInput} from '../OrderBar';
 import {DesksSubnavDropdown} from './DesksSubNavDropDown';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
+interface IProps {
+    filterBy?: string;
+    myAssignmentsCount?: number;
+    orderByField?: string;
+    dayField?: string;
+    changeDayField: (value: string | null) => any;
+    changeFilter: (field: string, value: any, deskId: string) => void;
+    changeSortField: (...args: any) => any;
+    userDesks?: Array<any>;
+    selectedDeskId?: string;
+    selectAssignmentsFrom?: (...args: any) => void;
+    showDeskSelection?: boolean;
+    showAllDeskOption?: boolean;
+    showDeskAssignmentView?: boolean;
+}
+
+const DAYS_AHEAD = 6;
 
 export const FiltersBar = ({
-    filterBy,
-    orderByField,
+    filterBy = 'Desk',
+    orderByField = 'Updated',
+    dayField,
     changeSortField,
     changeFilter,
-    myAssignmentsCount,
-    userDesks,
-    selectedDeskId,
+    changeDayField,
+    myAssignmentsCount = 0,
+    userDesks = [],
+    selectedDeskId = '',
     selectAssignmentsFrom,
-    showDeskSelection,
-    showAllDeskOption,
-    showDeskAssignmentView,
-}) => {
+    showDeskSelection = false,
+    showAllDeskOption = false,
+    showDeskAssignmentView = false,
+}: IProps) => {
     const {gettext} = superdeskApi.localization;
 
     return (
@@ -66,9 +86,28 @@ export const FiltersBar = ({
                     />
                 )}
             </StretchBar>
+            <DatePicker
+                minDate={new Date()}
+                maxDate={(() => {
+                    const date = new Date();
+                    date.setDate(date.getDate() + DAYS_AHEAD);
 
+                    return date;
+                })()}
+                label={gettext('Filter by day:')}
+                inlineLabel
+                value={dayField != null ? new Date(dayField) : null}
+                onChange={(val) => {
+                    if (val == null) {
+                        changeDayField(null);
+                    } else {
+                        changeDayField(val.toString())
+                    }
+                }}
+                dateFormat={appConfig.view.dateformat}
+                data-test-id="date-input"
+            />
             <Spacer />
-
             <div className="filter-bar__order-field">
                 <OrderFieldInput
                     value={orderByField}

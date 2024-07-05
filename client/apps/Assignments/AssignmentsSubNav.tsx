@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import * as selectors from '../../selectors';
@@ -9,7 +8,46 @@ import {WORKSPACE, ASSIGNMENTS} from '../../constants';
 import {SubNavBar, FiltersBar} from '../../components/Assignments';
 import {ArchiveItem} from '../../components/Archive';
 
-export class AssignmentsSubNavComponent extends React.Component {
+interface IReduxStateProps {
+    filterBy?: string;
+    selectedDeskId?: string;
+    currentDeskId?: string;
+    myAssignmentsCount?: number;
+    orderByField?: string;
+    dayField?: string;
+    searchQuery?: string;
+    assignmentListSingleGroupView?: string;
+    filterByType?: string;
+    filterByPriority?: string;
+    assignmentsInTodoCount?: number;
+    assignmentsInInProgressCount?: number;
+    assignmentsInCompletedCount?: number;
+    assignmentCounts?: any;
+    userDesks?: Array<any>;
+    workspace?: string;
+    listGroups?: Array<any>;
+    privileges?: any;
+}
+
+interface IReduxDispatchProps {
+    fetchMyAssignmentsCount?: () => any;
+    changeAssignmentListSingleGroupView?: (groupKey: string) => any;
+    loadAssignments: (filters: any) => any;
+    changeSortField?: (field: string, saveSortPreferences?: boolean) => any;
+    changeDayField?: (value: string) => any;
+}
+
+interface IOwnProps {
+    archiveItem?: any;
+    withArchiveItem?: boolean;
+    showAllDeskOption?: boolean;
+    saveSortPreferences?: boolean;
+    ignoreScheduledUpdates?: boolean;
+}
+
+type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
+
+export class AssignmentsSubNavComponent extends React.Component<IProps> {
     constructor(props) {
         super(props);
 
@@ -40,6 +78,7 @@ export class AssignmentsSubNavComponent extends React.Component {
         const {
             filterBy,
             orderByField,
+            dayField,
             loadAssignments,
             filterByType,
             filterByPriority,
@@ -51,6 +90,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             filterBy,
             searchQuery,
             orderByField,
+            dayField,
             filterByType,
             filterByPriority,
             selectedDeskId,
@@ -82,7 +122,7 @@ export class AssignmentsSubNavComponent extends React.Component {
     }
 
     changeSortField(field) {
-        const {changeSortField, saveSortPreferences} = this.props;
+        const {changeSortField, saveSortPreferences = true} = this.props;
 
         changeSortField(field, saveSortPreferences);
     }
@@ -102,6 +142,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             filterBy,
             myAssignmentsCount,
             orderByField,
+            dayField,
             searchQuery,
             assignmentListSingleGroupView,
             changeAssignmentListSingleGroupView,
@@ -111,8 +152,9 @@ export class AssignmentsSubNavComponent extends React.Component {
             workspace,
             userDesks,
             currentDeskId,
-            showAllDeskOption,
+            showAllDeskOption = false,
             privileges,
+            changeDayField,
         } = this.props;
 
         // Show the Desk selection if we're in Fulfil Assignment or Custom Workspace
@@ -137,6 +179,8 @@ export class AssignmentsSubNavComponent extends React.Component {
                     myAssignmentsCount={myAssignmentsCount}
                     orderByField={orderByField}
                     changeFilter={this.changeFilter}
+                    dayField={dayField}
+                    changeDayField={changeDayField}
                     selectedDeskId={selectedDeskId}
                     userDesks={showDeskSelection ? userDesks : []}
                     selectAssignmentsFrom={this.selectAssignmentsFrom}
@@ -150,46 +194,13 @@ export class AssignmentsSubNavComponent extends React.Component {
     }
 }
 
-AssignmentsSubNavComponent.propTypes = {
-    filterBy: PropTypes.string,
-    selectedDeskId: PropTypes.string,
-    myAssignmentsCount: PropTypes.number,
-    orderByField: PropTypes.string,
-    fetchMyAssignmentsCount: PropTypes.func,
-    searchQuery: PropTypes.string,
-    assignmentListSingleGroupView: PropTypes.string,
-    changeAssignmentListSingleGroupView: PropTypes.func,
-    loadAssignments: PropTypes.func.isRequired,
-    filterByType: PropTypes.string,
-    filterByPriority: PropTypes.string,
-    assignmentsInTodoCount: PropTypes.number,
-    assignmentsInInProgressCount: PropTypes.number,
-    assignmentsInCompletedCount: PropTypes.number,
-    archiveItem: PropTypes.object,
-    withArchiveItem: PropTypes.bool,
-    userDesks: PropTypes.array,
-    workspace: PropTypes.string,
-    currentDeskId: PropTypes.string,
-    listGroups: PropTypes.array,
-    assignmentCounts: PropTypes.object,
-    showAllDeskOption: PropTypes.bool,
-    changeSortField: PropTypes.func,
-    saveSortPreferences: PropTypes.bool,
-    ignoreScheduledUpdates: PropTypes.bool,
-    privileges: PropTypes.object,
-};
-
-AssignmentsSubNavComponent.defaultProps = {
-    showAllDeskOption: false,
-    saveSortPreferences: true,
-};
-
 const mapStateToProps = (state) => ({
     filterBy: selectors.getFilterBy(state),
     selectedDeskId: selectors.getSelectedDeskId(state),
     currentDeskId: selectors.general.currentDeskId(state),
     myAssignmentsCount: selectors.getMyAssignmentsCount(state),
     orderByField: selectors.getOrderByField(state),
+    dayField: selectors.getDayField(state),
 
     searchQuery: selectors.getSearchQuery(state),
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
@@ -222,12 +233,13 @@ const mapDispatchToProps = (dispatch) => ({
         )
     ),
     loadAssignments: (filters) => dispatch(actions.assignments.ui.loadAssignments(filters)),
+    changeDayField: (value) => dispatch(actions.assignments.ui.changeDayField(value)),
     changeSortField: (field, saveSortPreferences) => (
         dispatch(actions.assignments.ui.changeSortField(field, saveSortPreferences))
     ),
 });
 
-export const AssignmentsSubNav = connect(
+export const AssignmentsSubNav = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(AssignmentsSubNavComponent);

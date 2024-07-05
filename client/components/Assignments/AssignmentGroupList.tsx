@@ -15,6 +15,7 @@ import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
 import {assignmentsViewRequiresArchiveItems} from './AssignmentItem/fields';
 import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
+import moment from 'moment';
 
 const focusElement = throttle((element: HTMLElement) => {
     element.focus();
@@ -226,6 +227,11 @@ class AssignmentGroupListComponent extends React.Component {
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
         const headingId = `heading--${this.props.groupKey}`;
+        const filteredAssignments = this.props.dayField == null
+            ? assignments
+            : assignments.filter((x) => {
+                return moment(x.planning.scheduled).isSameOrAfter(moment(this.props.dayField));
+            });
 
         return (
             <div data-test-id="assignment-group__list">
@@ -248,9 +254,9 @@ class AssignmentGroupListComponent extends React.Component {
                             <div className="sd-list-header__number sd-flex-grow">
                                 <span className="a11y-only">{gettext(
                                     'Number of Assignments: ',
-                                    {count: totalCount}
+                                    {count: (filteredAssignments?.length ?? 0)}
                                 )}</span>
-                                <span className="badge">{totalCount}</span>
+                                <span className="badge">{(filteredAssignments?.length ?? 0)}</span>
                             </div>
                         )}
 
@@ -283,8 +289,8 @@ class AssignmentGroupListComponent extends React.Component {
                         <ListItemLoader />
                     )}
                     {isLoading !== true && (
-                        get(assignments, 'length', 0) > 0 ? (
-                            assignments.map((assignment, index) => this.rowRenderer(index))
+                        (filteredAssignments?.length ?? 0) > 0 ? (
+                            filteredAssignments.map((assignment, index) => this.rowRenderer(index))
                         ) : (
                             <li className="sd-list-item-group__empty-msg">{groupEmptyMessage}</li>
                         )
@@ -344,6 +350,7 @@ const mapStateToProps = (state, ownProps) => {
     const assignmentDataSelector = selectors.getAssignmentGroupSelectors[ownProps.groupKey];
 
     const props = {
+        dayField: selectors.getDayField(state),
         filterBy: selectors.getFilterBy(state),
         orderByField: selectors.getOrderByField(state),
         orderDirection: assignmentDataSelector.sortOrder(state),
