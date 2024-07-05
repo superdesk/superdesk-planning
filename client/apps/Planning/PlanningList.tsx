@@ -28,7 +28,6 @@ import {ITEM_TYPE} from '../../constants';
 
 import {ListPanel} from '../../components/Main';
 import {PlanningListSubNav} from './PlanningListSubNav';
-import moment from 'moment';
 
 interface IProps {
     groups: Array<{
@@ -187,11 +186,15 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                 <PlanningListSubNav />
                 <ListPanel
                     groups={(() => {
-                        const dateFilter = currentSearch.advancedSearch?.dates?.start ?? moment().date();
+                        const dateFilter = currentSearch.advancedSearch?.dates?.start?.toDate()
+                            ?? new Date().setHours(0, 0, 0, 0);
 
-                        return groups.filter((group) =>
-                            moment(group.date).isSameOrAfter(dateFilter),
-                        );
+                        return groups.filter((group) => {
+                            const dateStringToJSDate = new Date(group.date);
+                            dateStringToJSDate.setHours(0, 0, 0, 0);
+
+                            return dateStringToJSDate >= dateFilter;
+                        });
                     })()}
                     onItemClick={openPreview}
                     onDoubleClick={edit}
