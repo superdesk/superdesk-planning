@@ -229,8 +229,8 @@ class AssignmentGroupListComponent extends React.Component {
         const headingId = `heading--${this.props.groupKey}`;
         const filteredAssignments = this.props.dayField == null
             ? assignments
-            : assignments.filter((x) => {
-                return moment(x.planning.scheduled).isSameOrAfter(moment(this.props.dayField));
+            : assignments.filter((assignment) => {
+                return moment(assignment.planning.scheduled).isSameOrAfter(moment(this.props.dayField));
             });
 
         return (
