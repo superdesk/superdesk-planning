@@ -13,7 +13,6 @@ import {assignmentUtils} from '../../utils';
 import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
-import {assignmentsViewRequiresArchiveItems} from './AssignmentItem/fields';
 import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
 import moment from 'moment';
 
