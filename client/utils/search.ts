@@ -33,7 +33,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         time_zone: timeUtils.localTimeZone(),
         anpa_category: params.advancedSearch?.anpa_category,
         date_filter: params.advancedSearch?.dates?.range,
-        start_date: params.advancedSearch?.dates?.start,
+        start_date: params.advancedSearch?.dates?.start ?? moment(),
         end_date: params.advancedSearch?.dates?.end,
         name: params.advancedSearch?.name,
         place: params.advancedSearch?.place,
