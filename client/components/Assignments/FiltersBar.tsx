@@ -84,6 +84,11 @@ export const FiltersBar = ({
                 )}
             </StretchBar>
             <DatePicker
+                headerButtonBar={[
+                    {days: 0, label: gettext('Today')},
+                    {days: 1, label: gettext('Tomorrow')},
+                    {days: 2, label: gettext('In 2 days')},
+                ]}
                 label={gettext('Filter by day:')}
                 inlineLabel
                 value={dayField != null ? new Date(dayField) : null}
