@@ -13,6 +13,7 @@ import {PlanningItem} from '../Planning';
 import {ITEM_TYPE, EVENTS, PLANNING, CLICK_DELAY} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
 import {planningApi} from '../../superdeskApi';
+import {PlanningItemWithEvents} from '../../components/Planning/PlanningItemWithEvents';
 
 interface IProps extends Omit<
     IEventListItemProps & IPlanningListItemProps,
@@ -264,10 +265,32 @@ export class ListGroupItem extends React.Component<IProps, IState> {
                 <EventItem {... eventProps} />
             );
 
-        case ITEM_TYPE.PLANNING:
-            return (
-                <PlanningItem {...planningProps} />
-            );
+        case ITEM_TYPE.PLANNING: {
+            const relatedEvents = (planningProps.item.related_events ?? []);
+
+            if (relatedEvents.length > 0) {
+                return (
+                    <PlanningItemWithEvents
+                        planningProps={planningProps}
+                        getEventProps={(event: IEventItem) => {
+                            return {
+                                ...eventProps,
+                                item: event,
+                                filterLanguage: undefined,
+                                multiSelected: false,
+                            };
+                        }}
+                        relatedEventIds={relatedEvents.map(({_id}) => _id)}
+                    />
+                );
+            } else {
+                return (
+                    <PlanningItem {...planningProps} />
+                );
+            }
+
+        }
+
         }
         return null;
     }

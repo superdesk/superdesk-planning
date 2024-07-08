@@ -917,6 +917,7 @@ export interface IBaseListItemProps<T> {
     session: ISession;
     privileges: {[key: string]: number};
     activeFilter: PLANNING_VIEW;
+    multiSelectDisabled?: boolean;
     multiSelected: boolean;
     listFields: any;
     active: boolean;
@@ -949,6 +950,10 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     contentTypes: Array<IG2ContentType>;
     contacts: {[key: string]: IContactItem};
     onAddCoverageClick(): void;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
 }
 
 export interface IDateSearchParams {
