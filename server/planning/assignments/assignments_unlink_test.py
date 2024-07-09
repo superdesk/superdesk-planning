@@ -5,12 +5,14 @@ from bson import ObjectId
 
 
 class AssignmentUnlinkTestCase(TestCase):
+    USER_ID = ObjectId("5d385f31fe985ec67a0ca583")
+
     def setUp(self):
         super().setUp()
         with self.app.app_context():
             users = [
                 {
-                    "_id": ObjectId("5d385f31fe985ec67a0ca583"),
+                    "_id": self.USER_ID,
                     "username": "admin",
                     "password": "blabla",
                     "email": "admin@example.com",
@@ -30,7 +32,7 @@ class AssignmentUnlinkTestCase(TestCase):
 
     def test_delivery_record(self):
         with self.app.app_context():
-            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
+            flask.g.user = {"_id": self.USER_ID}
             self.app.data.insert(
                 "vocabularies",
                 [
@@ -128,8 +130,8 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_all_content_updates(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
-            user_id = ObjectId("5d385f31fe985ec67a0ca583")
+            flask.g.user = {"_id": self.USER_ID}
+            user_id = self.USER_ID
             desk_id = ObjectId()
 
             # Make sure users a members of the desks
@@ -241,8 +243,8 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_properly_on_unlinking_any_update_in_chain(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
-            user_id = ObjectId("5d385f31fe985ec67a0ca583")
+            flask.g.user = {"_id": self.USER_ID}
+            user_id = self.USER_ID
             desk_id = ObjectId()
 
             # Make sure users a members of the desks
@@ -359,8 +361,8 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_archived_content(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
-            user_id = ObjectId("5d385f31fe985ec67a0ca583")
+            flask.g.user = {"_id": self.USER_ID}
+            user_id = self.USER_ID
             desk_id = ObjectId()
             self.app.data.insert(
                 "vocabularies",
