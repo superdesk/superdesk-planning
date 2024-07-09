@@ -344,15 +344,14 @@ class AssignmentsService(superdesk.Service):
         ):
             return
 
-        user = get_user()
+        assigned_to = updates.get("assigned_to", {})
 
         # No assignment notification sent if user is not enabled that notification
         if not superdesk.get_resource_service("preferences").assignment_notification_is_enabled(
-            user_id=user.get("_id")
+            user_id=assigned_to.get("user")
         ):
             return
 
-        assigned_to = updates.get("assigned_to", {})
         assignment_id = updates.get("_id") or assigned_to.get("assignment_id", "Unknown")
         if not original:
             original = {}
@@ -361,6 +360,7 @@ class AssignmentsService(superdesk.Service):
 
         if not force and not self.is_assignment_modified(updates, original):
             return
+        user = get_user()
 
         # Determine the name of the desk that the assigment has been allocated to
         assigned_to_desk = get_resource_service("desks").find_one(req=None, _id=assigned_to.get("desk"))
