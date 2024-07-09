@@ -37,6 +37,16 @@ def test_is_new_version():
 
     assert service.is_new_version(new_event, old_event)
 
+    new_event["subject"] = [{"qcode": "foo", "name": "foo", "translations": {"fr-CA": "Foo"}}]
+    old_event["subject"] = [{"qcode": "foo", "name": "foo", "translations": None}]
+
+    assert service.is_new_version(new_event, old_event)
+
+    new_event["subject"] = [{"qcode": "foo", "name": "foo", "translations": {"fr-CA": "Bar"}}]
+    old_event["subject"] = [{"qcode": "foo", "name": "foo", "translations": {"fr-CA": "Foo"}}]
+
+    assert service.is_new_version(new_event, old_event)
+
 
 def test_should_update():
     service = EventsService()
