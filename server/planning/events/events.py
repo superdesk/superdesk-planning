@@ -103,14 +103,23 @@ def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
     ]
 
 
+def get_subject_str(subject: Dict[str, str]) -> str:
+    return ":".join(
+        [
+            subject.get("name", ""),
+            subject.get("qcode", ""),
+            subject.get("scheme", ""),
+            subject.get("translations", ""),
+        ]
+    )
+
+
 def is_event_updated(new_item: Event, old_item: Event) -> bool:
     if new_item.get("name") != old_item.get("name"):
         return True
-    new_subject = set([subject.get("qcode") for subject in new_item.get("subject", [])])
-    old_subject = set([subject.get("qcode") for subject in old_item.get("subject", [])])
-    if new_subject != old_subject:
-        return True
-    return False
+    new_subject = set([get_subject_str(subject) for subject in new_item.get("subject", [])])
+    old_subject = set([get_subject_str(subject) for subject in old_item.get("subject", [])])
+    return new_subject != old_subject
 
 
 class EventsService(superdesk.Service):

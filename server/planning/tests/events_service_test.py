@@ -17,8 +17,23 @@ def test_is_new_version():
 
     assert not service.is_new_version(new_event, old_event)
 
+    new_event["subject"] = [{"qcode": "foo"}, {"qcode": "bar"}]
+    old_event["subject"] = [{"qcode": "bar"}, {"qcode": "foo"}]
+
+    assert not service.is_new_version(new_event, old_event)
+
     new_event["subject"] = [{"qcode": "foo"}]
     old_event["subject"] = [{"qcode": "bar"}]
+
+    assert service.is_new_version(new_event, old_event)
+
+    new_event["subject"] = [{"qcode": "foo", "name": "Foo"}]
+    old_event["subject"] = [{"qcode": "foo", "name": "foo"}]
+
+    assert service.is_new_version(new_event, old_event)
+
+    new_event["subject"] = [{}]
+    old_event["subject"] = [{"qcode": "foo", "name": "foo"}]
 
     assert service.is_new_version(new_event, old_event)
 
