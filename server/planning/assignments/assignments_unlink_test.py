@@ -5,9 +5,32 @@ from bson import ObjectId
 
 
 class AssignmentUnlinkTestCase(TestCase):
+    def setUp(self):
+        super().setUp()
+        with self.app.app_context():
+            users = [
+                {
+                    "_id": ObjectId("5d385f31fe985ec67a0ca583"),
+                    "username": "admin",
+                    "password": "blabla",
+                    "email": "admin@example.com",
+                    "user_type": "administrator",
+                    "is_active": True,
+                    "needs_activation": False,
+                    "is_author": True,
+                    "is_enabled": True,
+                    "display_name": "John Smith",
+                    "sign_off": "ADM",
+                    "first_name": "John",
+                    "last_name": "Smith",
+                    "role": ObjectId("5d542206c04280bc6d6157f9"),
+                }
+            ]
+            self.app.data.insert("users", users)
+
     def test_delivery_record(self):
         with self.app.app_context():
-            flask.g.user = {"_id": ObjectId()}
+            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
             self.app.data.insert(
                 "vocabularies",
                 [
@@ -105,8 +128,8 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_all_content_updates(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": ObjectId()}
-            user_id = ObjectId()
+            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
+            user_id = ObjectId("5d385f31fe985ec67a0ca583")
             desk_id = ObjectId()
 
             # Make sure users a members of the desks
@@ -218,8 +241,8 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_properly_on_unlinking_any_update_in_chain(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": ObjectId()}
-            user_id = ObjectId()
+            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
+            user_id = ObjectId("5d385f31fe985ec67a0ca583")
             desk_id = ObjectId()
 
             # Make sure users a members of the desks
@@ -336,8 +359,8 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_archived_content(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": ObjectId()}
-            user_id = ObjectId()
+            flask.g.user = {"_id": ObjectId("5d385f31fe985ec67a0ca583")}
+            user_id = ObjectId("5d385f31fe985ec67a0ca583")
             desk_id = ObjectId()
             self.app.data.insert(
                 "vocabularies",
