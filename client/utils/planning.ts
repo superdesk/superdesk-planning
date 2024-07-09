@@ -429,7 +429,6 @@ function getPlanningActions(
     }
 
     const actions: ReturnType<typeof getPlanningActions> = [];
-    const eventActions: ReturnType<typeof getPlanningActions> = [GENERIC_ITEM_ACTIONS.DIVIDER];
 
     const isExpired = isItemExpired(item);
 
@@ -440,24 +439,6 @@ function getPlanningActions(
             actions.push({
                 ...PLANNING.ITEM_ACTIONS[action],
                 callback: callback ?? getDefaultCallback(),
-            });
-        }
-    }
-
-    function addEventAction<T extends keyof typeof EVENTS.ITEM_ACTIONS>(
-        action: T,
-        condition: () => boolean,
-        callback: IItemAction['callback'],
-        actionOverwrites?: Partial<(typeof EVENTS.ITEM_ACTIONS)[T]>
-    ) {
-        // Don't include event actions if planning is spiked or expired
-        const allowEventActions = (!isItemSpiked(item) && (!isExpired || privileges[PRIVILEGES.EDIT_EXPIRED] != null)) && !isPlanAdHoc(item);
-
-        if (allowEventActions && callBacks[EVENTS.ITEM_ACTIONS[action].actionName] != null && condition() === true) {
-            eventActions.push({
-                ...PLANNING.ITEM_ACTIONS[(action as keyof typeof EVENTS.ITEM_ACTIONS)],
-                ...(actionOverwrites ?? {}),
-                callback: callback,
             });
         }
     }
@@ -553,64 +534,6 @@ function getPlanningActions(
         'ADD_TO_FEATURED',
         () => canAddFeatured(item, events, session, privileges, lockedItems),
     );
-
-    addEventAction(
-        'UPDATE_TIME',
-        () => events.some((event) => eventUtils.canUpdateEventTime(event, session, privileges, lockedItems)),
-        () => events.map((evt) => ({
-            label: evt.name,
-            callback: callBacks[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName].bind(null, evt)
-        })),
-        {
-            label: gettext('Update Event Time'),
-        },
-    );
-
-    addEventAction(
-        'RESCHEDULE_EVENT',
-        () => events.some((event) => eventUtils.canRescheduleEvent(event, session, privileges, lockedItems)),
-        () => events.map((evt) => ({
-            label: evt.name,
-            callback: callBacks[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName].bind(null, evt)
-        })),
-        {
-            label: gettext('Reschedule Event'),
-        },
-    );
-
-    addEventAction(
-        'POSTPONE_EVENT',
-        () => events.some((event) => eventUtils.canPostponeEvent(event, session, privileges, lockedItems)),
-        () => events.map((evt) => ({
-            label: evt.name,
-            callback: callBacks[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName].bind(null, evt)
-        })),
-        {
-            label: gettext('Mark Event as Postponed'),
-        },
-    );
-
-    addEventAction(
-        'CONVERT_TO_RECURRING',
-        () => events.some((event) => eventUtils.canConvertToRecurringEvent(event, session, privileges, lockedItems)),
-        () => events.map((evt) => ({
-            label: evt.name,
-            callback:callBacks[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, evt)
-        })),
-    );
-
-    addEventAction(
-        'UPDATE_REPETITIONS',
-        () => events.some((event) => eventUtils.canUpdateEventRepetitions(event, session, privileges, lockedItems)),
-        () => events.map((evt) => ({
-            label: evt.name,
-            callback: callBacks[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, evt)
-        })),
-    );
-
-    if (eventActions.length > 1) { // comparing `> 1`, because there is already a separator
-        actions.push(...eventActions);
-    }
 
     if (isEmptyActions(actions)) {
         return [];
