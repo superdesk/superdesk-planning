@@ -109,7 +109,7 @@ def get_subject_str(subject: Dict[str, str]) -> str:
             subject.get("name", ""),
             subject.get("qcode", ""),
             subject.get("scheme", ""),
-            subject.get("translations", ""),
+            str(subject.get("translations", "")),
         ]
     )
 
