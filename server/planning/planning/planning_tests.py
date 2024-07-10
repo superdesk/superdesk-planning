@@ -3,6 +3,9 @@ import pytz
 from planning.tests import TestCase
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
+from bson import ObjectId
+
+USER_ID = ObjectId("5d385f31fe985ec67a0ca583")
 
 
 class DuplicateCoverageTestCase(TestCase):
@@ -28,12 +31,33 @@ class DuplicateCoverageTestCase(TestCase):
                                 },
                                 "news_coverage_status": {"qcode": "ncostat:int"},
                                 "assigned_to": {
-                                    "user": "59f7f0881d41c88cab3f2a99",
+                                    "user": USER_ID,
                                     "desk": "desk1",
                                     "state": "in_progress",
                                 },
                             }
                         ],
+                    }
+                ],
+            )
+            self.app.data.insert(
+                "users",
+                [
+                    {
+                        "_id": USER_ID,
+                        "username": "admin",
+                        "password": "blabla",
+                        "email": "admin@example.com",
+                        "user_type": "administrator",
+                        "is_active": True,
+                        "needs_activation": False,
+                        "is_author": True,
+                        "is_enabled": True,
+                        "display_name": "John Smith",
+                        "sign_off": "ADM",
+                        "first_name": "John",
+                        "last_name": "Smith",
+                        "role": ObjectId("5d542206c04280bc6d6157f9"),
                     }
                 ],
             )
@@ -49,7 +73,7 @@ class DuplicateCoverageTestCase(TestCase):
                         "scheduled": datetime(2029, 10, 13, 15, 00, tzinfo=pytz.UTC),
                     },
                     "assigned_to": {
-                        "user": "562435231d41c835d7b5fb55",
+                        "user": USER_ID,
                         "desk": "desk2",
                         "state": "in_progress",
                     },
@@ -63,7 +87,7 @@ class DuplicateCoverageTestCase(TestCase):
 
             self.assertEqual(new_coverage["planning"]["slugline"], "new slugline")
             self.assertEqual(new_coverage["planning"]["scheduled"], datetime(2029, 10, 13, 15, 00, tzinfo=pytz.UTC))
-            self.assertEqual(new_coverage["assigned_to"]["user"], "562435231d41c835d7b5fb55")
+            self.assertEqual(new_coverage["assigned_to"]["user"], USER_ID)
             self.assertEqual(new_coverage["assigned_to"]["desk"], "desk2")
             self.assertEqual(new_coverage["assigned_to"]["state"], "in_progress")
             self.assertEqual(new_coverage["news_coverage_status"], {"qcode": "ncostat:onreq"})
