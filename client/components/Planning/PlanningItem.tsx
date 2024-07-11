@@ -130,7 +130,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         const itemActions = hideItemActions ? [] :
             planningUtils.getPlanningActionsForUiFrameworkMenu({
                 item: item,
-                events: [event], // PR-TODO: refactor to get multiple events
+                events: [event], // TAG: MULTIPLE_PRIMARY_EVENTS
                 session: session,
                 privileges: privileges,
                 lockedItems: lockedItems,

@@ -40,7 +40,7 @@ interface IProps {
     submitFailed: boolean;
     itemManager: IFormItemManager;
 
-    event?: IEventItem;
+    event?: IEventItem; // TAG: MULTIPLE_PRIMARY_EVENTS
     addNewsItemToPlanning?: IArticle;
     inModalView: boolean;
     activeNav?: string;
@@ -134,7 +134,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         });
 
         if (this.props.event != null) {
-            this.props.fetchEventFiles(this.props.event); // PR-DISCUSS
+            this.props.fetchEventFiles(this.props.event);
         }
     }
 
@@ -510,7 +510,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         addOnly: this.props.addNewsItemToPlanning != null,
                         originalCount: this.props.item?.coverages?.length ?? 0,
                         message: this.props.message,
-                        event: this.props.event, // PR-DISCUSS
+                        event: this.props.event, // TAG: MULTIPLE_PRIMARY_EVENTS
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,

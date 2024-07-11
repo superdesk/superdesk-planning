@@ -1223,7 +1223,7 @@ function getDefaultCoverageStatus(newsCoverageStatus: Array<IPlanningNewsCoverag
 function defaultCoverageValues(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     planningItem?: DeepPartial<IPlanningItem>,
-    eventItem?: IEventItem, // PR-DISCUSS
+    eventItem?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
     g2contentType?: IG2ContentType['qcode'],
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
@@ -1283,8 +1283,6 @@ function defaultCoverageValues(
         }
 
         if (eventItem && appConfig.long_event_duration_threshold > -1) {
-
-            // PR-DISCUSS: single/multi event conversion
             const duration = moment.duration({
                 from: eventItem?.dates?.start,
                 to: eventItem?.dates?.end
@@ -1511,11 +1509,11 @@ function showXMPFileUIControl(coverage: IPlanningCoverageItem): boolean {
     );
 }
 
-function duplicateCoverage( // PR-DISCUSS
+function duplicateCoverage(
     item: DeepPartial<IPlanningItem>,
     coverage: DeepPartial<IPlanningCoverageItem>,
     duplicateAs?: IG2ContentType['qcode'],
-    event?: IEventItem
+    event?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
 ): DeepPartial<IPlanningItem['coverages']> {
     const coveragePlanning: Partial<IPlanningItem> = {
         slugline: coverage.planning.slugline,

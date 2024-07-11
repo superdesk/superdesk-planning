@@ -15,7 +15,7 @@ import {FeatureLabel} from '../FeaturedPlanning';
 
 interface IProps {
     item: IPlanningItem;
-    event?: IEventItem;
+    event?: IEventItem; // TAG: MULTIPLE_PRIMARY_EVENTS
     users: Array<IUser>;
 }
 
@@ -56,7 +56,7 @@ class PlanningEditorHeaderComponent extends React.PureComponent<IProps> {
                         verbose={true}
                         withExpiredStatus={true}
                     />
-                    {eventUtils.isEventCompleted(event) && ( // PR-DISCUSS: do we add "{{x}} of {{y}} events completed" message?
+                    {eventUtils.isEventCompleted(event) && (
                         <Label
                             text={gettext('Event Completed')}
                             iconType="success"
