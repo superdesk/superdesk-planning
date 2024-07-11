@@ -68,7 +68,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             this.props.minTimeWidth !== nextProps.minTimeWidth ||
             this.props.filterLanguage !== nextProps.filterLanguage ||
             this.props.isAgendaEnabled !== nextProps.isAgendaEnabled ||
-            this.props.relatedEventsUI.visible !== nextProps.relatedEventsUI.visible;
+            this.props.relatedEventsUI?.visible !== nextProps.relatedEventsUI?.visible;
     }
 
     onItemHoverOn() {
