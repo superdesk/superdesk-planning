@@ -454,17 +454,21 @@ function getPlanningActions(
             ));
         };
 
-        addPlanningItemAction(
-            'ADD_COVERAGE',
-            () => canAddCoverages(item, events, privileges, session, lockedItems),
-            () => getAddCoverageCallbacks(callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]),
-        );
+        if (callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName] != null) {
+            addPlanningItemAction(
+                'ADD_COVERAGE',
+                () => canAddCoverages(item, events, privileges, session, lockedItems),
+                getAddCoverageCallbacks(callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]),
+            );
+        }
 
-        addPlanningItemAction(
-            'ADD_COVERAGE_FROM_LIST',
-            () => canModifyPlanning(item, events, privileges, lockedItems) && !isItemExpired(item),
-            () => getAddCoverageCallbacks(callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]),
-        );
+        if (callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName] != null) {
+            addPlanningItemAction(
+                'ADD_COVERAGE_FROM_LIST',
+                () => canModifyPlanning(item, events, privileges, lockedItems) && !isItemExpired(item),
+                getAddCoverageCallbacks(callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]),
+            );
+        }
     }
 
     const enabledAgendas: Array<any> = getEnabledAgendas(agendas);
@@ -472,7 +476,7 @@ function getPlanningActions(
     addPlanningItemAction(
         'ASSIGN_TO_AGENDA',
         () => enabledAgendas.length > 0 && canModifyPlanning(item, events, privileges, lockedItems),
-        () => {
+        (() => {
             const _actions: Array<IItemAction> = enabledAgendas.map((agenda) => ({
                 label: agenda.name,
                 inactive: (item.agendas ?? []).includes(agenda._id),
@@ -480,19 +484,15 @@ function getPlanningActions(
             }));
 
             return _actions;
-        },
+        })(),
     );
 
     addPlanningItemAction(
         'EDIT_PLANNING_MODAL',
         () => canEditPlanning(item, events, session, privileges, lockedItems),
-        () => callBacks[PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName].bind(null, item, false, true),
-    );
-
-    addPlanningItemAction(
-        'REMOVE_FROM_FEATURED',
-        () => canRemovedFeatured(item, events, session, privileges, lockedItems),
-        () => callBacks[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName].bind(null, item, true),
+        () => {
+            callBacks[PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName].bind(null, item, false, true)();
+        },
     );
 
     addPlanningItemAction(
@@ -533,6 +533,12 @@ function getPlanningActions(
     addPlanningItemAction(
         'ADD_TO_FEATURED',
         () => canAddFeatured(item, events, session, privileges, lockedItems),
+    );
+
+    addPlanningItemAction(
+        'REMOVE_FROM_FEATURED',
+        () => canRemovedFeatured(item, events, session, privileges, lockedItems),
+        () => callBacks[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName].bind(null, item, true)(),
     );
 
     if (isEmptyActions(actions)) {
