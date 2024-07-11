@@ -85,7 +85,7 @@ const mapDispatchToProps = (dispatch): IDispatchProps => ({
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
     componentWillMount() {
-        const event = this.props.events?.[0] ?? null; // PR-TODO: add support for multiple events
+        const event = this.props.events?.[0] ?? null; // TAG: MULTIPLE_PRIMARY_EVENTS
 
         // If the planning item is associated with an event, get its files
         if (event) {
@@ -113,7 +113,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             planningAllowScheduledUpdates,
         } = this.props;
 
-        const event = events?.[0] ?? null; // PR-TODO: add support for multiple events
+        const event = events?.[0] ?? null; // TAG: MULTIPLE_PRIMARY_EVENTS
 
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);

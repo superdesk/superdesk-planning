@@ -74,13 +74,9 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
         promises.push(dispatch(planning.ui.scheduleRefetch())
             .then((results) => {
                 if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
-                    const selectedItems = selectors.multiSelect.selectedPlannings(getState());
                     const currentPreviewId = selectors.main.previewId(getState());
 
-                    const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
-                    !get(results, '[0]._items').find((plan) => plan._id === data.item);
-
-                    if (!loadedFromRefetch && currentPreviewId === data.item) {
+                    if (currentPreviewId === data.item) {
                         dispatch(planning.api.fetchById(data.item, {force: true}));
                     }
                 }

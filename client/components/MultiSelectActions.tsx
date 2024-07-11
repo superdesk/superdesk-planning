@@ -1,16 +1,42 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {every, get, some} from 'lodash';
+import {every} from 'lodash';
 import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {Button} from './UI';
-import {IEventItem} from 'interfaces';
+import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
 
-export class MultiSelectActionsComponent extends React.PureComponent {
+interface IReduxState {
+    selectedEvents: Array<any>;
+    eventsInList: Array<any>;
+    selectedPlannings: Array<IPlanningItem>;
+    privileges: IPrivileges;
+    session: ISession;
+    lockedItems: ILockedItems;
+    activeFilter: any;
+    selectedPlanningIds: Array<string>;
+    selectedEventIds: Array<string>;
+    plansInList: any;
+}
+
+interface IDispatchProps {
+    selectAllEvents(): void;
+    deSelectAllEvents(): void;
+    selectAllPlannings(): void;
+    deSelectAllPlannings(): void;
+    addToWorkflow(items): void;
+    exportAsArticle(items, download): void;
+    spikeItems(items): void;
+    unspikeItems(items): void;
+    addEventToCurrentAgenda(events): void;
+}
+
+type IProps = IReduxState & IDispatchProps;
+
+export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
 
@@ -38,11 +64,11 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 
     getCountLabel() {
-        let count = get(this.props.selectedEvents, 'length', 0);
+        let count = this.props.selectedEvents?.length ?? 0;
         let itemType = count > 1 ? gettext('events') : gettext('event');
 
         if (this.props.activeFilter === MAIN.FILTERS.PLANNING) {
-            count = get(this.props.selectedPlannings, 'length', 0);
+            count = this.props.selectedPlannings?.length ?? 0;;
             itemType = count > 1 ? gettext('planning items') : gettext('planning item');
         }
 
@@ -51,11 +77,9 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
     canSelectAll() {
         if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
-            return get(this.props, 'selectedEvents.length') <
-                get(this.props, 'eventsInList.length');
+            return (this.props.selectedEvents?.length ?? 0) < (this.props.eventsInList?.length ?? 0);
         } else {
-            return get(this.props, 'selectedPlannings.length') <
-                get(this.props, 'plansInList.length');
+            return (this.props.selectedPlannings?.length ?? 0) < (this.props.plansInList?.length ?? 0);
         }
     }
 
@@ -83,21 +107,17 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         const showUnspike = every(
             selectedPlannings,
             (planningItem) => {
-                /**
-                 * PR-TODO: RELATED_EVENTS - planningItem only has one event; think how to handle this properly.
-                 * I'm simply wrapping into an array for now so it doesn't block further work.
-                 */
-                const events: Array<IEventItem> = [planningItem.event];
+                const events: Array<IEventItem> = [planningItem.event]; // TAG: MULTIPLE_PRIMARY_EVENTS
 
                 return planningUtils.canUnspikePlanning(planningItem, events, privileges);
             }
         );
 
-        const showExport = !some(selectedPlannings, 'flags.marked_for_not_publication');
+        const showExport = selectedPlannings.every((planning) => planning.flags.marked_for_not_publication !== true);
 
         let tools = [];
 
-        if (!some(selectedPlannings, 'lock_action')) {
+        if (selectedPlannings.every((planning) => planning.lock_action == null)) {
             tools.push(
                 <Button
                     key={0}
@@ -255,8 +275,8 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         } = this.props;
 
         const hideSlidingToolBar = (activeFilter === MAIN.FILTERS.PLANNING &&
-            get(selectedPlanningIds, 'length') === 0) ||
-            (activeFilter === MAIN.FILTERS.EVENTS && get(selectedEventIds, 'length') === 0) ||
+            selectedPlanningIds.length === 0) ||
+            (activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0) ||
             activeFilter === MAIN.FILTERS.COMBINED;
 
         let innerTools = [(<a key={1} onClick={this.handleDeSelectAll.bind(this)}>{gettext('Deselect All')}</a>)];
@@ -278,28 +298,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 }
 
-MultiSelectActionsComponent.propTypes = {
-    selectedEvents: PropTypes.array,
-    selectAllEvents: PropTypes.func,
-    deSelectAllEvents: PropTypes.func,
-    addToWorkflow: PropTypes.func,
-    selectedPlannings: PropTypes.array,
-    selectAllPlannings: PropTypes.func,
-    deSelectAllPlannings: PropTypes.func,
-    privileges: PropTypes.object.isRequired,
-    session: PropTypes.object.isRequired,
-    lockedItems: PropTypes.object,
-    activeFilter: PropTypes.string,
-    exportAsArticle: PropTypes.func,
-    createPlanning: PropTypes.func,
-    spikeItems: PropTypes.func,
-    unspikeItems: PropTypes.func,
-    addEventToCurrentAgenda: PropTypes.func,
-    selectedPlanningIds: PropTypes.array,
-    selectedEventIds: PropTypes.array,
-};
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state): IReduxState => ({
     activeFilter: selectors.main.activeFilter(state),
     selectedEvents: selectors.multiSelect.selectedEvents(state),
     eventsInList: selectors.events.eventIdsInList(state),
@@ -312,7 +311,7 @@ const mapStateToProps = (state) => ({
     selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch): IDispatchProps => ({
     selectAllEvents: () => dispatch(actions.multiSelect.selectEvents(null, true)),
     deSelectAllEvents: () => dispatch(actions.multiSelect.deSelectEvents(null, true)),
     selectAllPlannings: () => dispatch(actions.multiSelect.selectPlannings(null, true)),

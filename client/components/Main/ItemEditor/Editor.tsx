@@ -368,7 +368,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                         {...currentTab.tabProps}
                         inModalView={this.props.inModalView}
                         plannings={this.props.associatedPlannings}
-                        event={this.props.associatedEvent}
+                        event={this.props.associatedEvents?.[0] ?? undefined}
                         itemManager={this.itemManager}
                         activeNav={this.state.activeNav}
                         groups={this.props.groups ?? []}
