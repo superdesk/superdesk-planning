@@ -1,6 +1,8 @@
 import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 
+// PR-TODO: look again at diff of this file
+
 import {appConfig} from 'appConfig';
 import {
     IEventItem,

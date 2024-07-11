@@ -34,7 +34,7 @@ export const selectedPlannings = createSelector<
             const relatedEventIds = getRelatedEventIdsForPlanning(planningItem, 'primary');
 
             if (relatedEventIds.length > 0 && events[relatedEventIds[0]] != null) {
-                planningItem.event = events[relatedEventIds[0]]; // ???
+                planningItem.event = events[relatedEventIds[0]]; // TAG: MULTIPLE_PRIMARY_EVENTS
             }
 
             return planningItem;

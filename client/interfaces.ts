@@ -1978,7 +1978,6 @@ export interface IEditorProps {
     defaultDesk: IDesk;
     preferredCoverageDesks: {[key: string]: string};
     associatedPlannings?: Array<IPlanningItem>;
-    associatedEvent?: IEventItem;
     associatedEvents?: Array<IEventItem>;
     currentWorkspace: string;
     editorType: EDITOR_TYPE;

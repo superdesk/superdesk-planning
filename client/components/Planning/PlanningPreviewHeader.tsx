@@ -16,7 +16,6 @@ interface IOwnProps {
     itemActionDispatches: any;
     showUnlock: boolean;
     hideItemActions: boolean;
-
 }
 
 interface IStateProps {
@@ -132,7 +131,7 @@ export class PlanningPreviewHeaderComponent extends React.Component<IProps> {
 
 const mapStateToProps = (state): IStateProps => ({
     item: selectors.planning.currentPlanning(state),
-    events: selectors.events.planningWithEventDetails(state),
+    events: selectors.events.getRelatedEventsForPlanning(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),

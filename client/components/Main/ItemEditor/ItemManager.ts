@@ -871,7 +871,7 @@ export class ItemManager {
         const newCoverage = planningUtils.defaultCoverageValues(
             this.props.newsCoverageStatus,
             this.state.initialValues,
-            this.props.associatedEvent,
+            this.props.associatedEvents?.[0] ?? null, // TAG: MULTIPLE_PRIMARY_EVENTS
             g2ContentType,
             this.props.defaultDesk,
             this.props.preferredCoverageDesks

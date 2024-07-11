@@ -1557,7 +1557,6 @@ function duplicateCoverage(
     return diffCoverages;
 }
 
-// TODO: look into this
 export function getRelatedEventLinksForPlanning(
     plan: Partial<IPlanningItem>,
     linkType: IPlanningRelatedEventLinkType
