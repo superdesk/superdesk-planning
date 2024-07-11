@@ -32,6 +32,7 @@ import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../fields';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 interface IOwnProps {
     inner?: boolean;
@@ -43,7 +44,7 @@ interface IOwnProps {
 
 interface IReduxProps {
     item: IPlanningItem;
-    events: Array<IEventItem> | null;
+    relatedEvents: Array<IEventItem> | null;
     session: ISession;
     privileges: any;
     users: Array<IUser>;
@@ -56,7 +57,9 @@ interface IReduxProps {
 }
 
 interface IDispatchProps {
-    onEditEvent(event: any): void; // TODO - match code
+    onEditEvent(event): void; // TODO - match code
+
+    // TODO: Multiple related events - If BE supports bulk fetch for an array of events use it
     fetchEventFiles(event: IEventItem): void; // TODO - match code
     fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
 }
@@ -65,7 +68,7 @@ type IProps = IOwnProps & IReduxProps & IDispatchProps;
 
 const mapStateToProps = (state, ownProps): IReduxProps => ({
     item: selectors.planning.currentPlanning(state) || ownProps.item,
-    events: selectors.events.planningWithEventDetails(state),
+    relatedEvents: selectors.events.getRelatedEventsForPlanning(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
@@ -85,11 +88,11 @@ const mapDispatchToProps = (dispatch): IDispatchProps => ({
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
     componentWillMount() {
-        const event = this.props.events?.[0] ?? null; // TAG: MULTIPLE_PRIMARY_EVENTS
-
         // If the planning item is associated with an event, get its files
-        if (event) {
-            this.props.fetchEventFiles(event);
+        if ((this.props.relatedEvents?.length ?? 0) > 0) {
+            this.props.relatedEvents.forEach((relatedEvent) => (
+                this.props.fetchEventFiles(relatedEvent)
+            ));
         }
 
         this.props.fetchPlanningFiles(this.props.item);
@@ -100,11 +103,10 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const {item,
             users,
             formProfile,
-            events,
+            relatedEvents,
             desks,
             newsCoverageStatus,
             onEditEvent,
-            lockedItems,
             inner,
             noPadding,
             hideRelatedItems,
@@ -112,8 +114,6 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             files,
             planningAllowScheduledUpdates,
         } = this.props;
-
-        const event = events?.[0] ?? null; // TAG: MULTIPLE_PRIMARY_EVENTS
 
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -147,6 +147,9 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             />
         );
 
+        const primaryEventId = getRelatedEventIdsForPlanning(this.props.item, 'primary')[0];
+        const primaryRelatedEvent = (relatedEvents ?? []).find((relatedEvent) => relatedEvent._id === primaryEventId);
+
         return (
             <ContentBlock noPadding={noPadding}>
                 <div className="side-panel__content-block--flex">
@@ -167,7 +170,8 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                             verbose={true}
                             withExpiredStatus={true}
                         />
-                        {eventUtils.isEventCompleted(event) && (
+                        {/* TODO: How do we display event status when there's multiple? Primary only? */}
+                        {eventUtils.isEventCompleted(primaryRelatedEvent) && (
                             <Label
                                 text={gettext('Event Completed')}
                                 iconType="success"
@@ -214,19 +218,21 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                 )}
                 {!hideRelatedItems && event && (
                     <h3 className="side-panel__heading--big">
-                        {gettext('Associated Event')}
+                        {gettext('Associated Events')}
                     </h3>
                 )}
-                {!hideRelatedItems && event && (
-                    <EventMetadata
-                        event={event}
-                        dateOnly={true}
-                        onEditEvent={onEditEvent.bind(null, event)}
-                        lockedItems={lockedItems}
-                        createUploadLink={getFileDownloadURL}
-                        files={files}
-                        hideEditIcon={hideEditIcon}
-                    />
+                {!hideRelatedItems && (relatedEvents?.length ?? 0) > 0 && (
+                    relatedEvents.map((relatedEvent) => (
+                        <EventMetadata
+                            key={`related_event--${relatedEvent._id}`}
+                            event={relatedEvent}
+                            dateOnly={true}
+                            onEditEvent={onEditEvent.bind(null, relatedEvent)}
+                            createUploadLink={getFileDownloadURL}
+                            files={files}
+                            hideEditIcon={hideEditIcon}
+                        />
+                    ))
                 )}
                 {!hasCoverage ? null : (
                     <React.Fragment>

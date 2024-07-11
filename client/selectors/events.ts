@@ -132,7 +132,7 @@ export const getRelatedPlanningsForModalEvent = createSelector(
     (itemId, events, plannings, agendas) => getRelatedPlanningsForEvent(itemId, events, plannings, agendas)
 );
 
-export const planningWithEventDetails = createSelector<
+export const getRelatedEventsForPlanning = createSelector<
     IPlanningAppState,
     IPlanningItem | null,
     {[eventId: string]: IEventItem},
@@ -144,9 +144,9 @@ export const planningWithEventDetails = createSelector<
             return null;
         }
 
-        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
-
-        return relatedEventIds.length > 0 ? relatedEventIds.map((id) => events[id]) : null;
+        return (item.related_events?.length ?? 0) > 0
+            ? item.related_events.map((relatedEvent) => events[relatedEvent._id])
+            : null;
     }
 );
 

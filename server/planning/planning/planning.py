@@ -319,6 +319,9 @@ class PlanningService(Service):
 
         sanitize_input_data(updates)
 
+        if len(get_related_event_ids_for_planning(updates, "primary")) > 1:
+            raise SuperdeskApiError.badRequestError("Only 1 primary linked event is allowed")
+
         # Validate if agendas being added are enabled agendas
         agenda_service = get_resource_service("agenda")
         for agenda_id in updates.get("agendas", []):

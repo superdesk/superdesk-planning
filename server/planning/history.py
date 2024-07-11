@@ -115,6 +115,7 @@ class HistoryService(Service):
                 update_copy.pop(field, None)
 
             return update_copy
+        return update
 
     def _save_history(self, item, update, operation):
         raise NotImplementedError()

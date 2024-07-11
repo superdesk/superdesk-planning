@@ -41,7 +41,7 @@ import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRel
 import {EditorFieldPlanningDateTime} from './PlanningDateTime';
 import {EditorFieldNotForPublication} from './NotForPublication';
 import {EditorFieldOverrideAutoAssignToWorkflow} from './OverrideAutoAssignToWorkflow';
-import {EditorFieldAssociatedEvent} from './AssociatedEvent';
+import {EditorFieldAssociatedEvents} from './AssociatedEvent';
 import {EditorFieldCoverages} from './Coverages';
 import {EditorFieldGenre} from './Genre';
 import {EditorFieldNewsCoverageStatus} from './NewsCoverageStatus';
@@ -127,7 +127,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     marked_for_not_publication: EditorFieldNotForPublication,
     'flags.overide_auto_assign_to_workflow': EditorFieldOverrideAutoAssignToWorkflow,
     overide_auto_assign_to_workflow: EditorFieldOverrideAutoAssignToWorkflow,
-    associated_event: EditorFieldAssociatedEvent,
+    associated_event: EditorFieldAssociatedEvents,
     coverages: EditorFieldCoverages,
     genre: EditorFieldGenre,
     news_coverage_status: EditorFieldNewsCoverageStatus,

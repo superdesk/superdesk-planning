@@ -75,7 +75,7 @@ from planning.common import (
     update_ingest_on_patch,
     TEMP_ID_PREFIX,
 )
-from planning.utils import get_related_planning_for_events
+from planning.utils import get_related_planning_for_events, get_related_event_ids_for_planning
 from .events_base_service import EventsBaseService
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
@@ -735,7 +735,7 @@ class EventsService(superdesk.Service):
         return events_base_service.get_recurring_timeline(selected, postponed=True, spiked=spiked)
 
     @staticmethod
-    def _link_to_planning(event: Event, link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"):
+    def _link_to_planning(event: Event):
         """
         Links an Event to an existing Planning Item
 
@@ -747,7 +747,13 @@ class EventsService(superdesk.Service):
         event_id = event[config.ID_FIELD]
         planning_item = planning_service.find_one(req=None, _id=plan_id)
 
+        if not planning_item:
+            raise SuperdeskApiError.badRequestError("Planning item not found")
+
         updates = {"related_events": planning_item.get("related_events") or []}
+        link_type: PLANNING_RELATED_EVENT_LINK_TYPE = (
+            "primary" if not len(get_related_event_ids_for_planning(planning_item, "primary")) else "secondary"
+        )
         related_planning = PlanningRelatedEventLink(_id=event_id, link_type=link_type)
         updates["related_events"].append(related_planning)
 
