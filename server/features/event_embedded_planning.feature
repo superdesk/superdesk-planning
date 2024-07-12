@@ -1,4 +1,5 @@
 Feature: Event Embedded Planning
+
     @auth
     @vocabulary
     Scenario: Can create and update associated Planning with an Event
@@ -19,7 +20,10 @@ Feature: Event Embedded Planning
                     "news_coverage_status": "ncostat:int",
                     "scheduled": "2029-11-21T15:00:00.000Z"
                 }]
-            }]
+            }],
+            "subject": [
+                {"name": "Test", "qcode": "test", "scheme": "test"}
+            ]
         }]
         """
         Then we get OK response
@@ -57,7 +61,10 @@ Feature: Event Embedded Planning
                     "g2_content_type": "text",
                     "scheduled": "2029-11-21T15:00:00+0000"
                 }
-            }]
+            }],
+            "subject": [
+                {"name": "Test", "qcode": "test", "scheme": "test"}
+            ]
         }]}
         """
         And we store "PLAN1" with first item

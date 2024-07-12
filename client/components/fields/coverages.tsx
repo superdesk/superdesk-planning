@@ -11,8 +11,10 @@ export const coverages = ({
     activeFilter,
     contentTypes,
     contacts,
+    filterLanguage,
 }) => (
     <PlanningDateTime
+        filterLanguage={filterLanguage}
         item={item}
         date={date}
         users={users}
@@ -33,4 +35,5 @@ coverages.propTypes = {
     activeFilter: PropTypes.string,
     contentTypes: PropTypes.array,
     contacts: PropTypes.object,
+    filterLanguage: PropTypes.string,
 };

@@ -195,7 +195,7 @@ events_schema = {
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},
     },
     # Content metadata
-    "subject": metadata_schema["subject"],
+    "subject": planning_schema["subject"],
     "slugline": metadata_schema["slugline"],
     # Item metadata
     "location": {
