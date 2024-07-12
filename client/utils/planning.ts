@@ -429,20 +429,55 @@ function getPlanningActions(
         return [];
     }
 
-    const actions: ReturnType<typeof getPlanningActions> = [];
-
-    const isExpired = isItemExpired(item);
-
-    function addPlanningItemAction(action: keyof typeof PLANNING.ITEM_ACTIONS, condition: () => boolean, callback?: IItemAction['callback']) {
+    function getPlanningItemAction(
+        action: keyof typeof PLANNING.ITEM_ACTIONS,
+        condition: () => boolean,
+        callback?: IItemAction['callback'],
+    ): IItemAction | null {
         if (callBacks[PLANNING.ITEM_ACTIONS[action].actionName] != null && condition() === true) {
             const getDefaultCallback = () => callBacks[PLANNING.ITEM_ACTIONS[action].actionName].bind(null, item);
 
-            actions.push({
+            return {
                 ...PLANNING.ITEM_ACTIONS[action],
                 callback: callback ?? getDefaultCallback(),
-            });
+            };
+        } else {
+            return null;
         }
     }
+
+    const isExpired = isItemExpired(item);
+
+    const duplicateAction: IItemAction = getPlanningItemAction(
+        'DUPLICATE',
+        () => canDuplicatePlanning(item, events, session, privileges, lockedItems),
+    );
+
+    if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
+        return duplicateAction == null ? [] : [duplicateAction];
+    }
+
+    const isSpiked = isItemSpiked(item);
+
+    const unspikeAction: IItemAction = getPlanningItemAction(
+        'UNSPIKE',
+        () => canUnspikePlanning(item, events, privileges),
+    );
+
+    if (isSpiked) {
+        return unspikeAction == null ? [] : [unspikeAction];
+    }
+
+
+    function addPlanningItemAction(actionKey: keyof typeof PLANNING.ITEM_ACTIONS, condition: () => boolean, callback?: IItemAction['callback']) {
+        const action: IItemAction | null = getPlanningItemAction(actionKey, condition, callback);
+
+        if (action != null) {
+            actions.push(action);
+        }
+    }
+
+    const actions: ReturnType<typeof getPlanningActions> = [];
 
     if (contentTypes.length > 0) {
         const getAddCoverageCallbacks = (callback) => {
@@ -501,15 +536,13 @@ function getPlanningActions(
         () => canSpikePlanning(item, session, privileges, lockedItems),
     );
 
-    addPlanningItemAction(
-        'UNSPIKE',
-        () => isItemSpiked(item) && canUnspikePlanning(item, events, privileges),
-    );
+    if (unspikeAction != null) {
+        actions.push(unspikeAction);
+    }
 
-    addPlanningItemAction(
-        'DUPLICATE',
-        () => (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) && canDuplicatePlanning(item, events, session, privileges, lockedItems),
-    );
+    if (duplicateAction != null) {
+        actions.push(duplicateAction);
+    }
 
     addPlanningItemAction(
         'CANCEL_PLANNING',
