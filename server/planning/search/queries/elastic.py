@@ -207,24 +207,33 @@ def field_range(query: ElasticRangeParams):
         # so we first convert it to local timezone
         # and then we take only date part of it
         local_params = params.copy()
-        local_params.pop("time_zone", None)
         for key in ("gt", "gte", "lt", "lte"):
-            if local_params.get(key) and "T" in local_params[key] and query.time_zone:
-                tz = pytz.timezone(query.time_zone)
+            if local_params.get(key) and "T" in local_params[key] and params.get("time_zone"):
+                tz = pytz.timezone(params["time_zone"])
                 utc_value = datetime.fromisoformat(local_params[key].replace("+0000", "+00:00"))
                 local_value = utc_value.astimezone(tz)
                 local_params[key] = local_value.strftime("%Y-%m-%d")
+            ignore_time = "dates.all_day" if query.field == "dates.start" else "dates.no_end_time"
         return {
             "bool": {
                 "should": [
-                    {"range": {query.field: params}},
+                    {
+                        "bool": {
+                            "must_not": [
+                                {"term": {ignore_time: True}},
+                            ],
+                            "must": [
+                                {"range": {query.field: params}},
+                            ],
+                        },
+                    },
                     {
                         "bool": {
                             "must": [
-                                {"term": {"dates.all_day": True}},
+                                {"term": {ignore_time: True}},
                                 {"range": {query.field: local_params}},
                             ],
-                        }
+                        },
                     },
                 ],
             },
