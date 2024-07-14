@@ -1,5 +1,5 @@
 import React from 'react';
-import {NestedItem} from 'superdesk-core/scripts/core/ui/components/List';
+import {NestedItem} from '../../components/UI/List';
 import {PlanningItem} from '../Planning/PlanningItem';
 import {IEventItem, IEventListItemProps, IPlanningListItemProps} from 'interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
