@@ -213,31 +213,61 @@ def field_range(query: ElasticRangeParams):
                 utc_value = datetime.fromisoformat(local_params[key].replace("+0000", "+00:00"))
                 local_value = utc_value.astimezone(tz)
                 local_params[key] = local_value.strftime("%Y-%m-%d")
-            ignore_time = "dates.all_day" if query.field == "dates.start" else "dates.no_end_time"
-        return {
-            "bool": {
-                "should": [
-                    {
-                        "bool": {
-                            "must_not": [
-                                {"term": {ignore_time: True}},
-                            ],
-                            "must": [
-                                {"range": {query.field: params}},
-                            ],
+        if query.field == "dates.start":
+            return {
+                "bool": {
+                    "should": [
+                        {
+                            "bool": {
+                                "must_not": [
+                                    {"term": {"dates.all_day": True}},
+                                ],
+                                "must": [
+                                    {"range": {query.field: params}},
+                                ],
+                            },
                         },
-                    },
-                    {
-                        "bool": {
-                            "must": [
-                                {"term": {ignore_time: True}},
-                                {"range": {query.field: local_params}},
-                            ],
+                        {
+                            "bool": {
+                                "must": [
+                                    {"term": {"dates.all_day": True}},
+                                    {"range": {query.field: local_params}},
+                                ],
+                            },
                         },
-                    },
-                ],
-            },
-        }
+                    ],
+                },
+            }
+        else:
+            return {
+                "bool": {
+                    "should": [
+                        {
+                            "bool": {
+                                "must_not": [
+                                    {"term": {"dates.all_day": True}},
+                                    {"term": {"dates.no_end_time": True}},
+                                ],
+                                "must": [
+                                    {"range": {query.field: params}},
+                                ],
+                            },
+                        },
+                        {
+                            "bool": {
+                                "should": [
+                                    {"term": {"dates.all_day": True}},
+                                    {"term": {"dates.no_end_time": True}},
+                                ],
+                                "must": [
+                                    {"range": {query.field: local_params}},
+                                ],
+                                "minimum_should_match": 1,
+                            },
+                        },
+                    ],
+                },
+            }
 
     return {"range": {query.field: params}}
 
