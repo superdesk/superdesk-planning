@@ -8,7 +8,7 @@ wooper==0.4.4
 requests
 requests-mock==1.12.1
 icalendar>=4.0.3,<5.1
-coverage==7.5.3
+coverage==7.6.0
 deepdiff
 coveralls
 mock
