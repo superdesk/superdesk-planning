@@ -278,12 +278,12 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
                     elastic.date_range(
                         elastic.ElasticRangeParams(
                             field="dates.start",
-                            gte=end_date,
+                            gte=start_date,
                             time_zone=time_zone,
                         ),
                     ),
                     elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.end", lte=start_date, time_zone=time_zone)
+                        elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
                     ),
                 ]
             )
