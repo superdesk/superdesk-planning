@@ -215,6 +215,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     desks={desks}
                     users={users}
                     itemActions={itemActions}
+                    hideItemActions={hideItemActions}
                     showAddCoverage={showAddCoverage}
                     calendars={calendars}
                     listFields={listFields}
