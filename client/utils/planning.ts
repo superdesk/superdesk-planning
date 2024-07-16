@@ -60,6 +60,7 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
     stringUtils,
+    getCoverageNewsWorkflowState,
 } from './index';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
@@ -1256,6 +1257,20 @@ function getCoverageWorkflowIcon(coverage: IPlanningCoverageItem): string | null
     }
 }
 
+function getNewsCoverageStatusDotColor(coverage: DeepPartial<IPlanningCoverageItem>): string | null {
+    const newsCoverageStatus: IPlanningNewsCoverageStatus
+        = getCoverageNewsWorkflowState(coverage, 'news_coverage_status');
+
+    switch (newsCoverageStatus.qcode) {
+    case 'ncostat:notdec':
+        return 'var(--sd-colour-coverage-state--on-merit)';
+    case 'ncostat:notint':
+        return 'var(--sd-colour-coverage-state--not-covering)';
+    default:
+        return null;
+    }
+}
+
 function getCoverageContentType(
     coverage: IPlanningCoverageItem,
     contentTypes: Array<IG2ContentType> = []
@@ -1672,6 +1687,7 @@ const self = {
     getCoverageIcon,
     getCoverageIconColor,
     getCoverageWorkflowIcon,
+    getNewsCoverageStatusDotColor,
     shouldLockPlanningForEdit,
     modifyForClient,
     modifyForServer,
