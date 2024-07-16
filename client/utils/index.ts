@@ -694,7 +694,7 @@ export const getSearchDateRange = (currentSearch, startOfWeek) => {
 
     if (!get(dates, 'start') && !get(dates, 'end') && !get(dates, 'range')) {
         dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
-        dateRange.endDate = moment().add(999, 'years');
+        dateRange.endDate = moment().add(1, 'month');
     } else if (get(dates, 'range')) {
         let range = get(dates, 'range');
 

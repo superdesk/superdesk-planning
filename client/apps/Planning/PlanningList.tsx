@@ -186,16 +186,14 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                 <PlanningListSubNav />
                 <ListPanel
                     groups={(() => {
-                        const dateFilter = currentSearch.advancedSearch?.dates?.start?.toDate()
-                            ?? new Date();
+                        const dateFilter = currentSearch.advancedSearch?.dates?.start?.toDate() ?? new Date();
 
-                        dateFilter.setHours(0, 0, 0, 0);
+                        dateFilter.setUTCHours(0, 0, 0, 0); // group date is UTC 00:00:00
 
                         return groups.filter((group) => {
-                            const dateStringToJSDate = new Date(group.date);
+                            const groupDate = new Date(group.date);
 
-                            dateStringToJSDate.setHours(0, 0, 0, 0);
-                            return dateStringToJSDate >= dateFilter;
+                            return groupDate >= dateFilter;
                         });
                     })()}
                     onItemClick={openPreview}
@@ -217,7 +215,6 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     desks={desks}
                     users={users}
                     itemActions={itemActions}
-                    hideItemActions={hideItemActions}
                     showAddCoverage={showAddCoverage}
                     calendars={calendars}
                     listFields={listFields}
