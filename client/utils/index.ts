@@ -11,6 +11,9 @@ import {
     IPlanningCoverageItem,
     IIngestProvider,
     IFeaturedPlanningItem,
+    ISearchParams,
+    ICommonSearchParams,
+    JUMP_INTERVAL,
 } from '../interfaces';
 import {IUser} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
@@ -258,6 +261,8 @@ export const getErrorMessage = (error, defaultMessage) => {
         return get(error, '_issues.validator exception');
     } else if (typeof error === 'string') {
         return error;
+    } else if (get(error, 'error')) {
+        return get(error, 'error');
     }
 
     return defaultMessage;
@@ -685,43 +690,63 @@ export const isDateInRange = (inputDate, startDate, endDate) => {
     return true;
 };
 
-export const getSearchDateRange = (currentSearch, startOfWeek) => {
-    const dates = get(currentSearch, 'advancedSearch.dates', {});
+interface IDateRange {
+    startDate: moment.Moment;
+    endDate: moment.Moment;
+}
+
+const INTERVAL_UNIT_MAPPING = {
+    [JUMP_INTERVAL.DAY]: 'day',
+    [JUMP_INTERVAL.WEEK]: 'week',
+    [JUMP_INTERVAL.MONTH]: 'month',
+};
+
+export const getSearchDateRange = (
+    currentSearch: ICommonSearchParams<any>,
+    startOfWeek: number,
+    viewInterval?: JUMP_INTERVAL,
+): IDateRange => {
+    const dates = currentSearch.advancedSearch.dates ?? {};
     const dateRange = {startDate: null, endDate: null};
+    const jumpUnit = viewInterval ? INTERVAL_UNIT_MAPPING[viewInterval] : 'month';
 
-    if (!get(dates, 'start') && !get(dates, 'end') && !get(dates, 'range')) {
-        dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
-        dateRange.endDate = moment().add(999, 'years');
-    } else if (get(dates, 'range')) {
-        let range = get(dates, 'range');
+    if (dates.range) {
+        if (dates.range === MAIN.DATE_RANGE.TODAY) {
+            dateRange.startDate = moment().startOf('day');
+            dateRange.endDate = dateRange.startDate.clone()
+                .add(1, 'day');
+        } else if (dates.range === MAIN.DATE_RANGE.TOMORROW) {
+            const tomorrow = moment().add(1, 'day')
+                .startOf('day');
 
-        if (range === MAIN.DATE_RANGE.TODAY) {
-            dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
-            dateRange.endDate = dateRange.startDate.clone().add('86399', 'seconds');
-        } else if (range === MAIN.DATE_RANGE.TOMORROW) {
-            const tomorrow = moment().add(1, 'day');
-
-            dateRange.startDate = moment(tomorrow.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+            dateRange.startDate = tomorrow;
             dateRange.endDate = tomorrow.clone().add('86399', 'seconds');
-        } else if (range === MAIN.DATE_RANGE.LAST_24) {
+        } else if (dates.range === MAIN.DATE_RANGE.LAST_24) {
             dateRange.endDate = moment();
             dateRange.startDate = dateRange.endDate.clone().subtract('86400', 'seconds');
-        } else if (range === MAIN.DATE_RANGE.THIS_WEEK) {
+        } else if (dates.range === MAIN.DATE_RANGE.THIS_WEEK) {
             dateRange.endDate = timeUtils.getStartOfNextWeek(null, startOfWeek);
             dateRange.startDate = dateRange.endDate.clone().subtract(7, 'days');
-        } else if (range === MAIN.DATE_RANGE.NEXT_WEEK) {
+        } else if (dates.range === MAIN.DATE_RANGE.NEXT_WEEK) {
             dateRange.endDate = timeUtils.getStartOfNextWeek(null, startOfWeek).add(7, 'days');
             dateRange.startDate = dateRange.endDate.clone().subtract(7, 'days');
         }
+    } else if (dates.start && dates.end) {
+        dateRange.startDate = moment(dates.start);
+        dateRange.endDate = moment(dates.end);
+    } else if (dates.start) {
+        dateRange.startDate = moment(dates.start);
+        dateRange.endDate = dateRange.startDate.clone().add(1, jumpUnit)
+            .subtract(1, 'second'); // remove 1s not to display additional day
+    } else if (dates.end) {
+        dateRange.endDate = moment(dates.end);
+        dateRange.startDate = dateRange.endDate.clone().subtract(1, jumpUnit);
     } else {
-        if (get(dates, 'start')) {
-            dateRange.startDate = moment(get(dates, 'start'));
-        }
-
-        if (get(dates, 'end')) {
-            dateRange.endDate = moment(get(dates, 'end'));
-        }
+        dateRange.startDate = moment().startOf('day');
+        dateRange.endDate = dateRange.startDate.clone().add(1, jumpUnit)
+            .subtract(1, 'second'); // remove 1s not to display additional day
     }
+
     return dateRange;
 };
 

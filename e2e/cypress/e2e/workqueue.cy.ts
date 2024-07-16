@@ -1,5 +1,5 @@
 import {setup, login, waitForPageLoad, Workqueue, Modal, addItems} from '../support/common';
-import {EventEditor, PlanningList} from '../support/planning';
+import {AdvancedSearch, EventEditor, PlanningList} from '../support/planning';
 import {TEST_EVENTS} from '../fixtures/events';
 
 describe('Planning.Workqueue', () => {
@@ -7,6 +7,7 @@ describe('Planning.Workqueue', () => {
     const list = new PlanningList();
     const workqueue = new Workqueue();
     const modal = new Modal();
+    const search = new AdvancedSearch();
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -21,6 +22,8 @@ describe('Planning.Workqueue', () => {
             TEST_EVENTS.date_02_02_2045,
             TEST_EVENTS.date_03_02_2045,
         ]);
+
+        search.setStartDate('01/02/2045');
 
         // Wait for the 3 items to appear in the list
         list.expectItemCount(3);
