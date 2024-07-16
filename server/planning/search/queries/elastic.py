@@ -207,6 +207,7 @@ def field_range(query: ElasticRangeParams):
         # so we first convert it to local timezone
         # and then we take only date part of it
         local_params = params.copy()
+        local_params.pop("time_zone", None)
         for key in ("gt", "gte", "lt", "lte"):
             if local_params.get(key) and "T" in local_params[key] and params.get("time_zone"):
                 tz = pytz.timezone(params["time_zone"])
