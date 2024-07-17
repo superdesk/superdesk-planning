@@ -152,28 +152,6 @@ export const getRelatedEventsForPlanning = createSelector<
     }
 );
 
-/**
- * @deprecated
- * PR-TODO: use {@link planningEditAssociatedEvents}
- */
-export const planningEditAssociatedEvent = createSelector<
-    IPlanningAppState,
-    IEventOrPlanningItem | null,
-    {[eventId: string]: IEventItem},
-    IEventItem | null
->(
-    [currentItem, storedEvents],
-    (item, events) => {
-        if (item == null || item.type === 'event') {
-            return null;
-        }
-
-        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
-
-        return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
-    }
-);
-
 export const planningEditAssociatedEvents = createSelector<
     IPlanningAppState,
     IEventOrPlanningItem | null,
