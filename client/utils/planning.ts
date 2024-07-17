@@ -1594,7 +1594,7 @@ export function getRelatedEventLinksForPlanning(
     plan: Partial<IPlanningItem>,
     linkType: IPlanningRelatedEventLinkType
 ): Array<IPlanningRelatedEventLink> {
-    return (plan.related_events || []).filter((link) => link.link_type === linkType);
+    return (plan?.related_events || []).filter((link) => link.link_type === linkType);
 }
 
 export function getRelatedEventIdsForPlanning(
@@ -1602,6 +1602,25 @@ export function getRelatedEventIdsForPlanning(
     linkType: IPlanningRelatedEventLinkType
 ): Array<IEventItem['_id']> {
     return getRelatedEventLinksForPlanning(plan, linkType).map((event) => event._id);
+}
+
+export function pickRelatedEventsForPlanning(
+    planning: IPlanningItem,
+    events: Array<IEventItem>,
+    purpose: 'display' | 'logic',
+) {
+    const {assertNever} = superdeskApi.helpers;
+
+    if (purpose === 'logic') {
+        const allowedEventIds = new Set(getRelatedEventIdsForPlanning(planning, 'primary'));
+
+        return events.filter((event) => allowedEventIds.has(event._id));
+    } else if (purpose === 'display') {
+        return events;
+    } else {
+        assertNever(purpose);
+    }
+
 }
 
 // eslint-disable-next-line consistent-this
