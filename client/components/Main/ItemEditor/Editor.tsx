@@ -18,7 +18,7 @@ import {EditorPopupForm} from '../../Editor/EditorPopupForm';
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
 import {EditorHeader} from './EditorHeader';
-import {pickRelatedEventsForPlanning} from 'utils/planning';
+import {pickRelatedEventsForPlanning} from './../../../utils/planning';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
