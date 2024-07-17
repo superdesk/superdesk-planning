@@ -20,7 +20,7 @@ import {
     IFeaturedPlanningItem,
     ICoverageScheduledUpdate,
     IDateTime,
-    IItemAction, IPlanningRelatedEventLink, IPlanningRelatedEventLinkType, isItemAction, isMenuDivider,
+    IItemAction, IPlanningRelatedEventLink, IPlanningRelatedEventLinkType,
 } from '../interfaces';
 const appConfig = config as IPlanningConfig;
 
@@ -65,6 +65,7 @@ import {
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {planningConfig} from '../config';
+import {isItemAction, isMenuDivider} from '../helpers';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
