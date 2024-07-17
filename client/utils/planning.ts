@@ -1608,7 +1608,7 @@ export function pickRelatedEventsForPlanning(
     planning: IPlanningItem,
     events: Array<IEventItem>,
     purpose: 'display' | 'logic',
-) {
+): Array<IEventItem> {
     const {assertNever} = superdeskApi.helpers;
 
     if (purpose === 'logic') {
@@ -1617,6 +1617,22 @@ export function pickRelatedEventsForPlanning(
         return events.filter((event) => allowedEventIds.has(event._id));
     } else if (purpose === 'display') {
         return events;
+    } else {
+        assertNever(purpose);
+    }
+
+}
+
+export function pickRelatedEventIdsForPlanning(
+    planning: IPlanningItem,
+    purpose: 'display' | 'logic',
+): Array<IEventItem['_id']> {
+    const {assertNever} = superdeskApi.helpers;
+
+    if (purpose === 'logic') {
+        return getRelatedEventIdsForPlanning(planning, 'primary');
+    } else if (purpose === 'display') {
+        return (planning.related_events ?? []).map(({_id}) => _id);
     } else {
         assertNever(purpose);
     }

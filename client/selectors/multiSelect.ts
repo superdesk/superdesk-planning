@@ -4,7 +4,7 @@ import {get, cloneDeep} from 'lodash';
 import {IEventItem, IPlanningAppState, IPlanningItem} from '../interfaces';
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
-import {getRelatedEventIdsForPlanning} from '../utils/planning';
+import {pickRelatedEventsForPlanning} from '../utils/planning';
 
 export const selectedEventIds = (state) => get(state, 'multiSelect.selectedEventIds');
 export const selectedEvents = createSelector(
@@ -31,10 +31,10 @@ export const selectedPlannings = createSelector<
             }
 
             const planningItem: IPlanningItem & {event?: IEventItem} = cloneDeep(plannings[planningId]);
-            const relatedEventIds = getRelatedEventIdsForPlanning(planningItem, 'primary');
+            const relatedEvents = pickRelatedEventsForPlanning(planningItem, Object.values(events ?? {}), 'logic');
 
-            if (relatedEventIds.length > 0 && events[relatedEventIds[0]] != null) {
-                planningItem.event = events[relatedEventIds[0]]; // TAG: MULTIPLE_PRIMARY_EVENTS
+            if (relatedEvents.length > 0) {
+                planningItem.event = relatedEvents[0]; // TAG: MULTIPLE_PRIMARY_EVENTS
             }
 
             return planningItem;

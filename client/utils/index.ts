@@ -35,7 +35,7 @@ import {
 } from '../constants';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
-import {default as planningUtils} from './planning';
+import {pickRelatedEventsForPlanning, default as planningUtils} from './planning';
 import {default as eventUtils} from './events';
 import {default as timeUtils} from './time';
 import {default as eventPlanningUtils} from './eventsplanning';
@@ -473,7 +473,7 @@ export const isItemReadOnly = (item, session, privileges, lockedItems, associate
     } else if (itemType === ITEM_TYPE.PLANNING) {
         canEdit = planningUtils.canEditPlanning(
             item,
-            associatedEvents,
+            pickRelatedEventsForPlanning(item, associatedEvents, 'logic'),
             session,
             privileges,
             lockedItems
