@@ -68,7 +68,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
         let itemType = count > 1 ? gettext('events') : gettext('event');
 
         if (this.props.activeFilter === MAIN.FILTERS.PLANNING) {
-            count = this.props.selectedPlannings?.length ?? 0;;
+            count = this.props.selectedPlannings?.length ?? 0;
             itemType = count > 1 ? gettext('planning items') : gettext('planning item');
         }
 

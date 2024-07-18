@@ -89,15 +89,13 @@ export class PlanningItemWithEvents extends React.Component<IProps, IState> {
                             <Loader />
                         );
                     case 'ready':
-                        return this.state.events.items.map((event) => {
-                            return (
-                                <EventItem
-                                    {...this.props.getEventProps(event)}
-                                    multiSelectDisabled
-                                    key={event._id}
-                                />
-                            );
-                        })
+                        return this.state.events.items.map((event) => (
+                            <EventItem
+                                {...this.props.getEventProps(event)}
+                                multiSelectDisabled
+                                key={event._id}
+                            />
+                        ));
                     default:
                         assertNever(this.state.events);
                     }

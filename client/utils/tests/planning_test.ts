@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {get, omit} from 'lodash';
+import {get, noop, omit} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {ILockedItems} from '../../interfaces';
@@ -609,7 +609,7 @@ describe('PlanningUtils', () => {
         const callBacks = {};
 
         for (const action of actions) {
-            callBacks[action.actionName] = () => {};
+            callBacks[action.actionName] = noop;
         }
 
         let locks: ILockedItems;
@@ -645,11 +645,11 @@ describe('PlanningUtils', () => {
             const itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, [
@@ -665,11 +665,11 @@ describe('PlanningUtils', () => {
             const itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, [
@@ -684,11 +684,11 @@ describe('PlanningUtils', () => {
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, ['Duplicate', 'Edit']);
@@ -706,11 +706,11 @@ describe('PlanningUtils', () => {
             itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, ['Duplicate', 'Edit']);
@@ -722,11 +722,11 @@ describe('PlanningUtils', () => {
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, [
@@ -746,11 +746,11 @@ describe('PlanningUtils', () => {
             itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, [
@@ -774,11 +774,11 @@ describe('PlanningUtils', () => {
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, [
@@ -802,11 +802,11 @@ describe('PlanningUtils', () => {
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, [
@@ -831,11 +831,11 @@ describe('PlanningUtils', () => {
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
                 events: [event],
-                session,
-                privileges,
+                session: session,
+                privileges: privileges,
                 lockedItems: locks,
-                callBacks,
-                contentTypes,
+                callBacks: callBacks,
+                contentTypes: contentTypes,
             });
 
             expectActions(itemActions, [

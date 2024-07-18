@@ -77,6 +77,7 @@ function canPostPlanning(
     locks: ILockedItems
 ): boolean {
     const events = events_ ?? [];
+
     return (
         isExistingItem(planning) &&
         !!privileges[PRIVILEGES.POST_PLANNING] &&
@@ -470,7 +471,11 @@ function getPlanningActions(
     }
 
 
-    function addPlanningItemAction(actionKey: keyof typeof PLANNING.ITEM_ACTIONS, condition: () => boolean, callback?: IItemAction['callback']) {
+    function addPlanningItemAction(
+        actionKey: keyof typeof PLANNING.ITEM_ACTIONS,
+        condition: () => boolean,
+        callback?: IItemAction['callback'],
+    ) {
         const action: IItemAction | null = getPlanningItemAction(actionKey, condition, callback);
 
         if (action != null) {
@@ -481,15 +486,13 @@ function getPlanningActions(
     const actions: ReturnType<typeof getPlanningActions> = [];
 
     if (contentTypes.length > 0) {
-        const getAddCoverageCallbacks = (callback) => {
-            return contentTypes.map((contentType) => (
-                {
-                    label: contentType.name,
-                    icon: self.getCoverageIcon(contentType.qcode),
-                    callback: callback.bind(null, contentType.qcode, item),
-                }
-            ));
-        };
+        const getAddCoverageCallbacks = (callback) => contentTypes.map((contentType) => (
+            {
+                label: contentType.name,
+                icon: self.getCoverageIcon(contentType.qcode),
+                callback: callback.bind(null, contentType.qcode, item),
+            }
+        ));
 
         if (callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName] != null) {
             addPlanningItemAction(
@@ -592,7 +595,9 @@ function getPlanningActions(
 /**
  * Converts output from `getPlanningActions` to `Array<IMenuItem>`
  */
-export function toUIFrameworkInterface(actions: Array<IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL>): Array<IMenuItem> {
+export function toUIFrameworkInterface(
+    actions: Array<IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL>
+): Array<IMenuItem> {
     return actions
         .filter((item, index) => {
             // Trim dividers. Menu should not start or end with a divider.
@@ -606,13 +611,13 @@ export function toUIFrameworkInterface(actions: Array<IItemAction | typeof GENER
         })
         .map((menuItemOrGroup) => {
             if (isMenuDivider(menuItemOrGroup)) {
-                var menuSeparator: IMenuItem = {
+                const menuSeparator: IMenuItem = {
                     separator: true,
                 };
 
                 return menuSeparator;
             } else if (!isItemAction(menuItemOrGroup)) {
-                var menuSeparator: IMenuItem = {
+                const menuSeparator: IMenuItem = {
                     separator: true,
                 };
 
@@ -1621,7 +1626,6 @@ export function pickRelatedEventsForPlanning(
     } else {
         assertNever(purpose);
     }
-
 }
 
 export function pickRelatedEventIdsForPlanning(
@@ -1637,7 +1641,6 @@ export function pickRelatedEventIdsForPlanning(
     } else {
         assertNever(purpose);
     }
-
 }
 
 // eslint-disable-next-line consistent-this

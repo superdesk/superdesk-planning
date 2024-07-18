@@ -265,23 +265,19 @@ export class ListGroupItem extends React.Component<IProps, IState> {
                 <EventItem {... eventProps} />
             );
 
-        case ITEM_TYPE.PLANNING: {
+        case ITEM_TYPE.PLANNING:
             return (
                 <PlanningItemWithEvents
                     planningProps={planningProps}
-                    getEventProps={(event: IEventItem) => {
-                        return {
-                            ...eventProps,
-                            item: event,
-                            filterLanguage: undefined,
-                            multiSelected: false,
-                        };
-                    }}
+                    getEventProps={(event: IEventItem) => ({
+                        ...eventProps,
+                        item: event,
+                        filterLanguage: undefined,
+                        multiSelected: false,
+                    })}
                     relatedEventIds={pickRelatedEventIdsForPlanning(planningProps.item, 'display')}
                 />
             );
-        }
-
         }
         return null;
     }

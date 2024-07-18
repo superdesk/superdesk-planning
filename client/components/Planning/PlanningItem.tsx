@@ -297,7 +297,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                                     onClick={(event) => {
                                         event.stopPropagation();
 
-                                        relatedEventsUI.setVisibility(!relatedEventsUI.visible)
+                                        relatedEventsUI.setVisibility(!relatedEventsUI.visible);
                                     }}
                                 >
                                     <Spacer h gap="4" alignItems="center" noWrap>
@@ -311,8 +311,18 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                                         <span>
                                             {
                                                 relatedEventsUI.visible
-                                                    ? gettextPlural(relatedEvents.length, 'Hide 1 event', 'Hide {{n}} events', {n: relatedEvents.length})
-                                                    : gettextPlural(relatedEvents.length, 'Show 1 event', 'Show {{n}} events', {n: relatedEvents.length})
+                                                    ? gettextPlural(
+                                                        relatedEvents.length,
+                                                        'Hide 1 event',
+                                                        'Hide {{n}} events',
+                                                        {n: relatedEvents.length},
+                                                    )
+                                                    : gettextPlural(
+                                                        relatedEvents.length,
+                                                        'Show 1 event',
+                                                        'Show {{n}} events',
+                                                        {n: relatedEvents.length},
+                                                    )
                                             }
                                         </span>
                                     </Spacer>
