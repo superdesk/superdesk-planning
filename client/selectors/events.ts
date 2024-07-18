@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IEventItem, IEventState, IEventTemplate, IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
+import {IEventItem, IEventState, IEventTemplate, IPlanningAppState, JUMP_INTERVAL, LIST_VIEW_TYPE} from '../interfaces';
 
 import {currentPlanning, storedPlannings} from './planning';
 import {agendas, userPreferences} from './general';
@@ -13,6 +13,11 @@ import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 function getCurrentListViewType(state?: IPlanningAppState) {
     return state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE;
 }
+
+function getCurrentViewInterval(state?: IPlanningAppState): JUMP_INTERVAL {
+    return state?.main?.search?.EVENTS?.jumpInterval ?? JUMP_INTERVAL.WEEK;
+}
+
 export const storedEvents = (state) => get(state, 'events.events', {});
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
@@ -36,8 +41,8 @@ export const eventsInList = createSelector(
 * the associated events.
 */
 export const orderedEvents = createSelector(
-    [eventsInList, currentSearch, getCurrentListViewType],
-    (events, search, viewType) => {
+    [eventsInList, currentSearch, getCurrentListViewType, getCurrentViewInterval],
+    (events, search, viewType, viewInterval) => {
         if (!events?.length) {
             return [];
         } else if (viewType === LIST_VIEW_TYPE.LIST) {
@@ -47,7 +52,7 @@ export const orderedEvents = createSelector(
             }];
         }
 
-        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week, viewInterval);
 
         return eventUtils.getEventsByDate(events, dateRange.startDate, dateRange.endDate);
     }
