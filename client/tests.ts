@@ -20,8 +20,11 @@ Object.assign(appConfig, {
     planning_auto_assign_to_workflow: true,
 });
 
-moment.tz.setDefault('Australia/Sydney');
 updateConfigAfterLoad();
+
+beforeEach(() => {
+    moment.tz.setDefault('Australia/Sydney');
+});
 
 var testsContext = require.context('.', true, /_test.[j|t]sx?$/);
 

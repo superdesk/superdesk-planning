@@ -1,8 +1,9 @@
 import {cloneDeep} from 'lodash';
 
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal, addItems} from '../../support/common';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal, addItems, CLIENT_FORMAT} from '../../support/common';
 import {EventEditor, PlanningList} from '../../support/planning';
-import {TEST_EVENTS} from '../../fixtures/events';
+import {createEventFor, TEST_EVENTS} from '../../fixtures/events';
+import moment from 'moment';
 
 const list = new PlanningList();
 const editor = new EventEditor();
@@ -16,7 +17,7 @@ describe('Planning.Events: edit metadata', () => {
 
     beforeEach(() => {
         event = {
-            'dates.start.date': '12/12/2045',
+            'dates.start.date': moment().format(CLIENT_FORMAT),
             slugline: 'slugline of the event',
             name: 'name of the event',
             definition_short: 'Desc.',
@@ -34,7 +35,7 @@ describe('Planning.Events: edit metadata', () => {
 
         expectedEvent = {
             ...event,
-            'dates.end.date': '12/12/2045',
+            'dates.end.date': moment().format(CLIENT_FORMAT),
         };
 
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -74,7 +75,7 @@ describe('Planning.Events: edit metadata', () => {
         event = {
             ...event,
             'dates.recurring.enable': true,
-            'dates.recurring.until': '13/12/2045',
+            'dates.recurring.until': moment().add(1, 'day').format(CLIENT_FORMAT),
             'dates.allDay': true,
             slugline: 'slugline of the recurring event',
             name: 'name of the recurring event',
@@ -82,7 +83,7 @@ describe('Planning.Events: edit metadata', () => {
         expectedEvent = {
             ...expectedEvent,
             'dates.recurring.enable': true,
-            'dates.recurring.until': '13/12/2045',
+            'dates.recurring.until': moment().add(1, 'day').format(CLIENT_FORMAT),
             'dates.allDay': true,
             slugline: 'slugline of the recurring event',
             name: 'name of the recurring event',
@@ -133,7 +134,7 @@ describe('Planning.Events: edit metadata', () => {
         // Enter minimum Event metadata
         editor.expectItemType();
         editor.type({
-            'dates.start.date': '12/12/2045',
+            'dates.start.date': moment().format(CLIENT_FORMAT),
             'dates.allDay': true,
             slugline: 'slugline of the event',
             name: 'name of the event',
@@ -181,20 +182,12 @@ describe('Planning.Events: edit metadata', () => {
 describe('Planing.Events: edit existing events', () => {
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
-        addItems('events', [{
+        addItems('events', [createEventFor.tomorrow({
             ...cloneDeep(TEST_EVENTS.date_01_02_2045),
-            dates: {
-                start: TEST_EVENTS.date_01_02_2045.dates.start,
-                end: TEST_EVENTS.date_01_02_2045.dates.end,
-            },
-        }, {
+        }), createEventFor.tomorrow({
             ...cloneDeep(TEST_EVENTS.date_02_02_2045),
-            dates: {
-                start: TEST_EVENTS.date_02_02_2045.dates.start,
-                end: TEST_EVENTS.date_02_02_2045.dates.end,
-                tz: null,
-            },
-        }]);
+            }, null),
+        ]);
         login();
 
         waitForPageLoad.planning();

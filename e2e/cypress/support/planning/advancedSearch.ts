@@ -216,10 +216,9 @@ export class AdvancedSearch {
     }
 
     expectSearchResultCount(run: ISearchTest) {
-        cy.log('Search: ' + JSON.stringify(run.params));
+        cy.log('Search: ' + JSON.stringify(run.params) + ', expected count: ' + run.expectedCount);
         if (Object.keys(run.params).length > 0) {
-            this.enterSearchParams(run.params);
-            this.clickSearch();
+            this.searchFor(run.params);
         }
 
         if (run.expectedCount != null) {
@@ -251,5 +250,17 @@ export class AdvancedSearch {
             .find('.icon-close-small')
             .should('exist')
             .click();
+    }
+
+    searchFor(params: ISearchTest['params']) {
+        this.enterSearchParams(params);
+        this.clickSearch();
+    }
+
+    setStartDate(date: string) {
+        this.toggleSearchPanel();
+        this.openAllToggleBoxes();
+        this.searchFor({'start_date.date': date});
+        this.toggleSearchPanel();
     }
 }
