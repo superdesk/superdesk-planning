@@ -128,6 +128,7 @@ const extension: IExtension = {
                         },
                     },
                 },
+                notifications: {'assignment:notification': {type: 'email'}},
                 globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
             },
         };
