@@ -1612,9 +1612,10 @@ export function getRelatedEventIdsForPlanning(
 
 export function pickRelatedEventsForPlanning(
     planning: IPlanningItem,
-    events: Array<IEventItem>,
+    _events: Array<IEventItem> | null,
     purpose: 'display' | 'logic',
 ): Array<IEventItem> {
+    const events = _events ?? [];
     const {assertNever} = superdeskApi.helpers;
 
     if (purpose === 'logic') {
