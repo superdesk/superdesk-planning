@@ -1224,12 +1224,16 @@ function getCoverageIcon(
     return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
 }
 
-function getCoverageIconColor(item: IPlanningCoverageItem, field = 'state'): string {
+function getCoverageIconColor(item: IPlanningCoverageItem): string | undefined {
     if (item.workflow_status === 'cancelled') {
         return 'var(--sd-colour-state--canceled)';
     }
 
-    switch (getItemWorkflowState(item.assigned_to, field)) {
+    if (item.assigned_to == null) {
+        return undefined;
+    }
+
+    switch (getItemWorkflowState(item.assigned_to)) {
     case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
         return 'var(--sd-colour-state--in-workflow)';
     case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
@@ -1238,10 +1242,10 @@ function getCoverageIconColor(item: IPlanningCoverageItem, field = 'state'): str
         return 'var(--sd-colour-state--completed)';
     }
 
-    if (item.assigned_to.user === null || item.assigned_to.desk === null) {
-        return 'var(--sd-colour-state--unassigned)';
-    } else {
+    if (item.assigned_to.user != null || item.assigned_to.desk != null) {
         return 'var(--sd-colour-state--assigned)';
+    } else {
+        return 'var(--sd-colour-state--unassigned)';
     }
 }
 
