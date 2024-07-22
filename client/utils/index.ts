@@ -309,7 +309,6 @@ export function getItemId(item): IEventOrPlanningItem['_id'] {
 }
 export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '_id');
 export const getItemWorkflowState = (item, field = 'state') => (get(item, field, WORKFLOW_STATE.DRAFT));
-export const getCoverageNewsWorkflowState = (item, field) => (get(item, field, null));
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
 export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
 export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
