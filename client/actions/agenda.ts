@@ -245,7 +245,6 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
     const defaultValues = planningUtils.defaultPlanningValues(null, defaultPlace);
     const eventLink: IPlanningRelatedEventLink = {
         _id: event._id,
-        link_type: 'primary',
     };
 
     if (event.recurrence_id != null) {

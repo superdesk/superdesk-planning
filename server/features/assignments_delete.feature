@@ -292,7 +292,7 @@ Feature: Assignments Delete
                 "workflow_status": "active"
             }],
             "related_events": [
-                {"_id": "#events._id#", "link_type": "primary"}
+                {"_id": "#events._id#"}
             ]
         }
         """
@@ -351,7 +351,6 @@ Feature: Assignments Delete
             }],
             "related_events": [{
                 "_id": "#EVENT2._id#",
-                "link_type": "primary",
                 "recurrence_id": "#EVENT2.recurrence_id#"
             }],
             "recurrence_id": "#EVENT2.recurrence_id#"

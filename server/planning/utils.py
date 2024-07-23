@@ -20,6 +20,7 @@ from eve.utils import str_to_date, ParsedRequest, config
 import arrow
 import pytz
 
+from planning import types
 from superdesk import get_resource_service
 from superdesk.json_utils import cast_item
 
@@ -213,3 +214,7 @@ def get_first_event_item_for_planning_id(
         return None
 
     return get_resource_service("events").find_one(req=None, _id=first_event_id)
+
+
+def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
+    return app.config.get("PLANNING_EVENT_LINK_METHOD", "one_primary")

@@ -164,7 +164,7 @@ Feature: Events Cancel
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestPlan 1",
-            "related_events": [{"_id": "event1", "link_type": "primary"}],
+            "related_events": [{"_id": "event1"}],
             "state": "draft",
             "planning_date": "2016-01-02"
         },
@@ -172,7 +172,7 @@ Feature: Events Cancel
             "_id": "plan2",
             "guid": "plan2",
             "slugline": "TestPlan 2",
-            "related_events": [{"_id": "event1", "link_type": "primary"}],
+            "related_events": [{"_id": "event1"}],
             "state": "draft",
             "planning_date": "2016-01-02"
         }]
@@ -311,7 +311,7 @@ Feature: Events Cancel
         [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
+            "related_events": [{"_id": "#EVENT3._id#"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -394,7 +394,7 @@ Feature: Events Cancel
             "guid": "plan1",
             "slugline": "TestPlan 1",
             "related_events": [
-                {"_id": "event1", "link_type": "primary"}
+                {"_id": "event1"}
             ],
             "ednote": "We're covering this Event",
             "state": "draft",
@@ -870,7 +870,7 @@ Feature: Events Cancel
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
             "related_events": [
-                {"_id": "#EVENT3._id#", "link_type": "primary"}
+                {"_id": "#EVENT3._id#"}
             ],
             "planning_date": "2016-01-02"
         }]
@@ -904,6 +904,10 @@ Feature: Events Cancel
     @auth
     @vocabulary
     Scenario: Cancelling an Event does not cancel Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "many_secondary"}
+        """
         Given we have sessions "/sessions"
         And "events"
         """
@@ -924,24 +928,20 @@ Feature: Events Cancel
         And "planning"
         """
         [{
-            "guid": "plan1",
-            "slugline": "test-plan",
-            "planning_date": "2029-05-29T12:00:00+0000",
-            "related_events": [{"_id": "event1", "link_type": "primary"}]
-        }, {
             "guid": "plan2",
             "slugline": "test-plan",
             "planning_date": "2029-05-29T12:00:00+0000",
-            "related_events": [{"_id": "event1", "link_type": "secondary"}]
+            "related_events": [{"_id": "event1"}]
         }]
         """
         When we perform cancel on events "event1"
         Then we get OK response
         When we get "/planning"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
         {"_items": [
-            {"_id": "plan1", "state": "cancelled"},
-            {"_id": "plan2", "state": "draft"}
+            {"_id": "plan2", "state": "draft", "related_events": [
+                {"_id": "event1", "link_type": "secondary"}
+            ]}
         ]}
         """
