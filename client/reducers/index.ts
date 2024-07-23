@@ -20,6 +20,7 @@ import contacts from './contacts';
 import locations from './locations';
 
 const returnState = (state) => state || {};
+const returnGenreState = (state) => state ?? [];
 
 const planningApp = combineReducers({
     modal: modal,
@@ -45,7 +46,7 @@ const planningApp = combineReducers({
     ingest: returnState,
     privileges: returnState,
     subjects: returnState,
-    genres: returnState,
+    genres: returnGenreState,
     users: returnState,
     desks: returnState,
     urgency: returnState,
