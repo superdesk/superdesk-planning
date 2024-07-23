@@ -129,6 +129,12 @@ Feature: Export combined Planning and Event items with default template
         And we get text in "body_html"
         """
         <h2>Planning</h2>
+        <p><b>Planning 1</b></p>
+        <p>desc</p>
+        <p></p>
+        <p>Editorial note: Ed. note 1</p>
+        <p>Planned coverage: Text, Photo
+        <p>---</p>
         <p><b>Planning 2</b></p>
         <p>desc 2</p>
         <p></p>
@@ -173,6 +179,9 @@ Feature: Export combined Planning and Event items with default template
         <p><b>Event:</b> test</p>
         <p><b>Coverages:</b> Text, Photo</p>
         <p>---</p>
+        <p><b>Planning:</b> Planning 1</p>
+        <p><b>Coverages:</b> Text, Photo</p>
+        <p>---</p>
         <p><b>Planning:</b> Planning 2</p>
         <p><b>Coverages:</b> Text, Photo</p>
         <p>---</p>
@@ -206,6 +215,9 @@ Feature: Export combined Planning and Event items with default template
         <h1>Planned Coverages</h1>
         <p></p>
         <p><b>Event:</b> test</p>
+        <p><b>Coverages:</b> Text, Photo</p>
+        <p>---</p>
+        <p><b>Planning:</b> Planning 1</p>
         <p><b>Coverages:</b> Text, Photo</p>
         <p>---</p>
         <p><b>Planning:</b> Planning 2</p>
@@ -248,6 +260,6 @@ Feature: Export combined Planning and Event items with default template
         """
         {"_items": [{
             "slugline": "Foo",
-            "body_html": "<p>test</p><p>Planning 2</p>"
+            "body_html": "<p>test</p><p>Planning 1</p><p>Planning 2</p>"
         }]}
         """
