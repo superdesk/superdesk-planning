@@ -3,11 +3,12 @@ import classNames from 'classnames';
 
 import {AgendaNameList} from '../Agendas';
 import {superdeskApi} from '../../superdeskApi';
+import {IAgenda} from 'interfaces';
 
 interface IProps {
     fieldsProps: {
         agendas: {
-            agendas: any;
+            agendas: IAgenda;
         }
     };
     noGrow: boolean;

@@ -112,12 +112,12 @@ function canUnpostPlanning(
 
 function canEditPlanning(
     planning: IPlanningItem,
-    _events: Array<IEventItem> | null,
+    events_: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
-    const events = _events ?? [];
+    const events = events_ ?? [];
 
     return (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
@@ -1612,10 +1612,10 @@ export function getRelatedEventIdsForPlanning(
 
 export function pickRelatedEventsForPlanning(
     planning: IPlanningItem,
-    _events: Array<IEventItem> | null,
+    events_: Array<IEventItem> | null,
     purpose: 'display' | 'logic',
 ): Array<IEventItem> {
-    const events = _events ?? [];
+    const events = events_ ?? [];
     const {assertNever} = superdeskApi.helpers;
 
     if (purpose === 'logic') {
