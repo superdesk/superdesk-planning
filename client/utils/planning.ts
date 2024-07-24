@@ -1270,6 +1270,21 @@ function getCoverageWorkflowIcon(coverage: IPlanningCoverageItem): string | null
     }
 }
 
+function getNewsCoverageStatusDotColor(coverage: DeepPartial<IPlanningCoverageItem>): string | null {
+    if (coverage.news_coverage_status == null) {
+        return undefined;
+    }
+
+    switch (coverage.news_coverage_status.qcode) {
+    case 'ncostat:notdec':
+        return 'var(--sd-colour-coverage-state--on-merit)';
+    case 'ncostat:notint':
+        return 'var(--sd-colour-coverage-state--not-covering)';
+    default:
+        return null;
+    }
+}
+
 function getCoverageContentType(
     coverage: IPlanningCoverageItem,
     contentTypes: Array<IG2ContentType> = []
@@ -1686,6 +1701,7 @@ const self = {
     getCoverageIcon,
     getCoverageIconColor,
     getCoverageWorkflowIcon,
+    getNewsCoverageStatusDotColor,
     shouldLockPlanningForEdit,
     modifyForClient,
     modifyForServer,
