@@ -17,6 +17,7 @@ import {currentEventFilterId, eventsInList, orderedEvents, storedEvents} from '.
 import {currentPlanningFilterId, orderedPlanningList, plansInList, storedPlannings} from './planning';
 import {getEventsPlanningList, orderedEventsPlanning, selectedFilter} from './eventsplanning';
 import {getSearchDateRange} from '../utils';
+import {planningConfig} from '../config';
 
 
 export const getCurrentListViewType = (state?: IPlanningAppState) => (
@@ -24,15 +25,16 @@ export const getCurrentListViewType = (state?: IPlanningAppState) => (
 );
 export const activeFilter = (state: IPlanningAppState) => {
     const privileges = get(state, 'privileges', '');
+    const defaultView = planningConfig.planning_default_view;
 
     if (privileges?.planning_event_management && privileges?.planning_planning_management) {
-        return state?.main?.filter ?? PLANNING_VIEW.COMBINED;
+        return state?.main?.filter ?? defaultView;
     } else if (privileges?.planning_event_management) {
         return state?.main?.filter ?? PLANNING_VIEW.EVENTS;
     } else if (privileges?.planning_planning_management) {
         return state?.main?.filter ?? PLANNING_VIEW.PLANNING;
     } else {
-        return null;
+        return defaultView;
     }
 };
 export const isEventsPlanningView = (state) =>
