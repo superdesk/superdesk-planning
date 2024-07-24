@@ -1,8 +1,6 @@
 import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 
-// PR-TODO: look again at diff of this file
-
 import {appConfig} from 'appConfig';
 import {
     IEventItem,
@@ -167,29 +165,6 @@ export const planningEditAssociatedEvents = createSelector<
         const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'logic');
 
         return pickedEvents.length < 1 ? null : pickedEvents;
-    }
-);
-
-/**
- * @deprecated
- *
- * PR-TODO: to be replaced with {@link planningEditAssociatedEventsModal}
- */
-export const planningEditAssociatedEventModal = createSelector<
-    IPlanningAppState,
-    IEventOrPlanningItem | null,
-    {[eventId: string]: IEventItem},
-    IEventItem | null
->(
-    [currentItemModal, storedEvents],
-    (item, events) => {
-        if (item == null || item.type === 'event') {
-            return null;
-        }
-
-        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
-
-        return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
     }
 );
 
