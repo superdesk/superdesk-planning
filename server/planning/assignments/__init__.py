@@ -139,7 +139,7 @@ def init_app(app):
     )
 
     superdesk.register_default_user_preference(
-        "assignment:notification",
+        "email:notification:assignments",
         {
             "type": "bool",
             "enabled": True,
