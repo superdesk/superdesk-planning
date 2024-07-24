@@ -29,11 +29,7 @@ from planning.events.events_schema import events_schema
 
 from .queries.planning import PLANNING_PARAMS, PLANNING_SEARCH_FILTERS
 from .queries.events import EVENT_PARAMS, EVENT_SEARCH_FILTERS
-from .queries.combined import (
-    COMBINED_PARAMS,
-    COMBINED_SEARCH_FILTERS,
-    construct_combined_view_data_query,
-)
+from .queries.combined import COMBINED_PARAMS, COMBINED_SEARCH_FILTERS
 from .queries.common import construct_search_query
 from .queries.elastic import ElasticQuery, field_exists
 
@@ -66,13 +62,11 @@ class EventsPlanningService(Service):
         query = self._construct_search_query(repo, params, search_filter)
 
         if repo == "events" or repo == "event":
-            items = self._search_events(req, params, query, search_filter)
-            return self._get_combined_view_data(items, req, params, search_filter)
+            return self._search_events(req, params, query, search_filter)
         elif repo == "planning":
             return self._search_planning(req, params, query, search_filter)
         else:
-            items = self._get_events_and_planning(req, query, search_filter)
-            return self._get_combined_view_data(items, req, params, search_filter)
+            return self._get_events_and_planning(req, params, query, search_filter)
 
     def on_fetched(self, doc):
         """
@@ -126,13 +120,12 @@ class EventsPlanningService(Service):
 
         return construct_search_query(repo, filters, params, search_filter)
 
-    def _get_combined_view_data(self, items, request, params, search_filter):
-        """Get list of event and planning for the combined view
+    def _get_events_and_planning(self, request, params, query, search_filter):
+        """Get list of event and planning based on the search criteria
 
-        :param items:
         :param request: object representing the HTTP request
         """
-        query = construct_combined_view_data_query(params, search_filter, items)
+
         page = request.page or 1
         page_size = self._get_page_size(request, search_filter)
         req = ParsedRequest()
@@ -145,34 +138,10 @@ class EventsPlanningService(Service):
                 "from": (page - 1) * page_size,
             }
         )
-        req.page = request.page or 1
+        req.page = page
         req.max_results = page_size
         if params.get("projections"):
             req.args["projections"] = params["projections"]
-        return get_resource_service("planning_search").get(req=req, lookup=None)
-
-    def _get_events_and_planning(self, request, query, search_filter):
-        """Get list of event and planning based on the search criteria
-
-        :param request: object representing the HTTP request
-        """
-        # params = request.args or MultiDict()
-        # query = construct_combined_search_query(params)
-        page = request.page or 1
-        max_results = self._get_page_size(request, search_filter)
-        req = ParsedRequest()
-        req.args = MultiDict()
-        req.args["source"] = json.dumps(
-            {
-                "query": query["query"],
-                "sort": query["sort"] if query.get("sort") else self._get_sort(),
-                "size": int((5 * max_results) * math.ceil(page / 3)),
-            }
-        )
-        req.args["projections"] = json.dumps(["_id", "type", "related_events"])
-        req.page = page
-        req.max_results = max_results
-        req.exec_on_fetched_resource = False  # don't call on_fetched_resource
         return get_resource_service("planning_search").get(req=req, lookup=None)
 
     def _search_events(self, request, params, query, search_filter):

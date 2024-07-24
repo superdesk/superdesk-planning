@@ -176,11 +176,12 @@ Feature: Search Events and Planning
         """
         Then we get OK response
         When we get "/events_planning_search?only_future=false"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items": [
             {"_id": "user_2_event_1"},
             {"_id": "user_2_event_2"},
+            {"_id": "user_2_plan_1"},
             {"_id": "user_2_plan_2"}
         ]}
         """
@@ -190,14 +191,16 @@ Feature: Search Events and Planning
         """
         Then we get OK response
         When we get "/events_planning_search?only_future=false"
-        Then we get list with 6 items
+        Then we get list with 8 items
         """
         {"_items": [
             {"_id": "user_1_event_1"},
             {"_id": "user_1_event_2"},
             {"_id": "user_2_event_1"},
             {"_id": "user_2_event_2"},
+            {"_id": "user_1_plan_1"},
             {"_id": "user_1_plan_2"},
+            {"_id": "user_2_plan_1"},
             {"_id": "user_2_plan_2"}
         ]}
         """

@@ -10,46 +10,7 @@
 
 from typing import Dict, Any, List, Callable
 
-from planning.utils import get_related_event_ids_for_planning
 from planning.search.queries import elastic, events, planning, common
-from flask import current_app as app
-
-
-def construct_combined_view_data_query(
-    params: Dict[str, Any], search_filter: Dict[str, Any], items: List[Dict[str, Any]]
-) -> Dict[str, Any]:
-    ids = set()
-    for item in items:
-        item_id = item.get("_id")
-        event_ids = get_related_event_ids_for_planning(item, "primary")
-        if common.strtobool(params.get("include_associated_planning", False)):
-            ids.add(item_id)
-            for event_id in event_ids:
-                ids.add(event_id)
-        else:
-            # Combined search prioritises Events over Planning items
-            # therefore if the Planning item is linked to an Event
-            # then we want to return that Event instead
-            if len(event_ids):
-                for event_id in event_ids:
-                    ids.add(event_id)
-            else:
-                ids.add(item_id)
-
-    query = elastic.ElasticQuery()
-
-    filter_params = common.get_params_from_search_filter(search_filter)
-    if len(filter_params):
-        filter_params["time_zone"] = params.get("time_zone") or app.config.get("DEFAULT_TIMEZONE")
-        filter_params["start_of_week"] = params.get("start_of_week", app.config.get("START_OF_WEEK", 0))
-
-        search_dates(filter_params, query)
-
-    search_dates(params, query)
-
-    query.must.append(elastic.terms(field="_id", values=list(ids)))
-
-    return query.build()
 
 
 def search_not_common_fields(params: Dict[str, Any], query: elastic.ElasticQuery):
