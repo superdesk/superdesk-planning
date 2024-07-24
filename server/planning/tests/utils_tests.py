@@ -1,3 +1,5 @@
+import pytz
+
 from planning.tests import TestCase
 from datetime import datetime
 from planning.utils import get_event_formatted_dates
@@ -6,29 +8,29 @@ from planning.search.queries import elastic
 
 class TestGetEventFormattedDates(TestCase):
     def test_multi_day_event(self):
-        start = datetime(2024, 5, 28, 5, 00, 00)
-        end = datetime(2024, 5, 29, 6, 00, 00)
+        start = datetime(2024, 5, 28, 5, 00, 00, tzinfo=pytz.UTC)
+        end = datetime(2024, 5, 29, 6, 00, 00, tzinfo=pytz.UTC)
         event = {"dates": {"start": start, "end": end, "tz": "Asia/Calcutta"}}
         result = get_event_formatted_dates(event)
         self.assertEqual(result, "10:30 28/05/2024 - 11:30 29/05/2024")
 
     def test_all_day_event(self):
-        start = datetime(2024, 4, 27, 18, 30, 00)
-        end = datetime(2024, 4, 28, 18, 29, 59)
+        start = datetime(2024, 4, 27, 18, 30, 00, tzinfo=pytz.UTC)
+        end = datetime(2024, 4, 28, 18, 29, 59, tzinfo=pytz.UTC)
         event = {"dates": {"start": start, "end": end, "tz": "Asia/Calcutta"}}
         result = get_event_formatted_dates(event)
         self.assertEqual(result, "ALL DAY 28/04/2024")
 
     def test_same_start_end(self):
-        start = datetime(2024, 4, 1, 14, 45)
-        end = datetime(2024, 4, 1, 14, 45)
+        start = datetime(2024, 4, 1, 14, 45, tzinfo=pytz.UTC)
+        end = datetime(2024, 4, 1, 14, 45, tzinfo=pytz.UTC)
         event = {"dates": {"start": start, "end": end, "tz": "Asia/Calcutta"}}
         result = get_event_formatted_dates(event)
         self.assertEqual(result, "20:15 01/04/2024")
 
     def test_dates_same_and_different_time(self):
-        start = datetime(2024, 5, 28, 5, 00, 00)
-        end = datetime(2024, 5, 28, 6, 00, 00)
+        start = datetime(2024, 5, 28, 5, 00, 00, tzinfo=pytz.UTC)
+        end = datetime(2024, 5, 28, 6, 00, 00, tzinfo=pytz.UTC)
         event = {"dates": {"start": start, "end": end, "tz": "Asia/Calcutta"}}
         result = get_event_formatted_dates(event)
         self.assertEqual(result, "10:30 - 11:30, 28/05/2024")
