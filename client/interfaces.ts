@@ -990,6 +990,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     source?:string;
     coverage_user_id?:string;
     coverage_assignment_status?:ICoverageAssigned['qcode'];
+    include_associated_planning: boolean;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {

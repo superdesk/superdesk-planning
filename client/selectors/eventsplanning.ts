@@ -128,5 +128,6 @@ export const getEventsPlanningViewParams = createSelector(
         fulltext: fullTextParam,
         filter_id: filterId,
         page: 1,
+        include_associated_planning: true,
     })
 );

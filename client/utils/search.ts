@@ -46,6 +46,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
         priority: params.advancedSearch?.priority,
+        include_associated_planning: params.include_associated_planning,
     };
 }
 
