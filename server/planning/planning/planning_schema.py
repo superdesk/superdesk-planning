@@ -194,8 +194,6 @@ planning_schema = {
                 },
                 "link_type": {
                     "type": "string",
-                    "required": True,
-                    "default": "primary",
                     "allowed": ["primary", "secondary"],
                 },
             },

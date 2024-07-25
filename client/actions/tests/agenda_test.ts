@@ -338,7 +338,6 @@ describe('agenda', () => {
                                 coverages: [],
                                 related_events: [{
                                     _id: events[0]._id,
-                                    link_type: 'primary',
                                 }],
                                 planning_date: events[0].dates.start,
                                 slugline: events[0].slugline,

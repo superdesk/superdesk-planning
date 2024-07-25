@@ -492,6 +492,10 @@ Feature: Planning Item Locking
 
     @auth
     Scenario: Can lock Planning while related secondary Event is locked
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
         Given "events"
         """
         [{

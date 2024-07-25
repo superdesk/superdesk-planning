@@ -798,6 +798,10 @@ Feature: Events Postpone
     @auth
     @vocabulary
     Scenario: Postponing an Event does not postpone Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
         Given we have sessions "/sessions"
         And "events"
         """

@@ -11,6 +11,7 @@
 """Superdesk Planning"""
 
 from typing import Dict, Any, Optional, List
+from typing_extensions import assert_never
 from copy import deepcopy
 import logging
 from datetime import datetime
@@ -74,6 +75,7 @@ from planning.content_profiles.utils import is_field_enabled, is_post_planning_w
 from planning.signals import planning_created, planning_ingested
 from .planning_schema import planning_schema
 from planning.utils import (
+    get_planning_event_link_method,
     get_related_planning_for_events,
     get_related_event_links_for_planning,
     get_related_event_ids_for_planning,
@@ -319,8 +321,7 @@ class PlanningService(Service):
 
         sanitize_input_data(updates)
 
-        if len(get_related_event_ids_for_planning(updates, "primary")) > 1:
-            raise SuperdeskApiError.badRequestError("Only 1 primary linked event is allowed")
+        self._validate_events_links(updates)
 
         # Validate if agendas being added are enabled agendas
         agenda_service = get_resource_service("agenda")
@@ -361,6 +362,31 @@ class PlanningService(Service):
                 )
                 if next_schedule and next_schedule["planning"]["scheduled"] > scheduled_update["planning"]["scheduled"]:
                     raise SuperdeskApiError(message="Scheduled updates of a coverage must be after the previous update")
+
+    def _validate_events_links(self, updates) -> None:
+        ONLY_ONE_PRIMARY_LINKED_EVENT_ERROR = "Only 1 primary linked event is allowed"
+        event_link_method = get_planning_event_link_method()
+
+        if updates.get("related_events"):
+            related_events_links = updates.get("related_events")
+            if event_link_method == "one_primary":
+                assert 1 == len(related_events_links), ONLY_ONE_PRIMARY_LINKED_EVENT_ERROR
+                link = related_events_links[0]
+                link.setdefault("link_type", "primary")
+                assert link["link_type"] == "primary", "Only primary event links are allowed"
+            elif event_link_method == "many_secondary":
+                for link in related_events_links:
+                    link.setdefault("link_type", "secondary")
+                    assert link["link_type"] == "secondary", "Only secondary event links are allowed"
+            elif event_link_method == "one_primary_many_secondary":
+                primary_links = get_related_event_links_for_planning(updates, "primary")
+                secondary_links = get_related_event_links_for_planning(updates, "secondary")
+                assert len(primary_links) <= 1, ONLY_ONE_PRIMARY_LINKED_EVENT_ERROR
+                assert len(primary_links) + len(secondary_links) == len(
+                    related_events_links
+                ), "Missing events link type"
+            else:
+                assert_never(event_link_method)
 
     def _set_planning_event_info(self, doc: Planning, planning_type: ContentProfile) -> Optional[Event]:
         """Set the planning event date

@@ -701,7 +701,7 @@ export type IPlanningRelatedEventLinkType = 'primary' | 'secondary';
 
 export interface IPlanningRelatedEventLink {
     _id: string;
-    link_type: IPlanningRelatedEventLinkType;
+    link_type?: IPlanningRelatedEventLinkType;
     recurrence_id?: string;
 }
 

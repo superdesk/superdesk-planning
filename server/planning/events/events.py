@@ -75,7 +75,11 @@ from planning.common import (
     update_ingest_on_patch,
     TEMP_ID_PREFIX,
 )
-from planning.utils import get_related_planning_for_events, get_related_event_ids_for_planning
+from planning.utils import (
+    get_planning_event_link_method,
+    get_related_planning_for_events,
+    get_related_event_ids_for_planning,
+)
 from .events_base_service import EventsBaseService
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
@@ -751,8 +755,12 @@ class EventsService(superdesk.Service):
             raise SuperdeskApiError.badRequestError("Planning item not found")
 
         updates = {"related_events": planning_item.get("related_events") or []}
+        event_link_method = get_planning_event_link_method()
         link_type: PLANNING_RELATED_EVENT_LINK_TYPE = (
-            "primary" if not len(get_related_event_ids_for_planning(planning_item, "primary")) else "secondary"
+            "primary"
+            if not len(get_related_event_ids_for_planning(planning_item, "primary"))
+            and event_link_method in ("one_primary", "one_primary_many_secondary")
+            else "secondary"
         )
         related_planning = PlanningRelatedEventLink(_id=event_id, link_type=link_type)
         updates["related_events"].append(related_planning)

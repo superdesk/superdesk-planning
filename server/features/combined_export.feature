@@ -59,7 +59,7 @@ Feature: Export combined Planning and Event items with default template
             "slugline": "planning-1",
             "description_text": "desc",
             "related_events": [
-                {"_id": "#events._id#", "link_type": "primary"}
+                {"_id": "#events._id#"}
             ],
             "ednote": "Ed. note 1",
             "coverages": [{

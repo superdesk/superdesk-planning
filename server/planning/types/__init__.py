@@ -16,6 +16,7 @@ from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentPro
 
 UPDATE_METHOD = Literal["single", "future", "all"]
 PLANNING_RELATED_EVENT_LINK_TYPE = Literal["primary", "secondary"]
+PLANNING_EVENT_LINK_METHOD = Literal["one_primary", "many_secondary", "one_primary_many_secondary"]
 
 
 class StringFieldTranslation(TypedDict):

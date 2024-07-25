@@ -1079,6 +1079,10 @@ Feature: Events Spike
     @auth
     @vocabulary
     Scenario: Spiking an Event does not spike Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
         Given we have sessions "/sessions"
         And "events"
         """

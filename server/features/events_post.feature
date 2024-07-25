@@ -297,7 +297,7 @@ Feature: Events Post
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
+            "related_events": [{"_id": "#events._id#"}]
         }
         """
         Then we get OK response
@@ -439,7 +439,7 @@ Feature: Events Post
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
+            "related_events": [{"_id": "#events._id#"}]
         }
         """
         Then we get OK response
@@ -580,7 +580,7 @@ Feature: Events Post
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
+            "related_events": [{"_id": "#events._id#"}]
         }
         """
         Then we get OK response
@@ -1262,6 +1262,10 @@ Feature: Events Post
 
     @auth
     Scenario: Posting an Event will not post Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
         # Configure auto-posting of primary linked Events
         Given "planning_types"
         """

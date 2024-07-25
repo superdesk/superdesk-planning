@@ -164,7 +164,6 @@ function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Pr
 
     const eventLink: IPlanningRelatedEventLink = {
         _id: event._id,
-        link_type: 'primary',
     };
 
     if (event.recurrence_id != null) {
