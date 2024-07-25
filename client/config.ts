@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 
-import {IPlanningConfig} from './interfaces';
+import {IPlanningConfig, PLANNING_VIEW} from './interfaces';
 import {appConfig} from 'appConfig';
 
 appConfig = appConfig as IPlanningConfig;
@@ -80,6 +80,10 @@ if (appConfig.planning == null) {
 
 if (appConfig.coverage == null) {
     appConfig.coverage = {};
+}
+
+if (appConfig.planning_default_view == null) {
+    appConfig.planning_default_view = PLANNING_VIEW.COMBINED;
 }
 
 export function updateConfigAfterLoad() {

@@ -815,8 +815,7 @@ function filter(ftype?: PLANNING_VIEW) {
             LIST_VIEW_TYPE.SCHEDULE;
         const filterType = ftype ||
             (urlParams.getString('filter') as PLANNING_VIEW) ||
-            activeFilter(getState()) ||
-            PLANNING_VIEW.COMBINED;
+            activeFilter(getState());
 
         // Set the Redux/URL params for `filter`
         dispatch({

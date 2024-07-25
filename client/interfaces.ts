@@ -288,6 +288,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     street_map_url?: string;
     planning_auto_close_popup_editor?: boolean;
     start_of_week?: number;
+    planning_default_view: PLANNING_VIEW;
 
     planning?: {
         dateformat?: string;
