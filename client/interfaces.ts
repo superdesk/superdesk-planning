@@ -398,7 +398,7 @@ export interface IItemAction {
     icon?: string;
     inactive?: boolean;
     text?: string;
-    callback?(...args: Array<any>): void;
+    callback: Array<IItemAction> | (() => void);
 }
 
 export interface IItemSubActions {
@@ -908,6 +908,7 @@ export interface IBaseListItemProps<T> {
     session: ISession;
     privileges: {[key: string]: number};
     activeFilter: PLANNING_VIEW;
+    multiSelectDisabled?: boolean;
     multiSelected: boolean;
     listFields: any;
     active: boolean;
@@ -940,6 +941,10 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     contentTypes: Array<IG2ContentType>;
     contacts: {[key: string]: IContactItem};
     onAddCoverageClick(): void;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
 }
 
 export interface IDateSearchParams {
@@ -1965,7 +1970,7 @@ export interface IEditorProps {
     defaultDesk: IDesk;
     preferredCoverageDesks: {[key: string]: string};
     associatedPlannings?: Array<IPlanningItem>;
-    associatedEvent?: IEventItem;
+    associatedEvents?: Array<IEventItem>;
     currentWorkspace: string;
     editorType: EDITOR_TYPE;
     groups: Array<IEditorFormGroup>;

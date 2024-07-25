@@ -60,40 +60,43 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
     stringUtils,
+    planningUtils,
 } from './index';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {planningConfig} from '../config';
+import {isItemAction, isMenuDivider} from '../helpers';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
 function canPostPlanning(
     planning: IPlanningItem,
-    event: IEventItem,
+    events_: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
+    const events = events_ ?? [];
+
     return (
         isExistingItem(planning) &&
         !!privileges[PRIVILEGES.POST_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
-        (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
+        events.every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
         !isItemSpiked(planning) &&
-        !isItemSpiked(event) &&
+        events.every((event) => !isItemSpiked(event)) &&
         (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
-        !isItemCancelled(event) &&
+        events.every((event) => !isItemCancelled(event)) &&
         !isItemRescheduled(planning) &&
-        !isItemRescheduled(event) &&
+        events.every((event) => !isItemRescheduled(event)) &&
         !isNotForPublication(planning)
     );
 }
 
 function canUnpostPlanning(
     planning: IPlanningItem,
-    event: IEventItem,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
@@ -109,26 +112,28 @@ function canUnpostPlanning(
 
 function canEditPlanning(
     planning: IPlanningItem,
-    event: IEventItem,
+    events_: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
+    const events = events_ ?? [];
+
     return (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         !isItemSpiked(planning) &&
-        !isItemSpiked(event) &&
+        events.every((event) => !isItemSpiked(event)) &&
         !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
         !isItemRescheduled(planning) &&
         (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
-        (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED)
+        events.every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED)
     );
 }
 
 function canModifyPlanning(
     planning: IPlanningItem,
-    event: IEventItem,
+    events: Array<IEventItem> | null,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
@@ -136,7 +141,7 @@ function canModifyPlanning(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isItemLocked(planning, locks) &&
         !isItemSpiked(planning) &&
-        !isItemSpiked(event) &&
+        (events ?? []).every((event) => !isItemSpiked(event)) &&
         !isItemCancelled(planning) &&
         !isItemRescheduled(planning)
     );
@@ -144,14 +149,14 @@ function canModifyPlanning(
 
 function canAddFeatured(
     planning: IPlanningItem,
-    event: IEventItem,
+    events: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
     return (
         !get(planning, 'featured', false) &&
-        canEditPlanning(planning, event, session, privileges, locks) &&
+        canEditPlanning(planning, events, session, privileges, locks) &&
         !!privileges[PRIVILEGES.FEATURED_STORIES] && !isItemKilled(planning) &&
         !isItemCancelled(planning)
     );
@@ -159,27 +164,27 @@ function canAddFeatured(
 
 function canRemovedFeatured(
     planning: IPlanningItem,
-    event: IEventItem,
+    events: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
     return (
         get(planning, 'featured', false) === true &&
-        canEditPlanning(planning, event, session, privileges, locks) &&
+        canEditPlanning(planning, events, session, privileges, locks) &&
         !!privileges[PRIVILEGES.FEATURED_STORIES]
     );
 }
 
 function canUpdatePlanning(
     planning: IPlanningItem,
-    event: IEventItem,
+    events: Array<IEventItem>,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
     return (
-        canEditPlanning(planning, event, session, privileges, locks) &&
+        canEditPlanning(planning, events, session, privileges, locks) &&
         isItemPublic(planning) &&
         !isItemKilled(planning) &&
         !!privileges[PRIVILEGES.POST_PLANNING]
@@ -207,14 +212,14 @@ function canSpikePlanning(
 
 function canUnspikePlanning(
     plan: IPlanningItem,
-    event: IEventItem | null,
+    events: Array<IEventItem> | null,
     privileges: IPrivileges
 ): boolean {
     return (
         isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemSpiked(event) &&
+        (events ?? []).every((event) => !isItemSpiked(event)) &&
         (
             !isItemExpired(plan) ||
             !!privileges[PRIVILEGES.EDIT_EXPIRED]
@@ -224,7 +229,7 @@ function canUnspikePlanning(
 
 function canDuplicatePlanning(
     plan: IPlanningItem,
-    event: IEventItem | null,
+    events: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
@@ -233,13 +238,13 @@ function canDuplicatePlanning(
         !isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(plan, session, locks) &&
-        !isItemSpiked(event)
+        (events ?? []).every((event) => !isItemSpiked(event))
     );
 }
 
 function canCancelPlanning(
     planning: IPlanningItem,
-    event: IEventItem | null,
+    events: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
@@ -248,7 +253,7 @@ function canCancelPlanning(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
-        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
+        (events ?? []).every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED) &&
         !(
             getPostedState(planning) === POST_STATE.USABLE &&
             !privileges[PRIVILEGES.POST_PLANNING]
@@ -259,7 +264,7 @@ function canCancelPlanning(
 
 function canCancelAllCoverage(
     planning: IPlanningItem,
-    event: IEventItem | null,
+    events: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
@@ -268,7 +273,7 @@ function canCancelAllCoverage(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemSpiked(planning) &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
-        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
+        (events ?? []).every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED) &&
         canCancelAllCoverageForPlanning(planning) &&
         !(
             getPostedState(planning) === POST_STATE.USABLE &&
@@ -347,7 +352,7 @@ function canCancelAllCoverageForPlanning(planning: IPlanningItem): boolean {
 
 function canAddCoverages(
     planning: IPlanningItem,
-    event: IEventItem,
+    events: Array<IEventItem>,
     privileges: IPrivileges,
     session: ISession,
     locks: ILockedItems
@@ -356,7 +361,7 @@ function canAddCoverages(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         lockUtils.isItemLocked(planning, locks) &&
         lockUtils.isItemLockedInThisSession(planning, session, locks) &&
-        (isNil(event) || !isItemCancelled(event)) &&
+        (events ?? []).every((event) => !isItemCancelled(event)) &&
         (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning) &&
         !isItemExpired(planning)
     );
@@ -399,112 +404,21 @@ export function isNotForPublication(plan: IPlanningItem): boolean {
     return plan.flags?.marked_for_not_publication === true;
 }
 
-export function getPlanningItemActions(
-    plan: IPlanningItem,
-    event: IEventItem | null,
-    session: ISession,
-    privileges: IPrivileges,
-    actions: Array<IItemAction>,
-    locks: ILockedItems
-): Array<IItemAction> {
-    let itemActions = [];
-    let key = 1;
-
-    const actionsValidator = {
-        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: () =>
-            canAddCoverages(plan, event, privileges, session, locks),
-        [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: () =>
-            canSpikePlanning(plan, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: () =>
-            canUnspikePlanning(plan, event, privileges),
-        [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: () =>
-            canDuplicatePlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: () =>
-            canCancelPlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: () =>
-            canCancelAllCoverage(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]: () =>
-            canAddAsEvent(plan, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]: () =>
-            canEditPlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName]: () =>
-            canEditPlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]: () =>
-            canModifyPlanning(plan, event, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]: () =>
-            canAddFeatured(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]: () =>
-            canRemovedFeatured(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]: () =>
-            canModifyPlanning(plan, event, privileges, locks) && !isItemExpired(plan),
-        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: () =>
-            !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: () =>
-            !isPlanAdHoc(plan) && eventUtils.canUpdateEventTime(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: () =>
-            !isPlanAdHoc(plan) && eventUtils.canRescheduleEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: () =>
-            !isPlanAdHoc(plan) && eventUtils.canPostponeEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: () =>
-            !isPlanAdHoc(plan) &&
-            eventUtils.canConvertToRecurringEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: () =>
-            !isPlanAdHoc(plan) &&
-            eventUtils.canUpdateEventRepetitions(event, session, privileges, locks),
-
-    };
-
-    actions.forEach((action) => {
-        if (actionsValidator[action.actionName] && !actionsValidator[action.actionName]()) {
-            return;
-        }
-
-        switch (action.actionName) {
-        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
-            action.label = gettext('Cancel Event');
-            break;
-
-        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
-            action.label = gettext('Update Event Time');
-            break;
-
-        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName:
-            action.label = gettext('Reschedule Event');
-            break;
-        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
-            action.label = gettext('Mark Event as Postponed');
-            break;
-        }
-
-        itemActions.push({
-            ...action,
-            key: `${action.actionName}-${key}`,
-        });
-
-        key++;
-    });
-
-    if (isEmptyActions(itemActions)) {
-        return [];
-    }
-
-    return itemActions;
-}
-
 interface IGetPlanningActionArgs {
     item: IPlanningItem;
-    event: IEventItem | null;
+    events: Array<IEventItem> | null;
     session: ISession;
     privileges: IPrivileges;
     lockedItems: ILockedItems;
-    agendas: Array<IAgenda>
+    agendas?: Array<IAgenda>
     callBacks: {[key: string]: (...args: Array<any>) => any};
     contentTypes: Array<IG2ContentType>;
 }
+
 function getPlanningActions(
     {
         item,
-        event,
+        events,
         session,
         privileges,
         lockedItems,
@@ -512,151 +426,183 @@ function getPlanningActions(
         callBacks,
         contentTypes,
     }: IGetPlanningActionArgs
-): Array<IItemAction> {
+): Array<IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL> {
     if (!isExistingItem(item)) {
         return [];
     }
 
-    let enabledAgendas;
-    let agendaCallBacks = [];
-    let actions = [];
-    let addCoverageCallBacks = [];
-    let eventActions = [GENERIC_ITEM_ACTIONS.DIVIDER];
-    const isExpired = isItemExpired(item);
-    let alllowedCallBacks = [
-        PLANNING.ITEM_ACTIONS.PREVIEW.actionName,
-        PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName,
-        PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName,
-        PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName,
-        PLANNING.ITEM_ACTIONS.DUPLICATE.actionName,
-        PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName,
-        PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName,
-        PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName,
-        PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName,
-        PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName,
-        PLANNING.ITEM_ACTIONS.SPIKE.actionName,
-        PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName,
-        PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName,
-        EVENTS.ITEM_ACTIONS.PREVIEW.actionName,
-        EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
-        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
-        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
-    ];
+    function getPlanningItemAction(
+        action: keyof typeof PLANNING.ITEM_ACTIONS,
+        condition: () => boolean,
+        callback?: IItemAction['callback'],
+    ): IItemAction | null {
+        if (callBacks[PLANNING.ITEM_ACTIONS[action].actionName] != null && condition() === true) {
+            const getDefaultCallback = () => callBacks[PLANNING.ITEM_ACTIONS[action].actionName].bind(null, item);
 
+            return {
+                ...PLANNING.ITEM_ACTIONS[action],
+                callback: callback ?? getDefaultCallback(),
+            };
+        } else {
+            return null;
+        }
+    }
+
+    const isExpired = isItemExpired(item);
+
+    const duplicateAction: IItemAction = getPlanningItemAction(
+        'DUPLICATE',
+        () => canDuplicatePlanning(item, events, session, privileges, lockedItems),
+    );
 
     if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
-        alllowedCallBacks = [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName];
+        return duplicateAction == null ? [] : [duplicateAction];
     }
 
-    if (isItemSpiked(item)) {
-        alllowedCallBacks = [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName];
+    const isSpiked = isItemSpiked(item);
+
+    const unspikeAction: IItemAction = getPlanningItemAction(
+        'UNSPIKE',
+        () => canUnspikePlanning(item, events, privileges),
+    );
+
+    if (isSpiked) {
+        return unspikeAction == null ? [] : [unspikeAction];
     }
 
-    alllowedCallBacks.forEach((callBackName) => {
-        if (!callBacks[callBackName]) {
-            return;
+
+    function addPlanningItemAction(
+        actionKey: keyof typeof PLANNING.ITEM_ACTIONS,
+        condition: () => boolean,
+        callback?: IItemAction['callback'],
+    ) {
+        const action: IItemAction | null = getPlanningItemAction(actionKey, condition, callback);
+
+        if (action != null) {
+            actions.push(action);
+        }
+    }
+
+    const actions: ReturnType<typeof getPlanningActions> = [];
+
+    if (contentTypes.length > 0) {
+        const getAddCoverageCallbacks = (callback) => contentTypes.map((contentType) => (
+            {
+                label: contentType.name,
+                icon: self.getCoverageIcon(contentType.qcode),
+                callback: callback.bind(null, contentType.qcode, item),
+            }
+        ));
+
+        if (callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName] != null) {
+            addPlanningItemAction(
+                'ADD_COVERAGE',
+                () => canAddCoverages(item, events, privileges, session, lockedItems),
+                getAddCoverageCallbacks(callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]),
+            );
         }
 
-        if ([PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName, PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]
-            .includes(callBackName)) {
-            addCoverageCallBacks = contentTypes.map((c) => (
-                {
-                    label: c.name,
-                    icon: self.getCoverageIcon(c.qcode),
-                    callback: callBacks[callBackName].bind(null, c.qcode, item),
-                }
-            ));
+        if (callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName] != null) {
+            addPlanningItemAction(
+                'ADD_COVERAGE_FROM_LIST',
+                () => canModifyPlanning(item, events, privileges, lockedItems) && !isItemExpired(item),
+                getAddCoverageCallbacks(callBacks[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]),
+            );
+        }
+    }
 
-            if (addCoverageCallBacks.length <= 0) {
-                return;
-            }
+    const enabledAgendas: Array<any> = getEnabledAgendas(agendas);
 
-            if (callBackName === PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName) {
-                actions.push({
-                    ...PLANNING.ITEM_ACTIONS.ADD_COVERAGE,
-                    callback: addCoverageCallBacks,
-                });
-            } else if (callBackName === PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName) {
-                actions.push({
-                    ...PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST,
-                    callback: addCoverageCallBacks,
-                });
-            }
-        } else if (callBackName === PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName) {
-            enabledAgendas = getEnabledAgendas(agendas);
-            enabledAgendas.forEach((agenda) => {
-                agendaCallBacks.push({
-                    label: agenda.name,
-                    inactive: get(item, 'agendas', []).includes(agenda._id),
-                    callback: callBacks[callBackName].bind(null, item, agenda),
-                });
-            });
+    addPlanningItemAction(
+        'ASSIGN_TO_AGENDA',
+        () => enabledAgendas.length > 0 && canModifyPlanning(item, events, privileges, lockedItems),
+        (() => {
+            const _actions: Array<IItemAction> = enabledAgendas.map((agenda) => ({
+                label: agenda.name,
+                inactive: (item.agendas ?? []).includes(agenda._id),
+                callback: callBacks[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName].bind(null, item, agenda),
+            }));
 
-            if (agendaCallBacks.length > 0) {
-                actions.push({
-                    ...PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA,
-                    callback: agendaCallBacks,
-                });
-            }
-        } else {
-            let action = find(PLANNING.ITEM_ACTIONS, (action) => action.actionName === callBackName);
+            return _actions;
+        })(),
+    );
 
-            if (action) {
-                if (callBackName === PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName) {
-                    actions.push({
-                        ...action,
-                        callback: callBacks[callBackName].bind(null, item, false, true),
-                    });
-                } else if (callBackName === PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName) {
-                    actions.push({
-                        ...action,
-                        callback: callBacks[callBackName].bind(null, item, true),
-                    });
-                } else {
-                    actions.push({
-                        ...action,
-                        callback: callBacks[callBackName].bind(null, item),
-                    });
-                }
-            } else {
-                action = find(EVENTS.ITEM_ACTIONS, (action) => action.actionName === callBackName);
-                if (action) {
-                    eventActions.push({
-                        ...action,
-                        callback: callBacks[callBackName].bind(null, event),
-                    });
-                }
-            }
+    addPlanningItemAction(
+        'EDIT_PLANNING_MODAL',
+        () => canEditPlanning(item, events, session, privileges, lockedItems),
+        () => {
+            callBacks[PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName].bind(null, item, false, true)();
+        },
+    );
+
+    addPlanningItemAction(
+        'SPIKE',
+        () => canSpikePlanning(item, session, privileges, lockedItems),
+    );
+
+    if (unspikeAction != null) {
+        actions.push(unspikeAction);
+    }
+
+    if (duplicateAction != null) {
+        actions.push(duplicateAction);
+    }
+
+    addPlanningItemAction(
+        'CANCEL_PLANNING',
+        () => canCancelPlanning(item, events, session, privileges, lockedItems),
+    );
+
+    addPlanningItemAction(
+        'CANCEL_ALL_COVERAGE',
+        () => canCancelAllCoverage(item, events, session, privileges, lockedItems),
+    );
+
+    addPlanningItemAction(
+        'ADD_AS_EVENT',
+        () => canAddAsEvent(item, privileges, lockedItems),
+    );
+
+    addPlanningItemAction(
+        'EDIT_PLANNING',
+        () => canEditPlanning(item, events, session, privileges, lockedItems),
+    );
+
+    addPlanningItemAction(
+        'ADD_TO_FEATURED',
+        () => canAddFeatured(item, events, session, privileges, lockedItems),
+    );
+
+    addPlanningItemAction(
+        'REMOVE_FROM_FEATURED',
+        () => canRemovedFeatured(item, events, session, privileges, lockedItems),
+        () => callBacks[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName].bind(null, item, true)(),
+    );
+
+    if (isEmptyActions(actions)) {
+        return [];
+    }
+
+    actions.forEach((action, i) => {
+        if (isItemAction(action)) {
+            action.key = `${action.actionName}-${i}`;
         }
     });
 
-    // Don't include event actions if planning is spiked or expired
-    if (eventActions.length > 1 && !isItemSpiked(item) && (!isExpired || privileges[PRIVILEGES.EDIT_EXPIRED])) {
-        actions.push(...eventActions);
-    }
-
-    return getPlanningItemActions(
-        item,
-        event,
-        session,
-        privileges,
-        actions,
-        lockedItems
-    );
+    return actions;
 }
 
 /**
  * Converts output from `getPlanningActions` to `Array<IMenuItem>`
  */
-export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenuItem> {
+export function toUIFrameworkInterface(
+    actions: Array<IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL>
+): Array<IMenuItem> {
     return actions
         .filter((item, index) => {
             // Trim dividers. Menu should not start or end with a divider.
             if (
-                (index === 0 && item.label === 'Divider')
-                || (index === actions.length - 1 && item.label === 'Divider')
+                isMenuDivider(item) && (index === 0 || (index === actions.length - 1))
             ) {
                 return false;
             } else {
@@ -664,7 +610,19 @@ export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenu
             }
         })
         .map((menuItemOrGroup) => {
-            if (Array.isArray(menuItemOrGroup.callback)) {
+            if (isMenuDivider(menuItemOrGroup)) {
+                const menuSeparator: IMenuItem = {
+                    separator: true,
+                };
+
+                return menuSeparator;
+            } else if (!isItemAction(menuItemOrGroup)) {
+                const menuSeparator: IMenuItem = {
+                    separator: true,
+                };
+
+                return menuSeparator;
+            } else if (Array.isArray(menuItemOrGroup.callback)) {
                 const {label, icon, callback} = menuItemOrGroup;
 
                 var menuBranch: IMenuItem = {
@@ -674,12 +632,6 @@ export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenu
                 };
 
                 return menuBranch;
-            } else if (menuItemOrGroup.label === 'Divider') {
-                var menuSeparator: IMenuItem = {
-                    separator: true,
-                };
-
-                return menuSeparator;
             } else {
                 const {label, icon, callback, inactive} = menuItemOrGroup;
 
@@ -696,7 +648,7 @@ export function toUIFrameworkInterface(actions: Array<IItemAction>): Array<IMenu
 }
 
 function getPlanningActionsForUiFrameworkMenu(data: IGetPlanningActionArgs): Array<IMenuItem> {
-    return toUIFrameworkInterface(getPlanningActions(data));
+    return toUIFrameworkInterface(planningUtils.getPlanningActions(data));
 }
 
 export function modifyForClient(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
@@ -1311,7 +1263,7 @@ function getDefaultCoverageStatus(newsCoverageStatus: Array<IPlanningNewsCoverag
 function defaultCoverageValues(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     planningItem?: DeepPartial<IPlanningItem>,
-    eventItem?: IEventItem,
+    eventItem?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
     g2contentType?: IG2ContentType['qcode'],
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
@@ -1601,7 +1553,7 @@ function duplicateCoverage(
     item: DeepPartial<IPlanningItem>,
     coverage: DeepPartial<IPlanningCoverageItem>,
     duplicateAs?: IG2ContentType['qcode'],
-    event?: IEventItem
+    event?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
 ): DeepPartial<IPlanningItem['coverages']> {
     const coveragePlanning: Partial<IPlanningItem> = {
         slugline: coverage.planning.slugline,
@@ -1648,7 +1600,7 @@ export function getRelatedEventLinksForPlanning(
     plan: Partial<IPlanningItem>,
     linkType: IPlanningRelatedEventLinkType
 ): Array<IPlanningRelatedEventLink> {
-    return (plan.related_events || []).filter((link) => link.link_type === linkType);
+    return (plan?.related_events || []).filter((link) => link.link_type === linkType);
 }
 
 export function getRelatedEventIdsForPlanning(
@@ -1656,6 +1608,40 @@ export function getRelatedEventIdsForPlanning(
     linkType: IPlanningRelatedEventLinkType
 ): Array<IEventItem['_id']> {
     return getRelatedEventLinksForPlanning(plan, linkType).map((event) => event._id);
+}
+
+export function pickRelatedEventsForPlanning(
+    planning: IPlanningItem,
+    events_: Array<IEventItem> | null,
+    purpose: 'display' | 'logic',
+): Array<IEventItem> {
+    const events = events_ ?? [];
+    const {assertNever} = superdeskApi.helpers;
+
+    if (purpose === 'logic') {
+        const allowedEventIds = new Set(getRelatedEventIdsForPlanning(planning, 'primary'));
+
+        return events.filter((event) => allowedEventIds.has(event._id));
+    } else if (purpose === 'display') {
+        return events;
+    } else {
+        assertNever(purpose);
+    }
+}
+
+export function pickRelatedEventIdsForPlanning(
+    planning: IPlanningItem,
+    purpose: 'display' | 'logic',
+): Array<IEventItem['_id']> {
+    const {assertNever} = superdeskApi.helpers;
+
+    if (purpose === 'logic') {
+        return getRelatedEventIdsForPlanning(planning, 'primary');
+    } else if (purpose === 'display') {
+        return (planning.related_events ?? []).map(({_id}) => _id);
+    } else {
+        assertNever(purpose);
+    }
 }
 
 // eslint-disable-next-line consistent-this
@@ -1667,7 +1653,6 @@ const self = {
     canEditPlanning,
     canUpdatePlanning,
     mapCoverageByDate,
-    getPlanningItemActions,
     isPlanAdHoc,
     modifyCoverageForClient,
     isCoverageCancelled,

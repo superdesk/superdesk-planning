@@ -1,12 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 interface IProps {
     collapsed?: boolean; // defaults to true
     expanded?: boolean;
     parentItem: React.ReactNode,
-    nestedChildren: React.ReactNodeArray;
+    nestedChildren: React.ReactNode;
     noMarginTop?: boolean;
 }
 

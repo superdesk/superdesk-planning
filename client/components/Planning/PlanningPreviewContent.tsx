@@ -34,30 +34,39 @@ import {FeatureLabel} from './FeaturedPlanning';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../fields';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
-interface IProps {
-    item: IPlanningItem;
-    users: Array<IUser>;
-    desks: Array<IDesk>;
-    session: ISession;
-    lockedItems: ILockedItems;
-    formProfile: IFormProfiles;
-    relatedEvents?: Array<IEventItem>;
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    onEditEvent(): void; // TODO - match code
+interface IOwnProps {
     inner?: boolean;
     noPadding?: boolean;
+    hideRelatedItems?: boolean;
+    hideEditIcon?: boolean;
+    currentCoverageId?: IPlanningCoverageItem['coverage_id'];
+}
+
+interface IReduxProps {
+    item: IPlanningItem;
+    relatedEvents: Array<IEventItem> | null;
+    session: ISession;
+    privileges: any;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    lockedItems: ILockedItems;
+    formProfile: IFormProfiles;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    files: Array<IFile>;
+    planningAllowScheduledUpdates: boolean;
+}
+
+interface IDispatchProps {
+    onEditEvent(event): void; // TODO - match code
 
     // TODO: Multiple related events - If BE supports bulk fetch for an array of events use it
     fetchEventFiles(event: IEventItem): void; // TODO - match code
     fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
-    hideRelatedItems?: boolean;
-    files: Array<IFile>;
-    hideEditIcon?: boolean;
-    planningAllowScheduledUpdates: boolean;
-    currentCoverageId?: IPlanningCoverageItem['coverage_id'];
 }
 
-const mapStateToProps = (state, ownProps) => ({
+type IProps = IOwnProps & IReduxProps & IDispatchProps;
+
+const mapStateToProps = (state, ownProps): IReduxProps => ({
     item: selectors.planning.currentPlanning(state) || ownProps.item,
     relatedEvents: selectors.events.getRelatedEventsForPlanning(state),
     session: selectors.general.session(state),
@@ -71,7 +80,7 @@ const mapStateToProps = (state, ownProps) => ({
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch): IDispatchProps => ({
     onEditEvent: (event) => dispatch(actions.main.openForEdit(event)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
     fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
@@ -98,7 +107,6 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             desks,
             newsCoverageStatus,
             onEditEvent,
-            lockedItems,
             inner,
             noPadding,
             hideRelatedItems,
@@ -106,6 +114,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             files,
             planningAllowScheduledUpdates,
         } = this.props;
+
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
         const creationDate = get(item, '_created');

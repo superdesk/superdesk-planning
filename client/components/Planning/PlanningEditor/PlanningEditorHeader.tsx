@@ -15,7 +15,7 @@ import {FeatureLabel} from '../FeaturedPlanning';
 
 interface IProps {
     item: IPlanningItem;
-    event?: IEventItem;
+    event?: IEventItem; // TAG: MULTIPLE_PRIMARY_EVENTS
     users: Array<IUser>;
 }
 

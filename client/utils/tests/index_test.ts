@@ -250,7 +250,7 @@ describe('Utils', () => {
 
 
         it('cancelled item is readOnly even if it has edit lock', () => {
-            expect(utils.isItemReadOnly(item, session, privilages, lockedItems)).toBe(true);
+            expect(utils.isItemReadOnly(item, session, privilages, lockedItems, [])).toBe(true);
         });
     });
 

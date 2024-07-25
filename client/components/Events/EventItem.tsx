@@ -201,7 +201,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 <Border state={borderState} />
                 <ItemType
                     item={item}
-                    hasCheck={activeFilter !== PLANNING_VIEW.COMBINED}
+                    hasCheck={this.props.multiSelectDisabled !== true && activeFilter !== PLANNING_VIEW.COMBINED}
                     checked={this.props.multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}

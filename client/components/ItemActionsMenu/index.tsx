@@ -1,15 +1,32 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {onEventCapture} from '../../utils';
+import {gettext, onEventCapture} from '../../utils';
 import {GENERIC_ITEM_ACTIONS} from '../../constants';
 
 import {ActionsMenuPopup} from './ActionsMenuPopup';
 
 import './style.scss';
 
-export class ItemActionsMenu extends React.Component {
+interface IProps {
+    field: string;
+    actions?: Array<any>;
+    className?: string;
+    onOpen?(): void;
+    wide?: boolean;
+}
+
+interface IState {
+    isOpen: boolean;
+}
+
+export class ItemActionsMenu extends React.Component<IProps, IState> {
+    static defaultProps: Partial<IProps> = {
+        actions: [],
+        className: 'icn-btn dropdown__toggle',
+        wide: false,
+    };
+
     constructor(props) {
         super(props);
         this.state = {isOpen: false};
@@ -73,18 +90,3 @@ export class ItemActionsMenu extends React.Component {
             this.openMenu(event);
     }
 }
-
-ItemActionsMenu.propTypes = {
-    field: PropTypes.string,
-    actions: PropTypes.array.isRequired,
-    className: PropTypes.string,
-    buttonClass: PropTypes.string,
-    onOpen: PropTypes.func,
-    wide: PropTypes.bool,
-};
-
-ItemActionsMenu.defaultProps = {
-    actions: [],
-    className: 'icn-btn dropdown__toggle',
-    wide: false,
-};

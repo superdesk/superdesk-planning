@@ -11,6 +11,7 @@ module.exports = Object.assign({}, sharedConfigs, {
                 'comma-dangle': 0,
                 'camelcase': 0,
                 'no-prototype-builtins': 0, // allow hasOwnProperty
+                'react/prop-types': 0, // using interfaces
             },
         },
         {

@@ -751,7 +751,7 @@ interface IGetEventActionArgs {
     lockedItems: ILockedItems;
     callBacks: {[key: string]: (...args: Array<any>) => any};
     withMultiPlanningDate: boolean;
-    calendars: Array<IVocabularyItem>;
+    calendars?: Array<IVocabularyItem>;
 }
 
 function getEventActions(

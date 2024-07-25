@@ -16,7 +16,7 @@ import {currentPlanning, storedPlannings} from './planning';
 import {agendas, userPreferences} from './general';
 import {currentItem, currentItemModal} from './forms';
 import {eventUtils, getSearchDateRange} from '../utils';
-import {getRelatedEventIdsForPlanning} from '../utils/planning';
+import {getRelatedEventIdsForPlanning, pickRelatedEventsForPlanning} from '../utils/planning';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 
 function getCurrentListViewType(state?: IPlanningAppState) {
@@ -144,17 +144,17 @@ export const getRelatedEventsForPlanning = createSelector<
             return null;
         }
 
-        return (item.related_events?.length ?? 0) > 0
-            ? item.related_events.map((relatedEvent) => events[relatedEvent._id])
-            : null;
+        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'logic');
+
+        return pickedEvents.length < 1 ? null : pickedEvents;
     }
 );
 
-export const planningEditAssociatedEvent = createSelector<
+export const planningEditAssociatedEvents = createSelector<
     IPlanningAppState,
     IEventOrPlanningItem | null,
     {[eventId: string]: IEventItem},
-    IEventItem | null
+    Array<IEventItem> | null
 >(
     [currentItem, storedEvents],
     (item, events) => {
@@ -162,17 +162,17 @@ export const planningEditAssociatedEvent = createSelector<
             return null;
         }
 
-        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
+        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'logic');
 
-        return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
+        return pickedEvents.length < 1 ? null : pickedEvents;
     }
 );
 
-export const planningEditAssociatedEventModal = createSelector<
+export const planningEditAssociatedEventsModal = createSelector<
     IPlanningAppState,
     IEventOrPlanningItem | null,
     {[eventId: string]: IEventItem},
-    IEventItem | null
+    Array<IEventItem> | null
 >(
     [currentItemModal, storedEvents],
     (item, events) => {
@@ -180,9 +180,9 @@ export const planningEditAssociatedEventModal = createSelector<
             return null;
         }
 
-        const relatedEventIds = getRelatedEventIdsForPlanning(item, 'primary');
+        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'logic');
 
-        return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
+        return pickedEvents.length < 1 ? null : pickedEvents;
     }
 );
 
