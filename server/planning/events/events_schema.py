@@ -21,6 +21,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_FIELD_SCHEMA,
 )
+from planning.planning.planning_schema import planning_schema
 
 event_type = deepcopy(Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -192,7 +193,7 @@ events_schema = {
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},
     },
     # Content metadata
-    "subject": metadata_schema["subject"],
+    "subject": planning_schema["subject"],
     "slugline": metadata_schema["slugline"],
     # Item metadata
     "location": {

@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 python3 python3-dev python3-pip python3-venv git gcc curl \
 # lxml
 libxml2-dev libxslt-dev \
+# xmlsec
+pkg-config libxml2-dev libxmlsec1-dev libxmlsec1-openssl \
 # PIL
 libjpeg-dev zlib1g-dev \
 # magic

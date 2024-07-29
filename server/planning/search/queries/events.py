@@ -255,16 +255,7 @@ def search_date_start(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if not date_filter and start_date and not end_date:
         query.filter.append(
-            elastic.bool_or(
-                [
-                    elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.start", gte=start_date, time_zone=time_zone)
-                    ),
-                    elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.end", gte=start_date, time_zone=time_zone)
-                    ),
-                ]
-            )
+            elastic.date_range(elastic.ElasticRangeParams(field="dates.end", gte=start_date, time_zone=time_zone)),
         )
 
 
@@ -273,16 +264,7 @@ def search_date_end(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if not date_filter and not start_date and end_date:
         query.filter.append(
-            elastic.bool_or(
-                [
-                    elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.start", lte=end_date, time_zone=time_zone)
-                    ),
-                    elastic.date_range(
-                        elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
-                    ),
-                ]
-            )
+            elastic.date_range(elastic.ElasticRangeParams(field="dates.start", lte=end_date, time_zone=time_zone)),
         )
 
 
@@ -291,55 +273,17 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if not date_filter and start_date and end_date:
         query.filter.append(
-            elastic.bool_or(
+            elastic.bool_and(
                 [
-                    elastic.bool_and(
-                        [
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.start",
-                                    gte=start_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
-                            ),
-                        ]
+                    elastic.date_range(
+                        elastic.ElasticRangeParams(
+                            field="dates.start",
+                            gte=start_date,
+                            time_zone=time_zone,
+                        ),
                     ),
-                    elastic.bool_and(
-                        [
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.start",
-                                    lt=start_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(field="dates.end", gt=end_date, time_zone=time_zone)
-                            ),
-                        ]
-                    ),
-                    elastic.bool_or(
-                        [
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.start",
-                                    gte=start_date,
-                                    lte=end_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                            elastic.date_range(
-                                elastic.ElasticRangeParams(
-                                    field="dates.end",
-                                    gte=start_date,
-                                    lte=end_date,
-                                    time_zone=time_zone,
-                                )
-                            ),
-                        ]
+                    elastic.date_range(
+                        elastic.ElasticRangeParams(field="dates.end", lte=end_date, time_zone=time_zone)
                     ),
                 ]
             )

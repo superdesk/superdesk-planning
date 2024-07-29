@@ -48,7 +48,6 @@ def create_new_plannings_from_embedded_planning(
             "internal_note",
             "name",
             "place",
-            "subject",
             "anpa_category",
             "ednote",
             "language",
@@ -56,6 +55,9 @@ def create_new_plannings_from_embedded_planning(
         ]
         if field in profiles.planning.enabled_fields
     )
+
+    planning_fields.add("subject")
+
     multilingual_enabled = profiles.events.is_multilingual and profiles.planning.is_multilingual
     translations: List[StringFieldTranslation] = []
     if multilingual_enabled and "language" in planning_fields and len(event.get("translations") or []):

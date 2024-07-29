@@ -42,13 +42,8 @@ const BASE_EVENT = {
 };
 
 export const TEST_EVENTS = {
-    draft: {
+    draft: getEventForDate(getDateStringFor.today(), {
         ...BASE_EVENT,
-        dates: {
-            start: '2045-12-11' + TIME_STRINGS[0],
-            end: '2045-12-11' + TIME_STRINGS[1],
-            tz: TIMEZONE,
-        },
         name: 'Test',
         slugline: 'Original',
         anpa_category: [
@@ -67,18 +62,13 @@ export const TEST_EVENTS = {
             name: LOCATIONS.sydney_opera_house.name,
             address: LOCATIONS.sydney_opera_house.address,
         }],
-    },
-    spiked: {
+    }),
+    spiked: getEventForDate(getDateStringFor.today(), {
         ...BASE_EVENT,
-        dates: {
-            start: '2045-12-11' + TIME_STRINGS[0],
-            end: '2045-12-11' + TIME_STRINGS[1],
-            tz: TIMEZONE,
-        },
         state: 'spiked',
         name: 'Spiker',
         slugline: 'Spiked',
-    },
+    }),
     date_01_02_2045: {
         ...BASE_EVENT,
         dates: {
@@ -121,21 +111,21 @@ export const TEST_EVENTS = {
     },
 };
 
-function getEventForDate(dateString: string, metadata: {[key: string]: any} = {}) {
+function getEventForDate(dateString: string, metadata: {[key: string]: any} = {}, timezone = TIMEZONE) {
     return {
         ...BASE_EVENT,
+        ...metadata,
         dates: {
             start: dateString + TIME_STRINGS[0],
             end: dateString + TIME_STRINGS[1],
-            tz: TIMEZONE,
+            tz: timezone,
         },
-        ...metadata,
     };
 }
 
 export const createEventFor = {
-    today: (metadata = {}) => getEventForDate(getDateStringFor.today(), metadata),
-    tomorrow: (metadata = {}) => getEventForDate(getDateStringFor.tomorrow(), metadata),
-    yesterday: (metadata = {}) => getEventForDate(getDateStringFor.yesterday(), metadata),
-    next_week: (metadata = {}) => getEventForDate(getDateStringFor.next_week(), metadata),
+    today: (metadata = {},  timezone = TIMEZONE) => getEventForDate(getDateStringFor.today(), metadata, timezone),
+    tomorrow: (metadata = {}, timezone = TIMEZONE) => getEventForDate(getDateStringFor.tomorrow(), metadata, timezone),
+    yesterday: (metadata = {}, timezone = TIMEZONE) => getEventForDate(getDateStringFor.yesterday(), metadata, timezone),
+    next_week: (metadata = {}, timezone = TIMEZONE) => getEventForDate(getDateStringFor.next_week(), metadata, timezone),
 };

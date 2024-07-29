@@ -625,6 +625,10 @@ Feature: Planning
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
         """
+        Given "users"
+        """
+        [{"_id": "507f191e810c19729de871eb", "name":"testfoo", "email":"foo@122d.com", "username":"johnfoo"}]
+        """
         Given "vocabularies"
         """
         [{

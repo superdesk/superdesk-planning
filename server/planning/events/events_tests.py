@@ -148,6 +148,27 @@ class EventTestCase(TestCase):
                 self.assertEquals(e["dates"]["start"], expected_time)
                 expected_time += timedelta(days=1)
 
+    def test_create_cancelled_event(self):
+        with self.app.app_context():
+            service = get_resource_service("events")
+            service.post_in_mongo(
+                [
+                    {
+                        "guid": "test",
+                        "name": "Test Event",
+                        "pubstatus": "cancelled",
+                        "dates": {
+                            "start": datetime.now(),
+                            "end": datetime.now() + timedelta(days=1),
+                        },
+                    }
+                ]
+            )
+
+            event = service.find_one(req=None, guid="test")
+            assert event is not None
+            assert event["pubstatus"] == "cancelled"
+
 
 class EventLocationFormatAddress(TestCase):
     def test_format_address(self):

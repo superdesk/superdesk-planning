@@ -1,7 +1,9 @@
-import {setup, login, waitForPageLoad, SubNavBar, addItems} from '../../support/common';
+import {setup, login, waitForPageLoad, SubNavBar, addItems, CLIENT_FORMAT} from '../../support/common';
 import {TIME_STRINGS} from '../../support/utils/time';
 import {EventEditor, PlanningList} from '../../support/planning';
 import {EmbeddedCoverageEditor} from '../../support/planning/events/embeddedCoverageEditor';
+import moment from 'moment';
+import {createEventFor} from '../../fixtures/events';
 
 describe('Planning.Events: embedded coverage', () => {
     const editor = new EventEditor();
@@ -21,7 +23,7 @@ describe('Planning.Events: embedded coverage', () => {
 
         // Enter required fields (so we can create the Event & Planning)
         editor.type({
-            'dates.start.date': '12/12/2045',
+            'dates.start.date': moment().format(CLIENT_FORMAT),
             'dates.allDay': true,
             slugline: 'slugline of the event',
             name: 'name of the event',
@@ -119,24 +121,19 @@ describe('Planning.Events: embedded coverage', () => {
     });
 
     it('can add a planning item to an existing event', () => {
-        addItems('events', [{
+        addItems('events', [createEventFor.today({
             type: 'event',
             occur_status: {
                 name: 'Planned, occurs certainly',
                 label: 'Confirmed',
                 qcode: 'eocstat:eos5',
             },
-            dates: {
-                start: '2045-12-11' + TIME_STRINGS[0],
-                end: '2045-12-11' + TIME_STRINGS[1],
-                tz: 'Australia/Sydney',
-            },
             calendars: [],
             state: 'draft',
             place: [],
             name: 'Test',
             slugline: 'slugline of the event',
-        }]);
+        })]);
 
         list.item(0)
             .dblclick();
@@ -234,24 +231,19 @@ describe('Planning.Events: embedded coverage', () => {
     });
 
     it('SDESK-6022: planning items should stay after post/unpost', () => {
-        addItems('events', [{
+        addItems('events', [createEventFor.today({
             type: 'event',
             occur_status: {
                 name: 'Planned, occurs certainly',
                 label: 'Confirmed',
                 qcode: 'eocstat:eos5',
             },
-            dates: {
-                start: '2045-12-11' + TIME_STRINGS[0],
-                end: '2045-12-11' + TIME_STRINGS[1],
-                tz: 'Australia/Sydney',
-            },
             calendars: [],
             state: 'draft',
             place: [],
             name: 'Test',
             slugline: 'slugline of the event',
-        }]);
+        })]);
 
         list.item(0)
             .dblclick();
@@ -338,16 +330,18 @@ describe('Planning.Events: embedded coverage', () => {
             .should('exist')
             .should('be.enabled');
 
+        const now = moment()
+
         // Fill in the dates (which should also update the Planning/Coverage dates)
         editor.type({
-            'dates.start.date': '12/12/2045',
+            'dates.start.date': now.format(CLIENT_FORMAT),
             'dates.allDay': true,
         });
 
         // Make sure the date has been updated for the Coverage
         embeddedCoverages.getRelatedCoverage(0, 0)
             .should('exist')
-            .should('contain.text', '12/12/2045 @ 00:00');
+            .should('contain.text', `${now.format(CLIENT_FORMAT)} @ 00:00`);
 
         // Now create the Event & Planning item
         editor.waitForAutosave();

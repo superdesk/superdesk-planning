@@ -20,7 +20,9 @@ import {
     IFeaturedPlanningItem,
     ICoverageScheduledUpdate,
     IDateTime,
-    IItemAction, IPlanningRelatedEventLink, IPlanningRelatedEventLinkType,
+    IPlanningRelatedEventLink,
+    IPlanningRelatedEventLinkType,
+    IItemAction,
 } from '../interfaces';
 const appConfig = config as IPlanningConfig;
 
@@ -1177,15 +1179,28 @@ function getCoverageIcon(
     return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
 }
 
-function getCoverageIconColor(coverage: IPlanningCoverageItem): string {
-    if (coverage.workflow_status === COVERAGES.WORKFLOW_STATE.ACTIVE) {
-        return 'var(--sd-colour-success)';
-    } else if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
-        return 'var(--sd-colour-success)';
-    } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
-        return 'var(--sd-colour-highlight)';
+function getCoverageIconColor(item: IPlanningCoverageItem): string | undefined {
+    if (item.workflow_status === 'cancelled') {
+        return 'var(--sd-colour-state--canceled)';
+    }
+
+    if (item.assigned_to == null) {
+        return undefined;
+    }
+
+    switch (getItemWorkflowState(item.assigned_to)) {
+    case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
+        return 'var(--sd-colour-state--in-workflow)';
+    case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
+        return 'var(--sd-colour-state--in-progress)';
+    case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
+        return 'var(--sd-colour-state--completed)';
+    }
+
+    if (item.assigned_to.user != null || item.assigned_to.desk != null) {
+        return 'var(--sd-colour-state--assigned)';
     } else {
-        return 'var(--color-text-lighter)';
+        return 'var(--sd-colour-state--unassigned)';
     }
 }
 
@@ -1207,6 +1222,21 @@ function getCoverageWorkflowIcon(coverage: IPlanningCoverageItem): string | null
 
     case COVERAGES.WORKFLOW_STATE.ACTIVE:
         return 'icon-user';
+    }
+}
+
+function getNewsCoverageStatusDotColor(coverage: DeepPartial<IPlanningCoverageItem>): string | null {
+    if (coverage.news_coverage_status == null) {
+        return undefined;
+    }
+
+    switch (coverage.news_coverage_status.qcode) {
+    case 'ncostat:notdec':
+        return 'var(--sd-colour-coverage-state--on-merit)';
+    case 'ncostat:notint':
+        return 'var(--sd-colour-coverage-state--not-covering)';
+    default:
+        return null;
     }
 }
 
@@ -1674,6 +1704,7 @@ const self = {
     getCoverageIcon,
     getCoverageIconColor,
     getCoverageWorkflowIcon,
+    getNewsCoverageStatusDotColor,
     shouldLockPlanningForEdit,
     modifyForClient,
     modifyForServer,

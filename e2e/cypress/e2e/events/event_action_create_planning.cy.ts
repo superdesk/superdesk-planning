@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 
-import {setup, login, addItems, waitForPageLoad} from '../../support/common';
+import {setup, login, addItems, waitForPageLoad, CLIENT_FORMAT} from '../../support/common';
 import {TIMEZONE} from '../../support/utils/time';
 import {PlanningList, PlanningPreview, EventEditor, PlanningEditor} from '../../support/planning';
 
@@ -14,10 +14,12 @@ describe('Planning.Events: create planning action', () => {
     const preview = new PlanningPreview();
     let menu;
 
+    const start = moment();
+
     const expectedValues = {
         slugline: 'Original',
-        'planning_date.date': '12/12/2025',
-        'planning_date.time': '01:00',
+        'planning_date.date': start.format(CLIENT_FORMAT),
+        'planning_date.time': start.format('HH:mm'),
         description_text: 'Desc.',
         ednote: 'Ed. Note',
         anpa_category: ['Finance'],
@@ -26,7 +28,6 @@ describe('Planning.Events: create planning action', () => {
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
-        const start = moment.tz("2025-12-12 01:00", TIMEZONE).utc();
         addItems('events', [{
             slugline: 'Original',
             definition_short: 'Desc.',
@@ -36,8 +37,8 @@ describe('Planning.Events: create planning action', () => {
                 qcode: 'eocstat:eos5',
             },
             dates: {
-                start: start.format("YYYY-MM-DDTHH:mm:ss+0000"),
-                end: start.add(1, 'h').format('YYYY-MM-DDTHH:mm:ss+0000'),
+                start: start.utc().format("YYYY-MM-DDTHH:mm:ss+0000"),
+                end: start.clone().utc().add(1, 'h').format('YYYY-MM-DDTHH:mm:ss+0000'),
                 tz: TIMEZONE,
             },
             anpa_category: [{is_active: true, name: 'Finance', qcode: 'f', subject: '04000000'}],

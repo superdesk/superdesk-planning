@@ -103,7 +103,7 @@ describe('Search.Combined: searching events and planning', () => {
         search.openAllToggleBoxes();
         search.runSearchTests([{
             params: {},
-            expectedCount: 14,
+            expectedCount: 6,
             expectedText: [
                 'Event Today',
                 'Plan Today',
@@ -111,14 +111,6 @@ describe('Search.Combined: searching events and planning', () => {
                 'Plan Tomorrow',
                 'Event Next Week',
                 'Plan Next Week',
-                'Event Feb 1',
-                'Plan Feb 1',
-                'Event Feb 2',
-                'Plan Feb 2',
-                'Event Feb 3',
-                'Plan Feb 3',
-                'Event Feb 4',
-                'Plan Feb 4',
             ],
         }, {
             params: {

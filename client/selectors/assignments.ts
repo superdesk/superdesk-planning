@@ -124,6 +124,7 @@ export const getAssignmentGroupCounts = createSelector([
 export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'Desk');
 export const getSearchQuery = (state) => get(state, 'assignment.searchQuery', null);
 export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Scheduled');
+export const getDayField = (state) => get(state, 'assignment.dayField', null);
 export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc');
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
@@ -136,6 +137,7 @@ export const getAssignmentListSettings = (state) => ({
     filterBy: getFilterBy(state),
     searchQuery: getSearchQuery(state),
     orderByField: getOrderByField(state),
+    dayField: getDayField(state),
     orderDirection: getOrderDirection(state),
     filterByState: getAssignmentFilterByState(state),
     filterByType: getAssignmentFilterByType(state),

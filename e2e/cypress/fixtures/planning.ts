@@ -12,10 +12,9 @@ const BASE_PLANNING = {
 };
 
 export const TEST_PLANNINGS = {
-    draft: {
+    draft: getPlanningForDate(getDateStringFor.today(), {
         ...BASE_PLANNING,
         slugline: 'Original',
-        planning_date: '2045-12-11T01:00:00+0000',
         anpa_category: [
             {name: 'Overseas Sport', qcode: 's'},
             {name: 'International News', qcode: 'i'},
@@ -24,19 +23,17 @@ export const TEST_PLANNINGS = {
             {qcode: '01001000', name: 'archaeology', parent: '01000000'},
             {qcode: '01011000', name: 'music', parent: '01000000'},
         ],
-    },
-    spiked: {
+    }),
+    spiked: getPlanningForDate(getDateStringFor.today(), {
         ...BASE_PLANNING,
         slugline: 'Spiker',
-        planning_date: '2045-12-11T01:00:00+0000',
         state: 'spiked',
-    },
-    featured: {
+    }),
+    featured: getPlanningForDate(getDateStringFor.today(), {
         ...BASE_PLANNING,
         slugline: 'Featured Planning',
-        planning_date: '2045-12-12T01:00:00+0000',
         featured: true,
-    },
+    }),
     plan_date_01_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 1',
