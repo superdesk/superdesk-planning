@@ -1,9 +1,10 @@
-import flask
 import unittest
 import responses
 
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
+
+from superdesk.flask import Flask
 from planning.feed_parsers.onclusive import OnclusiveFeedParser
 
 from .onclusive_api_service import OnclusiveApiService
@@ -15,7 +16,7 @@ parser = MagicMock(OnclusiveFeedParser)
 class OnclusiveApiServiceTestCase(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.app = flask.Flask(__name__)
+        self.app = Flask(__name__)
         self.service = OnclusiveApiService()
         self.service.get_feed_parser = MagicMock(return_value=parser)
         event = {"versioncreated": datetime(2023, 3, 1, 8, 0, 0)}

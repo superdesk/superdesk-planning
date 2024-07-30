@@ -10,6 +10,11 @@
 
 """Superdesk Planning"""
 import logging
+
+from superdesk.core import get_app_config, get_current_app
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import render_template
+
 from superdesk.activity import add_activity, ACTIVITY_UPDATE
 import superdesk
 from jinja2 import Template, TemplateNotFound
@@ -17,10 +22,8 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
 from planning.common import WORKFLOW_STATE, get_assignment_acceptance_email_address
 from superdesk.emails import send_email
-from flask import current_app as app, render_template
 from flask_mail import Attachment
 from apps.archive.common import get_user
-from eve.utils import config
 from planning.common import get_assginment_name
 
 try:
@@ -66,6 +69,7 @@ class PlanningNotifications:
             return
 
         # Attempt to load the template file, if that fails, just use the message
+        app = get_current_app()
         try:
             (source, filename, uptodate) = app.jinja_loader.get_source(
                 environment=app.jinja_env, template=message + ".txt"
@@ -94,7 +98,7 @@ class PlanningNotifications:
                 members = members + [x for x in desk.get("members", []) if x not in members]
 
             for member in members:
-                if get_user() and str(member.get("user", "")) == str(get_user().get(config.ID_FIELD)):
+                if get_user() and str(member.get("user", "")) == str(get_user().get(ID_FIELD)):
                     continue
                 add_activity(
                     ACTIVITY_UPDATE,
@@ -106,9 +110,10 @@ class PlanningNotifications:
                 )
 
         # determine if a Slack Bot has been configured
-        if slack_client_installed and app.config.get("SLACK_BOT_TOKEN"):
+        slack_bot_token = get_app_config("SLACK_BOT_TOKEN")
+        if slack_client_installed and slack_bot_token:
             args = {
-                "token": app.config.get("SLACK_BOT_TOKEN"),
+                "token": slack_bot_token,
                 "target_user": target_user,
                 "target_desk": target_desk,
                 "target_desk2": target_desk2,
@@ -137,7 +142,8 @@ class PlanningNotifications:
         :param original:
         :return:
         """
-        if slack_client_installed and app.config.get("SLACK_BOT_TOKEN"):
+        slack_bot_token = get_app_config("SLACK_BOT_TOKEN")
+        if slack_client_installed and slack_bot_token:
             # If there is a change to the slack username but not the slack user id as well we invalidate the stored
             # slack user id and try to validate the new username
             if (
@@ -146,7 +152,7 @@ class PlanningNotifications:
                 and "slack_user_id" not in updates
             ):
                 if updates.get("slack_username", None):
-                    sc = SlackClient(token=app.config["SLACK_BOT_TOKEN"])
+                    sc = SlackClient(token=slack_bot_token)
                     slack_users = sc.api_call("users.list")
                     if slack_users.get("ok", False):
                         slack_user = next(
@@ -302,7 +308,8 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
     if not email_address:
         return
 
-    admins = app.config["ADMINS"]
+    admins = get_app_config("ADMINS")
+    app = get_current_app()
 
     data["subject"] = render_template("assignment_mail_subject.txt", **data)
     data["system_reciepient"] = get_assignment_acceptance_email_address()

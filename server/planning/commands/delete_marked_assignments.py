@@ -8,14 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from eve.utils import ParsedRequest
+
+from superdesk.core import json
+from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk import Command, command, get_resource_service
 from superdesk.logging import logger
 from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock, remove_locks
-from eve.utils import config, ParsedRequest
-from flask import json
 from superdesk.notification import push_notification
 
 
@@ -74,7 +76,7 @@ class DeleteMarkedAssignments(Command):
         assignments_deleted = []
 
         for assignment in assignments_to_delete:
-            assign_id = assignment.get(config.ID_FIELD)
+            assign_id = assignment.get(ID_FIELD)
             try:
                 assignments_service.delete_action(lookup={"_id": assign_id})
                 assignments_deleted.append(

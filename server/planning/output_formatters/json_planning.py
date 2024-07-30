@@ -10,10 +10,8 @@
 
 from copy import deepcopy
 
-import json
-from flask import current_app as app
-
 import superdesk
+from superdesk.core import json, get_app_config
 from superdesk import get_resource_service
 from superdesk.publish.formatters import Formatter
 from superdesk.utils import json_serialize_datetime_objectId
@@ -207,7 +205,7 @@ class JsonPlanningFormatter(Formatter):
         return deliveries, assignment.get("assigned_to").get("state")
 
     def _expand_coverage_contacts(self, coverage):
-        EXTENDED_INFO = bool(app.config.get("PLANNING_JSON_ASSIGNED_INFO_EXTENDED"))
+        EXTENDED_INFO = bool(get_app_config("PLANNING_JSON_ASSIGNED_INFO_EXTENDED"))
 
         if (coverage.get("assigned_to") or {}).get("contact"):
             expanded_contacts = expand_contact_info([coverage["assigned_to"]["contact"]])

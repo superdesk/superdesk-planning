@@ -7,8 +7,7 @@
 # Author  : MarkLark86
 # Creation: 2021-03-16 10:50
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk.commands.data_updates import BaseDataUpdate
 from superdesk import get_resource_service
 
@@ -75,9 +74,7 @@ class DataUpdate(BaseDataUpdate):
                 location["translations"] = {"name": external["namedetails"]}
 
             # Use service.system_update so Elasticsearch is updated as well
-            get_resource_service(self.resource).system_update(
-                location.get(config.ID_FIELD), {"address": address}, location
-            )
+            get_resource_service(self.resource).system_update(location.get(ID_FIELD), {"address": address}, location)
 
     def backwards(self, mongodb_collection, mongodb_database):
         pass

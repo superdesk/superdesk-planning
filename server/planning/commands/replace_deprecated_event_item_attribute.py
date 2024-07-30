@@ -11,9 +11,8 @@
 from typing import Dict, Any, Iterator
 import logging
 
-from flask import current_app as app
-
 import superdesk
+from superdesk.core import get_current_app
 from superdesk.errors import SuperdeskApiError
 
 from planning.types import PlanningRelatedEventLink, Planning
@@ -96,6 +95,7 @@ class ReplaceDeprecatedEventItemAttributeCommand(superdesk.Command):
         max_iterations = 10000
 
         # Use pymongo directly, as ``event_item`` is not in the planning resource schema anymore
+        app = get_current_app()
         planning_db = app.data.mongo.pymongo("planning").db["planning"]
         lookup: Dict[str, Any] = (
             {"event_item": {"$ne": None}} if for_upgrade else {"related_events": {"$exists": True, "$nin": [None, []]}}

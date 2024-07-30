@@ -9,9 +9,10 @@
 """Superdesk Files"""
 
 from superdesk import Resource
+from superdesk.resource_fields import ID_FIELD
+
 from .history import HistoryService
 import logging
-from eve.utils import config
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class AssignmentsHistoryResource(Resource):
 class AssignmentsHistoryService(HistoryService):
     def _save_history(self, assignment, update, operation):
         history = {
-            "assignment_id": assignment[config.ID_FIELD],
+            "assignment_id": assignment[ID_FIELD],
             "user_id": self.get_user_id(),
             "operation": operation,
             "update": update,

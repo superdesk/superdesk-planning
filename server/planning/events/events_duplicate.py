@@ -9,13 +9,15 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import logging
+
+from superdesk.core import get_current_app
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import request
 from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url
-from flask import request, current_app as app
 from planning.common import ITEM_STATE, WORKFLOW_STATE, DUPLICATE_EVENT_IGNORED_FIELDS
-from eve.utils import config
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +58,7 @@ class EventsDuplicateService(BaseService):
         duplicate_ids.extend(new_event_ids)
 
         events_service.patch(parent_id, {"duplicate_to": duplicate_ids})
+        app = get_current_app().as_any()
         app.on_updated_events({"duplicate_to": duplicate_ids}, {"_id": parent_id})
 
         return new_event_ids
@@ -67,7 +70,7 @@ class EventsDuplicateService(BaseService):
             new_doc.pop(f, None)
         new_doc.get("dates").pop("recurring_rule", None)
         new_doc[ITEM_STATE] = WORKFLOW_STATE.DRAFT
-        new_doc["duplicate_from"] = original[config.ID_FIELD]
+        new_doc["duplicate_from"] = original[ID_FIELD]
         eocstat_map = get_resource_service("vocabularies").find_one(req=None, _id="eventoccurstatus")
         if eocstat_map:
             new_doc["occur_status"] = [

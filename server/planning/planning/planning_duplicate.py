@@ -11,9 +11,9 @@
 import logging
 from copy import deepcopy
 
-from eve.utils import config
-from flask import request
-
+from superdesk.core import get_app_config
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import request
 from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
@@ -73,7 +73,7 @@ class PlanningDuplicateService(BaseService):
                 for related_event in get_related_event_items_for_planning(original):
                     if related_event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
                         # If both the Planning and Events are cancelled, then unlink this Event
-                        events_to_remove.append(related_event[config.ID_FIELD])
+                        events_to_remove.append(related_event[ID_FIELD])
 
                 # Remove any of the Event's flagged to be removed from above
                 if len(events_to_remove):
@@ -105,8 +105,9 @@ class PlanningDuplicateService(BaseService):
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_plan["guid"] = generate_guid(type=GUID_NEWSML)
 
-        planning_datetime = utc_to_local(config.DEFAULT_TIMEZONE, new_plan.get("planning_date"))
-        local_datetime = utc_to_local(config.DEFAULT_TIMEZONE, utcnow())
+        default_timezone = get_app_config("DEFAULT_TIMEZONE")
+        planning_datetime = utc_to_local(default_timezone, new_plan.get("planning_date"))
+        local_datetime = utc_to_local(default_timezone, utcnow())
         if planning_datetime.date() < local_datetime.date():
             new_plan["planning_date"] = new_plan["planning_date"] + (local_datetime.date() - planning_datetime.date())
 

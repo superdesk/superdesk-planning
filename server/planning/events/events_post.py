@@ -8,9 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import abort
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import abort
 from superdesk import get_resource_service, logger
 from superdesk.resource import Resource, not_analyzed
 from superdesk.notification import push_notification
@@ -110,7 +109,7 @@ class EventsPostService(EventsBaseService):
         event_type = "events:posted" if doc["pubstatus"] == POST_STATE.USABLE else "events:unposted"
         push_notification(
             event_type,
-            item=event[config.ID_FIELD],
+            item=event[ID_FIELD],
             etag=updated_event["_etag"],
             pubstatus=updated_event["pubstatus"],
             state=updated_event["state"],
@@ -146,8 +145,8 @@ class EventsPostService(EventsBaseService):
         failed_planning_ids = []
         for event in posted_events:
             updated_event, failed_planning_ids = self.post_event(event, post_to_state, doc.get("repost_on_update"))
-            ids.append(event[config.ID_FIELD])
-            items.append({"id": event[config.ID_FIELD], "etag": updated_event["_etag"]})
+            ids.append(event[ID_FIELD])
+            items.append({"id": event[ID_FIELD], "etag": updated_event["_etag"]})
 
         # Do not send push-notification if reposting as each event's post state is different
         # The original action's notifications should refetch items
@@ -158,7 +157,7 @@ class EventsPostService(EventsBaseService):
 
             push_notification(
                 event_type,
-                item=original[config.ID_FIELD],
+                item=original[ID_FIELD],
                 items=items,
                 recurrence_id=str(original.get("recurrence_id")),
                 pubstatus=updated_event["pubstatus"],
@@ -195,7 +194,7 @@ class EventsPostService(EventsBaseService):
         updates["version"] = version
 
         get_resource_service("events_history")._save_history(event, updates, "post")
-        plannings = get_related_planning_for_events([event[config.ID_FIELD]], "primary")
+        plannings = get_related_planning_for_events([event[ID_FIELD]], "primary")
 
         event["plans"] = [p.get("_id") for p in plannings]
         self.publish_event(event, version)
@@ -235,7 +234,7 @@ class EventsPostService(EventsBaseService):
             if is_post_planning_with_event_enabled():
                 docs = [
                     {
-                        "planning": planning[config.ID_FIELD],
+                        "planning": planning[ID_FIELD],
                         "etag": planning.get("etag"),
                         "pubstatus": POST_STATE.USABLE,
                     }
@@ -256,11 +255,11 @@ class EventsPostService(EventsBaseService):
                 WORKFLOW_STATE.POSTPONED,
                 WORKFLOW_STATE.CANCELLED,
             ]:
-                planning_spike_service.patch(planning.get(config.ID_FIELD), planning)
+                planning_spike_service.patch(planning.get(ID_FIELD), planning)
             elif planning.get("pubstatus") != POST_STATE.CANCELLED:
                 docs.append(
                     {
-                        "planning": planning.get(config.ID_FIELD),
+                        "planning": planning.get(ID_FIELD),
                         "etag": planning.get("etag"),
                         "pubstatus": POST_STATE.CANCELLED,
                     }

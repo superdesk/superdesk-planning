@@ -12,8 +12,9 @@
 
 import logging
 import superdesk
-from eve.utils import config
 from flask_babel import lazy_gettext
+
+from superdesk.resource_fields import ID_FIELD
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import (
     PlanningExportTemplatesResource,
@@ -223,24 +224,24 @@ def init_app(app):
         category=lazy_gettext("Planning"),
     )
 
-    app.client_config["max_recurrent_events"] = get_max_recurrent_events(app)
-    app.client_config["street_map_url"] = get_street_map_url(app)
-    app.client_config["max_multi_day_event_duration"] = get_event_max_multi_day_duration(app)
-    app.client_config["planning_auto_assign_to_workflow"] = planning_auto_assign_to_workflow(app)
-    app.client_config["long_event_duration_threshold"] = get_long_event_duration_threshold(app)
-    app.client_config["event_templates_enabled"] = event_templates_enabled(app)
-    app.client_config["planning_allow_scheduled_updates"] = get_planning_allow_scheduled_updates(app)
-    app.client_config["planning_link_updates_to_coverage"] = planning_link_updates_to_coverage(app)
-    app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments(app)
-    app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline(app)
-    app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor(app)
-    app.client_config["start_of_week"] = get_start_of_week(app)
+    app.client_config["max_recurrent_events"] = get_max_recurrent_events()
+    app.client_config["street_map_url"] = get_street_map_url()
+    app.client_config["max_multi_day_event_duration"] = get_event_max_multi_day_duration()
+    app.client_config["planning_auto_assign_to_workflow"] = planning_auto_assign_to_workflow()
+    app.client_config["long_event_duration_threshold"] = get_long_event_duration_threshold()
+    app.client_config["event_templates_enabled"] = event_templates_enabled()
+    app.client_config["planning_allow_scheduled_updates"] = get_planning_allow_scheduled_updates()
+    app.client_config["planning_link_updates_to_coverage"] = planning_link_updates_to_coverage()
+    app.client_config["planning_use_xmp_for_pic_assignments"] = get_planning_use_xmp_for_pic_assignments()
+    app.client_config["planning_use_xmp_for_pic_slugline"] = get_planning_use_xmp_for_pic_slugline()
+    app.client_config["planning_auto_close_popup_editor"] = get_planning_auto_close_popup_editor()
+    app.client_config["start_of_week"] = get_start_of_week()
 
     app.client_config.setdefault("planning", {})
-    app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types(app)
+    app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types()
     app.client_config["planning"][
         "default_create_planning_series_with_event_series"
-    ] = get_config_default_create_planning_series_with_event_series(app)
+    ] = get_config_default_create_planning_series_with_event_series()
 
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):
@@ -315,7 +316,7 @@ def init_app(app):
                     added_types.append(item)
 
             if len(added_types) > 0:
-                vocabulary_service.patch(types.get(config.ID_FIELD), {"items": (items + added_types)})
+                vocabulary_service.patch(types.get(ID_FIELD), {"items": (items + added_types)})
 
         custom_loaders = jinja2.ChoiceLoader(
             app.jinja_loader.loaders + [jinja2.FileSystemLoader(os.path.join(_SERVER_PATH, "templates"))]

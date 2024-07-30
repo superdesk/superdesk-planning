@@ -10,8 +10,7 @@
 
 from copy import deepcopy
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
@@ -98,9 +97,9 @@ class AssignmentsCompleteService(BaseService):
             user = updates.pop("proxy_user", None)
             proxy_user = True
         else:
-            user = get_user(required=True).get(config.ID_FIELD, "")
+            user = get_user(required=True).get(ID_FIELD, "")
             proxy_user = False
-        session = get_auth().get(config.ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         original_assigned_to = deepcopy(original).get("assigned_to")
         if not updates.get("assigned_to"):
@@ -133,7 +132,7 @@ class AssignmentsCompleteService(BaseService):
 
         push_notification(
             "assignments:completed",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             planning=original.get("planning_item"),
             assigned_user=(original.get("assigned_to") or {}).get("user"),
             assigned_desk=(original.get("assigned_to") or {}).get("desk"),
@@ -157,7 +156,7 @@ class AssignmentsCompleteService(BaseService):
             coverage_type=get_coverage_type_name(original.get("planning", {}).get("g2_content_type", "")),
             slugline=original.get("planning", {}).get("slugline"),
             omit_user=True,
-            assignment_id=original[config.ID_FIELD],
+            assignment_id=original[ID_FIELD],
             is_link=True,
             no_email=True,
         )

@@ -8,10 +8,11 @@
 
 """Superdesk Planning Featured"""
 
+from superdesk.core import get_app_config
+from superdesk.resource_fields import ID_FIELD
 import superdesk
 from superdesk.resource import not_analyzed
 from superdesk import get_resource_service, logger
-from eve.utils import config
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utc_to_local, utcnow
 from apps.archive.common import update_dates_for
@@ -22,7 +23,6 @@ from planning.common import (
 )
 from apps.auth import get_user_id
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
-from flask import current_app as app
 from copy import deepcopy
 
 ID_DATE_FORMAT = "%Y%m%d"
@@ -33,7 +33,7 @@ class PlanningFeaturedService(superdesk.Service):
 
     def on_create(self, docs):
         for doc in docs:
-            date = utc_to_local(doc.get("tz") or app.config["DEFAULT_TIMEZONE"], doc.get("date"))
+            date = utc_to_local(doc.get("tz") or get_app_config("DEFAULT_TIMEZONE"), doc.get("date"))
             _id = date.strftime(ID_DATE_FORMAT)
 
             items = self.find(where={"_id": _id})
@@ -115,13 +115,13 @@ class PlanningFeaturedService(superdesk.Service):
                 )
 
     def get_id_for_date(self, date):
-        local_date = utc_to_local(app.config["DEFAULT_TIMEZONE"], date)
+        local_date = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), date)
         return local_date.strftime(ID_DATE_FORMAT)
 
 
 planning_featured_schema = {
     # Identifiers
-    config.ID_FIELD: {"type": "string", "regex": 'regex("[0-9]{8}")'},
+    ID_FIELD: {"type": "string", "regex": 'regex("[0-9]{8}")'},
     "date": {
         "type": "datetime",
         "nullable": False,

@@ -16,10 +16,12 @@ import logging
 
 from bson import ObjectId
 from icalendar import Calendar, Event
-from eve.utils import config, ParsedRequest
-from flask import request, json, current_app as app
+from eve.utils import ParsedRequest
 
 import superdesk
+from superdesk.core import json, get_current_app, get_app_config
+from superdesk.resource_fields import ID_FIELD, ITEMS, ETAG, VERSION
+from superdesk.flask import request
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import item_url
@@ -90,7 +92,7 @@ class AssignmentsService(superdesk.Service):
     """Service class for the Assignments model."""
 
     def on_fetched_resource_archive(self, docs):
-        self._enhance_archive_items(docs.get(config.ITEMS, []))
+        self._enhance_archive_items(docs.get(ITEMS, []))
 
     def on_fetched_item_archive(self, doc):
         if doc.get("assignment_id"):
@@ -102,7 +104,7 @@ class AssignmentsService(superdesk.Service):
         ids = [str(item["assignment_id"]) for item in docs if item.get("assignment_id")]
         if len(ids):
             assignments = {
-                str(item[config.ID_FIELD]): item for item in self.get_from_mongo(req=None, lookup={"_id": {"$in": ids}})
+                str(item[ID_FIELD]): item for item in self.get_from_mongo(req=None, lookup={"_id": {"$in": ids}})
             }
 
             for doc in docs:
@@ -117,7 +119,7 @@ class AssignmentsService(superdesk.Service):
 
     def _enhance_assignments(self, docs):
         """Populate `item_ids` with ids for all linked Archive items for an Assignment"""
-        items = list(self.get_archive_items_for_assignments([str(doc.get(config.ID_FIELD)) for doc in docs]))
+        items = list(self.get_archive_items_for_assignments([str(doc.get(ID_FIELD)) for doc in docs]))
         for doc in docs:
             ids = [str(item.get("_id")) for item in items if str(item.get("assignment_id")) == str(doc.get("_id"))]
             if len(ids):
@@ -146,7 +148,7 @@ class AssignmentsService(superdesk.Service):
                 "filtered": {
                     "filter": {
                         "bool": {
-                            "must": {"term": {"assignment_id": str(assignment[config.ID_FIELD])}},
+                            "must": {"term": {"assignment_id": str(assignment[ID_FIELD])}},
                         }
                     }
                 }
@@ -197,7 +199,7 @@ class AssignmentsService(superdesk.Service):
                 updates["assigned_to"] = {}
 
         assigned_to = updates.get("assigned_to") or {}
-        if (assigned_to.get("user") or assigned_to.get("contact")) and planning_auto_assign_to_workflow(app):
+        if (assigned_to.get("user") or assigned_to.get("contact")) and planning_auto_assign_to_workflow():
             if not assigned_to.get("desk"):
                 raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
@@ -214,17 +216,17 @@ class AssignmentsService(superdesk.Service):
 
             assigned_to["assigned_date_desk"] = utcnow()
 
-            if user and user.get(config.ID_FIELD):
-                assigned_to["assignor_desk"] = user.get(config.ID_FIELD)
+            if user and user.get(ID_FIELD):
+                assigned_to["assignor_desk"] = user.get(ID_FIELD)
 
         if assigned_to.get("user") and original.get("assigned_to", {}).get("user") != assigned_to.get("user"):
             assigned_to["assigned_date_user"] = utcnow()
 
-            if user and user.get(config.ID_FIELD):
-                assigned_to["assignor_user"] = user.get(config.ID_FIELD)
+            if user and user.get(ID_FIELD):
+                assigned_to["assignor_user"] = user.get(ID_FIELD)
 
-        if not original.get(config.ID_FIELD):
-            updates["original_creator"] = str(user.get(config.ID_FIELD)) if user else None
+        if not original.get(ID_FIELD):
+            updates["original_creator"] = str(user.get(ID_FIELD)) if user else None
             updates["assigned_to"][ITEM_STATE] = get_next_assignment_status(
                 updates,
                 updates["assigned_to"].get(ITEM_STATE) or ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
@@ -240,7 +242,7 @@ class AssignmentsService(superdesk.Service):
                         updates, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
                     )
 
-            updates["version_creator"] = str(user.get(config.ID_FIELD)) if user else None
+            updates["version_creator"] = str(user.get(ID_FIELD)) if user else None
 
     def on_update(self, updates, original):
         self.validate_assignment_action(original)
@@ -269,7 +271,7 @@ class AssignmentsService(superdesk.Service):
         doc.update(updates)
         assigned_to = doc.get("assigned_to") or {}
         kwargs = {
-            "item": doc.get(config.ID_FIELD),
+            "item": doc.get(ID_FIELD),
             "etag": doc.get("_etag"),
             "coverage": doc.get("coverage_item"),
             "planning": doc.get("planning_item"),
@@ -325,6 +327,7 @@ class AssignmentsService(superdesk.Service):
             and updates.get("assigned_to")
             and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
         ):
+            app = get_current_app().as_any()
             app.on_updated_assignments(updates, original)
         return rtn
 
@@ -399,7 +402,7 @@ class AssignmentsService(superdesk.Service):
         coverage_type = updates.get("planning", original.get("planning", {})).get("g2_content_type", "")
         slugline = updates.get("planning", original.get("planning", {})).get("slugline", "with no slugline")
 
-        client_url = app.config["CLIENT_URL"]
+        client_url = get_app_config("CLIENT_URL")
 
         assignment = deepcopy(original)
         assignment.update(updates)
@@ -432,9 +435,9 @@ class AssignmentsService(superdesk.Service):
             # Create the ICS object to be added to the email usable in google calendar.
             ical = Calendar()
             scheduled_time = assignment["planning"]["scheduled"]
-            app_name = app.config["APPLICATION_NAME"]
-            org_name = app.config.get("ORGANIZATION_NAME_ABBREVIATION") or app.config["ORGANIZATION_NAME"]
-            language = app.config["DEFAULT_LANGUAGE"].upper()
+            app_name = get_app_config("APPLICATION_NAME")
+            org_name = get_app_config("ORGANIZATION_NAME_ABBREVIATION") or get_app_config("ORGANIZATION_NAME")
+            language = get_app_config("DEFAULT_LANGUAGE").upper()
             ical.add("PRODID", f"-//{app_name}//{org_name}//{language}")
             ical.add("VERSION", "2.0")
 
@@ -489,7 +492,7 @@ class AssignmentsService(superdesk.Service):
             meta_msg = "assignment_details_internal_email" if assigned_to.get("user") else "assignment_details_email"
             if original.get("assigned_to"):
                 # it is being reassigned by the original assignee, notify the new assignee
-                if original.get("assigned_to", {}).get("user", "") == str(user.get(config.ID_FIELD, None)):
+                if original.get("assigned_to", {}).get("user", "") == str(user.get(ID_FIELD, None)):
                     PlanningNotifications().notify_assignment(
                         target_user=assigned_to.get("user"),
                         message="assignment_reassigned_1_msg",
@@ -618,9 +621,7 @@ class AssignmentsService(superdesk.Service):
                         )
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
-                if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user", "") or get_notify_self_on_assignment(
-                    app
-                ):
+                if str(user.get(ID_FIELD, None)) != assigned_to.get("user", "") or get_notify_self_on_assignment():
                     PlanningNotifications().notify_assignment(
                         target_user=assigned_to.get("user"),
                         message="assignment_assigned_msg",
@@ -630,7 +631,7 @@ class AssignmentsService(superdesk.Service):
                         client_url=client_url,
                         assignment_id=assignment_id,
                         assignor="by " + user.get("display_name", "")
-                        if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user", "")
+                        if str(user.get(ID_FIELD, None)) != assigned_to.get("user", "")
                         else "to yourself",
                         assignment=assignment,
                         event=event_item,
@@ -651,7 +652,7 @@ class AssignmentsService(superdesk.Service):
                     req=None, _id=original.get("assigned_to").get("desk")
                 )
                 desk_from_name = assigned_from_desk.get("name") if assigned_from_desk else "Unknown"
-                if original.get("assigned_to", {}).get("user", "") == str(user.get(config.ID_FIELD, None)):
+                if original.get("assigned_to", {}).get("user", "") == str(user.get(ID_FIELD, None)):
                     PlanningNotifications().notify_assignment(
                         target_desk=assigned_to.get("desk"),
                         message="assignment_to_desk_msg",
@@ -755,13 +756,13 @@ class AssignmentsService(superdesk.Service):
             target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
             message="assignment_cancelled_desk_msg",
             user=user.get("display_name", "Unknown")
-            if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user")
+            if str(user.get(ID_FIELD, None)) != assigned_to.get("user")
             else "You",
             omit_user=True,
             slugline=slugline,
             desk=desk.get("name"),
             coverage_type=get_coverage_type_name(coverage_type),
-            assignment_id=assignment.get(config.ID_FIELD),
+            assignment_id=assignment.get(ID_FIELD),
             contact_id=assigned_to.get("contact"),
         )
 
@@ -827,14 +828,14 @@ class AssignmentsService(superdesk.Service):
             ]:
                 # unlink the archive item from assignment
                 archive_item = get_resource_service("archive").find_one(
-                    req=None, assignment_id=original_assignment.get(config.ID_FIELD)
+                    req=None, assignment_id=original_assignment.get(ID_FIELD)
                 )
                 if archive_item and archive_item.get("assignment_id"):
                     get_resource_service("assignments_unlink").post(
                         [
                             {
-                                "item_id": archive_item.get(config.ID_FIELD),
-                                "assignment_id": original_assignment.get(config.ID_FIELD),
+                                "item_id": archive_item.get(ID_FIELD),
+                                "assignment_id": original_assignment.get(ID_FIELD),
                                 "cancel": True,
                             }
                         ]
@@ -949,10 +950,10 @@ class AssignmentsService(superdesk.Service):
             if updates.get(ITEM_STATE, original.get(ITEM_STATE, "")) != CONTENT_STATE.SCHEDULED:
                 # Update delivery record here
                 delivery_service = get_resource_service("delivery")
-                delivery = delivery_service.find_one(req=None, item_id=original[config.ID_FIELD])
+                delivery = delivery_service.find_one(req=None, item_id=original[ID_FIELD])
                 if delivery and delivery.get("item_state") != CONTENT_STATE.PUBLISHED:
                     delivery_service.patch(
-                        delivery[config.ID_FIELD],
+                        delivery[ID_FIELD],
                         {
                             "item_state": CONTENT_STATE.PUBLISHED,
                             "sequence_no": original.get("rewrite_sequence") or 0,
@@ -975,9 +976,7 @@ class AssignmentsService(superdesk.Service):
                     # publish planning
                     self.publish_planning(assignment.get("planning_item"))
 
-                assigned_to_user = get_resource_service("users").find_one(
-                    req=None, _id=get_user().get(config.ID_FIELD, "")
-                )
+                assigned_to_user = get_resource_service("users").find_one(req=None, _id=get_user().get(ID_FIELD, ""))
                 assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
                 target_user = assignment.get("assigned_to", {}).get("assignor_desk")
 
@@ -1006,7 +1005,7 @@ class AssignmentsService(superdesk.Service):
 
         event = deepcopy(original)
         event.update(updates)
-        plannings = get_related_planning_for_events([event[config.ID_FIELD]], "primary")
+        plannings = get_related_planning_for_events([event[ID_FIELD]], "primary")
 
         if not plannings:
             # If this Event has no associated Planning items
@@ -1042,7 +1041,7 @@ class AssignmentsService(superdesk.Service):
                     slugline=slugline,
                     coverage_type=get_coverage_type_name(coverage_type),
                     event=event,
-                    client_url=app.config["CLIENT_URL"],
+                    client_url=get_app_config("CLIENT_URL"),
                     no_email=True,
                     contact_id=assigned_to.get("contact"),
                 )
@@ -1059,14 +1058,14 @@ class AssignmentsService(superdesk.Service):
         assignment_link_service = get_resource_service("assignments_link")
 
         for doc in items:
-            item = archive_service.find_one(req=None, _id=doc.get(config.ID_FIELD))
+            item = archive_service.find_one(req=None, _id=doc.get(ID_FIELD))
             original_item = archive_service.find_one(req=None, _id=item.get("rewrite_of"))
 
             # Skip items not linked to an Assignment/Coverage
             if not original_item.get("assignment_id"):
                 continue
 
-            delivery = delivery_service.find_one(req=None, item_id=original_item[config.ID_FIELD])
+            delivery = delivery_service.find_one(req=None, item_id=original_item[ID_FIELD])
             if not delivery:
                 raise SuperdeskApiError.badRequestError("Delivery record not found.")
 
@@ -1101,8 +1100,8 @@ class AssignmentsService(superdesk.Service):
             assignment_link_service.post(
                 [
                     {
-                        "assignment_id": str(assignment[config.ID_FIELD]),
-                        "item_id": str(item[config.ID_FIELD]),
+                        "assignment_id": str(assignment[ID_FIELD]),
+                        "item_id": str(item[ID_FIELD]),
                         "reassign": True,
                     }
                 ]
@@ -1129,7 +1128,7 @@ class AssignmentsService(superdesk.Service):
         self.publish_planning(assignment["planning_item"])
 
     def _update_assignment_and_notify(self, updates, original):
-        self.system_update(original.get(config.ID_FIELD), updates, original)
+        self.system_update(original.get(ID_FIELD), updates, original)
 
         # send notification
         self.notify("assignments:updated", updates, original)
@@ -1160,7 +1159,7 @@ class AssignmentsService(superdesk.Service):
         assignment = self._get_assignment_from_archive_item({}, item)
         if assignment and (
             not item.get("rewrite_of")
-            or get_resource_service("archive").find(where={"assignment_id": assignment[config.ID_FIELD]}).count() <= 1
+            or get_resource_service("archive").find(where={"assignment_id": assignment[ID_FIELD]}).count() <= 1
         ):
             lock_service = get_component(LockService)
             lock_service.lock(assignment, user_id, get_auth()["_id"], "content_edit", "assignments")
@@ -1241,7 +1240,7 @@ class AssignmentsService(superdesk.Service):
         """
         archive_service = get_resource_service("archive")
         delivery_service = get_resource_service("delivery")
-        assignment_id = doc.get(config.ID_FIELD)
+        assignment_id = doc.get(ID_FIELD)
 
         # If we have a Content Item linked, then we need to remove the
         # assignment_id from it and remove the delivery record
@@ -1254,7 +1253,7 @@ class AssignmentsService(superdesk.Service):
                 update_assignment_on_link_unlink(None, item)
                 push_notification(
                     "assignments:removed",
-                    item=item[config.ID_FIELD] if item else None,
+                    item=item[ID_FIELD] if item else None,
                     session=get_auth().get("_id"),
                 )
 
@@ -1267,7 +1266,7 @@ class AssignmentsService(superdesk.Service):
             delivery_service.delete_action(lookup={"assignment_id": ObjectId(assignment_id)})
 
     def on_deleted(self, doc):
-        deleted_assignments = [doc.get(config.ID_FIELD)]
+        deleted_assignments = [doc.get(ID_FIELD)]
         planning_service = get_resource_service("planning")
         self.archive_delete_assignment(doc)
         marked_for_delete = False
@@ -1279,7 +1278,7 @@ class AssignmentsService(superdesk.Service):
             if str(a["_id"]) != str(doc["_id"]):
                 self.delete(lookup={"_id": a["_id"]})
                 self.archive_delete_assignment(a)
-                deleted_assignments.append(a.get(config.ID_FIELD))
+                deleted_assignments.append(a.get(ID_FIELD))
                 if a.get("_to_delete"):
                     marked_for_delete = True
 
@@ -1288,15 +1287,15 @@ class AssignmentsService(superdesk.Service):
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed
-        archive_item = get_resource_service("archive").find_one(req=None, assignment_id=doc.get(config.ID_FIELD))
+        archive_item = get_resource_service("archive").find_one(req=None, assignment_id=doc.get(ID_FIELD))
         if updated_planning:
             push_notification(
                 "assignments:removed",
-                item=archive_item[config.ID_FIELD] if archive_item else None,
+                item=archive_item[ID_FIELD] if archive_item else None,
                 assignments=deleted_assignments,
                 planning=doc.get("planning_item"),
                 coverage=doc.get("coverage_item"),
-                planning_etag=updated_planning.get(config.ETAG),
+                planning_etag=updated_planning.get(ETAG),
                 event_ids=get_related_event_ids_for_planning(updated_planning),
                 session=get_auth().get("_id"),
             )
@@ -1356,7 +1355,7 @@ class AssignmentsService(superdesk.Service):
                 return
 
             def _publish_planning(item):
-                item.pop(config.VERSION, None)
+                item.pop(VERSION, None)
                 item.pop("item_id", None)
                 version, item = get_version_item_for_post(item)
 
@@ -1409,7 +1408,7 @@ class AssignmentsService(superdesk.Service):
             contact = contact_service.find_one(req=None, _id=ObjectId(assignee))
             if contact:
                 # make sure it is the assigned contact accepting the assignment
-                if str(contact.get(config.ID_FIELD)) != str(original.get("assigned_to", {}).get("contact")):
+                if str(contact.get(ID_FIELD)) != str(original.get("assigned_to", {}).get("contact")):
                     raise Exception("Attempt to accept assignment by contact that it is not assigned to")
             else:
                 raise Exception(
@@ -1417,7 +1416,7 @@ class AssignmentsService(superdesk.Service):
                 )
         else:
             # make sure that the assignment is still assigned to the user that is accepting the assignment
-            if str(user.get(config.ID_FIELD)) != str(original.get("assigned_to", {}).get("user")):
+            if str(user.get(ID_FIELD)) != str(original.get("assigned_to", {}).get("user")):
                 raise Exception("Attempt to accept assignment by user that it is not assigned to")
 
         # If the assignment has already been accepted bail out!
@@ -1441,7 +1440,7 @@ class AssignmentsService(superdesk.Service):
 
 
 assignments_schema = {
-    config.ID_FIELD: {
+    ID_FIELD: {
         "type": "objectid",
         "nullable": False,
     },

@@ -12,15 +12,14 @@
 
 import logging
 import json
-import math
 from typing import List, Dict, Any, Optional
 from copy import deepcopy
 
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from eve.utils import ParsedRequest
-from flask import current_app as app
 
 from superdesk import Resource, Service, get_resource_service
+from superdesk.resource_fields import ITEMS
 from superdesk.resource import build_custom_hateoas
 from superdesk.errors import SuperdeskApiError
 
@@ -76,7 +75,7 @@ class EventsPlanningService(Service):
         :type doc: dict
         """
 
-        docs = doc[app.config["ITEMS"]]
+        docs = doc[ITEMS]
         for item in docs:
             build_custom_hateoas(
                 {

@@ -7,10 +7,11 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from dateutil import tz
-
-from flask import render_template_string, current_app, render_template
-from eve.utils import config
 from bson import ObjectId
+
+from superdesk.core import get_app_config
+from superdesk.resource_fields import VERSION
+from superdesk.flask import render_template_string, render_template
 
 from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
 from superdesk import get_resource_service, Resource, Service
@@ -297,9 +298,10 @@ def generate_text_item(items, template_name, resource_type):
 
         # Handle dates and remote time-zones
         if item.get("dates") or (item.get("event") or {}).get("dates"):
+            default_timezone = get_app_config("DEFAULT_TIMEZONE")
             dates = item.get("dates") or item.get("event").get("dates")
-            item["schedule"] = utc_to_local(config.DEFAULT_TIMEZONE, dates.get("start"))
-            if get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow()) != get_timezone_offset(dates.get("tz"), utcnow()):
+            item["schedule"] = utc_to_local(default_timezone, dates.get("start"))
+            if get_timezone_offset(default_timezone, utcnow()) != get_timezone_offset(dates.get("tz"), utcnow()):
                 item["schedule"] = "{} ({})".format(item["schedule"].strftime("%H%M"), item["schedule"].tzname())
             else:
                 item["schedule"] = item["schedule"].strftime("%H%M")
@@ -363,7 +365,7 @@ class PlanningArticleExportService(Service):
                 content_template = get_desk_template(desk)
 
             item = get_item_from_template(content_template)
-            item[current_app.config["VERSION"]] = 1
+            item[VERSION] = 1
             item.setdefault("type", "text")
 
             if item_type == "planning":
@@ -441,8 +443,9 @@ class PlanningArticleExportService(Service):
                 item["contacts"].append(", ".join(contact_info))
 
             date_time_format = "%a %d %b %Y, %H:%M"
-            item["dates"]["start"] = utc_to_local(config.DEFAULT_TIMEZONE, item["dates"]["start"])
-            item["dates"]["end"] = utc_to_local(config.DEFAULT_TIMEZONE, item["dates"]["end"])
+            default_timezone = get_app_config("DEFAULT_TIMEZONE")
+            item["dates"]["start"] = utc_to_local(default_timezone, item["dates"]["start"])
+            item["dates"]["end"] = utc_to_local(default_timezone, item["dates"]["end"])
             item["schedule"] = "{0}-{1}".format(
                 item["dates"]["start"].strftime(date_time_format),
                 item["dates"]["end"].strftime("%H:%M"),

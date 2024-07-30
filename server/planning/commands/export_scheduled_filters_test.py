@@ -12,8 +12,7 @@ from datetime import datetime
 from dateutil.rrule import rrule, HOURLY
 import pytz
 
-from flask import current_app as app
-
+from superdesk.core import get_app_config
 from superdesk.utc import local_to_utc
 
 from planning.tests import TestCase
@@ -25,11 +24,11 @@ def to_naive(date_str):
 
 
 def to_utc(date_str):
-    return local_to_utc(app.config["DEFAULT_TIMEZONE"], datetime.strptime(date_str, "%Y-%m-%dT%H"))
+    return local_to_utc(get_app_config("DEFAULT_TIMEZONE"), datetime.strptime(date_str, "%Y-%m-%dT%H"))
 
 
 def to_local(date_str):
-    local_tz = pytz.timezone(app.config["DEFAULT_TIMEZONE"])
+    local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
     local_datetime = datetime.strptime(date_str, "%Y-%m-%dT%H")
 
     return local_tz.localize(local_datetime)
@@ -44,7 +43,7 @@ class ExportScheduledFiltersTestCase(TestCase):
     def _test(self, report, start, end, expected_hits):
         count = 0
         for now in rrule(HOURLY, dtstart=to_naive(start), until=to_naive(end)):
-            local_tz = pytz.timezone(app.config["DEFAULT_TIMEZONE"])
+            local_tz = pytz.timezone(get_app_config("DEFAULT_TIMEZONE"))
             now_local = local_tz.localize(now)
 
             response = ExportScheduledFilters().should_export(report, now_local)
@@ -58,7 +57,7 @@ class ExportScheduledFiltersTestCase(TestCase):
 
             if response:
                 # Update the last sent time to now
-                report["_last_sent"] = local_to_utc(app.config["DEFAULT_TIMEZONE"], now_local)
+                report["_last_sent"] = local_to_utc(get_app_config("DEFAULT_TIMEZONE"), now_local)
                 count += 1
 
         self.assertEqual(len(expected_hits), count)

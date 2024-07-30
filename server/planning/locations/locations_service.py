@@ -10,8 +10,7 @@
 
 import logging
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Service, Resource, get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -54,16 +53,16 @@ class LocationsService(Service):
         :return:
         """
         if lookup:
-            location = get_resource_service("locations").find_one(req=None, _id=lookup.get(config.ID_FIELD))
+            location = get_resource_service("locations").find_one(req=None, _id=lookup.get(ID_FIELD))
             if location:
                 events = get_resource_service("events").find(where={"location.qcode": str(location.get("guid"))})
                 if events.count():
                     # patch the unique name in case the location get recreated
                     get_resource_service("locations").patch(
-                        location[config.ID_FIELD],
+                        location[ID_FIELD],
                         {
                             "is_active": False,
-                            "unique_name": str(location[config.ID_FIELD]),
+                            "unique_name": str(location[ID_FIELD]),
                         },
                     )
                     return

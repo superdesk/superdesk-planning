@@ -11,9 +11,10 @@
 from datetime import datetime
 
 import json
-from flask import request
-from eve.utils import config, ParsedRequest
+from eve.utils import ParsedRequest
 
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import request
 from superdesk.errors import SuperdeskApiError
 from superdesk.services import BaseService
 from superdesk import get_resource_service
@@ -110,7 +111,7 @@ class EventsBaseService(BaseService):
             if original.get("lock_user") and "lock_user" in updates and updates.get("lock_user") is None:
                 push_notification(
                     "events:unlock",
-                    item=str(original.get(config.ID_FIELD)),
+                    item=str(original.get(ID_FIELD)),
                     user=str(get_user_id()),
                     lock_session=str(get_auth().get("_id")),
                     etag=updates.get("_etag"),
@@ -148,7 +149,7 @@ class EventsBaseService(BaseService):
 
         if self.REQUIRE_LOCK:
             user_id = get_user_id()
-            session_id = get_auth().get(config.ID_FIELD, None)
+            session_id = get_auth().get(ID_FIELD, None)
 
             lock_user = original.get(LOCK_USER, None)
             lock_session = original.get(LOCK_SESSION, None)
@@ -174,10 +175,10 @@ class EventsBaseService(BaseService):
 
     @staticmethod
     def push_notification(name, updates, original):
-        session = get_auth().get(config.ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         data = {
-            "item": str(original.get(config.ID_FIELD)),
+            "item": str(original.get(ID_FIELD)),
             "user": str(updates.get("version_creator", "")),
             "session": str(session),
         }
@@ -239,7 +240,7 @@ class EventsBaseService(BaseService):
         query = {
             "$and": [
                 {"recurrence_id": selected["recurrence_id"]},
-                {"_id": {"$ne": selected[config.ID_FIELD]}},
+                {"_id": {"$ne": selected[ID_FIELD]}},
             ]
         }
 
@@ -277,7 +278,7 @@ class EventsBaseService(BaseService):
     @staticmethod
     def is_original_event(original):
         # Check Flask's URL params if the ID matches the one provided here
-        return original.get(config.ID_FIELD) == request.view_args.get(config.ID_FIELD)
+        return original.get(ID_FIELD) == request.view_args.get(ID_FIELD)
 
     @staticmethod
     def remove_fields(new_event, extra_fields=None):

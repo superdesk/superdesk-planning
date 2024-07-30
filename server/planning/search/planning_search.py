@@ -10,11 +10,12 @@
 
 """Superdesk Planning Search."""
 import logging
-from flask import json, current_app as app
 from eve_elastic.elastic import parse_date, get_dates
 from copy import deepcopy
 
 import superdesk
+from superdesk.core import json, get_current_app, get_app_config
+from superdesk.resource_fields import ITEMS
 from superdesk.metadata.utils import item_url
 
 from planning.planning.planning import planning_schema
@@ -29,7 +30,7 @@ class PlanningSearchService(superdesk.Service):
 
     @property
     def elastic(self):
-        return app.data.elastic
+        return get_current_app().data.elastic
 
     def _get_query(self, req):
         """Get elastic query."""
@@ -73,9 +74,10 @@ class PlanningSearchService(superdesk.Service):
             pass
 
         if on_fetched_resource:
+            app = get_current_app().as_any()
             for resource in types:
                 response = {
-                    app.config["ITEMS"]: [
+                    ITEMS: [
                         doc
                         for doc in docs
                         if doc["type"] == resource or (resource == "events" and doc["type"] == "event")
@@ -89,8 +91,8 @@ class PlanningSearchService(superdesk.Service):
     def _get_date_fields(self, resource: str):
         datasource = self.elastic.get_datasource(resource)
         schema: Dict[str, Any] = {}
-        schema.update(app.config["DOMAIN"][datasource[0]].get("schema", {}))
-        schema.update(app.config["DOMAIN"][resource].get("schema", {}))
+        schema.update(get_app_config("DOMAIN")[datasource[0]].get("schema", {}))
+        schema.update(get_app_config("DOMAIN")[resource].get("schema", {}))
         return get_dates(schema)
 
     def _format_docs(self, docs):
@@ -118,11 +120,13 @@ class PlanningSearchService(superdesk.Service):
 
     def _get_projected_fields(self, req):
         """Get elastic projected fields."""
+        app = get_current_app()
         if app.data.elastic.should_project(req):
             return app.data.elastic.get_projected_fields(req)
 
     def _get_index(self, repos):
         """Get index id for all repos."""
+        app = get_current_app()
         indexes = {app.data.elastic.index}
         for repo in repos:
             indexes.add(app.config["ELASTICSEARCH_INDEXES"].get(repo, app.data.elastic.index))

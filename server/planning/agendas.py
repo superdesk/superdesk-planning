@@ -1,6 +1,7 @@
+from superdesk.resource_fields import ID_FIELD, ITEMS
 from .common import set_original_creator
 from apps.auth import get_user_id
-from superdesk import Resource, Service, config, get_resource_service
+from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 
@@ -35,10 +36,10 @@ class AgendasService(Service):
     def _generate_planning_info(self, docs):
         planning_service = get_resource_service("planning")
         for doc in docs:
-            doc["plannings"] = planning_service.get_planning_by_agenda_id(doc.get(config.ID_FIELD)).docs
+            doc["plannings"] = planning_service.get_planning_by_agenda_id(doc.get(ID_FIELD)).docs
 
     def on_fetched(self, docs):
-        self._generate_planning_info(docs.get(config.ITEMS))
+        self._generate_planning_info(docs.get(ITEMS))
 
     def on_fetched_item(self, doc):
         self._generate_planning_info([doc])
@@ -51,7 +52,7 @@ class AgendasService(Service):
         for doc in docs:
             push_notification(
                 "agenda:created",
-                item=str(doc[config.ID_FIELD]),
+                item=str(doc[ID_FIELD]),
                 user=str(doc.get("original_creator", "")),
             )
 
@@ -64,15 +65,15 @@ class AgendasService(Service):
         self._generate_planning_info([updates])
         push_notification(
             "agenda:updated",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             user=str(updates.get("version_creator", "")),
         )
 
     def on_delete(self, doc):
-        if get_resource_service("planning").get_planning_by_agenda_id(doc.get(config.ID_FIELD)).count() > 0:
+        if get_resource_service("planning").get_planning_by_agenda_id(doc.get(ID_FIELD)).count() > 0:
             raise SuperdeskApiError.badRequestError(
                 message="Agenda is referenced by Planning items. " "Cannot delete Agenda"
             )
 
     def on_deleted(self, doc):
-        push_notification("agenda:deleted", item=str(doc[config.ID_FIELD]))
+        push_notification("agenda:deleted", item=str(doc[ID_FIELD]))

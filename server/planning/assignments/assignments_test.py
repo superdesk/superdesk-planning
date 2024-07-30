@@ -1,6 +1,6 @@
 from planning.tests import TestCase
 from superdesk import get_resource_service
-import flask
+from superdesk.flask import g
 from bson import ObjectId
 
 
@@ -71,8 +71,8 @@ class AssignmentsTestCase(TestCase):
 
     def test_delivery_record_deleted(self):
         with self.app.app_context():
-            flask.g.user = self.users[0]
-            flask.g.auth = self.auth[0]
+            g.user = self.users[0]
+            g.auth = self.auth[0]
             delivery_service = get_resource_service("delivery")
             assignment_service = get_resource_service("assignments")
 

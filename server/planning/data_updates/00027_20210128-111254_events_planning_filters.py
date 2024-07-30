@@ -7,8 +7,8 @@
 # Author  : MarkLark86
 # Creation: 2021-01-28 11:12
 
+from superdesk.resource_fields import ID_FIELD
 from superdesk.commands.data_updates import BaseDataUpdate
-from eve.utils import config
 
 
 # This script converts `events_planning_filters` documents to newer schema
@@ -23,12 +23,12 @@ class DataUpdate(BaseDataUpdate):
                 # so if it is defined, then no need to upgrade this document
                 continue
 
-            filter_id = search_filter.get(config.ID_FIELD)
+            filter_id = search_filter.get(ID_FIELD)
             params = {}
 
             if len(search_filter.get("agendas") or []):
                 # Convert Agenda dictionary to array of IDs
-                params["agendas"] = [agenda.get(config.ID_FIELD) for agenda in search_filter["agendas"]]
+                params["agendas"] = [agenda.get(ID_FIELD) for agenda in search_filter["agendas"]]
 
             if len(search_filter.get("calendars") or []):
                 params["calendars"] = search_filter["calendars"]
@@ -46,7 +46,7 @@ class DataUpdate(BaseDataUpdate):
 
     def backwards(self, mongodb_collection, mongodb_database):
         for search_filter in mongodb_collection.find({}):
-            filter_id = search_filter.get(config.ID_FIELD)
+            filter_id = search_filter.get(ID_FIELD)
             params = search_filter.get("params") or {}
             updates = {}
 

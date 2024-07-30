@@ -8,11 +8,12 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
+from superdesk.core import get_current_app
+from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import local_to_utc, utc_to_local
-from flask import current_app as app
-from eve.utils import config
-from copy import deepcopy
 
 from .events import EventsResource, events_schema
 from planning.common import (
@@ -78,14 +79,13 @@ class EventsUpdateTimeService(EventsBaseService):
         # And calculate the new duration of the events
         duration = updates["dates"]["end"] - updates["dates"]["start"]
 
+        app = get_current_app().as_any()
         for event in new_series:
-            if not event.get(config.ID_FIELD):
+            if not event.get(ID_FIELD):
                 continue
 
             new_updates = (
-                {"dates": deepcopy(event["dates"])}
-                if event.get(config.ID_FIELD) != original.get(config.ID_FIELD)
-                else updates
+                {"dates": deepcopy(event["dates"])} if event.get(ID_FIELD) != original.get(ID_FIELD) else updates
             )
 
             # Calculate midnight in local time for this occurrence
@@ -107,10 +107,10 @@ class EventsUpdateTimeService(EventsBaseService):
             # Set '_planning_schedule' on the Event item
             self.set_planning_schedule(new_updates)
 
-            if event.get(config.ID_FIELD) != original.get(config.ID_FIELD):
+            if event.get(ID_FIELD) != original.get(ID_FIELD):
                 new_updates["skip_on_update"] = True
-                self.patch(event[config.ID_FIELD], new_updates)
-                app.on_updated_events_update_time(new_updates, {"_id": event[config.ID_FIELD]})
+                self.patch(event[ID_FIELD], new_updates)
+                app.on_updated_events_update_time(new_updates, {"_id": event[ID_FIELD]})
 
     def validate(self, updates, original):
         super().validate(updates, original)

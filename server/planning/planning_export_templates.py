@@ -8,9 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import current_app as app
-
 import superdesk
+from superdesk.core import get_app_config
 from superdesk.utils import ListCursor
 
 
@@ -122,8 +121,9 @@ class PlanningExportTemplatesService(superdesk.Service):
 
         config_entry = "{}_EXPORT_BODY_TEMPLATE".format(item_type.upper())
 
-        if app.config.get(config_entry):
-            template = {"data": {"body_html": app.config[config_entry]}}
+        config_value = get_app_config(config_entry)
+        if config_value:
+            template = {"data": {"body_html": config_value}}
         else:
             template = next((t for t in default_export_templates if t["type"] == item_type), {})
 

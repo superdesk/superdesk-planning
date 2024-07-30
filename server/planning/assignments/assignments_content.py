@@ -10,9 +10,8 @@
 
 from copy import deepcopy
 
-from eve.utils import config
-from flask import request
-
+from superdesk.resource_fields import ID_FIELD, VERSION
+from superdesk.flask import request
 from superdesk import get_resource_service, Resource, Service
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utcnow
@@ -164,9 +163,9 @@ class AssignmentsContentService(Service):
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop("assignment_id"))
             item, translations = get_item_from_assignment(assignment, doc.pop("template_name", None))
-            item[config.VERSION] = 1
+            item[VERSION] = 1
             item.setdefault("type", "text")
-            item["assignment_id"] = assignment[config.ID_FIELD]
+            item["assignment_id"] = assignment[ID_FIELD]
 
             if assignment.get("scheduled_update_id"):
                 # get the latest archive item to be updated
@@ -176,7 +175,7 @@ class AssignmentsContentService(Service):
                     raise SuperdeskApiError.badRequestError("Archive item not found to create a rewrite.")
 
                 # create a rewrite
-                request.view_args["original_id"] = archive_item.get(config.ID_FIELD)
+                request.view_args["original_id"] = archive_item.get(ID_FIELD)
                 ids = get_resource_service("archive_rewrite").post([{"desk_id": str(item.get("task").get("desk"))}])
                 item = archive_service.find_one(_id=ids[0], req=None)
                 item["task"]["user"] = get_user_id()
@@ -185,7 +184,7 @@ class AssignmentsContentService(Service):
                 get_resource_service("assignments_link").post(
                     [
                         {
-                            "assignment_id": assignment[config.ID_FIELD],
+                            "assignment_id": assignment[ID_FIELD],
                             "item_id": ids[0],
                             "reassign": True,
                         }
@@ -199,8 +198,8 @@ class AssignmentsContentService(Service):
                 get_resource_service("delivery").post(
                     [
                         {
-                            "item_id": item[config.ID_FIELD],
-                            "assignment_id": assignment[config.ID_FIELD],
+                            "item_id": item[ID_FIELD],
+                            "assignment_id": assignment[ID_FIELD],
                             "planning_id": assignment["planning_item"],
                             "coverage_id": assignment["coverage_item"],
                         }
@@ -216,7 +215,7 @@ class AssignmentsContentService(Service):
 
             if not assignment.get("scheduled_update_id"):
                 # set the assignment to in progress
-                assignments_service.patch(assignment[config.ID_FIELD], updates)
+                assignments_service.patch(assignment[ID_FIELD], updates)
 
             doc.update(item)
             ids.append(doc["_id"])
@@ -241,7 +240,7 @@ class AssignmentsContentService(Service):
                     coverage_type=get_coverage_type_name(item.get("type", "")),
                     slugline=item.get("slugline"),
                     omit_user=True,
-                    assignment_id=assignment[config.ID_FIELD],
+                    assignment_id=assignment[ID_FIELD],
                     is_link=True,
                     no_email=True,
                 )
@@ -280,7 +279,7 @@ class AssignmentsContentService(Service):
         if assignment.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
             raise SuperdeskApiError.badRequestError("Assignment workflow started. Cannot create content.")
 
-        delivery = get_resource_service("delivery").find_one(req=None, assignment_id=assignment.get(config.ID_FIELD))
+        delivery = get_resource_service("delivery").find_one(req=None, assignment_id=assignment.get(ID_FIELD))
         if delivery:
             raise SuperdeskApiError.badRequestError(
                 "Content already exists for the assignment. " "Cannot create content."

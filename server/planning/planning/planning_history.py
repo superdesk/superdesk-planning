@@ -11,9 +11,8 @@
 import logging
 from copy import deepcopy
 
-from flask import request
-from eve.utils import config
-
+from superdesk.flask import request
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, get_resource_service
 from superdesk.default_settings import strtobool
 
@@ -61,7 +60,7 @@ class PlanningHistoryService(HistoryService):
                 assigned_to.get("assignor_user", assigned_to.get("assignor_desk")),
             )
         history = {
-            "planning_id": planning[config.ID_FIELD],
+            "planning_id": planning[ID_FIELD],
             "user_id": user,
             "operation": operation,
             "update": update,
@@ -204,12 +203,12 @@ class PlanningHistoryService(HistoryService):
 
     def on_duplicate(self, parent, duplicate):
         self._save_history(
-            {config.ID_FIELD: str(parent[config.ID_FIELD])},
-            {"duplicate_id": str(duplicate[config.ID_FIELD])},
+            {ID_FIELD: str(parent[ID_FIELD])},
+            {"duplicate_id": str(duplicate[ID_FIELD])},
             "duplicate",
         )
 
     def on_duplicate_from(self, item, duplicate_id):
         new_plan = deepcopy(item)
         new_plan["duplicate_id"] = duplicate_id
-        self._save_history({config.ID_FIELD: str(item[config.ID_FIELD])}, new_plan, "duplicate_from")
+        self._save_history({ID_FIELD: str(item[ID_FIELD])}, new_plan, "duplicate_from")

@@ -10,9 +10,8 @@
 
 from copy import deepcopy
 
-from eve.utils import config
-from flask import current_app as app
-
+from superdesk.core import get_current_app
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
@@ -65,12 +64,12 @@ class EventsPostponeService(EventsBaseService):
         # then we can check the lock information of original and updates to check if this
         # event was the original event.
         if self.is_original_event(original):
-            user = get_user(required=True).get(config.ID_FIELD, "")
-            session = get_auth().get(config.ID_FIELD, "")
+            user = get_user(required=True).get(ID_FIELD, "")
+            session = get_auth().get(ID_FIELD, "")
 
             push_notification(
                 "events:postpone",
-                item=str(original[config.ID_FIELD]),
+                item=str(original[ID_FIELD]),
                 user=str(user),
                 session=str(session),
                 reason=reason,
@@ -90,10 +89,11 @@ class EventsPostponeService(EventsBaseService):
     def _postpone_event_plannings(updates, original):
         planning_postpone_service = get_resource_service("planning_postpone")
         reason = updates.get("reason", None)
+        app = get_current_app().as_any()
 
-        for plan in get_related_planning_for_events([original[config.ID_FIELD]], "primary"):
+        for plan in get_related_planning_for_events([original[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED:
-                updated_plan = planning_postpone_service.patch(plan[config.ID_FIELD], {"reason": reason})
+                updated_plan = planning_postpone_service.patch(plan[ID_FIELD], {"reason": reason})
                 app.on_updated_planning_postpone(updated_plan, plan)
 
     @staticmethod
@@ -124,6 +124,6 @@ class EventsPostponeService(EventsBaseService):
             # Mark the Event as being Postponed
             self._postpone_event_plannings(new_updates, event)
             new_updates["skip_on_update"] = True
-            self.patch(event[config.ID_FIELD], new_updates)
+            self.patch(event[ID_FIELD], new_updates)
 
         self._postpone_event_plannings(updates, original)
