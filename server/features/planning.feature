@@ -966,7 +966,7 @@ Feature: Planning
             {
                 "item_class": "item class value",
                 "headline": "test headline",
-                "event_item": "#events._id#",
+                "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             }
         ]
@@ -1539,6 +1539,7 @@ Feature: Planning
         """
         [{
           "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+          "planning_item": "123",
           "planning": {
               "ednote": "test coverage, I want 250 words",
               "headline": "test headline",
@@ -1646,7 +1647,7 @@ Feature: Planning
             "item_class": "item class value",
             "name": "test name",
             "slugline": "test slugline",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }
         """
@@ -1688,7 +1689,7 @@ Feature: Planning
             "item_class": "item class value",
             "name": "test name",
             "slugline": "test slugline",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }
         """
@@ -4292,3 +4293,77 @@ Feature: Planning
         """
         When we get "/planning_files/#planning_files._id#"
         Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
+
+    @auth
+    Scenario: Validate Planning related Event must exist
+        When we post to "/planning"
+        """
+        {
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}]
+        }
+        """
+        Then we get error 400
+        When we post to "/events"
+        """
+        {
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        {
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}]
+        }
+        """
+        Then we get OK response
+
+    @auth
+    Scenario: Planning can only have 1 primary linked event
+        Given "events"
+        """
+        [{
+            "guid": "event_1",
+            "name": "Primary Event 1",
+            "slugline": "event-1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "guid": "event_2",
+            "name": "Primary Event 2",
+            "slugline": "event-2",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        When we post to "planning"
+        """
+        {
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "planning_date": "2016-01-02".
+            "related_events": [
+                {"_id": "event_1", "link_type": "primary"},
+                {"_id": "event_2", "link_type": "primary"}
+            ]
+        }
+        """
+        Then we get error 400

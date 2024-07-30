@@ -10,14 +10,16 @@
 
 from typing import Dict, Optional, List
 from copy import deepcopy
-import pytz
 
+import pytz
 from eve.utils import str_to_date
+
 from superdesk import get_resource_service
 
 from planning.types import Event, EmbeddedPlanning, StringFieldTranslation
 from planning.common import get_config_event_fields_to_sync_with_planning
 from planning.content_profiles.utils import AllContentProfileData
+from planning.utils import get_related_planning_for_events
 
 from .common import VocabsSyncData, SyncItemData, SyncData
 from .embedded_planning import (
@@ -140,8 +142,7 @@ def sync_event_metadata_with_planning_items(
             planning_service.patch(sync_data.planning.original["_id"], sync_data.planning.updates)
 
     # Sync all the Planning items that were NOT provided in the ``embedded_planning`` field
-    where = {"$and": [{"event_item": event_updated.get("_id")}, {"_id": {"$nin": processed_planning_ids}}]}
-    for item in planning_service.find(where=where):
+    for item in get_related_planning_for_events([event_updated["_id"]], "primary", processed_planning_ids):
         translated_fields = get_translated_fields(item.get("translations") or [])
         sync_data = SyncData(
             event=event_sync_data,

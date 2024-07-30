@@ -400,7 +400,7 @@ Feature: Duplicate Planning
             "guid": "plan1",
             "slugline": "Test Event",
             "state": "draft",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
@@ -418,7 +418,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "expired": "__no_value__"
         }
         """
@@ -447,7 +447,7 @@ Feature: Duplicate Planning
             "guid": "plan1",
             "slugline": "Test Event",
             "state": "draft",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z",
             "expired": true
         }]
@@ -466,7 +466,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "__no_value__",
+            "related_events": "__empty__",
             "expired": "__no_value__"
         }
         """
@@ -497,7 +497,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state" : "cancelled",
             "state_reason": "A reason why this is cancelled.",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z",
             "ednote" : "This is the ednote in planning",
             "coverages": [
@@ -534,7 +534,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "__no_value__",
+            "related_events": "__empty__",
             "expired": "__no_value__",
             "state_reason": "__no_value__",
             "ednote": "This is the ednote in planning",
@@ -567,7 +567,7 @@ Feature: Duplicate Planning
             "guid": "plan1",
             "slugline": "Test Event",
             "state" : "rescheduled",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z",
             "ednote" : "This is the ednote in planning",
             "state_reason": "A reason why this is rescheduled.",
@@ -605,7 +605,7 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "__no_value__",
+            "related_events": "__empty__",
             "expired": "__no_value__",
             "ednote": "This is the ednote in planning",
             "state_reason": "__no_value__",
@@ -644,7 +644,7 @@ Feature: Duplicate Planning
             "slugline": "test slugline",
             "state": "scheduled",
             "pubstatus": "usable",
-            "event_item": "123",
+            "related_events": [{"_id": "123", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
@@ -671,7 +671,7 @@ Feature: Duplicate Planning
         {
             "_id": "123",
             "state": "cancelled",
-            "event_item": "123"
+            "related_events": [{"_id": "123", "link_type": "primary"}]
         }
         """
         When we post to "/planning/123/duplicate"
@@ -685,7 +685,7 @@ Feature: Duplicate Planning
         {
             "_id": "#duplicate._id#",
             "state": "draft",
-            "event_item": "__no_value__"
+            "related_events": "__empty__"
         }
         """
 
@@ -719,7 +719,7 @@ Feature: Duplicate Planning
             "slugline": "test slugline",
             "state": "scheduled",
             "pubstatus": "usable",
-            "event_item": "123",
+            "related_events": [{"_id": "123", "link_type": "primary"}],
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
@@ -753,7 +753,7 @@ Feature: Duplicate Planning
         {
             "_id": "123",
             "state": "rescheduled",
-            "event_item": "123"
+            "related_events": [{"_id": "123", "link_type": "primary"}]
         }
         """
         When we post to "/planning/123/duplicate"
@@ -767,6 +767,6 @@ Feature: Duplicate Planning
         {
             "_id": "#duplicate._id#",
             "state": "draft",
-            "event_item": "__no_value__"
+            "related_events": "__empty__"
         }
         """

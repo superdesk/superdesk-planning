@@ -821,16 +821,6 @@ export class ItemManager {
         return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
-    // TODO: Is this used anywhere
-    // lock(item: IEventOrPlanningItem) {
-    //     return planningApi.locks.lockItem(item);
-    // }
-
-    // TODO: Is this used anywhere
-    // unlock() {
-    //     return planningApi.locks.unlockItem(this.props.item);
-    // }
-
     unlockThenLock(item: IEventOrPlanningItem) {
         return this.setState({
             itemReady: false,
@@ -881,7 +871,7 @@ export class ItemManager {
         const newCoverage = planningUtils.defaultCoverageValues(
             this.props.newsCoverageStatus,
             this.state.initialValues,
-            this.props.associatedEvent,
+            this.props.associatedEvents?.[0] ?? null, // TAG: MULTIPLE_PRIMARY_EVENTS
             g2ContentType,
             this.props.defaultDesk,
             this.props.preferredCoverageDesks

@@ -11,17 +11,16 @@
 """Superdesk Events"""
 
 from typing import Dict, Any, Optional, List, Tuple
-import superdesk
 import logging
 import itertools
-import copy
+from copy import deepcopy
+from datetime import timedelta
+
 import pytz
 import re
-from datetime import timedelta
+from flask import current_app as app
 from eve.methods.common import resolve_document_etag
 from eve.utils import config, date_to_str
-from flask import current_app as app
-from copy import deepcopy
 from dateutil.rrule import (
     rrule,
     YEARLY,
@@ -37,17 +36,24 @@ from dateutil.rrule import (
     SU,
 )
 
+import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from superdesk.utc import get_date, utcnow
+from superdesk.users.services import current_user_has_privilege
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
-from superdesk.users.services import current_user_has_privilege
 
-from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem
+from planning.types import (
+    Event,
+    EmbeddedPlanning,
+    EmbeddedCoverageItem,
+    PlanningRelatedEventLink,
+    PLANNING_RELATED_EVENT_LINK_TYPE,
+)
 from planning.common import (
     UPDATE_SINGLE,
     UPDATE_FUTURE,
@@ -68,6 +74,11 @@ from planning.common import (
     is_new_version,
     update_ingest_on_patch,
     TEMP_ID_PREFIX,
+)
+from planning.utils import (
+    get_planning_event_link_method,
+    get_related_planning_for_events,
+    get_related_event_ids_for_planning,
 )
 from .events_base_service import EventsBaseService
 from .events_schema import events_schema
@@ -162,14 +173,10 @@ class EventsService(superdesk.Service):
     def on_fetched_item(self, doc):
         self._enhance_event_item(doc)
 
-    @staticmethod
-    def get_plannings_for_event(event):
-        return get_resource_service("planning").find(where={"event_item": event.get(config.ID_FIELD)})
-
     def _enhance_event_item(self, doc):
-        plannings = self.get_plannings_for_event(doc)
+        plannings = get_related_planning_for_events([doc[config.ID_FIELD]], "primary")
 
-        if plannings.count() > 0:
+        if len(plannings):
             doc["planning_ids"] = [planning.get("_id") for planning in plannings]
 
         for location in doc.get("location") or []:
@@ -179,11 +186,7 @@ class EventsService(superdesk.Service):
         if not doc.get("original_creator"):
             doc.pop("original_creator", None)
 
-    @staticmethod
-    def has_planning_items(doc):
-        return EventsService.get_plannings_for_event(doc).count() > 0
-
-    def get_all_items_in_relationship(self, item):
+    def get_all_items_in_relationship(self, item: Event, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"):
         # Get recurring items
         if item.get("recurrence_id"):
             all_items = self.find(where={"recurrence_id": item.get("recurrence_id")})
@@ -194,7 +197,7 @@ class EventsService(superdesk.Service):
             )
         else:
             # Get associated planning items
-            return self.get_plannings_for_event(item)
+            return get_related_planning_for_events([item[config.ID_FIELD]], event_link_type)
 
     def on_locked_event(self, doc, user_id):
         self._enhance_event_item(doc)
@@ -545,6 +548,7 @@ class EventsService(superdesk.Service):
         if "location" not in updates and original.get("location"):
             updates["location"] = original["location"]
 
+        updates[config.ID_FIELD] = original[config.ID_FIELD]
         self._enhance_event_item(updates)
 
     def on_deleted(self, doc):
@@ -688,8 +692,7 @@ class EventsService(superdesk.Service):
             if event["dates"]["start"] < updates["actioned_date"]:
                 return
 
-        plans = list(get_resource_service("planning").find(where={"event_item": event[config.ID_FIELD]}))
-        for plan in plans:
+        for plan in get_related_planning_for_events([event[config.ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED and len(plan.get("coverages", [])) > 0:
                 get_resource_service("planning_cancel").patch(
                     plan[config.ID_FIELD],
@@ -704,7 +707,7 @@ class EventsService(superdesk.Service):
         self._validate_convert_to_recurring(updates, original)
         updates["recurrence_id"] = original["_id"]
 
-        merged = copy.deepcopy(original)
+        merged = deepcopy(original)
         merged.update(updates)
 
         # Generated new events will be "draft"
@@ -744,7 +747,7 @@ class EventsService(superdesk.Service):
         return events_base_service.get_recurring_timeline(selected, postponed=True, spiked=spiked)
 
     @staticmethod
-    def _link_to_planning(event):
+    def _link_to_planning(event: Event):
         """
         Links an Event to an existing Planning Item
 
@@ -756,13 +759,27 @@ class EventsService(superdesk.Service):
         event_id = event[config.ID_FIELD]
         planning_item = planning_service.find_one(req=None, _id=plan_id)
 
-        updates = {"event_item": event_id}
+        if not planning_item:
+            raise SuperdeskApiError.badRequestError("Planning item not found")
 
-        if "recurrence_id" in event:
-            updates["recurrence_id"] = event["recurrence_id"]
+        updates = {"related_events": planning_item.get("related_events") or []}
+        event_link_method = get_planning_event_link_method()
+        link_type: PLANNING_RELATED_EVENT_LINK_TYPE = (
+            "primary"
+            if not len(get_related_event_ids_for_planning(planning_item, "primary"))
+            and event_link_method in ("one_primary", "one_primary_many_secondary")
+            else "secondary"
+        )
+        related_planning = PlanningRelatedEventLink(_id=event_id, link_type=link_type)
+        updates["related_events"].append(related_planning)
+
+        # Add ``recurrence_id`` if the supplied Event is part of a series
+        if event.get("recurrence_id"):
+            related_planning["recurrence_id"] = event["recurrence_id"]
+            if not planning_item.get("recurrence_id") and link_type == "primary":
+                updates["recurrence_id"] = event["recurrence_id"]
 
         planning_service.validate_on_update(updates, planning_item, get_user())
-
         planning_service.system_update(plan_id, updates, planning_item)
         app.on_updated_planning(updates, planning_item)
 
@@ -973,7 +990,7 @@ def generate_recurring_events(event, recurrence_id=None):
         get_max_recurrent_events(),
     ):  # set a limit to prevent too many events to be created
         # create event with the new dates
-        new_event = copy.deepcopy(event)
+        new_event = deepcopy(event)
 
         # Remove fields not required by the new events
         for key in list(new_event.keys()):

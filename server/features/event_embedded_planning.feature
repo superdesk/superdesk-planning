@@ -47,7 +47,9 @@ Feature: Event Embedded Planning
             "original_creator": "#CONTEXT_USER_ID#",
             "firstcreated": "__now__",
             "versioncreated": "__now__",
-            "event_item": "event1",
+            "related_events": [
+                {"_id": "event1", "link_type": "primary"}
+            ],
             "planning_date": "2029-11-21T12:00:00+0000",
             "coverages": [{
                 "coverage_id": "__any_value__",
@@ -388,7 +390,9 @@ Feature: Event Embedded Planning
         Then we get list with 1 items
         """
         {"_items": [{
-            "event_item": "event1",
+            "related_events": [
+                {"_id": "event1", "link_type": "primary"}
+            ],
             "slugline": "__no_value__",
             "coverages": [{
                 "planning": {

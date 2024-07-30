@@ -1,40 +1,16 @@
+# -*- coding: utf-8; -*-
+#
+# This file is part of Superdesk.
+#
+# Copyright 2014 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
 from typing import Dict, Any, List, Callable
 
 from planning.search.queries import elastic, events, planning, common
-from flask import current_app as app
-
-
-def construct_combined_view_data_query(
-    params: Dict[str, Any], search_filter: Dict[str, Any], items: List[Dict[str, Any]]
-) -> Dict[str, Any]:
-    ids = set()
-    for item in items:
-        item_id = item.get("_id")
-        event_id = item.get("event_item")
-        if common.strtobool(params.get("include_associated_planning", False)):
-            ids.add(item_id)
-            if event_id:
-                ids.add(event_id)
-        else:
-            # Combined search prioritises Events over Planning items
-            # therefore if the Planning item is linked to an Event
-            # then we want to return that Event instead
-            ids.add(event_id or item_id)
-
-    query = elastic.ElasticQuery()
-
-    filter_params = common.get_params_from_search_filter(search_filter)
-    if len(filter_params):
-        filter_params["time_zone"] = params.get("time_zone") or app.config.get("DEFAULT_TIMEZONE")
-        filter_params["start_of_week"] = params.get("start_of_week", app.config.get("START_OF_WEEK", 0))
-
-        search_dates(filter_params, query)
-
-    search_dates(params, query)
-
-    query.must.append(elastic.terms(field="_id", values=list(ids)))
-
-    return query.build()
 
 
 def search_not_common_fields(params: Dict[str, Any], query: elastic.ElasticQuery):

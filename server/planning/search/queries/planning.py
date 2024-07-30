@@ -53,7 +53,9 @@ def search_no_agenda_assigned(params: Dict[str, Any], query: elastic.ElasticQuer
 
 def search_ad_hoc_planning(params: Dict[str, Any], query: elastic.ElasticQuery):
     if strtobool(params.get("ad_hoc_planning", False)):
-        query.must_not.append(elastic.field_exists("event_item"))
+        query.must_not.append(
+            elastic.nested("related_events", elastic.term(field="related_events.link_type", value="primary"))
+        )
 
 
 def search_exclude_rescheduled_and_cancelled(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -145,12 +147,17 @@ def search_featured(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
     event_ids = [str(event_id) for event_id in str_to_array(params.get("event_item"))]
-    num_ids = len(event_ids)
 
-    if num_ids == 1:
-        query.must.append(elastic.term(field="event_item", value=event_ids[0]))
-    elif num_ids > 1:
-        query.must.append(elastic.terms(field="event_item", values=event_ids))
+    if len(event_ids):
+        query.must.append(
+            elastic.bool_and(
+                [
+                    elastic.terms(field="related_events._id", values=event_ids),
+                    elastic.term(field="related_events.link_type", value="primary"),
+                ],
+                "related_events",
+            )
+        )
 
 
 def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):

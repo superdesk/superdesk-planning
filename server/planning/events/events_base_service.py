@@ -7,8 +7,10 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-import json
+
 from datetime import datetime
+
+import json
 from flask import request
 from eve.utils import config, ParsedRequest
 
@@ -273,35 +275,9 @@ class EventsBaseService(BaseService):
         return historic, past, future
 
     @staticmethod
-    def get_plannings_for_event(event):
-        return get_resource_service("planning").find(where={"event_item": event[config.ID_FIELD]})
-
-    @staticmethod
-    def has_planning_items(doc):
-        return EventsBaseService.get_plannings_for_event(doc).count() > 0
-
-    @staticmethod
-    def is_event_in_use(event):
-        return EventsBaseService.has_planning_items(event) or (event.get("pubstatus") or "") != ""
-
-    @staticmethod
     def is_original_event(original):
         # Check Flask's URL params if the ID matches the one provided here
         return original.get(config.ID_FIELD) == request.view_args.get(config.ID_FIELD)
-
-    @staticmethod
-    def _set_events_planning(events):
-        planning_service = get_resource_service("planning")
-
-        planning_items = list(
-            planning_service.get_from_mongo(req=None, lookup={"event_item": {"$in": list(events.keys())}})
-        )
-
-        for plan in planning_items:
-            event = events[plan["event_item"]]
-            if "_plans" not in event:
-                event["_plans"] = []
-            event["_plans"].append(plan)
 
     @staticmethod
     def remove_fields(new_event, extra_fields=None):

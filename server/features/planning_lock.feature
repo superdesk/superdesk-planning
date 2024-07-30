@@ -163,7 +163,7 @@ Feature: Planning Item Locking
       [{
           "_id": "plan1",
           "guid": "plan1",
-          "event_item": "#events._id#",
+          "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
           "planning_date": "2016-01-02"
        }]
       """
@@ -216,13 +216,13 @@ Feature: Planning Item Locking
             {
                 "_id": "plan1",
                 "guid": "plan1",
-                "event_item": "#events._id#",
+                "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             },
             {
                 "_id": "plan2",
                 "guid": "plan2",
-                "event_item": "#events._id#",
+                "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             }
       ]
@@ -234,12 +234,12 @@ Feature: Planning Item Locking
           {
               "_id": "plan1",
               "guid": "plan1",
-              "event_item": "#events._id#"
+              "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
           },
           {
               "_id": "plan2",
               "guid": "plan2",
-              "event_item": "#events._id#"
+              "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
           }]}
       """
       When we post to "/planning/plan2/lock"
@@ -332,13 +332,13 @@ Feature: Planning Item Locking
             {
                 "_id": "plan1",
                 "guid": "plan1",
-                "event_item": "#EVENT1._id#",
+                "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             },
             {
                 "_id": "plan2",
                 "guid": "plan2",
-                "event_item": "#EVENT1._id#",
+                "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "planning_date": "2016-01-02"
             }
         ]
@@ -351,13 +351,13 @@ Feature: Planning Item Locking
             {
                 "_id": "plan1",
                 "guid": "plan1",
-                "event_item": "#EVENT1._id#",
+                "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "recurrence_id": "#EVENT1.recurrence_id#"
             },
             {
                 "_id": "plan2",
                 "guid": "plan2",
-                "event_item": "#EVENT1._id#",
+                "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
                 "recurrence_id": "#EVENT1.recurrence_id#"
             }]}
         """
@@ -451,7 +451,7 @@ Feature: Planning Item Locking
           {
               "_id": "plan1",
               "guid": "plan1",
-              "event_item": "#EVENT1._id#",
+              "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
               "planning_date": "2016-01-02"
           }
       ]
@@ -464,7 +464,7 @@ Feature: Planning Item Locking
             {
               "_id": "plan1",
               "guid": "plan1",
-              "event_item": "#EVENT1._id#",
+              "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
               "recurrence_id": "#EVENT1.recurrence_id#"
             }]
           }
@@ -490,5 +490,61 @@ Feature: Planning Item Locking
       {"_message": "An associated event in this recurring series is already locked."}
       """
 
-
-
+    @auth
+    Scenario: Can lock Planning while related secondary Event is locked
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
+        Given "events"
+        """
+        [{
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "guid": "event2",
+            "name": "Event2",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        And "planning"
+        """
+        [{
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [
+                {"_id": "event1", "link_type": "primary"},
+                {"_id": "event2", "link_type": "secondary"}
+            ]
+        }]
+        """
+        When we post to "/events/event1/lock" with success
+        """
+        {"lock_action": "edit"}
+        """
+        When we post to "/planning/#planning._id#/lock"
+        """
+        {"lock_action": "edit"}
+        """
+        Then we get error 403
+        When we post to "/events/event1/unlock" with success
+        """
+        {}
+        """
+        When we post to "/events/event2/lock" with success
+        """
+        {"lock_action": "edit"}
+        """
+        When we post to "/planning/#planning._id#/lock" with success
+        """
+        {"lock_action": "edit"}
+        """

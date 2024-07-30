@@ -1,28 +1,29 @@
 import * as selectors from '../index';
 import moment from 'moment';
 import {MAIN, SPIKED_STATE} from '../../constants';
+import {planningConfig} from '../../config';
+import {PLANNING_VIEW} from '../../interfaces';
 
 describe('main selectors', () => {
+    let state;
+
+    beforeEach(() => {
+        state = {
+            main: {
+                search: {
+                    [MAIN.FILTERS.EVENTS]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
+                    [MAIN.FILTERS.COMBINED]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
+                    [MAIN.FILTERS.PLANNING]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
+                },
+            },
+            privileges: {
+                planning_event_management: 1,
+                planning_planning_management: 1,
+            },
+        };
+    });
+
     describe('is view filtered', () => {
-        let state;
-
-        beforeEach(() => {
-            state = {
-                main: {
-                    search: {
-                        [MAIN.FILTERS.EVENTS]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
-                        [MAIN.FILTERS.COMBINED]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
-                        [MAIN.FILTERS.PLANNING]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
-                    },
-                },
-                privileges: {
-                    planning_event_management: 1,
-                    planning_planning_management: 1,
-                },
-            };
-        });
-
-
         it('if default search then view is not filtered', () => {
             state.main.filter = MAIN.FILTERS.EVENTS;
             expect(selectors.main.isViewFiltered(state)).toBe(false);
@@ -98,6 +99,20 @@ describe('main selectors', () => {
             state.main.filter = MAIN.FILTERS.PLANNING;
             state.main.search.PLANNING.currentSearch.advancedSearch = {noCoverage: true};
             expect(selectors.main.isViewFiltered(state)).toBe(true);
+        });
+    });
+
+    describe('activeFilter', () => {
+        afterEach(() => {
+            planningConfig.planning_default_view = PLANNING_VIEW.COMBINED;
+        });
+
+        it('reads default from app config', () => {
+            planningConfig.planning_default_view = PLANNING_VIEW.PLANNING;
+            expect(selectors.main.activeFilter(state)).toBe(PLANNING_VIEW.PLANNING);
+
+            planningConfig.planning_default_view = PLANNING_VIEW.EVENTS;
+            expect(selectors.main.activeFilter(state)).toBe(PLANNING_VIEW.EVENTS);
         });
     });
 });

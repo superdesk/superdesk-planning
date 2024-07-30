@@ -20,9 +20,9 @@ import {
     timeUtils,
     getItemId,
     isItemPublic,
-    stringUtils,
 } from '../../utils';
 import {convertStringFields} from '../../utils/strings';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 /**
  * Action Dispatcher to fetch events from the server
@@ -590,13 +590,15 @@ const openEventPostModal = (
         let promise = Promise.resolve(original);
 
         if (planningItem) {
+            const primaryEventIds = getRelatedEventIdsForPlanning(planningItem, 'primary');
+
             // Actually posting a planning item
-            if (!planningItem.event_item || !planningItem.recurrence_id) {
+            if (primaryEventIds.length === 0 || !planningItem.recurrence_id) {
                 // Adhoc planning item or does not belong to recurring series
                 return dispatch(planningAction()).then((p) => Promise.resolve(p));
             }
 
-            promise = dispatch(eventsApi.fetchById(planningItem.event_item, {force: true, loadPlanning: false}));
+            promise = dispatch(eventsApi.fetchById(primaryEventIds[0], {force: true, loadPlanning: false}));
         }
 
         return promise.then((fetchedEvent) => {

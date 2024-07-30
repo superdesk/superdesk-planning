@@ -12,6 +12,8 @@
 
 import os
 import json
+import planning.types as planning_types
+
 from urllib.parse import urlparse
 
 
@@ -189,3 +191,5 @@ ELASTICSEARCH_FORCE_REFRESH = is_testing
 ELASTICSEARCH_AUTO_AGGREGATIONS = False
 
 PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST = "ncostat:int"
+
+PLANNING_EVENT_LINK_METHOD: planning_types.PLANNING_EVENT_LINK_METHOD = "one_primary"

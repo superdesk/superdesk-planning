@@ -205,12 +205,12 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {gettext} = superdeskApi.localization;
+        const {gettextPlural} = superdeskApi.localization;
         const planningItems = get(this.props, 'eventProps.item.planning_ids', []).length;
-        const relatedPlanningText = gettext('({{ count }}) {{ action }} planning item(s)', {
-            count: planningItems,
-            action: this.state.openPlanningItems ? gettext('Hide') : gettext('Show'),
-        });
+
+        const relatedPlanningText = this.state.openPlanningItems
+            ? gettextPlural(planningItems, 'Hide 1 planning item', 'Hide {{n}} planning items', {n: planningItems})
+            : gettextPlural(planningItems, 'Show 1 planning item', 'Show {{n}} planning items', {n: planningItems});
 
         const getPlannings = (item) => (
             get(this.props.relatedPlanningsInList, item._id, []).map((plan, index) => {
@@ -240,7 +240,6 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
                 expanded={this.state.openPlanningItems}
                 nestedChildren={getPlannings(eventProps.item)}
                 noMarginTop={this.props.listViewType === LIST_VIEW_TYPE.LIST}
-                refNode={this.props.refNode}
             />
         );
     }

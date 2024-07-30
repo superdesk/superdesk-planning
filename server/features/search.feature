@@ -142,7 +142,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug123",
-                "event_item": "event_123",
+                "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "planning_date": "2016-01-02T13:00:00+0000"
             },
             {
@@ -150,19 +150,21 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_123",
+                "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "subject": [{"qcode": "111", "name": "test name"}],
                 "planning_date": "2016-01-02T14:00:00+0000"
             }
         ]
         """
         When we get "/events_planning_search?start_date=2016-01-02T00:00:00%2B0000"
-        Then we get list with 2 items
+        Then we get list with 4 items
         """
         {
             "_items": [
                 {"_id": "planning_123", "type": "planning"},
-                {"_id": "event_123", "type": "event"}
+                {"_id": "event_123", "type": "event"},
+                {"_id": "planning_456", "type": "planning"},
+                {"_id": "planning_789", "type": "planning"}
             ]
         }
         """
@@ -172,7 +174,7 @@ Feature: Search Feature
         {
             "_items": [
                 {"_id": "planning_123", "type": "planning"},
-                {"_id": "event_123", "type": "event"}
+                {"_id": "planning_456", "type": "planning"}
             ]
         }
         """
@@ -181,7 +183,7 @@ Feature: Search Feature
         """
         {
             "_items": [
-                {"_id": "event_123", "type": "event"}
+                {"_id": "planning_789", "type": "planning"}
             ]
         }
         """
@@ -273,7 +275,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug123",
-                "event_item": "event_123",
+                "related_events": [{"_id": "event_123", "link_type": "primary"}],
                 "planning_date": "2016-01-02T13:00:00+0000",
                 "agendas": ["sports"]
             },
@@ -282,7 +284,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_456",
+                "related_events": [{"_id": "event_456", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
                 "agendas": ["finance"]
             },
@@ -291,7 +293,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_456",
+                "related_events": [{"_id": "event_456", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
                 "agendas": ["entertainment"]
             },
@@ -300,7 +302,7 @@ Feature: Search Feature
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "slug456",
-                "event_item": "event_786",
+                "related_events": [{"_id": "event_786", "link_type": "primary"}],
                 "planning_date": "2016-01-02T14:00:00+0000",
                 "agendas": ["sports", "finance"]
             },
@@ -315,14 +317,18 @@ Feature: Search Feature
         ]
         """
         When we get "/events_planning_search?start_date=2016-01-02T00:00:00%2B0000"
-        Then we get list with 5 items
+        Then we get list with 9 items
         """
         {
             "_items": [
                 {"_id": "event_123", "type": "event"},
+                {"_id": "planning_2", "type": "planning"},
                 {"_id": "planning_1", "type": "planning"},
                 {"_id": "event_456", "type": "event"},
+                {"_id": "planning_3", "type": "planning"},
+                {"_id": "planning_4", "type": "planning"},
                 {"_id": "event_786", "type": "event"},
+                {"_id": "planning_5", "type": "planning"},
                 {"_id": "planning_6", "type": "planning"}
             ]
         }
@@ -338,35 +344,41 @@ Feature: Search Feature
         }
         """
         When we get "/events_planning_search?agendas=sports&calendars=sports&start_date=2016-01-02T00:00:00%2B0000"
-        Then we get list with 3 items
+        Then we get list with 5 items
         """
         {
             "_items": [
                 {"_id": "event_123", "type": "event"},
+                {"_id": "planning_2", "type": "planning"},
                 {"_id": "event_786", "type": "event"},
+                {"_id": "planning_5", "type": "planning"},
                 {"_id": "planning_1", "type": "planning"}
             ]
         }
         """
         When we get "/events_planning_search?agendas=sports&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
-        Then we get list with 3 items
+        Then we get list with 5 items
         """
         {
             "_items": [
                 {"_id": "event_123", "type": "event"},
+                {"_id": "planning_2", "type": "planning"},
                 {"_id": "event_786", "type": "event"},
+                {"_id": "planning_5", "type": "planning"},
                 {"_id": "planning_1", "type": "planning"}
             ]
         }
         """
         When we get "/events_planning_search?agendas=sports,finance&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
-        Then we get list with 4 items
+        Then we get list with 6 items
         """
         {
             "_items": [
                 {"_id": "event_123", "type": "event"},
-                {"_id": "event_456", "type": "event"},
+                {"_id": "planning_2", "type": "planning"},
+                {"_id": "planning_3", "type": "planning"},
                 {"_id": "event_786", "type": "event"},
+                {"_id": "planning_5", "type": "planning"},
                 {"_id": "planning_1", "type": "planning"}
             ]
         }
@@ -376,7 +388,7 @@ Feature: Search Feature
         """
         {
             "_items": [
-                {"_id": "event_456", "type": "event"},
+                {"_id": "planning_4", "type": "planning"},
                 {"_id": "planning_6", "type": "planning"}
             ]
         }
@@ -386,8 +398,8 @@ Feature: Search Feature
         """
         {
             "_items": [
-                {"_id": "event_123", "type": "event"},
-                {"_id": "event_786", "type": "event"},
+                {"_id": "planning_2", "type": "planning"},
+                {"_id": "planning_5", "type": "planning"},
                 {"_id": "planning_1", "type": "planning"}
             ]
         }

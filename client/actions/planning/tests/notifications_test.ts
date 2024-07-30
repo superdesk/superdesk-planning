@@ -168,15 +168,17 @@ describe('actions.planning.notifications', () => {
         });
 
         it('calls refetch on create', (done) => {
+            const eventId = data.plannings[1].related_events[0]._id;
+
             store.initialState.main.filter = MAIN.FILTERS.PLANNING;
             return store.test(done, planningNotifications.onPlanningCreated({}, {
                 item: data.plannings[1]._id,
-                event_item: data.plannings[1].event_item,
+                event_ids: [eventId]
             }))
                 .then(() => {
                     expect(eventsApi.markEventHasPlannings.callCount).toBe(1);
                     expect(eventsApi.markEventHasPlannings.args[0]).toEqual([
-                        data.plannings[1].event_item,
+                        eventId,
                         data.plannings[1]._id,
                     ]);
 
@@ -323,8 +325,6 @@ describe('actions.planning.notifications', () => {
                                 lock_session: null,
                                 lock_time: null,
                                 _etag: 'e123',
-                                event_item: null,
-                                recurrence_id: null,
                             },
                         },
                     }]);
@@ -494,7 +494,12 @@ describe('actions.planning.notifications', () => {
                 item_type: 'planning',
             };
 
-            return store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
+            return store.test(done, planningNotifications.onPlanningUpdated({}, {
+                item: data.plannings[0]._id,
+                event_ids: [],
+                added_agendas: [],
+                removed_agendas: [],
+            }))
                 .then(() => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
@@ -504,7 +509,12 @@ describe('actions.planning.notifications', () => {
         });
 
         it('onPlanningUpdated does calls scheduleRefetch if item is not being edited', (done) => (
-            store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
+            store.test(done, planningNotifications.onPlanningUpdated({}, {
+                item: data.plannings[0]._id,
+                event_ids: [],
+                added_agendas: [],
+                removed_agendas: [],
+            }))
                 .then(() => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);

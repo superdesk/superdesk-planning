@@ -8,7 +8,17 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
+from superdesk import config, get_resource_service
+from superdesk.services import BaseService
+from superdesk.notification import push_notification
+from superdesk.errors import SuperdeskApiError
+from apps.auth import get_user, get_user_id
+from apps.archive.common import get_auth
+
 from .planning import PlanningResource
+from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
 from planning.common import (
     ITEM_EXPIRY,
     ITEM_STATE,
@@ -18,16 +28,8 @@ from planning.common import (
     remove_autosave_on_spike,
     remove_lock_information,
 )
-from superdesk.services import BaseService
-from superdesk.notification import push_notification
-from superdesk.errors import SuperdeskApiError
-from apps.auth import get_user, get_user_id
-from apps.archive.common import get_auth
-from superdesk import config
-from superdesk import get_resource_service
 from planning.planning_notifications import PlanningNotifications
 from planning.item_lock import LOCK_USER
-from copy import deepcopy
 
 
 class PlanningSpikeResource(PlanningResource):
@@ -49,7 +51,9 @@ class PlanningSpikeServiceBase(BaseService):
                 user=str(get_user_id()),
                 lock_session=str(get_auth().get(config.ID_FIELD)),
                 etag=updates.get("_etag"),
-                event_item=original.get("event_item") or None,
+                event_ids=get_related_event_ids_for_planning(
+                    original
+                ),  # Event IDs for both primary and secondary events,
                 recurrence_id=original.get("recurrence_id") or None,
                 type=original.get("type"),
             )
@@ -131,12 +135,16 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
             if coverage.get("workflow_status") == WORKFLOW_STATE.ACTIVE:
                 assignments_to_delete.append(coverage)
 
-        notify = True
-        if original.get("event_item"):
-            event = get_resource_service("events").find_one(req=None, _id=original.get("event_item"))
-            notify = not event or event.get("state") != WORKFLOW_STATE.SPIKED
+        notify_user_on_failed_assignment_deletes = True
+        first_event_id = get_first_related_event_id_for_planning(original, "primary")
 
-        get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete, notify)
+        if first_event_id:
+            event = get_resource_service("events").find_one(req=None, _id=first_event_id)
+            notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
+
+        get_resource_service("planning").delete_assignments_for_coverages(
+            assignments_to_delete, notify_user_on_failed_assignment_deletes
+        )
 
 
 class PlanningUnspikeResource(PlanningResource):
@@ -151,8 +159,9 @@ class PlanningUnspikeResource(PlanningResource):
 
 class PlanningUnspikeService(PlanningSpikeServiceBase):
     def update(self, id, updates, original):
-        if original.get("event_item"):
-            event = get_resource_service("events").find_one(req=None, _id=original["event_item"])
+        first_event_id = get_first_related_event_id_for_planning(original, "primary")
+        if first_event_id:
+            event = get_resource_service("events").find_one(req=None, _id=first_event_id)
             if event.get("state") == WORKFLOW_STATE.SPIKED:
                 raise SuperdeskApiError.badRequestError(message="Unspike failed. Associated event is spiked.")
 

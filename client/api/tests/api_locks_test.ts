@@ -29,7 +29,7 @@ describe('planningApi.locks', () => {
         const itemLock = {
             item: testData.events[0]._id,
             type: testData.events[0].type,
-            event_item: undefined,
+            event_ids: [],
             etag: testData.events[0]._etag,
             user: testData.lockedEvents[0].lock_user,
             lock_session: testData.lockedEvents[0].lock_session,

@@ -349,7 +349,7 @@ Feature: Events Recurring
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestPlan",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "state": "scheduled",
             "pubstatus": "usable",
             "ednote": "We planned this.",
@@ -458,7 +458,7 @@ Feature: Events Recurring
         {
             "slugline": "TestPlan",
             "state": "rescheduled",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "recurrence_id": "event1", "link_type": "primary"}],
             "recurrence_id": "event1"
         }
         """
@@ -1085,7 +1085,7 @@ Feature: Events Recurring
         """
         {
             "slugline": "TestPlanning",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "recurrence_id": "#EVENT1.recurrence_id#"
         }
         """

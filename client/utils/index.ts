@@ -11,7 +11,8 @@ import {
     IPlanningCoverageItem,
     IIngestProvider,
     IFeaturedPlanningItem,
-    ISearchParams,
+    IEventItem,
+    IPlanningItem,
     ICommonSearchParams,
     JUMP_INTERVAL,
 } from '../interfaces';
@@ -36,7 +37,7 @@ import {
 } from '../constants';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
-import {default as planningUtils} from './planning';
+import {pickRelatedEventsForPlanning, default as planningUtils} from './planning';
 import {default as eventUtils} from './events';
 import {default as timeUtils} from './time';
 import {default as eventPlanningUtils} from './eventsplanning';
@@ -449,12 +450,12 @@ export const isItemPosted = (item) => [POST_STATE.USABLE, POST_STATE.CANCELLED].
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
 
-export const isEvent = (item) => getItemType(item) === ITEM_TYPE.EVENT;
-export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
+export const isEvent = (item): item is IEventItem => getItemType(item) === ITEM_TYPE.EVENT;
+export const isPlanning = (item): item is IPlanningItem => getItemType(item) === ITEM_TYPE.PLANNING;
 export const isAssignment = (item) => getItemType(item) === ITEM_TYPE.ASSIGNMENT;
 export const isItemExpired = (item) => get(item, 'expired') || false;
 
-export const isItemReadOnly = (item, session, privileges, lockedItems, associatedEvent) => {
+export const isItemReadOnly = (item, session, privileges, lockedItems, associatedEvents: Array<IEventItem>) => {
     const existingItem = isExistingItem(item);
     const itemLock = lockUtils.getLock(item, lockedItems);
     const isLockRestricted = lockUtils.isLockRestricted(
@@ -474,7 +475,7 @@ export const isItemReadOnly = (item, session, privileges, lockedItems, associate
     } else if (itemType === ITEM_TYPE.PLANNING) {
         canEdit = planningUtils.canEditPlanning(
             item,
-            associatedEvent,
+            pickRelatedEventsForPlanning(item, associatedEvents, 'logic'),
             session,
             privileges,
             lockedItems

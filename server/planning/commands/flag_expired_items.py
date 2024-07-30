@@ -8,16 +8,20 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from datetime import timedelta, datetime
+
+from bson.objectid import ObjectId
+from eve.utils import config
 from flask import current_app as app
+
 from superdesk import Command, command, get_resource_service
 from superdesk.logging import logger
 from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock, remove_locks
 from superdesk.notification import push_notification
-from datetime import timedelta, datetime
-from eve.utils import config
-from bson.objectid import ObjectId
+
+from planning.utils import get_related_planning_for_events, get_related_event_ids_for_planning
 
 
 class FlagExpiredItems(Command):
@@ -149,13 +153,12 @@ class FlagExpiredItems(Command):
 
     @staticmethod
     def _set_event_plans(events):
-        planning_service = get_resource_service("planning")
-
-        for plan in planning_service.get_from_mongo(req=None, lookup={"event_item": {"$in": list(events.keys())}}):
-            event = events[plan["event_item"]]
-            if "_plans" not in event:
-                event["_plans"] = []
-            event["_plans"].append(plan)
+        for plan in get_related_planning_for_events(list(events.keys()), "primary"):
+            for related_event_id in get_related_event_ids_for_planning(plan, "primary"):
+                event = events[related_event_id]
+                if "_plans" not in event:
+                    event["_plans"] = []
+                event["_plans"].append(plan)
 
     @staticmethod
     def _get_event_schedule(event):

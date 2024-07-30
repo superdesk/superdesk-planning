@@ -4,3 +4,4 @@ from .delete_marked_assignments import DeleteMarkedAssignments  # noqa
 from .export_to_newsroom import ExportToNewsroom  # noqa
 from .export_scheduled_filters import ExportScheduledFilters  # noqa
 from .purge_expired_locks import PurgeExpiredLocks  # noqa
+from .replace_deprecated_event_item_attribute import ReplaceDeprecatedEventItemAttributeCommand  # noqa

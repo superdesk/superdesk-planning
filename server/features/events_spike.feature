@@ -144,13 +144,13 @@ Feature: Events Spike
         """
         [{
             "slugline": "TestPlan 1",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "123",
             "planning_date": "2016-01-02"
         }, {
             "slugline": "TestPlan 2",
-            "event_item": "#events._id#",
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -159,13 +159,13 @@ Feature: Events Spike
         """
             {"_items": [{
                 "slugline": "TestPlan 1",
-                "event_item": "#events._id#",
+                "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "state": "draft",
                 "lock_user": "#CONTEXT_USER_ID#",
                 "lock_session": "123"
             }, {
                 "slugline": "TestPlan 2",
-                "event_item": "#events._id#",
+                "related_events": [{"_id": "#events._id#", "link_type": "primary"}],
                 "state": "draft"
             }]}
         """
@@ -256,7 +256,7 @@ Feature: Events Spike
         [{
             "slugline": "Friday Club",
             "headline": "First Meeting",
-            "event_item": "#EVENT2._id#",
+            "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -339,7 +339,7 @@ Feature: Events Spike
         [{
             "slugline": "Friday Club",
             "headline": "First Meeting",
-            "event_item": "#EVENT2._id#",
+            "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -470,7 +470,7 @@ Feature: Events Spike
         """
         [{
             "slugline": "Friday Club",
-            "event_item": "#EVENT3._id#",
+            "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -478,7 +478,7 @@ Feature: Events Spike
         """
         [{
             "slugline": "Friday Club",
-            "event_item": "#EVENT4._id#",
+            "related_events": [{"_id": "#EVENT4._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -505,7 +505,7 @@ Feature: Events Spike
         """
         [{
             "slugline": "Friday Club",
-            "event_item": "#EVENT6._id#",
+            "related_events": [{"_id": "#EVENT6._id#", "link_type": "primary"}],
             "planning_date": "2016-01-02"
         }]
         """
@@ -743,7 +743,7 @@ Feature: Events Spike
             "slugline": "TestEvent",
             "state": "draft",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         },
         {
             "_id": "plan2",
@@ -751,7 +751,7 @@ Feature: Events Spike
             "slugline": "TestEvent",
             "state": "spiked",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         },
         {
             "_id": "plan3",
@@ -759,7 +759,7 @@ Feature: Events Spike
             "slugline": "TestEvent",
             "state": "postponed",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         },
         {
             "_id": "plan4",
@@ -767,7 +767,7 @@ Feature: Events Spike
             "slugline": "TestEvent",
             "state": "rescheduled",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         },
         {
             "_id": "plan5",
@@ -775,7 +775,7 @@ Feature: Events Spike
             "slugline": "TestEvent",
             "state": "cancelled",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         },
         {
             "_id": "plan6",
@@ -783,7 +783,7 @@ Feature: Events Spike
             "slugline": "TestEvent",
             "state": "scheduled",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         },
         {
             "_id": "plan7",
@@ -791,7 +791,7 @@ Feature: Events Spike
             "slugline": "TestEvent",
             "state": "killed",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }]
         """
         Then we get OK response
@@ -892,7 +892,7 @@ Feature: Events Spike
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }
         """
         Then we get OK response
@@ -1004,7 +1004,7 @@ Feature: Events Spike
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }
         """
         Then we get OK response
@@ -1074,4 +1074,70 @@ Feature: Events Spike
                 "user": "#CONTEXT_USER_ID#"
             }
         }]
+        """
+
+    @auth
+    @vocabulary
+    Scenario: Spiking an Event does not spike Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
+        Given we have sessions "/sessions"
+        And "events"
+        """
+        [{
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        And "planning"
+        """
+        [{
+            "guid": "plan1",
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}]
+        }, {
+            "guid": "plan2",
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "secondary"}],
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we spike events "event1"
+        Then we get OK response
+        When we get "/events/event1"
+        Then we get existing resource
+        """
+        {"state": "spiked"}
+        """
+        When we get "/planning"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "plan1", "state": "spiked"},
+            {"_id": "plan2", "state": "draft"}
+        ]}
+        """
+        When we spike planning "plan2"
+        Then we get OK response
+        When we unspike events "event1"
+        Then we get OK response
+        When we get "/planning"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "plan1", "state": "spiked"},
+            {"_id": "plan2", "state": "spiked"}
+        ]}
         """

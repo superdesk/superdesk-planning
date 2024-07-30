@@ -15,6 +15,8 @@ from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentPro
 
 
 UPDATE_METHOD = Literal["single", "future", "all"]
+PLANNING_RELATED_EVENT_LINK_TYPE = Literal["primary", "secondary"]
+PLANNING_EVENT_LINK_METHOD = Literal["one_primary", "many_secondary", "one_primary_many_secondary"]
 
 
 class StringFieldTranslation(TypedDict):
@@ -45,7 +47,8 @@ class EmbeddedPlanning(TypedDict, total=False):
     coverages: Dict[str, EmbeddedCoverageItem]
 
 
-# TODO: Implement proper types for these next 3
+# TODO: Implement proper types for the following
+ArchiveItem = Dict[str, Any]
 Event = Dict[str, Any]
 Planning = Dict[str, Any]
 Coverage = Dict[str, Any]
@@ -65,3 +68,12 @@ class EventRelatedItem(TypedDict, total=False):
     pubstatus: str
     language: str
     word_count: int
+
+
+class PlanningRelatedEventLinkBase(TypedDict):
+    _id: str
+    link_type: PLANNING_RELATED_EVENT_LINK_TYPE
+
+
+class PlanningRelatedEventLink(PlanningRelatedEventLinkBase, total=False):
+    recurrence_id: str

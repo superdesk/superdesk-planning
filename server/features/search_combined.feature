@@ -151,7 +151,7 @@ Feature: Search Events and Planning
             "headline": "plan1 for user 1",
             "planning_date": "2016-01-01T12:00:00+0000",
             "original_creator": "user_1",
-            "event_item": "user_1_event_1"
+            "related_events": [{"_id": "user_1_event_1", "link_type": "primary"}]
         }, {
             "guid": "user_1_plan_2",
             "headline": "plan2 for user 1",
@@ -162,7 +162,7 @@ Feature: Search Events and Planning
             "headline": "plan1 for user 2",
             "planning_date": "2016-01-01T12:00:00+0000",
             "original_creator": "#CONTEXT_USER_ID#",
-            "event_item": "user_2_event_2"
+            "related_events": [{"_id": "user_2_event_2", "link_type": "primary"}]
         }, {
             "guid": "user_2_plan_2",
             "headline": "plan2 for user 2",
@@ -176,11 +176,12 @@ Feature: Search Events and Planning
         """
         Then we get OK response
         When we get "/events_planning_search?only_future=false"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items": [
             {"_id": "user_2_event_1"},
             {"_id": "user_2_event_2"},
+            {"_id": "user_2_plan_1"},
             {"_id": "user_2_plan_2"}
         ]}
         """
@@ -190,14 +191,16 @@ Feature: Search Events and Planning
         """
         Then we get OK response
         When we get "/events_planning_search?only_future=false"
-        Then we get list with 6 items
+        Then we get list with 8 items
         """
         {"_items": [
             {"_id": "user_1_event_1"},
             {"_id": "user_1_event_2"},
             {"_id": "user_2_event_1"},
             {"_id": "user_2_event_2"},
+            {"_id": "user_1_plan_1"},
             {"_id": "user_1_plan_2"},
+            {"_id": "user_2_plan_1"},
             {"_id": "user_2_plan_2"}
         ]}
         """

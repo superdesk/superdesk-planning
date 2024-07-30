@@ -1,7 +1,7 @@
 import React from 'react';
 import {cloneDeep, isEqual} from 'lodash';
 
-import {EDITOR_TYPE, IEditorAPI, IEditorProps, IEditorState} from '../../../interfaces';
+import {EDITOR_TYPE, IEditorAPI, IEditorProps, IEditorState, IEventItem, IPlanningItem} from '../../../interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {ITEM_TYPE, UI} from '../../../constants';
 
@@ -12,12 +12,13 @@ import {EventEditor} from '../../Events';
 import {PlanningEditor} from '../../Planning';
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {Content, SidePanel} from '../../UI/SidePanel';
-import {EditorHeader} from './index';
 import {HistoryTab} from '../index';
 import {EditorPopupForm} from '../../Editor/EditorPopupForm';
 
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
+import {EditorHeader} from './EditorHeader';
+import {pickRelatedEventsForPlanning} from './../../../utils/planning';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
@@ -368,7 +369,13 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                         {...currentTab.tabProps}
                         inModalView={this.props.inModalView}
                         plannings={this.props.associatedPlannings}
-                        event={this.props.associatedEvent}
+                        event={
+                            pickRelatedEventsForPlanning(
+                                this.props.item as IPlanningItem,
+                                (this.props.associatedEvents ?? []),
+                                'logic',
+                            )?.[0] ?? undefined // TAG: MULTIPLE_PRIMARY_EVENTS
+                        }
                         itemManager={this.itemManager}
                         activeNav={this.state.activeNav}
                         groups={this.props.groups ?? []}
@@ -422,7 +429,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
-                    associatedEvent={this.props.associatedEvent}
+                    associatedEvents={this.props.associatedEvents}
                     associatedPlannings={this.props.associatedPlannings}
                     loading={this.state.loading}
                     itemManager={this.itemManager}

@@ -8,21 +8,25 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from copy import deepcopy
+
+from eve.utils import config
+from flask import request
+
 from superdesk import get_resource_service
 from superdesk.notification import push_notification
-from eve.utils import config
+from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
+
 from planning.common import (
     UPDATE_FUTURE,
     WORKFLOW_STATE,
     remove_lock_information,
     set_actioned_date_to_event,
 )
-from copy import deepcopy
+from planning.utils import get_related_planning_for_events
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
-from flask import request
-from superdesk.errors import SuperdeskApiError
 
 event_cancel_schema = deepcopy(events_schema)
 event_cancel_schema["reason"] = {
@@ -58,8 +62,7 @@ class EventsCancelService(EventsBaseService):
     def update_single_event(self, updates, original):
         occur_cancel_state = self._get_cancel_state()
         self._set_event_cancelled(updates, original, occur_cancel_state)
-        if self.is_event_in_use(original):
-            self._cancel_event_plannings(updates, original)
+        self._cancel_event_plannings(updates, original)
 
     def update(self, id, updates, original):
         reason = updates.pop("reason", None)
@@ -93,18 +96,17 @@ class EventsCancelService(EventsBaseService):
 
     @staticmethod
     def _cancel_event_plannings(updates, original):
-        planning_service = get_resource_service("planning")
         planning_cancel_service = get_resource_service("planning_cancel")
+        planning_history_service = get_resource_service("planning_history")
         reason = updates.get("reason", None)
 
-        plans = list(planning_service.find(where={"event_item": original[config.ID_FIELD]}))
-        for plan in plans:
+        for plan in get_related_planning_for_events([original[config.ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED:
                 request.view_args["event_cancellation"] = True
                 cancelled_plan = planning_cancel_service.patch(plan[config.ID_FIELD], {"reason": reason})
 
                 # Write history records
-                get_resource_service("planning_history").on_cancel(cancelled_plan, plan)
+                planning_history_service.on_cancel(cancelled_plan, plan)
 
     @staticmethod
     def _set_event_cancelled(updates, original, occur_cancel_state):
@@ -141,15 +143,10 @@ class EventsCancelService(EventsBaseService):
 
         for event in cancelled_events:
             new_updates = deepcopy(updates)
-            if not self.is_event_in_use(event):
-                self.patch_related_event_as_cancelled(new_updates, event, notifications)
-            else:
-                # Cancel the planning item also as it is in use
-                self._cancel_event_plannings(new_updates, event)
-                self.patch_related_event_as_cancelled(new_updates, event, notifications)
+            self._cancel_event_plannings(new_updates, event)
+            self.patch_related_event_as_cancelled(new_updates, event, notifications)
 
-        if self.is_event_in_use(original):
-            self._cancel_event_plannings(updates, original)
+        self._cancel_event_plannings(updates, original)
         updates["_cancelled_events"] = notifications
 
     def patch_related_event_as_cancelled(self, updates, original, notifications):

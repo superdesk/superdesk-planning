@@ -7,18 +7,23 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+
+from copy import deepcopy
+
+from eve.utils import config
+
+from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
-from eve.utils import config
-from copy import deepcopy
-from superdesk import get_resource_service
+
 from .assignments import AssignmentsResource, assignments_schema
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
 
 
 assignments_revert_schema = deepcopy(assignments_schema)
+assignments_revert_schema["planning_item"]["required"] = False
 
 
 class AssignmentsRevertResource(AssignmentsResource):

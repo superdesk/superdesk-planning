@@ -40,7 +40,8 @@ interface IProps {
     submitFailed: boolean;
     itemManager: IFormItemManager;
 
-    event?: IEventItem;
+    event?: IEventItem; // TAG: MULTIPLE_PRIMARY_EVENTS
+    events?: Array<IEventItem>;
     addNewsItemToPlanning?: IArticle;
     inModalView: boolean;
     activeNav?: string;
@@ -83,6 +84,7 @@ interface IState {
 }
 
 const mapStateToProps = (state) => ({
+    events: selectors.events.storedEvents(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     currentAgenda: selectors.planning.currentAgenda(state),
     desk: selectors.general.currentDeskId(state),
@@ -499,7 +501,8 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         files: this.props.files,
                     },
                     associated_event: {
-                        event: this.props.event,
+                        events: (this.props.item.related_events ?? [])
+                            .map((relatedEvent) => this.props.events[relatedEvent._id]),
                     },
                     coverages: {
                         onChange: this.onCoverageChange,
@@ -510,7 +513,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         addOnly: this.props.addNewsItemToPlanning != null,
                         originalCount: this.props.item?.coverages?.length ?? 0,
                         message: this.props.message,
-                        event: this.props.event,
+                        event: this.props.event, // TAG: MULTIPLE_PRIMARY_EVENTS
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,

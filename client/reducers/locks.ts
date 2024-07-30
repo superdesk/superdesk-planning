@@ -13,8 +13,9 @@ const initialLockState: ILockedItems = {
 function removeLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_UNLOCKED']) {
     if (data.recurrence_id != null) {
         delete state.recurring[data.recurrence_id];
-    } else if (data.event_item != null) {
-        delete state.event[data.event_item];
+    } else if ((data.event_ids?.length ?? 0) > 0) {
+        // For now, only support 1 primary event link for locks
+        delete state.event[data.event_ids[0]];
     }
 
     // Always try and delete a lock direclty on the supplied item
@@ -38,8 +39,9 @@ function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']
 
     if (data.recurrence_id != null) {
         state.recurring[data.recurrence_id] = lockData;
-    } else if (data.event_item != null) {
-        state.event[data.event_item] = lockData;
+    } else if ((data.event_ids?.length ?? 0) > 0) {
+        // For now, only support 1 primary event link for locks
+        state.event[data.event_ids[0]] = lockData;
     } else {
         state[data.type][data.item] = lockData;
     }

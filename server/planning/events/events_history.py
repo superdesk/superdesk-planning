@@ -8,11 +8,14 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource, get_resource_service
-from planning.history import HistoryService
-import logging
-from eve.utils import config
 from copy import deepcopy
+import logging
+
+from eve.utils import config
+
+from superdesk import Resource, get_resource_service
+from planning.utils import get_related_planning_for_events
+from planning.history import HistoryService
 from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
@@ -35,8 +38,8 @@ class EventsHistoryService(HistoryService):
         created_from_planning = []
         regular_events = []
         for item in items:
-            planning_items = get_resource_service("events").get_plannings_for_event(item)
-            if planning_items.count() > 0:
+            planning_items = get_related_planning_for_events([item[config.ID_FIELD]], "primary")
+            if len(planning_items) > 0:
                 item["created_from_planning"] = planning_items[0].get("_id")
                 created_from_planning.append(item)
             else:

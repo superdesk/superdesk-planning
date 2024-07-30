@@ -9,17 +9,20 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import logging
-import superdesk
 
+from eve.utils import config
+
+import superdesk
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
-from eve.utils import config
 from superdesk import get_resource_service, get_resource_privileges
 from apps.common.components.base_component import BaseComponent
 from apps.item_lock.components.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION, LOCK_TIME
+
+from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
 
 
 logger = logging.getLogger(__name__)
@@ -51,16 +54,16 @@ class LockService(BaseComponent):
 
         # lock_id will be:
         # 1 - Recurrence Id for items part of recurring series (event or planning)
-        # 2 - event_item for planning with associated event
+        # 2 - Event ID for planning with related primary event
         # 3 - item's _id for all other cases
-        lock_id_field = config.ID_FIELD
+        first_primary_event_id = get_first_related_event_id_for_planning(item, "primary")
         if item.get("recurrence_id"):
-            lock_id_field = "recurrence_id"
-        elif item.get("type") != "event" and item.get("event_item"):
-            lock_id_field = "event_item"
-
-        # set the lock_id it per item
-        lock_id = "item_lock {}".format(item.get(lock_id_field))
+            recurrence_id = item["recurrence_id"]
+            lock_id = f"item_lock {recurrence_id}"
+        elif item.get("type") != "event" and first_primary_event_id is not None:
+            lock_id = f"item_lock {first_primary_event_id}"
+        else:
+            lock_id = f"item_lock {item_id}"
 
         # get the lock it not raise forbidden exception
         if not lock(lock_id, expire=5):
@@ -92,7 +95,7 @@ class LockService(BaseComponent):
                     lock_session=str(session_id),
                     lock_action=updates.get(LOCK_ACTION),
                     etag=updates["_etag"],
-                    event_item=item.get("event_item"),
+                    event_ids=get_related_event_ids_for_planning(item),
                     recurrence_id=item.get("recurrence_id") or None,
                     type=item.get("type"),
                 )
@@ -148,7 +151,7 @@ class LockService(BaseComponent):
             user=str(user_id),
             lock_session=str(session_id),
             etag=updates.get("_etag") or item.get("_etag"),
-            event_item=item.get("event_item") or None,
+            event_ids=get_related_event_ids_for_planning(item),
             recurrence_id=item.get("recurrence_id") or None,
             type=item.get("type"),
         )

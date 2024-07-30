@@ -167,7 +167,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
-        const showRelatedPlanningLink = activeFilter === PLANNING_VIEW.COMBINED && hasPlanning;
         let borderState: 'locked' | 'active' | false = false;
 
         if (isItemLocked) {
@@ -202,7 +201,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 <Border state={borderState} />
                 <ItemType
                     item={item}
-                    hasCheck={activeFilter !== PLANNING_VIEW.COMBINED}
+                    hasCheck={this.props.multiSelectDisabled !== true && activeFilter !== PLANNING_VIEW.COMBINED}
                     checked={this.props.multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}
@@ -258,7 +257,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                         {secondaryFields.includes('files') && renderFields('files', item)}
 
 
-                        {(showRelatedPlanningLink) && (
+                        {(hasPlanning) && (
                             <span
                                 className="sd-overflow-ellipsis sd-list-item__element-lm-10"
                             >

@@ -104,7 +104,7 @@ describe('Planning.Events: embedded coverage', () => {
             .click();
 
         // Test the new Event appears in the list view
-        list.expectItemCount(1);
+        list.expectItemCount(2);
         list.expectItemText(0, 'slugline of the event');
 
         // Test coverage icons in the related Planning item
@@ -355,7 +355,7 @@ describe('Planning.Events: embedded coverage', () => {
         editor.postButton
             .should('exist')
             .should('be.enabled');
-        list.expectItemCount(1);
+        list.expectItemCount(2);
         list.expectItemText(0, 'slugline of the event');
 
         // Make sure the Text coverage was created as well

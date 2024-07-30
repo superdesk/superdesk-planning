@@ -127,6 +127,7 @@ Feature: Events Reschedule
         """
         [{
             "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+            "planning_item": "plan1",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -166,7 +167,7 @@ Feature: Events Reschedule
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestEvent",
-            "event_item": "event1",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
             "state": "scheduled",
             "pubstatus": "usable",
             "ednote": "We planned this.",
@@ -310,7 +311,7 @@ Feature: Events Reschedule
         [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "state": "draft",
             "planning_date": "2016-01-02"
         }]
@@ -397,7 +398,7 @@ Feature: Events Reschedule
         {"_items": [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT1._id#",
+            "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}],
             "state": "rescheduled"
         }]}
         """
@@ -912,7 +913,7 @@ Feature: Events Reschedule
                 "guid": "plan1",
                 "slugline": "Weekly Meetings",
                 "headline": "Friday Club",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "coverages": [{
                     "planning": {
                         "internal_note": "test coverage, 250 words",
@@ -930,7 +931,7 @@ Feature: Events Reschedule
                 "guid": "plan2",
                 "slugline": "Weekly Meetings",
                 "headline": "Friday Club",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "planning_date": "2025-01-02"
             }
         ]
@@ -944,12 +945,12 @@ Feature: Events Reschedule
         {"_items": [
             {
                 "_id": "#PLAN1._id#",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "state": "draft"
             },
             {
                 "_id": "#PLAN2._id#",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "state": "draft"
             }
         ]}
@@ -1014,7 +1015,7 @@ Feature: Events Reschedule
         {"_items": [
             {
                 "_id": "#PLAN1._id#",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "state": "postponed",
                 "state_reason": "Postponed this event!",
                 "coverages": [{
@@ -1031,7 +1032,7 @@ Feature: Events Reschedule
             },
             {
                 "_id": "#PLAN2._id#",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "state": "postponed",
                 "state_reason": "Postponed this event!"
             }
@@ -1141,7 +1142,7 @@ Feature: Events Reschedule
         {"_items": [
             {
                 "_id": "#PLAN1._id#",
-                "event_item": "#EVENT2._id#",
+                "related_events": [{"_id": "#EVENT2._id#", "link_type": "primary"}],
                 "state": "draft",
                 "state_reason": "Event back on at original date and time",
                 "coverages": [{
@@ -1158,7 +1159,7 @@ Feature: Events Reschedule
             },
             {
                 "_id": "#PLAN2._id#",
-                "event_item": "#EVENT3._id#",
+                "related_events": [{"_id": "#EVENT3._id#", "link_type": "primary"}],
                 "state": "scheduled",
                 "state_reason": "Event back on at original date and time"
             }
@@ -1701,5 +1702,89 @@ Feature: Events Reschedule
                 "reschedule_from": "event1"
             }},
             {"operation": "post", "event_id": "event1"}
+        ]}
+        """
+
+    @auth
+    @vocabulary
+    Scenario: Rescheduling an Event does not modify Planning item with secondary link
+        Given config update
+        """
+        {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
+        """
+        Given we have sessions "/sessions"
+        And "events"
+        """
+        [{
+            "guid": "event1",
+            "name": "Event1",
+            "dates": {
+                "start": "2029-05-29T12:00:00+0000",
+                "end": "2029-05-29T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "reschedule",
+            "lock_time": "#DATE#"
+        }]
+        """
+        And "planning"
+        """
+        [{
+            "guid": "plan1",
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "primary"}],
+            "coverages": [{
+                "coverage_id": "plan1_cov1",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode" : "ncostat:int"}
+            }]
+        }, {
+            "guid": "plan2",
+            "slugline": "test-plan",
+            "planning_date": "2029-05-29T12:00:00+0000",
+            "related_events": [{"_id": "event1", "link_type": "secondary"}],
+            "coverages": [{
+                "coverage_id": "plan2_cov1",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode" : "ncostat:int"}
+            }]
+        }]
+        """
+        When we perform reschedule on events "event1"
+        """
+        {
+            "reason": "Changing to June 1",
+            "dates": {
+                "start": "2029-06-01T12:00:00+0000",
+                "end": "2029-06-01T14:00:00+0000"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "_id": "plan1",
+                "state": "rescheduled",
+                "state_reason": "Changing to June 1",
+                "coverages": [{
+                    "coverage_id": "plan1_cov1",
+                    "planning": {"workflow_status_reason": "Changing to June 1"}
+                }]
+            },
+            {
+                "_id": "plan2",
+                "state": "draft",
+                "state_reason": "__no_value__",
+                "coverages": [{
+                    "coverage_id": "plan2_cov1",
+                    "planning": {"workflow_status_reason": "__no_value__"}
+                }]
+            }
         ]}
         """

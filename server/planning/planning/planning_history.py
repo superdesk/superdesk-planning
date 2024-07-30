@@ -8,16 +8,21 @@
 
 """Superdesk Files"""
 
-from flask import request
-from superdesk import Resource, get_resource_service
-from planning.history import HistoryService
 import logging
-from eve.utils import config
 from copy import deepcopy
+
+from flask import request
+from eve.utils import config
+
+from superdesk import Resource, get_resource_service
+from superdesk.default_settings import strtobool
+
+from planning.history import HistoryService
 from planning.common import WORKFLOW_STATE, ITEM_ACTIONS, ASSIGNMENT_WORKFLOW_STATE
 from planning.item_lock import LOCK_ACTION
 from planning.assignments.assignments_history import ASSIGNMENT_HISTORY_ACTIONS
-from superdesk.default_settings import strtobool
+from planning.utils import get_related_event_links_for_planning
+
 
 logger = logging.getLogger(__name__)
 update_item_actions = ["assign_agenda", "add_featured", "remove_featured"]
@@ -84,7 +89,7 @@ class PlanningHistoryService(HistoryService):
                 if original.get(LOCK_ACTION) == "assign_agenda":
                     diff["agendas"] = [a for a in diff.get("agendas", []) if a not in original.get("agendas", [])]
 
-            if diff.get("event_item"):
+            if len(get_related_event_links_for_planning(diff, "primary")):
                 operation = "create_event"
 
             self._save_history(item, diff, operation)

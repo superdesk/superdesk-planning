@@ -51,6 +51,7 @@ export const PLANNING = {
             lock_action: 'cancel_all_coverage',
         },
         ADD_TO_PLANNING: {
+            label: 'Add to planning',
             lock_action: 'add_to_planning',
             actionName: 'onAddToPlanning',
         },

@@ -65,7 +65,10 @@ describe('selectors', () => {
             plannings: {
                 a: {
                     name: 'name a',
-                    event_item: 'event1',
+                    related_events: [{
+                        _id: 'event1',
+                        link_type: 'primary',
+                    }],
                     agendas: ['1', '2'],
                 },
                 b: {

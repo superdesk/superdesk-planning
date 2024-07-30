@@ -336,7 +336,9 @@ describe('agenda', () => {
                                     overide_auto_assign_to_workflow: false,
                                 },
                                 coverages: [],
-                                event_item: events[0]._id,
+                                related_events: [{
+                                    _id: events[0]._id,
+                                }],
                                 planning_date: events[0].dates.start,
                                 slugline: events[0].slugline,
                                 name: events[0].name,

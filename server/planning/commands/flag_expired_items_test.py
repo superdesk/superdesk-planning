@@ -8,12 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from .flag_expired_items import FlagExpiredItems
-from planning.tests import TestCase
+from datetime import timedelta
+
+from bson.objectid import ObjectId
+
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
-from datetime import timedelta
-from bson.objectid import ObjectId
+
+from planning.tests import TestCase
+from planning.types import PlanningRelatedEventLink
+from .flag_expired_items import FlagExpiredItems
 
 now = utcnow()
 yesterday = now - timedelta(hours=48)
@@ -197,10 +201,26 @@ class FlagExpiredItemsTest(TestCase):
             self.insert(
                 "planning",
                 [
-                    {"guid": "p1", "event_item": "e1", **active["plan"]},
-                    {"guid": "p2", "event_item": "e2", **active["plan"]},
-                    {"guid": "p3", "event_item": "e3", **expired["plan"]},
-                    {"guid": "p4", "event_item": "e4", **expired["plan"]},
+                    {
+                        "guid": "p1",
+                        "related_events": [PlanningRelatedEventLink(_id="e1", link_type="primary")],
+                        **active["plan"],
+                    },
+                    {
+                        "guid": "p2",
+                        "related_events": [PlanningRelatedEventLink(_id="e2", link_type="primary")],
+                        **active["plan"],
+                    },
+                    {
+                        "guid": "p3",
+                        "related_events": [PlanningRelatedEventLink(_id="e3", link_type="primary")],
+                        **expired["plan"],
+                    },
+                    {
+                        "guid": "p4",
+                        "related_events": [PlanningRelatedEventLink(_id="e4", link_type="primary")],
+                        **expired["plan"],
+                    },
                 ],
             )
             FlagExpiredItems().run()
@@ -230,49 +250,49 @@ class FlagExpiredItemsTest(TestCase):
                 [
                     {
                         "guid": "p1",
-                        "event_item": "e1",
+                        "related_events": [PlanningRelatedEventLink(_id="e1", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p2",
-                        "event_item": "e2",
+                        "related_events": [PlanningRelatedEventLink(_id="e2", link_type="primary")],
                         **expired["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p3",
-                        "event_item": "e3",
+                        "related_events": [PlanningRelatedEventLink(_id="e3", link_type="primary")],
                         **active["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p4",
-                        "event_item": "e4",
+                        "related_events": [PlanningRelatedEventLink(_id="e4", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p5",
-                        "event_item": "e5",
+                        "related_events": [PlanningRelatedEventLink(_id="e5", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p6",
-                        "event_item": "e6",
+                        "related_events": [PlanningRelatedEventLink(_id="e6", link_type="primary")],
                         **expired["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p7",
-                        "event_item": "e7",
+                        "related_events": [PlanningRelatedEventLink(_id="e7", link_type="primary")],
                         **active["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p8",
-                        "event_item": "e8",
+                        "related_events": [PlanningRelatedEventLink(_id="e8", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
@@ -335,85 +355,85 @@ class FlagExpiredItemsTest(TestCase):
                 [
                     {
                         "guid": "p01",
-                        "event_item": "e01",
+                        "related_events": [PlanningRelatedEventLink(_id="e01", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"], active["coverage"]],  # AAA
                     },
                     {
                         "guid": "p02",
-                        "event_item": "e02",
+                        "related_events": [PlanningRelatedEventLink(_id="e02", link_type="primary")],
                         **expired["plan"],
                         "coverages": [active["coverage"], active["coverage"]],  # EAA
                     },
                     {
                         "guid": "p03",
-                        "event_item": "e03",
+                        "related_events": [PlanningRelatedEventLink(_id="e03", link_type="primary")],
                         **active["plan"],
                         "coverages": [expired["coverage"], active["coverage"]],  # AEA
                     },
                     {
                         "guid": "p04",
-                        "event_item": "e04",
+                        "related_events": [PlanningRelatedEventLink(_id="e04", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"], expired["coverage"]],  # AAE
                     },
                     {
                         "guid": "p05",
-                        "event_item": "e05",
+                        "related_events": [PlanningRelatedEventLink(_id="e05", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"], active["coverage"]],  # EEA
                     },
                     {
                         "guid": "p06",
-                        "event_item": "e06",
+                        "related_events": [PlanningRelatedEventLink(_id="e06", link_type="primary")],
                         **expired["plan"],
                         "coverages": [active["coverage"], expired["coverage"]],  # EAE
                     },
                     {
                         "guid": "p07",
-                        "event_item": "e07",
+                        "related_events": [PlanningRelatedEventLink(_id="e07", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"], expired["coverage"]],  # EEE
                     },
                     {
                         "guid": "p08",
-                        "event_item": "e08",
+                        "related_events": [PlanningRelatedEventLink(_id="e08", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"], active["coverage"]],  # AAA
                     },
                     {
                         "guid": "p09",
-                        "event_item": "e09",
+                        "related_events": [PlanningRelatedEventLink(_id="e09", link_type="primary")],
                         **expired["plan"],
                         "coverages": [active["coverage"], active["coverage"]],  # EAA
                     },
                     {
                         "guid": "p10",
-                        "event_item": "e10",
+                        "related_events": [PlanningRelatedEventLink(_id="e10", link_type="primary")],
                         **active["plan"],
                         "coverages": [expired["coverage"], active["coverage"]],  # AEA
                     },
                     {
                         "guid": "p11",
-                        "event_item": "e11",
+                        "related_events": [PlanningRelatedEventLink(_id="e11", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"], expired["coverage"]],  # AAE
                     },
                     {
                         "guid": "p12",
-                        "event_item": "e12",
+                        "related_events": [PlanningRelatedEventLink(_id="e12", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"], active["coverage"]],  # EEA
                     },
                     {
                         "guid": "p13",
-                        "event_item": "e13",
+                        "related_events": [PlanningRelatedEventLink(_id="e13", link_type="primary")],
                         **expired["plan"],
                         "coverages": [active["coverage"], expired["coverage"]],  # EAE
                     },
                     {
                         "guid": "p14",
-                        "event_item": "e14",
+                        "related_events": [PlanningRelatedEventLink(_id="e14", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"], expired["coverage"]],  # EEE
                     },
@@ -482,97 +502,97 @@ class FlagExpiredItemsTest(TestCase):
                 [
                     {
                         "guid": "p01",
-                        "event_item": "e1",
+                        "related_events": [PlanningRelatedEventLink(_id="e1", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p02",
-                        "event_item": "e1",
+                        "related_events": [PlanningRelatedEventLink(_id="e1", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p03",
-                        "event_item": "e2",
+                        "related_events": [PlanningRelatedEventLink(_id="e2", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p04",
-                        "event_item": "e2",
+                        "related_events": [PlanningRelatedEventLink(_id="e2", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p05",
-                        "event_item": "e3",
+                        "related_events": [PlanningRelatedEventLink(_id="e3", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p06",
-                        "event_item": "e3",
+                        "related_events": [PlanningRelatedEventLink(_id="e3", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p07",
-                        "event_item": "e4",
+                        "related_events": [PlanningRelatedEventLink(_id="e4", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p08",
-                        "event_item": "e4",
+                        "related_events": [PlanningRelatedEventLink(_id="e4", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p09",
-                        "event_item": "e5",
+                        "related_events": [PlanningRelatedEventLink(_id="e5", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p10",
-                        "event_item": "e5",
+                        "related_events": [PlanningRelatedEventLink(_id="e5", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p11",
-                        "event_item": "e6",
+                        "related_events": [PlanningRelatedEventLink(_id="e6", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p12",
-                        "event_item": "e6",
+                        "related_events": [PlanningRelatedEventLink(_id="e6", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p13",
-                        "event_item": "e7",
+                        "related_events": [PlanningRelatedEventLink(_id="e7", link_type="primary")],
                         **active["plan"],
                         "coverages": [active["coverage"]],
                     },
                     {
                         "guid": "p14",
-                        "event_item": "e7",
+                        "related_events": [PlanningRelatedEventLink(_id="e7", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p15",
-                        "event_item": "e8",
+                        "related_events": [PlanningRelatedEventLink(_id="e8", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },
                     {
                         "guid": "p16",
-                        "event_item": "e8",
+                        "related_events": [PlanningRelatedEventLink(_id="e8", link_type="primary")],
                         **expired["plan"],
                         "coverages": [expired["coverage"]],
                     },

@@ -288,6 +288,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     street_map_url?: string;
     planning_auto_close_popup_editor?: boolean;
     start_of_week?: number;
+    planning_default_view: PLANNING_VIEW;
 
     planning?: {
         dateformat?: string;
@@ -398,7 +399,7 @@ export interface IItemAction {
     icon?: string;
     inactive?: boolean;
     text?: string;
-    callback?(...args: Array<any>): void;
+    callback: Array<IItemAction> | (() => void);
 }
 
 export interface IItemSubActions {
@@ -694,6 +695,17 @@ export interface IPlanningCoverageItem {
     scheduled_updates: Array<ICoverageScheduledUpdate>;
 }
 
+// An Event that is linked with 'primary' has side effects with the Planning and vice-versa
+// such as locks, cancelling, postponing etc.
+// Event's linked with a 'secondary' link have no side effects, ever, the link is purely informational.
+export type IPlanningRelatedEventLinkType = 'primary' | 'secondary';
+
+export interface IPlanningRelatedEventLink {
+    _id: string;
+    link_type?: IPlanningRelatedEventLinkType;
+    recurrence_id?: string;
+}
+
 export interface IPlanningItem extends IBaseRestApiResponse {
     guid: string;
     original_creator: string;
@@ -701,7 +713,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     firstcreated: string;
     versioncreated: string;
     agendas: Array<string>;
-    event_item: string;
+    related_events?: Array<IPlanningRelatedEventLink>;
     recurrence_id: string;
     planning_recurrence_id: string;
     item_class: string;
@@ -897,6 +909,7 @@ export interface IBaseListItemProps<T> {
     session: ISession;
     privileges: {[key: string]: number};
     activeFilter: PLANNING_VIEW;
+    multiSelectDisabled?: boolean;
     multiSelected: boolean;
     listFields: any;
     active: boolean;
@@ -929,6 +942,10 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     contentTypes: Array<IG2ContentType>;
     contacts: {[key: string]: IContactItem};
     onAddCoverageClick(): void;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
 }
 
 export interface IDateSearchParams {
@@ -979,6 +996,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     source?:string;
     coverage_user_id?:string;
     coverage_assignment_status?:ICoverageAssigned['qcode'];
+    include_associated_planning: boolean;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -1953,7 +1971,7 @@ export interface IEditorProps {
     defaultDesk: IDesk;
     preferredCoverageDesks: {[key: string]: string};
     associatedPlannings?: Array<IPlanningItem>;
-    associatedEvent?: IEventItem;
+    associatedEvents?: Array<IEventItem>;
     currentWorkspace: string;
     editorType: EDITOR_TYPE;
     groups: Array<IEditorFormGroup>;
@@ -2051,7 +2069,6 @@ export interface IWebsocketMessageData {
         user?: IEventOrPlanningItem['lock_user'];
         lock_session?: IEventOrPlanningItem['lock_session'];
         recurrence_id?: IEventItem['recurrence_id'];
-        event_item?: IEventItem['_id'];
         type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
     };
     ITEM_LOCKED: {
@@ -2063,7 +2080,23 @@ export interface IWebsocketMessageData {
         lock_time: IEventOrPlanningItem['lock_time'];
         recurrence_id?: IEventOrPlanningItem['recurrence_id'];
         type: IEventOrPlanningItem['type'] | IAssignmentItem['type'];
-        event_item?: IEventItem['_id'];
+    };
+
+    PLANNING_CREATED: {
+        item: IPlanningItem['_id'];
+        user: IUser['_id'];
+        added_agendas: Array<IAgenda['_id']>;
+        removed_agendas: Array<IAgenda['_id']>;
+        session: ISession['sessionId'];
+        event_ids: Array<IEventItem['_id']>;
+    };
+    PLANNING_UPDATED: {
+        item: IPlanningItem['_id'];
+        user: IUser['_id'];
+        added_agendas: Array<IAgenda['_id']>;
+        removed_agendas: Array<IAgenda['_id']>;
+        session: ISession['sessionId'];
+        event_ids: Array<IEventItem['_id']>;
     };
 }
 

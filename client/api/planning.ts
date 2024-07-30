@@ -9,7 +9,7 @@ import {
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    IPlanningConfig,
+    IPlanningConfig, IPlanningRelatedEventLink,
 } from '../interfaces';
 import {appConfig as config} from 'appConfig';
 
@@ -162,6 +162,14 @@ function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Pr
         updates.update_method = 'all';
     }
 
+    const eventLink: IPlanningRelatedEventLink = {
+        _id: event._id,
+    };
+
+    if (event.recurrence_id != null) {
+        eventLink.recurrence_id = event.recurrence_id;
+    }
+
     return create(
         planningUtils.modifyForServer({
             slugline: event.slugline,
@@ -175,7 +183,7 @@ function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Pr
             ednote: event.ednote,
             language: event.language,
             ...updates,
-            event_item: event._id,
+            related_events: [eventLink],
         }),
     );
 }
