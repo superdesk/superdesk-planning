@@ -938,6 +938,7 @@ function getLocalEndDate(event: IEventItem): moment.Moment {
     return moment(event.dates.end);
 }
 
+function modifyForClient(event: IEventItem): IEventItem; // overload
 function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
     sanitizeItemFields(event);
 
