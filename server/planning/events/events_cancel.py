@@ -10,9 +10,8 @@
 
 from copy import deepcopy
 
-from eve.utils import config
-from flask import request
-
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import request
 from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
@@ -70,12 +69,12 @@ class EventsCancelService(EventsBaseService):
         item = super().update(id, updates, original)
 
         if self.is_original_event(original):
-            user = get_user(required=True).get(config.ID_FIELD, "")
-            session = get_auth().get(config.ID_FIELD, "")
+            user = get_user(required=True).get(ID_FIELD, "")
+            session = get_auth().get(ID_FIELD, "")
 
             push_notification(
                 "events:cancel",
-                item=str(original[config.ID_FIELD]),
+                item=str(original[ID_FIELD]),
                 user=str(user),
                 session=str(session),
                 occur_status=updates.get("occur_status"),
@@ -100,10 +99,10 @@ class EventsCancelService(EventsBaseService):
         planning_history_service = get_resource_service("planning_history")
         reason = updates.get("reason", None)
 
-        for plan in get_related_planning_for_events([original[config.ID_FIELD]], "primary"):
+        for plan in get_related_planning_for_events([original[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED:
                 request.view_args["event_cancellation"] = True
-                cancelled_plan = planning_cancel_service.patch(plan[config.ID_FIELD], {"reason": reason})
+                cancelled_plan = planning_cancel_service.patch(plan[ID_FIELD], {"reason": reason})
 
                 # Write history records
                 planning_history_service.on_cancel(cancelled_plan, plan)
@@ -154,7 +153,7 @@ class EventsCancelService(EventsBaseService):
             # Don't raise exception for related events in series - simply ignore
             return
 
-        id = original[config.ID_FIELD]
+        id = original[ID_FIELD]
         updates["skip_on_update"] = True
         updated_event = self.patch(id, updates)
         get_resource_service("events_history").on_cancel(updated_event, original)

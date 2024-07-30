@@ -9,8 +9,10 @@
 """Superdesk Files"""
 
 import logging
-from flask import current_app as app
-from eve.utils import config, ParsedRequest
+from eve.utils import ParsedRequest
+
+from superdesk.core import get_current_app
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, get_resource_service
 from superdesk.services import BaseService
 from superdesk.metadata.item import metadata_schema
@@ -95,7 +97,7 @@ class EventsTemplateResource(Resource):
         },
         "based_on_event": Resource.rel(
             "events",
-            type=metadata_schema[config.ID_FIELD]["type"],
+            type=metadata_schema[ID_FIELD]["type"],
             embeddable=False,
             required=True,
         ),
@@ -117,8 +119,8 @@ class EventsTemplateService(BaseService):
         for doc in docs:
             push_notification(
                 "events-template:created",
-                item=str(doc.get(config.ID_FIELD)),
-                user=str(user.get(config.ID_FIELD)),
+                item=str(doc.get(ID_FIELD)),
+                user=str(user.get(ID_FIELD)),
             )
 
     def on_update(self, updates, original):
@@ -128,8 +130,8 @@ class EventsTemplateService(BaseService):
         user = get_user()
         push_notification(
             "events-template:updated",
-            item=str(original[config.ID_FIELD]),
-            user=str(user.get(config.ID_FIELD)),
+            item=str(original[ID_FIELD]),
+            user=str(user.get(ID_FIELD)),
         )
 
     def on_replace(self, doc, original):
@@ -139,16 +141,16 @@ class EventsTemplateService(BaseService):
         user = get_user()
         push_notification(
             "events-template:replaced",
-            item=str(original[config.ID_FIELD]),
-            user=str(user.get(config.ID_FIELD)),
+            item=str(original[ID_FIELD]),
+            user=str(user.get(ID_FIELD)),
         )
 
     def on_deleted(self, doc):
         user = get_user()
         push_notification(
             "events-template:deleted",
-            item=str(doc[config.ID_FIELD]),
-            user=str(user.get(config.ID_FIELD)),
+            item=str(doc[ID_FIELD]),
+            user=str(user.get(ID_FIELD)),
         )
 
     @staticmethod
@@ -213,6 +215,7 @@ class RecentEventsTemplateService(BaseService):
         if limit:
             pipeline.append({"$limit": limit})
 
+        app = get_current_app()
         templates_ids = [_["_id"] for _ in app.data.mongo.pymongo(resource="events").db["events"].aggregate(pipeline)]
         templates = list(
             app.data.mongo.pymongo(resource="events_template")

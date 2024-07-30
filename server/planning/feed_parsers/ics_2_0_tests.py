@@ -1,7 +1,7 @@
+from superdesk.core import get_app_config
 from planning.feed_parsers.ics_2_0 import IcsTwoFeedParser
 import os
 from icalendar import Calendar
-from eve.utils import config
 from planning.tests import TestCase
 from datetime import datetime, timezone
 import mock
@@ -9,7 +9,7 @@ from pytz import timezone as pytimezone
 
 
 def mock_utcnow():
-    localtz = pytimezone(config.DEFAULT_TIMEZONE)
+    localtz = pytimezone(get_app_config("DEFAULT_TIMEZONE"))
     return localtz.localize(datetime(2018, 2, 20, 10, 10))
 
 

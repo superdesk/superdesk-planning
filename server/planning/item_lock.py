@@ -10,9 +10,8 @@
 
 import logging
 
-from eve.utils import config
-
 import superdesk
+from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 from superdesk.users.services import current_user_has_privilege
@@ -50,7 +49,7 @@ class LockService(BaseComponent):
             return item
 
         item_service = get_resource_service(resource)
-        item_id = item.get(config.ID_FIELD)
+        item_id = item.get(ID_FIELD)
 
         # lock_id will be:
         # 1 - Recurrence Id for items part of recurring series (event or planning)
@@ -85,11 +84,11 @@ class LockService(BaseComponent):
                 if action:
                     updates[LOCK_ACTION] = action
 
-                item_service.update(item.get(config.ID_FIELD), updates, item)
+                item_service.update(item.get(ID_FIELD), updates, item)
 
                 push_notification(
                     resource + ":lock",
-                    item=str(item.get(config.ID_FIELD)),
+                    item=str(item.get(ID_FIELD)),
                     user=str(user_id),
                     lock_time=updates[LOCK_TIME],
                     lock_session=str(session_id),
@@ -125,7 +124,7 @@ class LockService(BaseComponent):
             return item
 
         item_service = get_resource_service(resource)
-        item_id = item.get(config.ID_FIELD)
+        item_id = item.get(ID_FIELD)
 
         can_user_unlock, error_message = self.can_unlock(item, user_id, resource)
 
@@ -138,7 +137,7 @@ class LockService(BaseComponent):
 
         # Unlock the item
         updates = {LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None}
-        item_service.update(item.get(config.ID_FIELD), updates, item)
+        item_service.update(item.get(ID_FIELD), updates, item)
         item = item_service.find_one(req=None, _id=item_id)
 
         # following line executes handlers attached to function:
@@ -147,7 +146,7 @@ class LockService(BaseComponent):
 
         push_notification(
             resource + ":unlock",
-            item=str(item.get(config.ID_FIELD)),
+            item=str(item.get(ID_FIELD)),
             user=str(user_id),
             lock_session=str(session_id),
             etag=updates.get("_etag") or item.get("_etag"),
@@ -224,7 +223,7 @@ class LockService(BaseComponent):
 
         all_items = get_resource_service(resource_name).get_all_items_in_relationship(item)
         for related_item in all_items:
-            if related_item[config.ID_FIELD] != item[config.ID_FIELD]:
+            if related_item[ID_FIELD] != item[ID_FIELD]:
                 if related_item.get(LOCK_USER) and related_item.get(LOCK_SESSION):
                     # Frame appropriate error message string
 

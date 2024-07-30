@@ -6,9 +6,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 from copy import deepcopy
+
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
-from eve.utils import config
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_coverage_type_name,
@@ -58,17 +59,17 @@ class AssignmentsUnlinkService(Service):
                 # For all items, update news item for unlinking
                 assignment_id = item.get("assignment_id")
                 update_assignment_on_link_unlink(None, item, published_updated_items)
-                ids.append(item[config.ID_FIELD])
+                ids.append(item[ID_FIELD])
                 updated_items.append(item)
                 push_notification(
                     "content:unlink",
-                    item=str(item[config.ID_FIELD]),
+                    item=str(item[ID_FIELD]),
                     assignment=str(assignment_id),
                 )
 
             # Delete delivery records associated with all the items unlinked
             item_ids = [
-                i.get(config.ID_FIELD) if not i.get("_type") == "archived" else i.get("item_id") for i in related_items
+                i.get(ID_FIELD) if not i.get("_type") == "archived" else i.get("item_id") for i in related_items
             ]
             get_resource_service("delivery").delete_action(lookup={"item_id": {"$in": item_ids}})
 
@@ -80,12 +81,10 @@ class AssignmentsUnlinkService(Service):
                 # Update all assignments in the coverage including scheduled_updates
                 updates = {"assigned_to": deepcopy(a.get("assigned_to"))}
                 archive_items = assignments_service.get_archive_items_for_assignment(a)
-                other_linked_items = [
-                    a for a in archive_items if str(a.get(config.ID_FIELD)) != str(actioned_item[config.ID_FIELD])
-                ]
+                other_linked_items = [a for a in archive_items if str(a.get(ID_FIELD)) != str(actioned_item[ID_FIELD])]
                 if len(other_linked_items) <= 0:
                     updates["assigned_to"]["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                    assignments_service.patch(a.get(config.ID_FIELD), updates)
+                    assignments_service.patch(a.get(ID_FIELD), updates)
                     assignment_history_service = get_resource_service("assignments_history")
                     if spike:
                         get_resource_service("assignments_history").on_item_content_unlink(
@@ -104,7 +103,7 @@ class AssignmentsUnlinkService(Service):
                             coverage_type=get_coverage_type_name(actioned_item.get("type", "")),
                             slugline=actioned_item.get("slugline"),
                             omit_user=True,
-                            assignment_id=a[config.ID_FIELD],
+                            assignment_id=a[ID_FIELD],
                             is_link=True,
                             no_email=True,
                         )
@@ -123,10 +122,10 @@ class AssignmentsUnlinkService(Service):
         assignment = assignments_service.find_one(req=None, _id=doc.get("assignment_id"))
 
         user = get_user(required=True)
-        user_id = user.get(config.ID_FIELD)
+        user_id = user.get(ID_FIELD)
 
         session = get_auth()
-        session_id = session.get(config.ID_FIELD)
+        session_id = session.get(ID_FIELD)
 
         if not assignment:
             raise SuperdeskApiError.badRequestError("Assignment not found.")
@@ -168,12 +167,10 @@ class AssignmentsUnlinkService(Service):
                 "Content not linked to an assignment. Cannot unlink assignment and content."
             )
 
-        if str(item.get("assignment_id")) != str(assignment.get(config.ID_FIELD)):
+        if str(item.get("assignment_id")) != str(assignment.get(ID_FIELD)):
             raise SuperdeskApiError.badRequestError("Assignment and Content are not linked.")
 
-        deliveries = get_resource_service("delivery").get(
-            req=None, lookup={"assignment_id": assignment.get(config.ID_FIELD)}
-        )
+        deliveries = get_resource_service("delivery").get(req=None, lookup={"assignment_id": assignment.get(ID_FIELD)})
         # Match the passed item_id in doc or if the item is archived the archived item_id
         delivery = [d for d in deliveries if d.get("item_id") == item.get("item_id", doc.get("item_id"))]
         if len(delivery) <= 0:
@@ -189,7 +186,7 @@ class AssignmentsUnlinkService(Service):
                 [
                     {
                         "assignment_id": assignment_id,
-                        "item_id": original.get(config.ID_FIELD),
+                        "item_id": original.get(ID_FIELD),
                         "spike": True,
                     }
                 ]

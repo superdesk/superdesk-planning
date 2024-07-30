@@ -10,10 +10,11 @@
 
 from typing import List
 from bson import ObjectId
-from flask import json
-from eve.utils import config, ParsedRequest
+from eve.utils import ParsedRequest
 from eve_elastic.elastic import ElasticCursor
 
+from superdesk.core import json
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 
 from prod_api.items import ItemsResource
@@ -24,7 +25,7 @@ from .resource import AssignmentsResource
 def construct_assignment_link(assignment):
     return {
         "title": AssignmentsResource.resource_title,
-        "href": f"{AssignmentsResource.url}/{assignment[config.ID_FIELD]}",
+        "href": f"{AssignmentsResource.url}/{assignment[ID_FIELD]}",
         "state": (assignment.get("assigned_to") or {}).get("state"),
         "scheduled": (assignment.get("planning") or {}).get("scheduled"),
         "content_type": (assignment.get("planning") or {}).get("g2_content_type"),
@@ -34,7 +35,7 @@ def construct_assignment_link(assignment):
 def construct_content_link(content):
     return {
         "title": ItemsResource.resource_title,
-        "href": f"{ItemsResource.url}/{content[config.ID_FIELD]}",
+        "href": f"{ItemsResource.url}/{content[ID_FIELD]}",
         "state": content["state"],
         "pubstatus": content["pubstatus"],
     }
@@ -58,8 +59,8 @@ def construct_assignment_links(assignment_ids: List[ObjectId]):
     links = []
     for assignment in assignments:
         link = construct_assignment_link(assignment)
-        if content_items.get(str(assignment[config.ID_FIELD])):
-            content_item = content_items[str(assignment[config.ID_FIELD])]
+        if content_items.get(str(assignment[ID_FIELD])):
+            content_item = content_items[str(assignment[ID_FIELD])]
 
             if content_item:
                 content_link = construct_content_link(content_item)

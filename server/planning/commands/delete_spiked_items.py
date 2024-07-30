@@ -8,14 +8,15 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import current_app as app
+from datetime import timedelta
+
+from superdesk.core import get_app_config
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Command, command, get_resource_service
 from superdesk.logging import logger
 from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock, remove_locks
-from datetime import timedelta
-from eve.utils import config
 from planning.common import WORKFLOW_STATE
 
 
@@ -37,7 +38,7 @@ class DeleteSpikedItems(Command):
         self.log_msg = "Delete Spiked Items Time: {}.".format(now)
         logger.info("{} Starting to delete spiked items at.".format(self.log_msg))
 
-        expire_interval = app.config.get("PLANNING_DELETE_SPIKED_MINUTES", 0)
+        expire_interval = get_app_config("PLANNING_DELETE_SPIKED_MINUTES", 0)
         if expire_interval == 0:
             logger.info("{} PLANNING_DELETE_SPIKED_MINUTES=0, not spiking any items")
             return
@@ -75,7 +76,7 @@ class DeleteSpikedItems(Command):
         # As subsequent queries will change the list of returned items
         events = dict()
         for items in events_service.get_expired_items(expiry_datetime, spiked_events_only=True):
-            events.update({item[config.ID_FIELD]: item for item in items})
+            events.update({item[ID_FIELD]: item for item in items})
 
         for event_id, event in events.items():
             if event.get("recurrence_id") and event["recurrence_id"] not in series_to_delete:
@@ -120,7 +121,7 @@ class DeleteSpikedItems(Command):
         # As subsequent queries will change the list of returnd items
         plans = dict()
         for items in planning_service.get_expired_items(expiry_datetime, spiked_planning_only=True):
-            plans.update({item[config.ID_FIELD]: item for item in items})
+            plans.update({item[ID_FIELD]: item for item in items})
 
         plans_deleted = set()
         assignments_deleted = set()

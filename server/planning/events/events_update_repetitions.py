@@ -11,9 +11,9 @@
 from copy import deepcopy
 
 import pytz
-from eve.utils import config
-from flask import current_app as app
 
+from superdesk.core import get_current_app
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
@@ -102,7 +102,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
             # if the event does not occur in the new dates, then we need to either
             # delete or cancel this event
             if event["dates"]["start"].replace(tzinfo=None) not in new_dates:
-                deleted_events[event[config.ID_FIELD]] = event
+                deleted_events[event[ID_FIELD]] = event
 
             # Otherwise this Event does occur in the new dates
             # So just update the recurring_rule to match the new series recurring_rule
@@ -119,7 +119,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
             events_service.create(new_events)
             for event in new_events:
                 get_resource_service("events_history").on_update_repetitions(
-                    event, event[config.ID_FIELD], "update_repetitions_create"
+                    event, event[ID_FIELD], "update_repetitions_create"
                 )
 
         for event in deleted_events.values():
@@ -128,7 +128,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         # if the original event was "posted" then post the new generated events
         if original.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
             post = {
-                "event": original[config.ID_FIELD],
+                "event": original[ID_FIELD],
                 "etag": original["_etag"],
                 "update_method": "all",
                 "pubstatus": original.get("pubstatus"),
@@ -151,10 +151,10 @@ class EventsUpdateRepetitionsService(EventsBaseService):
     def _update_event(self, updated_rule, original):
         updates = self._update_rules(original, updated_rule)
         self.set_planning_schedule(updates)
-        self.backend.update(self.datasource, original[config.ID_FIELD], updates, original)
+        self.backend.update(self.datasource, original[ID_FIELD], updates, original)
         get_resource_service("events_history").on_update_repetitions(
             updates,
-            original[config.ID_FIELD],
+            original[ID_FIELD],
             "update_repetitions" if original.get(LOCK_ACTION) == "update_repetitions" else "update_repetitions_update",
         )
 
@@ -174,17 +174,19 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         # Set the new start and end dates, as well as the _id and guid fields
         new_event["dates"]["start"] = date
         new_event["dates"]["end"] = date + time_delta
-        new_event[config.ID_FIELD] = new_event["guid"] = generate_guid(type=GUID_NEWSML)
+        new_event[ID_FIELD] = new_event["guid"] = generate_guid(type=GUID_NEWSML)
         set_original_creator(new_event)
         self.set_planning_schedule(new_event)
 
         return new_event
 
     def _delete_event(self, event, events_service, updated_rule):
-        if event.get("pubstatus", None) is not None or event_has_planning_items(event[config.ID_FIELD], "primary"):
+        if event.get("pubstatus", None) is not None or event_has_planning_items(event[ID_FIELD], "primary"):
             self._cancel_event(event, updated_rule)
         else:
-            events_service.delete_action(lookup={"_id": event[config.ID_FIELD]})
+            events_service.delete_action(lookup={"_id": event[ID_FIELD]})
+
+            app = get_current_app().as_any()
             app.on_deleted_item_events(event)
 
     def _cancel_event(self, event, updated_rule):
@@ -197,13 +199,14 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         updates = self._update_rules(event, updated_rule)
 
         cancel_service.update_single_event(updates, event)
-        self.backend.update(self.datasource, event[config.ID_FIELD], updates, event)
-        app.on_updated_events_cancel(updates, {"_id": event[config.ID_FIELD]})
+        self.backend.update(self.datasource, event[ID_FIELD], updates, event)
+        app = get_current_app().as_any()
+        app.on_updated_events_cancel(updates, {"_id": event[ID_FIELD]})
 
         # If the event was posted we need to post the cancellation
         if event.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
             post = {
-                "event": event[config.ID_FIELD],
+                "event": event[ID_FIELD],
                 "etag": event["_etag"],
                 "update_method": "single",
                 "pubstatus": event.get("pubstatus"),

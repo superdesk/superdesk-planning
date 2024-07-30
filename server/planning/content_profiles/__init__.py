@@ -28,7 +28,7 @@ def init_app(app: Eve):
     planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name, backend=superdesk.get_backend())
     PlanningTypesResource(PlanningTypesResource.endpoint_name, app=app, service=planning_type_service)
 
-    event_related_item_search_provider_name = get_config_event_related_item_search_provider_name(app)
+    event_related_item_search_provider_name = get_config_event_related_item_search_provider_name()
     if event_related_item_search_provider_name:
         app.client_config.setdefault("planning", {})[
             "event_related_item_search_provider_name"

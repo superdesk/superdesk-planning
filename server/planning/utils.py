@@ -14,12 +14,13 @@ from datetime import datetime
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from flask import current_app as app, json
 from flask_babel import lazy_gettext
-from eve.utils import str_to_date, ParsedRequest, config
+from eve.utils import str_to_date, ParsedRequest
 import arrow
 import pytz
 
+from superdesk.core import json, get_app_config
+from superdesk.resource_fields import ID_FIELD
 from planning import types
 from superdesk import get_resource_service
 from superdesk.json_utils import cast_item
@@ -90,18 +91,18 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
 
 def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
+        return parse_date(datetime).astimezone(tz).strftime(get_app_config("TIME_FORMAT_SHORT", "%H:%M"))
 
 
 def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
+        return parse_date(datetime).astimezone(tz).strftime(get_app_config("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
-    tz_name: str = event.get("dates", {}).get("tz", app.config["DEFAULT_TIMEZONE"])
+    tz_name: str = event.get("dates", {}).get("tz", get_app_config("DEFAULT_TIMEZONE"))
     tz = pytz.timezone(tz_name)
 
     duration_seconds = int((end - start).total_seconds())
@@ -193,9 +194,9 @@ def get_related_event_items_for_planning(
         logger.warning(
             "Not all Events were found for the Planning item",
             extra=dict(
-                plan_id=plan[config.ID_FIELD],
+                plan_id=plan[ID_FIELD],
                 event_ids_requested=event_ids,
-                events_ids_found=[event[config.ID_FIELD] for event in events],
+                events_ids_found=[event[ID_FIELD] for event in events],
             ),
         )
 
@@ -217,4 +218,4 @@ def get_first_event_item_for_planning_id(
 
 
 def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
-    return app.config.get("PLANNING_EVENT_LINK_METHOD", "one_primary")
+    return get_app_config("PLANNING_EVENT_LINK_METHOD", "one_primary")

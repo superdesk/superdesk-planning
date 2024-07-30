@@ -10,9 +10,8 @@
 
 from copy import deepcopy
 
-from flask import request
-from eve.utils import config
-
+from superdesk.flask import request
+from superdesk.resource_fields import ID_FIELD
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from superdesk.services import BaseService
@@ -45,7 +44,7 @@ class PlanningLockService(BaseService):
         return self.lock_item(item_id, lock_action, docs[0])
 
     def on_created(self, docs):
-        build_custom_hateoas(CUSTOM_HATEOAS_PLANNING, docs[0], _id=str(docs[0][config.ID_FIELD]))
+        build_custom_hateoas(CUSTOM_HATEOAS_PLANNING, docs[0], _id=str(docs[0][ID_FIELD]))
 
     def lock_item(self, item_id, action, doc):
         user_id = get_user(required=True)["_id"]
@@ -76,7 +75,7 @@ class PlanningUnlockService(BaseService):
         return self.unlock_item(item_id, docs[0])
 
     def on_created(self, docs):
-        build_custom_hateoas(CUSTOM_HATEOAS_PLANNING, docs[0], _id=str(docs[0][config.ID_FIELD]))
+        build_custom_hateoas(CUSTOM_HATEOAS_PLANNING, docs[0], _id=str(docs[0][ID_FIELD]))
 
     def unlock_item(self, item_id, doc):
         user_id = get_user(required=True)["_id"]

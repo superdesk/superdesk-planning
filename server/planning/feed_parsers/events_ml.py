@@ -13,10 +13,10 @@ import pytz
 import re
 import logging
 
-from flask import current_app as app
 from xml.etree.ElementTree import Element
 
 from superdesk import get_resource_service
+from superdesk.core import get_app_config
 from eve_elastic.elastic import parse_date
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 from superdesk.metadata.item import (
@@ -66,7 +66,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
     def set_missing_voc_policy(self):
         # config is not accessible during __init__, so we check it here
         if self.__class__.missing_voc is None:
-            self.__class__.missing_voc = app.config.get("QCODE_MISSING_VOC", "continue")
+            self.__class__.missing_voc = get_app_config("QCODE_MISSING_VOC", "continue")
             if self.__class__.missing_voc not in ("reject", "create", "continue"):
                 logger.warning(
                     'Bad QCODE_MISSING_VOC value ({value}) using default ("continue")'.format(value=self.missing_voc)
@@ -196,20 +196,21 @@ class EventsMLParser(NewsMLTwoFeedParser):
         self.parse_registration_details(event_details, item)
 
     def parse_event_schedule(self, dates, item):
+        default_timezone = get_app_config("DEFAULT_TIMEZONE")
         start_date_source = dates.find(self.qname("start")).text
-        start_date_str = self.get_datetime_str(start_date_source, "00:00:00", app.config["DEFAULT_TIMEZONE"])
+        start_date_str = self.get_datetime_str(start_date_source, "00:00:00", default_timezone)
         start_date = parse_date(start_date_str)
         is_start_local_midnight = start_date.time() == time(0, 0, 0)
         no_end_time = None
         all_day = not utils.has_time(start_date_source)
-        tz = app.config["DEFAULT_TIMEZONE"]
+        tz = default_timezone
         if all_day:  # ignore timezone
             tz = None
             start_date = utils.parse_date_utc(start_date_source)
 
         if dates.find(self.qname("end")) is not None and dates.find(self.qname("end")).text:
             dates_end_text = dates.find(self.qname("end")).text
-            end_date = parse_date(self.get_datetime_str(dates_end_text, "23:59:59", app.config["DEFAULT_TIMEZONE"]))
+            end_date = parse_date(self.get_datetime_str(dates_end_text, "23:59:59", default_timezone))
             if all_day:
                 end_date = utils.parse_date_utc(dates_end_text).replace(hour=23, minute=59, second=59)
             else:

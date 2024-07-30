@@ -7,7 +7,7 @@
 # Author  : MarkLark86
 # Creation: 2021-06-30 16:00
 
-from eve.utils import config
+from superdesk.resource_fields import ID_FIELD
 from superdesk.commands.data_updates import BaseDataUpdate
 
 
@@ -27,7 +27,7 @@ class DataUpdate(BaseDataUpdate):
                 # to manage either Events or Planning items
                 privileges["planning_global_filters"] = 1
 
-                mongodb_collection.update({"_id": role[config.ID_FIELD]}, {"$set": {"privileges": privileges}})
+                mongodb_collection.update({"_id": role[ID_FIELD]}, {"$set": {"privileges": privileges}})
 
     def backwards(self, mongodb_collection, mongodb_database):
         raise NotImplementedError()

@@ -11,8 +11,7 @@
 import logging
 from copy import deepcopy
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk.resource import Resource, not_analyzed, string_with_analyzer
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 
@@ -159,7 +158,7 @@ event_type["mapping"] = not_analyzed
 
 planning_schema = {
     # Identifiers
-    config.ID_FIELD: metadata_schema[config.ID_FIELD],
+    ID_FIELD: metadata_schema[ID_FIELD],
     "guid": metadata_schema["guid"],
     # Audit Information
     "original_creator": metadata_schema["original_creator"],

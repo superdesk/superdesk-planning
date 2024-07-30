@@ -13,9 +13,9 @@ from datetime import datetime
 from itertools import islice
 
 import pytz
-from eve.utils import config
-from flask import current_app as app
 
+from superdesk.core import get_current_app
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -59,7 +59,7 @@ class EventsRescheduleService(EventsBaseService):
 
     def update_single_event(self, updates, original):
         events_service = get_resource_service("events")
-        has_plannings = event_has_planning_items(original[config.ID_FIELD], "primary")
+        has_plannings = event_has_planning_items(original[ID_FIELD], "primary")
 
         remove_lock_information(updates)
         reason = updates.pop("reason", None)
@@ -101,13 +101,13 @@ class EventsRescheduleService(EventsBaseService):
         planning_reschedule_service = get_resource_service("planning_reschedule")
 
         plan_updates = {"reason": reason, "state": state}
-        for plan in plans or get_related_planning_for_events([original[config.ID_FIELD]], "primary"):
+        for plan in plans or get_related_planning_for_events([original[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED:
-                updated_plan = planning_reschedule_service.patch(plan[config.ID_FIELD], plan_updates)
+                updated_plan = planning_reschedule_service.patch(plan[ID_FIELD], plan_updates)
                 get_resource_service("planning_history").on_reschedule(updated_plan, plan)
                 if len(plan.get("coverages", [])) > 0:
                     planning_cancel_service.update(
-                        plan[config.ID_FIELD],
+                        plan[ID_FIELD],
                         {
                             "reason": reason,
                             "cancel_all_coverage": True,
@@ -127,7 +127,7 @@ class EventsRescheduleService(EventsBaseService):
         new_event[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_event["guid"] = generate_guid(type=GUID_NEWSML)
         new_event["_id"] = new_event["guid"]
-        new_event["reschedule_from"] = original[config.ID_FIELD]
+        new_event["reschedule_from"] = original[ID_FIELD]
         new_event["_reschedule_from_schedule"] = original["dates"]["start"]
         new_event.pop("state_reason", None)
         set_original_creator(new_event)
@@ -214,8 +214,9 @@ class EventsRescheduleService(EventsBaseService):
         # Iterate over the current events in the series and delete/spike
         # or update the event accordingly
         deleted_events = {}
+        app = get_current_app().as_any()
         for event in rescheduled_events:
-            if event[config.ID_FIELD] == original[config.ID_FIELD]:
+            if event[ID_FIELD] == original[ID_FIELD]:
                 event_date = updates["dates"]["start"].replace(tzinfo=None).date()
             else:
                 event_date = event["dates"]["start"].replace(tzinfo=None).date()
@@ -225,14 +226,14 @@ class EventsRescheduleService(EventsBaseService):
                 # Add it to the list of events to delete or spike
                 # This is done later so that we can perform a single
                 # query against mongo, rather than one per deleted event
-                deleted_events[event[config.ID_FIELD]] = event
+                deleted_events[event[ID_FIELD]] = event
 
             # If the date has already been processed, then we should mark this event for deletion
             # This occurs when the selected Event is being updated to an Event that already exists
             # in another Event in the series.
             # This stops multiple Events to occur on the same day
             elif event_date in new_dates and event_date in dates_processed:
-                deleted_events[event[config.ID_FIELD]] = event
+                deleted_events[event[ID_FIELD]] = event
 
             # Otherwise this Event does occur in the new dates
             else:
@@ -242,7 +243,7 @@ class EventsRescheduleService(EventsBaseService):
 
                 # If this is the selected Event, then simply update the fields and
                 # Reschedule associated Planning items
-                if event[config.ID_FIELD] == original[config.ID_FIELD]:
+                if event[ID_FIELD] == original[ID_FIELD]:
                     self._mark_event_rescheduled(updates, reason, True)
                     updates["state"] = new_state
                     self._reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
@@ -262,9 +263,9 @@ class EventsRescheduleService(EventsBaseService):
                         self.set_planning_schedule(new_updates)
 
                     # And finally update the Event, and Reschedule associated Planning items
-                    self.patch(event[config.ID_FIELD], new_updates)
+                    self.patch(event[ID_FIELD], new_updates)
                     self._reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
-                    app.on_updated_events_reschedule(new_updates, {"_id": event[config.ID_FIELD]})
+                    app.on_updated_events_reschedule(new_updates, {"_id": event[ID_FIELD]})
 
                 # Mark this date as being already processed
                 dates_processed.append(event_date)
@@ -291,7 +292,7 @@ class EventsRescheduleService(EventsBaseService):
             # Set the new start and end dates, as well as the _id and guid fields
             new_event["dates"]["start"] = datetime.combine(date, updates["dates"]["start"].time())
             new_event["dates"]["end"] = new_event["dates"]["start"] + time_delta
-            new_event[config.ID_FIELD] = new_event["guid"] = generate_guid(type=GUID_NEWSML)
+            new_event[ID_FIELD] = new_event["guid"] = generate_guid(type=GUID_NEWSML)
             new_event.pop("reason", None)
             self.set_planning_schedule(new_event)
 
@@ -304,8 +305,8 @@ class EventsRescheduleService(EventsBaseService):
             app.on_inserted_events(new_events)
 
         for event in deleted_events.values():
-            event_plans = get_related_planning_for_events([event[config.ID_FIELD]], "primary")
-            is_original = event[config.ID_FIELD] == original[config.ID_FIELD]
+            event_plans = get_related_planning_for_events([event[ID_FIELD]], "primary")
+            is_original = event[ID_FIELD] == original[ID_FIELD]
             if len(event_plans) > 0 or event.get("pubstatus", None) is not None:
                 if is_original:
                     self._mark_event_rescheduled(updates, reason)
@@ -314,14 +315,14 @@ class EventsRescheduleService(EventsBaseService):
                     # all Planning items
                     new_updates = {"skip_on_update": True, "reason": reason}
                     self._mark_event_rescheduled(new_updates, reason)
-                    self.patch(event[config.ID_FIELD], new_updates)
+                    self.patch(event[ID_FIELD], new_updates)
 
                 if len(event_plans) > 0:
                     self._reschedule_event_plannings(original, reason, event_plans)
             else:
                 # This event has no Planning items, therefor we can safely
                 # delete this event
-                events_service.delete_action(lookup={"_id": event[config.ID_FIELD]})
+                events_service.delete_action(lookup={"_id": event[ID_FIELD]})
                 app.on_deleted_item_events(event)
 
                 if is_original:

@@ -11,9 +11,8 @@
 from copy import deepcopy
 import logging
 
-from eve.utils import config
-
-from superdesk import Resource, get_resource_service
+from superdesk.resource_fields import ID_FIELD
+from superdesk import Resource
 from planning.utils import get_related_planning_for_events
 from planning.history import HistoryService
 from planning.item_lock import LOCK_ACTION
@@ -38,7 +37,7 @@ class EventsHistoryService(HistoryService):
         created_from_planning = []
         regular_events = []
         for item in items:
-            planning_items = get_related_planning_for_events([item[config.ID_FIELD]], "primary")
+            planning_items = get_related_planning_for_events([item[ID_FIELD]], "primary")
             if len(planning_items) > 0:
                 item["created_from_planning"] = planning_items[0].get("_id")
                 created_from_planning.append(item)
@@ -49,7 +48,7 @@ class EventsHistoryService(HistoryService):
         super().on_item_created(regular_events)
 
     def on_item_deleted(self, doc):
-        lookup = {"event_id": doc[config.ID_FIELD]}
+        lookup = {"event_id": doc[ID_FIELD]}
         self.delete(lookup=lookup)
 
     def on_item_updated(self, updates, original, operation=None):
@@ -68,7 +67,7 @@ class EventsHistoryService(HistoryService):
 
     def _save_history(self, event, update, operation):
         history = {
-            "event_id": event[config.ID_FIELD],
+            "event_id": event[ID_FIELD],
             "user_id": self.get_user_id(),
             "operation": operation,
             "update": update,

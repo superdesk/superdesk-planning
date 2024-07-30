@@ -1,8 +1,7 @@
 from typing import Optional
 import logging
-from eve.utils import config
-from flask import current_app as app
 
+from superdesk.core import get_app_config
 from superdesk import get_resource_service
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 import pytz
@@ -25,7 +24,6 @@ from planning.common import (
     POST_STATE,
 )
 
-from planning.content_profiles.utils import get_planning_schema
 from .utils import upgrade_rich_text_fields
 
 utc = pytz.UTC
@@ -69,7 +67,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
     def set_missing_voc_policy(self):
         # config is not accessible during __init__, so we check it here
         if self.__class__.missing_voc is None:
-            self.__class__.missing_voc = app.config.get("QCODE_MISSING_VOC", "continue")
+            self.__class__.missing_voc = get_app_config("QCODE_MISSING_VOC", "continue")
             if self.__class__.missing_voc not in ("reject", "create", "continue"):
                 logger.warning(
                     'Bad QCODE_MISSING_VOC value ({value}) using default ("continue")'.format(value=self.missing_voc)
@@ -173,7 +171,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
             if assigne_elt is not None:
                 item["planning_date"] = self.datetime(assigne_elt.get("value"))
         else:
-            item["planning_date"] = utc_to_local(config.DEFAULT_TIMEZONE, utcnow())
+            item["planning_date"] = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), utcnow())
 
     def parse_news_coverage_status(self, tree, item):
         """Parse newsCoverageStatus tag

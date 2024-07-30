@@ -18,9 +18,8 @@ from datetime import timedelta
 
 import pytz
 import re
-from flask import current_app as app
 from eve.methods.common import resolve_document_etag
-from eve.utils import config, date_to_str
+from eve.utils import date_to_str
 from dateutil.rrule import (
     rrule,
     YEARLY,
@@ -36,6 +35,8 @@ from dateutil.rrule import (
     SU,
 )
 
+from superdesk.core import get_app_config, get_current_app
+from superdesk.resource_fields import ID_FIELD
 import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
@@ -174,7 +175,7 @@ class EventsService(superdesk.Service):
         self._enhance_event_item(doc)
 
     def _enhance_event_item(self, doc):
-        plannings = get_related_planning_for_events([doc[config.ID_FIELD]], "primary")
+        plannings = get_related_planning_for_events([doc[ID_FIELD]], "primary")
 
         if len(plannings):
             doc["planning_ids"] = [planning.get("_id") for planning in plannings]
@@ -197,7 +198,7 @@ class EventsService(superdesk.Service):
             )
         else:
             # Get associated planning items
-            return get_related_planning_for_events([item[config.ID_FIELD]], event_link_type)
+            return get_related_planning_for_events([item[ID_FIELD]], event_link_type)
 
     def on_locked_event(self, doc, user_id):
         self._enhance_event_item(doc)
@@ -210,8 +211,8 @@ class EventsService(superdesk.Service):
         :param provider: ingest_provider object, used to build the key name of sequence
         """
         sequence_number = get_resource_service("sequences").get_next_sequence_number(
-            key_name="ingest_providers_{_id}".format(_id=provider[config.ID_FIELD]),
-            max_seq_number=app.config["MAX_VALUE_OF_INGEST_SEQUENCE"],
+            key_name="ingest_providers_{_id}".format(_id=provider[ID_FIELD]),
+            max_seq_number=get_app_config("MAX_VALUE_OF_INGEST_SEQUENCE"),
         )
         item["ingest_provider_sequence"] = str(sequence_number)
 
@@ -222,14 +223,14 @@ class EventsService(superdesk.Service):
             # generates an unique id
             if "guid" not in event:
                 event["guid"] = generate_guid(type=GUID_NEWSML)
-            event[config.ID_FIELD] = event["guid"]
+            event[ID_FIELD] = event["guid"]
 
             # SDCP-638
             if not event.get("language"):
                 try:
                     event["language"] = event["languages"][0]
                 except (KeyError, IndexError):
-                    event["language"] = app.config["DEFAULT_LANGUAGE"]
+                    event["language"] = get_app_config("DEFAULT_LANGUAGE")
 
             # family_id get on ingest we don't need it planning
             event.pop("family_id", None)
@@ -378,7 +379,7 @@ class EventsService(superdesk.Service):
 
         @:param dict event: event created or updated
         """
-        max_duration = get_event_max_multi_day_duration(app)
+        max_duration = get_event_max_multi_day_duration()
         if not max_duration > 0:
             return
 
@@ -419,7 +420,7 @@ class EventsService(superdesk.Service):
         history_service = get_resource_service("events_history")
 
         for doc in docs:
-            event_id = str(doc.get(config.ID_FIELD))
+            event_id = str(doc.get(ID_FIELD))
             # If we duplicated this event, update the history
             if doc.get("duplicate_from"):
                 parent_id = doc["duplicate_from"]
@@ -430,7 +431,7 @@ class EventsService(superdesk.Service):
 
                 duplicate_ids = parent_event.get("duplicate_to", [])
                 duplicate_ids.append(event_id)
-                self.patch(parent_id, {"duplicate_to": duplicate_ids, config.ID_FIELD: parent_id})
+                self.patch(parent_id, {"duplicate_to": duplicate_ids, ID_FIELD: parent_id})
 
             event_type = "events:created"
             user_id = str(doc.get("original_creator", ""))
@@ -488,14 +489,14 @@ class EventsService(superdesk.Service):
         update_method = updates.pop("update_method", UPDATE_SINGLE)
 
         user = get_user()
-        user_id = user.get(config.ID_FIELD) if user else None
+        user_id = user.get(ID_FIELD) if user else None
 
         if user_id:
             updates["version_creator"] = user_id
             set_ingested_event_state(updates, original)
 
         lock_user = original.get("lock_user", None)
-        str_user_id = str(user.get(config.ID_FIELD)) if user_id else None
+        str_user_id = str(user.get(ID_FIELD)) if user_id else None
 
         if lock_user and str(lock_user) != str_user_id:
             print(lock_user, str_user_id)
@@ -527,7 +528,7 @@ class EventsService(superdesk.Service):
         if not updates.get("duplicate_to"):
             posted = update_post_item(updates, original)
             if posted:
-                new_event = get_resource_service("events").find_one(req=None, _id=original.get(config.ID_FIELD))
+                new_event = get_resource_service("events").find_one(req=None, _id=original.get(ID_FIELD))
                 updates["_etag"] = new_event["_etag"]
                 updates["state_reason"] = new_event.get("state_reason")
 
@@ -535,7 +536,7 @@ class EventsService(superdesk.Service):
             # when the event is unlocked by the patch.
             push_notification(
                 "events:unlock",
-                item=str(original.get(config.ID_FIELD)),
+                item=str(original.get(ID_FIELD)),
                 user=str(get_user_id()),
                 lock_session=str(get_auth().get("_id")),
                 etag=updates["_etag"],
@@ -548,13 +549,13 @@ class EventsService(superdesk.Service):
         if "location" not in updates and original.get("location"):
             updates["location"] = original["location"]
 
-        updates[config.ID_FIELD] = original[config.ID_FIELD]
+        updates[ID_FIELD] = original[ID_FIELD]
         self._enhance_event_item(updates)
 
     def on_deleted(self, doc):
         push_notification(
             "events:delete",
-            item=str(doc.get(config.ID_FIELD)),
+            item=str(doc.get(ID_FIELD)),
             user=str(get_user_id()),
             lock_session=str(get_auth().get("_id")),
         )
@@ -582,7 +583,7 @@ class EventsService(superdesk.Service):
             # if the original event was "posted" then post all the generated events
             if original.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
                 post = {
-                    "event": generated_events[0][config.ID_FIELD],
+                    "event": generated_events[0][ID_FIELD],
                     "etag": generated_events[0]["_etag"],
                     "update_method": "all",
                     "pubstatus": original.get("pubstatus"),
@@ -591,7 +592,7 @@ class EventsService(superdesk.Service):
 
             push_notification(
                 "events:updated:recurring",
-                item=str(original[config.ID_FIELD]),
+                item=str(original[ID_FIELD]),
                 user=str(updates.get("version_creator", "")),
                 recurrence_id=str(generated_events[0]["recurrence_id"]),
             )
@@ -602,7 +603,7 @@ class EventsService(superdesk.Service):
             # This updates Event metadata only
             push_notification(
                 "events:updated",
-                item=str(original[config.ID_FIELD]),
+                item=str(original[ID_FIELD]),
                 user=str(updates.get("version_creator", "")),
             )
 
@@ -645,11 +646,11 @@ class EventsService(superdesk.Service):
         mark_completed = original.get("lock_action") == "mark_completed" and updates.get("actioned_date")
         mark_complete_validated = False
         for e in events:
-            event_id = e[config.ID_FIELD]
+            event_id = e[ID_FIELD]
 
             new_updates = deepcopy(updates)
             new_updates["skip_on_update"] = True
-            new_updates[config.ID_FIELD] = event_id
+            new_updates[ID_FIELD] = event_id
 
             if only_calendars:
                 # Get the original for this item, and add new calendars to it
@@ -670,12 +671,13 @@ class EventsService(superdesk.Service):
             # by the event provided to this update request
             new_updates.pop("embedded_planning", None)
             self.patch(event_id, new_updates)
+            app = get_current_app().as_any()
             app.on_updated_events(new_updates, {"_id": event_id})
 
         # And finally push a notification to connected clients
         push_notification(
             "events:updated:recurring",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             recurrence_id=str(original["recurrence_id"]),
             user=str(updates.get("version_creator", "")),
         )
@@ -692,10 +694,10 @@ class EventsService(superdesk.Service):
             if event["dates"]["start"] < updates["actioned_date"]:
                 return
 
-        for plan in get_related_planning_for_events([event[config.ID_FIELD]], "primary"):
+        for plan in get_related_planning_for_events([event[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED and len(plan.get("coverages", [])) > 0:
                 get_resource_service("planning_cancel").patch(
-                    plan[config.ID_FIELD],
+                    plan[ID_FIELD],
                     {
                         "reason": "Event Completed",
                         "cancel_all_coverage": True,
@@ -739,6 +741,7 @@ class EventsService(superdesk.Service):
 
         # Create the new events and generate their history
         self.create(generated_events)
+        app = get_current_app().as_any()
         app.on_inserted_events(generated_events)
         return generated_events
 
@@ -756,7 +759,7 @@ class EventsService(superdesk.Service):
         """
         planning_service = get_resource_service("planning")
         plan_id = event["_planning_item"]
-        event_id = event[config.ID_FIELD]
+        event_id = event[ID_FIELD]
         planning_item = planning_service.find_one(req=None, _id=plan_id)
 
         if not planning_item:
@@ -781,6 +784,7 @@ class EventsService(superdesk.Service):
 
         planning_service.validate_on_update(updates, planning_item, get_user())
         planning_service.system_update(plan_id, updates, planning_item)
+        app = get_current_app().as_any()
         app.on_updated_planning(updates, planning_item)
 
     def get_expired_items(self, expiry_datetime, spiked_events_only=False):
@@ -968,7 +972,7 @@ def setRecurringMode(event):
 
 def overwrite_event_expiry_date(event):
     if "expiry" in event:
-        expiry_minutes = app.settings.get("PLANNING_EXPIRY_MINUTES", None)
+        expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
         event["expiry"] = event["dates"]["end"] + timedelta(minutes=expiry_minutes or 0)
 
 

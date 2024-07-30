@@ -8,12 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.flask import request
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
-from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
 from planning.common import (
@@ -25,7 +26,6 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_coverage_status_from_cv,
 )
-from flask import request
 
 
 planning_cancel_schema = deepcopy(planning_schema)
@@ -57,8 +57,8 @@ class PlanningCancelService(BaseService):
             raise SuperdeskApiError.badRequestError(message="Reason is required field.")
 
     def update(self, id, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, "")
-        session = get_auth().get(config.ID_FIELD, "")
+        user = get_user(required=True).get(ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         event_cancellation = request.view_args.get("event_cancellation")
         cancel_all_coverage = updates.pop("cancel_all_coverage", False)
@@ -94,7 +94,7 @@ class PlanningCancelService(BaseService):
                 item = self.backend.update(self.datasource, id, updates, original)
                 push_notification(
                     "coverage:cancelled",
-                    planning_item=str(original[config.ID_FIELD]),
+                    planning_item=str(original[ID_FIELD]),
                     user=str(user),
                     session=str(session),
                     reason=reason,
@@ -110,7 +110,7 @@ class PlanningCancelService(BaseService):
 
         push_notification(
             "planning:cancelled",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             user=str(user),
             session=str(session),
             reason=reason,

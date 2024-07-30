@@ -8,8 +8,11 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import request
+from copy import deepcopy
 import logging
+
+from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import request
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
@@ -19,8 +22,6 @@ from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from planning.common import update_returned_document
 from planning.events.events_schema import events_schema
-from copy import deepcopy
-from eve.utils import config
 
 
 CUSTOM_HATEOAS_EVENTS = {"self": {"title": "Events", "href": "/events/{_id}"}}
@@ -44,7 +45,7 @@ class EventsLockService(BaseService):
         return self.lock_item(item_id, lock_action, docs[0])
 
     def on_created(self, docs):
-        build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][config.ID_FIELD]))
+        build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][ID_FIELD]))
 
     def lock_item(self, item_id, action, doc):
         user_id = get_user(required=True)["_id"]
@@ -74,7 +75,7 @@ class EventsUnlockService(BaseService):
         return self.unlock_item(item_id, docs[0])
 
     def on_created(self, docs):
-        build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][config.ID_FIELD]))
+        build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][ID_FIELD]))
 
     def unlock_item(self, item_id, doc):
         user_id = get_user(required=True)["_id"]

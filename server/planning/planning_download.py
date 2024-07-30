@@ -15,13 +15,13 @@ import superdesk
 from werkzeug.utils import secure_filename
 from superdesk.errors import SuperdeskApiError
 
-from flask import send_file, request, make_response
+from superdesk.flask import send_file, request, make_response, Blueprint
 from superdesk.utc import utcnow
 from .planning_article_export import get_items
 import json
 
 
-bp = superdesk.Blueprint("planning_download", __name__)
+bp = Blueprint("planning_download", __name__)
 logger = logging.getLogger(__name__)
 
 

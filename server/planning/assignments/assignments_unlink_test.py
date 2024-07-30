@@ -1,6 +1,6 @@
 from planning.tests import TestCase
 from superdesk import get_resource_service
-import flask
+from superdesk.flask import g
 from bson import ObjectId
 
 
@@ -32,7 +32,7 @@ class AssignmentUnlinkTestCase(TestCase):
 
     def test_delivery_record(self):
         with self.app.app_context():
-            flask.g.user = {"_id": self.USER_ID}
+            g.user = {"_id": self.USER_ID}
             self.app.data.insert(
                 "vocabularies",
                 [
@@ -130,7 +130,7 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_all_content_updates(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": self.USER_ID}
+            g.user = {"_id": self.USER_ID}
             user_id = self.USER_ID
             desk_id = ObjectId()
 
@@ -141,12 +141,12 @@ class AssignmentUnlinkTestCase(TestCase):
                     {
                         "_id": "desk1",
                         "name": "desk1",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
+                        "members": [{"user": g.user["_id"]}, {"user": user_id}],
                     },
                     {
                         "_id": desk_id,
                         "name": "desk2",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
+                        "members": [{"user": g.user["_id"]}, {"user": user_id}],
                     },
                 ],
             )
@@ -243,7 +243,7 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_properly_on_unlinking_any_update_in_chain(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": self.USER_ID}
+            g.user = {"_id": self.USER_ID}
             user_id = self.USER_ID
             desk_id = ObjectId()
 
@@ -254,12 +254,12 @@ class AssignmentUnlinkTestCase(TestCase):
                     {
                         "_id": "desk1",
                         "name": "desk1",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
+                        "members": [{"user": g.user["_id"]}, {"user": user_id}],
                     },
                     {
                         "_id": desk_id,
                         "name": "desk2",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
+                        "members": [{"user": g.user["_id"]}, {"user": user_id}],
                     },
                 ],
             )
@@ -361,7 +361,7 @@ class AssignmentUnlinkTestCase(TestCase):
     def test_unlinks_archived_content(self):
         with self.app.app_context():
             self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": self.USER_ID}
+            g.user = {"_id": self.USER_ID}
             user_id = self.USER_ID
             desk_id = ObjectId()
             self.app.data.insert(

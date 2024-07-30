@@ -1,6 +1,8 @@
 import json
 
-from eve.utils import config, ParsedRequest
+from eve.utils import ParsedRequest
+
+from superdesk.resource_fields import VERSION
 from superdesk import Command, command, get_resource_service, Option
 from superdesk.logging import logger
 from superdesk.celery_task_utils import get_lock_id
@@ -149,7 +151,7 @@ class ExportToNewsroom(Command):
         """
         return {
             "item_id": item.get("item_id"),
-            "item_version": item.get(config.VERSION),
+            "item_version": item.get(VERSION),
             "subscriber_id": self.subscriber.get("_id"),
             "destination": destination,
             "formatted_item": json.dumps(format_callback(item), default=json_serialize_datetime_objectId),

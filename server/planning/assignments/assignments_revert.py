@@ -10,8 +10,7 @@
 
 from copy import deepcopy
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
@@ -57,15 +56,15 @@ class AssignmentsRevertService(BaseService):
         remove_lock_information(updates)
 
     def on_updated(self, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, "")
-        session = get_auth().get(config.ID_FIELD, "")
+        user = get_user(required=True).get(ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         # Save history
         get_resource_service("assignments_history").on_item_revert_availability(updates, original)
 
         push_notification(
             "assignments:reverted",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             planning=original.get("planning_item"),
             assigned_user=(original.get("assigned_to") or {}).get("user"),
             assigned_desk=(original.get("assigned_to") or {}).get("desk"),

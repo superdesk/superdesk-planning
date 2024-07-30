@@ -16,8 +16,7 @@ from typing import NamedTuple
 from copy import deepcopy
 import logging
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, Service
 from superdesk.notification import push_notification
 
@@ -237,7 +236,7 @@ class EventPlanningFiltersService(Service):
 
     def on_created(self, docs):
         for doc in docs:
-            self._push_notification(doc.get(config.ID_FIELD), "event_planning_filters:created")
+            self._push_notification(doc.get(ID_FIELD), "event_planning_filters:created")
 
     def _push_notification(self, _id, event_name):
         """Push socket notification"""
@@ -252,10 +251,10 @@ class EventPlanningFiltersService(Service):
             updates["version_creator"] = user_id
 
     def on_updated(self, updates, original):
-        self._push_notification(original.get(config.ID_FIELD), "event_planning_filters:updated")
+        self._push_notification(original.get(ID_FIELD), "event_planning_filters:updated")
 
     def on_deleted(self, doc):
-        self._push_notification(doc.get(config.ID_FIELD), "event_planning_filters:deleted")
+        self._push_notification(doc.get(ID_FIELD), "event_planning_filters:deleted")
 
     def set_schedule(self, updates):
         if not len(updates.get("schedules") or []):

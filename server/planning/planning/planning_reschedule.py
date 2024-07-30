@@ -8,10 +8,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.resource_fields import ID_FIELD
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
-from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
 from planning.common import WORKFLOW_STATE, ITEM_STATE, get_coverage_type_name
@@ -56,12 +56,12 @@ class PlanningRescheduleService(BaseService):
         return self.backend.update(self.datasource, id, updates, original)
 
     def on_updated(self, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, "")
-        session = get_auth().get(config.ID_FIELD, "")
+        user = get_user(required=True).get(ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         push_notification(
             "planning:rescheduled",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             user=str(user),
             session=str(session),
         )

@@ -12,9 +12,9 @@ from typing import Any, List, NamedTuple, Dict, Optional, Set
 import pytz
 
 from datetime import timedelta, datetime
-from flask import current_app as app
 from eve.utils import str_to_date
 
+from superdesk.core import get_app_config
 from planning.common import get_start_of_next_week, sanitize_query_text
 
 
@@ -113,7 +113,7 @@ class ElasticRangeParams:
         self.lt = lt
         self.lte = lte
         self.value_format = value_format
-        self.time_zone = time_zone or app.config.get("DEFAULT_TIMEZONE")
+        self.time_zone = time_zone or get_app_config("DEFAULT_TIMEZONE")
         self.start_of_week = int(start_of_week or 0)
         self.date_range = date_range
         self.date = str_to_date(date) if date else None

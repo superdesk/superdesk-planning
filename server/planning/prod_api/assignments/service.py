@@ -9,8 +9,8 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from typing import Union
-from eve.utils import config
 
+from superdesk.resource_fields import ID_FIELD, LINKS, ITEMS
 from superdesk import get_resource_service
 from superdesk.es_utils import get_docs
 from prod_api.service import ProdApiService
@@ -32,29 +32,29 @@ class AssignmentsService(ProdApiService):
     def _process_fetched_object(self, doc: Assignment):
         super()._process_fetched_object(doc)
 
-        content_items = get_news_item_for_assignment(doc[config.ID_FIELD])
-        if doc.get(config.LINKS):
-            doc[config.LINKS]["planning"] = construct_planning_link(doc["planning_item"])
+        content_items = get_news_item_for_assignment(doc[ID_FIELD])
+        if doc.get(LINKS):
+            doc[LINKS]["planning"] = construct_planning_link(doc["planning_item"])
             _add_related_event_links(doc, doc["planning_item"])
 
             if content_items.count():
-                doc[config.LINKS]["content"] = [construct_content_link(item) for item in get_docs(content_items.hits)]
+                doc[LINKS]["content"] = [construct_content_link(item) for item in get_docs(content_items.hits)]
 
 
 def on_fetched_resource_archive(docs):
-    for doc in docs.get(config.ITEMS) or []:
+    for doc in docs.get(ITEMS) or []:
         on_fetched_item_archive(doc)
 
 
 def on_fetched_item_archive(doc: ArchiveItem):
-    if not doc.get("assignment_id") or not doc.get(config.LINKS):
+    if not doc.get("assignment_id") or not doc.get(LINKS):
         return
 
     assignment = get_resource_service("assignments").find_one(req=None, _id=doc["assignment_id"])
     if not assignment:
         return
 
-    doc[config.LINKS].update(
+    doc[LINKS].update(
         {
             "assignment": construct_assignment_link(assignment),
             "planning": construct_planning_link(assignment["planning_item"]),

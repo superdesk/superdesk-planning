@@ -10,11 +10,12 @@
 
 from enum import Enum
 
-from flask import request, json
 from eve.utils import ParsedRequest
 from eve.render import send_response
 
-from superdesk import Resource, get_resource_service, Blueprint, blueprint
+from superdesk.core import json
+from superdesk.flask import request, Blueprint
+from superdesk import Resource, get_resource_service, blueprint
 from superdesk.auth.decorator import blueprint_auth
 
 from planning.utils import get_first_related_event_id_for_planning

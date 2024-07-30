@@ -11,10 +11,10 @@
 from typing import Dict, Any, Optional
 import logging
 
-from eve.utils import config
 from flask_babel import lazy_gettext
 from bson import ObjectId
 
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
 from apps.rules.rule_handlers import RoutingRuleHandler, register_routing_rule_handler
@@ -80,7 +80,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
     def _is_original_posted(self, ingest_item: Dict[str, Any]):
         service = get_resource_service("events" if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT else "planning")
-        original = service.find_one(req=None, _id=ingest_item.get(config.ID_FIELD))
+        original = service.find_one(req=None, _id=ingest_item.get(ID_FIELD))
 
         return original is not None and original.get("pubstatus") in [POST_STATE.USABLE, POST_STATE.CANCELLED]
 
@@ -111,7 +111,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         updates = {"calendars": ingest_item["calendars"] + calendars_to_add}
-        updated_item = get_resource_service("events").patch(ingest_item.get(config.ID_FIELD), updates)
+        updated_item = get_resource_service("events").patch(ingest_item.get(ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
 
         return updates
@@ -140,12 +140,12 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         agendas = get_resource_service("agenda").get(
             req=None,
             lookup={
-                config.ID_FIELD: {"$in": requested_agenda_ids},
+                ID_FIELD: {"$in": requested_agenda_ids},
                 "is_enabled": True,
             },
         )
 
-        new_agenda_ids = [agenda[config.ID_FIELD] for agenda in agendas]
+        new_agenda_ids = [agenda[ID_FIELD] for agenda in agendas]
         if len(requested_agenda_ids) != len(new_agenda_ids):
             missing_ids = ", ".join(
                 [str(agenda_id) for agenda_id in requested_agenda_ids if agenda_id not in new_agenda_ids]
@@ -158,7 +158,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         # Append Agenda IDs found onto the item
         updates = {"agendas": ingest_item["agendas"] + new_agenda_ids}
-        updated_item = get_resource_service("planning").patch(ingest_item.get(config.ID_FIELD), updates)
+        updated_item = get_resource_service("planning").patch(ingest_item.get(ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
         return updates
 
@@ -171,7 +171,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             # And any updates from ingest should automatically re-post this item
             return
 
-        item_id = ingest_item.get(config.ID_FIELD)
+        item_id = ingest_item.get(ID_FIELD)
         update_post_item(
             {
                 "pubstatus": ingest_item.get("pubstatus") or POST_STATE.USABLE,

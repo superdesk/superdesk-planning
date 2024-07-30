@@ -8,11 +8,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import json
-import superdesk
-
 from copy import deepcopy
-from flask import current_app as app
+
+import superdesk
+from superdesk.core import get_current_app, json
 from superdesk.publish.formatters import Formatter
 from superdesk.utils import json_serialize_datetime_objectId
 from .utils import expand_contact_info, get_matching_products
@@ -83,6 +82,7 @@ class JsonEventFormatter(Formatter):
     def _get_files_for_publish(self, item):
         def publish_file(file_id):
             event_file = superdesk.get_resource_service("events_files").find_one(req=None, _id=file_id)
+            app = get_current_app()
             media = app.media.get(event_file["media"], resource="events_files")
             return {
                 "media": str(event_file["media"]),

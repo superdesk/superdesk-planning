@@ -9,9 +9,8 @@
 from datetime import datetime
 import logging
 
-from flask import current_app as app
-
 from superdesk import Command, command, Option, get_resource_service
+from superdesk.core import get_app_config
 from superdesk.utc import utcnow, local_to_utc, utc_to_local
 from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
@@ -46,19 +45,17 @@ class ExportScheduledFilters(Command):
             logger.info("Export scheduled filters task is already running")
             return
 
+        default_timezone = get_app_config("DEFAULT_TIMEZONE")
         if now:
             now_utc = (
                 now
                 if isinstance(now, datetime)
-                else local_to_utc(
-                    app.config["DEFAULT_TIMEZONE"],
-                    datetime.strptime(now, "%Y-%m-%dT%H"),
-                )
+                else local_to_utc(default_timezone, datetime.strptime(now, "%Y-%m-%dT%H"))
             )
         else:
             now_utc = utcnow()
 
-        now_local = utc_to_local(app.config["DEFAULT_TIMEZONE"], now_utc)
+        now_local = utc_to_local(default_timezone, now_utc)
 
         # Set now to the beginning of the hour (in local time)
         now_local = now_local.replace(minute=0, second=0, microsecond=0)
@@ -109,7 +106,7 @@ class ExportScheduledFilters(Command):
     def should_export(self, schedule, now_local):
         last_sent = None
         if schedule.get("_last_sent"):
-            last_sent = utc_to_local(app.config["DEFAULT_TIMEZONE"], schedule["_last_sent"]).replace(
+            last_sent = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), schedule["_last_sent"]).replace(
                 minute=0, second=0, microsecond=0
             )
 
@@ -140,7 +137,7 @@ class ExportScheduledFilters(Command):
         return True
 
     def _export_filter(self, search_filter, schedule):
-        start_of_week = app.config.get("START_OF_WEEK") or 0
+        start_of_week = get_app_config("START_OF_WEEK") or 0
 
         items = get_resource_service("events_planning_search").search_by_filter_id(
             search_filter["_id"], projections=["_id"], args={"start_of_week": start_of_week}

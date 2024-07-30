@@ -10,11 +10,10 @@
 
 import logging
 from datetime import timedelta
-
-from flask import current_app as app
 from eve.utils import date_to_str
 
 from superdesk import Command, command, get_resource_service, Option
+from superdesk.core import get_app_config
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
@@ -129,11 +128,11 @@ class PurgeExpiredLocks(Command):
         total_received = 0
         query = {
             "query": {"bool": {"filter": [{"range": {LOCK_TIME: {"lt": expiry_datetime}}}]}},
-            "size": app.config["MAX_EXPIRY_QUERY_LIMIT"],
+            "size": get_app_config("MAX_EXPIRY_QUERY_LIMIT"),
             "sort": [{LOCK_TIME: "asc"}],
         }
 
-        for i in range(app.config["MAX_EXPIRY_LOOPS"]):
+        for i in range(get_app_config("MAX_EXPIRY_LOOPS")):
             query["from"] = total_received
             results = list(service.search(query))
             num_results = len(results)

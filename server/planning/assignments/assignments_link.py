@@ -8,10 +8,10 @@
 from copy import deepcopy
 from flask_babel import _
 
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
-from eve.utils import config
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_related_items,
@@ -61,7 +61,7 @@ class AssignmentsLinkService(Service):
         for item in related_items:
             if not item.get("assignment_id") or (item["_id"] == actioned_item.get("_id") and doc.get("force")):
                 # Update the delivery for the item if one exists
-                delivery = delivery_service.find_one(req=None, item_id=item[config.ID_FIELD])
+                delivery = delivery_service.find_one(req=None, item_id=item[ID_FIELD])
                 if delivery:
                     delivery_service.patch(
                         delivery["_id"],
@@ -74,8 +74,8 @@ class AssignmentsLinkService(Service):
                     # Add a delivery for the item
                     deliveries.append(
                         {
-                            "item_id": item[config.ID_FIELD],
-                            "assignment_id": assignment.get(config.ID_FIELD),
+                            "item_id": item[ID_FIELD],
+                            "assignment_id": assignment.get(ID_FIELD),
                             "planning_id": assignment["planning_item"],
                             "coverage_id": assignment["coverage_item"],
                             "item_state": doc.get("item_state") or item.get("state"),
@@ -87,9 +87,9 @@ class AssignmentsLinkService(Service):
 
                 if not doc.get("skip_archive_update", False):
                     # Update archive/published collection with assignment linking
-                    update_assignment_on_link_unlink(assignment[config.ID_FIELD], item, published_updated_items)
+                    update_assignment_on_link_unlink(assignment[ID_FIELD], item, published_updated_items)
 
-                ids.append(item.get(config.ID_FIELD))
+                ids.append(item.get(ID_FIELD))
                 items.append(item)
 
                 if (
@@ -112,7 +112,7 @@ class AssignmentsLinkService(Service):
             already_completed,
             need_complete,
         )
-        actioned_item["assignment_id"] = assignment[config.ID_FIELD]
+        actioned_item["assignment_id"] = assignment[ID_FIELD]
         doc.update(actioned_item)
 
         # Save assignment history
@@ -138,8 +138,8 @@ class AssignmentsLinkService(Service):
         push_content_notification(items)
         push_notification(
             "content:link",
-            item=str(actioned_item[config.ID_FIELD]),
-            assignment=assignment[config.ID_FIELD],
+            item=str(actioned_item[ID_FIELD]),
+            assignment=assignment[ID_FIELD],
         )
         return ids
 
@@ -230,8 +230,8 @@ class AssignmentsLinkService(Service):
         # on fulfiling the assignment the user is assigned the assignment, for add to planning it is not
         if reassign:
             user = get_user()
-            if user and str(user.get(config.ID_FIELD)) != (assignment.get("assigned_to") or {}).get("user"):
-                updates["assigned_to"]["user"] = str(user.get(config.ID_FIELD))
+            if user and str(user.get(ID_FIELD)) != (assignment.get("assigned_to") or {}).get("user"):
+                updates["assigned_to"]["user"] = str(user.get(ID_FIELD))
                 updated = True
 
             # if the item & assignment are'nt on the same desk, move the assignment to the item desk
@@ -245,9 +245,9 @@ class AssignmentsLinkService(Service):
                 updated = True
 
         if need_complete:
-            get_resource_service("assignments_complete").update(assignment[config.ID_FIELD], updates, assignment)
+            get_resource_service("assignments_complete").update(assignment[ID_FIELD], updates, assignment)
         if updated:
-            get_resource_service("assignments").patch(assignment[config.ID_FIELD], updates)
+            get_resource_service("assignments").patch(assignment[ID_FIELD], updates)
 
         return updated
 

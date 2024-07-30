@@ -3,6 +3,8 @@ import logging
 import pytz
 import bson
 from typing import Dict
+
+from superdesk.core import get_app_config
 from superdesk import get_resource_service
 from superdesk.io.feed_parsers import FeedParser
 from superdesk.metadata.item import (
@@ -11,10 +13,8 @@ from superdesk.metadata.item import (
     GUID_FIELD,
     CONTENT_STATE,
 )
-from superdesk.errors import ParserError
 from superdesk.utc import utcnow, local_to_utc
 from planning.common import POST_STATE
-from flask import current_app as app
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class OnclusiveFeedParser(FeedParser):
     def parse_timezone(self, start_date, event):
         if event.get("timezone"):
             timezones = (
-                app.config.get("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES)
+                get_app_config("ONCLUSIVE_TIMEZONES", self.ONCLUSIVE_TIMEZONES)
                 + pytz.common_timezones
                 + pytz.all_timezones
             )
@@ -254,7 +254,7 @@ class OnclusiveFeedParser(FeedParser):
                 datetime.datetime.fromisoformat(date_utc.split(".")[0]).replace(microsecond=0).replace(tzinfo=pytz.utc)
             )
         parsed = datetime.datetime.fromisoformat(date.split(".")[0]).replace(microsecond=0)
-        timezone = app.config.get("ONCLUSIVE_SERVER_TIMEZONE", "Europe/London")
+        timezone = get_app_config("ONCLUSIVE_SERVER_TIMEZONE", "Europe/London")
         if timezone:
             return local_to_utc(timezone, parsed)
         return parsed.replace(tzinfo=pytz.utc)
@@ -308,7 +308,7 @@ class OnclusiveFeedParser(FeedParser):
     def set_expiry(self, event, provider) -> None:
         expiry_minutes = (
             int(provider.get("content_expiry") if provider else 0)
-            or int(app.config.get("INGEST_EXPIRY_MINUTES", 0))
+            or int(get_app_config("INGEST_EXPIRY_MINUTES", 0))
             or (60 * 24)
         )
         event["expiry"] = event["dates"]["end"] + datetime.timedelta(minutes=(expiry_minutes))

@@ -20,10 +20,11 @@ from io import BytesIO
 
 from lxml import etree
 from bson import ObjectId
-from flask import json, current_app as app
 from eve.methods.common import resolve_document_etag
-from eve.utils import config, ParsedRequest, date_to_str
+from eve.utils import ParsedRequest, date_to_str
 
+from superdesk.core import json, get_current_app, get_app_config
+from superdesk.resource_fields import ID_FIELD, ITEMS
 from superdesk import get_resource_service, Service, Resource
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utcnow, utc_to_local
@@ -138,7 +139,7 @@ class PlanningService(Service):
             sync_assignment_details_to_coverages(doc)
 
     def on_fetched(self, docs):
-        self.generate_related_assignments(docs.get(config.ITEMS))
+        self.generate_related_assignments(docs.get(ITEMS))
 
     def on_fetched_item(self, doc):
         self.generate_related_assignments([doc])
@@ -164,14 +165,14 @@ class PlanningService(Service):
         for doc in docs:
             if "guid" not in doc:
                 doc["guid"] = generate_guid(type=GUID_NEWSML)
-            doc[config.ID_FIELD] = doc["guid"]
+            doc[ID_FIELD] = doc["guid"]
 
             # SDCP-638
             if not doc.get("language"):
                 try:
                     doc["language"] = doc["languages"][0]
                 except (KeyError, IndexError):
-                    doc["language"] = app.config["DEFAULT_LANGUAGE"]
+                    doc["language"] = get_app_config("DEFAULT_LANGUAGE")
 
             self.validate_planning(doc)
             set_original_creator(doc)
@@ -201,7 +202,7 @@ class PlanningService(Service):
         session_id = get_auth().get("_id")
         post_planning_with_event = is_post_planning_with_event_enabled()
         for doc in docs:
-            plan_id = str(doc.get(config.ID_FIELD))
+            plan_id = str(doc.get(ID_FIELD))
             push_notification(
                 "planning:created",
                 item=plan_id,
@@ -238,7 +239,7 @@ class PlanningService(Service):
 
         for original_event in get_related_event_items_for_planning(doc, "primary"):
             events_service.system_update(
-                original_event[config.ID_FIELD],
+                original_event[ID_FIELD],
                 {
                     "expiry": None,
                     # Event hasn't actually been updated
@@ -248,16 +249,14 @@ class PlanningService(Service):
                 },
                 original_event,
             )
-            events_history_service.on_item_updated(
-                {"planning_id": doc[config.ID_FIELD]}, original_event, "planning_created"
-            )
+            events_history_service.on_item_updated({"planning_id": doc[ID_FIELD]}, original_event, "planning_created")
 
     def on_duplicated(self, doc, parent_id):
         self._update_event_history(doc)
         session_id = get_auth().get("_id")
         push_notification(
             "planning:duplicated",
-            item=str(doc.get(config.ID_FIELD)),
+            item=str(doc.get(ID_FIELD)),
             original=str(parent_id),
             user=str(doc.get("original_creator", "")),
             added_agendas=doc.get("agendas") or [],
@@ -279,8 +278,8 @@ class PlanningService(Service):
         :param provider: ingest_provider object, used to build the key name of sequence
         """
         sequence_number = get_resource_service("sequences").get_next_sequence_number(
-            key_name="ingest_providers_{_id}".format(_id=provider[config.ID_FIELD]),
-            max_seq_number=app.config["MAX_VALUE_OF_INGEST_SEQUENCE"],
+            key_name="ingest_providers_{_id}".format(_id=provider[ID_FIELD]),
+            max_seq_number=get_app_config("MAX_VALUE_OF_INGEST_SEQUENCE"),
         )
         item["ingest_provider_sequence"] = str(sequence_number)
 
@@ -295,8 +294,8 @@ class PlanningService(Service):
 
         self.validate_on_update(updates, original, user)
 
-        if user and user.get(config.ID_FIELD):
-            updates["version_creator"] = user[config.ID_FIELD]
+        if user and user.get(ID_FIELD):
+            updates["version_creator"] = user[ID_FIELD]
 
         self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
@@ -306,7 +305,7 @@ class PlanningService(Service):
 
     def validate_on_update(self, updates, original, user):
         lock_user = original.get("lock_user", None)
-        str_user_id = str(user.get(config.ID_FIELD)) if user else None
+        str_user_id = str(user.get(ID_FIELD)) if user else None
 
         if lock_user and str(lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError("The item was locked by another user")
@@ -406,7 +405,7 @@ class PlanningService(Service):
                 "Failed to find linked event for planning",
                 extra=dict(
                     event_id=event_id,
-                    plan_id=doc.get(config.ID_FIELD),
+                    plan_id=doc.get(ID_FIELD),
                 ),
             )
             return None
@@ -484,8 +483,8 @@ class PlanningService(Service):
 
     def on_updated(self, updates, original, from_ingest=False):
         added, removed = self._get_added_removed_agendas(updates, original)
-        item_id = str(original[config.ID_FIELD])
-        session_id = get_auth().get(config.ID_FIELD)
+        item_id = str(original[ID_FIELD])
+        session_id = get_auth().get(ID_FIELD)
         user_id = str(updates.get("version_creator", ""))
         doc = deepcopy(original)
         doc.update(updates)
@@ -518,7 +517,7 @@ class PlanningService(Service):
 
         posted = update_post_item(updates, original)
         if posted:
-            new_planning = self.find_one(req=None, _id=original.get(config.ID_FIELD))
+            new_planning = self.find_one(req=None, _id=original.get(ID_FIELD))
             updates["_etag"] = new_planning["_etag"]
 
     def can_edit(self, item, user_id):
@@ -581,7 +580,7 @@ class PlanningService(Service):
         # If the coverage is created and assigned to a desk/user and the PLANNING_AUTO_ASSIGN_TO_WORKFLOW is
         # True the coverage will be created in workflow unless the overide flag is set.
         if (
-            app.config.get("PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False)
+            get_app_config("PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False)
             and (coverage.get("assigned_to", {}).get("desk") or coverage.get("assigned_to", {}).get("user"))
             and not planning.get("flags", {}).get("overide_auto_assign_to_workflow", False)
             and coverage["workflow_status"] == WORKFLOW_STATE.DRAFT
@@ -736,7 +735,7 @@ class PlanningService(Service):
                 user = get_user()
                 if user:
                     # ``version_creator`` cannot be null
-                    coverage["version_creator"] = str(user.get(config.ID_FIELD))
+                    coverage["version_creator"] = str(user.get(ID_FIELD))
                 coverage["versioncreated"] = utcnow()
 
                 contact_id = coverage.get(
@@ -784,7 +783,7 @@ class PlanningService(Service):
                         contact_id=contact_id,
                         message="assignment_due_time_msg",
                         due=utc_to_local(
-                            app.config["DEFAULT_TIMEZONE"],
+                            get_app_config("DEFAULT_TIMEZONE"),
                             coverage.get("planning", {}).get("scheduled"),
                         ).strftime("%c"),
                         coverage_type=get_coverage_type_name(coverage.get("planning", {}).get("g2_content_type", "")),
@@ -898,7 +897,7 @@ class PlanningService(Service):
 
         planning = deepcopy(planning_original)
         planning.update(planning_updates)
-        planning_id = planning.get(config.ID_FIELD)
+        planning_id = planning.get(ID_FIELD)
 
         doc = deepcopy(original)
         doc.update(deepcopy(updates))
@@ -991,7 +990,7 @@ class PlanningService(Service):
                 # Removing assignment
                 assignment_service.delete(lookup={"_id": assigned_to.get("assignment_id")})
                 assignment = {
-                    "planning_item": planning_original.get(config.ID_FIELD),
+                    "planning_item": planning_original.get(ID_FIELD),
                     "coverage_item": doc.get("coverage_id"),
                 }
                 if doc.get("scheduled_update"):
@@ -1036,12 +1035,12 @@ class PlanningService(Service):
                     assignment["assigned_to"] = assigned_to
                     if original_assignment.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
                         assigned_to["assigned_date_desk"] = utcnow()
-                        assigned_to["assignor_desk"] = user.get(config.ID_FIELD)
+                        assigned_to["assignor_desk"] = user.get(ID_FIELD)
                     if assigned_to.get("user") and original.get("assigned_to", {}).get("user") != assigned_to.get(
                         "user"
                     ):
                         assigned_to["assigned_date_user"] = utcnow()
-                        assigned_to["assignor_user"] = user.get(config.ID_FIELD)
+                        assigned_to["assignor_user"] = user.get(ID_FIELD)
 
             # If we made a coverage 'active' - change assignment status to active
             if original.get("workflow_status") == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
@@ -1188,7 +1187,7 @@ class PlanningService(Service):
         )
 
         coverage_ids = [c["coverage_id"] for c in coverages if c.get("coverage_id")]
-        new_plan = self.patch(planning[config.ID_FIELD], {"coverages": coverages})
+        new_plan = self.patch(planning[ID_FIELD], {"coverages": coverages})
 
         try:
             new_coverage = next(c for c in new_plan["coverages"] if c.get("coverage_id") not in coverage_ids)
@@ -1240,9 +1239,9 @@ class PlanningService(Service):
         del coverage_item["assigned_to"]
         coverage_item["workflow_status"] = WORKFLOW_STATE.DRAFT
 
-        updated_planning = self.system_update(planning_item[config.ID_FIELD], {"coverages": coverages}, planning_item)
+        updated_planning = self.system_update(planning_item[ID_FIELD], {"coverages": coverages}, planning_item)
 
-        get_resource_service("planning_autosave").on_assignment_removed(planning_item[config.ID_FIELD], coverage_id)
+        get_resource_service("planning_autosave").on_assignment_removed(planning_item[ID_FIELD], coverage_id)
 
         updated_planning["related_events"] = get_related_event_links_for_planning(planning_item)
 
@@ -1319,7 +1318,7 @@ class PlanningService(Service):
                     assignment_service.system_update(ObjectId(assign_id), {"_to_delete": True}, original_assigment)
 
         session_id = get_auth().get("_id")
-        user_id = get_user().get(config.ID_FIELD)
+        user_id = get_user().get(ID_FIELD)
         if len(deleted_assignments) > 0:
             push_notification(
                 "assignments:delete",
@@ -1406,8 +1405,8 @@ class PlanningService(Service):
             yield list(results.docs)
 
     def on_event_converted_to_recurring(self, updates, original):
-        event_id = original[config.ID_FIELD]
-        for item in get_related_planning_for_events([original[config.ID_FIELD]]):
+        event_id = original[ID_FIELD]
+        for item in get_related_planning_for_events([original[ID_FIELD]]):
             related_events = get_related_event_links_for_planning(item)
 
             # Set the ``recurrence_id`` in the ``planning.related_events`` field
@@ -1416,7 +1415,7 @@ class PlanningService(Service):
                     event["recurrence_id"] = updates["recurrence_id"]
                     break
             self.patch(
-                item[config.ID_FIELD],
+                item[ID_FIELD],
                 {
                     "recurrence_id": updates["recurrence_id"],
                     "related_events": related_events,
@@ -1449,6 +1448,7 @@ class PlanningService(Service):
             )
             return rv
 
+        app = get_current_app()
         xmp_file = app.media.get(xmp_file["media"], resource="planning_files")
         if not xmp_file:
             logger.error(
@@ -1459,7 +1459,7 @@ class PlanningService(Service):
             return rv
 
         if for_slugline:
-            if not get_planning_use_xmp_for_pic_slugline(app) or not get_planning_xmp_slugline_mapping(app):
+            if not get_planning_use_xmp_for_pic_slugline() or not get_planning_xmp_slugline_mapping():
                 return rv
         else:
             if (
@@ -1468,7 +1468,7 @@ class PlanningService(Service):
             ):
                 return rv
 
-            if not get_planning_use_xmp_for_pic_assignments(app) or not get_planning_xmp_assignment_mapping(app):
+            if not get_planning_use_xmp_for_pic_assignments() or not get_planning_xmp_assignment_mapping():
                 return rv
 
         return xmp_file
@@ -1479,7 +1479,7 @@ class PlanningService(Service):
             return
 
         parsed = etree.parse(xmp_file)
-        xmp_slugline_mapping = get_planning_xmp_slugline_mapping(app)
+        xmp_slugline_mapping = get_planning_xmp_slugline_mapping()
         tags = parsed.xpath(xmp_slugline_mapping["xpath"], namespaces=xmp_slugline_mapping["namespaces"])
         if tags:
             updates_coverage["planning"]["slugline"] = tags[0].text
@@ -1500,7 +1500,7 @@ class PlanningService(Service):
         try:
             mapped = False
             parsed = etree.parse(xmp_file)
-            xmp_assignment_mapping = get_planning_xmp_assignment_mapping(app)
+            xmp_assignment_mapping = get_planning_xmp_assignment_mapping()
             tags = parsed.xpath(
                 xmp_assignment_mapping["xpath"],
                 namespaces=xmp_assignment_mapping["namespaces"],
@@ -1526,6 +1526,7 @@ class PlanningService(Service):
             buf = BytesIO()
             buf.write(etree.tostring(parsed.getroot(), pretty_print=True))
             buf.seek(0)
+            app = get_current_app()
             media_id = app.media.put(
                 buf,
                 resource="planning_files",
@@ -1559,6 +1560,7 @@ class PlanningService(Service):
             logger.error("XMP File {} attached to coverage not found. {}".format(file_id, coverage_msg))
             return
 
+        app = get_current_app()
         xmp_file = app.media.get(xmp_file["media"], resource="planning_files")
         if not xmp_file:
             logger.error("Media file for XMP File {} not found. {}".format(file_id, coverage_msg))
@@ -1616,6 +1618,7 @@ class PlanningService(Service):
             "firstcreated",
             "previous_status",
         }
+        app = get_current_app().as_any()
         for plan in self._iter_recurring_plannings_to_update(updates, original, update_method):
             plan_updates = deepcopy(updates)
             for field in SKIP_PLANNING_FIELDS:

@@ -8,8 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD, LINKS
 from prod_api.service import ProdApiService
 
 from planning.prod_api.common import excluded_lock_fields
@@ -27,19 +26,19 @@ class EventsService(ProdApiService):
     def _process_fetched_object(self, doc):
         super()._process_fetched_object(doc)
 
-        if not doc.get(config.LINKS):
+        if not doc.get(LINKS):
             return
 
-        plannings = get_related_planning_for_events([doc[config.ID_FIELD]], "primary")
+        plannings = get_related_planning_for_events([doc[ID_FIELD]], "primary")
         if len(plannings):
             assignment_ids = []
             for plan in plannings:
                 assignment_ids.extend(get_assignment_ids_from_planning(plan))
 
-            doc[config.LINKS]["plannings"] = [construct_planning_link(item[config.ID_FIELD]) for item in plannings]
+            doc[LINKS]["plannings"] = [construct_planning_link(item[ID_FIELD]) for item in plannings]
 
             if len(assignment_ids):
-                doc[config.LINKS]["assignments"] = construct_assignment_links(assignment_ids)
+                doc[LINKS]["assignments"] = construct_assignment_links(assignment_ids)
 
 
 class EventsHistoryService(ProdApiService):

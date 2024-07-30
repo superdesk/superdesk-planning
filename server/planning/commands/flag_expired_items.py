@@ -9,11 +9,10 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from datetime import timedelta, datetime
-
 from bson.objectid import ObjectId
-from eve.utils import config
-from flask import current_app as app
 
+from superdesk.core import get_app_config
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Command, command, get_resource_service
 from superdesk.logging import logger
 from superdesk.utc import utcnow
@@ -42,7 +41,7 @@ class FlagExpiredItems(Command):
         self.log_msg = "Expiry Time: {}.".format(now)
         logger.info("{} Starting to remove expired content at.".format(self.log_msg))
 
-        expire_interval = app.config.get("PLANNING_EXPIRY_MINUTES", 0)
+        expire_interval = get_app_config("PLANNING_EXPIRY_MINUTES", 0)
         if expire_interval == 0:
             logger.info("{} PLANNING_EXPIRY_MINUTES=0, not flagging items as expired")
             return
@@ -86,7 +85,7 @@ class FlagExpiredItems(Command):
         # As subsequent queries will change the list of returned items
         events = dict()
         for items in events_service.get_expired_items(expiry_datetime):
-            events.update({item[config.ID_FIELD]: item for item in items})
+            events.update({item[ID_FIELD]: item for item in items})
 
         self._set_event_plans(events)
 
@@ -99,7 +98,7 @@ class FlagExpiredItems(Command):
                 events_expired.add(event_id)
                 events_service.system_update(event_id, {"expired": True}, event)
                 for plan in event.get("_plans", []):
-                    plan_id = plan[config.ID_FIELD]
+                    plan_id = plan[ID_FIELD]
                     planning_service.system_update(plan_id, {"expired": True}, plan)
                     plans_expired.add(plan_id)
 
@@ -129,7 +128,7 @@ class FlagExpiredItems(Command):
         # As subsequent queries will change the list of returnd items
         plans = dict()
         for items in planning_service.get_expired_items(expiry_datetime):
-            plans.update({item[config.ID_FIELD]: item for item in items})
+            plans.update({item[ID_FIELD]: item for item in items})
 
         locked_plans = set()
         plans_expired = set()
@@ -138,7 +137,7 @@ class FlagExpiredItems(Command):
             if plan.get("lock_user"):
                 locked_plans.add(plan_id)
             else:
-                planning_service.system_update(plan[config.ID_FIELD], {"expired": True}, plan)
+                planning_service.system_update(plan[ID_FIELD], {"expired": True}, plan)
                 plans_expired.add(plan_id)
 
         if len(locked_plans) > 0:
@@ -192,7 +191,7 @@ class FlagExpiredItems(Command):
         :param self:
         :return:
         """
-        expire_interval = app.config.get("PUBLISH_QUEUE_EXPIRY_MINUTES", 0)
+        expire_interval = get_app_config("PUBLISH_QUEUE_EXPIRY_MINUTES", 0)
         if expire_interval:
             expire_time = utcnow() - timedelta(minutes=expire_interval)
             logger.info("Removing planning history items created before {}".format(str(expire_time)))

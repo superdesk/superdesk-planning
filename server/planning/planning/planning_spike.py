@@ -10,7 +10,8 @@
 
 from copy import deepcopy
 
-from superdesk import config, get_resource_service
+from superdesk.resource_fields import ID_FIELD
+from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
@@ -47,9 +48,9 @@ class PlanningSpikeServiceBase(BaseService):
         if original.get(LOCK_USER) and LOCK_USER in updates and updates[LOCK_USER] is None:
             push_notification(
                 "planning:unlock",
-                item=str(original.get(config.ID_FIELD)),
+                item=str(original.get(ID_FIELD)),
                 user=str(get_user_id()),
-                lock_session=str(get_auth().get(config.ID_FIELD)),
+                lock_session=str(get_auth().get(ID_FIELD)),
                 etag=updates.get("_etag"),
                 event_ids=get_related_event_ids_for_planning(
                     original
@@ -92,7 +93,7 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
         push_notification(
             "planning:spiked",
             item=str(id),
-            user=str(user.get(config.ID_FIELD, "")),
+            user=str(user.get(ID_FIELD, "")),
             etag=item["_etag"],
             revert_state=item["revert_state"],
         )
@@ -176,7 +177,7 @@ class PlanningUnspikeService(PlanningSpikeServiceBase):
         super().on_updated(updates, original)
         push_notification(
             "planning:unspiked",
-            item=str(original.get(config.ID_FIELD)),
+            item=str(original.get(ID_FIELD)),
             user=str(get_user_id()),
             etag=updates.get("_etag") or original.get("_etag"),
             state=updates[ITEM_STATE],

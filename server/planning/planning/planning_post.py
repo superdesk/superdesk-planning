@@ -12,9 +12,8 @@ from typing import List
 from copy import deepcopy
 import logging
 
-from flask import abort
-from eve.utils import config
-
+from superdesk.flask import abort
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.resource import Resource
@@ -84,7 +83,7 @@ class PlanningPostService(BaseService):
         for doc in docs:
             push_notification(
                 "planning:posted",
-                item=str(doc.get(config.ID_FIELD) or doc.get("planning")),
+                item=str(doc.get(ID_FIELD) or doc.get("planning")),
                 etag=doc.get("_etag"),
                 pubstatus=doc.get("pubstatus"),
             )
@@ -132,7 +131,7 @@ class PlanningPostService(BaseService):
                 get_resource_service("events_post").post(
                     [
                         {
-                            "event": event[config.ID_FIELD],
+                            "event": event[ID_FIELD],
                             "etag": event["_etag"],
                             "update_method": update_method,
                             "pubstatus": "usable",

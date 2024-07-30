@@ -3,7 +3,6 @@ import requests
 
 from typing import Optional
 from datetime import timedelta, datetime
-from flask import current_app as app
 from flask_babel import lazy_gettext
 from superdesk.io.registry import register_feeding_service_parser
 from superdesk.io.feeding_services.http_base_service import HTTPFeedingServiceBase

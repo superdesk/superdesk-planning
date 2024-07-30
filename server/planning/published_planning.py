@@ -7,8 +7,10 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-from eve.utils import config, ParsedRequest
+from eve.utils import ParsedRequest
 from eve.methods.common import resolve_embedded_fields, resolve_embedded_documents
+
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Service, Resource
 from superdesk.utils import ListCursor
 from .events import EventsResource
@@ -75,7 +77,7 @@ class PublishedPlanningResource(Resource):
 
     url = "published_planning"
     schema = {
-        config.ID_FIELD: {"type": "string", "unique": True},
+        ID_FIELD: {"type": "string", "unique": True},
         # Id of the item
         "item_id": {"type": "string"},
         # The version of the item stored
