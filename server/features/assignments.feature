@@ -21,6 +21,10 @@ Feature: Assignments
         """
         [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
         """
+        And "users"
+        """
+        [{"_id": "507f191e810c19729de87034", "name":"testfoo", "email":"foo@122d.com", "username":"johnfoo"}]
+        """
 
     @auth
     Scenario: Empty planning list

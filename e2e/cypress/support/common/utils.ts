@@ -7,3 +7,5 @@
 export function constructUrl(base, uri) {
     return base.replace(/\/$/, '') + uri;
 }
+
+export const CLIENT_FORMAT = 'DD/MM/yy';

@@ -4,6 +4,7 @@ from bson import ObjectId
 
 
 assignment_id = "5b20652a1d41c812e24aa49e"
+USER_ID = ObjectId("5d385f31fe985ec67a0ca583")
 
 
 class AssignmentLinkTestCase(TestCase):
@@ -81,9 +82,30 @@ class AssignmentLinkTestCase(TestCase):
                         "coverage_item": "cov1",
                         "assigned_to": {
                             "state": "assigned",
-                            "user": "test",
+                            "user": USER_ID,
                             "desk": "test",
                         },
+                    }
+                ],
+            )
+            self.app.data.insert(
+                "users",
+                [
+                    {
+                        "_id": USER_ID,
+                        "username": "admin",
+                        "password": "blabla",
+                        "email": "admin@example.com",
+                        "user_type": "administrator",
+                        "is_active": True,
+                        "needs_activation": False,
+                        "is_author": True,
+                        "is_enabled": True,
+                        "display_name": "John Smith",
+                        "sign_off": "ADM",
+                        "first_name": "John",
+                        "last_name": "Smith",
+                        "role": ObjectId("5d542206c04280bc6d6157f9"),
                     }
                 ],
             )

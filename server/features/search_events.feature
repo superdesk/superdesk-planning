@@ -368,3 +368,53 @@ Feature: Event Search
         ]}
         """
 
+    @auth
+    Scenario: Filter by date using America/Toronto timezone
+        Given "events"
+        """
+        [{
+            "guid": "all_day_multi",
+            "name": "all day event multiday",
+            "dates": {"start": "2024-07-14T00:00:00+0000", "end": "2024-07-16T00:00:00+0000", "all_day": true}
+        }, {
+            "guid": "all_day_single",
+            "name": "all day single day",
+            "dates": {"start": "2024-07-15T00:00:00+0000", "end": "2024-07-15T00:00:00+0000", "all_day": true}
+        }, {
+            "guid": "no_end_time_multi",
+            "name": "no end time multiday",
+            "dates": {"start": "2024-07-13T10:00:00+0000", "end": "2024-07-15T00:00:00+0000", "no_end_time": true}
+        }, {
+            "guid": "no_end_time_single",
+            "name": "no end time single day",
+            "dates": {"start": "2024-07-15T10:00:00+0000", "end": "2024-07-15T10:00:00+0000", "no_end_time": true}
+        }, {
+            "guid": "matching",
+            "name": "regular",
+            "dates": {"start": "2024-07-15T10:00:00+0000", "end": "2024-07-16T00:00:00+0000"}
+        },
+        {
+            "guid": "not matching",
+            "name": "not matching",
+            "dates": {"start": "2024-07-01T10:00:00+0000", "end": "2024-07-02T00:00:00+0000"}
+        }
+        ]
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&time_zone=America/Toronto&start_date=2024-07-15T04:00:00"
+        Then we get list with 5 items
+        """
+        {"_items": [
+            {"guid": "all_day_multi"},
+            {"guid": "all_day_single"},
+            {"guid": "no_end_time_multi"},
+            {"guid": "no_end_time_single"},
+            {"guid": "matching"}
+        ]}
+        """
+        When we get "/events_planning_search?repo=events&only_future=false&time_zone=America/Toronto&start_date=2024-07-16T04:00:00"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {"guid": "all_day_multi"}
+        ]}
+        """

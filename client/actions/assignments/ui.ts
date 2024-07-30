@@ -24,6 +24,7 @@ const loadAssignments = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
+    dayField = null,
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
@@ -34,6 +35,7 @@ const loadAssignments = ({
             filterBy,
             searchQuery,
             orderByField,
+            dayField,
             filterByType,
             filterByPriority,
             selectedDeskId,
@@ -304,6 +306,7 @@ const changeListSettings = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
+    dayField = null,
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
@@ -314,6 +317,7 @@ const changeListSettings = ({
         filterBy,
         searchQuery,
         orderByField,
+        dayField,
         filterByType,
         filterByPriority,
         selectedDeskId,
@@ -806,6 +810,27 @@ const changeSortField = (field, savePreference = true) => (
 );
 
 /**
+ * Action dispatcher to set the day field filter for all lists
+ * @param {String} value - the value to set the field to
+ */
+const setDayField = (value) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_DAY_FIELD,
+    payload: value,
+});
+
+const changeDayField = (value, savePreference = true) => (
+    (dispatch) => {
+        dispatch(self.setDayField(value));
+
+        // if (savePreference) {
+        //     dispatch(actions.users.setAssignmentSortField());
+        // }
+
+        return dispatch(self.reloadAssignments(null, false));
+    }
+);
+
+/**
  * Action dispatcher to load the current users' preferred sort field and list orders
  * (This assumes the users' preferences have already been loaded into redux)
  */
@@ -897,6 +922,8 @@ const self = {
     setListSortOrder,
     changeListSortOrder,
     setSortField,
+    setDayField,
+    changeDayField,
     loadDefaultListSort,
     changeSortField,
     validateStartWorkingOnScheduledUpdate,
