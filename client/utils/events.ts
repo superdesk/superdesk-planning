@@ -939,6 +939,8 @@ function getLocalEndDate(event: IEventItem): moment.Moment {
 }
 
 function modifyForClient(event: IEventItem): IEventItem; // overload
+
+// eslint-disable-next-line no-redeclare
 function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
     sanitizeItemFields(event);
 
