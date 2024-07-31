@@ -220,7 +220,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {renderFields(
-                                get(listFields, 'event.primary_fields', EVENTS.LIST.PRIMARY_FIELDS),
+                                listFields?.event?.primary_fields ?? EVENTS.LIST.PRIMARY_FIELDS,
                                 item,
                                 {},
                                 language,
