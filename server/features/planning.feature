@@ -777,7 +777,7 @@ Feature: Planning
         }
         """
         When we get "activity"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items":[
             {
