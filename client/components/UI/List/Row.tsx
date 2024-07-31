@@ -1,9 +1,8 @@
 import React, {CSSProperties} from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 interface IProps {
-    children: Array<JSX.Element> | JSX.Element;
+    children: React.ReactNode;
     classes?: string;
     paddingBottom?: boolean;
     testId?: string;
