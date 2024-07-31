@@ -129,10 +129,8 @@
     }
 }
 
-.sd-list-item-group--space-between-items {
-  .sd-list-item-nested__childs {
-    .sd-list-item {
-      overflow: hidden;
-    }
+.sd-list-item-nested__childs {
+  .sd-list-item {
+    overflow: hidden;
   }
 }
