@@ -12,4 +12,4 @@ export const name = ({item, language}: IFieldsProps) => {
             {getTranslatedValue(language, item, 'name') ?? item.name}
         </span>
     );
-}
+};
