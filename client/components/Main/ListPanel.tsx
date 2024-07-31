@@ -422,18 +422,16 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 />
                             );
                         })}
-                        {!isAllListItemsLoaded && (
+                        {(!isAllListItemsLoaded && loadingIndicator) && (
                             <div className="ListGroup">
                                 <Group>
-                                    <Item noBg={true}>
-                                        <Column grow={true}>
-                                            <div
-                                                className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align"
-                                            >
-                                                {gettext('loading more items...')}
-                                            </div>
-                                        </Column>
-                                    </Item>
+                                    <Column grow={true}>
+                                        <div
+                                            className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align"
+                                        >
+                                            {gettext('loading more items...')}
+                                        </div>
+                                    </Column>
                                 </Group>
                             </div>
                         )}
