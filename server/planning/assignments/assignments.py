@@ -80,6 +80,7 @@ from planning.utils import (
     get_first_related_event_id_for_planning,
     get_first_event_item_for_planning_id,
 )
+from superdesk.preferences import get_user_notification_preferences
 
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
@@ -357,12 +358,15 @@ class AssignmentsService(superdesk.Service):
             return
 
         assigned_to = updates.get("assigned_to", {})
+        assigned_to_user = None
+
+        if assigned_to.get("user"):
+            assigned_to_user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
 
         # No assignment notification sent, if user is not enabled assignment notification
-        if assigned_to.get("user") and not superdesk.get_resource_service(
-            "preferences"
-        ).check_preference_email_notification_is_enabled("assignments", user_id=assigned_to.get("user")):
+        if assigned_to_user and get_user_notification_preferences(assigned_to_user, "assignments")["email"] is False:
             return
+
         assignment_id = updates.get("_id") or assigned_to.get("assignment_id", "Unknown")
         if not original:
             original = {}
@@ -390,7 +394,6 @@ class AssignmentsService(superdesk.Service):
                 )
 
         if assignee is None and assigned_to.get("user"):
-            assigned_to_user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
             if assigned_to_user and assigned_to_user.get("slack_username"):
                 assignee = "@" + assigned_to_user.get("slack_username")
             else:
