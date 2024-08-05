@@ -4,13 +4,13 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
-import {locks} from '../actions';
 import {planning} from '../actions';
 import {get, isEmpty, isNumber} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
 import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
-import {planningApi} from '../superdeskApi';
+import {IArticle, IContentProfile} from 'superdesk-api';
+import {planningApi, superdeskApi} from '../superdeskApi';
 
 const DEFAULT_PLANNING_SCHEMA = {
     anpa_category: {required: true},
@@ -192,12 +192,39 @@ export class AddToPlanningController {
         }
     }
 
-    loadArchiveItem() {
+    getArchiveItemAndProfile(): Promise<{
+        newsItem: IArticle,
+        contentProfile: IContentProfile
+    }> {
         return this.api.find('archive', this.item._id)
-            .then((newsItem) => {
+            .then((newsItem: IArticle) => (
+                superdeskApi.entities.contentProfile.get(newsItem.profile)
+                    .then((contentProfile) => ({
+                        newsItem,
+                        contentProfile,
+                    }))
+                    .catch((error) => {
+                        this.notify.error(
+                            getErrorMessage(error, this.gettext('Failed to load content profile.'))
+                        );
+                        this.$scope.resolve(error);
+                        return Promise.reject(error);
+                    })
+            ), (error) => {
+                this.notify.error(
+                    getErrorMessage(error, this.gettext('Failed to load the item.'))
+                );
+                this.$scope.resolve(error);
+                return Promise.reject(error);
+            });
+    }
+
+    loadArchiveItem() {
+        return this.getArchiveItemAndProfile()
+            .then(({newsItem, contentProfile}) => {
                 const errMessages = [];
                 const profile = planningProfile(this.store.getState());
-                const schema = get(profile, 'schema') || DEFAULT_PLANNING_SCHEMA;
+                const planningSchema = profile.schema || DEFAULT_PLANNING_SCHEMA;
                 const requiredError = (field) => this.gettext('[{{ field }}] is a required field')
                     .replace('{{ field }}', field);
                 const labels = GET_LABEL_MAP(this.gettext);
@@ -206,10 +233,13 @@ export class AddToPlanningController {
                     errMessages.push(this.gettext('Item already linked to a Planning item'));
                 }
 
-                Object.keys(schema)
-                    .filter((field) => get(schema[field], 'required') &&
-                        isEmpty(get(newsItem, field)) &&
-                        !isNumber(get(newsItem, field)))
+                Object.keys(planningSchema)
+                    .filter((field) => (
+                        contentProfile.schema[field] != null &&
+                        planningSchema[field]?.required === true &&
+                        isEmpty(newsItem[field]) &&
+                        !isNumber(newsItem[field])
+                    ))
                     .forEach((field) => {
                         errMessages.push(requiredError(labels[field] || field));
                     });
@@ -247,12 +277,6 @@ export class AddToPlanningController {
                 }
 
                 return Promise.resolve(newsItem);
-            }, (error) => {
-                this.notify.error(
-                    getErrorMessage(error, this.gettext('Failed to load the item.'))
-                );
-                this.$scope.resolve(error);
-                return Promise.reject(error);
             });
     }
 }
