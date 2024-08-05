@@ -42,7 +42,35 @@ Object.assign(superdeskApi, {
     },
     components: {
         SelectUser: sinon.stub().returns('<div>Stubbed SelectUser Component</div>'),
-    }
+    },
+    entities: {
+        contentProfile: {
+            get: sinon.stub().returns(Promise.resolve({
+                schema: {
+                    slugline: {maxlength: 24, type: 'string', required: true},
+                    relatedItems: {},
+                    genre: {type: 'list'},
+                    anpa_take_key: {type: 'string'},
+                    place: {type: 'list'},
+                    priority: {type: 'integer'},
+                    urgency: {type: 'integer'},
+                    anpa_category: {type: 'list', required: true},
+                    subject: {type: 'list', required: true},
+                    company_codes: {type: 'list'},
+                    ednote: {type: 'string'},
+                    headline: {maxlength: 42, type: 'string', required: true},
+                    sms: {maxlength: 160, type: 'string'},
+                    abstract: {maxlength: 160, type: 'string'},
+                    body_html: {required: true, type: 'string'},
+                    byline: {type: 'string'},
+                    dateline: {type: 'dict', required: true},
+                    sign_off: {type: 'string'},
+                    footer: {},
+                    body_footer: {type: 'string'},
+                },
+            })),
+        },
+    },
 });
 
 Object.assign(planningApi, {
