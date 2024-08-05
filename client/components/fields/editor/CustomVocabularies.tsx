@@ -1,11 +1,12 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import {IVocabulary} from 'superdesk-api';
+import {ISubject, IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps, IProfileSchemaTypeList} from '../../../interfaces';
 import {SelectMetaTermsInput, Row} from '../../UI/Form';
-import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {getVocabularyItemNameFromString} from '../../../utils/vocabularies';
+import {EditorFieldTreeSelect} from '../editor/base/treeSelect';
 
 interface IProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeList;
@@ -16,44 +17,84 @@ interface IProps extends IEditorFieldProps {
 }
 
 const mapStateToProps = (state) => ({
-    vocabularies: state.customVocabularies
+    vocabularies: state.customVocabularies,
 });
 
 class CustomVocabulariesComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const customVocabularies = this.props.vocabularies.filter((cv) => (
-            (this.props.schema.vocabularies ?? []).includes(cv._id)
-        ));
+        const {
+            vocabularies,
+            schema,
+            showErrors,
+            errors,
+            item,
+            disabled,
+            onChange,
+            required,
+            testId,
+            popupContainer,
+            onPopupOpen,
+            onPopupClose,
+            language,
+        } = this.props;
+
+        const customVocabularies = vocabularies.filter((cv) =>
+            (schema?.vocabularies ?? []).includes(cv._id)
+        );
 
         return customVocabularies.map((cv) => {
             const cvFieldName = `custom_vocabularies.${cv._id}`;
-            const error = this.props.showErrors ? this.props.errors?.[cvFieldName] : undefined;
+            const error = showErrors ? errors?.[cvFieldName] : undefined;
             const parentField = cv.schema_field || 'subject';
 
             return (
                 <Row
                     key={cv._id}
                     id={`form-row-${cvFieldName}`}
-                    data-test-id={this.props.testId?.length ? `${this.props.testId}.${cv._id}` : cv._id}
+                    data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
                 >
-                    <SelectMetaTermsInput
-                        options={cv.items.map((item) => Object.assign({scheme: cv._id}, item))}
-                        value={this.props.item[parentField]}
-                        label={gettext(cv.display_name)}
-                        readOnly={this.props.disabled}
-                        onChange={this.props.onChange}
-                        required={this.props.required || this.props.schema.required}
-                        field={parentField}
-                        scheme={cv._id}
-                        popupContainer={this.props.popupContainer}
-                        onPopupOpen={this.props.onPopupOpen}
-                        onPopupClose={this.props.onPopupClose}
-                        language={this.props.language}
-                        invalid={!!error}
-                        message={error}
-                        noMargin={true}
-                    />
+                    {!schema.sortable ? (
+                        <SelectMetaTermsInput
+                            options={cv.items.map((item) => Object.assign({scheme: cv._id}, item))}
+                            value={item[parentField]}
+                            label={gettext(cv.display_name)}
+                            readOnly={disabled}
+                            onChange={onChange}
+                            required={required || schema?.required}
+                            field={parentField}
+                            scheme={cv._id}
+                            popupContainer={popupContainer}
+                            onPopupOpen={onPopupOpen}
+                            onPopupClose={onPopupClose}
+                            language={language}
+                            invalid={!!error}
+                            message={error}
+                            noMargin={true}
+                        />
+                    ) : (
+                        <EditorFieldTreeSelect
+                            item={item}
+                            field={parentField}
+                            label={gettext(cv.display_name)}
+                            required={required || schema?.required}
+                            allowMultiple={true}
+                            sortable={true}
+                            getOptions={() => cv.items.map((item: ISubject) => ({value: item}))}
+                            getId={(item: ISubject) => item.qcode}
+                            getLabel={(item: ISubject) => (
+                                getVocabularyItemNameFromString(
+                                    item.qcode,
+                                    cv.items,
+                                    'qcode',
+                                    'name',
+                                    language
+                                )
+                            )}
+                            onChange={onChange}
+                            errors={errors}
+                        />
+                    )}
                 </Row>
             );
         });
