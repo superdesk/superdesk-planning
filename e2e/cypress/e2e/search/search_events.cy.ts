@@ -142,6 +142,8 @@ describe('Search.Events: searching events', () => {
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
 
+        list.setDateInterval('Month');
+
         search.runSearchTests([{
             params: {},
             expectedCount: 3,

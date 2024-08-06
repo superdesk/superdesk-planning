@@ -1,10 +1,11 @@
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
-import {AdvancedSearch} from '../../support/planning';
+import {AdvancedSearch, PlanningList} from '../../support/planning';
 import {TEST_EVENTS, createEventFor} from '../../fixtures/events';
 import {TEST_PLANNINGS, createPlanningFor} from '../../fixtures/planning';
 
 describe('Search.Combined: searching events and planning', () => {
     const search = new AdvancedSearch();
+    const list = new PlanningList();
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -101,6 +102,9 @@ describe('Search.Combined: searching events and planning', () => {
         search.viewEventsAndPlanning();
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
+
+        list.setDateInterval('Month');
+
         search.runSearchTests([{
             params: {},
             expectedCount: 6,
