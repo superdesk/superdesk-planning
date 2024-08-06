@@ -102,6 +102,12 @@ class SchemaValidator(Validator):
         """
         pass
 
+    def _validate_sortable(self, sortable, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+        pass
+
 
 class PlanningValidateResource(Resource):
     endpoint_name = "planning_validator"
