@@ -103,7 +103,6 @@ class SchemaValidator(Validator):
         pass
 
 
-
 class PlanningValidateResource(Resource):
     endpoint_name = "planning_validator"
     schema = {
