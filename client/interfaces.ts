@@ -1046,7 +1046,6 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     mandatory_in_list?: {[key: string]: any};
     vocabularies?: Array<IVocabulary['_id']>;
     planning_auto_publish?: boolean;
-    sortable?: boolean;
 }
 
 export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}

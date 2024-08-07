@@ -200,14 +200,3 @@ registerEditorField(
     null,
     true
 );
-
-registerEditorField(
-    'schema.sortable',
-    EditorFieldCheckbox,
-    (props) => ({
-        label: superdeskApi.localization.gettext('Sortable'),
-        field: 'schema.sortable',
-    }),
-    null,
-    true
-);

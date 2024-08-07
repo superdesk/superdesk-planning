@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {ISubject, IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps, IProfileSchemaTypeList} from '../../../interfaces';
-import {SelectMetaTermsInput, Row} from '../../UI/Form';
+import {Row} from '../../UI/Form';
 import {getVocabularyItemNameFromString} from '../../../utils/vocabularies';
 import {EditorFieldTreeSelect} from '../editor/base/treeSelect';
 
@@ -29,13 +29,9 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
             showErrors,
             errors,
             item,
-            disabled,
             onChange,
             required,
             testId,
-            popupContainer,
-            onPopupOpen,
-            onPopupClose,
             language,
         } = this.props;
 
@@ -45,7 +41,6 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
 
         return customVocabularies.map((cv) => {
             const cvFieldName = `custom_vocabularies.${cv._id}`;
-            const error = showErrors ? errors?.[cvFieldName] : undefined;
             const parentField = cv.schema_field || 'subject';
 
             return (
@@ -54,47 +49,27 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                     id={`form-row-${cvFieldName}`}
                     data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
                 >
-                    {!schema.sortable ? (
-                        <SelectMetaTermsInput
-                            options={cv.items.map((item) => Object.assign({scheme: cv._id}, item))}
-                            value={item[parentField]}
-                            label={gettext(cv.display_name)}
-                            readOnly={disabled}
-                            onChange={onChange}
-                            required={required || schema?.required}
-                            field={parentField}
-                            scheme={cv._id}
-                            popupContainer={popupContainer}
-                            onPopupOpen={onPopupOpen}
-                            onPopupClose={onPopupClose}
-                            language={language}
-                            invalid={!!error}
-                            message={error}
-                            noMargin={true}
-                        />
-                    ) : (
-                        <EditorFieldTreeSelect
-                            item={item}
-                            field={parentField}
-                            label={gettext(cv.display_name)}
-                            required={required || schema?.required}
-                            allowMultiple={true}
-                            sortable={true}
-                            getOptions={() => cv.items.map((item: ISubject) => ({value: item}))}
-                            getId={(item: ISubject) => item.qcode}
-                            getLabel={(item: ISubject) => (
-                                getVocabularyItemNameFromString(
-                                    item.qcode,
-                                    cv.items,
-                                    'qcode',
-                                    'name',
-                                    language
-                                )
-                            )}
-                            onChange={onChange}
-                            errors={errors}
-                        />
-                    )}
+                    <EditorFieldTreeSelect
+                        item={item}
+                        field={parentField}
+                        label={gettext(cv.display_name)}
+                        required={required || schema?.required}
+                        allowMultiple={true}
+                        sortable={true}
+                        getOptions={() => cv.items.map((item: ISubject) => ({value: item}))}
+                        getId={(item: ISubject) => item.qcode}
+                        getLabel={(item: ISubject) => (
+                            getVocabularyItemNameFromString(
+                                item.qcode,
+                                cv.items,
+                                'qcode',
+                                'name',
+                                language
+                            )
+                        )}
+                        onChange={onChange}
+                        errors={errors}
+                    />
                 </Row>
             );
         });

@@ -94,7 +94,6 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.expandable': {enabled: fieldType === 'multi_line'},
             'schema.format_options': {enabled: fieldType === 'editor_3'},
             'schema.vocabularies': {enabled: this.props.item.name === 'custom_vocabularies'},
-            'schema.sortable': {enabled: this.props.item.name === 'custom_vocabularies'},
             'field.all_day.enabled': {enabled: this.props.item.name === 'dates'},
             'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
             'schema.languages': {enabled: (this.props.item.name === 'language' && isMultilingual)},
@@ -192,7 +191,6 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                             'schema.default_language': {enabled: true, index: 13},
                                             'schema.planning_auto_publish': {enabled: true, index: 14},
                                             'schema.default_value': {enabled: true, index: 11},
-                                            'schema.sortable': {enabled: true, index: 2},
                                         },
                                         {
                                             item: this.props.item,

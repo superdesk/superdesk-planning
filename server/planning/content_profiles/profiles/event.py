@@ -44,7 +44,6 @@ class EventSchema(BaseSchema):
     slugline = StringField()
     subject = subjectField
     custom_vocabularies = schema.ListField()
-    custom_vocabularies.schema["sortable"] = False
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
     related_plannings.schema["planning_auto_publish"] = False
