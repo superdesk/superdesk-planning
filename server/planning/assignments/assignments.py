@@ -355,6 +355,7 @@ class AssignmentsService(superdesk.Service):
         if assigned_to_user and get_user_notification_preferences(assigned_to_user, "assignments")["email"] is False:
             return
 
+        # No assignment desktop notification sent, if a user has disabled their global desktop notifications
         if assigned_to_user["user_preferences"]["desktop:notification"]["enabled"] is False:
             return
 
