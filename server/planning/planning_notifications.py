@@ -77,7 +77,7 @@ class PlanningNotifications:
         can_push_notification = True
         if target_user:
             user = superdesk.get_resource_service("users").find_one(req=None, _id=target_user)
-            can_push_notification = get_user_notification_preferences(user)["desktop"]
+            can_push_notification = True if user is None else get_user_notification_preferences(user)["desktop"]
 
         if target_desk is None and target_user is not None:
             add_activity(
