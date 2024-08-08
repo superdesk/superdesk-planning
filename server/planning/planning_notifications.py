@@ -22,6 +22,7 @@ from flask_mail import Attachment
 from apps.archive.common import get_user
 from eve.utils import config
 from planning.common import get_assginment_name
+from superdesk.preferences import get_user_notification_preferences
 
 try:
     from slackclient import SlackClient
@@ -64,7 +65,6 @@ class PlanningNotifications:
         # if the coverage is in 'draft' state, no notifications
         if coverage_status == WORKFLOW_STATE.DRAFT:
             return
-
         # Attempt to load the template file, if that fails, just use the message
         try:
             (source, filename, uptodate) = app.jinja_loader.get_source(
@@ -74,10 +74,15 @@ class PlanningNotifications:
             logger.warn("Failed to load the planning notification template {}.txt".format(message))
             return
 
+        can_push_notification = True
+        if target_user:
+            user = superdesk.get_resource_service("users").find_one(req=None, _id=target_user)
+            can_push_notification = get_user_notification_preferences(user)["desktop"]
+
         if target_desk is None and target_user is not None:
             add_activity(
                 ACTIVITY_UPDATE,
-                can_push_notification=True,
+                can_push_notification=can_push_notification,
                 resource="assignments",
                 msg=source,
                 notify=[target_user],
@@ -98,7 +103,7 @@ class PlanningNotifications:
                     continue
                 add_activity(
                     ACTIVITY_UPDATE,
-                    can_push_notification=True,
+                    can_push_notification=can_push_notification,
                     resource="assignments",
                     msg=source,
                     notify=[member.get("user")],
