@@ -356,7 +356,7 @@ class AssignmentsService(superdesk.Service):
             return
 
         # No assignment desktop notification sent, if a user has disabled their global desktop notifications
-        if assigned_to_user.get("user_preferences", {}).get("desktop:notification", {}).get("enabled", False):
+        if not assigned_to_user.get("user_preferences", {}).get("desktop:notification", {}).get("enabled", True):
             return
 
         assignment_id = updates.get("_id") or assigned_to.get("assignment_id", "Unknown")
