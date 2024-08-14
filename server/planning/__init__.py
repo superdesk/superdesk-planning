@@ -12,7 +12,7 @@
 
 import logging
 import superdesk
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 
 from superdesk.resource_fields import ID_FIELD
 from .agendas import AgendasResource, AgendasService
@@ -292,38 +292,12 @@ def init_app(app):
 
     init_scheduled_exports_task(app)
 
-    # Create 'type' required for planning module if not already preset
-    with app.app_context():
-        vocabulary_service = superdesk.get_resource_service("vocabularies")
-        types = vocabulary_service.find_one(req=None, _id="type")
-        if types:
-            items = types.get("items") or []
-            added_types = []
-            type_names = [t["qcode"] for t in items]
+    custom_loaders = jinja2.ChoiceLoader(
+        app.jinja_loader.loaders + [jinja2.FileSystemLoader(os.path.join(_SERVER_PATH, "templates"))]
+    )
+    app.jinja_loader = custom_loaders
 
-            planning_type_list = [
-                {"is_active": True, "name": "Planning item", "qcode": "planning"},
-                {"is_active": True, "name": "Event", "qcode": "event"},
-                {
-                    "is_active": True,
-                    "name": "Featured Stories",
-                    "qcode": "planning_featured",
-                },
-            ]
-
-            for item in planning_type_list:
-                if item["qcode"] not in type_names:
-                    added_types.append(item)
-
-            if len(added_types) > 0:
-                vocabulary_service.patch(types.get(ID_FIELD), {"items": (items + added_types)})
-
-        custom_loaders = jinja2.ChoiceLoader(
-            app.jinja_loader.loaders + [jinja2.FileSystemLoader(os.path.join(_SERVER_PATH, "templates"))]
-        )
-        app.jinja_loader = custom_loaders
-
-        register_jinja_filter("formatted_address", get_formatted_address)
+    register_jinja_filter("formatted_address", get_formatted_address)
 
     # add planning translations directory
     app.config["BABEL_TRANSLATION_DIRECTORIES"] += ";" + os.path.join(_SERVER_PATH, "translations")

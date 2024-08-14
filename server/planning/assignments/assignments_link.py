@@ -6,7 +6,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 from copy import deepcopy
-from flask_babel import _
+from quart_babel import gettext as _
 
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, Service, get_resource_service

@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from eve import Eve
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 
 import superdesk
 

@@ -11,7 +11,7 @@
 from typing import Dict, Any, Optional
 import logging
 
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 from bson import ObjectId
 
 from superdesk.resource_fields import ID_FIELD
