@@ -19,4 +19,4 @@ pytest-env
 
 -e .
 # Install in editable state so we get feature fixtures
--e git+https://github.com/MarkLark/superdesk-core.git@SDESK-7326
+-e git+https://github.com/MarkLark86/superdesk-core.git@SDESK-7326
