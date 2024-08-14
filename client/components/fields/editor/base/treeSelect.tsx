@@ -16,6 +16,7 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     valueAsString?: boolean;
     smallPadding?: boolean;
     sortable?: boolean;
+    cvName?: string;
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -60,7 +61,19 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             viewValues = values;
         }
 
-        return viewValues;
+        let newvalue = viewValues
+    
+        const selectedIds: Array<string> = (values || []).map(
+            (option) => option["qcode"]
+        );
+        let selected = options
+                    .filter((option) => selectedIds.includes(option.value?.qcode))
+                    .map((item) =>Object.assign({scheme: this.props.cvName}, item.value))
+        if (this.props.cvName) {
+            newvalue = selected
+            .filter((val) => val.scheme === this.props.cvName)
+        }
+        return newvalue;
     }
 
     render() {
