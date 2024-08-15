@@ -50,6 +50,7 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                     data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
                 >
                     <EditorFieldTreeSelect
+                        scheme={cv._id}
                         item={item}
                         field={parentField}
                         label={gettext(cv.display_name)}
@@ -57,7 +58,7 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                         allowMultiple={true}
                         cvName={cv._id}
                         sortable={true}
-                        getOptions={() => cv.items.map((item: ISubject) => ({value: Object.assign({scheme: cv._id}, item)}))}
+                        getOptions={() => cv.items.map((item: ISubject) => ({value: {...item, scheme: cv._id}}))}
                         getId={(item: ISubject) => item.qcode}
                         getLabel={(item: ISubject) => (
                             getVocabularyItemNameFromString(

@@ -17,6 +17,7 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     smallPadding?: boolean;
     sortable?: boolean;
     cvName?: string;
+    scheme?: string;
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -31,6 +32,11 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
     }
 
     onChange(values: Array<any>) {
+        let otherCvValues = get(
+            this.props.item,
+            this.props.field,
+            this.props.defaultValue,
+        ).filter((value) => value.scheme != this.props.scheme);
         let newValues = this.props.valueAsString ?
             values.map((item) => this.props.getId(item)) :
             values;
@@ -39,7 +45,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             newValues = newValues[0];
         }
 
-        this.props.onChange(this.props.field, newValues);
+        this.props.onChange(this.props.field, newValues.concat(otherCvValues));
     }
 
     getViewValue() {
@@ -53,6 +59,8 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             values = [values];
         }
 
+        values = values.filter((value) => this.props.scheme == null || value.scheme === this.props.scheme);
+
         if (this.props.valueAsString) {
             viewValues = options
                 .filter((item) => values.includes(this.props.getId(item.value)))
@@ -61,19 +69,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             viewValues = values;
         }
 
-        let newvalue = viewValues
-    
-        const selectedIds: Array<string> = (values || []).map(
-            (option) => option["qcode"]
-        );
-        let selected = options
-                    .filter((option) => selectedIds.includes(option.value?.qcode))
-                    .map((item) =>Object.assign({scheme: this.props.cvName}, item.value))
-        if (this.props.cvName) {
-            newvalue = selected
-            .filter((val) => val.scheme === this.props.cvName)
-        }
-        return newvalue;
+        return viewValues;
     }
 
     render() {
