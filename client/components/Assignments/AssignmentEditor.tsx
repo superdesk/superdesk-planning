@@ -301,6 +301,7 @@ export class AssignmentEditorComponent extends React.Component {
                     <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
                         <div data-test-id={this.FIELDS.USER}>
                             <SelectUser
+                                deskId={this.props.value.assigned_to?.desk ?? null}
                                 selectedUserId = {this.state.userId}
                                 onSelect={(user) => {
                                     this.onUserChange(null, user);
