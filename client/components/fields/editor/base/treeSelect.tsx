@@ -36,7 +36,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             this.props.item,
             this.props.field,
             this.props.defaultValue,
-        ).filter((value) => value.scheme != this.props.scheme);
+        )?.filter((value) => value.scheme != this.props.scheme);
         let newValues = this.props.valueAsString ?
             values.map((item) => this.props.getId(item)) :
             values;
@@ -59,7 +59,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             values = [values];
         }
 
-        values = values.filter((value) => this.props.scheme == null || value.scheme === this.props.scheme);
+        values = values?.filter((value) => this.props.scheme == null || value.scheme === this.props.scheme);
 
         if (this.props.valueAsString) {
             viewValues = options
