@@ -50,6 +50,7 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                     data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
                 >
                     <EditorFieldTreeSelect
+                        filterScheme={(values) => values.filter((value) => cv._id == null || value?.scheme === cv._id)}
                         scheme={cv._id}
                         item={item}
                         field={parentField}
@@ -68,7 +69,15 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                                 language
                             )
                         )}
-                        onChange={onChange}
+                        onChange={(field, value) => {
+                            const otherCvValues = item[parentField] ?? [];
+
+                            const newValues = value.concat(
+                                otherCvValues.filter((value) => value?.scheme != cv._id)
+                            );
+
+                            onChange(field, newValues);
+                        }}
                         errors={errors}
                     />
                 </Row>

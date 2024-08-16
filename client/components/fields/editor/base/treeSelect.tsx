@@ -17,6 +17,7 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     smallPadding?: boolean;
     sortable?: boolean;
     scheme?: string;
+    filterScheme?(value: Array<ITreeNode<T>>): Array<ITreeNode<T>>;
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -39,13 +40,6 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             newValues = newValues[0];
         }
 
-        let otherCvValues = get(this.props.item, this.props.field, this.props.defaultValue);
-
-        if (this.props.valueAsString == null) {
-            newValues = newValues.concat(
-                otherCvValues.filter((value) => value?.scheme != this.props.scheme));
-        }
-
         this.props.onChange(this.props.field, newValues);
     }
 
@@ -60,7 +54,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             values = [values];
         }
 
-        values = values?.filter((value) => this.props.scheme == null || value?.scheme === this.props.scheme);
+        values = this.props.filterScheme ? this.props.filterScheme(values) : values;
 
         if (this.props.valueAsString) {
             viewValues = options
