@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {ISubject, IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps, IProfileSchemaTypeList} from '../../../interfaces';
-import {SelectMetaTermsInput, Row} from '../../UI/Form';
+import {Row} from '../../UI/Form';
 import {getVocabularyItemNameFromString} from '../../../utils/vocabularies';
 import {EditorFieldTreeSelect} from '../editor/base/treeSelect';
 
@@ -56,7 +56,6 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                         label={gettext(cv.display_name)}
                         required={required || schema?.required}
                         allowMultiple={true}
-                        cvName={cv._id}
                         sortable={true}
                         getOptions={() => cv.items.map((item: ISubject) => ({value: {...item, scheme: cv._id}}))}
                         getId={(item: ISubject) => item.qcode}
