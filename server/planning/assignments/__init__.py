@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 from superdesk.services import BaseService
 from .assignments import AssignmentsResource, AssignmentsService
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService

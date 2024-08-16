@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 from .events import EventsResource, EventsService
 from .events_spike import (
     EventsSpikeResource,

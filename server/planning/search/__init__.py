@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 from .planning_search import PlanningSearchResource, PlanningSearchService
 from .eventsplanning_search import EventsPlanningResource, EventsPlanningService
 from .eventsplanning_filters import (

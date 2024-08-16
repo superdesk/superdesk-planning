@@ -14,7 +14,7 @@ from datetime import datetime
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from flask_babel import lazy_gettext
+from quart_babel import lazy_gettext
 from eve.utils import str_to_date, ParsedRequest
 import arrow
 import pytz
