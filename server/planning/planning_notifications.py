@@ -75,9 +75,14 @@ class PlanningNotifications:
             return
 
         can_push_notification = True
-        if target_user:
-            user = superdesk.get_resource_service("users").find_one(req=None, _id=target_user)
-            can_push_notification = True if user is None else get_user_notification_preferences(user)["desktop"]
+
+        assigned_user = (
+            superdesk.get_resource_service("users").find_one(req=None, _id=target_user) if target_user else {}
+        )
+
+        can_push_notification = (
+            True if assigned_user is None else get_user_notification_preferences(assigned_user)["desktop"]
+        )
 
         if target_desk is None and target_user is not None:
             add_activity(
@@ -120,6 +125,10 @@ class PlanningNotifications:
                 "message": _get_slack_message_string(source, data),
             }
             self._notify_slack.apply_async(kwargs=args, serializer="eve/json")
+
+        # No assignment notification sent, if user is not enabled assignment notification
+        if assigned_user and get_user_notification_preferences(assigned_user, "assignments")["email"] is False:
+            return
 
         # send email notification to user
         if (target_user or contact_id) and not data.get("no_email", False):
