@@ -127,7 +127,10 @@ class PlanningNotifications:
             self._notify_slack.apply_async(kwargs=args, serializer="eve/json")
 
         # No assignment notification sent, if user is not enabled assignment notification
-        if assigned_user and get_user_notification_preferences(assigned_user, "assignments")["email"] is False:
+        if (
+            assigned_user
+            and get_user_notification_preferences(assigned_user, "email:notification:assignments")["email"] is False
+        ):
             return
 
         # send email notification to user
