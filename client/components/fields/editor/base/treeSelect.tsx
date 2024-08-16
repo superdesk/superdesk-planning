@@ -31,11 +31,6 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
     }
 
     onChange(values: Array<any>) {
-        let otherCvValues = get(
-            this.props.item,
-            this.props.field,
-            this.props.defaultValue,
-        )?.filter((value) => value?.scheme != this.props.scheme);
         let newValues = this.props.valueAsString ?
             values.map((item) => this.props.getId(item)) :
             values;
@@ -44,7 +39,14 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
             newValues = newValues[0];
         }
 
-        this.props.onChange(this.props.field, newValues.concat(otherCvValues));
+        let otherCvValues = get(this.props.item, this.props.field, this.props.defaultValue);
+
+        if (this.props.valueAsString == null) {
+            newValues = newValues.concat(
+                otherCvValues.filter((value) => value?.scheme != this.props.scheme));
+        }
+
+        this.props.onChange(this.props.field, newValues);
     }
 
     getViewValue() {
