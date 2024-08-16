@@ -51,7 +51,6 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                 >
                     <EditorFieldTreeSelect
                         filterScheme={(values) => values.filter((value) => cv._id == null || value?.scheme === cv._id)}
-                        scheme={cv._id}
                         item={item}
                         field={parentField}
                         label={gettext(cv.display_name)}

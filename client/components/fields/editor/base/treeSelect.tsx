@@ -16,7 +16,6 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     valueAsString?: boolean;
     smallPadding?: boolean;
     sortable?: boolean;
-    scheme?: string;
     filterScheme?(value: Array<ITreeNode<T>>): Array<ITreeNode<T>>;
 }
 
