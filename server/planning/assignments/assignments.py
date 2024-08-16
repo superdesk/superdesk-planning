@@ -351,10 +351,6 @@ class AssignmentsService(superdesk.Service):
         if assigned_to.get("user"):
             assigned_to_user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
 
-        # No assignment notification sent, if user is not enabled assignment notification
-        if assigned_to_user and get_user_notification_preferences(assigned_to_user, "assignments")["email"] is False:
-            return
-
         assignment_id = updates.get("_id") or assigned_to.get("assignment_id", "Unknown")
         if not original:
             original = {}
