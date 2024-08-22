@@ -2,12 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    children?: React.ReactNode;
+    className?: string;
+    noPadding?: boolean;
+}
 /**
  * @ngdoc react
  * @name Content
  * @description Component to hold contents of a popup
  */
-const Content = ({children, className, noPadding}) => (
+const Content = ({children, className, noPadding}: IProps) => (
     <div
         className={classNames(
             'popup__menu-content',
@@ -18,13 +23,5 @@ const Content = ({children, className, noPadding}) => (
         {children}
     </div>
 );
-
-Content.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    noPadding: PropTypes.bool,
-};
-
-Content.defaultProps = {noPadding: false};
 
 export default Content;
