@@ -143,8 +143,8 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const localSuggests = this.props.localSuggests.length > 0 ? this.props.localSuggests : [];
-        const suggests = this.props.suggests.length > 0 ? this.props.suggests : [];
+        const localSuggests = this.props.localSuggests ?? [];
+        const suggests = this.props.suggests ?? [];
         const tabLabels = [(
             <TabLabel
                 key="internal"
