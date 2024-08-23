@@ -22,7 +22,7 @@ export class EditorFieldLocation extends React.PureComponent<IProps> {
                     {...this.props}
                     field={field}
                     label={this.props.label ?? gettext('Location')}
-                    value={get(this.props.item, field, this.props.defaultValue)}
+                    value={this.props.item[field] ?? this.props.defaultValue}
                     disableSearch={!this.props.enableExternalSearch}
                     disableAddLocation={this.props.disableAddLocation}
                     readOnly={this.props.disabled}
