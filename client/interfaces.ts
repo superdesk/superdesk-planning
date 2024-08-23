@@ -389,6 +389,7 @@ export interface IEventLocation {
         lat: number;
         lon: number;
     };
+    translations?: ILocation['translations'];
 }
 
 export interface IItemAction {

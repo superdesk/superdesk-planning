@@ -9,19 +9,24 @@ import {Button} from '../UI';
 import {Location} from '../Location';
 
 import {onEventCapture} from '../../utils';
-import {formatLocationToAddress} from '../../utils/locations';
+import {formatLocationToAddress, getLocationsShortName} from '../../utils/locations';
 
 interface IProps {
     location?: ILocation | IEventLocation;
     active?: boolean;
     readOnly?: boolean;
     onRemoveLocation?(): void;
+    languageCode?: string;
 }
 
 export class LocationItem extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const location = this.props.location;
+
+        const locationNameComputed = this.props.languageCode
+            ? location.translations?.name[`name:${this.props.languageCode}`] ?? location.name
+            : location.name;
 
         return (
             <Item
@@ -33,7 +38,7 @@ export class LocationItem extends React.PureComponent<IProps> {
                 <Column grow={true} border={false}>
                     <Row paddingBottom>
                         <Location
-                            name={this.props.location.name}
+                            name={locationNameComputed}
                             address={formatLocationToAddress(this.props.location)}
                             multiLine={true}
                             details={get(location, 'details[0]')}
