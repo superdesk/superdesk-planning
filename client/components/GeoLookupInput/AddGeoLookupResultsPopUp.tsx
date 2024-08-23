@@ -80,7 +80,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
 
     handleEnterKey() {
         const {localSuggests, suggests} = this.props;
-        const localSuggestLen = localSuggests.length ?? 0;
+        const localSuggestLen = localSuggests?.length ?? 0;
 
         if (this.state.activeOptionIndex > -1) {
             if (this.state.activeOptionIndex < (localSuggests.length ?? -1)) {
@@ -102,8 +102,8 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
     handleDownArrowKey() {
         if (this.state.activeOptionIndex <
             (1 + // External search button
-            (this.props.localSuggests.length ?? 0) +
-            (this.props.suggests.length ?? 0)) - 1
+            (this.props.localSuggests?.length ?? 0) +
+            (this.props.suggests?.length ?? 0)) - 1
         ) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex + 1});
 
