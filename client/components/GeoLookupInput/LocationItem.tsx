@@ -9,7 +9,7 @@ import {Button} from '../UI';
 import {Location} from '../Location';
 
 import {onEventCapture} from '../../utils';
-import {formatLocationToAddress, getLocationsShortName} from '../../utils/locations';
+import {formatLocationToAddress} from '../../utils/locations';
 
 interface IProps {
     location?: ILocation | IEventLocation;
@@ -41,7 +41,7 @@ export class LocationItem extends React.PureComponent<IProps> {
                             name={locationNameComputed}
                             address={formatLocationToAddress(this.props.location)}
                             multiLine={true}
-                            details={get(location, 'details[0]')}
+                            details={location.details?.[0]}
                         />
                         <ActionMenu className="pull-right">
                             {(this.props.readOnly || this.props.onRemoveLocation == null) ? null : (
