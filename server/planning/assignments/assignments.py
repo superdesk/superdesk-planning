@@ -412,11 +412,7 @@ class AssignmentsService(superdesk.Service):
         else:
             # Create the ICS object to be added to the email usable in google calendar.
             ical = Calendar()
-            scheduled_time = (
-                event_item["dates"]["start"]
-                if event_item and app.config.get("ASSIGNMENT_MAIL_CALENDAR_SHOW_EVENT_START_TIME", False)
-                else assignment["planning"]["scheduled"]
-            )
+            scheduled_time = assignment["planning"]["scheduled"]
             app_name = app.config["APPLICATION_NAME"]
             org_name = app.config.get("ORGANIZATION_NAME_ABBREVIATION") or app.config["ORGANIZATION_NAME"]
             language = app.config["DEFAULT_LANGUAGE"].upper()
@@ -434,8 +430,16 @@ class AssignmentsService(superdesk.Service):
             event = Event()
             event["UID"] = UID
             event["CLASS"] = "PUBLIC"
-            event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
-            event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
+            # Use Event start and End time based on Config
+            if app.config.get("ASSIGNMENT_MAIL_ICAL_USE_EVENT_DATES") and event_item:
+                event_dates = event_item["dates"]
+                event["DTSTART"] = event_dates["start"].strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = event_dates["end"].strftime("%Y%m%dT%H%M%SZ")
+            else:
+                event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
             event[f"SUMMARY;LANGUAGE={language}"] = summary
             event["DESCRIPTION"] = assignment.get("description_text", "")
             event["PRIORITY"] = priority
