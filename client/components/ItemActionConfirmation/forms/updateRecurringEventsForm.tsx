@@ -78,7 +78,7 @@ function getRecurringPlanningToUpdate(
     const originalCoverages: IPlanningEmbeddedCoverageMap = (original.planning_ids || [])
         .map((planningId) => plannings[planningId])
         .reduce((planningItems, planningItem) => {
-            planningItems[planningItem._id] = (planningItem.coverages ?? []).reduce(
+            planningItems[planningItem?._id] = (planningItem?.coverages ?? []).reduce(
                 (embeddedCoverages, coverage) => {
                     embeddedCoverages[coverage.coverage_id] = eventUtils.convertCoverageToEventEmbedded(coverage);
 
