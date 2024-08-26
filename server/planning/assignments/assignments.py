@@ -412,7 +412,11 @@ class AssignmentsService(superdesk.Service):
         else:
             # Create the ICS object to be added to the email usable in google calendar.
             ical = Calendar()
-            scheduled_time = assignment["planning"]["scheduled"]
+            scheduled_time = (
+                event_item["dates"]["start"]
+                if event_item and app.config.get("ASSIGNMENT_MAIL_CALENDAR_SHOW_EVENT_START_TIME", False)
+                else assignment["planning"]["scheduled"]
+            )
             app_name = app.config["APPLICATION_NAME"]
             org_name = app.config.get("ORGANIZATION_NAME_ABBREVIATION") or app.config["ORGANIZATION_NAME"]
             language = app.config["DEFAULT_LANGUAGE"].upper()
