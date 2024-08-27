@@ -718,6 +718,11 @@ const openIgnoreCancelSaveModal = ({
             selectors.planning.storedPlannings(getState());
         const item = get(storedItems, itemId) || {};
 
+        if (itemType === ITEM_TYPE.EVENT) {
+            // Load associated plannings so they can be used later
+            dispatch(eventsApi.loadAssociatedPlannings(item));
+        }
+
         if (!isExistingItem(item)) {
             delete item._id;
         }
