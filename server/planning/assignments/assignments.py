@@ -430,8 +430,16 @@ class AssignmentsService(superdesk.Service):
             event = Event()
             event["UID"] = UID
             event["CLASS"] = "PUBLIC"
-            event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
-            event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
+            # Use Event start and End time based on Config
+            if app.config.get("ASSIGNMENT_MAIL_ICAL_USE_EVENT_DATES") and event_item:
+                event_dates = event_item["dates"]
+                event["DTSTART"] = event_dates["start"].strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = event_dates["end"].strftime("%Y%m%dT%H%M%SZ")
+            else:
+                event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
             event[f"SUMMARY;LANGUAGE={language}"] = summary
             event["DESCRIPTION"] = assignment.get("description_text", "")
             event["PRIORITY"] = priority
