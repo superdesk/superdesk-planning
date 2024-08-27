@@ -472,8 +472,10 @@ class AssignmentsService(superdesk.Service):
         formatted_contacts = get_formatted_contacts(event_item) if event_item else []
         fomatted_event_date = get_event_formatted_dates(event_item) if event_item else ""
 
-        event_item = update_event_item_with_translations_value(
-            event_item, assignment.get("planning", {}).get("language")
+        event_item = (
+            update_event_item_with_translations_value(event_item, assignment.get("planning", {}).get("language"))
+            if event_item
+            else None
         )
 
         # The assignment is to an external contact or a user
