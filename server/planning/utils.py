@@ -100,3 +100,14 @@ def get_event_formatted_dates(event: Dict[str, Any]) -> str:
         return "{} {}".format(time_short(start, tz), date_short(start, tz))
 
     return "{} - {}, {}".format(time_short(start, tz), time_short(end, tz), date_short(start, tz))
+
+
+def update_event_item_with_translations_value(event_item: Dict[str, Any], language: str) -> Dict[str, Any]:
+    if not event_item.get("translations") or not language:
+        return event_item
+    updated_event_item = event_item.copy()
+    for translation in event_item["translations"]:
+        if translation["language"] == language:
+            updated_event_item[translation["field"]] = translation["value"]
+
+    return updated_event_item

@@ -67,7 +67,7 @@ from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
-from planning.utils import get_event_formatted_dates, get_formatted_contacts
+from planning.utils import get_event_formatted_dates, get_formatted_contacts, update_event_item_with_translations_value
 from superdesk.preferences import get_user_notification_preferences
 
 logger = logging.getLogger(__name__)
@@ -471,6 +471,12 @@ class AssignmentsService(superdesk.Service):
         # get formatted contacts and event date time for email templates
         formatted_contacts = get_formatted_contacts(event_item) if event_item else []
         fomatted_event_date = get_event_formatted_dates(event_item) if event_item else ""
+
+        event_item = (
+            update_event_item_with_translations_value(event_item, assignment.get("planning", {}).get("language"))
+            if event_item
+            else None
+        )
 
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):
