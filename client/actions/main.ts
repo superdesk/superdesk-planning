@@ -1,7 +1,10 @@
 import {get, isEmpty, isEqual, isNil, omit} from 'lodash';
 import moment from 'moment';
 
-import {appConfig} from 'appConfig';
+import {appConfig as config} from 'appConfig';
+
+const appConfig = config as IPlanningConfig;
+
 import {IUser} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {
@@ -18,6 +21,8 @@ import {
     ITEM_TYPE,
     IEventTemplate,
     IEventItem,
+    FILTER_TYPE,
+    IPlanningConfig,
 } from '../interfaces';
 
 import {
@@ -68,6 +73,7 @@ import eventsPlanningUi from './eventsPlanning/ui';
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
 import {searchParamsToOld} from '../utils/search';
+import {searchRawAndStore} from '../api/search';
 
 function openForEdit(item: IEventOrPlanningItem, updateUrl: boolean = true, modal: boolean = false) {
     return (dispatch, getState) => {
@@ -278,22 +284,22 @@ const save = (original, updates, withConfirmation = true) => (
         let confirmation = withConfirmation;
 
         switch (itemType) {
-        case ITEM_TYPE.EVENT:
-            promise = dispatch(eventsUi.save(original, updates, confirmation));
-            confirmation = false;
-            break;
-        case ITEM_TYPE.PLANNING:
-            confirmation = false;
-            promise = dispatch(planningUi.save(original, updates));
-            break;
-        default:
-            promise = Promise.reject(
-                gettext(
-                    'Failed to save, could not find the item {{itemType}}!',
-                    {itemType: itemType}
-                )
-            );
-            break;
+            case ITEM_TYPE.EVENT:
+                promise = dispatch(eventsUi.save(original, updates, confirmation));
+                confirmation = false;
+                break;
+            case ITEM_TYPE.PLANNING:
+                confirmation = false;
+                promise = dispatch(planningUi.save(original, updates));
+                break;
+            default:
+                promise = Promise.reject(
+                    gettext(
+                        'Failed to save, could not find the item {{itemType}}!',
+                        {itemType: itemType}
+                    )
+                );
+                break;
         }
 
         return promise
@@ -329,16 +335,16 @@ const save = (original, updates, withConfirmation = true) => (
                 }
 
                 switch (itemType) {
-                case ITEM_TYPE.EVENT:
-                    dispatch(
-                        eventsApi.receiveEvents([savedItem])
-                    );
-                    break;
-                case ITEM_TYPE.PLANNING:
-                    dispatch(
-                        planningApis.receivePlannings([savedItem])
-                    );
-                    break;
+                    case ITEM_TYPE.EVENT:
+                        dispatch(
+                            eventsApi.receiveEvents([savedItem])
+                        );
+                        break;
+                    case ITEM_TYPE.PLANNING:
+                        dispatch(
+                            planningApis.receivePlannings([savedItem])
+                        );
+                        break;
                 }
 
                 return Promise.resolve(savedItem);
@@ -366,22 +372,22 @@ const unpost = (original, updates = {}, withConfirmation = true) => (
         updates.pubstatus = POST_STATE.CANCELLED;
 
         switch (getItemType(original)) {
-        case ITEM_TYPE.EVENT:
-            confirmation = withConfirmation &&
-                (get(original, 'recurrence_id') || eventUtils.eventHasPlanning(original));
-            promise = dispatch(confirmation ?
-                eventsUi.postWithConfirmation(original, updates, false) :
-                eventsApi.unpost(original, updates)
-            );
-            break;
-        case ITEM_TYPE.PLANNING:
-            confirmation = false;
-            promise = dispatch(planningApis.unpost(original, updates));
-            break;
-        default:
-            promise = Promise.reject(
-                gettext('Failed to unpost, could not find the item type!')
-            );
+            case ITEM_TYPE.EVENT:
+                confirmation = withConfirmation &&
+                    (get(original, 'recurrence_id') || eventUtils.eventHasPlanning(original));
+                promise = dispatch(confirmation ?
+                    eventsUi.postWithConfirmation(original, updates, false) :
+                    eventsApi.unpost(original, updates)
+                );
+                break;
+            case ITEM_TYPE.PLANNING:
+                confirmation = false;
+                promise = dispatch(planningApis.unpost(original, updates));
+                break;
+            default:
+                promise = Promise.reject(
+                    gettext('Failed to unpost, could not find the item type!')
+                );
         }
 
         const typeString = getItemTypeString(original);
@@ -422,29 +428,29 @@ const post = (original, updates = {}, withConfirmation = true) => (
         updates.pubstatus = POST_STATE.USABLE;
 
         switch (getItemType(original)) {
-        case ITEM_TYPE.EVENT:
-            confirmation = withConfirmation && get(original, 'recurrence_id');
-            promise = dispatch(confirmation ?
-                eventsUi.postWithConfirmation(original, updates, true) :
-                eventsApi.post(original, updates)
-            );
-            break;
-        case ITEM_TYPE.PLANNING:
-            confirmation = false;
-            promise = dispatch(eventsUi.openEventPostModal(
-                original,
-                updates,
-                true,
-                null,
-                {},
-                original,
-                planningApis.post.bind(null, original, updates)));
-            break;
-        default:
-            promise = Promise.reject(
-                gettext('Failed to post, could not find the item type!')
-            );
-            break;
+            case ITEM_TYPE.EVENT:
+                confirmation = withConfirmation && get(original, 'recurrence_id');
+                promise = dispatch(confirmation ?
+                    eventsUi.postWithConfirmation(original, updates, true) :
+                    eventsApi.post(original, updates)
+                );
+                break;
+            case ITEM_TYPE.PLANNING:
+                confirmation = false;
+                promise = dispatch(eventsUi.openEventPostModal(
+                    original,
+                    updates,
+                    true,
+                    null,
+                    {},
+                    original,
+                    planningApis.post.bind(null, original, updates)));
+                break;
+            default:
+                promise = Promise.reject(
+                    gettext('Failed to post, could not find the item type!')
+                );
+                break;
         }
 
         const typeString = getItemTypeString(original);
@@ -716,12 +722,7 @@ const openIgnoreCancelSaveModal = ({
         const storedItems = itemType === ITEM_TYPE.EVENT ?
             selectors.events.storedEvents(getState()) :
             selectors.planning.storedPlannings(getState());
-        const item = get(storedItems, itemId) || {};
-
-        if (itemType === ITEM_TYPE.EVENT) {
-            // Load associated plannings so they can be used later
-            dispatch(eventsApi.loadAssociatedPlannings(item));
-        }
+        const item = storedItems[itemId] ?? {};
 
         if (!isExistingItem(item)) {
             delete item._id;
@@ -732,17 +733,18 @@ const openIgnoreCancelSaveModal = ({
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
             const originalEvent = get(storedItems, itemId, {});
 
-            promise = dispatch(eventsApi.query({
-                recurrenceId: originalEvent.recurrence_id,
-                maxResults: appConfig.max_recurrent_events,
-                onlyFuture: false,
-            }))
-                .then((relatedEvents) => ({
-                    ...item,
-                    _recurring: relatedEvents || [item],
-                    _events: [],
-                    _originalEvent: originalEvent,
-                }));
+            promise = dispatch(searchRawAndStore<Array<IEventOrPlanningItem>>({
+                repo: FILTER_TYPE.COMBINED,
+                recurrence_id: originalEvent.recurrence_id,
+                max_results: appConfig.max_recurrent_events,
+                only_future: false,
+                include_associated_planning: true,
+            })).then((relatedEvents) => ({
+                ...item,
+                _recurring: relatedEvents.filter((item) => item.type === 'event') ?? [item],
+                _events: [],
+                _originalEvent: originalEvent,
+            }));
         }
 
         return promise.then((itemWithAssociatedData) => (
@@ -1205,8 +1207,10 @@ const openFromLockActions = () => (
             if (action) {
                 /* get the item we're operating on */
                 dispatch(self.fetchById(sessionLastLock.item_id, sessionLastLock.item_type)).then((item) => {
-                    actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: false,
-                        planningOnly: false})[action[0].actionName](item, false, false);
+                    actionUtils.getActionDispatches({
+                        dispatch: dispatch, eventOnly: false,
+                        planningOnly: false
+                    })[action[0].actionName](item, false, false);
                 });
             }
         }
@@ -1331,12 +1335,12 @@ const fetchItemHistory = (item) => (
         }
 
         switch (getItemType(item)) {
-        case ITEM_TYPE.EVENT:
-            historyDispatch = eventsApi.fetchEventHistory;
-            break;
-        case ITEM_TYPE.PLANNING:
-            historyDispatch = planningApis.fetchPlanningHistory;
-            break;
+            case ITEM_TYPE.EVENT:
+                historyDispatch = eventsApi.fetchEventHistory;
+                break;
+            case ITEM_TYPE.PLANNING:
+                historyDispatch = planningApis.fetchPlanningHistory;
+                break;
         }
 
         return dispatch(historyDispatch(item._id)).then((historyItems) => {
@@ -1465,7 +1469,7 @@ function onItemUnlocked(
             }));
 
             if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(state)
-                    === WORKSPACE.AUTHORING) {
+                === WORKSPACE.AUTHORING) {
                 dispatch(self.closePreviewAndEditorForItems([item]));
             }
         }
@@ -1628,16 +1632,16 @@ const saveAndUnlockItem = (original, updates, ignoreRecurring = false) => (
                 savedItem = modifyForClient(savedItem);
 
                 switch (getItemType(original)) {
-                case ITEM_TYPE.EVENT:
-                    dispatch(
-                        eventsApi.receiveEvents([savedItem])
-                    );
-                    break;
-                case ITEM_TYPE.PLANNING:
-                    dispatch(
-                        planningApis.receivePlannings([savedItem])
-                    );
-                    break;
+                    case ITEM_TYPE.EVENT:
+                        dispatch(
+                            eventsApi.receiveEvents([savedItem])
+                        );
+                        break;
+                    case ITEM_TYPE.PLANNING:
+                        dispatch(
+                            planningApis.receivePlannings([savedItem])
+                        );
+                        break;
                 }
 
                 return planningApi.locks.unlockItem(get(savedItem, '[0]', savedItem))

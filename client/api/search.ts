@@ -1,10 +1,10 @@
-import {ISearchAPIParams, ISearchParams} from '../interfaces';
+import {IEventOrPlanningItem, ISearchAPIParams, ISearchParams} from '../interfaces';
 import {superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {getDateTimeElasticFormat, getTimeZoneOffset} from '../utils';
 import {default as timeUtils} from '../utils/time';
 import {appConfig} from 'appConfig';
-
+import planningApi from "../actions/planning/api";
 
 export function cvsToString(items?: Array<{[key: string]: any}>, field: string = 'qcode'): string {
     return arrayToString(
@@ -75,6 +75,22 @@ export function searchRaw<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T
         excludeNullParams(args)
     );
 }
+
+export const searchRawAndStore = <T extends Array<IEventOrPlanningItem>>(args: ISearchAPIParams) => (
+    (dispatch: any): Promise<IRestApiResponse<T>> => superdeskApi.dataApi.queryRawJson<IRestApiResponse<T>>(
+        'events_planning_search',
+        excludeNullParams(args)
+    ).then((res) => {
+        if (args.include_associated_planning) {
+            const relatedPlans = res._items.filter((item) => item.type === 'planning');
+
+            dispatch(planningApi.receivePlannings(relatedPlans));
+        }
+
+        return res;
+    })
+)
+
 
 export function searchRawGetAll<T>(args: ISearchAPIParams): Promise<Array<T>> {
     const params = excludeNullParams(args);
