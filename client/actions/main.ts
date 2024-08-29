@@ -731,11 +731,9 @@ const openIgnoreCancelSaveModal = ({
         let promise = Promise.resolve(item);
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
-            const originalEvent = get(storedItems, itemId, {});
-
             promise = dispatch(searchRawAndStore<Array<IEventOrPlanningItem>>({
                 repo: FILTER_TYPE.COMBINED,
-                recurrence_id: originalEvent.recurrence_id,
+                recurrence_id: item.recurrence_id,
                 max_results: appConfig.max_recurrent_events,
                 only_future: false,
                 include_associated_planning: true,
@@ -743,7 +741,7 @@ const openIgnoreCancelSaveModal = ({
                 ...item,
                 _recurring: relatedEvents.filter((item) => item.type === 'event') ?? [item],
                 _events: [],
-                _originalEvent: originalEvent,
+                _originalEvent: item,
             }));
         }
 
