@@ -1,4 +1,5 @@
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../../support/common';
+import moment from 'moment';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../../support/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../../support/planning';
 
 describe('Planning.Planning: edit metadata', () => {
@@ -20,7 +21,7 @@ describe('Planning.Planning: edit metadata', () => {
     it('can create a Planning item', () => {
         const plan = {
             slugline: 'slugline of the planning',
-            'planning_date.date': '12/12/2045',
+            'planning_date.date': moment().format(CLIENT_FORMAT),
             'planning_date.time': '12:13',
             description_text: 'Desc. Text',
             internal_note: 'Int. Note',
@@ -38,7 +39,7 @@ describe('Planning.Planning: edit metadata', () => {
             ednote: 'something to write about',
             internal_note: 'internal to us',
             news_coverage_status: 'On merit',
-            'scheduled.date': '12/12/2045',
+            'scheduled.date': moment().format(CLIENT_FORMAT),
             'scheduled.time': '13:15',
         }];
 
@@ -66,7 +67,7 @@ describe('Planning.Planning: edit metadata', () => {
     it('can add coverage to workflow', () => {
         editor.type({
             slugline: 'Plan',
-            'planning_date.date': '12/12/2045',
+            'planning_date.date': moment().format(CLIENT_FORMAT),
             'planning_date.time': '12:13',
         });
         editor.addCoverage('Picture');
@@ -95,7 +96,7 @@ describe('Planning.Planning: edit metadata', () => {
     it('not_for_publication flag will not enable post button', () => {
         const plan = {
             slugline: 'slugline of the planning',
-            'planning_date.date': '12/12/2045',
+            'planning_date.date': moment().format(CLIENT_FORMAT),
             'planning_date.time': '12:13',
         };
 
@@ -149,7 +150,7 @@ describe('Planning.Planning: edit metadata', () => {
         editor.expectItemType();
         editor.type({
             slugline: 'slugline of the planning',
-            'planning_date.date': '12/12/2045',
+            'planning_date.date': moment().format(CLIENT_FORMAT),
             'planning_date.time': '12:13',
         });
 

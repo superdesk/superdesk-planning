@@ -10,13 +10,14 @@
 
 """Superdesk Events"""
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Tuple
 import superdesk
 import logging
 import itertools
 import copy
 import pytz
 import re
+from datetime import timedelta
 from eve.methods.common import resolve_document_etag
 from eve.utils import config, date_to_str
 from flask import current_app as app
@@ -39,13 +40,14 @@ from dateutil.rrule import (
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML, CONTENT_STATE
+from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from superdesk.utc import get_date, utcnow
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 from superdesk.users.services import current_user_has_privilege
-from .events_base_service import EventsBaseService
+
+from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem
 from planning.common import (
     UPDATE_SINGLE,
     UPDATE_FUTURE,
@@ -65,8 +67,11 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
+    TEMP_ID_PREFIX,
 )
+from .events_base_service import EventsBaseService
 from .events_schema import events_schema
+from .events_sync import sync_event_metadata_with_planning_items
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +87,41 @@ organizer_roles = {
 }
 
 
+def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
+    def get_coverage_id(coverage: EmbeddedCoverageItem) -> str:
+        if not coverage.get("coverage_id"):
+            coverage["coverage_id"] = TEMP_ID_PREFIX + "-" + generate_guid(type=GUID_NEWSML)
+        return coverage["coverage_id"]
+
+    return [
+        EmbeddedPlanning(
+            planning_id=planning.get("planning_id"),
+            update_method=planning.get("update_method") or "single",
+            coverages={get_coverage_id(coverage): coverage for coverage in planning.get("coverages") or []},
+        )
+        for planning in event.pop("embedded_planning", [])
+    ]
+
+
+def get_subject_str(subject: Dict[str, str]) -> str:
+    return ":".join(
+        [
+            subject.get("name", ""),
+            subject.get("qcode", ""),
+            subject.get("scheme", ""),
+            str(subject.get("translations", "")),
+        ]
+    )
+
+
+def is_event_updated(new_item: Event, old_item: Event) -> bool:
+    if new_item.get("name") != old_item.get("name"):
+        return True
+    new_subject = set([get_subject_str(subject) for subject in new_item.get("subject", [])])
+    old_subject = set([get_subject_str(subject) for subject in old_item.get("subject", [])])
+    return new_subject != old_subject
+
+
 class EventsService(superdesk.Service):
     """Service class for the events model."""
 
@@ -90,7 +130,6 @@ class EventsService(superdesk.Service):
 
         for doc in docs:
             self._resolve_defaults(doc)
-            doc.pop("pubstatus", None)
             set_ingest_version_datetime(doc)
 
         self.on_create(docs)
@@ -109,7 +148,7 @@ class EventsService(superdesk.Service):
         return response
 
     def is_new_version(self, new_item, old_item):
-        return is_new_version(new_item, old_item)
+        return is_new_version(new_item, old_item) or is_event_updated(new_item, old_item)
 
     def ingest_cancel(self, item, feeding_service):
         """Ignore cancelling on ingest, this will happen in ``update_post_item``"""
@@ -184,7 +223,10 @@ class EventsService(superdesk.Service):
 
             # SDCP-638
             if not event.get("language"):
-                event["language"] = app.config["DEFAULT_LANGUAGE"]
+                try:
+                    event["language"] = event["languages"][0]
+                except (KeyError, IndexError):
+                    event["language"] = app.config["DEFAULT_LANGUAGE"]
 
             # family_id get on ingest we don't need it planning
             event.pop("family_id", None)
@@ -222,7 +264,7 @@ class EventsService(superdesk.Service):
                 recurring_events = generate_recurring_events(event)
                 generated_events.extend(recurring_events)
                 # remove the event that contains the recurring rule. We don't need it anymore
-                docs.remove(event)
+                docs.remove(event)  # todo: why we remove that event and not update it?
 
                 # Set the current Event to the first Event in the new series
                 # This will make sure the ID of the Event can be used when
@@ -242,6 +284,27 @@ class EventsService(superdesk.Service):
 
         if generated_events:
             docs.extend(generated_events)
+
+    def create(self, docs: List[Event], **kwargs):
+        """Saves the list of Events to Mongo & Elastic
+
+        Also extracts out the ``embedded_planning`` before saving the Event(s)
+        And then uses them to synchronise/process the associated Planning item(s)
+        """
+
+        embedded_planning_lists: List[Tuple[Event, List[EmbeddedPlanning]]] = []
+        for event in docs:
+            embedded_planning = get_events_embedded_planning(event)
+            if len(embedded_planning):
+                embedded_planning_lists.append((event, embedded_planning))
+
+        ids = self.backend.create(self.datasource, docs, **kwargs)
+
+        if len(embedded_planning_lists):
+            for event, embedded_planning in embedded_planning_lists:
+                sync_event_metadata_with_planning_items(None, event, embedded_planning)
+
+        return ids
 
     def validate_event(self, updates, original=None):
         """Validate the event
@@ -389,8 +452,22 @@ class EventsService(superdesk.Service):
         return True, ""
 
     def update(self, id, updates, original):
+        """Updated the Event in Mongo & Elastic
+
+        Also extracts out the ``embedded_planning`` before saving the Event
+        And then uses them to synchronise/process the associated Planning item(s)
+        """
+
         updates.setdefault("versioncreated", utcnow())
+
+        # Extract the ``embedded_planning`` from the updates
+        embedded_planning = get_events_embedded_planning(updates)
+
         item = self.backend.update(self.datasource, id, updates, original)
+
+        # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
+        sync_event_metadata_with_planning_items(original, updates, embedded_planning)
+
         return item
 
     def on_update(self, updates, original):
@@ -585,6 +662,9 @@ class EventsService(superdesk.Service):
                 # It is validated if the previous funciton did not raise an error
                 mark_complete_validated = True
 
+            # Remove ``embedded_planning`` before updating this event, as this should only be handled
+            # by the event provided to this update request
+            new_updates.pop("embedded_planning", None)
             self.patch(event_id, new_updates)
             app.on_updated_events(new_updates, {"_id": event_id})
 
@@ -622,7 +702,7 @@ class EventsService(superdesk.Service):
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
         self._validate_convert_to_recurring(updates, original)
-        updates["recurrence_id"] = generate_guid(type=GUID_NEWSML)
+        updates["recurrence_id"] = original["_id"]
 
         merged = copy.deepcopy(original)
         merged.update(updates)
@@ -630,7 +710,7 @@ class EventsService(superdesk.Service):
         # Generated new events will be "draft"
         merged[ITEM_STATE] = WORKFLOW_STATE.DRAFT
 
-        generated_events = generate_recurring_events(merged)
+        generated_events = generate_recurring_events(merged, updates["recurrence_id"])
         updated_event = generated_events.pop(0)
 
         # Check to see if the first generated event is different from original
@@ -734,6 +814,15 @@ class EventsService(superdesk.Service):
             events_using_file = self.find(where={"files": file})
             if events_using_file.count() == 0:
                 files_service.delete_action(lookup={"_id": file})
+
+    def should_update(self, old_item, new_item, provider):
+        return old_item is None or not any(
+            [
+                old_item.get("version_creator"),
+                old_item.get("pubstatus") == "cancelled",
+                old_item.get("state") == "killed",
+            ]
+        )
 
 
 class EventsResource(superdesk.Resource):
@@ -862,15 +951,14 @@ def setRecurringMode(event):
 
 def overwrite_event_expiry_date(event):
     if "expiry" in event:
-        event["expiry"] = event["dates"]["end"]
+        expiry_minutes = app.settings.get("PLANNING_EXPIRY_MINUTES", None)
+        event["expiry"] = event["dates"]["end"] + timedelta(minutes=expiry_minutes or 0)
 
 
-def generate_recurring_events(event):
+def generate_recurring_events(event, recurrence_id=None):
     generated_events = []
     setRecurringMode(event)
-
-    # Get the recurrence_id, or generate one if it doesn't exist
-    recurrence_id = event.get("recurrence_id", generate_guid(type=GUID_NEWSML))
+    embedded_planning_added = False
 
     # compute the difference between start and end in the original event
     time_delta = event["dates"]["end"] - event["dates"]["start"]
@@ -889,10 +977,18 @@ def generate_recurring_events(event):
 
         # Remove fields not required by the new events
         for key in list(new_event.keys()):
-            if key.startswith("_"):
+            if key.startswith("_") or key.startswith("lock_"):
                 new_event.pop(key)
-            elif key.startswith("lock_"):
-                new_event.pop(key)
+            elif key == "embedded_planning":
+                if not embedded_planning_added:
+                    # If this is the first Event in the series, then keep
+                    # the ``embedded_planning`` field for processing later
+                    embedded_planning_added = True
+                else:
+                    # Otherwise remove the ``embedded_planning`` from all other Events
+                    # in the series
+                    new_event.pop("embedded_planning")
+
         new_event.pop("pubstatus", None)
         new_event.pop("reschedule_from", None)
 
@@ -902,6 +998,8 @@ def generate_recurring_events(event):
         new_event["guid"] = generate_guid(type=GUID_NEWSML)
         new_event["_id"] = new_event["guid"]
         # set the recurrence id
+        if not recurrence_id:
+            recurrence_id = new_event["guid"]
         new_event["recurrence_id"] = recurrence_id
 
         # set expiry date

@@ -12,10 +12,9 @@ const BASE_PLANNING = {
 };
 
 export const TEST_PLANNINGS = {
-    draft: {
+    draft: getPlanningForDate(getDateStringFor.today(), {
         ...BASE_PLANNING,
         slugline: 'Original',
-        planning_date: '2045-12-11' + TIME_STRINGS[1],
         anpa_category: [
             {name: 'Overseas Sport', qcode: 's'},
             {name: 'International News', qcode: 'i'},
@@ -24,38 +23,36 @@ export const TEST_PLANNINGS = {
             {qcode: '01001000', name: 'archaeology', parent: '01000000'},
             {qcode: '01011000', name: 'music', parent: '01000000'},
         ],
-    },
-    spiked: {
+    }),
+    spiked: getPlanningForDate(getDateStringFor.today(), {
         ...BASE_PLANNING,
         slugline: 'Spiker',
-        planning_date: '2045-12-11' + TIME_STRINGS[1],
         state: 'spiked',
-    },
-    featured: {
+    }),
+    featured: getPlanningForDate(getDateStringFor.today(), {
         ...BASE_PLANNING,
         slugline: 'Featured Planning',
-        planning_date: '2045-12-12' + TIME_STRINGS[1],
         featured: true,
-    },
+    }),
     plan_date_01_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 1',
-        planning_date: '2045-01-31' + TIME_STRINGS[1],
+        planning_date: '2045-02-01T01:00:00+0000',
     },
     plan_date_02_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 2',
-        planning_date: '2045-02-01' + TIME_STRINGS[1],
+        planning_date: '2045-02-02T01:00:00+0000',
     },
     plan_date_03_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 3',
-        planning_date: '2045-02-02' + TIME_STRINGS[1],
+        planning_date: '2045-02-03T01:00:00+0000',
     },
     plan_date_04_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 4',
-        planning_date: '2045-02-03' + TIME_STRINGS[1],
+        planning_date: '2045-02-04T01:00:00+0000',
     },
 };
 

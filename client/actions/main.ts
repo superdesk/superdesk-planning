@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import {appConfig} from 'appConfig';
 import {IUser} from 'superdesk-api';
-import {planningApi as planningApis, superdeskApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 import {
     EDITOR_TYPE,
     ICombinedEventOrPlanningSearchParams,
@@ -17,6 +17,7 @@ import {
     IWebsocketMessageData,
     ITEM_TYPE,
     IEventTemplate,
+    IEventItem,
 } from '../interfaces';
 
 import {
@@ -32,7 +33,7 @@ import {
 } from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
-import planningApi from './planning/api';
+import planningApis from './planning/api';
 import eventsUi from './events/ui';
 import eventsApi from './events/api';
 import autosave from './autosave';
@@ -60,7 +61,7 @@ import {
     shouldUnLockItem,
     timeUtils
 } from '../utils';
-import {hideModal, locks, showModal} from './';
+import {hideModal, showModal} from './';
 import {fetchSelectedAgendaPlannings} from './agenda';
 import eventsPlanningUi from './eventsPlanning/ui';
 
@@ -68,8 +69,8 @@ import * as selectors from '../selectors';
 import {validateItem} from '../validators';
 import {searchParamsToOld} from '../utils/search';
 
-const openForEdit = (item, updateUrl = true, modal = false) => (
-    (dispatch, getState) => {
+function openForEdit(item: IEventOrPlanningItem, updateUrl: boolean = true, modal: boolean = false) {
+    return (dispatch, getState) => {
         if (!isExistingItem(item)) {
             return dispatch(
                 self.openEditorAction(item, 'create', updateUrl, modal)
@@ -95,8 +96,8 @@ const openForEdit = (item, updateUrl = true, modal = false) => (
         dispatch(
             self.openEditorAction(item, action, updateUrl, modal)
         );
-    }
-);
+    };
+}
 
 function openEditorAction(
     item: IEventOrPlanningItem,
@@ -176,10 +177,44 @@ const createNew = (itemType, item = null, updateUrl = true, modal = false) => (
     }, 'create', updateUrl, modal)
 );
 
+function getEventsAssociatedItems(template: IEventTemplate): IEventItem['associated_plannings'] | [] {
+    const embeddedPlanning = template.data?.embedded_planning;
+
+    return embeddedPlanning
+        ? embeddedPlanning.map((embedded) => ({
+            _id: generateTempId(),
+            slugline: template.data?.slugline,
+            language: template.data?.language,
+            coverages: embedded.coverages.map((coverage) => ({
+                coverage_id: coverage.coverage_id,
+                planning: {
+                    g2_content_type: coverage.g2_content_type,
+                    scheduled: coverage.scheduled,
+                    language: coverage.language,
+                    genre: coverage.genre ? {qcode: coverage.genre} : undefined,
+                    slugline: coverage.slugline,
+                    ednote: coverage.ednote,
+                    internal_note: coverage.internal_note,
+                },
+                assigned_to: {
+                    desk: coverage.desk,
+                    user: coverage.user,
+                },
+                news_coverage_status: {
+                    qcode: coverage.news_coverage_status,
+                },
+            })),
+        }))
+        : [];
+}
+
 function createEventFromTemplate(template: IEventTemplate) {
     return self.createNew(ITEM_TYPE.EVENT, {
         ...template.data,
-        dates: {},
+        dates: {
+            tz: template.data.dates?.tz
+        },
+        associated_plannings: self.getEventsAssociatedItems(template)
     });
 }
 
@@ -199,7 +234,7 @@ const unlockAndCancel = (item, ignoreSession = false) => (
             selectors.locks.getLockedItems(state),
             ignoreSession
         )) {
-            promise = dispatch(locks.unlock(item));
+            promise = planningApi.locks.unlockItem(item);
             if (isExistingItem(item)) {
                 promise.then(
                     () => dispatch(autosave.removeById(itemType, itemId))
@@ -301,7 +336,7 @@ const save = (original, updates, withConfirmation = true) => (
                     break;
                 case ITEM_TYPE.PLANNING:
                     dispatch(
-                        planningApi.receivePlannings([savedItem])
+                        planningApis.receivePlannings([savedItem])
                     );
                     break;
                 }
@@ -341,7 +376,7 @@ const unpost = (original, updates = {}, withConfirmation = true) => (
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningApi.unpost(original, updates));
+            promise = dispatch(planningApis.unpost(original, updates));
             break;
         default:
             promise = Promise.reject(
@@ -403,7 +438,7 @@ const post = (original, updates = {}, withConfirmation = true) => (
                 null,
                 {},
                 original,
-                planningApi.post.bind(null, original, updates)));
+                planningApis.post.bind(null, original, updates)));
             break;
         default:
             promise = Promise.reject(
@@ -417,7 +452,16 @@ const post = (original, updates = {}, withConfirmation = true) => (
         return promise
             .then(
                 (rtn) => {
-                    if (!confirmation && rtn) {
+                    let failedPlanningIds, item;
+
+                    if (Array.isArray(rtn) && rtn.length === 2) {
+                        [item, {failedPlanningIds}] = rtn;
+                    } else {
+                        item = rtn;
+                        failedPlanningIds = [];
+                    }
+
+                    if (!confirmation && item) {
                         notify.success(
                             gettext(
                                 'The {{ itemType }} has been posted',
@@ -425,8 +469,12 @@ const post = (original, updates = {}, withConfirmation = true) => (
                             )
                         );
                     }
+                    failedPlanningIds?.map((failedItem) => notifyError(
+                        notify,
+                        failedItem,
+                        gettext('Some related planning item post validation failed')));
 
-                    return Promise.resolve(rtn);
+                    return Promise.resolve(item);
                 },
                 (error) => {
                     notifyError(
@@ -529,7 +577,7 @@ const openActionModalFromEditor = (original, title, action) => (
         // This helps to clear the Editor states before performing the action
         const unlockAndSetEditorReadOnly = (itemToUnlock) => (
             Promise.all([
-                dispatch(locks.unlock(itemToUnlock)),
+                planningApi.locks.unlockItem(itemToUnlock),
                 (isOpenInEditor || isOpenInModal) ?
                     dispatch(self.changeEditorAction('read', isOpenInModal)) :
                     Promise.resolve(),
@@ -624,6 +672,18 @@ const openActionModalFromEditor = (original, title, action) => (
     }
 );
 
+interface IOpenIgnoreCancelSaveModalProps {
+    itemId: IEventOrPlanningItem['_id'];
+    itemType: IEventOrPlanningItem['type'];
+    onCancel?(): void;
+    onIgnore(): void;
+    onSave?(): void;
+    onGoTo(): void;
+    onSaveAndPost?(): void;
+    title?: string;
+    autoClose?: boolean;
+}
+
 const openIgnoreCancelSaveModal = ({
     itemId,
     itemType,
@@ -634,7 +694,7 @@ const openIgnoreCancelSaveModal = ({
     onSaveAndPost,
     title,
     autoClose = true,
-}) => (
+}: IOpenIgnoreCancelSaveModalProps) => (
     (dispatch, getState) => {
         const autosaveData = getAutosaveItem(
             selectors.forms.autosaves(getState()),
@@ -656,11 +716,7 @@ const openIgnoreCancelSaveModal = ({
         const storedItems = itemType === ITEM_TYPE.EVENT ?
             selectors.events.storedEvents(getState()) :
             selectors.planning.storedPlannings(getState());
-
-        const item = {
-            ...get(storedItems, itemId) || {},
-            ...autosaveData,
-        };
+        const item = get(storedItems, itemId) || {};
 
         if (!isExistingItem(item)) {
             delete item._id;
@@ -689,7 +745,7 @@ const openIgnoreCancelSaveModal = ({
                 modalType: MODALS.IGNORE_CANCEL_SAVE,
                 modalProps: {
                     item: itemWithAssociatedData,
-                    itemType: itemType,
+                    updates: autosaveData,
                     onCancel: onCancel,
                     onIgnore: onIgnore,
                     onSave: onSave,
@@ -807,24 +863,17 @@ function _filter(filterType: PLANNING_VIEW, params: ICombinedEventOrPlanningSear
         const currentFilterId: ISearchFilter['_id'] = urlParams.getString('eventsPlanningFilter');
 
         if (currentFilterId != undefined || filterType === PLANNING_VIEW.COMBINED) {
-            promise = planningApis.ui.list.changeFilterId(currentFilterId, params);
+            promise = planningApi.ui.list.changeFilterId(currentFilterId, params);
         } else if (filterType === PLANNING_VIEW.EVENTS) {
-            const calendar = urlParams.getString('calendar') ||
-                lastParams?.calendars?.[0] ||
-                (lastParams?.noCalendarAssigned ?
-                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
-                    EVENTS.FILTER.ALL_CALENDARS
-                );
-
-            const calender = $location.search().calendar ||
+            const calendar = $location.search().calendar ||
                 get(lastParams, 'calendars[0]', null) ||
                 (get(lastParams, 'noCalendarAssigned', false) ?
-                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
-                    EVENTS.FILTER.ALL_CALENDARS
+                    {qcode: EVENTS.FILTER.NO_CALENDAR_ASSIGNED} :
+                    {qcode: EVENTS.FILTER.ALL_CALENDARS}
                 );
 
-            promise = planningApis.ui.list.changeCalendarId(
-                calender,
+            promise = planningApi.ui.list.changeCalendarId(
+                calendar.qcode,
                 params
             );
         } else if (filterType === PLANNING_VIEW.PLANNING) {
@@ -835,7 +884,7 @@ function _filter(filterType: PLANNING_VIEW, params: ICombinedEventOrPlanningSear
                     AGENDA.FILTER.ALL_PLANNING
                 );
 
-            promise = planningApis.ui.list.changeAgendaId(
+            promise = planningApi.ui.list.changeAgendaId(
                 searchAgenda,
                 params
             );
@@ -997,7 +1046,7 @@ const closeEditor = (modal = false) => (
             payload: modal,
         });
 
-        planningApis.editor(modal ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE)
+        planningApi.editor(modal ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE)
             .events.onEditorClosed();
 
         if (!modal) {
@@ -1078,7 +1127,7 @@ const fetchById = (itemId, itemType, force = false) => (
             if (itemType === ITEM_TYPE.EVENT) {
                 return dispatch(eventsApi.fetchById(itemId, {force}));
             } else if (itemType === ITEM_TYPE.PLANNING) {
-                return dispatch(planningApi.fetchById(itemId, {force}));
+                return dispatch(planningApis.fetchById(itemId, {force}));
             }
         }
 
@@ -1281,7 +1330,7 @@ const fetchItemHistory = (item) => (
             historyDispatch = eventsApi.fetchEventHistory;
             break;
         case ITEM_TYPE.PLANNING:
-            historyDispatch = planningApi.fetchPlanningHistory;
+            historyDispatch = planningApis.fetchPlanningHistory;
             break;
         }
 
@@ -1365,13 +1414,16 @@ function onItemUnlocked(
     itemType: ITEM_TYPE,
 ) {
     return (dispatch, getState) => {
-        const lockedItems = selectors.locks.getLockedItems(getState());
+        const state = getState();
+        const lockedItems = selectors.locks.getLockedItems(state);
         const itemLock = lockUtils.getLock(item, lockedItems);
-        const sessionId = selectors.general.session(getState()).sessionId;
+        const sessionId = selectors.general.session(state).sessionId;
 
-        const editorItemId = selectors.forms.currentItemId(getState());
-        const editorModalItemId = selectors.forms.currentItemIdModal(getState());
+        const editorItemId = selectors.forms.currentItemId(state);
+        const editorModalItemId = selectors.forms.currentItemIdModal(state);
         const itemId = getItemId(item);
+
+        planningApi.locks.setItemAsUnlocked(data);
 
         if (editorItemId === itemId || editorModalItemId === itemId) {
             dispatch(self.changeEditorAction(
@@ -1385,13 +1437,18 @@ function onItemUnlocked(
             data.lock_session !== sessionId &&
             itemLock.session === sessionId
         ) {
-            const user = selectors.general.users(getState()).find((u) => u._id === data.user);
-            const autoSaves = selectors.forms.autosaves(getState());
+            const user = selectors.general.users(state).find((u) => u._id === data.user);
+            const autoSaves = selectors.forms.autosaves(state);
             const autoSaveInStore = get(autoSaves, `${itemType}['${data.item}']`);
 
             if (autoSaveInStore) {
                 // Delete the changes from the local redux
                 dispatch(autosave.removeLocalAutosave(autoSaveInStore));
+            }
+            if (selectors.general.getActionModalItemId(state) === item._id) {
+                // This item has an action modal open, such as 'Spike <item>'
+                // Close it now, so the 'Item Unlocked' Modal will be the only one in the Modal stack
+                dispatch(hideModal());
             }
 
             dispatch(showModal({
@@ -1402,7 +1459,7 @@ function onItemUnlocked(
                 },
             }));
 
-            if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(getState())
+            if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(state)
                     === WORKSPACE.AUTHORING) {
                 dispatch(self.closePreviewAndEditorForItems([item]));
             }
@@ -1451,7 +1508,7 @@ const fetchQueueItem = (item) => (
                             dispatch(eventsApi.receiveEvents([publishedItem]));
                         } else {
                             planningUtils.modifyForClient(publishedItem);
-                            dispatch(planningApi.receivePlannings([publishedItem]));
+                            dispatch(planningApis.receivePlannings([publishedItem]));
                         }
                     }
                     return Promise.resolve(publishedItem);
@@ -1522,13 +1579,17 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
     (dispatch) => {
         const onCloseModal = (updatedItem) => {
             if (!isItemSpiked(updatedItem) && get(previousLock, 'action')) {
-                if (openInEditor || openInModal) {
-                    return dispatch(
-                        self.openForEdit(updatedItem, !openInModal, openInModal)
-                    );
-                }
-
-                return dispatch(locks.lock(updatedItem, previousLock.action));
+                planningApi.locks.lockItem(updatedItem, previousLock.action)
+                    .then((lockedItem) => {
+                        if (openInEditor || openInModal) {
+                            dispatch(self.openEditorAction(
+                                lockedItem,
+                                'edit',
+                                true,
+                                openInModal
+                            ));
+                        }
+                    });
             }
         };
         const dispatchCall = getItemType(unlockedItem) === ITEM_TYPE.PLANNING ?
@@ -1569,12 +1630,12 @@ const saveAndUnlockItem = (original, updates, ignoreRecurring = false) => (
                     break;
                 case ITEM_TYPE.PLANNING:
                     dispatch(
-                        planningApi.receivePlannings([savedItem])
+                        planningApis.receivePlannings([savedItem])
                     );
                     break;
                 }
 
-                return dispatch(locks.unlock(get(savedItem, '[0]', savedItem)))
+                return planningApi.locks.unlockItem(get(savedItem, '[0]', savedItem))
                     .then((unlockedItem) => Promise.resolve(unlockedItem))
                     .catch(() => {
                         notify.error(gettext('Could not unlock the item.'));
@@ -1644,6 +1705,7 @@ const self = {
     changeEditorAction,
     notifyPreconditionFailed,
     setUnsetUserInitiatedSearch,
+    getEventsAssociatedItems,
 };
 
 export default self;

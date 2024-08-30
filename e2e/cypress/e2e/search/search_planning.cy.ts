@@ -113,22 +113,20 @@ describe('Search.Planning: searching planning items', () => {
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
 
+        list.setDateInterval('Month');
+
         search.runSearchTests([{
             params: {},
-            expectedCount: 7,
+            expectedCount: 3,
             expectedText: [
                 'Plan Today',
                 'Plan Tomorrow',
                 'Plan Next Week',
-                'Plan Feb 1',
-                'Plan Feb 2',
-                'Plan Feb 3',
-                'Plan Feb 4',
             ],
         }, {
             params: {
-                'start_date.date': '12/12/2025',
-                'end_date.date': '12/12/2025',
+                'start_date.date': '12/12/2045',
+                'end_date.date': '12/12/2045',
             },
             expectedCount: 0,
             clearAfter: true,

@@ -49,7 +49,7 @@ export function registerEditorField<ComponentProps extends IEditorFieldProps, St
     props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
     mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
     forwardRef?: boolean
-) {
+): void {
     FIELD_TO_EDITOR_COMPONENT[field] = editorHoc({
         Component,
         props,

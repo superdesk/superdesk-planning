@@ -10,6 +10,7 @@
 
 """Superdesk Assignments"""
 
+from typing import Dict, Any
 import superdesk
 import logging
 from copy import deepcopy
@@ -58,6 +59,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD_SCHEMA,
     update_assignment_on_link_unlink,
     get_notify_self_on_assignment,
+    planning_auto_assign_to_workflow,
 )
 from icalendar import Calendar, Event
 from flask import request, json, current_app as app
@@ -65,6 +67,8 @@ from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
+from planning.utils import get_event_formatted_dates, get_formatted_contacts
+from superdesk.preferences import get_user_notification_preferences
 
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel("planning", type="string"))
@@ -182,8 +186,9 @@ class AssignmentsService(superdesk.Service):
                 updates["assigned_to"] = {}
 
         assigned_to = updates.get("assigned_to") or {}
-        if (assigned_to.get("user") or assigned_to.get("contact")) and not assigned_to.get("desk"):
-            raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
+        if (assigned_to.get("user") or assigned_to.get("contact")) and planning_auto_assign_to_workflow(app):
+            if not assigned_to.get("desk"):
+                raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
         # set the assignment information
         user = get_user()
@@ -254,6 +259,7 @@ class AssignmentsService(superdesk.Service):
         assigned_to = doc.get("assigned_to") or {}
         kwargs = {
             "item": doc.get(config.ID_FIELD),
+            "etag": doc.get("_etag"),
             "coverage": doc.get("coverage_item"),
             "planning": doc.get("planning_item"),
             "assigned_user": assigned_to.get("user"),
@@ -278,8 +284,26 @@ class AssignmentsService(superdesk.Service):
         self.notify("assignments:updated", updates, original)
         self.send_assignment_notification(updates, original)
 
-    def system_update(self, id, updates, original):
-        super().system_update(id, updates, original)
+        # If Desk, User and/or State was changed, then re-publish the Planning item
+        # So that the newly appointed assignee's/state will be pushed to subscribers
+        if self.assignee_details_changed(updates, original):
+            self.publish_planning(original.get("planning_item"))
+
+    def assignee_details_changed(self, updates: Dict[str, Any], original: Dict[str, Any]) -> bool:
+        if "assigned_to" not in updates:
+            return False
+
+        original_assigned_to = original.get("assigned_to") or {}
+        updated_assigned_to = updates["assigned_to"] or {}
+
+        for field in ["user", "desk", "state"]:
+            if original_assigned_to.get(field) != updated_assigned_to.get(field):
+                return True
+
+        return False
+
+    def system_update(self, id, updates, original, **kwargs):
+        rtn = super().system_update(id, updates, original, **kwargs)
         if self.is_assignment_being_activated(updates, original):
             doc = deepcopy(original)
             doc.update(updates)
@@ -291,6 +315,7 @@ class AssignmentsService(superdesk.Service):
             and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
         ):
             app.on_updated_assignments(updates, original)
+        return rtn
 
     def is_assignment_modified(self, updates, original):
         """Checks whether the assignment is modified or not"""
@@ -321,6 +346,11 @@ class AssignmentsService(superdesk.Service):
             return
 
         assigned_to = updates.get("assigned_to", {})
+        assigned_to_user = None
+
+        if assigned_to.get("user"):
+            assigned_to_user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
+
         assignment_id = updates.get("_id") or assigned_to.get("assignment_id", "Unknown")
         if not original:
             original = {}
@@ -348,7 +378,6 @@ class AssignmentsService(superdesk.Service):
                 )
 
         if assignee is None and assigned_to.get("user"):
-            assigned_to_user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
             if assigned_to_user and assigned_to_user.get("slack_username"):
                 assignee = "@" + assigned_to_user.get("slack_username")
             else:
@@ -379,6 +408,7 @@ class AssignmentsService(superdesk.Service):
         # This situation won't be applicable in the production but only for the test cases.
         if not assignment["planning"].get("scheduled"):
             logger.error("Assignment has no scheduled date, cannot create an ICS file")
+            event = {}
         else:
             # Create the ICS object to be added to the email usable in google calendar.
             ical = Calendar()
@@ -430,6 +460,10 @@ class AssignmentsService(superdesk.Service):
             # Add the ICS object to the assignment
             assignment["planning"]["ics_data"] = ical.to_ical()
 
+        # get formatted contacts and event date time for email templates
+        formatted_contacts = get_formatted_contacts(event_item) if event_item else []
+        fomatted_event_date = get_event_formatted_dates(event_item) if event_item else ""
+
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):
             # If it is a reassignment
@@ -450,6 +484,9 @@ class AssignmentsService(superdesk.Service):
                         event=event_item,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
                     # notify the desk
                     if assigned_to.get("desk"):
@@ -466,6 +503,9 @@ class AssignmentsService(superdesk.Service):
                             event=event_item,
                             omit_user=True,
                             is_link=True,
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
 
                 else:
@@ -502,6 +542,9 @@ class AssignmentsService(superdesk.Service):
                             omit_user=True,
                             is_link=True,
                             contact_id=assigned_to.get("contact"),
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
                     else:
                         # it is being reassigned by someone else so notify both the new assignee and the old
@@ -524,6 +567,9 @@ class AssignmentsService(superdesk.Service):
                             omit_user=True,
                             is_link=True,
                             contact_id=original.get("assigned_to").get("contact"),
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
                         # notify the assignee
                         assigned_from = original.get("assigned_to")
@@ -547,6 +593,9 @@ class AssignmentsService(superdesk.Service):
                             omit_user=True,
                             is_link=True,
                             contact_id=assigned_to.get("contact"),
+                            contacts=formatted_contacts,
+                            location=event.get("LOCATION", ""),
+                            event_date_time=fomatted_event_date,
                         )
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
@@ -569,6 +618,9 @@ class AssignmentsService(superdesk.Service):
                         omit_user=True,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
         else:  # Assigned/Reassigned to a desk, notify all desk members
             # if it was assigned to a desk before, test if there has been a change of desk
@@ -597,6 +649,9 @@ class AssignmentsService(superdesk.Service):
                         omit_user=True,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
                 else:
                     PlanningNotifications().notify_assignment(
@@ -614,6 +669,9 @@ class AssignmentsService(superdesk.Service):
                         event=event_item,
                         is_link=True,
                         contact_id=assigned_to.get("contact"),
+                        contacts=formatted_contacts,
+                        location=event.get("LOCATION", ""),
+                        event_date_time=fomatted_event_date,
                     )
             else:
                 assign_type = "reassigned" if original.get("assigned_to") else "assigned"
@@ -633,6 +691,9 @@ class AssignmentsService(superdesk.Service):
                     omit_user=True,
                     is_link=True,
                     contact_id=assigned_to.get("contact"),
+                    contacts=formatted_contacts,
+                    location=event.get("LOCATION", ""),
+                    event_date_time=fomatted_event_date,
                 )
 
     def send_assignment_cancellation_notification(
@@ -867,18 +928,6 @@ class AssignmentsService(superdesk.Service):
         elif operation == ITEM_PUBLISH:
             updated_assignment = self._get_empty_updates_for_assignment(assignment)
             if updates.get(ITEM_STATE, original.get(ITEM_STATE, "")) != CONTENT_STATE.SCHEDULED:
-                if updated_assignment.get("assigned_to")["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                    updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
-                        updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-                    )
-
-                    # Remove lock information as the archive item is unlocked when publishing
-                    remove_lock_information(updated_assignment)
-
-                    # Update the Assignment and send websocket notification
-                    self._update_assignment_and_notify(updated_assignment, assignment)
-                    get_resource_service("assignments_history").on_item_complete(updated_assignment, assignment)
-
                 # Update delivery record here
                 delivery_service = get_resource_service("delivery")
                 delivery = delivery_service.find_one(req=None, item_id=original[config.ID_FIELD])
@@ -892,8 +941,20 @@ class AssignmentsService(superdesk.Service):
                         },
                     )
 
-                # publish planning
-                self.publish_planning(assignment.get("planning_item"))
+                if updated_assignment.get("assigned_to")["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                    updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
+                        updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+                    )
+
+                    # Remove lock information as the archive item is unlocked when publishing
+                    remove_lock_information(updated_assignment)
+
+                    # Update the Assignment and send websocket notification
+                    self._update_assignment_and_notify(updated_assignment, assignment)
+                    get_resource_service("assignments_history").on_item_complete(updated_assignment, assignment)
+                else:
+                    # publish planning
+                    self.publish_planning(assignment.get("planning_item"))
 
                 assigned_to_user = get_resource_service("users").find_one(
                     req=None, _id=get_user().get(config.ID_FIELD, "")
@@ -1039,9 +1100,14 @@ class AssignmentsService(superdesk.Service):
         if not doc.get("assignment_id"):
             return
 
-        get_resource_service("assignments_unlink").post(
-            [{"assignment_id": doc["assignment_id"], "item_id": doc[config.ID_FIELD]}]
-        )
+        assignment_id = doc["assignment_id"]
+        assignment = self.find_one(req=None, _id=assignment_id)
+        if not assignment:
+            logger.error(f"Failed to find assignment '{assignment_id}' for archive item '{item_id}'")
+            return
+
+        get_resource_service("assignments_unlink").post([{"assignment_id": assignment_id, "item_id": item_id}])
+        self.publish_planning(assignment["planning_item"])
 
     def _update_assignment_and_notify(self, updates, original):
         self.system_update(original.get(config.ID_FIELD), updates, original)
@@ -1223,10 +1289,9 @@ class AssignmentsService(superdesk.Service):
         return updates.get("assigned_to", original.get("assigned_to")).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
 
     def is_assignment_being_activated(self, updates, original):
-        return (
-            original.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
-            and updates.get("assigned_to", {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-        )
+        return (original.get("assigned_to") or {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT and (
+            updates.get("assigned_to") or {}
+        ).get("state") == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
     def is_text_assignment(self, assignment):
         # scheduled_update is always for text coverages
@@ -1293,22 +1358,7 @@ class AssignmentsService(superdesk.Service):
                 else:
                     logger.error("Failed to save planning version for planning item id {}".format(item["_id"]))
 
-            try:
-                # check if the planning item is locked
-                lock_service.validate_relationship_locks(planning_item, "planning")
-                use_published_planning = False
-            except SuperdeskApiError as ex:
-                # planning item is already locked.
-                use_published_planning = True
-                logger.exception(str(ex))
-
-            if use_published_planning:
-                # use the published planning and enqueue again
-                plan = published_planning_item.get("published_item")
-            else:
-                plan = planning_item
-
-            _publish_planning(plan)
+            _publish_planning(planning_item)
         except Exception:
             logger.exception("Failed to publish assignment for planning.")
 

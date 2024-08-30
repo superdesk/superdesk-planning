@@ -1,9 +1,8 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
-import {IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
+import {IEventOrPlanningItem, IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
-import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -42,12 +41,15 @@ export function registerField(id, component) {
 /**
  * Render list of fields for given item
  * @param {Array|String} fields
- * @param {Object} item
+ * @param {IEventOrPlanningItem} item
  * @param {Object} props
  */
-export function renderFields(fields, item, props = {}) {
-    const language = getUserInterfaceLanguageFromCV();
-
+export function renderFields(
+    fields: Array<any>|string,
+    item: IEventOrPlanningItem,
+    props: Object = {},
+    language: string = ''
+) {
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
 
@@ -64,6 +66,23 @@ export function renderFields(fields, item, props = {}) {
 
         return null;
     });
+}
+
+/**
+ * Get translated field value based on language
+ * @param {String} language
+ * @param {IEventOrPlanningItem} item
+ * @param {String} fieldName
+ */
+export function getTranslatedValue(language: string, item: IEventOrPlanningItem, fieldName: string): string | null {
+    if (item.translations) {
+        const matchingTranslation = item.translations.find(
+            (translation) => translation.field === fieldName && translation.language === language
+        );
+
+        return matchingTranslation ? matchingTranslation.value : null;
+    }
+    return null;
 }
 
 function getFieldsForPanel(panelType: IRenderPanelType) {
@@ -93,11 +112,12 @@ export function renderFieldsForPanel(
     profile: ISearchProfile,
     globalProps: {[key: string]: any},
     fieldProps: {[key: string]: any},
-    Container?: React.ComponentClass,
+    Container?: React.ComponentType,
     groupName?: string,
     enabledField: string = 'enabled',
     refs: {[key: string]: React.RefObject<any>} = {},
-    schema?: IProfileSchema
+    schema?: IProfileSchema,
+    coverageProfile?: ISearchProfile,
 ) {
     const fieldComponents = getFieldsForPanel(panelType);
     const fields: {[key: string]: IRenderFieldItem} = {};
@@ -109,6 +129,7 @@ export function renderFieldsForPanel(
                 ...globalProps,
                 testId: `field-${fieldName}`,
                 ...fieldProps[fieldName],
+                coverageProfile: coverageProfile,
             },
             name: fieldName,
             ...profile[fieldName],
@@ -161,7 +182,7 @@ export function renderGroupedFieldsForPanel(
     profile: ISearchProfile,
     globalProps: {[key: string]: any},
     fieldProps: {[key: string]: any},
-    Container?: React.ComponentClass,
+    Container?: React.ComponentType,
     enabledField: string = 'enabled'
 ) {
     const {gettext} = superdeskApi.localization;
@@ -240,6 +261,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'language',
             'slugline',
             'name',
+            'priority',
             'definition_short',
             'occur_status',
             'dates',
@@ -247,6 +269,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'place',
             'location',
             'event_contact_info',
+            'related_items',
         ],
     }, {
         name: 'details',
@@ -271,6 +294,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'headline',
             'name',
             'planning_date',
+            'priority',
             'description_text',
             'internal_note',
             'place',
@@ -292,10 +316,15 @@ const PREVIEW_GROUPS: IPreviewGroups = {
         fields: [
             'language',
             'slugline',
+            'priority',
             'ednote',
             'keyword',
             'internal_note',
             'g2_content_type',
+            'genre',
+            'news_coverage_status',
+            'scheduled',
+            'flags',
         ],
     }],
     [PREVIEW_PANEL.ASSOCIATED_EVENT]: [{
@@ -305,20 +334,53 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'dates',
             'location',
             'occur_status',
+            'priority',
             'definition_short',
             'event_contact_info',
+        ],
+    }],
+    [PREVIEW_PANEL.ASSIGNMENT]: [{
+        name: 'no_group',
+        fields: [
+            'language',
+            'slugline',
+            'place',
+            'anpa_category',
+            'subject',
+            'genre',
+            'keyword',
+            'ednote',
+            'internal_note',
+        ],
+    }],
+    [PREVIEW_PANEL.SCHEDULED_COVERAGE_UPDATE]: [{
+        name: 'no_group',
+        fields: [
+            'genre',
+            'internal_note',
+            'news_coverage_status',
+            'scheduled',
         ],
     }]
 };
 
-export function previewGroupToProfile(groupName: PREVIEW_PANEL, profile) {
+export function previewGroupToProfile(
+    groupName: PREVIEW_PANEL,
+    profile,
+    includeGroups = true,
+    skipFieldsMissingInProfile = false
+) {
     const previewProfile = {};
 
     PREVIEW_GROUPS[groupName]?.forEach((group) => {
         group.fields.forEach((field, index) => {
+            if (skipFieldsMissingInProfile && profile?.editor?.[field] == null) {
+                return;
+            }
+
             previewProfile[field] = {
                 index: index,
-                group: group.name,
+                group: includeGroups ? group.name : 'no_group',
                 enabled: profile?.editor?.[field]?.enabled,
             };
         });

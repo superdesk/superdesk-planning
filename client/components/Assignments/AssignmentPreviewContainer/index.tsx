@@ -1,22 +1,73 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {IDesk, IUser} from 'superdesk-api';
+import {
+    IAssignmentItem,
+    IAssignmentPriority,
+    IEventItem, IFile,
+    IFormProfiles,
+    IG2ContentType,
+    ILockedItems,
+    IPlanningItem,
+    ISession
+} from '../../../interfaces';
+import {superdeskApi} from '../../../superdeskApi';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {assignmentUtils, gettext, eventUtils, planningUtils, getFileDownloadURL} from '../../../utils';
+import {assignmentUtils, eventUtils, planningUtils, getFileDownloadURL} from '../../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
 
+import {Button} from 'superdesk-ui-framework/react';
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
 import {AssignmentPreview} from './AssignmentPreview';
-import {PlanningPreview} from './PlanningPreview';
-import {EventPreview} from './EventPreview';
-import {ToggleBox, Button} from '../../UI';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 
-class AssignmentPreviewContainerComponent extends React.Component {
-    componentWillMount() {
+import {RelatedPlannings} from '../../RelatedPlannings';
+import {EventMetadata} from '../../Events';
+import {PreviewFieldRelatedArticles} from '../../fields/preview/RelatedArticles';
+
+interface IOwnProps {
+    hideAvatar?: boolean;
+    hideItemActions?: boolean;
+    showFulfilAssignment?: boolean;
+}
+
+interface IStateProps {
+    assignment: IAssignmentItem;
+    session: ISession;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    planningItem?: IPlanningItem;
+    eventItem?: IEventItem;
+
+    priorities: Array<IAssignmentPriority>;
+    privileges: {[key: string]: number};
+    formProfile: IFormProfiles;
+    lockedItems: ILockedItems;
+    currentWorkspace: 'ASSIGNMENTS' | 'AUTHORING' | 'AUTHORING_WIDGET';
+    contentTypes: Array<IG2ContentType>;
+    files: Array<IFile>;
+}
+
+interface IDispatchProps {
+    startWorking(assignment: IAssignmentItem): void;
+    reassign(assignment: IAssignmentItem): void;
+    completeAssignment(assignment: IAssignmentItem): void;
+    revertAssignment(assignment: IAssignmentItem): void;
+    editAssignmentPriority(assignment: IAssignmentItem): void;
+    onFulFilAssignment(assignment: IAssignmentItem): void;
+    removeAssignment(assignment: IAssignmentItem): void;
+    openArchivePreview(assignment: IAssignmentItem): void;
+    fetchEventFiles(event: IEventItem): void;
+    fetchPlanningFiles(planning: IPlanningItem): void;
+}
+
+type IProps = IOwnProps & IStateProps & IDispatchProps;
+
+class AssignmentPreviewContainerComponent extends React.Component<IProps> {
+    componentDidMount() {
         if (eventUtils.shouldFetchFilesForEvent(this.props.eventItem)) {
             this.props.fetchEventFiles(this.props.eventItem);
         }
@@ -75,17 +126,14 @@ class AssignmentPreviewContainerComponent extends React.Component {
             desks,
             planningItem,
             eventItem,
-            urgencyLabel,
             priorities,
-            urgencies,
-            keywords,
             formProfile,
-            agendas,
             hideAvatar,
             currentWorkspace,
             contentTypes,
             session,
             privileges,
+            lockedItems,
             files,
         } = this.props;
 
@@ -93,12 +141,14 @@ class AssignmentPreviewContainerComponent extends React.Component {
             return null;
         }
 
+        const {gettext} = superdeskApi.localization;
         const planning = get(assignment, 'planning', {});
         const itemActions = this.getItemActions();
         const canFulfilAssignment = showFulfilAssignment && assignmentUtils.canFulfilAssignment(
             assignment,
             session,
-            privileges
+            privileges,
+            lockedItems
         );
 
         return (
@@ -119,9 +169,11 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     <ContentBlock className="AssignmentPreview__fulfil" padSmall={true} flex={true}>
                         <ContentBlockInner grow={true}>
                             <Button
-                                color="primary"
+                                type="primary"
                                 text={gettext('Fulfil Assignment')}
-                                onClick={onFulFilAssignment.bind(null, assignment)}
+                                onClick={() => {
+                                    onFulFilAssignment(assignment);
+                                }}
                             />
                         </ContentBlockInner>
                     </ContentBlock>
@@ -130,7 +182,6 @@ class AssignmentPreviewContainerComponent extends React.Component {
                 <ContentBlock className="AssignmentPreview__coverage" padSmall={true}>
                     <AssignmentPreview
                         assignment={assignment}
-                        keywords={keywords}
                         coverageFormProfile={formProfile.coverage}
                         planningFormProfile={formProfile.planning}
                         planningItem={planningItem}
@@ -139,81 +190,49 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     />
                 </ContentBlock>
 
-                <ContentBlock className="AssignmentPreview__planning" padSmall={true}>
-                    <ToggleBox
-                        title={gettext('Planning')}
-                        isOpen={false}
-                        style="toggle-box--circle"
-                        scrollInView={true}
-                        noMargin={true}
-                    >
-                        <PlanningPreview
-                            urgencyLabel={urgencyLabel}
-                            item={planningItem}
-                            formProfile={formProfile.planning}
-                            agendas={agendas}
-                            urgencies={urgencies}
+                {eventItem && (
+                    <div className="sd-padding--2 sd-padding-b--0">
+                        <PreviewFieldRelatedArticles
+                            item={eventItem}
+                            languageFilter={assignment.planning.language}
                         />
-                    </ToggleBox>
-                </ContentBlock>
+                    </div>
+                )}
 
                 {eventItem && (
                     <ContentBlock className="AssignmentPreview__event" padSmall={true}>
-                        <ToggleBox
-                            title={gettext('Event')}
-                            isOpen={false}
-                            style="toggle-box--circle"
-                            scrollInView={true}
-                        >
-                            <EventPreview
-                                item={eventItem}
-                                formProfile={formProfile.event}
-                                createLink={getFileDownloadURL}
-                                files={files}
-                            />
-                        </ToggleBox>
+                        <h3 className="side-panel__heading side-panel__heading--big">
+                            {gettext('Associated Event')}
+                        </h3>
+                        <EventMetadata
+                            event={eventItem}
+                            createUploadLink={getFileDownloadURL}
+                            files={files}
+                            hideEditIcon={true}
+                        />
                     </ContentBlock>
                 )}
+
+                <ContentBlock className="AssignmentPreview__planning" padSmall={true}>
+                    <h3 className="side-panel__heading side-panel__heading--big">
+                        {gettext('Planning')}
+                    </h3>
+                    <RelatedPlannings
+                        className="related-plannings"
+                        plannings={[planningItem]}
+                        openPlanningItem={true}
+                        expandable={true}
+                        users={users}
+                        desks={desks}
+                        allowEditPlanning={false}
+                        currentCoverageId={assignment.coverage_item}
+
+                    />
+                </ContentBlock>
             </div>
         );
     }
 }
-
-AssignmentPreviewContainerComponent.propTypes = {
-    hideAvatar: PropTypes.bool,
-    assignment: PropTypes.object.isRequired,
-    onFulFilAssignment: PropTypes.func,
-    startWorking: PropTypes.func.isRequired,
-    reassign: PropTypes.func,
-    completeAssignment: PropTypes.func,
-    editAssignmentPriority: PropTypes.func,
-    removeAssignment: PropTypes.func,
-    session: PropTypes.object,
-    users: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.object,
-    ]),
-    desks: PropTypes.array,
-    planningItem: PropTypes.object,
-    eventItem: PropTypes.object,
-    urgencyLabel: PropTypes.string,
-    priorities: PropTypes.array,
-    urgencies: PropTypes.array,
-    privileges: PropTypes.object,
-    keywords: PropTypes.array,
-    formProfile: PropTypes.object,
-    lockedItems: PropTypes.object,
-    agendas: PropTypes.array,
-    openArchivePreview: PropTypes.func,
-    revertAssignment: PropTypes.func,
-    hideItemActions: PropTypes.bool,
-    showFulfilAssignment: PropTypes.bool,
-    fetchEventFiles: PropTypes.func,
-    currentWorkspace: PropTypes.string,
-    contentTypes: PropTypes.array,
-    fetchPlanningFiles: PropTypes.func,
-    files: PropTypes.array,
-};
 
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
@@ -225,13 +244,9 @@ const mapStateToProps = (state) => ({
     eventItem: selectors.getCurrentAssignmentEventItem(state),
 
     priorities: get(state, 'vocabularies.assignment_priority'),
-    urgencyLabel: selectors.vocabs.urgencyLabel(state),
-    urgencies: selectors.getUrgencies(state),
     privileges: selectors.general.privileges(state),
-    keywords: get(state, 'vocabularies.keywords', []),
     formProfile: selectors.forms.profiles(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    agendas: selectors.general.agendas(state),
     currentWorkspace: selectors.general.currentWorkspace(state),
     contentTypes: selectors.general.contentTypes(state),
     files: selectors.general.files(state),
@@ -250,7 +265,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
 });
 
-export const AssignmentPreviewContainer = connect(
+export const AssignmentPreviewContainer = connect<IStateProps, IDispatchProps>(
     mapStateToProps,
     mapDispatchToProps
 )(AssignmentPreviewContainerComponent);

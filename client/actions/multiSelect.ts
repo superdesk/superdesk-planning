@@ -7,7 +7,8 @@ import {showModal} from './index';
 import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
 import planningUi from './planning/ui';
-import {getItemType, gettext, planningUtils, eventUtils, getItemInArrayById, getErrorMessage} from '../utils';
+import {getItemType, gettext, getItemInArrayById, getErrorMessage, lockUtils} from '../utils';
+import {planningApi} from '../superdeskApi';
 
 /**
  * Action Dispatcher to select an/all Event(s)
@@ -180,6 +181,12 @@ const downloadEvents = (url, data) => {
     req.send(JSON.stringify(data));
 };
 
+const bulkAddPlanningCoveragesToWorkflow = (items) => (
+    (dispatch) => planningApi.planning.coverages.bulkAddCoverageToWorkflow(items)
+        .then(() => dispatch({
+            type: MULTISELECT.ACTIONS.DESELECT_ALL_PLANNINGS,
+        }))
+);
 
 const exportAsArticle = (items = [], download) => (
     (dispatch, getState, {api, notify, gettext, superdesk, $location, $interpolate, desks}) => {
@@ -193,11 +200,9 @@ const exportAsArticle = (items = [], download) => (
         const sortableItems = [];
         const label = (item) => item.headline || item.slugline || item.description_text || item.name;
         const locks = selectors.locks.getLockedItems(state);
-        const isLockedCheck = isPlanning ? planningUtils.isPlanningLocked :
-            eventUtils.isEventLocked;
 
         items.forEach((item) => {
-            const isLocked = isLockedCheck(item, locks);
+            const isLocked = lockUtils.isItemLocked(item, locks);
             const isNotForPublication = get(item, 'flags.marked_for_not_publication');
 
             if (isLocked || isNotForPublication) {
@@ -314,6 +319,7 @@ const self = {
     itemBulkSpikeModal,
     itemBulkUnSpikeModal,
     exportAsArticle,
+    bulkAddPlanningCoveragesToWorkflow,
 };
 
 export default self;

@@ -579,6 +579,7 @@ describe('actions.events.api', () => {
                         etag: data.events[0]._etag,
                         pubstatus: 'usable',
                         update_method: 'single',
+                        failed_planning_ids: [],
                     },
                 ]);
                 done();
@@ -820,103 +821,6 @@ describe('actions.events.api', () => {
             store.test(done, eventsApi.fetchCalendars())
                 .then(null, (error) => {
                     expect(error).toBe(errorMessage);
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
-    describe('lock/unlock', () => {
-        let mockStore;
-        let mocks;
-        let getLocks = () => selectors.locks.getLockedItems(mockStore.getState());
-
-        beforeEach(() => {
-            mocks = {
-                api: sinon.spy(() => mocks),
-                save: sinon.spy((original, updates = {}) => Promise.resolve({
-                    ...data.events[0],
-                    ...updates,
-                })),
-            };
-
-            store.init();
-        });
-
-        it('calls lock endpoint and updates the redux store', (done) => {
-            mockStore = createTestStore({
-                initialState: store.initialState,
-                extraArguments: {
-                    api: mocks.api,
-                },
-            });
-
-            expect(getLocks().event).toEqual({});
-
-            mockStore.dispatch(eventsApi.lock(data.events[0]))
-                .then(() => {
-                    expect(mocks.api.callCount).toBe(1);
-                    expect(mocks.api.args[0]).toEqual([
-                        'events_lock',
-                        data.events[0],
-                    ]);
-
-                    expect(mocks.save.callCount).toBe(1);
-                    expect(mocks.save.args[0]).toEqual([
-                        {},
-                        {lock_action: 'edit'},
-                    ]);
-
-                    expect(getLocks().event).toEqual({
-                        e1: jasmine.objectContaining({
-                            action: 'edit',
-                            item_type: 'event',
-                            item_id: 'e1',
-                        }),
-                    });
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('calls unlock endpoint and updates the redux store', (done) => {
-            store.initialState.locks.event = {
-                e1: {
-                    action: 'edit',
-                    item_type: 'event',
-                    item_id: 'e1',
-                },
-            };
-
-            mockStore = createTestStore({
-                initialState: store.initialState,
-                extraArguments: {
-                    api: mocks.api,
-                },
-            });
-
-            expect(getLocks().event).toEqual({
-                e1: jasmine.objectContaining({
-                    action: 'edit',
-                    item_type: 'event',
-                    item_id: 'e1',
-                }),
-            });
-
-            mockStore.dispatch(eventsApi.unlock(data.events[0]))
-                .then(() => {
-                    expect(mocks.api.callCount).toBe(1);
-                    expect(mocks.api.args[0]).toEqual([
-                        'events_unlock',
-                        data.events[0],
-                    ]);
-
-                    expect(mocks.save.callCount).toBe(1);
-                    expect(mocks.save.args[0]).toEqual([{}]);
-
-                    expect(getLocks().event).toEqual({});
-
                     done();
                 })
                 .catch(done.fail);

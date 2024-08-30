@@ -1,7 +1,15 @@
 import * as React from 'react';
 import {set} from 'lodash';
 
-import {EDITOR_TYPE, IEventItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../../../interfaces';
+import {
+    EDITOR_TYPE,
+    IEventItem,
+    IG2ContentType,
+    IPlanningContentProfile,
+    IPlanningCoverageItem,
+    IPlanningItem,
+    ISearchProfile
+} from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
 
 import {TEMP_ID_PREFIX} from '../../../../constants';
@@ -19,12 +27,16 @@ interface IProps {
     index: number;
     disabled: boolean;
     editorType: EDITOR_TYPE;
+    profile: IPlanningContentProfile;
+    coverageProfile?: ISearchProfile;
     removePlan(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
         updates: DeepPartial<IPlanningItem>,
         scrollOnChange: boolean
     ): void;
+    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
+    isAgendaEnabled: boolean;
 }
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
@@ -40,6 +52,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         this.updateCoverage = this.updateCoverage.bind(this);
         this.removeCoverage = this.removeCoverage.bind(this);
         this.duplicateCoverage = this.duplicateCoverage.bind(this);
+        this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
     }
 
     scrollIntoView() {
@@ -80,6 +93,10 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         this.update({coverages}, false);
     }
 
+    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number) {
+        this.props.addCoverageToWorkflow(this.props.item, coverage, index);
+    }
+
     focus() {
         if (this.containerNode.current != null) {
             this.containerNode.current.focus();
@@ -88,7 +105,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const {item} = this.props;
+        const {item, isAgendaEnabled} = this.props;
         const hideRemoveIcon = !this.props.item._id.startsWith(TEMP_ID_PREFIX) || this.props.disabled;
 
         return (
@@ -102,6 +119,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 <Row noPadding={true}>
                     <RelatedPlanningListItem
                         item={item}
+                        isAgendaEnabled={isAgendaEnabled}
                         showIcon={true}
                         shadow={1}
                         editPlanningComponent={hideRemoveIcon ? null : (
@@ -125,6 +143,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         updateCoverage={this.updateCoverage}
                         removeCoverage={this.removeCoverage}
                         duplicateCoverage={this.duplicateCoverage}
+                        onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
                     />
                 )}
                 {this.props.disabled ? null : (
@@ -133,6 +152,8 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                             event={this.props.event}
                             item={item}
                             updatePlanningItem={this.update}
+                            profile={this.props.profile}
+                            coverageProfile={this.props.coverageProfile}
                         />
                     </Row>
                 )}

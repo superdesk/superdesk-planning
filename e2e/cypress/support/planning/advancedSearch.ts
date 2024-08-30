@@ -4,11 +4,11 @@ import {
     Input,
     SelectMetaTerms,
     RadioInputs,
-    SpikeStateInput,
     ToggleInput,
     SelectInput,
     LocationInput,
     UrgencyInput,
+    TreeSelect,
 } from '../common/inputs';
 import {PlanningList} from './planningList';
 
@@ -59,7 +59,7 @@ export class AdvancedSearch {
                 date: new Input(getSearchPanel, 'input[name="end_date.date"]'),
                 time: new Input(getSearchPanel, 'input[name="end_date.time"]'),
             },
-            calendars: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-calendars]'),
+            calendars: new TreeSelect(getSearchPanel, '[data-test-id=field-calendars]', true),
             agendas: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-agendas]'),
             date_filter: new RadioInputs(getSearchPanel, '[data-test-id=field-date_filter]'),
             no_calendar_assigned: new ToggleInput(
@@ -216,10 +216,9 @@ export class AdvancedSearch {
     }
 
     expectSearchResultCount(run: ISearchTest) {
-        cy.log('Search: ' + JSON.stringify(run.params));
+        cy.log('Search: ' + JSON.stringify(run.params) + ', expected count: ' + run.expectedCount);
         if (Object.keys(run.params).length > 0) {
-            this.enterSearchParams(run.params);
-            this.clickSearch();
+            this.searchFor(run.params);
         }
 
         if (run.expectedCount != null) {
@@ -251,5 +250,17 @@ export class AdvancedSearch {
             .find('.icon-close-small')
             .should('exist')
             .click();
+    }
+
+    searchFor(params: ISearchTest['params']) {
+        this.enterSearchParams(params);
+        this.clickSearch();
+    }
+
+    setStartDate(date: string) {
+        this.toggleSearchPanel();
+        this.openAllToggleBoxes();
+        this.searchFor({'start_date.date': date});
+        this.toggleSearchPanel();
     }
 }

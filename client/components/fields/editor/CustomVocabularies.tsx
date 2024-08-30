@@ -1,45 +1,87 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import {IVocabulary} from 'superdesk-api';
-import {IEditorFieldProps, IEditorProfile} from '../../../interfaces';
-
-import CustomVocabulariesFields from '../../CustomVocabulariesFields';
+import {ISubject, IVocabulary} from 'superdesk-api';
+import {superdeskApi} from '../../../superdeskApi';
+import {IEditorFieldProps, IProfileSchemaTypeList} from '../../../interfaces';
+import {Row} from '../../UI/Form';
+import {getVocabularyItemNameFromString} from '../../../utils/vocabularies';
+import {EditorFieldTreeSelect} from '../editor/base/treeSelect';
 
 interface IProps extends IEditorFieldProps {
+    schema?: IProfileSchemaTypeList;
     vocabularies: Array<IVocabulary>;
-    profile: IEditorProfile;
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
 }
 
 const mapStateToProps = (state) => ({
-    vocabularies: state.customVocabularies
+    vocabularies: state.customVocabularies,
 });
 
 class CustomVocabulariesComponent extends React.PureComponent<IProps> {
     render() {
-        return (
-            <CustomVocabulariesFields
-                testId={this.props.testId}
-                customVocabularies={this.props.vocabularies.filter((cv) => (
-                    (this.props.schema.vocabularies ?? []).includes(cv._id)
-                ))}
-                fieldProps={{
-                    item: this.props.item,
-                    diff: this.props.item,
-                    readOnly: this.props.disabled,
-                    onChange: this.props.onChange,
-                    errors: this.props.errors,
-                }}
-                popupProps={{
-                    onPopupOpen: this.props.onPopupOpen,
-                    onPopupClose: this.props.onPopupClose,
-                }}
-                popupContainer={this.props.popupContainer}
-            />
+        const {gettext} = superdeskApi.localization;
+        const {
+            vocabularies,
+            schema,
+            showErrors,
+            errors,
+            item,
+            onChange,
+            required,
+            testId,
+            language,
+        } = this.props;
+
+        const customVocabularies = vocabularies.filter((cv) =>
+            (schema?.vocabularies ?? []).includes(cv._id)
         );
+
+        return customVocabularies.map((cv) => {
+            const cvFieldName = `custom_vocabularies.${cv._id}`;
+            const parentField = cv.schema_field || 'subject';
+
+            return (
+                <Row
+                    key={cv._id}
+                    id={`form-row-${cvFieldName}`}
+                    data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
+                >
+                    <EditorFieldTreeSelect
+                        filterScheme={(values) => values.filter((value) => cv._id == null || value?.scheme === cv._id)}
+                        item={item}
+                        field={parentField}
+                        label={gettext(cv.display_name)}
+                        required={required || schema?.required}
+                        allowMultiple={true}
+                        sortable={true}
+                        getOptions={() => cv.items.map((item: ISubject) => ({value: {...item, scheme: cv._id}}))}
+                        getId={(item: ISubject) => item.qcode}
+                        getLabel={(item: ISubject) => (
+                            getVocabularyItemNameFromString(
+                                item.qcode,
+                                cv.items,
+                                'qcode',
+                                'name',
+                                language
+                            )
+                        )}
+                        onChange={(field, value) => {
+                            const otherCvValues = item[parentField] ?? [];
+
+                            const newValues = value.concat(
+                                otherCvValues.filter((value) => value?.scheme != cv._id)
+                            );
+
+                            onChange(field, newValues);
+                        }}
+                        errors={errors}
+                    />
+                </Row>
+            );
+        });
     }
 }
 

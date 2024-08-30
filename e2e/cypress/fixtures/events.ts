@@ -1,4 +1,4 @@
-import {getDateStringFor, TIME_STRINGS} from '../support/utils/time';
+import {getDateStringFor, TIME_STRINGS, TIMEZONE} from '../support/utils/time';
 
 export const LOCATIONS = {
     sydney_opera_house: {
@@ -42,13 +42,8 @@ const BASE_EVENT = {
 };
 
 export const TEST_EVENTS = {
-    draft: {
+    draft: getEventForDate(getDateStringFor.today(), {
         ...BASE_EVENT,
-        dates: {
-            start: '2045-12-11' + TIME_STRINGS[0],
-            end: '2045-12-11' + TIME_STRINGS[1],
-            tz: 'Australia/Sydney',
-        },
         name: 'Test',
         slugline: 'Original',
         anpa_category: [
@@ -67,24 +62,19 @@ export const TEST_EVENTS = {
             name: LOCATIONS.sydney_opera_house.name,
             address: LOCATIONS.sydney_opera_house.address,
         }],
-    },
-    spiked: {
+    }),
+    spiked: getEventForDate(getDateStringFor.today(), {
         ...BASE_EVENT,
-        dates: {
-            start: '2045-12-11' + TIME_STRINGS[0],
-            end: '2045-12-11' + TIME_STRINGS[1],
-            tz: 'Australia/Sydney',
-        },
         state: 'spiked',
         name: 'Spiker',
         slugline: 'Spiked',
-    },
+    }),
     date_01_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-01-31' + TIME_STRINGS[0],
-            end: '2045-01-31' + TIME_STRINGS[1],
-            tz: 'Australia/Sydney',
+            start: '2045-02-01T00:00:00+0000',
+            end: '2045-02-01T01:00:00+0000',
+            tz: 'UTC',
         },
         name: 'February 1st 2045',
         slugline: 'Event Feb 1',
@@ -92,9 +82,9 @@ export const TEST_EVENTS = {
     date_02_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-02-01' + TIME_STRINGS[0],
-            end: '2045-02-01' + TIME_STRINGS[1],
-            tz: 'Australia/Sydney',
+            start: '2045-02-02T00:00:00+0000',
+            end: '2045-02-02T01:00:00+0000',
+            tz: 'UTC',
         },
         name: 'February 2nd 2045',
         slugline: 'Event Feb 2',
@@ -102,9 +92,9 @@ export const TEST_EVENTS = {
     date_03_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-02-02' + TIME_STRINGS[0],
-            end: '2045-02-02' + TIME_STRINGS[1],
-            tz: 'Australia/Sydney',
+            start: '2045-02-03T00:00:00+0000',
+            end: '2045-02-03T01:00:00+0000',
+            tz: 'UTC',
         },
         name: 'February 3rd 2045',
         slugline: 'Event Feb 3',
@@ -112,30 +102,30 @@ export const TEST_EVENTS = {
     date_04_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-02-03' + TIME_STRINGS[0],
-            end: '2045-02-03' + TIME_STRINGS[1],
-            tz: 'Australia/Sydney',
+            start: '2045-02-04T00:00:00+0000',
+            end: '2045-02-04T01:00:00+0000',
+            tz: 'UTC',
         },
         name: 'February 4th 2045',
         slugline: 'Event Feb 4',
     },
 };
 
-function getEventForDate(dateString: string, metadata: {[key: string]: any} = {}) {
+function getEventForDate(dateString: string, metadata: {[key: string]: any} = {}, timezone = TIMEZONE) {
     return {
         ...BASE_EVENT,
+        ...metadata,
         dates: {
             start: dateString + TIME_STRINGS[0],
             end: dateString + TIME_STRINGS[1],
-            tz: 'Australia/Sydney',
+            tz: timezone,
         },
-        ...metadata,
     };
 }
 
 export const createEventFor = {
-    today: (metadata = {}) => getEventForDate(getDateStringFor.today(), metadata),
-    tomorrow: (metadata = {}) => getEventForDate(getDateStringFor.tomorrow(), metadata),
-    yesterday: (metadata = {}) => getEventForDate(getDateStringFor.yesterday(), metadata),
-    next_week: (metadata = {}) => getEventForDate(getDateStringFor.next_week(), metadata),
+    today: (metadata = {},  timezone = TIMEZONE) => getEventForDate(getDateStringFor.today(), metadata, timezone),
+    tomorrow: (metadata = {}, timezone = TIMEZONE) => getEventForDate(getDateStringFor.tomorrow(), metadata, timezone),
+    yesterday: (metadata = {}, timezone = TIMEZONE) => getEventForDate(getDateStringFor.yesterday(), metadata, timezone),
+    next_week: (metadata = {}, timezone = TIMEZONE) => getEventForDate(getDateStringFor.next_week(), metadata, timezone),
 };

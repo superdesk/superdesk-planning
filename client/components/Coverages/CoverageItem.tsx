@@ -7,7 +7,7 @@ import {IContactItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {WORKFLOW_STATE} from '../../constants';
+import {COVERAGES, WORKFLOW_STATE} from '../../constants';
 import {
     getCreator,
     getItemInArrayById,
@@ -19,8 +19,8 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../components';
-import {CoverageIcon} from './CoverageIcon';
-import {UserAvatar} from '../UserAvatar';
+import {CoverageIcons} from './CoverageIcons';
+import {Label} from 'superdesk-ui-framework';
 
 interface IProps {
     coverage: IPlanningCoverageItem;
@@ -40,6 +40,7 @@ interface IProps {
 }
 
 interface IState {
+    addedToWorkflow: boolean;
     userAssigned?: IUser;
     deskAssigned?: IDesk;
     coverageProvider?: string;
@@ -71,6 +72,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             coverageDateText: '',
             internalNoteFieldPrefix: '',
             coverageInWorkflow: false,
+            addedToWorkflow: false,
         };
 
         this.updateViewAttributes = this.updateViewAttributes.bind(this);
@@ -121,6 +123,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             userAssigned: null,
             displayContentType: '',
             coverageDateText: '',
+            addedToWorkflow: coverage.workflow_status === COVERAGES.WORKFLOW_STATE.ACTIVE,
         };
 
         if (!isPreview) {
@@ -166,20 +169,12 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
 
         return (
             <Column border={false}>
-                {this.state.userAssigned ? (
-                    <UserAvatar
-                        user={this.state.userAssigned}
-                        small={false}
-                        showInactive
-                    />
-                ) : (
-                    <UserAvatar
-                        empty={true}
-                        noMargin={true}
-                        initials={false}
-                        small={false}
-                    />
-                )}
+                <CoverageIcons
+                    coverages={[this.props.coverage]}
+                    users={this.props.users}
+                    desks={this.props.desks}
+                    contentTypes={this.props.contentTypes}
+                />
             </Column>
         );
     }
@@ -187,12 +182,6 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
     renderFirstRow() {
         return (
             <Row paddingBottom>
-                <CoverageIcon
-                    coverage={this.props.coverage}
-                    users={this.props.users}
-                    desks={this.props.desks}
-                    contentTypes={this.props.contentTypes}
-                />
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                     {this.state.displayContentType}
                 </span>
@@ -235,7 +224,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                     </span>
                 )}
 
-                <span className="grid">
+                <span className="grid sd-gap--x-small">
                     <InternalNoteLabel
                         item={item}
                         prefix={`${this.state.internalNoteFieldPrefix}.planning.`}
@@ -245,6 +234,14 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                             `${this.state.internalNoteFieldPrefix}.workflow_status` : 'state'}
                         showHeaderText={false}
                     />
+                    {this.state.addedToWorkflow && (
+                        <div>
+                            <Label
+                                text={gettext('Added to workflow')}
+                                type="success"
+                            />
+                        </div>
+                    )}
                     <StateLabel
                         item={this.state.coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage}
                         fieldName={this.state.coverageInWorkflow ? 'state' : 'workflow_status'}

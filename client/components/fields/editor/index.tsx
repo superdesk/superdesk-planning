@@ -20,7 +20,6 @@ import {EditorFieldFullText} from './FullText';
 import {EditorFieldLanguage} from './Language';
 import {EditorFieldIncludeKilled} from './IncludeKilled';
 import {EditorFieldLockState} from './LockState';
-import {EditorFieldCalendars} from './Calendars';
 import {EditorFieldAgendas} from './Agendas';
 import {EditorFieldNoCalendarAssigned} from './NoCalendarAssigned';
 import {EditorFieldExcludeRescheduledAndCancelled} from './ExcludeRescheduledAndCancelled';
@@ -53,6 +52,7 @@ import {EditorFieldCoverageContact} from './CoverageContact';
 import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
+import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
@@ -100,7 +100,6 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     language: EditorFieldLanguage,
     include_killed: EditorFieldIncludeKilled,
     lock_state: EditorFieldLockState,
-    calendars: EditorFieldCalendars,
     agendas: EditorFieldAgendas,
     no_calendar_assigned: EditorFieldNoCalendarAssigned,
     exclude_rescheduled_and_cancelled: EditorFieldExcludeRescheduledAndCancelled,
@@ -142,6 +141,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     xmp_file: EditorFieldXMPFile,
     scheduled_updates: EditorFieldScheduledUpdates,
     custom_vocabularies: EditorFieldCustomVocabularies,
+    coverage_assignment_status: EditorFieldAssignedCoverageComponent,
 };
 
 // Import resource fields so that registration happens after the above

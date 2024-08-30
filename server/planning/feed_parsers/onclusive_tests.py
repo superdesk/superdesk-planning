@@ -4,6 +4,7 @@ import json
 import logging
 import datetime
 import superdesk
+import pytest
 
 from planning.tests import TestCase
 from superdesk.metadata.item import (
@@ -38,7 +39,12 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.parse("onclusive_sample.json")
 
     def test_content(self):
-        item = OnclusiveFeedParser().parse([self.data])[0]
+        with self.assertLogs("planning", level=logging.INFO) as logger:
+            item = OnclusiveFeedParser().parse([self.data])[0]
+            self.assertIn(
+                "INFO:planning.feed_parsers.onclusive:Parsing event id=4112034 updated=2022-05-10T12:14:34 deleted=False",
+                logger.output,
+            )
         item["subject"].sort(key=lambda i: i["name"])
         expected_subjects = [
             {"name": "Law & Order", "qcode": "88", "scheme": "onclusive_categories"},
@@ -56,26 +62,26 @@ class OnclusiveFeedParserTestCase(TestCase):
         self.assertEqual(item[GUID_FIELD], "urn:onclusive:4112034")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
         self.assertEqual(item["state"], CONTENT_STATE.INGESTED)
-        self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 21, 19, 10, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["firstcreated"], datetime.datetime(2021, 5, 4, 20, 19, 10, tzinfo=datetime.timezone.utc))
         self.assertEqual(
-            item["versioncreated"], datetime.datetime(2022, 5, 10, 13, 14, 34, tzinfo=datetime.timezone.utc)
+            item["versioncreated"], datetime.datetime(2022, 5, 10, 12, 14, 34, tzinfo=datetime.timezone.utc)
         )
 
-        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
-        self.assertEqual(item["language"], "en-CA")
+        self.assertEqual(item["language"], "en")
 
         self.assertIn("https://www.canadianinstitute.com/anti-money-laundering-financial-crime/", item["links"])
 
         self.assertEqual(item["dates"]["start"], datetime.datetime(2022, 6, 15, 10, 30, tzinfo=datetime.timezone.utc))
-        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 16, 3, 59, 59, tzinfo=datetime.timezone.utc))
+        self.assertEqual(item["dates"]["end"], datetime.datetime(2022, 6, 15, 10, 30, tzinfo=datetime.timezone.utc))
         self.assertEqual(item["dates"]["tz"], "US/Eastern")
         self.assertEqual(item["dates"]["no_end_time"], True)
 
         self.assertEqual(item["name"], "Annual Forum on Anti-Money Laundering and Financial Crime")
         self.assertEqual(item["definition_short"], "")
 
-        self.assertEqual(item["location"][0]["name"], "One King West Hotel & Residence, 1 King St W, Toronto")
-        self.assertEqual(item["location"][0]["address"]["country"], "Canada")
+        self.assertEqual(item["location"][0]["name"], "Karuizawa")
+        self.assertEqual(item["location"][0]["address"]["country"], "Japan")
+        self.assertEqual(item["location"][0]["location"], {"lat": 43.64894, "lon": -79.378086})
 
         self.assertEqual(1, len(item["event_contact_info"]))
         self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
@@ -91,11 +97,22 @@ class OnclusiveFeedParserTestCase(TestCase):
 
         data = deepcopy(self.data)
         data["pressContacts"][0]["pressContactEmail"] = "foo@example.com"
+        data["pressContacts"][0].pop("pressContactTelephone")
+        data["pressContacts"][0]["pressContactName"] = "Foo Bar"
         item = OnclusiveFeedParser().parse([data])[0]
         self.assertIsInstance(item["event_contact_info"][0], bson.ObjectId)
         contact = superdesk.get_resource_service("contacts").find_one(req=None, _id=item["event_contact_info"][0])
         self.assertEqual(1, superdesk.get_resource_service("contacts").find({}).count())
         self.assertEqual(["foo@example.com"], contact["contact_email"])
+        self.assertEqual([], contact["contact_phone"])
+        self.assertEqual("Foo", contact["first_name"])
+
+        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos5")
+        data["isProvisional"] = True
+        item = OnclusiveFeedParser().parse([data])[0]
+        self.assertEqual(item["occur_status"]["qcode"], "eocstat:eos3")
+
+        self.assertGreater(item["expiry"], item["dates"]["end"])
 
     def test_content_no_time(self):
         data = self.data.copy()
@@ -111,6 +128,33 @@ class OnclusiveFeedParserTestCase(TestCase):
                 with self.assertLogs("planning", level=logging.ERROR) as logger:
                     OnclusiveFeedParser().parse([self.data])
                     self.assertIn("ERROR:planning.feed_parsers.onclusive:Unknown Timezone FOO", logger.output)
+
+    def test_cst_timezone(self):
+        data = self.data.copy()
+        data.update(
+            {
+                "startDate": "2023-04-18T00:00:00.0000000",
+                "endDate": "2023-04-18T00:00:00.0000000",
+                "time": "10:00",
+                "timezone": {
+                    "timezoneID": 24,
+                    "timezoneAbbreviation": "CST",
+                    "timezoneName": "(CST) China Standard Time : Beijing, Taipei",
+                    "timezoneOffset": 8.00,
+                },
+            }
+        )
+        item = OnclusiveFeedParser().parse([data])[0]
+        self.assertEqual(
+            {
+                "start": datetime.datetime(2023, 4, 18, 2, tzinfo=datetime.timezone.utc),
+                "end": datetime.datetime(2023, 4, 18, 2, tzinfo=datetime.timezone.utc),
+                "all_day": False,
+                "no_end_time": True,
+                "tz": "Asia/Macau",
+            },
+            item["dates"],
+        )
 
     def test_embargoed(self):
         data = self.data.copy()
@@ -136,3 +180,31 @@ class OnclusiveFeedParserTestCase(TestCase):
                     utcnow_mock.return_value = datetime.datetime.fromisoformat("2022-12-07T18:00:00+00:00")
                     parsed = OnclusiveFeedParser().parse([data])
                     self.assertEqual(1, len(parsed))
+
+    def test_timezone_ambigous_time_error(self):
+        data = self.data.copy()
+        data.update(
+            {
+                "startDate": "2023-10-27T00:00:00.0000000",
+                "time": "08:30",
+                "timezone": {
+                    "timezoneID": 27,
+                    "timezoneAbbreviation": "JST",
+                    "timezoneName": "(JST) Japan Standard Time : Tokyo",
+                    "timezoneOffset": 9.00,
+                    "timezoneIdentity": None,
+                },
+            }
+        )
+
+        item = OnclusiveFeedParser().parse([data])[0]
+        assert item["dates"]["tz"] == "Asia/Tokyo"
+
+    def test_error_on_empty_name(self):
+        data = self.data.copy()
+        data["summary"] = ""
+        data["description"] = ""
+
+        with self.assertLogs("planning", level=logging.ERROR) as logger:
+            OnclusiveFeedParser().parse([data])
+            assert "Error when parsing Onclusive event" in logger.output[0]

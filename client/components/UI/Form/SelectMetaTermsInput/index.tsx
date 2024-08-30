@@ -117,6 +117,8 @@ export class SelectMetaTermsInput extends React.Component {
                 {...props}
                 withButton={true}
                 readOnly={readOnly}
+                invalid={this.props.invalid === true}
+                required={this.props.required}
                 className={classNames(
                     'dropdown-terms',
                     'select__meta-terms',
@@ -200,10 +202,12 @@ SelectMetaTermsInput.propTypes = {
     onPopupClose: PropTypes.func,
     maxLength: PropTypes.number,
     language: PropTypes.string,
+    invalid: PropTypes.bool,
 };
 
 SelectMetaTermsInput.defaultProps = {
     required: false,
+    invalid: false,
     labelKey: 'name',
     valueKey: 'qcode',
     searchKey: 'name',

@@ -21,8 +21,7 @@ export class TreeSelect extends Input {
             cy.wrap(values).each((value: string) => {
                 this.addButton.click();
                 cy.get('body').type(value);
-                this.element
-                    .find('.suggestion-item--bgcolor')
+                cy.get('[data-test-id="tree-select-popover"] ul li')
                     .eq(0)
                     .should('exist')
                     .click();
@@ -32,8 +31,7 @@ export class TreeSelect extends Input {
 
             this.addButton.click();
             cy.get('body').type(value);
-            this.element
-                .find('.suggestion-item--bgcolor')
+            cy.get('[data-test-id="tree-select-popover"] ul li')
                 .eq(0)
                 .should('exist')
                 .click();
@@ -50,5 +48,11 @@ export class TreeSelect extends Input {
     expectValidData(valid: boolean = true) {
         cy.get(this.selector + ' .sd-input--invalid')
             .should(valid ? 'not.exist' : 'exist');
+    }
+
+    clear() {
+        cy.log('Common.TreeSelect.clear');
+        cy.get(this.selector + ' [data-test-id="item"] [data-test-id="remove"]')
+            .click({multiple: true});
     }
 }

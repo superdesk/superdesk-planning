@@ -1,8 +1,8 @@
-import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, has, find, every, take} from 'lodash';
 
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
+import {planningApi} from '../../superdeskApi';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
 import {appConfig} from 'appConfig';
-import {planningApis} from '../../api';
 
 import {
     EVENTS,
@@ -13,7 +13,6 @@ import {
 import * as selectors from '../../selectors';
 import {
     eventUtils,
-    lockUtils,
     getErrorMessage,
     isExistingItem,
     isValidFileInput,
@@ -23,7 +22,7 @@ import {
     getTimeZoneOffset,
 } from '../../utils';
 
-import planningApi from '../planning/api';
+import planningApis from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
@@ -45,7 +44,7 @@ const loadEventsByRecurrenceId = (
     loadToStore: boolean = true
 ) => (
     (dispatch) => (
-        planningApis.events.search({
+        planningApi.events.search({
             recurrence_id: rid,
             spike_state: spikeState,
             page: page,
@@ -144,7 +143,7 @@ function query(
             }
         }
 
-        return planningApis.events.search(eventParamsToSearchParams({
+        return planningApi.events.search(eventParamsToSearchParams({
             ...params,
             itemIds: itemIds,
             filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
@@ -203,7 +202,7 @@ function loadEventDataForAction(
     _plannings: Array<IPlanningItem>;
     _relatedPlannings: Array<IPlanningItem>;
 }> {
-    return planningApis.combined.getRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents)
+    return planningApi.combined.getRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents)
         .then((items) => ({
             ...event,
             _recurring: items.events,
@@ -230,7 +229,7 @@ const loadAssociatedPlannings = (event) => (
             return Promise.resolve([]);
         }
 
-        return dispatch(planningApi.loadPlanningByEventId(event._id));
+        return dispatch(planningApis.loadPlanningByEventId(event._id));
     }
 );
 
@@ -268,68 +267,6 @@ const receiveEvents = (events, skipEvents: Array<any> = []) => ({
 });
 
 /**
- * Action to lock an Event
- * @param {Object} event - Event to be unlocked
- * @param {String} action - The lock action
- * @return Promise
- */
-const lock = (event, action = 'edit') => (
-    (dispatch, getState, {api, notify}) => {
-        if (action === null ||
-            lockUtils.isItemLockedInThisSession(
-                event,
-                selectors.general.session(getState()),
-                selectors.locks.getLockedItems(getState())
-            )
-        ) {
-            return Promise.resolve(event);
-        }
-
-        return api('events_lock', event).save({}, {lock_action: action})
-            .then(
-                (item) => {
-                    // On lock, file object in the event is lost, so, replace it from original event
-                    item.files = event.files;
-                    eventUtils.modifyForClient(item);
-
-                    dispatch({
-                        type: EVENTS.ACTIONS.LOCK_EVENT,
-                        payload: {event: item},
-                    });
-
-                    return Promise.resolve(item);
-                }, (error) => {
-                    const msg = get(error, 'data._message') || 'Could not lock the event.';
-
-                    notify.error(msg);
-                    if (error) throw error;
-                });
-    }
-);
-
-const unlock = (event) => (
-    (dispatch, getState, {api, notify}) => (
-        api('events_unlock', event).save({})
-            .then(
-                (item) => {
-                    dispatch({
-                        type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                        payload: {event: item},
-                    });
-
-                    return Promise.resolve(item);
-                },
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Could not unlock the event')
-                    );
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
  * Action Dispatcher to fetch events from the server,
  * and add them to the store without adding them to the events list
  * @param {Array, string} ids - Either an array of Event IDs or a single Event ID to fetch
@@ -343,7 +280,7 @@ function silentlyFetchEventsById(
     saveToStore: boolean = true
 ) {
     return (dispatch) => (
-        planningApis.events.getByIds(
+        planningApi.events.getByIds(
             ids.filter((v, i, a) => (a.indexOf(v) === i)),
             spikeState
         )
@@ -379,7 +316,7 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);
         } else {
-            promise = planningApis.events.getById(eventId)
+            promise = planningApi.events.getById(eventId)
                 .then((event) => {
                     if (saveToStore) {
                         dispatch(self.receiveEvents([event]));
@@ -456,8 +393,12 @@ const post = (original, updates) => (
             etag: original._etag,
             pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
             update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
+            failed_planning_ids: get(updates, 'failed_planning_ids', []),
         }).then(
-            () => dispatch(self.fetchById(original._id, {force: true})),
+            (data) => Promise.all([
+                dispatch(self.fetchById(original._id, {force: true})),
+                {failedPlanningIds: data?.failed_planning_ids}
+            ]),
             (error) => Promise.reject(error)
         )
     )
@@ -516,14 +457,27 @@ const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems, 
     },
 });
 
-const markEventPostponed = (event, reason, actionedDate) => ({
-    type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
-    payload: {
-        event: event,
-        reason: reason,
-        actionedDate: actionedDate,
-    },
-});
+function markEventPostponed(event: IEventItem, reason: string, actionedDate: string) {
+    return (dispatch) => {
+        planningApi.locks.setItemAsUnlocked({
+            item: event._id,
+            type: event.type,
+            recurrence_id: event.recurrence_id,
+            etag: event._etag,
+            from_ingest: false,
+            user: event.lock_user,
+            lock_session: event.lock_session,
+        });
+        dispatch({
+            type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
+            payload: {
+                event: event,
+                reason: reason,
+                actionedDate: actionedDate,
+            },
+        });
+    };
+}
 
 const markEventHasPlannings = (event, planning) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
@@ -608,33 +562,20 @@ const save = (original, updates) => (
 
         return promise.then((originalEvent) => {
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
-
-            // clone the updates as we're going to modify it
-            let eventUpdates = eventUtils.modifyForServer(
-                cloneDeep(updates),
-                true
-            );
-
-            originalItem.location = originalItem.location ? [originalItem.location] : null;
-
-            // remove all properties starting with _
-            // and updates that are the same as original
-            eventUpdates = pickBy(eventUpdates, (v, k) => (
-                (k === TO_BE_CONFIRMED_FIELD || k === '_planning_item' || !k.startsWith('_')) &&
-                !isEqual(eventUpdates[k], originalItem[k])
-            ));
+            const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
             if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
                 !isTemporaryId(originalItem._id)
             ) {
                 delete eventUpdates.dates;
             }
-            eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
-                EVENTS.UPDATE_METHODS[0].value;
+            eventUpdates.update_method = eventUpdates.update_method == null ?
+                EVENTS.UPDATE_METHODS[0].value :
+                eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
             return originalEvent?._id != null ?
-                planningApis.events.update(originalItem, eventUpdates) :
-                planningApis.events.create(eventUpdates);
+                planningApi.events.update(originalItem, eventUpdates) :
+                planningApi.events.create(eventUpdates);
         });
     }
 );
@@ -721,7 +662,7 @@ const fetchEventTemplates = () => (dispatch, getState, {api}) => {
         });
 };
 
-const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify}) => {
+const createEventTemplate = (item: IEventItem) => (dispatch, getState, {api, modal, notify}) => {
     modal.prompt(gettext('Template name')).then((templateName) => {
         api('events_template').query({
             where: {
@@ -735,10 +676,28 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
                 const doSave = () => {
                     api('events_template').save({
                         template_name: templateName,
-                        based_on_event: itemId,
+                        based_on_event: item._id,
+                        data: {
+                            embedded_planning: item.associated_plannings.map((planning) => ({
+                                coverages: planning.coverages.map((coverage) => ({
+                                    coverage_id: coverage.coverage_id,
+                                    g2_content_type: coverage.planning.g2_content_type,
+                                    desk: coverage.assigned_to.desk,
+                                    user: coverage.assigned_to.user,
+                                    language: coverage.planning.language,
+                                    news_coverage_status: coverage.news_coverage_status.qcode,
+                                    scheduled: coverage.planning.scheduled,
+                                    genre: coverage.planning.genre?.qcode,
+                                    slugline: coverage.planning.slugline,
+                                    ednote: coverage.planning.ednote,
+                                    internal_note: coverage.planning.internal_note,
+                                })),
+                            })),
+                        },
                     })
                         .then(() => {
                             dispatch(fetchEventTemplates());
+                            dispatch(getEventsRecentTemplates());
                         }, (error) => {
                             notify.error(
                                 getErrorMessage(error, gettext('Failed to save the event template'))
@@ -763,6 +722,29 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
     });
 };
 
+const RECENT_EVENTS_TEMPLATES_KEY = 'events_templates:recent';
+
+const addEventRecentTemplate = (field: string, templateId: IEventTemplate['_id']) => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result = {}) => {
+            result[RECENT_EVENTS_TEMPLATES_KEY] = result[RECENT_EVENTS_TEMPLATES_KEY] || {};
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field] || [];
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field].filter(
+                (i) => i !== templateId);
+            result[RECENT_EVENTS_TEMPLATES_KEY][field].unshift(templateId);
+            return preferencesService.update(result);
+        })
+);
+
+const getEventsRecentTemplates = () => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result) => {
+            const templates = take(result?.[RECENT_EVENTS_TEMPLATES_KEY]?.['templates'], 5);
+
+            dispatch({type: EVENTS.ACTIONS.EVENT_RECENT_TEMPLATES, payload: templates});
+        })
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -771,8 +753,6 @@ const self = {
     query,
     refetch,
     receiveEvents,
-    lock,
-    unlock,
     silentlyFetchEventsById,
     cancelEvent,
     markEventCancelled,
@@ -797,6 +777,8 @@ const self = {
     removeFile,
     fetchEventTemplates,
     createEventTemplate,
+    addEventRecentTemplate,
+    getEventsRecentTemplates,
 };
 
 export default self;

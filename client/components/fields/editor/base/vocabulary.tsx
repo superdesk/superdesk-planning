@@ -65,7 +65,7 @@ export class EditorFieldVocabulary extends React.PureComponent<IEditorFieldVocab
                     defaultValue={defaultValue}
                     value={value}
                     message={error}
-                    invalid={error?.length > 0 && this.props.invalid}
+                    invalid={this.props.invalid ?? (error?.length > 0 && this.props.showErrors)}
                     valueKey={this.props.valueKey ?? 'qcode'}
                     labelKey={this.props.labelKey ?? 'name'}
                     searchKey={this.props.searchKey ?? 'name'}

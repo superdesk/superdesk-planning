@@ -2,12 +2,12 @@ import {get} from 'lodash';
 import moment from 'moment-timezone';
 
 import {appConfig} from 'appConfig';
+import {planningApi} from '../../superdeskApi';
 import {IPlanningItem, IEventItem} from '../../interfaces';
 
-import {showModal, main, locks, addEventToCurrentAgenda} from '../index';
+import {showModal, main, addEventToCurrentAgenda} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
 import eventsApi from './api';
-import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -22,6 +22,7 @@ import {
     isItemPublic,
     stringUtils,
 } from '../../utils';
+import {convertStringFields} from '../../utils/strings';
 
 /**
  * Action Dispatcher to fetch events from the server
@@ -171,7 +172,7 @@ const openSpikeModal = (event, post = false, modalProps = {}) => (
                 eventWithData,
                 {},
                 EVENTS.ITEM_ACTIONS.SPIKE.actionName,
-                null,
+                EVENTS.ITEM_ACTIONS.SPIKE.lock_action,
                 true,
                 post,
                 false,
@@ -187,7 +188,7 @@ const openUnspikeModal = (event, post = false) => (
         event,
         {},
         EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
-        null,
+        EVENTS.ITEM_ACTIONS.UNSPIKE.lock_action,
         true,
         post
     ))
@@ -209,7 +210,7 @@ const openUpdateTimeModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action,
             true,
             post
         );
@@ -233,7 +234,7 @@ const openCancelModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
             true,
             post
         );
@@ -256,7 +257,7 @@ const openPostponeModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
             true,
             post
         );
@@ -279,7 +280,7 @@ const openRescheduleModal = (event, post = false, fromEditor = true) => {
             event,
             {},
             EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
-            null,
+            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
             true,
             post
         );
@@ -403,10 +404,20 @@ const _openActionModalFromEditor = ({
                                 Promise.resolve(modifiedEvent);
 
                             if (get(previousLock, 'action')) {
-                                promise.then((refetchedEvent) => (
-                                    (openInEditor || openInModal) ?
-                                        dispatch(main.openForEdit(refetchedEvent, !openInModal, openInModal)) :
-                                        dispatch(locks.lock(refetchedEvent, previousLock.action))
+                                promise.then((refetchedItem) => (
+                                    planningApi.locks.lockItem(refetchedItem, previousLock.action)
+                                        .then((lockedItem) => {
+                                            if (openInEditor || openInModal) {
+                                                dispatch(main.openEditorAction(
+                                                    lockedItem,
+                                                    'edit',
+                                                    true,
+                                                    openInModal,
+                                                ));
+                                            }
+
+                                            return lockedItem;
+                                        })
                                 ), () => Promise.reject());
                             }
 
@@ -432,7 +443,7 @@ const _openActionModal = (
     modalProps = {}
 ) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.lock(original, lockAction))
+        planningApi.locks.lockItem(original, lockAction)
             .then((lockedEvent) => (
                 eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents)
                     .then((eventDetail) => (
@@ -730,15 +741,19 @@ const receiveEventHistory = (eventHistoryItems) => ({
  */
 const createEventFromPlanning = (plan: IPlanningItem) => (
     (dispatch, getState) => {
-        const defaultDurationOnChange = selectors.forms.defaultEventDuration(getState());
-        const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
+        const state = getState();
+        const defaultDurationOnChange = selectors.forms.defaultEventDuration(state);
+        const occurStatuses = selectors.vocabs.eventOccurStatuses(state);
+        const defaultCalendar = selectors.events.defaultCalendarValue(state);
+        const defaultPlace = selectors.general.defaultPlaceList(state);
         const unplannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos0', 'qcode') || {
             label: 'Unplanned event',
             qcode: 'eocstat:eos0',
             name: 'Unplanned event',
         };
         const eventProfile = selectors.forms.eventProfile(getState());
-        const newEvent: Partial<IEventItem> = {
+        let newEvent: Partial<IEventItem> = {
+            ...eventUtils.defaultEventValues(occurStatuses, defaultCalendar, defaultPlace),
             dates: {
                 start: moment(plan.planning_date).clone(),
                 end: moment(plan.planning_date)
@@ -746,56 +761,48 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
                     .add(defaultDurationOnChange, 'h'),
                 tz: moment.tz.guess(),
             },
-            name: plan.name?.length ?
-                stringUtils.convertStringFieldForProfileFieldType(
-                    'planning',
-                    'event',
-                    'name',
-                    'name',
-                    plan.name
-                ) :
-                stringUtils.convertStringFieldForProfileFieldType(
-                    'planning',
-                    'event',
-                    'slugline',
-                    'name',
-                    plan.slugline
-                ),
             subject: plan.subject,
             anpa_category: plan.anpa_category,
-            definition_short: stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'event',
-                'description_text',
-                'definition_short',
-                plan.description_text
-            ),
             calendars: [],
-            internal_note: stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'event',
-                'internal_note',
-                'internal_note',
-                plan.internal_note
-            ),
             place: plan.place,
             occur_status: unplannedStatus,
             _planning_item: plan._id,
             language: plan.language,
         };
 
-        if (get(eventProfile, 'editor.slugline.enabled', false)) {
-            newEvent.slugline = stringUtils.convertStringFieldForProfileFieldType(
-                'planning',
-                'event',
-                'slugline',
-                'slugline',
-                plan.slugline
-            );
+        if (plan.languages != null) {
+            newEvent.languages = plan.languages;
+        }
+        if (plan.priority != null) {
+            newEvent.priority = plan.priority;
         }
 
+        const fieldsToConvert: Array<[keyof IPlanningItem, keyof IEventItem]> = [
+            ['description_text', 'definition_short'],
+            ['internal_note', 'internal_note'],
+            ['slugline', 'slugline'],
+        ];
+
+        if (plan.name?.length) {
+            fieldsToConvert.push(['name', 'name']);
+        } else {
+            fieldsToConvert.push(['slugline', 'name']);
+        }
+
+        if (get(eventProfile, 'editor.slugline.enabled', false)) {
+            fieldsToConvert.push(['slugline', 'slugline']);
+        }
+
+        newEvent = convertStringFields(
+            plan,
+            newEvent,
+            'planning',
+            'event',
+            fieldsToConvert,
+        );
+
         return Promise.all([
-            dispatch(planningApi.lock(plan, 'add_as_event')),
+            planningApi.locks.lockItem(plan, 'add_as_event'),
             dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent)),
         ]);
     }
@@ -829,7 +836,8 @@ const selectCalendar = (calendarId = '', params = {}) => (
 
 const onEventEditUnlock = (event) => (
     (dispatch) => (
-        get(event, '_planning_item') ? dispatch(planningApi.unlock({_id: event._planning_item})) :
+        get(event, '_planning_item') ?
+            planningApi.locks.unlockItemById(event._planning_item, 'planning') :
             Promise.resolve()
     )
 );
@@ -852,7 +860,7 @@ const lockAndSaveUpdates = (
         }
 
         // Otherwise lock, save and unlock this Event
-        return dispatch(locks.lock(event, lockAction))
+        planningApi.locks.lockItem(event, lockAction)
             .then((original) => (
                 dispatch(main.saveAndUnlockItem(original, updates, true))
                     .then((item) => {
@@ -920,6 +928,7 @@ const save = (original, updates, confirmation, unlockOnClose) => (
                 {
                     actionType: 'save',
                     unlockOnClose: unlockOnClose,
+                    large: true,
                 }
             ));
         }
@@ -966,7 +975,7 @@ const onMarkEventCompleted = (event, editor = false) => (
                 event,
                 gettext('Save changes before marking event as complete ?'),
                 (unlockedItem, previousLock, openInEditor, openInModal) => (
-                    dispatch(locks.lock(unlockedItem, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+                    planningApi.locks.lockItem(unlockedItem, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action)
                         .then((lockedItem) => (
                             dispatch(showModal({
                                 modalType: MODALS.CONFIRMATION,
@@ -976,18 +985,21 @@ const onMarkEventCompleted = (event, editor = false) => (
                                         dispatch(main.saveAndUnlockItem(lockedItem, updates, true)).then((result) => {
                                             if (get(previousLock, 'action') && (openInEditor || openInModal)) {
                                                 dispatch(main.openForEdit(result, true, openInModal));
-                                                dispatch(locks.lock(result, previousLock.action));
+                                                planningApi.locks.lockItem(result, previousLock.action);
                                             }
                                         }, (error) => {
-                                            dispatch(locks.unlock(lockedItem));
+                                            planningApi.locks.unlockItem(lockedItem);
                                         }),
-                                    onCancel: () => dispatch(locks.unlock(lockedItem)).then((result) => {
+                                    onCancel: () => planningApi.locks.unlockItem(lockedItem).then((result) => {
                                         if (get(previousLock, 'action') && (openInEditor || openInModal)) {
                                             dispatch(main.openForEdit(result, true, openInModal));
-                                            dispatch(locks.lock(result, previousLock.action));
+                                            planningApi.locks.lockItem(result, previousLock.action);
                                         }
                                     }),
                                     autoClose: true,
+                                    // Add the event to modalProps, so if this item was unlocked by someone else
+                                    // this modal will close
+                                    original: event,
                                 },
                             }))), (error) => {
                             notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));
@@ -996,17 +1008,20 @@ const onMarkEventCompleted = (event, editor = false) => (
         }
 
         // If actioned on list / preview
-        return dispatch(locks.lock(event, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+        return planningApi.locks.lockItem(event, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action)
             .then((original) => (
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
                     modalProps: {
                         body: gettext('Are you sure you want to mark this event as complete?'),
                         action: () => dispatch(main.saveAndUnlockItem(original, updates, true)).catch((error) => {
-                            dispatch(locks.unlock(original));
+                            planningApi.locks.unlockItem(original);
                         }),
-                        onCancel: () => dispatch(locks.unlock(original)),
+                        onCancel: () => planningApi.locks.unlockItem(original),
                         autoClose: true,
+                        // Add the event to modalProps, so if this item was unlocked by someone else
+                        // this modal will close
+                        original: event,
                     },
                 }))), (error) => {
                 notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));

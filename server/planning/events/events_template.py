@@ -19,6 +19,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.utils import ListCursor
 from planning.common import DUPLICATE_EVENT_IGNORED_FIELDS
 from apps.archive.common import get_user
+from .events_schema import events_schema
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ class EventsTemplateResource(Resource):
     endpoint_name = "events_template"
     resource_methods = ["GET", "POST"]
     item_methods = ["GET", "DELETE", "PATCH", "PUT"]
+
     privileges = {
         "GET": "planning_event_management",
         "POST": "planning_event_templates",
@@ -81,7 +83,9 @@ class EventsTemplateResource(Resource):
             "readonly": True,
         },
         "subject": {"type": "list", "schema": {"type": "dict"}, "readonly": True},
+        "embedded_planning": events_schema["embedded_planning"],
     }
+
     schema = {
         "template_name": {
             "type": "string",
@@ -162,7 +166,7 @@ class EventsTemplateService(BaseService):
 
     def _fill_event_template(self, doc):
         event = self._get_event(doc["based_on_event"])
-        doc["data"] = event.copy()
+        doc.setdefault("data", {}).update(event.copy())
         for field in DUPLICATE_EVENT_IGNORED_FIELDS:
             doc["data"].pop(field, None)
 

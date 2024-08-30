@@ -9,6 +9,7 @@ import {renderFields} from '../../fields';
 
 import {
     planningUtils,
+    lockUtils,
     getItemId,
     isItemExpired,
     gettext,
@@ -36,7 +37,7 @@ export const FeaturedPlanningItem = ({
         return null;
     }
 
-    const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
+    const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
     const isExpired = isItemExpired(item);
     let borderState = false;
 

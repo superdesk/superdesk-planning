@@ -1,7 +1,8 @@
 import {IPlanningSearchParams} from '../../interfaces';
+import {planningApi} from '../../superdeskApi';
+
 import {showModal} from '../index';
-import planningApi from './api';
-import {locks} from '../index';
+import planningApis from './api';
 import main from '../main';
 import eventsUi from '../events/ui';
 import {ITEM_TYPE} from '../../constants';
@@ -28,7 +29,7 @@ import {get, orderBy, cloneDeep} from 'lodash';
  */
 const spike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planningApi.spike(item))
+        dispatch(planningApis.spike(item))
             .then((items) => {
                 notify.success(gettext('The Planning Item(s) has been spiked.'));
                 dispatch(main.closePreviewAndEditorForItems(items));
@@ -49,7 +50,7 @@ const spike = (item) => (
  */
 const unspike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planningApi.unspike(item))
+        dispatch(planningApis.unspike(item))
             .then((items) => {
                 dispatch(main.closePreviewAndEditorForItems(items));
                 notify.success(gettext('The Planning Item(s) has been unspiked.'));
@@ -93,7 +94,7 @@ const addToList = (ids) => ({
 function fetchToList(params: IPlanningSearchParams) {
     return (dispatch) => {
         dispatch(self.requestPlannings(params));
-        return dispatch(planningApi.fetch(params))
+        return dispatch(planningApis.fetch(params))
             .then((items) => (dispatch(self.setInList(
                 items.map((p) => p._id)
             ))));
@@ -120,7 +121,7 @@ const loadMore = () => (
             page: get(previousParams, 'page', 1) + 1,
         };
 
-        return dispatch(planningApi.fetch(params))
+        return dispatch(planningApis.fetch(params))
             .then((items) => {
                 if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
                     dispatch(self.requestPlannings(params));
@@ -145,7 +146,7 @@ const refetch = () => (
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
-        return dispatch(planningApi.refetch())
+        return dispatch(planningApis.refetch())
             .then(
                 (items) => {
                     dispatch(self.setInList(items.map((p) => p._id)));
@@ -182,7 +183,7 @@ const scheduleRefetch = () => (
  */
 const assignToAgenda = (item, agenda) => (
     (dispatch, getState, {notify}) => (
-        dispatch(locks.lock(item, 'assign_agenda'))
+        planningApi.locks.lockItem(item, 'assign_agenda')
             .then((original) => {
                 const updates = cloneDeep(original);
 
@@ -202,7 +203,7 @@ const assignToAgenda = (item, agenda) => (
 
 const duplicate = (plan) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planningApi.duplicate(plan))
+        dispatch(planningApis.duplicate(plan))
             .then((newPlan) => {
                 notify.success(gettext('Planning duplicated'));
                 const openInModal = selectors.forms.currentItemIdModal(getState());
@@ -228,7 +229,7 @@ const duplicate = (plan) => (
 
 const cancelPlanning = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planningApi.cancel(original, updates))
+        dispatch(planningApis.cancel(original, updates))
             .then((plan) => {
                 notify.success(gettext('Planning Item has been cancelled'));
                 dispatch(main.closePreviewAndEditorForItems([plan], null, '_id', true));
@@ -248,7 +249,7 @@ const cancelAllCoverage = (original, updates) => (
         // delete _cancelAllCoverage used for UI purposes
         delete original._cancelAllCoverage;
 
-        return dispatch(planningApi.cancelAllCoverage(original, updates))
+        return dispatch(planningApis.cancelAllCoverage(original, updates))
             .then((plan) => {
                 notify.success(gettext('All Coverage has been cancelled'));
                 return Promise.resolve(plan);
@@ -271,7 +272,7 @@ const openFeaturedPlanningModal = () => (
             return dispatch(showModal({modalType: MODALS.UNLOCK_FEATURED_STORIES}));
         }
 
-        return dispatch(planningApi.lockFeaturedPlanning())
+        return planningApi.locks.lockFeaturedPlanning()
             .then(() => dispatch(showModal({
                 modalType: MODALS.FEATURED_STORIES,
             })),
@@ -292,7 +293,7 @@ const modifyPlanningFeatured = (item, remove = false) => (
                 dispatch(self._modifyPlanningFeatured(unlockedItem, remove))
                     .then((updatedItem) => {
                         if (get(previousLock, 'action')) {
-                            return dispatch(locks.lock(updatedItem, previousLock.action));
+                            return planningApi.locks.lockItem(updatedItem, previousLock.action);
                         }
                     })
             )
@@ -307,7 +308,7 @@ const modifyPlanningFeatured = (item, remove = false) => (
  */
 const _modifyPlanningFeatured = (item, remove = false) => (
     (dispatch, getState, {api, notify}) => (
-        dispatch(locks.lock(item, remove ? 'remove_featured' : 'add_featured'))
+        planningApi.locks.lockItem(item, remove ? 'remove_featured' : 'add_featured')
             .then((lockedItem) => {
                 lockedItem.featured = !remove;
                 return dispatch(self.saveAndUnlockPlanning(lockedItem)).then((updatedItem) => {
@@ -337,7 +338,7 @@ const openSpikeModal = (plan, post = false, modalProps = {}) => (
         dispatch(self._openActionModal(
             plan,
             PLANNING.ITEM_ACTIONS.SPIKE.actionName,
-            null,
+            PLANNING.ITEM_ACTIONS.SPIKE.lock_action,
             post,
             false,
             modalProps
@@ -350,7 +351,7 @@ const openUnspikeModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.UNSPIKE.actionName,
-        null,
+        PLANNING.ITEM_ACTIONS.UNSPIKE.lock_action,
         post
     ))
 );
@@ -373,7 +374,7 @@ const _openActionModal = (
     modalProps = {}
 ) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planningApi.lock(plan, lockAction))
+        planningApi.locks.lockItem(plan, lockAction)
             .then((lockedPlanning) => {
                 lockedPlanning._post = post;
                 return dispatch(showModal({
@@ -409,9 +410,9 @@ const save = (original, updates) => (
                     null,
                     {},
                     original,
-                    planningApi.save.bind(null, original, updates)));
+                    planningApis.save.bind(null, original, updates)));
             }
-            return dispatch(planningApi.save(original, updates));
+            return dispatch(planningApis.save(original, updates));
         }
     }
 );
@@ -435,19 +436,19 @@ const onAddCoverageClick = (item) => (
         const currentItem = selectors.forms.currentItem(state);
 
         if (currentItem && getItemId(item) !== getItemId(currentItem)) {
-            dispatch(locks.unlock(currentItem));
+            planningApi.locks.unlockItem(currentItem);
         }
 
         // If it is an existing item and the item is not locked
         // then lock the item, otherwise return the existing item
         if (isExistingItem(item) && !lockUtils.getLock(item, lockedItems)) {
-            promise = dispatch(locks.lock(item));
+            promise = planningApi.locks.lockItem(item);
         } else {
             promise = Promise.resolve(item);
         }
 
         return promise.then((lockedItem) => {
-            dispatch(planningApi.receivePlannings([lockedItem]));
+            dispatch(planningApis.receivePlannings([lockedItem]));
             dispatch(main.closeEditor());
             dispatch(main.openForEdit(lockedItem));
             return Promise.resolve(lockedItem);
@@ -466,7 +467,7 @@ const saveFromAuthoring = (original, updates) => (
         dispatch(actions.actionInProgress(true));
         let resolved = true;
 
-        return dispatch(planningApi.save(original, updates))
+        return dispatch(planningApis.save(original, updates))
             .then((newPlan) => {
                 const newsItem = get(selectors.general.modalProps(getState()), 'newsItem') ||
                     get(selectors.general.previousModalProps(getState()), 'newsItem');
@@ -510,27 +511,6 @@ const saveFromAuthoring = (original, updates) => (
     }
 );
 
-/**
- * Action to update the values of a single Coverage so the Assignment is placed in the workflow
- * @param {object} original - Original Planning item
- * @param {object} updatedCoverage - Coverage to update (along with any coverage fields to update as well)
- * @param {number} index - index of the Coverage in the coverages[] array
- */
-const addCoverageToWorkflow = (original, updatedCoverage, index) => (
-    (dispatch, getState, {notify}) => {
-        let updates = {coverages: cloneDeep(original.coverages)};
-
-        updates.coverages[index] = planningUtils.getActiveCoverage(updatedCoverage,
-            selectors.general.newsCoverageStatus(getState()));
-
-        return dispatch(planningApi.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Coverage added to workflow.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
 const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, scheduledUpdate, index) => (
     (dispatch, getState, {notify}) => {
         let updates = {coverages: cloneDeep(original.coverages)};
@@ -539,7 +519,7 @@ const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, schedul
         coverage.scheduled_updates[index] = planningUtils.getActiveCoverage(scheduledUpdate,
             selectors.general.newsCoverageStatus(getState()));
 
-        return dispatch(planningApi.save(original, updates))
+        return dispatch(planningApis.save(original, updates))
             .then((savedItem) => {
                 notify.success(gettext('Scheduled update added to workflow.'));
                 return dispatch(self.updateItemOnSave(savedItem));
@@ -560,7 +540,7 @@ const removeAssignment = (original, updatedCoverage, index) => (
 
         updates.coverages[index] = coverage;
 
-        return dispatch(planningApi.save(original, updates))
+        return dispatch(planningApis.save(original, updates))
             .then((savedItem) => {
                 notify.success(gettext('Removed assignment from coverage.'));
                 return dispatch(self.updateItemOnSave(savedItem));
@@ -572,7 +552,7 @@ const updateItemOnSave = (savedItem) => (
     (dispatch) => {
         const modifiedItem = planningUtils.modifyForClient(savedItem);
 
-        dispatch(planningApi.receivePlannings([modifiedItem]));
+        dispatch(planningApis.receivePlannings([modifiedItem]));
         return Promise.resolve(modifiedItem);
     }
 );
@@ -612,7 +592,7 @@ const cancelCoverage = (original, updatedCoverage, index, scheduledUpdate, sched
             updates.coverages[index].scheduled_updates[scheduledUpdateIndex] = cloneDeep(scheduledUpdate);
         }
 
-        return dispatch(planningApi.save(original, updates))
+        return dispatch(planningApis.save(original, updates))
             .then((savedItem) => {
                 notify.success(gettext('Coverage cancelled.'));
                 return dispatch(self.updateItemOnSave(savedItem));
@@ -644,7 +624,6 @@ const self = {
     saveFromAuthoring,
     scheduleRefetch,
     assignToAgenda,
-    addCoverageToWorkflow,
     removeAssignment,
     _modifyPlanningFeatured,
     modifyPlanningFeatured,

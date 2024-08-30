@@ -1,10 +1,15 @@
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal} from '../../support/common';
+import {cloneDeep} from 'lodash';
+
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal, addItems, CLIENT_FORMAT} from '../../support/common';
 import {EventEditor, PlanningList} from '../../support/planning';
+import {createEventFor, TEST_EVENTS} from '../../fixtures/events';
+import moment from 'moment';
+
+const list = new PlanningList();
+const editor = new EventEditor();
 
 describe('Planning.Events: edit metadata', () => {
-    const editor = new EventEditor();
     const subnav = new SubNavBar();
-    const list = new PlanningList();
     const workqueue = new Workqueue();
     const modal = new Modal();
     let event;
@@ -12,7 +17,7 @@ describe('Planning.Events: edit metadata', () => {
 
     beforeEach(() => {
         event = {
-            'dates.start.date': '12/12/2045',
+            'dates.start.date': moment().format(CLIENT_FORMAT),
             slugline: 'slugline of the event',
             name: 'name of the event',
             definition_short: 'Desc.',
@@ -30,7 +35,7 @@ describe('Planning.Events: edit metadata', () => {
 
         expectedEvent = {
             ...event,
-            'dates.end.date': '12/12/2045',
+            'dates.end.date': moment().format(CLIENT_FORMAT),
         };
 
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -70,7 +75,7 @@ describe('Planning.Events: edit metadata', () => {
         event = {
             ...event,
             'dates.recurring.enable': true,
-            'dates.recurring.until': '13/12/2045',
+            'dates.recurring.until': moment().add(1, 'day').format(CLIENT_FORMAT),
             'dates.allDay': true,
             slugline: 'slugline of the recurring event',
             name: 'name of the recurring event',
@@ -78,7 +83,7 @@ describe('Planning.Events: edit metadata', () => {
         expectedEvent = {
             ...expectedEvent,
             'dates.recurring.enable': true,
-            'dates.recurring.until': '13/12/2045',
+            'dates.recurring.until': moment().add(1, 'day').format(CLIENT_FORMAT),
             'dates.allDay': true,
             slugline: 'slugline of the recurring event',
             name: 'name of the recurring event',
@@ -129,7 +134,7 @@ describe('Planning.Events: edit metadata', () => {
         // Enter minimum Event metadata
         editor.expectItemType();
         editor.type({
-            'dates.start.date': '12/12/2045',
+            'dates.start.date': moment().format(CLIENT_FORMAT),
             'dates.allDay': true,
             slugline: 'slugline of the event',
             name: 'name of the event',
@@ -171,5 +176,54 @@ describe('Planning.Events: edit metadata', () => {
         editor.unpostButton
             .should('exist')
             .should('be.enabled');
+    });
+});
+
+describe('Planing.Events: edit existing events', () => {
+    beforeEach(() => {
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
+        addItems('events', [createEventFor.tomorrow({
+            ...cloneDeep(TEST_EVENTS.date_01_02_2045),
+        }), createEventFor.tomorrow({
+            ...cloneDeep(TEST_EVENTS.date_02_02_2045),
+            }, null),
+        ]);
+        login();
+
+        waitForPageLoad.planning();
+    });
+
+    it('SDESK-6972: Edit events with no timezone', () => {
+        // Test if we can edit an Event without a timezone value
+        list.item(0)
+            .dblclick();
+        editor.waitTillOpen();
+        editor.waitLoadingComplete();
+
+        editor.type({definition_short: 'Modifying 1st event'});
+        editor.waitForAutosave();
+        editor.saveButton
+            .should('exist')
+            .click();
+        editor.closeButton
+            .should('exist')
+            .click();
+        editor.waitTillClosed();
+
+        // test if we can edit an Event with a timezone value of `null`
+        list.item(1)
+            .dblclick();
+        editor.waitTillOpen();
+        editor.waitLoadingComplete();
+
+        editor.type({definition_short: 'Modifying 2nd event'});
+        editor.waitForAutosave();
+        editor.saveButton
+            .should('exist')
+            .click();
+        editor.closeButton
+            .should('exist')
+            .click();
+        editor.waitTillClosed();
     });
 });

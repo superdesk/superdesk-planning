@@ -3,10 +3,12 @@ import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
 import {Moment} from 'moment';
 
 import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
+import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext, planningUtils, stringUtils} from '../utils';
+import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
+import {convertStringFields} from '../utils/strings';
 
 const openAgenda = () => (
     (dispatch) => (
@@ -238,6 +240,48 @@ const addEventToCurrentAgenda = (
     }
 );
 
+export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanningItem> {
+    const defaultPlace = selectors.general.defaultPlaceList(planningApi.redux.store.getState());
+    const defaultValues = planningUtils.defaultPlanningValues(null, defaultPlace);
+
+    let newPlanningItem: Partial<IPlanningItem> = {
+        ...defaultValues,
+        type: 'planning',
+        event_item: event._id,
+        planning_date: event._sortDate || event.dates?.start,
+        place: event.place || defaultPlace,
+        subject: event.subject,
+        anpa_category: event.anpa_category,
+        agendas: [],
+        language: event.language || defaultValues.language,
+        languages: event.languages || defaultValues.languages,
+    };
+
+    newPlanningItem = convertStringFields(
+        event,
+        newPlanningItem,
+        'event',
+        'planning',
+        [
+            ['slugline', 'slugline'],
+            ['internal_note', 'internal_note'],
+            ['name', 'name'],
+            ['definition_short', 'description_text'],
+            ['ednote', 'ednote'],
+        ],
+    ) as Partial<IPlanningItem>;
+
+    if (event.languages != null) {
+        newPlanningItem.languages = event.languages;
+    }
+
+    if (event.priority != null) {
+        newPlanningItem.priority = event.priority;
+    }
+
+    return newPlanningItem;
+}
+
 /**
  * Action dispatcher that creates a planning item from the supplied event,
  * @param {object} event - The event used to create the planning item
@@ -248,54 +292,19 @@ const createPlanningFromEvent = (
     event: IEventItem,
     planningDate: Moment = null,
     agendas: Array<string> = []
-) => (
-    (dispatch) => (
-        dispatch(planning.api.save({}, {
-            event_item: event._id,
-            slugline: stringUtils.convertStringFieldForProfileFieldType(
-                'event',
-                'planning',
-                'slugline',
-                'slugline',
-                event.slugline
-            ),
-            planning_date: planningDate || event._sortDate || event.dates.start,
-            internal_note: stringUtils.convertStringFieldForProfileFieldType(
-                'event',
-                'planning',
-                'internal_note',
-                'internal_note',
-                event.internal_note
-            ),
-            name: stringUtils.convertStringFieldForProfileFieldType(
-                'event',
-                'planning',
-                'name',
-                'name',
-                event.name
-            ),
-            place: event.place,
-            subject: event.subject,
-            anpa_category: event.anpa_category,
-            description_text: stringUtils.convertStringFieldForProfileFieldType(
-                'event',
-                'planning',
-                'definition_short',
-                'description_text',
-                event.definition_short
-            ),
-            ednote: stringUtils.convertStringFieldForProfileFieldType(
-                'event',
-                'planning',
-                'ednote',
-                'ednote',
-                event.ednote
-            ),
-            agendas: agendas,
-            language: event.language,
-        }))
-    )
-);
+) => {
+    const newPlanningItem = convertEventToPlanningItem(event);
+
+    if (planningDate != null) {
+        newPlanningItem.planning_date = planningDate;
+    }
+
+    newPlanningItem.agendas = newPlanningItem.agendas.concat(agendas);
+
+    return (dispatch) => (
+        dispatch(planning.api.save({}, newPlanningItem))
+    );
+};
 
 /**
  * Action dispatcher that fetches all planning items for the

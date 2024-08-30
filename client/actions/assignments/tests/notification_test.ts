@@ -1,5 +1,6 @@
 import sinon from 'sinon';
 
+import {planningApi} from '../../../superdeskApi';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {createTestStore, assignmentUtils} from '../../../utils';
 import {registerNotifications} from '../../../utils/notifications';
@@ -8,7 +9,7 @@ import assignmentsUi from '../ui';
 import assignmentsApi from '../api';
 import main from '../../main';
 import assignmentNotifications from '../notifications';
-import planningApi from '../../planning/api';
+import planningApis from '../../planning/api';
 
 describe('actions.assignments.notification', () => {
     let store;
@@ -134,7 +135,7 @@ describe('actions.assignments.notification', () => {
                 () => () => Promise.resolve()
             );
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
-            sinon.stub(planningApi, 'loadPlanningByIds').callsFake(
+            sinon.stub(planningApis, 'loadPlanningByIds').callsFake(
                 () => () => Promise.resolve()
             );
         });
@@ -143,7 +144,7 @@ describe('actions.assignments.notification', () => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
             restoreSinonStub(main.fetchItemHistory);
-            restoreSinonStub(planningApi.loadPlanningByIds);
+            restoreSinonStub(planningApis.loadPlanningByIds);
         });
 
         it('update planning on assignment update', (done) => {
@@ -164,8 +165,8 @@ describe('actions.assignments.notification', () => {
 
             testStore.dispatch(assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
-                    expect(planningApi.loadPlanningByIds.callCount).toBe(1);
-                    expect(planningApi.loadPlanningByIds.args).toEqual([
+                    expect(planningApis.loadPlanningByIds.callCount).toBe(1);
+                    expect(planningApis.loadPlanningByIds.args).toEqual([
                         [['p1']],
                     ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
@@ -234,11 +235,15 @@ describe('actions.assignments.notification', () => {
 
     describe('`assignment lock`', () => {
         beforeEach(() => {
+            sinon.stub(planningApi.locks, 'setItemAsLocked').returns(undefined);
+            sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
                 Promise.resolve(store.initialState.assignment.assignments.as1)));
         });
 
         afterEach(() => {
+            restoreSinonStub(planningApi.locks.setItemAsLocked);
+            restoreSinonStub(planningApi.locks.setItemAsUnlocked);
             restoreSinonStub(assignmentsApi.fetchAssignmentById);
         });
 
@@ -254,6 +259,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentLocked({}, payload))
                 .then(() => {
+                    expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
                     expect(store.dispatch.callCount).toBe(2);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
                     expect(store.dispatch.args[1]).toEqual([{
@@ -282,6 +288,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentUnlocked({}, payload))
                 .then(() => {
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(store.dispatch.callCount).toBe(2);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
                     expect(store.dispatch.args[1]).toEqual([{
@@ -305,20 +312,22 @@ describe('actions.assignments.notification', () => {
 
     describe('`assignment:completed`', () => {
         beforeEach(() => {
+            sinon.stub(planningApi.locks, 'setItemAsUnlocked').returns(undefined);
             sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(
                 () => () => (Promise.resolve())
             );
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
-            sinon.stub(planningApi, 'loadPlanningByIds').callsFake(
+            sinon.stub(planningApis, 'loadPlanningByIds').callsFake(
                 () => () => (Promise.resolve())
             );
         });
 
         afterEach(() => {
+            restoreSinonStub(planningApi.locks.setItemAsUnlocked);
             restoreSinonStub(assignmentsUi.reloadAssignments);
             restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
-            restoreSinonStub(planningApi.loadPlanningByIds);
+            restoreSinonStub(planningApis.loadPlanningByIds);
         });
 
         it('update planning on assignment complete', (done) => {
@@ -344,8 +353,8 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     coverage1 = getCoverage(payload);
 
-                    expect(planningApi.loadPlanningByIds.callCount).toBe(1);
-                    expect(planningApi.loadPlanningByIds.args).toEqual([
+                    expect(planningApis.loadPlanningByIds.callCount).toBe(1);
+                    expect(planningApis.loadPlanningByIds.args).toEqual([
                         [['p1']],
                     ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
@@ -375,6 +384,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
+                    expect(planningApi.locks.setItemAsUnlocked.callCount).toBe(1);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
                     expect(store.dispatch.args[5]).toEqual([{
                         type: 'UNLOCK_ASSIGNMENT',

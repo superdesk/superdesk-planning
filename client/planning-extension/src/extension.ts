@@ -16,6 +16,7 @@ import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRu
 import ng from 'superdesk-core/scripts/core/services/ng';
 // import {superdeskApi} from '../../../client/superdeskApi';
 // import {isContentLinkToCoverageAllowed} from '../../../client/utils/archive';
+import {extensionBridge} from './extension_bridge';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -158,12 +159,17 @@ const extension: IExtension = {
                             },
                         },
                     },
-                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+                    notifications: {
+                        'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
                     },
+                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+                },
             };
 
-            return Promise.resolve(result);
+        return Promise.resolve(result);
     },
 };
+
+export const registerEditorField = extensionBridge.fields.registerEditorField;
 
 export default extension;

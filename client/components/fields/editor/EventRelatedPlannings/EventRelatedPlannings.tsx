@@ -1,7 +1,14 @@
 import * as React from 'react';
 
-import {IEditorFieldProps, IEventItem, IPlanningItem, IProfileSchemaTypeList} from '../../../../interfaces';
-import {superdeskApi} from '../../../../superdeskApi';
+import {
+    IEditorFieldProps,
+    IEventItem,
+    IPlanningCoverageItem,
+    IPlanningItem,
+    IProfileSchemaTypeList,
+    ISearchProfile
+} from '../../../../interfaces';
+import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
 import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
 import {Row} from '../../../UI/Form';
@@ -13,16 +20,19 @@ import './style.scss';
 interface IProps extends IEditorFieldProps {
     item: IEventItem;
     schema?: IProfileSchemaTypeList;
+    coverageProfile?: ISearchProfile;
 
     getRef(value: DeepPartial<IPlanningItem>): React.RefObject<PlanningMetaData | RelatedPlanningItem>;
     addPlanningItem(): void;
     removePlanningItem(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
+    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
 }
 
 export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const isAgendaEnabled = planningApi.planning.getEditorProfile().editor.agendas.enabled;
         const disabled = this.props.disabled || this.props.schema?.read_only;
 
         return (
@@ -74,8 +84,12 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     item={plan}
                                     removePlan={this.props.removePlanningItem}
                                     updatePlanningItem={this.props.updatePlanningItem}
+                                    addCoverageToWorkflow={this.props.addCoverageToWorkflow}
                                     disabled={false}
                                     editorType={this.props.editorType}
+                                    profile={this.props.profile}
+                                    coverageProfile={this.props.coverageProfile}
+                                    isAgendaEnabled={isAgendaEnabled}
                                 />
                             ))
                         )}

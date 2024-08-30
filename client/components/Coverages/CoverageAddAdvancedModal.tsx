@@ -9,7 +9,8 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
 import Modal from '../Modal';
-import {SelectInput, SelectUserInput} from '../UI/Form';
+import {SelectInput} from '../UI/Form';
+import {superdeskApi} from '../../superdeskApi';
 
 const isInvalid = (coverage) => coverage.user && !coverage.desk;
 
@@ -34,8 +35,8 @@ interface ICoverageSelector {
     qcode: IG2ContentType['qcode'];
     name: IG2ContentType['name'];
     icon: string;
-    desk: IDesk['_id'];
-    user: IUser['_id'];
+    desk: IDesk;
+    user: IUser;
     status: IPlanningNewsCoverageStatus;
     popupContainer: any;
     filteredDesks: Array<IDesk>;
@@ -218,6 +219,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
 
     render() {
         const language = getUserInterfaceLanguageFromCV();
+        const {SelectUser} = superdeskApi.components;
 
         return (
             <Modal
@@ -228,6 +230,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                     event.stopPropagation();
                     this.props.close();
                 }}
+                removeTabIndexAttribute={true}
             >
                 <Modal.Header>
                     <h3 className="modal__heading">
@@ -276,18 +279,26 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                                                 </div>
 
                                                 <div className="grid__item grid__item--col4">
-                                                    <SelectUserInput
-                                                        field={'user'}
-                                                        value={coverage.user}
-                                                        onChange={(field, value) => this.onUserChange(coverage, value)}
-                                                        labelField="name"
-                                                        keyField="_id"
-                                                        users={coverage.filteredUsers}
-                                                        clearable={true}
-                                                        popupContainer={() => coverage.popupContainer}
-                                                        inline={true}
-                                                    />
-                                                    <div ref={(node) => coverage.popupContainer = node} />
+                                                    <div
+                                                        style={
+                                                            {
+                                                                margin: '0 0 1.8em 0',
+                                                                paddingBlockStart: '1.8rem',
+                                                                position: 'relative'}
+                                                        }
+                                                    >
+                                                        <SelectUser
+                                                            deskId={coverage.desk?._id ?? undefined}
+                                                            selectedUserId = {coverage.user?._id}
+                                                            onSelect={(user) => {
+                                                                this.onUserChange(coverage, user);
+                                                            }}
+                                                            autoFocus={false}
+                                                            horizontalSpacing={true}
+                                                            clearable={true}
+                                                        />
+                                                        <div ref={(node) => coverage.popupContainer = node} />
+                                                    </div>
                                                 </div>
 
                                                 <div className="grid__item grid__item--col4">

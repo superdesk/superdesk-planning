@@ -1,20 +1,24 @@
 import {
     FILTER_TYPE,
     IEventItem,
-    IPlanningAPI, IPlanningItem,
+    IPlanningAPI,
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    LOCK_STATE
+    IPlanningConfig,
+    IEventUpdateMethod,
 } from '../interfaces';
+import {appConfig as config} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {EVENTS, TEMP_ID_PREFIX} from '../constants';
 
-import {convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
-import {eventUtils, planningUtils} from '../utils';
+import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
+import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
 import * as actions from '../actions';
+
+const appConfig = config as IPlanningConfig;
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -23,6 +27,7 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
         location: params.location?.qcode,
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
+        priority: arrayToString(params.priority),
     };
 }
 
@@ -109,15 +114,6 @@ export function getEventByIds(
         .then((response) => response._items);
 }
 
-export function getLockedEvents(): Promise<Array<IEventItem>> {
-    return searchEventsGetAll({
-        lock_state: LOCK_STATE.LOCKED,
-        directly_locked: true,
-        only_future: false,
-        include_killed: true,
-    });
-}
-
 function getEventEditorProfile() {
     return eventProfile(planningApi.redux.store.getState());
 }
@@ -126,62 +122,95 @@ function getEventSearchProfile() {
     return eventSearchProfile(planningApi.redux.store.getState());
 }
 
-function createOrUpdatePlannings(
-    event: IEventItem,
-    items: Array<Partial<IPlanningItem>>
-): Promise<Array<IPlanningItem>> {
-    return Promise.all(
-        items.map(
-            (updates) => (
-                updates._id.startsWith(TEMP_ID_PREFIX) ?
-                    planningApi.planning.createFromEvent(event, updates) :
-                    planningApi.planning.getById(updates._id)
-                        .then((original) => (
-                            planningApi.planning.update(original, updates)
-                        ))
-            )
-        )
-    )
-        .then((newOrUpdatedItems) => {
-            newOrUpdatedItems.forEach(planningUtils.modifyForClient);
-
-            return newOrUpdatedItems;
-        });
-}
-
 function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
+    const {default_create_planning_series_with_event_series} = appConfig.planning;
+    const planningDefaultCreateMethod: IEventUpdateMethod = default_create_planning_series_with_event_series === true ?
+        'all' :
+        'single';
+
     return superdeskApi.dataApi.create<IEventItem | IRestApiResponse<IEventItem>>('events', {
         ...updates,
         associated_plannings: undefined,
-    })
-        .then((response) => {
-            const events: Array<IEventItem> = modifySaveResponseForClient(response);
-
-            return createOrUpdatePlannings(events[0], updates.associated_plannings ?? [])
-                .then((plannings) => {
-                    // Make sure to update the Redux Store with the latest Planning items
-                    // So that the Editor can set the state with these latest items
-                    planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(plannings));
-
-                    return events;
-                });
-        });
-}
-
-function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
-    return superdeskApi.dataApi.patch<any>('events', original, {
-        ...updates,
-        associated_plannings: undefined,
+        embedded_planning: updates.associated_plannings.map((planning) => ({
+            update_method: planning.update_method ?? planningDefaultCreateMethod,
+            coverages: planning.coverages.map((coverage) => ({
+                coverage_id: coverage.coverage_id,
+                g2_content_type: coverage.planning.g2_content_type,
+                desk: coverage.assigned_to.desk,
+                user: coverage.assigned_to.user,
+                language: coverage.planning.language,
+                news_coverage_status: coverage.news_coverage_status.qcode,
+                scheduled: coverage.planning.scheduled,
+                genre: coverage.planning.genre?.qcode,
+                slugline: coverage.planning.slugline,
+                ednote: coverage.planning.ednote,
+                internal_note: coverage.planning.internal_note,
+                headline: coverage.planning.headline,
+            })),
+        })),
+        update_method: updates.update_method?.value ?? updates.update_method
     })
         .then((response) => {
             const events = modifySaveResponseForClient(response);
 
-            return createOrUpdatePlannings(events[0], updates.associated_plannings ?? [])
-                .then((plannings) => {
-                    planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(plannings));
+            return planningApi.planning.searchGetAll({
+                recurrence_id: events[0].recurrence_id,
+                event_item: events[0].recurrence_id != null ? null : events.map((event) => event._id),
+                spike_state: 'both',
+                only_future: false,
+            }).then((planningItems) => {
+                // Make sure to update the Redux Store with the latest Planning items
+                // So that the Editor can set the state with these latest items
+                planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(planningItems));
 
-                    return events;
-                });
+                return events;
+            });
+        })
+        .catch((error) => {
+            console.error(error);
+
+            return Promise.reject(error);
+        });
+}
+
+function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
+    return superdeskApi.dataApi.patch<IEventItem>('events', original, {
+        ...updates,
+        associated_plannings: undefined,
+        embedded_planning: updates?.associated_plannings?.map((planning) => ({
+            planning_id: planning._id.startsWith(TEMP_ID_PREFIX) ? undefined : planning._id,
+            update_method: planning.update_method,
+            coverages: planning.coverages.map((coverage) => ({
+                coverage_id: coverage.coverage_id,
+                g2_content_type: coverage.planning.g2_content_type,
+                desk: coverage.assigned_to.desk,
+                user: coverage.assigned_to.user,
+                language: coverage.planning.language,
+                news_coverage_status: coverage.news_coverage_status.qcode,
+                scheduled: coverage.planning.scheduled,
+                genre: coverage.planning.genre?.qcode,
+                slugline: coverage.planning.slugline,
+                ednote: coverage.planning.ednote,
+                internal_note: coverage.planning.internal_note,
+            })),
+        })),
+        update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
+    })
+        .then((response) => {
+            const events = modifySaveResponseForClient(response);
+
+            return planningApi.planning.searchGetAll({
+                recurrence_id: events[0].recurrence_id,
+                event_item: events[0].recurrence_id != null ? null : events.map((event) => event._id),
+                spike_state: 'both',
+                only_future: false,
+            }).then((planningItems) => {
+                // Make sure to update the Redux Store with the latest Planning items
+                // So that the Editor can set the state with these latest items
+                planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(planningItems));
+
+                return events;
+            });
         });
 }
 
@@ -190,7 +219,6 @@ export const events: IPlanningAPI['events'] = {
     searchGetAll: searchEventsGetAll,
     getById: getEventById,
     getByIds: getEventByIds,
-    getLocked: getLockedEvents,
     getEditorProfile: getEventEditorProfile,
     getSearchProfile: getEventSearchProfile,
     create: create,

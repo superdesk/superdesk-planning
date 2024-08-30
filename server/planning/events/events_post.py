@@ -18,8 +18,8 @@ from planning.common import (
     enqueue_planning_item,
     get_version_item_for_post,
 )
-
 from planning.utils import try_cast_object_id
+from planning.content_profiles.utils import is_post_planning_with_event_enabled
 
 
 class EventsPostResource(EventsResource):
@@ -36,6 +36,11 @@ class EventsPostResource(EventsResource):
         },
         # used to only repost an item when data changes from backend (update_repetitions)
         "repost_on_update": {"type": "boolean", "required": False, "default": False},
+        "failed_planning_ids": {
+            "type": "list",
+            "required": False,
+            "schema": {"type": "dict", "schema": {}},
+        },
     }
 
     url = "events/post"
@@ -51,6 +56,7 @@ class EventsPostService(EventsBaseService):
         events_service = get_resource_service("events")
         for doc in docs:
             event = events_service.find_one(req=None, _id=doc["event"])
+            doc["failed_planning_ids"] = []
 
             if not event:
                 abort(412)
@@ -58,9 +64,14 @@ class EventsPostService(EventsBaseService):
             update_method = self.get_update_method(event, doc)
 
             if update_method == UPDATE_SINGLE:
-                ids.extend(self._post_single_event(doc, event))
+                event_id, planning_ids = self._post_single_event(doc, event)
             else:
-                ids.extend(self._post_recurring_events(doc, event, update_method))
+                event_id, planning_ids = self._post_recurring_events(doc, event, update_method)
+
+            ids.append(event_id)
+            if planning_ids:
+                doc["failed_planning_ids"].extend(planning_ids)
+
         return ids
 
     @staticmethod
@@ -84,7 +95,7 @@ class EventsPostService(EventsBaseService):
     def _post_single_event(self, doc, event):
         self.validate_post_state(doc["pubstatus"])
         self.validate_item(event)
-        updated_event = self.post_event(event, doc["pubstatus"], doc.get("repost_on_update"))
+        updated_event, failed_planning_ids = self.post_event(event, doc["pubstatus"], doc.get("repost_on_update"))
 
         event_type = "events:posted" if doc["pubstatus"] == POST_STATE.USABLE else "events:unposted"
         push_notification(
@@ -95,7 +106,7 @@ class EventsPostService(EventsBaseService):
             state=updated_event["state"],
         )
 
-        return [doc["event"]]
+        return doc["event"], failed_planning_ids
 
     def _post_recurring_events(self, doc, original, update_method):
         post_to_state = doc["pubstatus"]
@@ -122,8 +133,9 @@ class EventsPostService(EventsBaseService):
         updated_event = None
         ids = []
         items = []
+        failed_planning_ids = []
         for event in posted_events:
-            updated_event = self.post_event(event, post_to_state, doc.get("repost_on_update"))
+            updated_event, failed_planning_ids = self.post_event(event, post_to_state, doc.get("repost_on_update"))
             ids.append(event[config.ID_FIELD])
             items.append({"id": event[config.ID_FIELD], "etag": updated_event["_etag"]})
 
@@ -143,13 +155,15 @@ class EventsPostService(EventsBaseService):
                 state=updated_event["state"],
             )
 
-        return ids
+        return ids, failed_planning_ids
 
     def post_event(self, event, new_post_state, repost):
         # update the event with new state
         if repost:
             # same pubstatus or scheduled (for draft events)
             new_post_state = event.get("pubstatus", POST_STATE.USABLE)
+
+        failed_planning_ids = []
 
         new_item_state = get_item_post_state(event, new_post_state, repost)
         updates = {"state": new_item_state, "pubstatus": new_post_state}
@@ -177,9 +191,9 @@ class EventsPostService(EventsBaseService):
         self.publish_event(event, version)
 
         if len(plannings) > 0:
-            self.post_related_plannings(plannings, new_post_state)
+            failed_planning_ids = self.post_related_plannings(plannings, new_post_state)
 
-        return updated_event
+        return updated_event, failed_planning_ids
 
     def publish_event(self, event, version):
         # check and remove private contacts while posting event, only public contact will be visible
@@ -203,13 +217,28 @@ class EventsPostService(EventsBaseService):
             logger.error("Failed to save planning version for event item id {}".format(event["_id"]))
 
     def post_related_plannings(self, plannings, new_post_state):
-        # Check to see if we are un-posting, we need to unpost it's planning item
-        if new_post_state != POST_STATE.CANCELLED:
-            return
-
         planning_post_service = get_resource_service("planning_post")
         planning_spike_service = get_resource_service("planning_spike")
         docs = []
+        failed_planning_ids = []
+        if new_post_state != POST_STATE.CANCELLED:
+            if is_post_planning_with_event_enabled():
+                docs = [
+                    {
+                        "planning": planning[config.ID_FIELD],
+                        "etag": planning.get("etag"),
+                        "pubstatus": POST_STATE.USABLE,
+                    }
+                    for planning in plannings
+                    if not planning.get("versionposted")
+                ]
+            if len(docs) > 0:
+                for doc in docs:
+                    try:
+                        planning_post_service.post([doc], related_planning=True)
+                    except Exception as e:
+                        failed_planning_ids.append({"_id": doc["planning"], "error": e.description})
+            return failed_planning_ids
         for planning in plannings:
             if not planning.get("pubstatus") and planning.get("state") in [
                 WORKFLOW_STATE.INGESTED,

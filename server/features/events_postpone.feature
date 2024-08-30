@@ -499,6 +499,7 @@ Feature: Events Postpone
 
     @auth
     @notification
+    @planning_cvs
     Scenario: Published event gets updated after postpone
         Given we have sessions "/sessions"
         Given "desks"

@@ -87,6 +87,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
         const fieldProps = {
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
             'schema.read_only': {enabled: this.props.item.name === 'related_plannings'},
+            'schema.planning_auto_publish': {enabled: this.props.item.name === 'related_plannings'},
             'schema.field_type': {enabled: fieldType != null},
             'schema.minlength': {enabled: !disableMinMax},
             'schema.maxlength': {enabled: !disableMinMax},
@@ -99,11 +100,12 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.default_language': {enabled: (this.props.item.name === 'language' && isMultilingual)},
             'schema.multilingual': {enabled: (
                 this.props.item.name === 'language' || (
-                    this.props.item.schema.type === 'string' &&
+                    this.props.item.schema?.type === 'string' &&
                     isMultilingual &&
                     !['language', 'location'].includes(this.props.item.name)
                 )
             )},
+            'schema.default_value': {enabled: this.props.item.name === 'priority'},
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)
@@ -187,11 +189,14 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                             'schema.multilingual': {enabled: true, index: 11},
                                             'schema.languages': {enabled: true, index: 12},
                                             'schema.default_language': {enabled: true, index: 13},
+                                            'schema.planning_auto_publish': {enabled: true, index: 14},
+                                            'schema.default_value': {enabled: true, index: 11},
                                         },
                                         {
                                             item: this.props.item,
                                             onChange: this.onChange,
                                             errors: this.state.errors,
+                                            showErrors: true,
                                         },
                                         fieldProps
                                     )}

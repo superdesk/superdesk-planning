@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
+
+import {planningApi} from '../superdeskApi';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
 import {AssignmentPreviewContainer} from '../components/Assignments';
@@ -57,7 +59,7 @@ export class AssignmentPreviewController {
         registerNotifications(this.$scope, this.store);
 
         return this.$q.all({
-            locks: this.store.dispatch(actions.locks.loadAssignmentLocks()),
+            locks: planningApi.locks.loadLockedItems(),
             agendas: this.store.dispatch(actions.fetchAgendas()),
             assignment: this.fetchAssignment(this.$scope.vm.item.assignment_id),
         })

@@ -1,4 +1,5 @@
 import {superdeskApi} from '../../../superdeskApi';
+import {IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
 
 import {IPreviewHocOptions, previewHoc} from './base/PreviewHoc';
 import {PreviewSimpleListItem} from './base/PreviewSimpleListItem';
@@ -12,8 +13,10 @@ import {PreviewFieldContacts} from './Contacts';
 import {PreviewFieldCustomVocabularies} from './CustomVocabularies';
 import {PreviewFieldUrgency} from './Urgency';
 import {PreviewFieldFlags} from './Flags';
+import {PreviewFieldRelatedArticles} from './RelatedArticles';
 
 import * as selectors from '../../../selectors';
+import {planningUtils} from '../../../utils';
 
 import {
     getPreviewString,
@@ -37,6 +40,10 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
     ad_hoc_planning: {
         props: () => ({label: superdeskApi.localization.gettext('Ad Hoc Planning')}),
         getValue: getPreviewBooleanString,
+    },
+    coverage_assignment_status: {
+        props: () => ({label: superdeskApi.localization.gettext('Coverage Assignment Status')}),
+        getValue: getPreviewString,
     },
     agendas: {
         props: () => ({
@@ -173,6 +180,24 @@ const fieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('Accreditation Deadline')}),
         getValue: getDateTimeValue,
     },
+    genre: {
+        props: () => ({label: superdeskApi.localization.gettext('Genre')}),
+        getValue: getValueFromCV('genres'),
+        mapStateToProps: (state) => ({genres: state.genres}),
+    },
+    scheduled: {
+        props: () => ({label: superdeskApi.localization.gettext('Due')}),
+        getValue: (value: undefined, props: {item: IPlanningCoverageItem}) => (
+            !props.item.planning.scheduled ?
+                superdeskApi.localization.gettext('Not scheduled yet') :
+                planningUtils.getCoverageDateTimeText(props.item)
+        ),
+    },
+    news_coverage_status: {
+        props: () => ({label: superdeskApi.localization.gettext('Coverage Status')}),
+        getValue: getValueFromCV('news_coverage_status'),
+        mapStateToProps: (state) => ({news_coverage_status: selectors.general.newsCoverageStatus(state)}),
+    },
 };
 
 const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
@@ -251,6 +276,10 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('Accreditation Info')}),
         getValue: getPreviewString,
     },
+    priority: {
+        props: () => ({label: superdeskApi.localization.gettext('Priority:')}),
+        getValue: getPreviewString,
+    },
 };
 
 let FIELD_TO_PREVIEW_COMPONENT: {[key: string]: any} = {};
@@ -273,11 +302,21 @@ Object.keys(multilingualFieldOptions).forEach((field) => {
 FIELD_TO_PREVIEW_COMPONENT.filter_schedule = PreviewFieldFilterSchedule;
 
 FIELD_TO_FORM_PREVIEW_COMPONENT.dates = PreviewFieldEventSchedule;
+FIELD_TO_PREVIEW_COMPONENT.dates = PreviewFieldEventSchedule;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.location = PreviewFieldLocation;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.event_contact_info = PreviewFieldContacts;
+FIELD_TO_PREVIEW_COMPONENT.event_contact_info = PreviewFieldContacts;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.custom_vocabularies = PreviewFieldCustomVocabularies;
+FIELD_TO_PREVIEW_COMPONENT.custom_vocabularies = PreviewFieldCustomVocabularies;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.urgency = PreviewFieldUrgency;
 FIELD_TO_FORM_PREVIEW_COMPONENT.flags = PreviewFieldFlags;
+
+FIELD_TO_FORM_PREVIEW_COMPONENT.related_items = PreviewFieldRelatedArticles;
+FIELD_TO_PREVIEW_COMPONENT.related_items = PreviewFieldRelatedArticles;
 
 export {
     FIELD_TO_PREVIEW_COMPONENT,

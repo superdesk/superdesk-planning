@@ -2,7 +2,11 @@ import React from 'react';
 import moment from 'moment-timezone';
 import {ListGroupItem} from './';
 import {Group, Header} from '../UI/List';
-import {IEventOrPlanningItem, LIST_VIEW_TYPE, SORT_FIELD} from '../../interfaces';
+import {
+    ICommonAdvancedSearchParams,
+    IEventOrPlanningItem, ISearchFilter,
+    LIST_VIEW_TYPE, SORT_FIELD
+} from '../../interfaces';
 import {timeUtils} from '../../utils';
 
 const TIME_COLUMN_MIN_WIDTH = {
@@ -78,6 +82,8 @@ interface IProps {
     listViewType?: string;
     sortField?: string;
     listBoxGroupProps: {};
+    searchParams?: ICommonAdvancedSearchParams;
+    searchFilterParams?: ISearchFilter['params'];
 }
 
 export class ListGroup extends React.Component<IProps> {
@@ -145,6 +151,8 @@ export class ListGroup extends React.Component<IProps> {
             listViewType,
             sortField,
             listBoxGroupProps,
+            searchParams,
+            searchFilterParams,
         } = this.props;
 
         // with defaults
@@ -205,6 +213,8 @@ export class ListGroup extends React.Component<IProps> {
                             listViewType: listViewType,
                             sortField: sortField,
                             minTimeWidth: minTimeWidth,
+                            searchParams: searchParams,
+                            searchFilterParams: searchFilterParams,
                         };
 
                         if (indexItems) {

@@ -225,7 +225,7 @@ export class Dropdown extends React.Component<IProps, IState> {
                     {(this.props.searchable !== true || this.props.items.length < 3) ?
                         null :
                         (
-                            <div style={{paddingLeft: 10, paddingRight: 10}}>
+                            <div style={{paddingLeft: 10, paddingRight: 10, paddingBottom: '1rem'}}>
                                 <input
                                     type="text"
                                     value={this.state.filterValue}

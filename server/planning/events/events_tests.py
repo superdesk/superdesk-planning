@@ -5,9 +5,10 @@ from mock import Mock, patch
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
 from planning.tests import TestCase
-from planning.common import format_address
+from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
+from werkzeug.exceptions import BadRequest
 
 
 class EventTestCase(TestCase):
@@ -133,6 +134,27 @@ class EventTestCase(TestCase):
             for e in future:
                 self.assertEquals(e["dates"]["start"], expected_time)
                 expected_time += timedelta(days=1)
+
+    def test_create_cancelled_event(self):
+        with self.app.app_context():
+            service = get_resource_service("events")
+            service.post_in_mongo(
+                [
+                    {
+                        "guid": "test",
+                        "name": "Test Event",
+                        "pubstatus": "cancelled",
+                        "dates": {
+                            "start": datetime.now(),
+                            "end": datetime.now() + timedelta(days=1),
+                        },
+                    }
+                ]
+            )
+
+            event = service.find_one(req=None, guid="test")
+            assert event is not None
+            assert event["pubstatus"] == "cancelled"
 
 
 class EventLocationFormatAddress(TestCase):
@@ -265,6 +287,7 @@ class EventPlanningSchedule(TestCase):
                         "etag": events[0].get("etag"),
                         "pubstatus": "usable",
                         "update_method": "all",
+                        "failed_planning_ids": [],
                     }
                 ]
             )
@@ -426,3 +449,161 @@ def generate_recurring_events(num_events):
         )
         days += 1
     return events
+
+
+class EventsRelatedPlanningAutoPublish(TestCase):
+    def test_planning_item_is_published_with_events(self):
+        with self.app.app_context():
+            events_service = get_resource_service("events")
+            planning_service = get_resource_service("planning")
+            event = {
+                "type": "event",
+                "_id": "123",
+                "occur_status": {
+                    "qcode": "eocstat:eos5",
+                    "name": "Planned, occurs certainly",
+                    "label": "Planned, occurs certainly",
+                },
+                "dates": {
+                    "start": datetime(2099, 11, 21, 11, 00, 00, tzinfo=pytz.UTC),
+                    "end": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                    "tz": "Asia/Calcutta",
+                },
+                "calendars": [],
+                "state": "draft",
+                "language": "en",
+                "languages": ["en"],
+                "place": [],
+                "_time_to_be_confirmed": False,
+                "name": "Demo ",
+                "update_method": "single",
+            }
+            event_id = events_service.post([event])
+            planning = {
+                "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "name": "Demo 1",
+                "place": [],
+                "language": "en",
+                "type": "planning",
+                "slugline": "slug",
+                "agendas": [],
+                "languages": ["en"],
+                "user": "12234553",
+                "event_item": event_id[0],
+                "coverages": [
+                    {
+                        "coverage_id": "urn:newsml:localhost:5000:2023-09-08T17:40:56.290922:e264a179-5b1a-4b52-b73b-332660848cae",
+                        "planning": {
+                            "scheduled": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                            "g2_content_type": "text",
+                            "language": "en",
+                            "genre": "None",
+                        },
+                        "news_coverage_status": {
+                            "qcode": "ncostat:int",
+                            "name": "coverage intended",
+                            "label": "Planned",
+                        },
+                        "workflow_status": "draft",
+                        "assigned_to": {},
+                        "firstcreated": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                    }
+                ],
+            }
+            planning_id = planning_service.post([planning])
+            schema = {
+                "language": {
+                    "languages": ["en", "de"],
+                    "default_language": "en",
+                    "multilingual": True,
+                    "required": True,
+                },
+                "name": {"multilingual": True},
+                "slugline": {"multilingual": True},
+                "definition_short": {"multilingual": True},
+                "related_plannings": {"planning_auto_publish": True},
+            }
+            self.app.data.insert(
+                "planning_types",
+                [
+                    {
+                        "_id": "event",
+                        "name": "event",
+                        "editor": {
+                            "language": {"enabled": True},
+                            "related_plannings": {"enabled": True},
+                        },
+                        "schema": schema,
+                    }
+                ],
+            )
+            now = utcnow()
+            get_resource_service("events_post").post(
+                [{"event": event_id[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            )
+
+            event_item = events_service.find_one(req=None, _id=event_id[0])
+            self.assertEqual(len([event_item]), 1)
+            self.assertEqual(event_item.get("state"), "scheduled")
+
+            planning_item = planning_service.find_one(req=None, _id=planning_id[0])
+            self.assertEqual(len([planning_item]), 1)
+            self.assertEqual(planning_item.get("state"), "scheduled")
+            assert now <= planning_item.get("versionposted") < now + timedelta(seconds=5)
+
+    def test_new_planning_is_published_when_adding_to_published_event(self):
+        events_service = get_resource_service("events")
+        planning_service = get_resource_service("planning")
+
+        with self.app.app_context():
+            self.app.data.insert(
+                "planning_types",
+                [
+                    {
+                        "_id": "event",
+                        "name": "event",
+                        "editor": {"related_plannings": {"enabled": True}},
+                        "schema": {"related_plannings": {"planning_auto_publish": True}},
+                    }
+                ],
+            )
+            event_id = events_service.post(
+                [
+                    {
+                        "type": "event",
+                        "occur_status": {
+                            "qcode": "eocstat:eos5",
+                            "name": "Planned, occurs certainly",
+                            "label": "Planned, occurs certainly",
+                        },
+                        "dates": {
+                            "start": datetime(2099, 11, 21, 11, 00, 00, tzinfo=pytz.UTC),
+                            "end": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                            "tz": "Australia/Sydney",
+                        },
+                        "state": "draft",
+                        "name": "Demo",
+                    }
+                ]
+            )[0]
+            get_resource_service("events_post").post(
+                [{"event": event_id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            )
+            planning_id = planning_service.post(
+                [
+                    {
+                        "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                        "name": "Demo 1",
+                        "type": "planning",
+                        "event_item": event_id,
+                    }
+                ]
+            )[0]
+
+            event_item = events_service.find_one(req=None, _id=event_id)
+            self.assertIsNotNone(event_item)
+            self.assertEqual(event_item["pubstatus"], POST_STATE.USABLE)
+
+            planning_item = planning_service.find_one(req=None, _id=planning_id)
+            self.assertIsNotNone(planning_item)
+            self.assertEqual(planning_item["pubstatus"], POST_STATE.USABLE)

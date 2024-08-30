@@ -12,11 +12,9 @@ from typing import Dict, Any, Optional, List, Callable, Union
 
 import logging
 from datetime import datetime
-from flask import current_app as app
 from eve.utils import str_to_date as _str_to_date, date_to_str
 
 from superdesk import get_resource_service
-from superdesk.utc import get_timezone_offset, utcnow
 from superdesk.errors import SuperdeskApiError
 from superdesk.default_settings import strtobool as _strtobool
 from superdesk.users.services import current_user_has_privilege
@@ -30,13 +28,9 @@ from planning.content_profiles.utils import get_multilingual_fields
 logger = logging.getLogger(__name__)
 
 
-def get_time_zone(params: Dict[str, Any]):
-    return params.get("tz_offset") or get_timezone_offset(app.config["DEFAULT_TIMEZONE"], utcnow())
-
-
 def get_date_params(params: Dict[str, Any]):
     date_filter = (params.get("date_filter") or "").strip().lower()
-    tz_offset = get_time_zone(params)
+    time_zone = params.get("time_zone")
 
     try:
         start_date = params.get("start_date")
@@ -67,7 +61,7 @@ def get_date_params(params: Dict[str, Any]):
         logger.exception(e)
         raise SuperdeskApiError.badRequestError("Invalid value for end date")
 
-    return date_filter, start_date, end_date, tz_offset
+    return date_filter, start_date, end_date, time_zone
 
 
 def str_to_array(arg: Optional[Union[List[str], str]] = None) -> List[str]:
@@ -203,7 +197,11 @@ def search_language(params: Dict[str, Any], query: elastic.ElasticQuery):
     languages = str_to_array(params.get("language"))
 
     if len(languages):
-        query.must.append(elastic.terms(field="language", values=languages))
+        query.must.append(
+            elastic.bool_or(
+                [elastic.terms(field="language", values=languages), elastic.terms(field="languages", values=languages)]
+            )
+        )
 
 
 def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -321,16 +319,16 @@ def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery
     if not field_name or field_name == "schedule":
         return
 
-    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    date_filter, start_date, end_date, time_zone = get_date_params(params)
 
     if not date_filter and not start_date and not end_date:
         query.filter.append(
-            elastic.date_range(elastic.ElasticRangeParams(field=field_name, lte="now/d", time_zone=tz_offset))
+            elastic.date_range(elastic.ElasticRangeParams(field=field_name, lte="now/d", time_zone=time_zone))
         )
     else:
         base_query = elastic.ElasticRangeParams(
             field=field_name,
-            time_zone=tz_offset,
+            time_zone=time_zone,
             start_of_week=int(params.get("start_of_week") or 0),
         )
 
@@ -396,6 +394,10 @@ def construct_search_query(
 
         # Set `only_future` to False as `construct_query` with request params will add this if neccessary
         filter_params["only_future"] = False
+
+        # Set `time_zone` and start_of_week,  SDESK - 7264
+        filter_params["time_zone"] = params.get("time_zone")
+        filter_params["start_of_week"] = params.get("start_of_week")
         filter_query = construct_query(repo, filter_params, filters)
 
         remove_filter_params_from_query(filter_params, params)
@@ -456,6 +458,13 @@ def search_source(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must.append(elastic.terms(field="ingest_provider", values=sources))
 
 
+def search_priority(params: Dict[str, Any], query: elastic.ElasticQuery):
+    priorities = [str(qcode) for qcode in str_to_array(params.get("priority"))]
+
+    if len(priorities):
+        query.must.append(elastic.terms(field="priority", values=priorities))
+
+
 COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
     search_item_ids,
     search_name,
@@ -471,6 +480,7 @@ COMMON_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], Non
     restrict_items_to_user_only,
     search_original_creator,
     search_source,
+    search_priority,
 ]
 
 
@@ -478,6 +488,7 @@ COMMON_PARAMS: List[str] = [
     "item_ids",
     "name",
     "tz_offset",
+    "time_zone",
     "full_text",
     "anpa_category",
     "subject",
@@ -505,4 +516,5 @@ COMMON_PARAMS: List[str] = [
     "sort_field",
     "original_creator",
     "source",
+    "priority",
 ]

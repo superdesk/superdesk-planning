@@ -6,6 +6,7 @@ import * as actions from '../actions';
 import {WORKSPACE} from '../constants';
 import {PlanningApp} from '../apps';
 import eventsApi from '../actions/events/api';
+import {planningApi} from '../superdeskApi';
 
 
 export class PlanningController {
@@ -81,13 +82,14 @@ export class PlanningController {
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         return Promise.all([
-            this.store.dispatch(actions.locks.loadAllLocks()),
+            planningApi.locks.loadLockedItems(),
             this.store.dispatch(actions.fetchAgendas()),
             this.store.dispatch(actions.users.fetchAndRegisterUserPreferences()),
             this.store.dispatch(actions.events.api.fetchCalendars()),
             this.store.dispatch(actions.autosave.fetchAll()),
             this.store.dispatch(actions.eventsPlanning.ui.fetchFilters()),
             this.store.dispatch(eventsApi.fetchEventTemplates()),
+            this.store.dispatch(eventsApi.getEventsRecentTemplates()),
         ])
             .then(() => (
                 // Load the current items that are currently open for Preview/Editing

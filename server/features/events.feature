@@ -1377,3 +1377,210 @@ Feature: Events
             "assignment_id": null
         }
         """
+
+    @auth
+    Scenario: Create events without a timezone
+        When we post to "/events"
+        """
+        [{
+            "guid": "event1",
+            "name": "No timezone defined",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/events"
+        """
+        [{
+            "guid": "event2",
+            "name": "null timezone",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": null
+            }
+        }]
+        """
+        Then we get OK response
+    
+    @auth
+    Scenario: Create events with related items and coverages
+    When we post to "/events"
+    """
+    {
+        "type": "event",
+        "occur_status": {
+            "qcode": "eocstat:eos5",
+            "name": "Planned, occurs certainly",
+            "label": "Planned, occurs certainly"
+        },
+        "dates": {
+            "start": "2050-01-01T00:00:00+0000",
+            "end": "2050-01-02T00:00:00+0000",
+            "tz": "Europe/Sofia"
+        },
+        "calendars": [],
+        "state": "draft",
+        "language": "en",
+        "languages": [
+            "en"
+        ],
+        "place": [],
+        "files": [],
+        "associated_plannings": [
+            {
+                "_id": "tempId-1712223365066uledqfmsv",
+                "type": "planning",
+                "planning_date": null,
+                "agendas": [],
+                "state": "draft",
+                "item_class": "plinat:newscoverage",
+                "language": "en",
+                "languages": [
+                    "en"
+                ],
+                "place": [],
+                "flags": {
+                    "marked_for_not_publication": false,
+                    "overide_auto_assign_to_workflow": false
+                },
+                "coverages": [
+                    {
+                        "coverage_id": "tempId-1712223368199odugn",
+                        "planning": {
+                            "scheduled": "2024-04-04T13:36:08+03:00",
+                            "g2_content_type": "text",
+                            "language": "en",
+                            "_scheduledTime": "2024-04-04T13:36:08+03:00"
+                        },
+                        "news_coverage_status": {
+                            "qcode": "ncostat:int",
+                            "name": "coverage intended",
+                            "label": "Planned"
+                        },
+                        "workflow_status": "draft",
+                        "assigned_to": {}
+                    }
+                ],
+                "event_item": "tempId-1712220681040btveuuz"
+            }
+        ],
+        "related_items": [
+            {
+                "type": "picture",
+                "pubstatus": "usable",
+                "versioncreated": "2024-02-20T08:37:53+0000",
+                "guid": "0be5e148-2cd5-4a8b-bf76-a19fe21b2cb7",
+                "state": "in_progress",
+                "source": "ANSA",
+                "language": "it",
+                "search_provider": "660e6a002c73e11f433f0210"
+            },
+            {
+                "type": "picture",
+                "pubstatus": "usable",
+                "versioncreated": "2024-02-20T08:37:07+0000",
+                "guid": "941f41db-4444-4aaf-94d9-cd48cd091a59",
+                "state": "in_progress",
+                "source": "ANSA",
+                "language": "it",
+                "search_provider": "660e6a002c73e11f433f0210"
+            }
+        ]
+    }
+    """
+    Then we get OK response
+    
+    @auth
+    Scenario: Autosave events with related items and coverages
+    Given we have sessions "/sessions"
+    When we post to "/event_autosave"
+    """
+    {
+        "type": "event",
+        "occur_status": {
+            "qcode": "eocstat:eos5",
+            "name": "Planned, occurs certainly",
+            "label": "Planned, occurs certainly"
+        },
+        "dates": {
+            "start": "2050-01-01T00:00:00+0000",
+            "end": "2050-01-02T00:00:00+0000",
+            "tz": "Europe/Sofia"
+        },
+        "calendars": [],
+        "state": "draft",
+        "language": "en",
+        "languages": [
+            "en"
+        ],
+        "place": [],
+        "files": [],
+        "associated_plannings": [
+            {
+                "_id": "tempId-1712223365066uledqfmsv",
+                "type": "planning",
+                "planning_date": null,
+                "agendas": [],
+                "state": "draft",
+                "item_class": "plinat:newscoverage",
+                "language": "en",
+                "languages": [
+                    "en"
+                ],
+                "place": [],
+                "flags": {
+                    "marked_for_not_publication": false,
+                    "overide_auto_assign_to_workflow": false
+                },
+                "coverages": [
+                    {
+                        "coverage_id": "tempId-1712223368199odugn",
+                        "planning": {
+                            "scheduled": "2024-04-04T13:36:08+03:00",
+                            "g2_content_type": "text",
+                            "language": "en",
+                            "_scheduledTime": "2024-04-04T13:36:08+03:00"
+                        },
+                        "news_coverage_status": {
+                            "qcode": "ncostat:int",
+                            "name": "coverage intended",
+                            "label": "Planned"
+                        },
+                        "workflow_status": "draft",
+                        "assigned_to": {}
+                    }
+                ],
+                "event_item": "tempId-1712220681040btveuuz"
+            }
+        ],
+        "related_items": [
+            {
+                "type": "picture",
+                "pubstatus": "usable",
+                "versioncreated": "2024-02-20T08:37:53+0000",
+                "guid": "0be5e148-2cd5-4a8b-bf76-a19fe21b2cb7",
+                "state": "in_progress",
+                "source": "ANSA",
+                "language": "it",
+                "search_provider": "660e6a002c73e11f433f0210"
+            },
+            {
+                "type": "picture",
+                "pubstatus": "usable",
+                "versioncreated": "2024-02-20T08:37:07+0000",
+                "guid": "941f41db-4444-4aaf-94d9-cd48cd091a59",
+                "state": "in_progress",
+                "source": "ANSA",
+                "language": "it",
+                "search_provider": "660e6a002c73e11f433f0210"
+            }
+        ],
+        "lock_user": "#CONTEXT_USER_ID#",
+        "lock_session": "#SESSION_ID#"
+    }
+    """
+    Then we get OK response

@@ -16,6 +16,8 @@ import {
     LIST_VIEW_TYPE,
     IContactItem,
     SORT_FIELD,
+    ICommonSearchParams,
+    ISearchFilter,
 } from '../../interfaces';
 
 import * as actions from '../../actions';
@@ -59,6 +61,8 @@ interface IProps {
     contacts: {[key: string]: IContactItem};
     listViewType: LIST_VIEW_TYPE;
     sortField: SORT_FIELD;
+    currentSearch: ICommonSearchParams<IEventOrPlanningItem>;
+    searchFilters: Array<ISearchFilter>;
 
     openPreview(item: IEventOrPlanningItem): void;
     edit(item: IEventOrPlanningItem): void;
@@ -92,6 +96,8 @@ const mapStateToProps = (state) => ({
     contacts: selectors.general.contactsById(state),
     listViewType: selectors.main.getCurrentListViewType(state),
     sortField: selectors.main.getCurrentSortField(state),
+    currentSearch: selectors.main.currentSearch(state),
+    searchFilters: selectors.eventsPlanning.combinedViewFilters(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -137,6 +143,10 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
     }
 
     render() {
+        const activeSearchFilter = this.props.searchFilters.filter((filter) =>
+            filter.item_type === FILTER_TYPE[this.props.activeFilter] &&
+            filter._id === this.props.currentSearch?.filter_id);
+
         const {
             groups,
             agendas,
@@ -168,6 +178,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             contacts,
             listViewType,
             sortField,
+            currentSearch
         } = this.props;
 
         return (
@@ -206,6 +217,8 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     listViewType={listViewType}
                     sortField={sortField}
                     indexItems
+                    searchParams={currentSearch.advancedSearch}
+                    searchFilterParams={activeSearchFilter[0]?.params}
                 />
             </React.Fragment>
         );

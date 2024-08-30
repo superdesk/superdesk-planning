@@ -103,13 +103,22 @@ export class GroupTabComponent extends React.Component<IProps, IState> {
 
     isEditorDirty() {
         if (this.state.selectedGroup != null) {
+            /**
+             * If a new group is being created, its not in this.props.profile.groups,
+             * making the next checks unnecessary. Regardless of that, if this is the case,
+             * there's no need to check further.
+             */
+            if (this.state.creatingNewGroup) {
+                return true;
+            }
+
             const originalGroup = this.props.profile.groups[this.state.selectedGroup._id];
             const updatedGroup = {
                 ...this.state.selectedGroup,
                 index: originalGroup.index,
             };
 
-            return this.state.creatingNewGroup || !isEqual(
+            return !isEqual(
                 originalGroup,
                 updatedGroup
             );

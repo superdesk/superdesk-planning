@@ -1,7 +1,9 @@
+from typing import Optional
 import logging
 from eve.utils import config
 from flask import current_app as app
 
+from superdesk import get_resource_service
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 import pytz
 from xml.etree.ElementTree import Element
@@ -14,12 +16,17 @@ from superdesk.metadata.item import (
 from superdesk.utc import utcnow, utc_to_local
 from superdesk.errors import ParserError
 
+from planning.types import Planning
 from planning.common import (
     get_coverage_status_from_cv,
+    get_coverage_from_planning,
     get_default_coverage_status_qcode_on_ingest,
     WORKFLOW_STATE,
     POST_STATE,
 )
+
+from planning.content_profiles.utils import get_planning_schema
+from .utils import upgrade_rich_text_fields
 
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
@@ -75,26 +82,35 @@ class PlanningMLParser(NewsMLTwoFeedParser):
     def parse(self, tree: Element, provider=None):
         self.root = tree
         self.set_missing_voc_policy()
+        planning_service = get_resource_service("planning")
 
         try:
             guid = self.get_item_id(tree)
-
-            item = {
-                GUID_FIELD: guid,
-                ITEM_TYPE: CONTENT_TYPE.PLANNING,
-                "state": CONTENT_STATE.INGESTED,
-                "_id": guid,
-            }
-
-            self.parse_item_meta(tree, item)
-            self.parse_content_meta(tree, item)
-            self.parse_news_coverage_set(tree, item)
-            self.parse_news_coverage_status(tree, item)
-
-            return [item]
-
+            original: Optional[Planning] = planning_service.find_one(req=None, _id=guid)
+            item = self.parse_item(tree, original)
+            return [item] if item is not None else []
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
+
+    def parse_item(self, tree: Element, original: Optional[Planning]) -> Optional[Planning]:
+        guid = (original or {}).get("_id") or self.get_item_id(tree)
+        item = {
+            GUID_FIELD: guid,
+            ITEM_TYPE: CONTENT_TYPE.PLANNING,
+            "state": CONTENT_STATE.INGESTED,
+            "_id": guid,
+        }
+
+        self.parse_item_meta(tree, item)
+        self.parse_content_meta(tree, item)
+        self.parse_news_coverage_set(tree, item, original)
+        self.parse_news_coverage_status(tree, item)
+
+        upgrade_rich_text_fields(item, "planning")
+        for coverage in item.get("coverages") or []:
+            upgrade_rich_text_fields(coverage.get("planning") or {}, "coverage")
+
+        return item
 
     def parse_item_meta(self, tree, item):
         """Parse itemMeta tag
@@ -168,17 +184,26 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         # Get the ``news_coverage_status.qcode`` to use
         assert_el = tree.find(self.qname("assert"))
-        status_qcode = get_default_coverage_status_qcode_on_ingest()
+        ingest_status_qcode = None
         if assert_el is not None:
             news_coverage_status = assert_el.find(self.qname("newsCoverageStatus")).get("qcode")
             if news_coverage_status:
-                status_qcode = news_coverage_status
+                ingest_status_qcode = news_coverage_status
 
         # Now assign the ``news_coverage_status`` to all coverages of this Planning item
-        coverage_status = get_coverage_status_from_cv(status_qcode)
+        default_status_qcode = get_default_coverage_status_qcode_on_ingest()
+        default_coverage_status = get_coverage_status_from_cv(default_status_qcode)
+        default_coverage_status.pop("is_active", None)
+
+        coverage_status = get_coverage_status_from_cv(ingest_status_qcode or default_status_qcode)
         coverage_status.pop("is_active", None)
         for coverage in item["coverages"]:
-            coverage["news_coverage_status"] = coverage_status
+            if ingest_status_qcode is not None:
+                # Status was provided by ingest, use that
+                coverage["news_coverage_status"] = coverage_status
+            elif coverage.get("news_coverage_status") is None:
+                # Status wasn't provided in ingest, and coverage has no current value, use default instead
+                coverage["news_coverage_status"] = default_coverage_status
 
     def parse_genre(self, planning_elt, planning):
         """Parse Genre tag
@@ -218,21 +243,24 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         return None
 
-    def get_coverage_details(self, news_coverage_elt, item):
+    def get_coverage_details(self, news_coverage_elt: Element, item: Planning, original: Optional[Planning]):
         """Process the Coverage element and optionally return the coverage details
 
         If ``None`` is returned, this coverage is not added to the Planning item
         """
 
         coverage_id = news_coverage_elt.get("id")
-        planning = self.parse_coverage_planning(news_coverage_elt, item)
+        if coverage_id is None:
+            logger.warning("Unable to process coverage details, no coverage id found in ingest source")
+            return None
 
+        planning = self.parse_coverage_planning(news_coverage_elt, item)
         if planning is None:
             logger.warning(f"Failed to process coverage '{coverage_id}', planning details not found")
             return None
 
         modified = news_coverage_elt.get("modified")
-        return {
+        coverage_details = {
             "coverage_id": coverage_id,
             "workflow_status": WORKFLOW_STATE.DRAFT,
             "firstcreated": item["firstcreated"],
@@ -240,16 +268,30 @@ class PlanningMLParser(NewsMLTwoFeedParser):
             "planning": planning,
         }
 
-    def parse_news_coverage_set(self, tree, item):
-        """Parse newsCoverageSet tag
+        original_coverage = get_coverage_from_planning(original, coverage_id) if original else None
+        if original_coverage is not None:
+            direct_copy_fields = {
+                "workflow_status",
+                "news_coverage_status",
+                "previous_status",
+                "assigned_to",
+                "flags",
+                "original_creator",
+                "version_creator",
+            }
+            for field in direct_copy_fields:
+                if field in original_coverage:
+                    coverage_details[field] = original_coverage[field]
 
-        :param tree: tree
-        :param item: planning item
-        """
+        return coverage_details
+
+    def parse_news_coverage_set(self, tree: Element, item: Planning, original: Optional[Planning]):
+        """Parse newsCoverageSet tag"""
+
         item["coverages"] = []
         news_coverage_set = tree.find(self.qname("newsCoverageSet"))
         if news_coverage_set is not None:
             for news_coverage_elt in news_coverage_set.findall(self.qname("newsCoverage")):
-                coverage = self.get_coverage_details(news_coverage_elt, item)
+                coverage = self.get_coverage_details(news_coverage_elt, item, original)
                 if coverage is not None:
                     item["coverages"].append(coverage)

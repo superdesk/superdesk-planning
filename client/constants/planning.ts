@@ -25,11 +25,13 @@ export const PLANNING = {
             label: 'Spike planning',
             icon: 'icon-trash',
             actionName: 'onSpikePlanning',
+            lock_action: 'spike',
         },
         UNSPIKE: {
             label: 'Unspike planning',
             icon: 'icon-unspike',
             actionName: 'onUnspikePlanning',
+            lock_action: 'unspike',
         },
         DUPLICATE: {
             label: 'Duplicate',

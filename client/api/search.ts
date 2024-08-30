@@ -2,6 +2,8 @@ import {ISearchAPIParams, ISearchParams} from '../interfaces';
 import {superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {getDateTimeElasticFormat, getTimeZoneOffset} from '../utils';
+import {default as timeUtils} from '../utils/time';
+import {appConfig} from 'appConfig';
 
 
 export function cvsToString(items?: Array<{[key: string]: any}>, field: string = 'qcode'): string {
@@ -11,7 +13,7 @@ export function cvsToString(items?: Array<{[key: string]: any}>, field: string =
     );
 }
 
-export function arrayToString(items?: Array<string>): string {
+export function arrayToString(items?: Array<string | number>): string {
     return (items ?? [])
         .join(',');
 }
@@ -35,7 +37,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         end_date: params.end_date == null ?
             null :
             getDateTimeElasticFormat(params.end_date, params.date_filter != 'for_date'),
-        start_of_week: params.start_of_week,
+        start_of_week: appConfig.start_of_week,
         slugline: params.slugline,
         lock_state: params.lock_state,
         directly_locked: params.directly_locked,
@@ -48,6 +50,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         sort_order: params.sort_order,
         sort_field: params.sort_field,
         tz_offset: params.date_filter ? getTimeZoneOffset() : null,
+        time_zone: timeUtils.localTimeZone(),
     };
 }
 

@@ -27,6 +27,7 @@ export const ASSIGNMENTS = {
         SET_GROUP_KEYS: 'SET_ASSIGNMENT_GROUP_KEYS',
         SET_GROUP_SORT_ORDER: 'SET_ASSIGNMENT_GROUP_SORT_ORDER',
         SET_SORT_FIELD: 'SET_ASSIGNMENT_SORT_FIELD',
+        SET_DAY_FIELD: 'SET_DAY_FIELD',
         SET_LOADING: 'SET_LOADING',
     },
     WORKFLOW_STATE: {
@@ -47,6 +48,7 @@ export const ASSIGNMENTS = {
             label: 'Reassign',
             icon: 'icon-share-alt',
             actionName: 'onReassignAssignment',
+            lock_action: 'reassign',
         },
         COMPLETE: {
             label: 'Complete Assignment',
@@ -57,6 +59,7 @@ export const ASSIGNMENTS = {
             label: 'Edit Priority',
             icon: 'icon-chevron-up-thin',
             actionName: 'onEditAssignmentPriority',
+            lock_action: 'edit_priority',
         },
         REMOVE: {
             label: 'Remove Assignment',

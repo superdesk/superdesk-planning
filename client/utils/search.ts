@@ -13,7 +13,8 @@ import {
     SORT_ORDER,
 } from '../interfaces';
 import {MAIN} from '../constants';
-import {getTimeZoneOffset} from './index';
+import {getTimeZoneOffset, timeUtils} from './index';
+import {appConfig} from 'appConfig';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
     return {
@@ -23,12 +24,13 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         max_results: params.maxResults ?? MAIN.PAGE_SIZE,
         page: params.page ?? 1,
         only_future: params.onlyFuture ?? true,
-        start_of_week: params.startOfWeek,
+        start_of_week: appConfig.start_of_week,
         spike_state: params.spikeState ?? 'draft',
         filter_id: params.filter_id,
         lock_state: params.lock_state,
         directly_locked: params.directly_locked,
         tz_offset: params.timezoneOffset ?? getTimeZoneOffset(),
+        time_zone: timeUtils.localTimeZone(),
         anpa_category: params.advancedSearch?.anpa_category,
         date_filter: params.advancedSearch?.dates?.range,
         start_date: params.advancedSearch?.dates?.start,
@@ -43,6 +45,7 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_order: params.sortOrder ?? SORT_ORDER.ASCENDING,
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
+        priority: params.advancedSearch?.priority,
     };
 }
 
@@ -54,7 +57,7 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
         maxResults: params.max_results,
         page: params.page,
         onlyFuture: params.only_future,
-        startOfWeek: params.start_of_week,
+        startOfWeek: appConfig.start_of_week,
         spikeState: params.spike_state,
         filter_id: params.filter_id,
         lock_state: params.lock_state,
@@ -77,6 +80,7 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
             subject: params.subject,
             language: params.language,
             source: params.source,
+            priority: params.priority,
         },
     };
 }
@@ -94,6 +98,7 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         no_agenda_assigned: params.noAgendaAssigned,
         agendas: params.agendas,
         coverage_user_id: params.coverage_user_id,
+        coverage_assignment_status: params.coverage_assignment_status
     };
 }
 
@@ -105,6 +110,7 @@ export function searchParamsToPlanningParams(params: ISearchParams): IPlanningSe
         agendas: params.agendas,
         noAgendaAssigned: params.no_agenda_assigned,
         adHocPlanning: params.ad_hoc_planning,
+        coverage_assignment_status: params.coverage_assignment_status,
         excludeRescheduledAndCancelled: params.exclude_rescheduled_and_cancelled,
         featured: params.featured,
         includeScheduledUpdates: params.include_scheduled_updates,

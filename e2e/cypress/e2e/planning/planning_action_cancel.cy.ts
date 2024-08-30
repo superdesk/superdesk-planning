@@ -2,6 +2,7 @@ import {setup, addItems, login, waitForPageLoad, Modal} from '../../support/comm
 import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, PlanningEditor, PlanningPreview} from '../../support/planning';
 import {getMenuItem} from '../../support/common/ui/actionMenu';
+import moment from 'moment';
 
 describe('Planning.Planning: cancel planning item', () => {
     const editor = new PlanningEditor();
@@ -14,7 +15,7 @@ describe('Planning.Planning: cancel planning item', () => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         addItems('planning', [{
             slugline: 'Test Planning Item',
-            planning_date: '2045-12-11' + TIME_STRINGS[0],
+            planning_date: moment().format('yy-MM-DD') + TIME_STRINGS[0],
         }]);
 
         login();
@@ -60,7 +61,7 @@ describe('Planning.Planning: cancel planning item', () => {
         list.item(0)
             .click();
 
-        getMenuItem(list.item(0), 'Cancel Planning').realClick();
+        getMenuItem(list.item(0), 'Cancel Planning').click();
 
         modal.waitTillOpen(30000);
 

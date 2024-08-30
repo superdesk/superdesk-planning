@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
+import {superdeskApi} from '../../../superdeskApi';
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
 import eventsApi from '../../../actions/events/api';
@@ -10,6 +11,7 @@ import * as allActions from '../../../actions';
 import {ItemActionsMenu} from '../../index';
 
 const EditorItemActionsComponent = (props) => {
+    const {gettext} = superdeskApi.localization;
     const {
         item,
         event,
@@ -88,8 +90,8 @@ const EditorItemActionsComponent = (props) => {
                 () => {
                     const message = gettext('Save changes before creating a template?');
 
-                    dispatch(allActions.main.openActionModalFromEditor(item, message, (updatedItem) => {
-                        dispatch(eventsApi.createEventTemplate(updatedItem._id));
+                    dispatch(allActions.main.openActionModalFromEditor(item, message, () => {
+                        dispatch(eventsApi.createEventTemplate(item));
                     }));
                 },
             [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:

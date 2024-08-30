@@ -16,11 +16,13 @@ import {
     isItemExpired,
     isItemPosted,
     onEventCapture,
+    lockUtils,
 } from '../../utils';
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 import {EventDateTimeColumn} from './EventDateTimeColumn';
 import * as actions from '../../actions';
+import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 interface IState {
     hover: boolean;
@@ -42,7 +44,9 @@ class EventItemComponent extends React.Component<IProps, IState> {
     shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
-            this.props.minTimeWidth !== nextProps.minTimeWidth;
+            this.props.minTimeWidth !== nextProps.minTimeWidth ||
+            this.props.lockedItems != nextProps.lockedItems ||
+            this.props.filterLanguage !== nextProps.filterLanguage;
     }
 
     onItemHoverOn() {
@@ -113,7 +117,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         return (
             <div>
-                <Menu items={itemActions}>
+                <Menu zIndex={1050} items={itemActions}>
                     {
                         (toggle) => (
                             <div
@@ -154,6 +158,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
             active,
             refNode,
             listViewType,
+            filterLanguage
         } = this.props;
 
         if (!item) {
@@ -161,7 +166,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
         }
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
-        const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
+        const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
         const showRelatedPlanningLink = activeFilter === PLANNING_VIEW.COMBINED && hasPlanning;
         let borderState: 'locked' | 'active' | false = false;
 
@@ -175,6 +180,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
         const isExpired = isItemExpired(item);
 
         const secondaryFields = get(listFields, 'event.secondary_fields', EVENTS.LIST.SECONDARY_FIELDS);
+        const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
         return (
             <Item
@@ -213,8 +219,12 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 >
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(listFields, 'event.primary_fields',
-                                EVENTS.LIST.PRIMARY_FIELDS), item)}
+                            {renderFields(
+                                listFields?.event?.primary_fields ?? EVENTS.LIST.PRIMARY_FIELDS,
+                                item,
+                                {},
+                                language,
+                            )}
                         </span>
                     </Row>
                     <Row>

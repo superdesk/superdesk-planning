@@ -22,6 +22,7 @@ export const EVENTS = {
         RECEIVE_CALENDARS: 'RECEIVE_CALENDARS',
         RECEIVE_EVENT_TEMPLATES: 'RECEIVE_EVENT_TEMPLATES',
         EXPIRE_EVENTS: 'EXPIRE_EVENTS',
+        EVENT_RECENT_TEMPLATES: 'EVENT_RECENT_TEMPLATES',
     },
     // Number of ids to look for by single request
     // because url length must stay short
@@ -32,11 +33,13 @@ export const EVENTS = {
             label: 'Spike',
             icon: 'icon-trash',
             actionName: 'onSpikeEvent',
+            lock_action: 'spike',
         },
         UNSPIKE: {
             label: 'Unspike',
             icon: 'icon-unspike',
             actionName: 'onUnspikeEvent',
+            lock_action: 'unspike',
         },
         DUPLICATE: {
             label: 'Duplicate',

@@ -8,7 +8,7 @@ import {Provider} from 'react-redux';
 import * as helpers from '../../tests/helpers';
 import {cloneDeep} from 'lodash';
 import {AbsoluteDate} from '../../AbsoluteDate';
-import {UserAvatar} from '../../UserAvatar';
+import {UserAvatarWithMargin} from '../../UserAvatar';
 
 describe('assignments', () => {
     describe('components', () => {
@@ -101,7 +101,7 @@ describe('assignments', () => {
                 const wrapper = getMountedWrapper();
 
                 expect(wrapper.find('.icon-time').length).toBe(1);
-                expect(wrapper.find(UserAvatar).length).toBe(1);
+                expect(wrapper.find(UserAvatarWithMargin).length).toBe(1);
                 expect(wrapper.find(AbsoluteDate).length).toBe(1);
             });
 
