@@ -1,4 +1,3 @@
-import {IAssignmentItem} from 'interfaces';
 import React from 'react';
 
 import {IArticle, IVocabularyItem} from 'superdesk-api';
@@ -12,6 +11,9 @@ import {EditorFieldVocabulary, IEditorFieldVocabularyProps} from './components/f
 import {getVocabularyItemFieldTranslated} from './utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from './utils/users';
 import {isContentLinkToCoverageAllowed} from 'utils/archive';
+
+import {registerEditorField} from './components/fields/resources/registerEditorFields';
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -47,6 +49,15 @@ interface IExtensionBridge {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
         };
     };
+    fields: {
+        registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
+            field: string,
+            Component: React.ComponentClass<ComponentProps>,
+            props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
+            mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
+            forwardRef?: boolean
+        ): void;
+    };
 }
 
 /**
@@ -76,4 +87,7 @@ export const extensionBridge: IExtensionBridge = {
             EditorFieldVocabulary,
         },
     },
+    fields: {
+        registerEditorField,
+    }
 };

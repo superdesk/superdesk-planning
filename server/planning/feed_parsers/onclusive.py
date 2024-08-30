@@ -69,33 +69,43 @@ class OnclusiveFeedParser(FeedParser):
             }
 
             try:
-                self.set_occur_status(item)
+                self.set_occur_status(item, event)
                 self.parse_item_meta(event, item)
                 self.parse_location(event, item)
                 self.parse_event_details(event, item)
                 self.parse_category(event, item)
                 self.parse_contact_info(event, item)
+                self.set_expiry(item, provider)
                 all_events.append(item)
             except EmbargoedException:
                 logger.info("Ignoring embargoed event %s", event["itemId"])
             except Exception as error:
-                logger.exception("error %s when parsing event %s", error, event["itemId"], extra=dict(event=event))
+                logger.exception("Error when parsing Onclusive event", extra=dict(event=event, error=str(error)))
         return all_events
 
-    def set_occur_status(self, item):
+    def set_occur_status(self, item, event):
         eocstat_map = get_resource_service("vocabularies").find_one(req=None, _id="eventoccurstatus")
+        is_provisional = event.get("isProvisional")
+
+        default_status = {
+            "qcode": "eocstat:eos3" if is_provisional else "eocstat:eos5",
+            "name": "Planned, May occur" if is_provisional else "Planned, occurs certainly",
+            "label": "Planned, May occur" if is_provisional else "Planned, occurs certainly",
+        }
+
         if not eocstat_map:
             logger.warning("CV 'eventoccurstatus' not found, inserting default from standard")
-            item["occur_status"] = {
-                "qcode": "eocstat:eos5",
-                "name": "Planned, occurs certainly",
-                "label": "Planned, occurs certainly",
-            }
+            item["occur_status"] = default_status
         else:
-            item["occur_status"] = [
-                x for x in eocstat_map.get("items", []) if x["qcode"] == "eocstat:eos5" and x.get("is_active", True)
-            ][0]
-            item["occur_status"].pop("is_active", None)
+            qcode = "eocstat:eos3" if is_provisional else "eocstat:eos5"
+            statuses = [x for x in eocstat_map.get("items", []) if x["qcode"] == qcode and x.get("is_active", True)]
+
+            if statuses:
+                item["occur_status"] = statuses[0]
+                item["occur_status"].pop("is_active", None)
+            else:
+                logger.warning(f"No matching status found for qcode {qcode}, using default")
+                item["occur_status"] = default_status
 
     def parse_item_meta(self, event, item):
         item["pubstatus"] = POST_STATE.CANCELLED if event.get("deleted") else POST_STATE.USABLE
@@ -107,6 +117,9 @@ class OnclusiveFeedParser(FeedParser):
         item["definition_short"] = (
             event["description"] if (event["summary"] != "" and event["summary"] is not None) else ""
         )
+
+        if not item["name"]:
+            raise ValueError("Event name is empty")
 
         item["links"] = [event[key] for key in ("website", "website2") if event.get(key)]
         if event.get("locale"):
@@ -250,14 +263,20 @@ class OnclusiveFeedParser(FeedParser):
         for contact_info in event.get("pressContacts"):
             item.setdefault("event_contact_info", [])
             contact_uri = "onclusive:{}".format(contact_info["pressContactID"])
-            data = {"uri": contact_uri}
+            data = {
+                "uri": contact_uri,
+                "contact_email": [],
+                "contact_phone": [],
+                "organisation": "",
+                "first_name": "",
+                "last_name": "",
+            }
+
             if contact_info.get("pressContactEmail"):
-                data.setdefault("contact_email", []).append(contact_info["pressContactEmail"])
+                data["contact_email"].append(contact_info["pressContactEmail"])
 
             if contact_info.get("pressContactTelephone"):
-                data.setdefault("contact_phone", []).append(
-                    {"number": contact_info["pressContactTelephone"], "public": True}
-                )
+                data["contact_phone"].append({"number": contact_info["pressContactTelephone"], "public": True})
 
             if contact_info.get("pressContactOffice"):
                 data["organisation"] = contact_info["pressContactOffice"]
@@ -273,7 +292,6 @@ class OnclusiveFeedParser(FeedParser):
 
             existing_contact = get_resource_service("contacts").find_one(req=None, uri=contact_uri)
             if existing_contact is None:
-                logger.debug("New contact %s %s", contact_uri, data.get("organisation"))
                 data.update(
                     {
                         "is_active": True,
@@ -283,7 +301,14 @@ class OnclusiveFeedParser(FeedParser):
                 get_resource_service("contacts").post([data])
                 item["event_contact_info"].append(bson.ObjectId(data["_id"]))
             else:
-                logger.debug("Existing contact %s %s", contact_uri, data.get("organisation"))
                 existing_contact_id = bson.ObjectId(existing_contact["_id"])
                 get_resource_service("contacts").patch(existing_contact_id, data)
                 item["event_contact_info"].append(existing_contact_id)
+
+    def set_expiry(self, event, provider) -> None:
+        expiry_minutes = (
+            int(provider.get("content_expiry") if provider else 0)
+            or int(app.config.get("INGEST_EXPIRY_MINUTES", 0))
+            or (60 * 24)
+        )
+        event["expiry"] = event["dates"]["end"] + datetime.timedelta(minutes=(expiry_minutes))

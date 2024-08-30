@@ -15,6 +15,7 @@ import {
     IPlanningConfig,
     IItemSubActions,
     IEventOccurStatus,
+    IEmbeddedPlanningItem, IPlanningCoverageItem, IEmbeddedCoverageItem,
 } from '../interfaces';
 import {planningApi} from '../superdeskApi';
 import {appConfig as config} from 'appConfig';
@@ -857,7 +858,6 @@ function getFlattenedEventsByDate(events: Array<IEventItem>, startDate: moment.M
     return flatten(sortBy(eventsList, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 }
 
-
 const getStartDate = (event: IEventItem) => (
     event.dates?.all_day ? moment.utc(event.dates.start) : moment(event.dates?.start)
 );
@@ -866,36 +866,6 @@ const getEndDate = (event: IEventItem) => (
     (event.dates?.all_day || event.dates?.no_end_time) ? moment.utc(event.dates.end) : moment(event.dates?.end)
 );
 
-const isEventInRange = (
-    event: IEventItem,
-    eventStart: moment.Moment,
-    eventEnd: moment.Moment,
-    start: moment.Moment,
-    end?: moment.Moment,
-) => {
-    let localStart = eventStart;
-    let localEnd = eventEnd;
-    let startUnit : moment.unitOfTime.StartOf = 'second';
-    let endUnit : moment.unitOfTime.StartOf = 'second';
-
-    if (event.dates?.all_day) {
-        // we have only dates in utc
-        localStart = moment(eventStart.format('YYYY-MM-DD'));
-        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
-        startUnit = 'day';
-        endUnit = 'day';
-    }
-
-    if (event.dates?.no_end_time) {
-        // we have time for start, but only date for end
-        localStart = moment(eventStart);
-        localEnd = moment(eventEnd.format('YYYY-MM-DD'));
-        endUnit = 'day';
-    }
-
-    return localEnd.isSameOrAfter(start, endUnit) && (end == null || localStart.isSameOrBefore(end, startUnit));
-};
-
 /*
  * Groups the events by date
  */
@@ -903,9 +873,9 @@ function getEventsByDate(
     events: Array<IEventItem>,
     startDate: moment.Moment,
     endDate: moment.Moment
-): Array<IEventItem> {
+) {
     if ((events?.length ?? 0) === 0) {
-        return [];
+        return {};
     }
 
     // check if search exists
@@ -919,23 +889,8 @@ function getEventsByDate(
 
     const days: {[date: string]: Array<IEventItem>} = {};
 
-    function addEventToDate(event: IEventItem, date?: moment.Moment) {
-        let eventDate = date || getStartDate(event);
-        let eventStart = getStartDate(event);
-        let eventEnd = getEndDate(event);
-
-        if (!eventStart.isSame(eventEnd, 'day') && !event.dates.all_day && !event.dates.no_end_time) {
-            eventStart = eventDate;
-            eventEnd = eventEnd.isSame(eventDate, 'day') ?
-                eventEnd :
-                moment(eventDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').add(86399, 'seconds');
-        }
-
-        if (!isEventInRange(event, eventDate, eventEnd, startDate, endDate)) {
-            return;
-        }
-
-        let eventDateFormatted = eventDate.format('YYYY-MM-DD');
+    function addEventToDate(event: IEventItem, date: moment.Moment, eventStart: moment.Moment) {
+        const eventDateFormatted = date.format('YYYY-MM-DD');
 
         if (!days[eventDateFormatted]) {
             days[eventDateFormatted] = [];
@@ -948,35 +903,34 @@ function getEventsByDate(
     }
 
     sortedEvents.forEach((event) => {
-        // compute the number of days of the event
-        const eventEndDate = event.actioned_date ? moment(event.actioned_date) : getEndDate(event);
-        const eventStartDate = getStartDate(event);
+        const eventEndDate = event.actioned_date ? moment(event.actioned_date) : getLocalEndDate(event);
+        const eventStartDate = getLocalStartDate(event);
 
-        if (!eventStartDate.isSame(eventEndDate, 'day')) {
-            let deltaDays = Math.max(Math.ceil(eventEndDate.diff(eventStartDate, 'days', true)), 1);
-            // if the event happens during more than one day, add it to every day
-            // add the event to the other days
+        const displayStartDate = eventStartDate.isSameOrAfter(startDate) ? eventStartDate : startDate;
+        const displayEndDate = eventEndDate.isSameOrBefore(endDate) ? eventEndDate : endDate;
 
-            for (let i = 1; i < deltaDays; i++) {
-                // clone the date
-                const newDate = moment(eventStartDate.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
-
-                newDate.add(i, 'days');
-
-                if (newDate.isSameOrBefore(eventEndDate, 'day')) {
-                    addEventToDate(event, newDate);
-                }
-            }
-        }
-
-        // add event to its initial starting date
-        // add an event only if it's not actioned or actioned after this event's start date
-        if (!event.actioned_date || moment(event.actioned_date).isSameOrAfter(eventStartDate, 'date')) {
-            addEventToDate(event);
+        for (const day = displayStartDate.clone(); day.isSameOrBefore(displayEndDate, 'day'); day.add(1, 'days')) {
+            addEventToDate(event, day, eventStartDate);
         }
     });
 
     return sortBasedOnTBC(days);
+}
+
+function getLocalStartDate(event: IEventItem): moment.Moment {
+    if (event.dates.all_day) {
+        return moment(moment.utc(event.dates.start).format('YYYY-MM-DD'));
+    }
+
+    return moment(event.dates.start);
+}
+
+function getLocalEndDate(event: IEventItem): moment.Moment {
+    if (event.dates.all_day || event.dates.no_end_time) {
+        return moment(moment.utc(event.dates.end).format('YYYY-MM-DD')).endOf('day');
+    }
+
+    return moment(event.dates.end);
 }
 
 function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
@@ -1060,6 +1014,10 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
         event.links = event.links.filter(
             (link) => link && get(link, 'length', 0) > 0
         );
+    }
+
+    if (event.files == null) {
+        event.files = [];
     }
 
     // clean up angular artifacts
@@ -1330,6 +1288,42 @@ function fillEventTime(event: IEventItem) {
     }
 }
 
+function getEventDiff(original: IEventItem, updates: Partial<IEventItem>): Partial<IEventItem> {
+    const originalItem = modifyForServer(cloneDeep(original), true);
+
+    // clone the updates as we're going to modify it
+    let eventUpdates = modifyForServer(cloneDeep(updates), true);
+
+    originalItem.location = originalItem.location ? [originalItem.location] : null;
+
+    // remove all properties starting with `_`
+    // and updates that are the same as original
+    eventUpdates = pickBy(eventUpdates, (value, key) => (
+        (key === TO_BE_CONFIRMED_FIELD || key === '_planning_item' || !key.startsWith('_')) &&
+        !isEqual(eventUpdates[key] ?? '', originalItem[key] ?? '')
+    ));
+
+    return eventUpdates;
+}
+
+function convertCoverageToEventEmbedded(coverage: IPlanningCoverageItem): IEmbeddedCoverageItem {
+    return {
+        coverage_id: coverage.coverage_id,
+        g2_content_type: coverage.planning.g2_content_type,
+        desk: coverage.assigned_to?.desk,
+        user: coverage.assigned_to?.user,
+        language: coverage.planning.language,
+        news_coverage_status: coverage.news_coverage_status?.qcode ?? 'ncostat:int',
+        scheduled: coverage.planning.scheduled != null ?
+            moment(coverage.planning.scheduled).toDate() :
+            undefined,
+        genre: coverage.planning.genre?.qcode,
+        slugline: coverage.planning.slugline,
+        headline: coverage.planning.headline,
+        ednote: coverage.planning.ednote,
+        internal_note: coverage.planning.internal_note,
+    };
+}
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -1376,6 +1370,8 @@ const self = {
     fillEventTime,
     getStartDate,
     getEndDate,
+    getEventDiff,
+    convertCoverageToEventEmbedded,
 };
 
 export default self;

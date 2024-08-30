@@ -130,4 +130,16 @@ export class PlanningList {
             .find('.icon-calendar')
             .click();
     }
+
+    setDateInterval(interval: 'Day' | 'Week' | 'Month') {
+        cy.get('[data-test-id=planning-list-panel]')
+            .find('[data-test-id=interval-dropdown-toggle]')
+            .click();
+
+        cy.get('[data-test-id=planning-list-panel]')
+            .find('[data-test-id=interval-dropdown]')
+            .find('li')
+            .contains(interval)
+            .click();
+    }
 }

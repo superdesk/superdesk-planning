@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import Resource
-from superdesk.resource import not_analyzed, string_with_analyzer
+from superdesk.resource import not_analyzed, not_enabled
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
@@ -20,6 +20,7 @@ from planning.common import (
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_FIELD_SCHEMA,
 )
+from planning.planning.planning import planning_schema as original_planning_schema
 
 event_type = deepcopy(Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -28,6 +29,9 @@ planning_type = deepcopy(Resource.rel("planning", type="string"))
 planning_type["mapping"] = not_analyzed
 original_creator_schema = metadata_schema["original_creator"]
 original_creator_schema.update({"nullable": True})
+
+planning_schema = deepcopy(original_planning_schema)
+planning_schema["event_item"] = {"type": "string"}
 
 events_schema = {
     # Identifiers
@@ -191,7 +195,7 @@ events_schema = {
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},
     },
     # Content metadata
-    "subject": metadata_schema["subject"],
+    "subject": planning_schema["subject"],
     "slugline": metadata_schema["slugline"],
     # Item metadata
     "location": {
@@ -333,4 +337,83 @@ events_schema = {
             },
         },
     },
-}  # end events_schema
+    # This is used from the EmbeddedCoverage form in the Event editor
+    # This list is NOT stored with the Event
+    "embedded_planning": {
+        "type": "list",
+        "required": False,
+        "mapping": not_enabled,
+        "schema": {
+            "type": "dict",
+            "schema": {
+                "planning_id": {"type": "string"},
+                # The update method used for recurring planning items
+                "update_method": {
+                    "type": "string",
+                    "allowed": UPDATE_METHODS,
+                    "mapping": not_analyzed,
+                    "nullable": True,
+                },
+                "coverages": {
+                    "type": "list",
+                    "schema": {
+                        "type": "dict",
+                        "schema": {
+                            "coverage_id": {"type": "string"},
+                            "g2_content_type": {"type": "string"},
+                            "news_coverage_status": {"type": "string"},
+                            "scheduled": {"type": "datetime"},
+                            "desk": {"type": "string", "nullable": True},
+                            "user": {"type": "string", "nullable": True},
+                            "language": {"type": "string", "nullable": True},
+                            "genre": {"type": "string", "nullable": True},
+                            "slugline": {"type": "string", "nullable": True},
+                            "headline": {"type": "string", "nullable": True},
+                            "ednote": {"type": "string", "nullable": True},
+                            "internal_note": {"type": "string", "nullable": True},
+                            "priority": {"type": "integer", "nullable": True},
+                        },
+                    },
+                },
+            },
+        },
+    },
+    "associated_plannings": {  # This is used to create new planning items from the event editor
+        "type": "list",
+        "required": False,
+        "schema": {"type": "dict", "allow_unknown": True, "schema": {}},
+    },
+    "related_items": {
+        "type": "list",
+        "required": False,
+        "schema": {
+            "type": "dict",
+            "schema": {
+                "guid": {"type": "string", "required": True},
+                "type": {"type": "string"},
+                "state": {"type": "string"},
+                "version": metadata_schema["version"],
+                "headline": {"type": "string"},
+                "slugline": {"type": "string"},
+                "versioncreated": metadata_schema["versioncreated"],
+                "source": {"type": "string"},
+                "search_provider": {"type": "string"},
+                "pubstatus": {"type": "string"},
+                "language": {"type": "string"},
+                "word_count": metadata_schema["word_count"],
+            },
+        },
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "guid": not_analyzed,  # allow searching events by item id
+            },
+        },
+    },
+    "failed_planning_ids": {
+        "type": "list",
+        "required": False,
+        "schema": {"type": "dict", "schema": {}},
+    },
+}  # end events_schema:

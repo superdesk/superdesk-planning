@@ -79,7 +79,10 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         return filters.map((filter) => ({
             id: filter._id,
             label: filter.name,
-            action: () => planningApi.ui.list.changeFilterId(filter._id),
+            action: () => planningApi.ui.list.changeFilterId(
+                filter._id,
+                {advancedSearch: {dates: {range: filter?.params?.date_filter}}}
+            ),
             group: gettext('Search Filters'),
         }));
     }
@@ -93,7 +96,10 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
                 label: this.hasGlobalFiltersPrivilege() ?
                     gettext('All Events & Planning') :
                     gettext('My Events & Planning'),
-                action: () => planningApi.ui.list.changeFilterId(EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING),
+                action: () => planningApi.ui.list.changeFilterId(
+                    EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING,
+                    {advancedSearch: {}}
+                ),
                 group: '',
             }
         ];
@@ -107,7 +113,10 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
             label: this.hasGlobalFiltersPrivilege() ?
                 gettext('All Events') :
                 gettext('My Events'),
-            action: () => planningApi.ui.list.changeCalendarId(EVENTS.FILTER.ALL_CALENDARS),
+            action: () => planningApi.ui.list.changeCalendarId(
+                EVENTS.FILTER.ALL_CALENDARS,
+                {advancedSearch: {}}
+            ),
             group: '',
         }, {
             id: 'no_calendar',
@@ -163,7 +172,10 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
             label: this.hasGlobalFiltersPrivilege() ?
                 gettext('All Planning Items') :
                 gettext('My Planning'),
-            action: () => planningApi.ui.list.changeAgendaId(AGENDA.FILTER.ALL_PLANNING),
+            action: () => planningApi.ui.list.changeAgendaId(
+                AGENDA.FILTER.ALL_PLANNING,
+                {advancedSearch: {}}
+            ),
             group: '',
         }, {
             id: 'no_agenda',

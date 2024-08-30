@@ -155,6 +155,10 @@ Below sections include the config options that can be defined in settings.py.
 * EVENT_EXPORT_BODY_TEMPLATE:
     * default: https://github.com/superdesk/superdesk-planning/blob/develop/server/planning/planning_export_templates.py#L39
     * Overrides the default event template used for event exports
+* EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME:
+    * Default: None
+    * Required By: Event field ``related_items`` (otherwise this field will be automatically disabled)
+    * Defines the name of the Search Provider to use for adding related items to an Event
 
 ### Planning Config
 * LONG_EVENT_DURATION_THRESHOLD:
@@ -165,6 +169,24 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST:
     * Default: 'ncostat:int' - Coverage Planned
     * The default CV qcode for populating planning.coverage[x].news_coverage_status on ingest
+* DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES
+    * Default: False
+    * If true, will default to creating series of Planning items with a recurring series of Events,
+* SYNC_EVENT_FIELDS_TO_PLANNING
+    * Default: ""
+    * Comma separated list of Planning & Coverage fields to keep in sync with the associated Event
+    * Supported Fields:
+      * slugline
+      * internal_note
+      * name
+      * place (list CVs)
+      * subject (list CVs, exclude items with scheme)
+      * custom_vocabularies (list CVs, inside subject with scheme)
+      * anpa_category (list CVs)
+      * ednote
+      * language (includes `languages` if multilingual is enabled)
+      * definition_short (copies to Planning item's `Description Text`)
+      * priority
 
 ### Assignments Config
 * SLACK_BOT_TOKEN
@@ -176,6 +198,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT
     * Defaults to false
     * If true, sends a notification to a user on creating an assignment that is assigned to themselves
+* PLANNING_JSON_ASSIGNED_INFO_EXTENDED
+    * Defaults to `false`
+    * If `true`, it will add to planning JSON output additional info for coverages like assigned desk name/email and assigned user name/email.
 
 ### Authoring Config
 * PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH

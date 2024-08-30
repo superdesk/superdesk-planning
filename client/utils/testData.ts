@@ -516,6 +516,7 @@ export const assignmentInitialState = {
     filterByPriority: null,
     filterByType: null,
     myAssignmentsTotal: 0,
+    dayField: null,
     orderByField: 'Scheduled',
     previewOpened: false,
     readOnly: false,

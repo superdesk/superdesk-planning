@@ -8,19 +8,14 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x]
-    env:
-      INSTALL_NODE_MODULES: true
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Setup Environment
-        run: ./scripts/ci-install.sh
-      - name: Start Services
-        run: ./scripts/ci-start-services.sh
+          cache: npm
       # avoid file watch limit error
       - run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-      - run: npm list || true
-      - name: test
-        run: npm run test
+      - run: npm ci
+      - run: npm run test
+      - run: npm run lint

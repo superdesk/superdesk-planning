@@ -78,6 +78,10 @@ if (appConfig.planning == null) {
     appConfig.planning = {};
 }
 
+if (appConfig.coverage == null) {
+    appConfig.coverage = {};
+}
+
 export function updateConfigAfterLoad() {
     if (appConfig?.planning?.dateformat == null) {
         appConfig.planning.dateformat = appConfig.view.dateformat;
@@ -95,3 +99,5 @@ export function updateConfigAfterLoad() {
         appConfig.planning.autosave_timeout = 1500;
     }
 }
+
+export const planningConfig = appConfig as IPlanningConfig;

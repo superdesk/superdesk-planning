@@ -142,17 +142,15 @@ describe('Search.Events: searching events', () => {
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
 
+        list.setDateInterval('Month');
+
         search.runSearchTests([{
             params: {},
-            expectedCount: 7,
+            expectedCount: 3,
             expectedText: [
                 'Event Today',
                 'Event Tomorrow',
                 'Event Next Week',
-                'Event Feb 1',
-                'Event Feb 2',
-                'Event Feb 3',
-                'Event Feb 4',
             ]
         }, {
             params: {

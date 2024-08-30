@@ -140,8 +140,10 @@ class ExportScheduledFilters(Command):
         return True
 
     def _export_filter(self, search_filter, schedule):
+        start_of_week = app.config.get("START_OF_WEEK") or 0
+
         items = get_resource_service("events_planning_search").search_by_filter_id(
-            search_filter["_id"], projections=["_id"]
+            search_filter["_id"], projections=["_id"], args={"start_of_week": start_of_week}
         )
 
         if not items.count():

@@ -285,12 +285,17 @@ class PlanningListSubNavComponent extends React.Component<IProps, IState> {
                                             onClick={() => this.props.jumpTo('FORWARD')}
                                             icon="chevron-right-thin"
                                         />
-                                        <Dropdown items={this.intervalOptions}>
-                                            <span className="sd-margin-l--1 sd-margin-r--3">
-                                                {intervalText}
-                                                <span className="dropdown__caret" />
-                                            </span>
-                                        </Dropdown>
+                                        <div data-test-id="interval-dropdown">
+                                            <Dropdown items={this.intervalOptions}>
+                                                <span
+                                                    data-test-id="interval-dropdown-toggle"
+                                                    className="sd-margin-l--1 sd-margin-r--3"
+                                                >
+                                                    {intervalText}
+                                                    <span className="dropdown__caret" />
+                                                </span>
+                                            </Dropdown>
+                                        </div>
                                     </React.Fragment>
                                 )}
                             </React.Fragment>

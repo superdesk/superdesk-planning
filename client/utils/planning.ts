@@ -21,6 +21,7 @@ import {
     ICoverageScheduledUpdate,
     IDateTime,
     IItemAction,
+    IPlanningAssignedTo,
 } from '../interfaces';
 const appConfig = config as IPlanningConfig;
 
@@ -61,9 +62,9 @@ import {
     sanitizeItemFields,
     stringUtils,
 } from './index';
-import {getUsersDefaultLanguage} from './users';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
+import {planningConfig} from '../config';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -1223,13 +1224,28 @@ function getCoverageIcon(
     return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
 }
 
-function getCoverageIconColor(coverage: IPlanningCoverageItem): string {
-    if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
-        return 'var(--sd-colour-success)';
-    } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
-        return 'var(--sd-colour-highlight)';
+function getCoverageIconColor(item: IPlanningCoverageItem): string | undefined {
+    if (item.workflow_status === 'cancelled') {
+        return 'var(--sd-colour-state--canceled)';
+    }
+
+    if (item.assigned_to == null) {
+        return undefined;
+    }
+
+    switch (getItemWorkflowState(item.assigned_to)) {
+    case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
+        return 'var(--sd-colour-state--in-workflow)';
+    case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
+        return 'var(--sd-colour-state--in-progress)';
+    case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
+        return 'var(--sd-colour-state--completed)';
+    }
+
+    if (item.assigned_to.user != null || item.assigned_to.desk != null) {
+        return 'var(--sd-colour-state--assigned)';
     } else {
-        return 'var(--color-text-lighter)';
+        return 'var(--sd-colour-state--unassigned)';
     }
 }
 
@@ -1251,6 +1267,21 @@ function getCoverageWorkflowIcon(coverage: IPlanningCoverageItem): string | null
 
     case COVERAGES.WORKFLOW_STATE.ACTIVE:
         return 'icon-user';
+    }
+}
+
+function getNewsCoverageStatusDotColor(coverage: DeepPartial<IPlanningCoverageItem>): string | null {
+    if (coverage.news_coverage_status == null) {
+        return undefined;
+    }
+
+    switch (coverage.news_coverage_status.qcode) {
+    case 'ncostat:notdec':
+        return 'var(--sd-colour-coverage-state--on-merit)';
+    case 'ncostat:notint':
+        return 'var(--sd-colour-coverage-state--not-covering)';
+    default:
+        return null;
     }
 }
 
@@ -1359,57 +1390,72 @@ function defaultCoverageValues(
     }
 
     if (planningItem) {
-        let coverageTime: moment.Moment = null;
-
-        if (planningItem?.event_item == null) {
-            coverageTime = moment(planningItem?.planning_date || moment());
-        } else if (eventItem) {
-            coverageTime = moment(eventItem?.dates?.end || moment());
-        }
+        const getCoverageDueDateStrategy = planningConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
+        const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);
 
         if (coverageTime) {
-            coverageTime.add(1, 'hour');
-
-            // Only round up to the hour if we didn't derive coverage time from an Event
-            if (!eventItem) {
-                coverageTime.minute() ?
-                    coverageTime
-                        .add(1, 'hour')
-                        .startOf('hour') :
-                    coverageTime.startOf('hour');
-            }
-
-            if (moment().isAfter(coverageTime)) {
-                coverageTime = moment();
-                coverageTime.minute() ?
-                    coverageTime
-                        .add(1, 'hour')
-                        .startOf('hour') :
-                    coverageTime.startOf('hour');
-            }
             newCoverage.planning.scheduled = coverageTime;
         }
 
         if (eventItem && appConfig.long_event_duration_threshold > -1) {
+            const duration = moment.duration({
+                from: eventItem?.dates?.start,
+                to: eventItem?.dates?.end
+            });
+
             if (appConfig.long_event_duration_threshold === 0) {
                 newCoverage.planning.scheduled = moment(eventItem?.dates?.end || moment());
-            } else {
-                const duration = moment.duration({
-                    from: eventItem?.dates?.start,
-                    to: eventItem?.dates?.end
-                });
-
-                if (duration.hours() > appConfig.long_event_duration_threshold) {
-                    delete newCoverage.planning.scheduled;
-                    delete newCoverage.planning._scheduledTime;
-                }
+            } else if (duration.hours() > appConfig.long_event_duration_threshold) {
+                delete newCoverage.planning.scheduled;
+                delete newCoverage.planning._scheduledTime;
             }
         }
+
         newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
     }
 
     self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
     return newCoverage;
+}
+
+function getDefaultCoverageDueDate(
+    planningItem: IPlanningItem,
+    eventItem?: IEventItem,
+): moment.Moment | null {
+    let coverageTime: moment.Moment = null;
+
+    if (planningItem?.event_item == null) {
+        coverageTime = moment(planningItem?.planning_date || moment());
+    } else if (eventItem) {
+        coverageTime = moment(eventItem?.dates?.end || moment());
+    }
+
+    if (!coverageTime) {
+        return coverageTime;
+    }
+
+    coverageTime.add(1, 'hour');
+
+    // Only round up to the hour if we didn't derive coverage time from an Event
+    if (!eventItem) {
+        coverageTime.minute() ?
+            coverageTime
+                .add(1, 'hour')
+                .startOf('hour') :
+            coverageTime.startOf('hour');
+    }
+
+    // If the coverage time is in the past, set it to the current time
+    if (moment().isAfter(coverageTime)) {
+        coverageTime = moment();
+        coverageTime.minute() ?
+            coverageTime
+                .add(1, 'hour')
+                .startOf('hour') :
+            coverageTime.startOf('hour');
+    }
+
+    return coverageTime;
 }
 
 function setDefaultAssignment(
@@ -1655,6 +1701,7 @@ const self = {
     getCoverageIcon,
     getCoverageIconColor,
     getCoverageWorkflowIcon,
+    getNewsCoverageStatusDotColor,
     shouldLockPlanningForEdit,
     modifyForClient,
     modifyForServer,

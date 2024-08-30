@@ -73,7 +73,6 @@ class ExportToNewsroom(Command):
         logger.info("Completed export events and planning.")
 
     def _fetch_items(self, fetch_callback):
-        """"""
         query = {
             "query": {
                 "bool": {

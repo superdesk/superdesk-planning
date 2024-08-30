@@ -22,6 +22,7 @@ from flask_mail import Attachment
 from apps.archive.common import get_user
 from eve.utils import config
 from planning.common import get_assginment_name
+from superdesk.preferences import get_user_notification_preferences
 
 try:
     from slackclient import SlackClient
@@ -64,7 +65,6 @@ class PlanningNotifications:
         # if the coverage is in 'draft' state, no notifications
         if coverage_status == WORKFLOW_STATE.DRAFT:
             return
-
         # Attempt to load the template file, if that fails, just use the message
         try:
             (source, filename, uptodate) = app.jinja_loader.get_source(
@@ -74,10 +74,20 @@ class PlanningNotifications:
             logger.warn("Failed to load the planning notification template {}.txt".format(message))
             return
 
+        can_push_notification = True
+
+        assigned_user = (
+            superdesk.get_resource_service("users").find_one(req=None, _id=target_user) if target_user else {}
+        )
+
+        can_push_notification = (
+            True if assigned_user is None else get_user_notification_preferences(assigned_user)["desktop"]
+        )
+
         if target_desk is None and target_user is not None:
             add_activity(
                 ACTIVITY_UPDATE,
-                can_push_notification=True,
+                can_push_notification=can_push_notification,
                 resource="assignments",
                 msg=source,
                 notify=[target_user],
@@ -98,7 +108,7 @@ class PlanningNotifications:
                     continue
                 add_activity(
                     ACTIVITY_UPDATE,
-                    can_push_notification=True,
+                    can_push_notification=can_push_notification,
                     resource="assignments",
                     msg=source,
                     notify=[member.get("user")],
@@ -115,6 +125,13 @@ class PlanningNotifications:
                 "message": _get_slack_message_string(source, data),
             }
             self._notify_slack.apply_async(kwargs=args, serializer="eve/json")
+
+        # No assignment notification sent, if user is not enabled assignment notification
+        if (
+            assigned_user
+            and get_user_notification_preferences(assigned_user, "email:notification:assignments")["email"] is False
+        ):
+            return
 
         # send email notification to user
         if (target_user or contact_id) and not data.get("no_email", False):
@@ -304,7 +321,7 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
 
     admins = app.config["ADMINS"]
 
-    data["subject"] = "Superdesk assignment" + ": {}".format(data.get("slugline") if data.get("slugline") else "")
+    data["subject"] = render_template("assignment_mail_subject.txt", **data)
     data["system_reciepient"] = get_assignment_acceptance_email_address()
     html_message = _get_email_message_html(source, meta_message, data)
     text_message = _get_email_message_string(source, meta_message, data)

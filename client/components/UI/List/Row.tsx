@@ -1,13 +1,21 @@
-import React from 'react';
+import React, {CSSProperties} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+
+interface IProps {
+    children: Array<JSX.Element> | JSX.Element;
+    classes?: string;
+    paddingBottom?: boolean;
+    testId?: string;
+    style?: CSSProperties;
+}
 
 /**
  * @ngdoc react
  * @name Row
  * @description Row Component in a list of item where each item is a row
  */
-export const Row = ({children, classes, paddingBottom, testId, style}) => (
+export const Row = ({children, classes = '', paddingBottom, testId, style}: IProps) => (
     <div
         className={classNames(
             'sd-list-item__row',
@@ -22,19 +30,3 @@ export const Row = ({children, classes, paddingBottom, testId, style}) => (
         {children}
     </div>
 );
-
-Row.propTypes = {
-    children: PropTypes.node.isRequired,
-    classes: PropTypes.string,
-    margin: PropTypes.bool,
-    marginTop: PropTypes.bool,
-    paddingBottom: PropTypes.bool,
-    testId: PropTypes.string,
-    style: PropTypes.object,
-};
-
-Row.defaultProps = {
-    classes: '',
-    margin: true,
-    marginTop: false,
-};

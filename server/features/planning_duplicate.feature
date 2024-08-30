@@ -357,8 +357,7 @@ Feature: Duplicate Planning
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
-                    "user": "#CONTEXT_USER_ID#",
-                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
+                    "user": "#CONTEXT_USER_ID#"
                 }
             }],
             "expired": true

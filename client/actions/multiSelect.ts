@@ -8,6 +8,7 @@ import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
 import planningUi from './planning/ui';
 import {getItemType, gettext, getItemInArrayById, getErrorMessage, lockUtils} from '../utils';
+import {planningApi} from '../superdeskApi';
 
 /**
  * Action Dispatcher to select an/all Event(s)
@@ -180,6 +181,12 @@ const downloadEvents = (url, data) => {
     req.send(JSON.stringify(data));
 };
 
+const bulkAddPlanningCoveragesToWorkflow = (items) => (
+    (dispatch) => planningApi.planning.coverages.bulkAddCoverageToWorkflow(items)
+        .then(() => dispatch({
+            type: MULTISELECT.ACTIONS.DESELECT_ALL_PLANNINGS,
+        }))
+);
 
 const exportAsArticle = (items = [], download) => (
     (dispatch, getState, {api, notify, gettext, superdesk, $location, $interpolate, desks}) => {
@@ -312,6 +319,7 @@ const self = {
     itemBulkSpikeModal,
     itemBulkUnSpikeModal,
     exportAsArticle,
+    bulkAddPlanningCoveragesToWorkflow,
 };
 
 export default self;

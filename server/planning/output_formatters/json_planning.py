@@ -9,8 +9,10 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 
+from flask import current_app as app
 from superdesk.publish.formatters import Formatter
 import superdesk
+from apps.archive.common import ARCHIVE
 import json
 from superdesk.utils import json_serialize_datetime_objectId
 from copy import deepcopy
@@ -170,20 +172,36 @@ class JsonPlanningFormatter(Formatter):
         )
         deliveries = list(delivery_service.get(req=None, lookup={"coverage_id": coverage.get("coverage_id")}))
 
+        # Get the associated article(s) linked to the coverage(s)
+        query = {"$and": [{"_id": {"$in": [item["item_id"] for item in deliveries]}}]}
+        articles = {item["_id"]: item for item in get_resource_service(ARCHIVE).get_from_mongo(req=None, lookup=query)}
+
         # Check to see if in this delivery chain, whether the item has been published at least once
         item_never_published = True
         for delivery in deliveries:
             for f in remove_fields:
                 delivery.pop(f, None)
+
+            # TODO: This is a hack, need to find a better way of doing this
+            # If the linked article was auto-published, then use the ``ingest_id`` for the article ID
+            # This is required when the article was published using the ``NewsroomNinjsFormatter``
+            # Otherwise this coverage in Newshub would point to a non-existing wire item
+            article = articles.get(delivery["item_id"])
+            if (
+                article is not None
+                and article.get("ingest_id")
+                and (article.get("auto_publish") or (article.get("extra") or {}).get("publish_ingest_id_as_guid"))
+            ):
+                delivery["item_id"] = article["ingest_id"]
+
             if delivery.get("item_state") == CONTENT_STATE.PUBLISHED:
                 item_never_published = False
-
-        if item_never_published:
-            deliveries = []
 
         return deliveries, assignment.get("assigned_to").get("state")
 
     def _expand_coverage_contacts(self, coverage):
+        EXTENDED_INFO = bool(app.config.get("PLANNING_JSON_ASSIGNED_INFO_EXTENDED"))
+
         if (coverage.get("assigned_to") or {}).get("contact"):
             expanded_contacts = expand_contact_info([coverage["assigned_to"]["contact"]])
             if expanded_contacts:
@@ -194,8 +212,26 @@ class JsonPlanningFormatter(Formatter):
 
         if (coverage.get("assigned_to") or {}).get("user"):
             user = get_resource_service("users").find_one(req=None, _id=coverage["assigned_to"]["user"])
-            if user:
+            if user and not user.get("private"):
                 coverage["assigned_user"] = {
                     "first_name": user.get("first_name"),
                     "last_name": user.get("last_name"),
+                    "display_name": user.get("display_name"),
                 }
+
+                if EXTENDED_INFO:
+                    coverage["assigned_user"].update(
+                        email=user.get("email"),
+                    )
+
+        if (coverage.get("assigned_to") or {}).get("desk"):
+            desk = get_resource_service("desks").find_one(req=None, _id=coverage["assigned_to"]["desk"])
+            if desk:
+                coverage["assigned_desk"] = {
+                    "name": desk.get("name"),
+                }
+
+                if EXTENDED_INFO:
+                    coverage["assigned_desk"].update(
+                        email=desk.get("email"),
+                    )

@@ -13,6 +13,7 @@ import {PreviewFieldContacts} from './Contacts';
 import {PreviewFieldCustomVocabularies} from './CustomVocabularies';
 import {PreviewFieldUrgency} from './Urgency';
 import {PreviewFieldFlags} from './Flags';
+import {PreviewFieldRelatedArticles} from './RelatedArticles';
 
 import * as selectors from '../../../selectors';
 import {planningUtils} from '../../../utils';
@@ -301,11 +302,21 @@ Object.keys(multilingualFieldOptions).forEach((field) => {
 FIELD_TO_PREVIEW_COMPONENT.filter_schedule = PreviewFieldFilterSchedule;
 
 FIELD_TO_FORM_PREVIEW_COMPONENT.dates = PreviewFieldEventSchedule;
+FIELD_TO_PREVIEW_COMPONENT.dates = PreviewFieldEventSchedule;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.location = PreviewFieldLocation;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.event_contact_info = PreviewFieldContacts;
+FIELD_TO_PREVIEW_COMPONENT.event_contact_info = PreviewFieldContacts;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.custom_vocabularies = PreviewFieldCustomVocabularies;
+FIELD_TO_PREVIEW_COMPONENT.custom_vocabularies = PreviewFieldCustomVocabularies;
+
 FIELD_TO_FORM_PREVIEW_COMPONENT.urgency = PreviewFieldUrgency;
 FIELD_TO_FORM_PREVIEW_COMPONENT.flags = PreviewFieldFlags;
+
+FIELD_TO_FORM_PREVIEW_COMPONENT.related_items = PreviewFieldRelatedArticles;
+FIELD_TO_PREVIEW_COMPONENT.related_items = PreviewFieldRelatedArticles;
 
 export {
     FIELD_TO_PREVIEW_COMPONENT,

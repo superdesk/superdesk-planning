@@ -157,7 +157,7 @@ export function convertStringFields<Src extends IEventOrPlanningItem, Dest exten
         }));
 
     if (translationsDest.length > 0) {
-        itemDest.translations = (itemSrc.translations ?? []).concat(translationsDest);
+        itemDest.translations = (itemDest.translations ?? []).concat(translationsDest);
     }
 
     return itemDest;

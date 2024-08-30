@@ -88,12 +88,24 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         let tools = [];
 
+        if (!some(selectedPlannings, 'lock_action')) {
+            tools.push(
+                <Button
+                    key={0}
+                    hollow={true}
+                    onClick={() => {
+                        this.props.addToWorkflow(this.getItemList());
+                    }}
+                    text={gettext('Add to workflow')}
+                />
+            );
+        }
         if (showExport) {
             tools.push(
                 <Button
                     key={1}
+                    hollow={true}
                     onClick={this.exportArticle}
-                    color="primary"
                     text={gettext('Export')}
                 />
             );
@@ -105,6 +117,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
                     key={2}
                     onClick={this.itemSpike}
                     color="alert"
+                    hollow={true}
                     text={gettext('Spike')}
                     icon="icon-trash"
                 />
@@ -153,7 +166,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             <Button
                 key={0}
                 onClick={this.exportArticle}
-                color="primary"
+                hollow
                 text={gettext('Export')}
             />
         ), (
@@ -182,6 +195,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
                     key={3}
                     onClick={this.itemSpike}
                     color="alert"
+                    hollow={true}
                     text={gettext('Spike')}
                     icon="icon-trash"
                 />
@@ -259,6 +273,7 @@ MultiSelectActionsComponent.propTypes = {
     selectedEvents: PropTypes.array,
     selectAllEvents: PropTypes.func,
     deSelectAllEvents: PropTypes.func,
+    addToWorkflow: PropTypes.func,
     selectedPlannings: PropTypes.array,
     selectAllPlannings: PropTypes.func,
     deSelectAllPlannings: PropTypes.func,
@@ -297,6 +312,7 @@ const mapDispatchToProps = (dispatch) => ({
     spikeItems: (items) => dispatch(actions.multiSelect.itemBulkSpikeModal(items)),
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
     exportAsArticle: (items, download) => dispatch(actions.multiSelect.exportAsArticle(items, download)),
+    addToWorkflow: (items) => dispatch(actions.multiSelect.bulkAddPlanningCoveragesToWorkflow(items)),
 });
 
 

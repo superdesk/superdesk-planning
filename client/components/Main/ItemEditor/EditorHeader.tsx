@@ -395,6 +395,7 @@ export class EditorHeader extends React.Component {
             loading,
             itemManager,
             autoSave,
+            diff,
         } = this.props;
 
         const states = this.getItemStates();
@@ -428,7 +429,7 @@ export class EditorHeader extends React.Component {
 
                 {!loading && !hideItemActions && (
                     <EditorItemActions
-                        item={initialValues}
+                        item={diff}
                         onAddCoverage={itemManager.addCoverage}
                         itemActions={itemActions}
                         session={session}

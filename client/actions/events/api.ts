@@ -1,7 +1,7 @@
-import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, has, find, every, take} from 'lodash';
 
 import {planningApi} from '../../superdeskApi';
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import {
@@ -393,8 +393,12 @@ const post = (original, updates) => (
             etag: original._etag,
             pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
             update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
+            failed_planning_ids: get(updates, 'failed_planning_ids', []),
         }).then(
-            () => dispatch(self.fetchById(original._id, {force: true})),
+            (data) => Promise.all([
+                dispatch(self.fetchById(original._id, {force: true})),
+                {failedPlanningIds: data?.failed_planning_ids}
+            ]),
             (error) => Promise.reject(error)
         )
     )
@@ -558,29 +562,16 @@ const save = (original, updates) => (
 
         return promise.then((originalEvent) => {
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
-
-            // clone the updates as we're going to modify it
-            let eventUpdates = eventUtils.modifyForServer(
-                cloneDeep(updates),
-                true
-            );
-
-            originalItem.location = originalItem.location ? [originalItem.location] : null;
-
-            // remove all properties starting with _
-            // and updates that are the same as original
-            eventUpdates = pickBy(eventUpdates, (v, k) => (
-                (k === TO_BE_CONFIRMED_FIELD || k === '_planning_item' || !k.startsWith('_')) &&
-                !isEqual(eventUpdates[k], originalItem[k])
-            ));
+            const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
             if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
                 !isTemporaryId(originalItem._id)
             ) {
                 delete eventUpdates.dates;
             }
-            eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
-                EVENTS.UPDATE_METHODS[0].value;
+            eventUpdates.update_method = eventUpdates.update_method == null ?
+                EVENTS.UPDATE_METHODS[0].value :
+                eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
             return originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :
@@ -671,7 +662,7 @@ const fetchEventTemplates = () => (dispatch, getState, {api}) => {
         });
 };
 
-const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify}) => {
+const createEventTemplate = (item: IEventItem) => (dispatch, getState, {api, modal, notify}) => {
     modal.prompt(gettext('Template name')).then((templateName) => {
         api('events_template').query({
             where: {
@@ -685,10 +676,28 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
                 const doSave = () => {
                     api('events_template').save({
                         template_name: templateName,
-                        based_on_event: itemId,
+                        based_on_event: item._id,
+                        data: {
+                            embedded_planning: item.associated_plannings.map((planning) => ({
+                                coverages: planning.coverages.map((coverage) => ({
+                                    coverage_id: coverage.coverage_id,
+                                    g2_content_type: coverage.planning.g2_content_type,
+                                    desk: coverage.assigned_to.desk,
+                                    user: coverage.assigned_to.user,
+                                    language: coverage.planning.language,
+                                    news_coverage_status: coverage.news_coverage_status.qcode,
+                                    scheduled: coverage.planning.scheduled,
+                                    genre: coverage.planning.genre?.qcode,
+                                    slugline: coverage.planning.slugline,
+                                    ednote: coverage.planning.ednote,
+                                    internal_note: coverage.planning.internal_note,
+                                })),
+                            })),
+                        },
                     })
                         .then(() => {
                             dispatch(fetchEventTemplates());
+                            dispatch(getEventsRecentTemplates());
                         }, (error) => {
                             notify.error(
                                 getErrorMessage(error, gettext('Failed to save the event template'))
@@ -712,6 +721,29 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify
             });
     });
 };
+
+const RECENT_EVENTS_TEMPLATES_KEY = 'events_templates:recent';
+
+const addEventRecentTemplate = (field: string, templateId: IEventTemplate['_id']) => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result = {}) => {
+            result[RECENT_EVENTS_TEMPLATES_KEY] = result[RECENT_EVENTS_TEMPLATES_KEY] || {};
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field] || [];
+            result[RECENT_EVENTS_TEMPLATES_KEY][field] = result[RECENT_EVENTS_TEMPLATES_KEY][field].filter(
+                (i) => i !== templateId);
+            result[RECENT_EVENTS_TEMPLATES_KEY][field].unshift(templateId);
+            return preferencesService.update(result);
+        })
+);
+
+const getEventsRecentTemplates = () => (
+    (dispatch, getState, {preferencesService}) => preferencesService.get()
+        .then((result) => {
+            const templates = take(result?.[RECENT_EVENTS_TEMPLATES_KEY]?.['templates'], 5);
+
+            dispatch({type: EVENTS.ACTIONS.EVENT_RECENT_TEMPLATES, payload: templates});
+        })
+);
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -745,6 +777,8 @@ const self = {
     removeFile,
     fetchEventTemplates,
     createEventTemplate,
+    addEventRecentTemplate,
+    getEventsRecentTemplates,
 };
 
 export default self;

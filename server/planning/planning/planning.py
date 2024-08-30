@@ -9,23 +9,29 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
+from typing import Dict, Any, Optional, List
 from bson import ObjectId
-
-import superdesk
+from copy import deepcopy
 import logging
+from datetime import datetime
+
 from flask import json, current_app as app
 from eve.methods.common import resolve_document_etag
+
+import superdesk
 from superdesk.errors import SuperdeskApiError
 from planning.errors import AssignmentApiError
+
 from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE, CONTENT_STATE
 from superdesk import get_resource_service
 from superdesk.resource import not_analyzed, string_with_analyzer
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
+
 from apps.archive.common import get_user, get_auth, update_dates_for
-from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
+from planning.types import Planning, Coverage, Event, UPDATE_METHOD
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
     POST_STATE_SCHEMA,
@@ -50,19 +56,32 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
+    UPDATE_METHODS,
+    UPDATE_SINGLE,
+    UPDATE_FUTURE,
+    UPDATE_ALL,
+    POST_STATE,
 )
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
-from datetime import datetime
-from planning.content_profiles.utils import is_field_enabled
+from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from superdesk import Resource
 from lxml import etree
 from io import BytesIO
-from planning.signals import planning_created
+from planning.signals import planning_created, planning_ingested
 
 logger = logging.getLogger(__name__)
+
+
+def get_coverage_by_id(
+    planning_item: Planning, coverage_id: str, field: Optional[str] = "coverage_id"
+) -> Optional[Coverage]:
+    return next(
+        (coverage for coverage in planning_item.get("coverages") or [] if coverage.get(field) == coverage_id),
+        None,
+    )
 
 
 class PlanningService(superdesk.Service):
@@ -80,6 +99,8 @@ class PlanningService(superdesk.Service):
         resolve_document_etag(docs, self.datasource)
         ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
         self.on_created(docs)
+        for doc in docs:
+            planning_ingested.send(self, item=doc)
         return ids
 
     def patch_in_mongo(self, id, document, original):
@@ -88,6 +109,7 @@ class PlanningService(superdesk.Service):
         update_ingest_on_patch(document, original)
         response = self.backend.update_in_mongo(self.datasource, id, document, original)
         self.on_updated(document, original, from_ingest=True)
+        planning_ingested.send(self, item=document, original=original)
         return response
 
     def is_new_version(self, new_item, old_item):
@@ -126,6 +148,8 @@ class PlanningService(superdesk.Service):
     def on_create(self, docs):
         """Set default metadata."""
         planning_type = get_resource_service("planning_types").find_one(req=None, name="planning")
+        history_service = get_resource_service("planning_history")
+        generated_planning_items = []
         for doc in docs:
             if "guid" not in doc:
                 doc["guid"] = generate_guid(type=GUID_NEWSML)
@@ -140,21 +164,35 @@ class PlanningService(superdesk.Service):
 
             self.validate_planning(doc)
             set_original_creator(doc)
-            self._set_planning_event_info(doc, planning_type)
+            event: Event = self._set_planning_event_info(doc, planning_type)
             self._set_coverage(doc)
             self.set_planning_schedule(doc)
             # set timestamps
             update_dates_for(doc)
 
-            if doc["state"] == "ingested":
-                get_resource_service("planning_history").on_item_created([doc])
+            is_ingested = doc["state"] == "ingested"
+            if is_ingested:
+                history_service.on_item_created([doc])
+
+            update_method: Optional[UPDATE_METHOD] = doc.pop("update_method", None)
+            if event and update_method is not None:
+                new_plans = self._add_planning_to_event_series(doc, event, update_method)
+                if len(new_plans):
+                    if is_ingested:
+                        history_service.on_item_created(new_plans)
+                    generated_planning_items.extend(new_plans)
+
+        if len(generated_planning_items):
+            docs.extend(generated_planning_items)
 
     def on_created(self, docs):
         session_id = get_auth().get("_id")
+        post_planning_with_event = is_post_planning_with_event_enabled()
         for doc in docs:
+            plan_id = str(doc.get(config.ID_FIELD))
             push_notification(
                 "planning:created",
-                item=str(doc.get(config.ID_FIELD)),
+                item=plan_id,
                 user=str(doc.get("original_creator", "")),
                 added_agendas=doc.get("agendas") or [],
                 removed_agendas=[],
@@ -163,6 +201,17 @@ class PlanningService(superdesk.Service):
             )
             self._update_event_history(doc)
             planning_created.send(self, item=doc)
+
+            event_id = doc.get("event_item")
+            if event_id and post_planning_with_event:
+                event = get_resource_service("events").find_one(req=None, _id=event_id)
+                if not event:
+                    logger.warning(f"Failed to find linked event {event_id} for planning {plan_id}")
+                elif event.get("pubstatus") == POST_STATE.USABLE:
+                    updates = doc.copy()
+                    updates["pubstatus"] = POST_STATE.USABLE
+                    update_post_item(updates, doc)
+
         self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc):
@@ -208,6 +257,9 @@ class PlanningService(superdesk.Service):
     def on_locked_planning(self, item, user_id):
         self.generate_related_assignments([item])
 
+    def should_update(self, old_item, new_item, provider):
+        return True
+
     @staticmethod
     def set_ingest_provider_sequence(item, provider):
         """Sets the value of ingest_provider_sequence in item.
@@ -227,6 +279,7 @@ class PlanningService(superdesk.Service):
         return item
 
     def on_update(self, updates, original):
+        update_method = updates.pop("update_method", UPDATE_SINGLE)
         user = get_user()
         self.validate_on_update(updates, original, user)
 
@@ -235,6 +288,9 @@ class PlanningService(superdesk.Service):
 
         self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
+
+        if update_method and update_method != UPDATE_SINGLE:
+            self._update_recurring_planning_items(updates, original, update_method)
 
     def validate_on_update(self, updates, original, user):
         lock_user = original.get("lock_user", None)
@@ -293,25 +349,85 @@ class PlanningService(superdesk.Service):
                 if next_schedule and next_schedule["planning"]["scheduled"] > scheduled_update["planning"]["scheduled"]:
                     raise SuperdeskApiError(message="Scheduled updates of a coverage must be after the previous update")
 
-    def _set_planning_event_info(self, doc, planning_type):
+    def _set_planning_event_info(self, doc, planning_type) -> Optional[Dict[str, Any]]:
         """Set the planning event date
 
         :param dict doc: planning document
         :param dict planning_types: planning type
         """
         event_id = doc.get("event_item")
-        event = {}
-        if event_id:
-            event = get_resource_service("events").find_one(req=None, _id=event_id)
-            if event:
-                if event.get("recurrence_id"):
-                    doc["recurrence_id"] = event.get("recurrence_id")
-                # populate headline using name
-                if event.get("name") and is_field_enabled("headline", planning_type):
-                    doc.setdefault("headline", event["name"])
 
-                if event.get(TO_BE_CONFIRMED_FIELD):
-                    doc[TO_BE_CONFIRMED_FIELD] = True
+        if not event_id:
+            return None
+
+        event = get_resource_service("events").find_one(req=None, _id=event_id)
+
+        if not event:
+            plan_id = doc.get("_id")
+            logger.warning(f"Failed to find linked event {event_id} for planning {plan_id}")
+            return None
+
+        if event.get("recurrence_id"):
+            doc["recurrence_id"] = event.get("recurrence_id")
+
+        # populate headline using name
+        if event.get("name") and is_field_enabled("headline", planning_type):
+            doc.setdefault("headline", event["name"])
+
+        if event.get(TO_BE_CONFIRMED_FIELD):
+            doc[TO_BE_CONFIRMED_FIELD] = True
+
+        return event
+
+    def _add_planning_to_event_series(
+        self, plan: Planning, event: Event, update_method: UPDATE_METHOD
+    ) -> List[Dict[str, Any]]:
+        if update_method not in [UPDATE_FUTURE, UPDATE_ALL]:
+            return []
+
+        recurrence_id = event.get("recurrence_id")
+        if not recurrence_id:
+            # Not a series of Events, can safely return
+            return []
+
+        plan["planning_recurrence_id"] = generate_guid(type=GUID_NEWSML)
+        planning_date_relative = plan["planning_date"] - event["dates"]["start"]
+        items = []
+
+        events_service = get_resource_service("events")
+        historic, past, future = events_service.get_recurring_timeline(event)
+        event_series = future if update_method == UPDATE_FUTURE else historic + past + future
+
+        for series_entry in event_series:
+            if series_entry["_id"] == event["_id"]:
+                # This is the Event that was provided
+                # We assume a Planning item was already created for this Event
+                continue
+
+            new_plan = deepcopy(plan)
+
+            # Set the Planning & Event IDs for the new item
+            new_plan["guid"] = new_plan["_id"] = generate_guid(type=GUID_NEWSML)
+            new_plan["event_item"] = series_entry["_id"]
+            new_plan["recurrence_id"] = recurrence_id
+
+            # Set the Planning date/time relative to the Event start date/time
+            new_plan["planning_date"] = series_entry["dates"]["start"] + planning_date_relative
+            for coverage in new_plan.get("coverages") or []:
+                # Remove the Coverage and Assignment IDs (as these will be created for us in ``self._set_coverage``)
+                coverage["original_coverage_id"] = coverage.pop("coverage_id", None)
+                (coverage.get("assigned_to") or {}).pop("assignment_id", None)
+
+                # Set the scheduled date/time relative to the Event start date/time
+                coverage_date_relative = coverage["planning"]["scheduled"] - event["dates"]["start"]
+                coverage["planning"]["scheduled"] = series_entry["dates"]["start"] + coverage_date_relative
+
+            self._set_coverage(new_plan)
+            self.set_planning_schedule(new_plan)
+
+            items.append(new_plan)
+
+        return items
 
     def _get_added_removed_agendas(self, updates, original):
         updated_agendas = [str(a) for a in (updates.get("agendas") or [])]
@@ -397,6 +513,9 @@ class PlanningService(superdesk.Service):
             return all_items
 
     def remove_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         for coverage in (original or {}).get("coverages") or []:
             updated_coverage = next(
                 (
@@ -446,6 +565,7 @@ class PlanningService(superdesk.Service):
         if assignment and assignment.get("state") not in [
             WORKFLOW_STATE.DRAFT,
             WORKFLOW_STATE.CANCELLED,
+            None,
         ]:
             raise SuperdeskApiError.badRequestError(
                 "Assignment already exists. {} cannot be deleted.".format(entity_type.capitalize())
@@ -456,14 +576,23 @@ class PlanningService(superdesk.Service):
         self._create_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity)
 
     def add_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         planning_date = original.get("planning_date") or updates.get("planning_date")
+        original_coverage_ids = [
+            coverage["coverage_id"] for coverage in original.get("coverages") or [] if coverage.get("coverage_id")
+        ]
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id", "")
-            if not coverage_id or TEMP_ID_PREFIX in coverage_id:
-                if "duplicate" in coverage_id:
+            if not coverage_id or TEMP_ID_PREFIX in coverage_id or coverage_id not in original_coverage_ids:
+                if "duplicate" in coverage_id or coverage.get("original_coverage_id"):
                     self.duplicate_xmp_file(coverage)
                 # coverage to be created
-                coverage["coverage_id"] = generate_guid(type=GUID_NEWSML)
+                if not coverage_id or TEMP_ID_PREFIX in coverage_id:
+                    coverage["coverage_id"] = generate_guid(type=GUID_NEWSML)
+                if coverage.get("original_coverage_id") is None:
+                    coverage["original_coverage_id"] = coverage["coverage_id"]
                 coverage["firstcreated"] = utcnow()
 
                 # Make sure the coverage has a ``scheduled`` date
@@ -533,6 +662,9 @@ class PlanningService(superdesk.Service):
                 self._create_update_assignment(original, updates, s, original_scheduled_update, coverage)
 
     def update_coverages(self, updates, original):
+        if "coverages" not in updates:
+            return
+
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id")
             original_coverage = next(
@@ -621,6 +753,9 @@ class PlanningService(superdesk.Service):
             self._create_update_assignment(original, updates, coverage, original_coverage)
 
     def _set_coverage(self, updates, original=None):
+        if "coverages" not in updates:
+            return
+
         if not original:
             original = {}
 
@@ -721,7 +856,7 @@ class PlanningService(superdesk.Service):
         planning_id = planning.get(config.ID_FIELD)
 
         doc = deepcopy(original)
-        doc.update(updates)
+        doc.update(deepcopy(updates))
         assignment_service = get_resource_service("assignments")
         assigned_to = updates.get("assigned_to") or original.get("assigned_to")
         new_assignment_id = None
@@ -735,6 +870,29 @@ class PlanningService(superdesk.Service):
         coverage_status = updates.get("workflow_status", original.get("workflow_status"))
         is_coverage_draft = coverage_status == WORKFLOW_STATE.DRAFT
 
+        translations = planning.get("translations")
+        translated_value = {}
+        translated_name = planning.get("name", planning.get("headline", ""))
+        doc.setdefault("planning", {})
+        if translations is not None and doc["planning"].get("language") is not None:
+            translated_value.update(
+                {
+                    entry["field"]: entry["value"]
+                    for entry in translations or []
+                    if entry["language"] == doc["planning"]["language"]
+                }
+            )
+
+            translated_name = translated_value.get("name", translated_value.get("headline"))
+            doc["planning"].update(
+                {
+                    key: val
+                    for key, val in translated_value.items()
+                    if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
+                    and doc["planning"].get(key) is None
+                }
+            )
+
         if not assigned_to.get("assignment_id") and (assigned_to.get("user") or assigned_to.get("desk")):
             # Creating a new assignment
             assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT if is_coverage_draft else ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
@@ -742,6 +900,9 @@ class PlanningService(superdesk.Service):
                 # In case of article_rewrites, this will be 'in_progress' directly
                 if assigned_to.get("state") and assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                     assign_state = assigned_to.get("state")
+
+            if translated_value and translated_name and "headline" not in doc["planning"]:
+                doc["planning"]["headline"] = translated_name
 
             assignment = {
                 "assigned_to": {
@@ -756,6 +917,8 @@ class PlanningService(superdesk.Service):
                 "priority": assigned_to.get("priority", DEFAULT_ASSIGNMENT_PRIORITY),
                 "description_text": planning.get("description_text"),
             }
+            if translated_value and translated_name and assignment.get("name") != translated_value.get("name"):
+                assignment["name"] = translated_name
 
             if doc.get("scheduled_update_id"):
                 assignment["scheduled_update_id"] = doc["scheduled_update_id"]
@@ -846,7 +1009,7 @@ class PlanningService(superdesk.Service):
 
             # If the Planning name has been changed
             if planning_original.get("name") != planning_updates.get("name"):
-                assignment["name"] = planning["name"]
+                assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
@@ -1076,7 +1239,9 @@ class PlanningService(superdesk.Service):
         deleted_assignments = []
         assignment_service = get_resource_service("assignments")
         for coverage in coverages:
-            assign_id = coverage["assigned_to"]["assignment_id"]
+            assign_id = coverage["assigned_to"].get("assignment_id")
+            if not assign_id:
+                continue
             assign_planning = coverage.get("planning")
             try:
                 assignment_service.delete_action(lookup={"_id": assign_id})
@@ -1353,6 +1518,146 @@ class PlanningService(superdesk.Service):
         planning_file_ids = get_resource_service("planning_files").post([{"media": media_id}])
         coverage["planning"]["xmp_file"] = planning_file_ids[0]
 
+    def _update_recurring_planning_items(self, updates, original, update_method):
+        SKIP_PLANNING_FIELDS = {
+            "_id",
+            "guid",
+            "unique_id",
+            "original_creator",
+            "firstcreated",
+            "lock_user",
+            "lock_time",
+            "lock_session",
+            "lock_action",
+            "revert_state",
+            "ingest_provider",
+            "source",
+            "original_source",
+            "ingest_provider_sequence",
+            "ingest_firstcreated",
+            "ingest_versioncreated",
+            "event_item",
+            "state",
+            "pubstatus",
+            "expiry",
+            "expired",
+            "featured",
+            "_planning_schedule",
+            "_updates_schedule",
+            "planning_date",
+            "state_reason",
+        }
+        SKIP_COVERAGE_FIELDS = {
+            "coverage_id",
+            "original_coverage_id",
+            "guid",
+            "original_creator",
+            "firstcreated",
+            "previous_status",
+        }
+        for plan in self._iter_recurring_plannings_to_update(updates, original, update_method):
+            plan_updates = deepcopy(updates)
+            for field in SKIP_PLANNING_FIELDS:
+                plan_updates.pop(field, None)
+
+            try:
+                planning_date_diff = updates["planning_date"] - original["planning_date"]
+                if planning_date_diff:
+                    plan_updates["planning_date"] = plan["planning_date"] + planning_date_diff
+            except KeyError:
+                pass
+
+            if len(updates.get("coverages") or []) and len(plan.get("coverages") or []):
+                plan_updates["coverages"] = deepcopy(plan["coverages"])
+                for coverage in plan_updates["coverages"]:
+                    try:
+                        original_coverage_id = coverage["original_coverage_id"]
+                    except KeyError:
+                        continue
+
+                    coverage_updates = get_coverage_by_id(updates, original_coverage_id, "original_coverage_id")
+                    if coverage_updates is None:
+                        continue
+
+                    for field, value in coverage_updates.items():
+                        if field in SKIP_COVERAGE_FIELDS:
+                            continue
+                        elif field == "assigned_to":
+                            if coverage.get("workflow_status") != WORKFLOW_STATE.DRAFT:
+                                # This coverage has already been added to the workflow
+                                # ``assigned_to`` information should be managed from the Assignment not Coverage
+                                continue
+
+                            # Copy the ``assigned_to`` data, keeping the original ``assignment_id`` (if any)
+                            original_assignment_id = coverage.get("assignment_id")
+                            coverage[field] = deepcopy(value)
+                            if original_assignment_id is not None:
+                                coverage[field]["assignment_id"] = original_assignment_id
+                        elif field == "planning":
+                            original_scheduled = (coverage.get("planning") or {}).get("scheduled")
+                            coverage["planning"] = deepcopy(value)
+                            coverage_original = get_coverage_by_id(
+                                original, original_coverage_id, "original_coverage_id"
+                            )
+                            if coverage_original is not None:
+                                scheduled_diff = value["scheduled"] - coverage_original["planning"]["scheduled"]
+                                coverage["planning"]["scheduled"] = original_scheduled + scheduled_diff
+                            else:
+                                coverage["planning"]["scheduled"] = original_scheduled
+                        else:
+                            coverage[field] = deepcopy(value)
+
+                # Add new Coverages that were added during this update request
+                for coverage in updates["coverages"]:
+                    if get_coverage_by_id(original, coverage["coverage_id"]) is not None:
+                        # Skip this one, as this Coverage exists in the original
+                        continue
+
+                    new_coverage = deepcopy(coverage)
+                    for field in SKIP_COVERAGE_FIELDS:
+                        new_coverage.pop(field, None)
+
+                    # Remove the Assignment ID (if any)
+                    try:
+                        new_coverage["assigned_to"].pop("assignment_id", None)
+                    except (KeyError, TypeError):
+                        pass
+
+                    # Set the new scheduled date, relative to the planning date
+                    try:
+                        plan_date = plan_updates.get("planning_date") or plan["planning_date"]
+                        if plan_date:
+                            scheduled_diff = coverage["planning"]["scheduled"] - (
+                                updates.get("planning_date") or original.get("planning_date")
+                            )
+                            new_coverage["planning"]["scheduled"] = plan_date + scheduled_diff
+                    except (KeyError, TypeError):
+                        pass
+
+                    plan_updates["coverages"].append(new_coverage)
+
+            self.patch(plan["_id"], plan_updates)
+            app.on_updated_planning(plan_updates, {"_id": plan["_id"]})
+
+    def _iter_recurring_plannings_to_update(self, updates, original, update_method):
+        selected_start = updates.get("planning_date") or original.get("planning_date")
+        # Make sure we are working with a datetime instance
+        if not isinstance(selected_start, datetime):
+            selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
+
+        try:
+            lookup = {"planning_recurrence_id": original["planning_recurrence_id"]}
+        except KeyError:
+            return
+
+        for plan in self.get_from_mongo(req=None, lookup=lookup):
+            if plan["_id"] == original["_id"]:
+                # Skip this Planning item, as it is the same item provided to the update request
+                continue
+            elif update_method == UPDATE_FUTURE and plan["planning_date"] < selected_start:
+                continue
+            yield plan
+
 
 event_type = deepcopy(superdesk.Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
@@ -1372,6 +1677,7 @@ assigned_to_schema = {
 coverage_schema = {
     # Identifiers
     "coverage_id": {"type": "string", "mapping": not_analyzed},
+    "original_coverage_id": {"type": "string", "mapping": not_analyzed},
     "guid": metadata_schema["guid"],
     # Audit Information
     "original_creator": metadata_schema["original_creator"],
@@ -1426,7 +1732,7 @@ coverage_schema = {
             "language": metadata_schema["language"],
             "slugline": metadata_schema["slugline"],
             "subject": metadata_schema["subject"],
-            "internal_note": {"type": "string"},
+            "internal_note": {"type": "string", "nullable": True},
             "workflow_status_reason": {"type": "string", "nullable": True},
             "priority": metadata_schema["priority"],
         },  # end planning dict schema
@@ -1471,7 +1777,7 @@ coverage_schema = {
                 "planning": {
                     "type": "dict",
                     "schema": {
-                        "internal_note": {"type": "string"},
+                        "internal_note": {"type": "string", "nullable": True},
                         "contact_info": Resource.rel("contacts", type="string", nullable=True),
                         "scheduled": {"type": "datetime"},
                         "genre": metadata_schema["genre"],
@@ -1512,6 +1818,11 @@ planning_schema = {
         "mapping": not_analyzed,
         "nullable": True,
     },
+    "planning_recurrence_id": {
+        "type": "string",
+        "mapping": not_analyzed,
+        "nullable": True,
+    },
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
     # Planning Item Metadata - See IPTC-G2-Implementation_Guide 16.1
@@ -1520,7 +1831,28 @@ planning_schema = {
     "description_text": metadata_schema["description_text"],
     "internal_note": {"type": "string", "nullable": True},
     "anpa_category": metadata_schema["anpa_category"],
-    "subject": metadata_schema["subject"],
+    "subject": {
+        "type": "list",
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "qcode": not_analyzed,
+                "name": {
+                    "type": "keyword",
+                    "fields": {
+                        "analyzed": string_with_analyzer,
+                    },
+                },
+                "scheme": not_analyzed,
+                "translations": {
+                    "type": "object",
+                    "dynamic": False,
+                    "properties": {"name": {"type": "object", "dynamic": True}},
+                },
+            },
+        },
+    },
     "genre": metadata_schema["genre"],
     "company_codes": metadata_schema["company_codes"],
     # Content Metadata - See IPTC-G2-Implementation_Guide 16.2
@@ -1646,6 +1978,13 @@ planning_schema = {
     "_type": {"type": "string", "mapping": None},
     "extra": metadata_schema["extra"],
     "versionposted": {"type": "datetime", "nullable": False},
+    # The update method used for recurring planning items
+    "update_method": {
+        "type": "string",
+        "allowed": UPDATE_METHODS,
+        "mapping": not_analyzed,
+        "nullable": True,
+    },
 }  # end planning_schema
 
 
@@ -1671,6 +2010,9 @@ class PlanningResource(superdesk.Resource):
     }
     etag_ignore_fields = ["_planning_schedule", "_updates_schedule"]
 
-    mongo_indexes = {"event_item": ([("event_item", 1)], {"background": True})}
+    mongo_indexes = {
+        "event_item": ([("event_item", 1)], {"background": True}),
+        "planning_recurrence_id": ([("planning_recurrence_id", 1)], {"background": True}),
+    }
 
     merge_nested_documents = True

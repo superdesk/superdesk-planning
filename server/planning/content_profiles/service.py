@@ -13,7 +13,7 @@ from copy import deepcopy
 import superdesk
 from superdesk.utils import ListCursor
 
-from planning.common import planning_link_updates_to_coverage
+from planning.common import planning_link_updates_to_coverage, get_config_event_related_item_search_provider_name
 from .profiles import DEFAULT_PROFILES
 
 
@@ -97,3 +97,10 @@ class PlanningTypesService(superdesk.Service):
         planning_type["schema"] = updated_planning_type["schema"]
         planning_type["editor"] = updated_planning_type["editor"]
         planning_type["groups"] = updated_planning_type["groups"]
+
+        # Disable Event ``related_items`` field
+        # if ``EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME`` config is not set
+        if planning_type["name"] == "event":
+            if not get_config_event_related_item_search_provider_name():
+                planning_type["editor"].pop("related_items", None)
+                planning_type["schema"].pop("related_items", None)
