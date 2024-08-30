@@ -1,7 +1,7 @@
 import {setup, login, addItems, waitForPageLoad, Modal} from '../../support/common';
-import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, EventEditor, PlanningPreview} from '../../support/planning';
 import {getMenuItem} from '../../support/common/ui/actionMenu';
+import {createEventFor} from '../../fixtures/events';
 
 describe('Planning.Events: event cancel action', () => {
     const editor = new EventEditor();
@@ -13,24 +13,19 @@ describe('Planning.Events: event cancel action', () => {
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
-        addItems('events', [{
+        addItems('events', [createEventFor.today({
             type: 'event',
             occur_status: {
                 name: 'Planned, occurs certainly',
                 label: 'Confirmed',
                 qcode: 'eocstat:eos5',
             },
-            dates: {
-                start: '2045-12-11' + TIME_STRINGS[0],
-                end: '2045-12-11' + TIME_STRINGS[1],
-                tz: 'Australia/Sydney',
-            },
             calendars: [],
             state: 'draft',
             place: [],
             name: 'Test',
             slugline: 'Original',
-        }]);
+        })]);
 
         login();
 

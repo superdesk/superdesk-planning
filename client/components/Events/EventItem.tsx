@@ -117,7 +117,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         return (
             <div>
-                <Menu items={itemActions}>
+                <Menu zIndex={1050} items={itemActions}>
                     {
                         (toggle) => (
                             <div
@@ -219,8 +219,12 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 >
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(listFields, 'event.primary_fields',
-                                EVENTS.LIST.PRIMARY_FIELDS), item, {}, language)}
+                            {renderFields(
+                                listFields?.event?.primary_fields ?? EVENTS.LIST.PRIMARY_FIELDS,
+                                item,
+                                {},
+                                language,
+                            )}
                         </span>
                     </Row>
                     <Row>

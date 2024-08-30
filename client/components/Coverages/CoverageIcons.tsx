@@ -80,6 +80,7 @@ export function getAvatarForCoverage(
             displayName: user.display_name,
             icon: icon,
             customContent: getCustomAvatarContent(user),
+            statusDot: {color: planningUtils.getNewsCoverageStatusDotColor(coverage)},
         };
 
         return avatar;

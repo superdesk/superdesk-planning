@@ -1,6 +1,7 @@
 from typing import Dict, Any, List, Callable
 
 from planning.search.queries import elastic, events, planning, common
+from flask import current_app as app
 
 
 def construct_combined_view_data_query(
@@ -22,8 +23,12 @@ def construct_combined_view_data_query(
 
     query = elastic.ElasticQuery()
 
-    if len(search_filter["params"]):
-        search_dates(search_filter["params"], query)
+    filter_params = common.get_params_from_search_filter(search_filter)
+    if len(filter_params):
+        filter_params["time_zone"] = params.get("time_zone") or app.config.get("DEFAULT_TIMEZONE")
+        filter_params["start_of_week"] = params.get("start_of_week", app.config.get("START_OF_WEEK", 0))
+
+        search_dates(filter_params, query)
 
     search_dates(params, query)
 

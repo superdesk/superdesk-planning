@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple, Dict, Any
+from typing import NamedTuple, Dict, Any, Set, Optional
 
 import re
 import time
@@ -29,6 +29,8 @@ from werkzeug.datastructures import MultiDict
 from superdesk.etree import parse_html
 import json
 from bson import ObjectId
+
+from planning.types import Planning, Coverage
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -230,6 +232,10 @@ def get_planning_auto_close_popup_editor(current_app=None):
     return app.config.get("PLANNING_AUTO_CLOSE_POPUP_EDITOR", True)
 
 
+def get_start_of_week(current_app=None):
+    return (current_app or app).config.get("START_OF_WEEK", 0)
+
+
 def get_assignment_acceptance_email_address(current_app=None):
     if current_app is not None:
         return current_app.config.get("PLANNING_ACCEPT_ASSIGNMENT_EMAIL", "")
@@ -238,6 +244,19 @@ def get_assignment_acceptance_email_address(current_app=None):
 
 def get_notify_self_on_assignment(current_app=None):
     return (current_app or app).config.get("PLANNING_SEND_NOTIFICATION_FOR_SELF_ASSIGNMENT", False)
+
+
+def get_config_default_create_planning_series_with_event_series(current_app=None):
+    return (current_app or app).config.get("DEFAULT_CREATE_PLANNING_SERIES_WITH_EVENT_SERIES", False)
+
+
+def get_config_event_fields_to_sync_with_planning(current_app=None) -> Set[str]:
+    config_value = (current_app or app).config.get("SYNC_EVENT_FIELDS_TO_PLANNING", "")
+    return set(config_value.split(",") if isinstance(config_value, str) else config_value)
+
+
+def get_config_event_related_item_search_provider_name(current_app=None) -> Optional[str]:
+    return (current_app or app).config.get("EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME")
 
 
 def remove_lock_information(item):
@@ -440,7 +459,9 @@ def get_start_of_next_week(date=None, start_of_week=0):
     current_date = (date if date else utcnow()).replace(hour=0, minute=0, second=0, microsecond=0)
     weekday = current_date.isoweekday()
     weekDay = 0 if weekday == 7 else weekday
-    diff = start_of_week - weekDay if weekday < start_of_week else 7 - weekDay + start_of_week
+    diff = (start_of_week - weekDay) % 7
+    if diff == 0:
+        diff = 7
     return current_date + timedelta(days=diff)
 
 
@@ -829,3 +850,10 @@ def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
         # The local version has been published
         # and no change to ``pubstatus`` on ingested item
         updates.pop("state")
+
+
+def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Optional[Coverage]:
+    return next(
+        (coverage for coverage in planning_item.get("coverages") or [] if coverage.get("coverage_id") == coverage_id),
+        None,
+    )

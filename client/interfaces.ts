@@ -287,12 +287,19 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     planning_xmp_assignment_mapping?: string;
     street_map_url?: string;
     planning_auto_close_popup_editor?: boolean;
+    start_of_week?: number;
 
     planning?: {
         dateformat?: string;
         timeformat?: string;
         allowed_coverage_link_types?: Array<string>;
         autosave_timeout?: number;
+        default_create_planning_series_with_event_series?: boolean;
+        event_related_item_search_provider_name?: string;
+    };
+
+    coverage?: {
+        getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
     };
 }
 
@@ -406,6 +413,42 @@ export interface IItemSubActions {
 }
 
 export type IDateTime = moment.MomentInput;
+
+export interface IEmbeddedCoverageItem {
+    coverage_id?: IPlanningCoverageItem['coverage_id'];
+    g2_content_type: ICoveragePlanningDetails['g2_content_type'];
+    desk: IPlanningAssignedTo['desk'];
+    user: IPlanningAssignedTo['user'];
+    language: ICoveragePlanningDetails['language'];
+    news_coverage_status: IPlanningNewsCoverageStatus['qcode'];
+    scheduled: ICoveragePlanningDetails['scheduled'];
+    genre: ICoveragePlanningDetails['genre']['qcode'];
+    slugline: ICoveragePlanningDetails['slugline'];
+    headline: ICoveragePlanningDetails['headline'];
+    ednote: ICoveragePlanningDetails['ednote'];
+    internal_note: ICoveragePlanningDetails['internal_note'];
+}
+
+export interface IEmbeddedPlanningItem {
+    planning_id?: IPlanningItem['_id'];
+    update_method?: IEventUpdateMethod;
+    coverages: Array<IEmbeddedCoverageItem>;
+}
+
+export interface IRelatedItem {
+    guid: string;
+    search_provider: string;
+    type?: string;
+    state?: string;
+    version?: string;
+    headline?: string;
+    slugline?: string;
+    versioncreated?: string;
+    source?: string;
+    pubstatus?: string;
+    language?: string;
+    word_count?: number;
+}
 
 export interface IEventItem extends IBaseRestApiResponse {
     guid?: string;
@@ -536,6 +579,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     _plannings?: Array<IPlanningItem>;
     template?: string;
     _sortDate?: IDateTime;
+    related_items?: Array<IRelatedItem>;
 
     translations?: Array<{
         field: string;
@@ -546,10 +590,18 @@ export interface IEventItem extends IBaseRestApiResponse {
     // Used only to add/modify Plannings/Coverages from the Event form
     // These are only stored with the Autosave and not the actual Event
     associated_plannings: Array<Partial<IPlanningItem>>;
+    embedded_planning: Array<IEmbeddedPlanningItem>;
 
     // Attributes added by API (removed via modifyForClient)
     // The `_status` field is available when the item comes from a POST/PATCH request
     _status: any;
+    _post?: boolean;
+    _events: Array<IEventItem>;
+    _relatedPlannings: Array<IPlanningItem>;
+    failed_planning_ids?: Array<{
+        id: string,
+        error: Array<string>
+    }>
 }
 
 export interface IEventTemplate extends IBaseRestApiResponse {
@@ -622,6 +674,7 @@ export interface ICoverageScheduledUpdate {
 
 export interface IPlanningCoverageItem {
     coverage_id: string;
+    original_coverage_id: string;
     guid: string;
     original_creator: string;
     version_creator: string;
@@ -650,6 +703,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     agendas: Array<string>;
     event_item: string;
     recurrence_id: string;
+    planning_recurrence_id: string;
     item_class: string;
     ednote: string;
     description_text: string;
@@ -720,6 +774,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         language: string;
         value: string;
     }>;
+    update_method?: IEventUpdateMethod;
 }
 
 export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
@@ -867,6 +922,7 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     users: Array<IUser>;
     desks: Array<IDesk>;
     filterLanguage?: string;
+    isAgendaEnabled?:boolean;
     // showUnlock?: boolean; // Is this used anymore?
     hideItemActions: boolean;
     showAddCoverage: boolean;
@@ -1635,6 +1691,7 @@ export interface IEventState {
     currentCalendarId?: ICalendar['qcode'];
     currentFilterId?: ISearchFilter['_id'];
     eventTemplates: Array<IEventItem>;
+    recentEventTemplates?: Array<IEventTemplate['_id']>;
 }
 
 export interface IEditorFormState {
@@ -2136,6 +2193,7 @@ export interface IPlanningAPI {
                 coverage: IPlanningCoverageItem,
                 index: number
             ): Promise<IPlanningItem>;
+            bulkAddCoverageToWorkflow(planingItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>>;
         }
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;
         update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem>;

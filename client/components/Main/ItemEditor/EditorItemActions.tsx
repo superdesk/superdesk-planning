@@ -90,8 +90,8 @@ const EditorItemActionsComponent = (props) => {
                 () => {
                     const message = gettext('Save changes before creating a template?');
 
-                    dispatch(allActions.main.openActionModalFromEditor(item, message, (updatedItem) => {
-                        dispatch(eventsApi.createEventTemplate(updatedItem._id));
+                    dispatch(allActions.main.openActionModalFromEditor(item, message, () => {
+                        dispatch(eventsApi.createEventTemplate(item));
                     }));
                 },
             [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:

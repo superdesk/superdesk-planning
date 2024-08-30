@@ -84,6 +84,24 @@ class SchemaValidator(Validator):
         """
         pass
 
+    def _validate_default_language(self, default_language, field, value):
+        """
+        {'type': string, 'nullable': True}
+        """
+        pass
+
+    def _validate_languages(self, languages, field, value):
+        """
+        {'type': 'list', 'nullable': True}
+        """
+        pass
+
+    def _validate_multilingual(self, multilingual, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+        pass
+
 
 class PlanningValidateResource(Resource):
     endpoint_name = "planning_validator"

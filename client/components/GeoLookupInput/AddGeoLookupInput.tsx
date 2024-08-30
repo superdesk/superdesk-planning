@@ -297,6 +297,7 @@ export class AddGeoLookupInput extends React.Component<IProps, IState> {
 
                 {this.state.openSuggestsPopUp && (
                     <AddGeoLookupResultsPopUp
+                        languageCode={this.props.language}
                         localSuggests={this.state.localSearchResults}
                         suggests={this.state.searchResults}
                         onCancel={this.closeSuggestsPopUp}

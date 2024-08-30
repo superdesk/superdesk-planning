@@ -14,9 +14,9 @@ import {
     Row,
     SelectInput,
     ColouredValueInput,
-    SelectUserInput,
 } from '../UI/Form';
 import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
+import {superdeskApi} from '../../superdeskApi';
 
 export class AssignmentEditorComponent extends React.Component {
     constructor(props) {
@@ -243,6 +243,7 @@ export class AssignmentEditorComponent extends React.Component {
             showPriority,
             className,
         } = this.props;
+        const {SelectUser} = superdeskApi.components;
 
         return (
             <div className={className}>
@@ -297,15 +298,20 @@ export class AssignmentEditorComponent extends React.Component {
                         />
                     </Row>
                 ) : (
-                    <SelectUserInput
-                        field={this.FIELDS.USER}
-                        label={gettext('User')}
-                        value={this.state.user}
-                        onChange={this.onUserChange}
-                        users={this.state.filteredUsers}
-                        popupContainer={popupContainer}
-                        readOnly={disableUserSelection}
-                    />
+                    <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
+                        <div data-test-id={this.FIELDS.USER}>
+                            <SelectUser
+                                deskId={this.props.value.assigned_to?.desk ?? null}
+                                selectedUserId = {this.state.userId}
+                                onSelect={(user) => {
+                                    this.onUserChange(null, user);
+                                }}
+                                autoFocus={false}
+                                horizontalSpacing={true}
+                                clearable={true}
+                            />
+                        </div>
+                    </Row>
                 )}
 
                 {showPriority && (

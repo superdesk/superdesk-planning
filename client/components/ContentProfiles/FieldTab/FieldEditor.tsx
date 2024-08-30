@@ -196,6 +196,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                             item: this.props.item,
                                             onChange: this.onChange,
                                             errors: this.state.errors,
+                                            showErrors: true,
                                         },
                                         fieldProps
                                     )}

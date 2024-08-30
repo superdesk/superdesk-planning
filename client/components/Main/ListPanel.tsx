@@ -10,6 +10,7 @@ import {
     IEventOrPlanningItem, IG2ContentType,
     ILockedItems,
     IPlanningItem,
+    ISearchFilter,
     ISession, LIST_VIEW_TYPE, SORT_FIELD
 } from '../../interfaces';
 
@@ -68,7 +69,8 @@ interface IProps {
     listViewType: LIST_VIEW_TYPE;
     sortField: SORT_FIELD;
     userInitiatedSearch?: boolean;
-    searchParams?: ICommonAdvancedSearchParams
+    searchParams?: ICommonAdvancedSearchParams,
+    searchFilterParams?: ISearchFilter['params']
 
     onItemClick(item: IEventOrPlanningItem): void;
     onDoubleClick(item: IEventOrPlanningItem): void;
@@ -319,7 +321,8 @@ export class ListPanel extends React.Component<IProps, IState> {
             contacts,
             listViewType,
             sortField,
-            searchParams
+            searchParams,
+            searchFilterParams,
         } = this.props;
 
         let indexFrom = 0;
@@ -399,6 +402,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 sortField: sortField,
                                 listBoxGroupProps: listBoxGroupProps,
                                 searchParams: searchParams,
+                                searchFilterParams: searchFilterParams,
                                 ...propsForNestedListItems,
                             };
 
@@ -418,18 +422,16 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 />
                             );
                         })}
-                        {!isAllListItemsLoaded && (
+                        {(!isAllListItemsLoaded && loadingIndicator) && (
                             <div className="ListGroup">
                                 <Group>
-                                    <Item noBg={true}>
-                                        <Column grow={true}>
-                                            <div
-                                                className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align"
-                                            >
-                                                {gettext('loading more items...')}
-                                            </div>
-                                        </Column>
-                                    </Item>
+                                    <Column grow={true}>
+                                        <div
+                                            className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align"
+                                        >
+                                            {gettext('loading more items...')}
+                                        </div>
+                                    </Column>
                                 </Group>
                             </div>
                         )}

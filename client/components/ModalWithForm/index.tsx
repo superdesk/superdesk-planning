@@ -101,6 +101,7 @@ export class ModalWithForm extends React.Component {
                 fill={fill}
                 fullscreen={fullscreen}
                 white={white}
+                removeTabIndexAttribute={true}
             >
                 <Modal.Header>
                     <h3 className="modal__heading">{title}</h3>

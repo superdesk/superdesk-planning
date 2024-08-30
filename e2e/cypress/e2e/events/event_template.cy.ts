@@ -1,10 +1,12 @@
 import {setup, login, waitForPageLoad, Modal, SubNavBar} from '../../support/common';
+import {UiFrameworkModal} from '../../support/common/ui/ui-framework-modal';
 import {EventEditor} from '../../support/planning';
 
 describe('Planning.Events: event templates', () => {
     const editor = new EventEditor();
     const subnav = new SubNavBar();
     const modal = new Modal();
+    const uiFrameworkModal = new UiFrameworkModal();
 
     const event = {
         'dates.start.date': '12/12/2045',
@@ -54,13 +56,13 @@ describe('Planning.Events: event templates', () => {
         editor.actionMenu
             .getAction('Save event as a template')
             .click();
-        modal.waitTillOpen(30000);
-        modal.element
+        uiFrameworkModal.waitTillOpen(30000);
+        uiFrameworkModal.element
             .find('textarea')
             .type('Example');
-        modal.getFooterButton('Submit')
+        uiFrameworkModal.getFooterButton('Submit')
             .click();
-        modal.waitTillClosed(30000);
+        uiFrameworkModal.waitTillClosed(30000);
 
         // Wait for the Editor to re-render
         // otherwise the close button may re-render during attempts to click it

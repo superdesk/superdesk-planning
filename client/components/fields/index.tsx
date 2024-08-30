@@ -112,7 +112,7 @@ export function renderFieldsForPanel(
     profile: ISearchProfile,
     globalProps: {[key: string]: any},
     fieldProps: {[key: string]: any},
-    Container?: React.ComponentClass,
+    Container?: React.ComponentType,
     groupName?: string,
     enabledField: string = 'enabled',
     refs: {[key: string]: React.RefObject<any>} = {},
@@ -182,7 +182,7 @@ export function renderGroupedFieldsForPanel(
     profile: ISearchProfile,
     globalProps: {[key: string]: any},
     fieldProps: {[key: string]: any},
-    Container?: React.ComponentClass,
+    Container?: React.ComponentType,
     enabledField: string = 'enabled'
 ) {
     const {gettext} = superdeskApi.localization;
@@ -269,6 +269,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'place',
             'location',
             'event_contact_info',
+            'related_items',
         ],
     }, {
         name: 'details',

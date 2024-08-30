@@ -35,12 +35,17 @@ export function getVocabularyItemNames<T>(
     if (!selected?.length) {
         return [];
     }
-    const values = selected.map((item) => item[valueField]);
 
-    return options
-        .filter((item) => values.includes(item[valueField]))
+    const optionMap = options.reduce((selections, item) => {
+        selections[item[valueField] as string] = item;
+
+        return selections;
+    }, {});
+
+    return selected
+        .filter((item) => optionMap[item[valueField] as string] != null)
         .map((item) => getVocabularyItemFieldTranslated(
-            item,
+            optionMap[item[valueField] as string],
             nameField as string,
             language,
         ));

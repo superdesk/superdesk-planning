@@ -112,8 +112,6 @@ class AssignmentsUnlinkService(Service):
             push_content_notification(updated_items)
             # Update assignment history with all items affected
             updates["item_ids"] = ids
-            # publishing planning item
-            assignments_service.publish_planning(assignment["planning_item"])
 
         return ids
 

@@ -9,7 +9,10 @@ import {
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
+    IPlanningConfig,
 } from '../interfaces';
+import {appConfig as config} from 'appConfig';
+
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToString} from './search';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
@@ -19,6 +22,8 @@ import {featured} from './featured';
 import {PLANNING} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
+
+const appConfig = config as IPlanningConfig;
 
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -141,13 +146,7 @@ function getPlanningSearchProfile() {
 }
 
 function create(updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
-    // If the Planning item has coverages, then we need to create the Planning first
-    // before saving the coverages
-    // As Assignments are created and require a Planning ID
-    return !updates.coverages?.length ?
-        superdeskApi.dataApi.create<IPlanningItem>('planning', updates) :
-        superdeskApi.dataApi.create<IPlanningItem>('planning', {...updates, coverages: []})
-            .then((item) => update(item, updates));
+    return superdeskApi.dataApi.create<IPlanningItem>('planning', updates);
 }
 
 function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
@@ -159,20 +158,26 @@ function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promi
 }
 
 function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
-    return create(planningUtils.modifyForServer({
-        slugline: event.slugline,
-        planning_date: event._sortDate ?? event.dates.start,
-        internal_note: event.internal_note,
-        name: event.name,
-        place: event.place,
-        subject: event.subject,
-        anpa_category: event.anpa_category,
-        description_text: event.definition_short,
-        ednote: event.ednote,
-        language: event.language,
-        ...updates,
-        event_item: event._id,
-    }));
+    if (updates.update_method == null && appConfig.planning.default_create_planning_series_with_event_series === true) {
+        updates.update_method = 'all';
+    }
+
+    return create(
+        planningUtils.modifyForServer({
+            slugline: event.slugline,
+            planning_date: event._sortDate ?? event.dates.start,
+            internal_note: event.internal_note,
+            name: event.name,
+            place: event.place,
+            subject: event.subject,
+            anpa_category: event.anpa_category,
+            description_text: event.definition_short,
+            ednote: event.ednote,
+            language: event.language,
+            ...updates,
+            event_item: event._id,
+        }),
+    );
 }
 
 function setDefaultValues(
@@ -193,6 +198,43 @@ function setDefaultValues(
         defaultDesk,
         preferredCoverageDesks
     );
+}
+
+function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const {gettext} = superdeskApi.localization;
+    const {notify} = superdeskApi.ui;
+
+    const coverageStatuses = selectors.general.newsCoverageStatus(getState());
+    const planningItemsToUpdate: Array<IPlanningItem> = planningItems.filter((item) => item.lock_action !== 'edit');
+    const allUpdates = planningItemsToUpdate.map((plan) => {
+        const updates = {coverages: cloneDeep(plan.coverages)};
+
+        updates.coverages = plan.coverages
+            .map((coverage) => planningUtils.getActiveCoverage(coverage, coverageStatuses));
+
+        return planning.update(plan, updates)
+            .then((updatedPlan) => {
+                dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
+
+                return updatedPlan;
+            });
+    });
+
+    return Promise.all(allUpdates)
+        .then((result) => {
+            notify.success(gettext('Coverages added to workflow.'));
+
+            return result;
+        })
+        .catch((error) => {
+            notify.error(getErrorMessage(
+                error,
+                gettext('Failed to add coverages to workflow')
+            ));
+
+            return Promise.reject(error);
+        });
 }
 
 function addCoverageToWorkflow(
@@ -240,5 +282,6 @@ export const planning: IPlanningAPI['planning'] = {
     coverages: {
         setDefaultValues: setDefaultValues,
         addCoverageToWorkflow: addCoverageToWorkflow,
+        bulkAddCoverageToWorkflow: bulkAddCoverageToWorkflow,
     },
 };

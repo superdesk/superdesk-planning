@@ -27,6 +27,7 @@ interface IProps {
     onAddNewLocation(): void;
     onPopupOpen?(): void;
     onPopupClose?(): void;
+    languageCode?: string;
 }
 
 enum TAB_INDEX {
@@ -194,6 +195,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                                     <LocationLookupResultItem
                                         key={index}
                                         location={suggest}
+                                        languageCode={this.props.languageCode}
                                         onClick={this.props.onChange.bind(null, suggest)}
                                         active={index === this.state.activeOptionIndex}
                                     />

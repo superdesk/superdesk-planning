@@ -14,6 +14,7 @@ const initialState = {
     filterByType: null,
     myAssignmentsTotal: 0,
     orderByField: 'Scheduled',
+    dayField: null,
     previewOpened: false,
     readOnly: false,
     searchQuery: null,
@@ -185,6 +186,11 @@ const assignmentReducer = createReducer(initialState, {
     [ASSIGNMENTS.ACTIONS.SET_SORT_FIELD]: (state, payload) => ({
         ...state,
         orderByField: payload,
+    }),
+
+    [ASSIGNMENTS.ACTIONS.SET_DAY_FIELD]: (state, payload) => ({
+        ...state,
+        dayField: payload,
     }),
 
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (

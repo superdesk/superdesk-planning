@@ -1,7 +1,7 @@
 import {get, cloneDeep, forEach} from 'lodash';
 import moment from 'moment';
 
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {IAssignmentItem} from '../../interfaces';
 
 import {showModal} from '../index';
@@ -24,6 +24,7 @@ const loadAssignments = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
+    dayField = null,
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
@@ -34,6 +35,7 @@ const loadAssignments = ({
             filterBy,
             searchQuery,
             orderByField,
+            dayField,
             filterByType,
             filterByPriority,
             selectedDeskId,
@@ -304,6 +306,7 @@ const changeListSettings = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
+    dayField = null,
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
@@ -314,6 +317,7 @@ const changeListSettings = ({
         filterBy,
         searchQuery,
         orderByField,
+        dayField,
         filterByType,
         filterByPriority,
         selectedDeskId,
@@ -628,12 +632,10 @@ function startWorking(assignment: IAssignmentItem) {
         promise.then(() =>
             (planningApi.locks.lockItem(assignment, 'start_working')
                 .then((lockedAssignment) => {
-                    const currentDesk = assignmentUtils.getCurrentSelectedDesk(desks, getState());
-                    const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
+                    const defaultTemplateId = assignmentUtils
+                        .getCurrentSelectedDesk(desks, getState())?.default_content_template ?? null;
 
-                    return templates.fetchTemplatesByUserDesk(
-                        session.identity._id,
-                        get(currentDesk, '_id') || null,
+                    return superdeskApi.entities.templates.getUserTemplates(
                         1,
                         200,
                         'create'
@@ -808,6 +810,27 @@ const changeSortField = (field, savePreference = true) => (
 );
 
 /**
+ * Action dispatcher to set the day field filter for all lists
+ * @param {String} value - the value to set the field to
+ */
+const setDayField = (value) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_DAY_FIELD,
+    payload: value,
+});
+
+const changeDayField = (value, savePreference = true) => (
+    (dispatch) => {
+        dispatch(self.setDayField(value));
+
+        // if (savePreference) {
+        //     dispatch(actions.users.setAssignmentSortField());
+        // }
+
+        return dispatch(self.reloadAssignments(null, false));
+    }
+);
+
+/**
  * Action dispatcher to load the current users' preferred sort field and list orders
  * (This assumes the users' preferences have already been loaded into redux)
  */
@@ -899,6 +922,8 @@ const self = {
     setListSortOrder,
     changeListSortOrder,
     setSortField,
+    setDayField,
+    changeDayField,
     loadDefaultListSort,
     changeSortField,
     validateStartWorkingOnScheduledUpdate,

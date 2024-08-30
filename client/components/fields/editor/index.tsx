@@ -20,7 +20,6 @@ import {EditorFieldFullText} from './FullText';
 import {EditorFieldLanguage} from './Language';
 import {EditorFieldIncludeKilled} from './IncludeKilled';
 import {EditorFieldLockState} from './LockState';
-import {EditorFieldCalendars} from './Calendars';
 import {EditorFieldAgendas} from './Agendas';
 import {EditorFieldNoCalendarAssigned} from './NoCalendarAssigned';
 import {EditorFieldExcludeRescheduledAndCancelled} from './ExcludeRescheduledAndCancelled';
@@ -101,7 +100,6 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     language: EditorFieldLanguage,
     include_killed: EditorFieldIncludeKilled,
     lock_state: EditorFieldLockState,
-    calendars: EditorFieldCalendars,
     agendas: EditorFieldAgendas,
     no_calendar_assigned: EditorFieldNoCalendarAssigned,
     exclude_rescheduled_and_cancelled: EditorFieldExcludeRescheduledAndCancelled,

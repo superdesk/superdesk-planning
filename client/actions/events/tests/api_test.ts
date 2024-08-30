@@ -579,6 +579,7 @@ describe('actions.events.api', () => {
                         etag: data.events[0]._etag,
                         pubstatus: 'usable',
                         update_method: 'single',
+                        failed_planning_ids: [],
                     },
                 ]);
                 done();

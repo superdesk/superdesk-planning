@@ -2,13 +2,32 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    required?: boolean;
+    invalid?: boolean;
+    readOnly?: boolean;
+    boxed?: boolean;
+    isSelect?: boolean;
+    noMargin?: boolean;
+    noLabel?: boolean;
+    withButton?: boolean;
+    labelLeft?: boolean;
+    labelLeftAuto?: boolean;
+    hint?: string;
+    message?: string;
+    borderBottom?: boolean;
+    onClick?: (e: any) => void;
+    halfWidth?: boolean;
+    children?: React.ReactNode;
+    className?: string;
+}
+
 /**
  * @ngdoc react
  * @name LineInput
  * @description Component to style input component in a line-input style
  */
 export const LineInput = ({
-    children,
     required,
     invalid,
     readOnly,
@@ -19,13 +38,14 @@ export const LineInput = ({
     withButton,
     labelLeft,
     labelLeftAuto,
+    borderBottom = true,
+    halfWidth,
+    children,
     hint,
     message,
     className,
-    borderBottom,
     onClick,
-    halfWidth,
-}) => (
+}: IProps): JSX.Element => (
     <div
         className={classNames(
             'sd-line-input',
@@ -52,44 +72,3 @@ export const LineInput = ({
         {message && <div className="sd-line-input__message">{message}</div>}
     </div>
 );
-
-export const LineInputProps = {
-    required: PropTypes.bool,
-    invalid: PropTypes.bool,
-    readOnly: PropTypes.bool,
-    boxed: PropTypes.bool,
-    isSelect: PropTypes.bool,
-    noMargin: PropTypes.bool,
-    noLabel: PropTypes.bool,
-    withButton: PropTypes.bool,
-    labelLeft: PropTypes.bool,
-    labelLeftAuto: PropTypes.bool,
-    hint: PropTypes.string,
-    message: PropTypes.string,
-    borderBottom: PropTypes.bool,
-    onClick: PropTypes.func,
-    halfWidth: PropTypes.bool,
-};
-
-export const LineInputDefaultProps = {
-    required: false,
-    invalid: false,
-    readOnly: false,
-    boxed: false,
-    isSelect: false,
-    noMargin: false,
-    noLabel: false,
-    withButton: false,
-    labelLeft: false,
-    labelLeftAuto: false,
-    borderBottom: true,
-    halfWidth: false,
-};
-
-LineInput.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    ...LineInputProps,
-};
-
-LineInput.defaultProps = {...LineInputDefaultProps};

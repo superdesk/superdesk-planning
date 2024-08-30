@@ -17,6 +17,7 @@ import {
     IWebsocketMessageData,
     ITEM_TYPE,
     IEventTemplate,
+    IEventItem,
 } from '../interfaces';
 
 import {
@@ -60,7 +61,7 @@ import {
     shouldUnLockItem,
     timeUtils
 } from '../utils';
-import {hideModal, locks, showModal} from './';
+import {hideModal, showModal} from './';
 import {fetchSelectedAgendaPlannings} from './agenda';
 import eventsPlanningUi from './eventsPlanning/ui';
 
@@ -176,12 +177,44 @@ const createNew = (itemType, item = null, updateUrl = true, modal = false) => (
     }, 'create', updateUrl, modal)
 );
 
+function getEventsAssociatedItems(template: IEventTemplate): IEventItem['associated_plannings'] | [] {
+    const embeddedPlanning = template.data?.embedded_planning;
+
+    return embeddedPlanning
+        ? embeddedPlanning.map((embedded) => ({
+            _id: generateTempId(),
+            slugline: template.data?.slugline,
+            language: template.data?.language,
+            coverages: embedded.coverages.map((coverage) => ({
+                coverage_id: coverage.coverage_id,
+                planning: {
+                    g2_content_type: coverage.g2_content_type,
+                    scheduled: coverage.scheduled,
+                    language: coverage.language,
+                    genre: coverage.genre ? {qcode: coverage.genre} : undefined,
+                    slugline: coverage.slugline,
+                    ednote: coverage.ednote,
+                    internal_note: coverage.internal_note,
+                },
+                assigned_to: {
+                    desk: coverage.desk,
+                    user: coverage.user,
+                },
+                news_coverage_status: {
+                    qcode: coverage.news_coverage_status,
+                },
+            })),
+        }))
+        : [];
+}
+
 function createEventFromTemplate(template: IEventTemplate) {
     return self.createNew(ITEM_TYPE.EVENT, {
         ...template.data,
         dates: {
             tz: template.data.dates?.tz
         },
+        associated_plannings: self.getEventsAssociatedItems(template)
     });
 }
 
@@ -419,7 +452,16 @@ const post = (original, updates = {}, withConfirmation = true) => (
         return promise
             .then(
                 (rtn) => {
-                    if (!confirmation && rtn) {
+                    let failedPlanningIds, item;
+
+                    if (Array.isArray(rtn) && rtn.length === 2) {
+                        [item, {failedPlanningIds}] = rtn;
+                    } else {
+                        item = rtn;
+                        failedPlanningIds = [];
+                    }
+
+                    if (!confirmation && item) {
                         notify.success(
                             gettext(
                                 'The {{ itemType }} has been posted',
@@ -427,8 +469,12 @@ const post = (original, updates = {}, withConfirmation = true) => (
                             )
                         );
                     }
+                    failedPlanningIds?.map((failedItem) => notifyError(
+                        notify,
+                        failedItem,
+                        gettext('Some related planning item post validation failed')));
 
-                    return Promise.resolve(rtn);
+                    return Promise.resolve(item);
                 },
                 (error) => {
                     notifyError(
@@ -670,11 +716,7 @@ const openIgnoreCancelSaveModal = ({
         const storedItems = itemType === ITEM_TYPE.EVENT ?
             selectors.events.storedEvents(getState()) :
             selectors.planning.storedPlannings(getState());
-
-        const item = {
-            ...get(storedItems, itemId) || {},
-            ...autosaveData,
-        };
+        const item = get(storedItems, itemId) || {};
 
         if (!isExistingItem(item)) {
             delete item._id;
@@ -703,7 +745,7 @@ const openIgnoreCancelSaveModal = ({
                 modalType: MODALS.IGNORE_CANCEL_SAVE,
                 modalProps: {
                     item: itemWithAssociatedData,
-                    itemType: itemType,
+                    updates: autosaveData,
                     onCancel: onCancel,
                     onIgnore: onIgnore,
                     onSave: onSave,
@@ -823,22 +865,15 @@ function _filter(filterType: PLANNING_VIEW, params: ICombinedEventOrPlanningSear
         if (currentFilterId != undefined || filterType === PLANNING_VIEW.COMBINED) {
             promise = planningApi.ui.list.changeFilterId(currentFilterId, params);
         } else if (filterType === PLANNING_VIEW.EVENTS) {
-            const calendar = urlParams.getString('calendar') ||
-                lastParams?.calendars?.[0] ||
-                (lastParams?.noCalendarAssigned ?
-                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
-                    EVENTS.FILTER.ALL_CALENDARS
-                );
-
-            const calender = $location.search().calendar ||
+            const calendar = $location.search().calendar ||
                 get(lastParams, 'calendars[0]', null) ||
                 (get(lastParams, 'noCalendarAssigned', false) ?
-                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
-                    EVENTS.FILTER.ALL_CALENDARS
+                    {qcode: EVENTS.FILTER.NO_CALENDAR_ASSIGNED} :
+                    {qcode: EVENTS.FILTER.ALL_CALENDARS}
                 );
 
             promise = planningApi.ui.list.changeCalendarId(
-                calender,
+                calendar.qcode,
                 params
             );
         } else if (filterType === PLANNING_VIEW.PLANNING) {
@@ -1670,6 +1705,7 @@ const self = {
     changeEditorAction,
     notifyPreconditionFailed,
     setUnsetUserInitiatedSearch,
+    getEventsAssociatedItems,
 };
 
 export default self;

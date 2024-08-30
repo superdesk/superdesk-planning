@@ -78,7 +78,7 @@ class AssignmentsLinkService(Service):
                             "assignment_id": assignment.get(config.ID_FIELD),
                             "planning_id": assignment["planning_item"],
                             "coverage_id": assignment["coverage_item"],
-                            "item_state": item.get("state"),
+                            "item_state": doc.get("item_state") or item.get("state"),
                             "sequence_no": item.get("rewrite_sequence") or 0,
                             "publish_time": get_delivery_publish_time(item),
                             "scheduled_update_id": assignment.get("scheduled_update_id"),
@@ -104,7 +104,7 @@ class AssignmentsLinkService(Service):
         if len(deliveries) > 0:
             delivery_service.post(deliveries)
 
-        self.update_assignment(
+        assignment_was_updated = self.update_assignment(
             updates,
             assignment,
             actioned_item,
@@ -124,9 +124,13 @@ class AssignmentsLinkService(Service):
                 assignment_history_service.on_item_content_link(updates, assignment)
 
             if (
-                actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
-                or already_completed
-            ) and not need_complete:
+                not assignment_was_updated
+                and (
+                    actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]
+                    or already_completed
+                )
+                and not need_complete
+            ):
                 # publishing planning item
                 assignments_service.publish_planning(assignment["planning_item"])
 
@@ -245,6 +249,8 @@ class AssignmentsLinkService(Service):
         if updated:
             get_resource_service("assignments").patch(assignment[config.ID_FIELD], updates)
 
+        return updated
+
 
 class AssignmentsLinkResource(Resource):
     endpoint_name = resource_title = "assignments_link"
@@ -252,6 +258,7 @@ class AssignmentsLinkResource(Resource):
     schema = {
         "assignment_id": {"type": "objectid", "required": True},
         "item_id": {"type": "string", "required": True},
+        "item_state": {"type": "string"},
         "reassign": {"type": "boolean", "required": True},
         "force": {"type": "boolean"},
         "skip_archive_update": {"type": "boolean"},

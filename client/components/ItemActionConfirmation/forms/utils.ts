@@ -1,8 +1,9 @@
 import {IAssignmentOrPlanningItem} from '../../../interfaces';
 import {planningApi} from '../../../superdeskApi';
 
-interface IModalProps {
+export interface IModalProps {
     onCloseModal?(item: IAssignmentOrPlanningItem): void;
+    unlockOnClose: boolean;
 }
 
 export function onItemActionModalHide(

@@ -1,10 +1,11 @@
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
-import {AdvancedSearch} from '../../support/planning';
+import {AdvancedSearch, PlanningList} from '../../support/planning';
 import {TEST_EVENTS, createEventFor} from '../../fixtures/events';
 import {TEST_PLANNINGS, createPlanningFor} from '../../fixtures/planning';
 
 describe('Search.Combined: searching events and planning', () => {
     const search = new AdvancedSearch();
+    const list = new PlanningList();
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -101,9 +102,12 @@ describe('Search.Combined: searching events and planning', () => {
         search.viewEventsAndPlanning();
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
+
+        list.setDateInterval('Month');
+
         search.runSearchTests([{
             params: {},
-            expectedCount: 14,
+            expectedCount: 6,
             expectedText: [
                 'Event Today',
                 'Plan Today',
@@ -111,14 +115,6 @@ describe('Search.Combined: searching events and planning', () => {
                 'Plan Tomorrow',
                 'Event Next Week',
                 'Plan Next Week',
-                'Event Feb 1',
-                'Plan Feb 1',
-                'Event Feb 2',
-                'Plan Feb 2',
-                'Event Feb 3',
-                'Plan Feb 3',
-                'Event Feb 4',
-                'Plan Feb 4',
             ],
         }, {
             params: {

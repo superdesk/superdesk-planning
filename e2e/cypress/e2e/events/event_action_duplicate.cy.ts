@@ -1,4 +1,5 @@
-import {setup, login, waitForPageLoad, Modal, SubNavBar} from '../../support/common';
+import moment from 'moment';
+import {setup, login, waitForPageLoad, Modal, SubNavBar, CLIENT_FORMAT} from '../../support/common';
 import {PlanningList, PlanningPreview, EventEditor} from '../../support/planning';
 
 describe('Planning.Events: duplicate event', () => {
@@ -12,11 +13,13 @@ describe('Planning.Events: duplicate event', () => {
     const preview = new PlanningPreview();
 
     beforeEach(() => {
+        const now = moment();
+
         event = {
             slugline: 'Original',
             name: 'Test',
             definition_short: 'Desc.',
-            'dates.start.date': '12/12/2045',
+            'dates.start.date': now.format(CLIENT_FORMAT),
             'dates.start.time': '00:00',
             occur_status: 'Planned, occurs certainly',
             calendars: ['Sport'],
@@ -29,7 +32,7 @@ describe('Planning.Events: duplicate event', () => {
         };
 
         expectedValues = Object.assign({}, event, {
-            'dates.end.date': '12/12/2045',
+            'dates.end.date': now.format(CLIENT_FORMAT),
             'dates.end.time': '01:00',
         });
 

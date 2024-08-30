@@ -13,6 +13,7 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
+import {extensionBridge} from './extension_bridge';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -108,57 +109,62 @@ const extension: IExtension = {
             && extensionConfig?.assignmentsTopBarWidget === true;
         const {gettext} = superdesk.localization;
 
-        const result: IExtensionActivationResult = {
-            contributions: {
-                entities: {
-                    article: {
-                        getActions: (item) => [
-                            {
-                                label: gettext('Unlink as Coverage'),
-                                groupId: 'planning-actions',
-                                icon: 'cut',
-                                onTrigger: () => {
-                                    const superdeskArticle = superdesk.entities.article;
+            const result: IExtensionActivationResult = {
+                contributions: {
+                    entities: {
+                        article: {
+                            getActions: (item) => [
+                                {
+                                    label: gettext('Unlink as Coverage'),
+                                    groupId: 'planning-actions',
+                                    icon: 'cut',
+                                    onTrigger: () => {
+                                        const superdeskArticle = superdesk.entities.article;
 
-                                    if (
-                                        superdesk.privileges.hasPrivilege('archive') &&
-                                        item.assignment_id != null &&
-                                        !superdeskArticle.isPersonal(item) &&
-                                        !superdeskArticle.isLockedInOtherSession(item) &&
-                                        (
-                                            superdeskArticle.itemActions(item).edit ||
-                                            superdeskArticle.itemActions(item).correct ||
-                                            superdeskArticle.itemActions(item).deschedule
-                                        )
-                                    ) {
-                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
+                                        if (
+                                            superdesk.privileges.hasPrivilege('archive') &&
+                                            item.assignment_id != null &&
+                                            !superdeskArticle.isPersonal(item) &&
+                                            !superdeskArticle.isLockedInOtherSession(item) &&
+                                            (
+                                                superdeskArticle.itemActions(item).edit ||
+                                                superdeskArticle.itemActions(item).correct ||
+                                                superdeskArticle.itemActions(item).deschedule
+                                            )
+                                        ) {
+                                            const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
 
-                                        window.dispatchEvent(event);
-                                    }
+                                            window.dispatchEvent(event);
+                                        }
+                                    },
+                                }
+                            ],
+                            onSpike: (item: IArticle) => onSpike(superdesk, item),
+                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                        },
+                        ingest: {
+                            ruleHandlers: {
+                                planning_publish: {
+                                    editor: AutopostIngestRuleEditor,
+                                    preview: AutopostIngestRulePreview,
                                 },
-                            }
-                        ],
-                        onSpike: (item: IArticle) => onSpike(superdesk, item),
-                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                    },
-                    ingest: {
-                        ruleHandlers: {
-                            planning_publish: {
-                                editor: AutopostIngestRuleEditor,
-                                preview: AutopostIngestRulePreview,
                             },
                         },
                     },
+                    notifications: {
+                        'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
+                    },
+                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
                 },
-                globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
-            },
-        };
+            };
 
         return Promise.resolve(result);
     },
 };
+
+export const registerEditorField = extensionBridge.fields.registerEditorField;
 
 export default extension;

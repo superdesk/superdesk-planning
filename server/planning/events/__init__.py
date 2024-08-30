@@ -180,4 +180,6 @@ def init_app(app):
         description=lazy_gettext("Ability to create and manage Event templates"),
     )
 
+    superdesk.register_default_user_preference("events_templates:recent", {})
+
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=["POST"])
