@@ -25,7 +25,7 @@ import * as actions from '../actions';
 
 const appConfig = config as IPlanningConfig;
 
-function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
+export function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
         agendas: arrayToString(params.agendas),
         no_agenda_assigned: params.no_agenda_assigned,

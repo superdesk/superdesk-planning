@@ -21,7 +21,6 @@ import {
     ITEM_TYPE,
     IEventTemplate,
     IEventItem,
-    FILTER_TYPE,
     IPlanningConfig,
 } from '../interfaces';
 
@@ -73,7 +72,7 @@ import eventsPlanningUi from './eventsPlanning/ui';
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
 import {searchParamsToOld} from '../utils/search';
-import {searchRawAndStore} from '../api/search';
+import {searchAndStore} from '../api/combined';
 
 function openForEdit(item: IEventOrPlanningItem, updateUrl: boolean = true, modal: boolean = false) {
     return (dispatch, getState) => {
@@ -731,13 +730,12 @@ const openIgnoreCancelSaveModal = ({
         let promise = Promise.resolve(item);
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
-            promise = dispatch(searchRawAndStore<Array<IEventOrPlanningItem>>({
-                repo: FILTER_TYPE.COMBINED,
+            promise = searchAndStore({
                 recurrence_id: item.recurrence_id,
                 max_results: appConfig.max_recurrent_events,
                 only_future: false,
                 include_associated_planning: true,
-            })).then((relatedEvents) => ({
+            }).then((relatedEvents) => ({
                 ...item,
                 _recurring: relatedEvents.filter((item) => item.type === 'event') ?? [item],
                 _events: [],

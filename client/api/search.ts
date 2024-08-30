@@ -1,10 +1,12 @@
 import {IEventOrPlanningItem, ISearchAPIParams, ISearchParams} from '../interfaces';
-import {superdeskApi} from '../superdeskApi';
+import {superdeskApi, planningApi as sdPlanningApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {getDateTimeElasticFormat, getTimeZoneOffset} from '../utils';
 import {default as timeUtils} from '../utils/time';
 import {appConfig} from 'appConfig';
-import planningApi from "../actions/planning/api";
+import planningApi from '../actions/planning/api';
+import eventsApi from '../actions/events/api';
+import {partition} from 'lodash';
 
 export function cvsToString(items?: Array<{[key: string]: any}>, field: string = 'qcode'): string {
     return arrayToString(
@@ -51,6 +53,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         sort_field: params.sort_field,
         tz_offset: params.date_filter ? getTimeZoneOffset() : null,
         time_zone: timeUtils.localTimeZone(),
+        include_associated_planning: params.include_associated_planning,
     };
 }
 
@@ -76,20 +79,24 @@ export function searchRaw<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T
     );
 }
 
-export const searchRawAndStore = <T extends Array<IEventOrPlanningItem>>(args: ISearchAPIParams) => (
-    (dispatch: any): Promise<IRestApiResponse<T>> => superdeskApi.dataApi.queryRawJson<IRestApiResponse<T>>(
+export const searchRawAndStore = <T>(args: ISearchAPIParams) => {
+    const {dispatch} = sdPlanningApi.redux.store;
+
+    return superdeskApi.dataApi.queryRawJson<IRestApiResponse<T>>(
         'events_planning_search',
         excludeNullParams(args)
     ).then((res) => {
-        if (args.include_associated_planning) {
-            const relatedPlans = res._items.filter((item) => item.type === 'planning');
+        const [relatedPlans, events] = partition(res._items, (item: IEventOrPlanningItem) => item.type === 'planning');
 
+        if (args.include_associated_planning) {
             dispatch(planningApi.receivePlannings(relatedPlans));
         }
 
+        dispatch(eventsApi.receiveEvents(events));
+
         return res;
-    })
-)
+    });
+}
 
 
 export function searchRawGetAll<T>(args: ISearchAPIParams): Promise<Array<T>> {
