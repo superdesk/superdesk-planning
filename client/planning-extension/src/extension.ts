@@ -127,9 +127,9 @@ const extension: IExtension = {
                                             !superdeskArticle.isPersonal(item) &&
                                             !superdeskArticle.isLockedInOtherSession(item) &&
                                             (
-                                                superdeskArticle.itemActions(item).edit ||
-                                                superdeskArticle.itemActions(item).correct ||
-                                                superdeskArticle.itemActions(item).deschedule
+                                                superdeskArticle.itemAction(item).edit ||
+                                                superdeskArticle.itemAction(item).correct ||
+                                                superdeskArticle.itemAction(item).deschedule
                                             )
                                         ) {
                                             const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
