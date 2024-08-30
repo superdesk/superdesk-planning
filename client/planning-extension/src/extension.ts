@@ -104,9 +104,9 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
-
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
+        const {gettext} = superdesk.localization;
 
         const result: IExtensionActivationResult = {
             contributions: {
@@ -114,7 +114,7 @@ const extension: IExtension = {
                     article: {
                         getActions: (item) => [
                             {
-                                label: 'Unlink as Coverage',
+                                label: gettext('Unlink as Coverage'),
                                 groupId: 'planning-actions',
                                 icon: 'cut',
                                 onTrigger: () => {
