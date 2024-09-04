@@ -127,6 +127,7 @@ export class GroupEditor extends React.PureComponent<IProps> {
                             </div>
                             {!this.props.languages?.length ? null : (
                                 <ToggleBox
+                                    variant="simple"
                                     title={gettext('Name Translations')}
                                     className="toggle-box--circle"
                                     initiallyOpen={true}
