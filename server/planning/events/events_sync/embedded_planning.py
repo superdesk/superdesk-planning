@@ -22,8 +22,10 @@ from planning.types import (
     Coverage,
     StringFieldTranslation,
     PlanningRelatedEventLink,
+    PLANNING_RELATED_EVENT_LINK_TYPE,
 )
 from planning.content_profiles.utils import AllContentProfileData
+from planning.utils import get_planning_event_link_method
 
 from .common import VocabsSyncData
 
@@ -83,7 +85,10 @@ def create_new_plannings_from_embedded_planning(
             )
         ]
 
-    related_event = PlanningRelatedEventLink(_id=event["_id"], link_type="primary")
+    event_link_method = get_planning_event_link_method()
+    link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "secondary" if event_link_method == "many_secondary" else "primary"
+    related_event = PlanningRelatedEventLink(_id=event["_id"], link_type=link_type)
+
     if event.get("recurrence_id"):
         related_event["recurrence_id"] = event["recurrence_id"]
 
