@@ -128,7 +128,9 @@ const extension: IExtension = {
                         },
                     },
                 },
-                notifications: {'email:notification:assignments': {type: 'email'}},
+                notifications: {
+                    'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
+                },
                 globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
             },
         };

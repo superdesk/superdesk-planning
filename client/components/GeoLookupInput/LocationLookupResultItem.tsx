@@ -9,6 +9,7 @@ interface IProps {
     onClick?(): void;
     active?: boolean;
     location: Partial<ILocation>;
+    languageCode?: string;
 }
 
 export class LocationLookupResultItem extends React.PureComponent<IProps> {
@@ -23,7 +24,7 @@ export class LocationLookupResultItem extends React.PureComponent<IProps> {
                 )}
             >
                 <span className="sd-overflow-ellipsis">
-                    {getLocationsShortName(this.props.location)}
+                    {getLocationsShortName(this.props.location, this.props.languageCode)}
                 </span>
             </li>
         );

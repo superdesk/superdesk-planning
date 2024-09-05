@@ -16,6 +16,7 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     valueAsString?: boolean;
     smallPadding?: boolean;
     sortable?: boolean;
+    filterScheme?(value: Array<ITreeNode<T>>): Array<ITreeNode<T>>;
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -51,6 +52,8 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
         } else if (!Array.isArray(values)) {
             values = [values];
         }
+
+        values = this.props.filterScheme ? this.props.filterScheme(values) : values;
 
         if (this.props.valueAsString) {
             viewValues = options

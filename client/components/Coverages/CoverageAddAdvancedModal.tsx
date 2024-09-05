@@ -35,7 +35,7 @@ interface ICoverageSelector {
     qcode: IG2ContentType['qcode'];
     name: IG2ContentType['name'];
     icon: string;
-    desk: IDesk['_id'];
+    desk: IDesk;
     user: IUser;
     status: IPlanningNewsCoverageStatus;
     popupContainer: any;
@@ -288,6 +288,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                                                         }
                                                     >
                                                         <SelectUser
+                                                            deskId={coverage.desk?._id ?? undefined}
                                                             selectedUserId = {coverage.user?._id}
                                                             onSelect={(user) => {
                                                                 this.onUserChange(coverage, user);

@@ -75,12 +75,12 @@ from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 from planning.utils import (
     get_event_formatted_dates,
     get_formatted_contacts,
+    update_event_item_with_translations_value,
     get_related_planning_for_events,
     get_related_event_ids_for_planning,
     get_first_related_event_id_for_planning,
     get_first_event_item_for_planning_id,
 )
-from superdesk.preferences import get_user_notification_preferences
 
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel("planning", type="string", required=True))
@@ -363,10 +363,6 @@ class AssignmentsService(superdesk.Service):
         if assigned_to.get("user"):
             assigned_to_user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
 
-        # No assignment notification sent, if user is not enabled assignment notification
-        if assigned_to_user and get_user_notification_preferences(assigned_to_user, "assignments")["email"] is False:
-            return
-
         assignment_id = updates.get("_id") or assigned_to.get("assignment_id", "Unknown")
         if not original:
             original = {}
@@ -452,8 +448,16 @@ class AssignmentsService(superdesk.Service):
             event = Event()
             event["UID"] = UID
             event["CLASS"] = "PUBLIC"
-            event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
-            event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
+            # Use Event start and End time based on Config
+            if app.config.get("ASSIGNMENT_MAIL_ICAL_USE_EVENT_DATES") and event_item:
+                event_dates = event_item["dates"]
+                event["DTSTART"] = event_dates["start"].strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = event_dates["end"].strftime("%Y%m%dT%H%M%SZ")
+            else:
+                event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
             event[f"SUMMARY;LANGUAGE={language}"] = summary
             event["DESCRIPTION"] = assignment.get("description_text", "")
             event["PRIORITY"] = priority
@@ -485,6 +489,12 @@ class AssignmentsService(superdesk.Service):
         # get formatted contacts and event date time for email templates
         formatted_contacts = get_formatted_contacts(event_item) if event_item else []
         fomatted_event_date = get_event_formatted_dates(event_item) if event_item else ""
+
+        event_item = (
+            update_event_item_with_translations_value(event_item, assignment.get("planning", {}).get("language"))
+            if event_item
+            else None
+        )
 
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):
