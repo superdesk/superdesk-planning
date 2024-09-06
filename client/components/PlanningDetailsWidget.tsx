@@ -6,13 +6,19 @@ import {modifyForClient} from '../utils/planning';
 import {WORKSPACE} from '../constants';
 import {fetchAgendas} from '../actions';
 
-interface IProps {
+interface IPropsConnected {
     api: any;
     sdPlanningStore: any;
+}
+
+interface IPropsOwn {
     item: {
         assignment_id: string;
     };
+    noPadding?: boolean; // defaults to false
 }
+
+type IProps = IPropsConnected & IPropsOwn;
 
 interface IState {
     store: any;
@@ -30,6 +36,7 @@ export function getItemPlanningInfo(item: IProps['item'], api: IProps['api']) {
 }
 
 class PlanningDetailsWidget extends React.Component<IProps, IState> {
+    static defaultProps: Partial<IProps>;
     readonly state = {store: null, planning: null};
 
     componentDidMount() {
@@ -54,17 +61,28 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
             return null;
         }
 
+        const Container: React.ComponentType<{children: React.ReactNode}>
+            = this.props.noPadding
+                ? ({children}) => <div>{children}</div>
+                : ({children}) => <div className="widget sd-padding-all--2">{children}</div>;
+
         return (
-            <div className="widget sd-padding-all--2">
+            <Container>
                 <Provider store={this.state.store}>
-                    <PlanningPreviewContent item={this.state.planning} />
+                    <PlanningPreviewContent item={this.state.planning} noPadding={this.props.noPadding} />
                 </Provider>
-            </div>
+            </Container>
         );
     }
 }
 
-export default connectServices<IProps>(
+PlanningDetailsWidget.defaultProps = {
+    noPadding: false,
+};
+
+const component: React.ComponentType<IPropsOwn> = connectServices<IProps>(
     PlanningDetailsWidget,
     ['api', 'sdPlanningStore'],
 );
+
+export default component;

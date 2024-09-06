@@ -14,6 +14,8 @@ import {getUserInterfaceLanguageFromCV} from './utils/users';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
 
+import PlanningDetailsWidget from './components/PlanningDetailsWidget';
+
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
     assignments: {
@@ -45,6 +47,7 @@ interface IExtensionBridge {
 
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
+            PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}; noPadding?: boolean}>;
         };
     };
     fields: {
@@ -82,6 +85,7 @@ export const extensionBridge: IExtensionBridge = {
         },
         components: {
             EditorFieldVocabulary,
+            PlanningDetailsWidget,
         },
     },
     fields: {
