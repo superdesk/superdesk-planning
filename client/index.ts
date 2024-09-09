@@ -87,8 +87,8 @@ export default angular.module('superdesk-planning', [])
                 authoring: true,
             },
             configurable: false,
-            badgeAsync: ['item', 'api', (item, api) =>
-                getItemPlanningInfo(item, api).then((planning) => planning.coverages.length)],
+            getBadge: (item) => // KEEP IN SYNC WITH client/planning-extension/src/extension.ts
+                getItemPlanningInfo(item).then((planning) => planning.coverages.length),
             isWidgetVisible: (item) => [() => item.assignment_id != null],
         });
     }])

@@ -5,6 +5,7 @@ import {
     ISuperdesk,
     IExtensionActivationResult,
     onPublishMiddlewareResult,
+    IArticleSideWidget,
 } from 'superdesk-api';
 import {IPlanningAssignmentService} from './interfaces';
 import {IPlanningConfig} from '../../interfaces';
@@ -110,6 +111,32 @@ const extension: IExtension = {
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
 
+        const {getItemPlanningInfo} = extensionBridge.planning;
+        const {authoringReactViewEnabled} = extensionBridge;
+
+        const authoringSideWidgets: Array<IArticleSideWidget> = [];
+
+        if (authoringReactViewEnabled) {
+            const planningDetailsWidget: IArticleSideWidget = {
+                _id: PLANNING_DETAILS_WIDGET_ID,
+                label: PLANNING_DETAILS_WIDGET_LABEL,
+                order: 12,
+                icon: 'tasks',
+                component: PlanningDetailsWidget,
+                isAllowed: (item) => item.assignment_id != null,
+                getBadge: (item) => { // KEEP IN SYNC WITH client/index.ts
+                    if (item.assignment_id == null) {
+                        return Promise.resolve(null);
+                    }
+
+                    return getItemPlanningInfo({assignment_id: item.assignment_id})
+                        .then((planning) => planning.coverages.length.toString());
+                },
+            };
+
+            authoringSideWidgets.push(planningDetailsWidget);
+        }
+
         const result: IExtensionActivationResult = {
             contributions: {
                 entities: {
@@ -132,16 +159,7 @@ const extension: IExtension = {
                 notifications: {
                     'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
                 },
-                authoringSideWidgets: [
-                    {
-                        _id: PLANNING_DETAILS_WIDGET_ID,
-                        label: PLANNING_DETAILS_WIDGET_LABEL,
-                        order: 12,
-                        icon: 'tasks',
-                        component: PlanningDetailsWidget,
-                        isAllowed: (item) => item.assignment_id != null,
-                    },
-                ],
+                authoringSideWidgets: authoringSideWidgets,
                 globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
             },
         };

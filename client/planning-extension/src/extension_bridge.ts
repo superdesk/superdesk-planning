@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {IVocabularyItem} from 'superdesk-api';
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from '../../interfaces';
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -14,6 +14,7 @@ interface IEditorFieldVocabularyProps extends IEditorFieldProps {
 
 // KEEP IN SYNC WITH client/extension_bridge.ts
 interface IExtensionBridge {
+    authoringReactViewEnabled: boolean; // TAG: AUTHORING-ANGULAR
     assignments: {
         utils: {
             getAssignmentTypeInfo(
@@ -27,6 +28,9 @@ interface IExtensionBridge {
             StateComponent: React.ComponentType<{assignment: IAssignmentItem}>;
         };
     };
+    planning: {
+        getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
+    },
     ui: {
         utils: {
             getUserInterfaceLanguageFromCV(): string;

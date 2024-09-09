@@ -8,16 +8,19 @@ import {DueDateComponent} from './components/Assignments/AssignmentItem/fields/D
 import {StateComponent} from './components/Assignments/AssignmentItem/fields/State';
 import {EditorFieldVocabulary, IEditorFieldVocabularyProps} from './components/fields/editor/base/vocabulary';
 
+import {authoringReactViewEnabled} from 'superdesk-core/scripts/appConfig';
+
 import {getVocabularyItemFieldTranslated} from './utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from './utils/users';
 
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
 
-import PlanningDetailsWidget from './components/PlanningDetailsWidget';
+import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
+    authoringReactViewEnabled: boolean; // TAG: AUTHORING-ANGULAR
     assignments: {
         utils: {
             getAssignmentTypeInfo(
@@ -31,6 +34,9 @@ interface IExtensionBridge {
             StateComponent: React.ComponentType<{assignment: IAssignmentItem}>;
         };
     };
+    planning: {
+        getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
+    },
     ui: {
         utils: {
             getUserInterfaceLanguageFromCV(): string;
@@ -68,6 +74,7 @@ interface IExtensionBridge {
  * (I don't remember the exact issue, but it's something related to esModuleInterop and __importStar).
  */
 export const extensionBridge: IExtensionBridge = {
+    authoringReactViewEnabled: authoringReactViewEnabled,
     assignments: {
         utils: {
             getAssignmentTypeInfo,
@@ -77,6 +84,9 @@ export const extensionBridge: IExtensionBridge = {
             DueDateComponent,
             StateComponent,
         },
+    },
+    planning: {
+        getItemPlanningInfo,
     },
     ui: {
         utils: {
