@@ -50,7 +50,7 @@ interface IExtensionBridge {
 
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
-            PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}; noPadding?: boolean}>;
+            PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}}>;
         };
     };
     fields: {

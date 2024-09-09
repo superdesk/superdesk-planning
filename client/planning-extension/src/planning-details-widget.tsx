@@ -27,7 +27,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
                     />
                 )}
                 body={(
-                    <PlanningDetailsBody item={{assignment_id: this.props.article.assignment_id}} noPadding />
+                    <PlanningDetailsBody item={{assignment_id: this.props.article.assignment_id}} />
                 )}
             />
         );

@@ -10,7 +10,6 @@ interface IProps {
     item: {
         assignment_id: string;
     };
-    noPadding?: boolean; // defaults to false
 }
 
 interface IState {
@@ -63,24 +62,12 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
             return null;
         }
 
-        const Container: React.ComponentType<{children: React.ReactNode}>
-            = this.props.noPadding
-                ? ({children}) => <div>{children}</div>
-                : ({children}) => <div className="widget sd-padding-all--2">{children}</div>;
-
         return (
-            <Container>
-                <Provider store={this.state.store}>
-                    <PlanningPreviewContent item={this.state.planning} noPadding={this.props.noPadding} />
-                </Provider>
-            </Container>
+            <Provider store={this.state.store}>
+                <PlanningPreviewContent item={this.state.planning} noPadding />
+            </Provider>
         );
     }
 }
-
-PlanningDetailsWidget.defaultProps = {
-    noPadding: false,
-};
-
 
 export default PlanningDetailsWidget;
