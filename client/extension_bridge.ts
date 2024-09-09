@@ -8,8 +8,6 @@ import {DueDateComponent} from './components/Assignments/AssignmentItem/fields/D
 import {StateComponent} from './components/Assignments/AssignmentItem/fields/State';
 import {EditorFieldVocabulary, IEditorFieldVocabularyProps} from './components/fields/editor/base/vocabulary';
 
-import {authoringReactViewEnabled} from 'superdesk-core/scripts/appConfig';
-
 import {getVocabularyItemFieldTranslated} from './utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from './utils/users';
 
@@ -20,7 +18,6 @@ import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningD
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
-    authoringReactViewEnabled: boolean; // TAG: AUTHORING-ANGULAR
     assignments: {
         utils: {
             getAssignmentTypeInfo(
@@ -74,7 +71,6 @@ interface IExtensionBridge {
  * (I don't remember the exact issue, but it's something related to esModuleInterop and __importStar).
  */
 export const extensionBridge: IExtensionBridge = {
-    authoringReactViewEnabled: authoringReactViewEnabled,
     assignments: {
         utils: {
             getAssignmentTypeInfo,

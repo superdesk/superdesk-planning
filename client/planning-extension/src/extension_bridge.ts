@@ -14,7 +14,6 @@ interface IEditorFieldVocabularyProps extends IEditorFieldProps {
 
 // KEEP IN SYNC WITH client/extension_bridge.ts
 interface IExtensionBridge {
-    authoringReactViewEnabled: boolean; // TAG: AUTHORING-ANGULAR
     assignments: {
         utils: {
             getAssignmentTypeInfo(

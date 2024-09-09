@@ -112,7 +112,7 @@ const extension: IExtension = {
             && extensionConfig?.assignmentsTopBarWidget === true;
 
         const {getItemPlanningInfo} = extensionBridge.planning;
-        const {authoringReactViewEnabled} = extensionBridge;
+        const {authoringReactViewEnabled} = superdesk.instance;
 
         const authoringSideWidgets: Array<IArticleSideWidget> = [];
 
