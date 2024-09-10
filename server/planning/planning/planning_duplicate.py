@@ -99,12 +99,11 @@ class PlanningDuplicateService(BaseService):
             new_plan["planning_date"] = new_plan["planning_date"] + (local_datetime.date() - planning_datetime.date())
 
         for cov in new_plan.get("coverages") or []:
-            cov.pop("assigned_to", None)
             cov.get("planning", {}).pop("workflow_status_reason", None)
             cov.pop("scheduled_updates", None)
             cov.get("planning", {})["scheduled"] = new_plan.get("planning_date")
             cov["coverage_id"] = TEMP_ID_PREFIX + "duplicate"
             cov["workflow_status"] = WORKFLOW_STATE.DRAFT
-            cov["news_coverage_status"] = {"qcode": "ncostat:int"}
+            cov["news_coverage_status"] = {"qcode": "ncostat:int", "label": "Planned", "name": "coverage intended"}
 
         return new_plan
