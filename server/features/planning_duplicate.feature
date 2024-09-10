@@ -1,6 +1,6 @@
 Feature: Duplicate Planning
 
-    @auth @notification
+    @auth @notification @vocabulary
     Scenario: Duplicate a Planning item
         When we post to "planning" with success
         """
@@ -149,7 +149,7 @@ Feature: Duplicate Planning
         ]
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Planning can only be duplicated by user having privileges
         When we post to "planning" with success
         """
@@ -184,7 +184,7 @@ Feature: Duplicate Planning
         Then we get OK response
 
 
-    @auth @notification
+    @auth @notification @vocabulary
     Scenario: Coverage workflow_status defaults to draft on duplication item
         When we post to "planning" with success
         """
@@ -279,7 +279,7 @@ Feature: Duplicate Planning
         }
         """
 
-    @auth @notification
+    @auth @notification @vocabulary
     Scenario: Duplicating a posted Planning item won't repost it
         When we post to "planning" with success
         """
@@ -333,7 +333,7 @@ Feature: Duplicate Planning
         ]}
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicate a past planning item will have current date
         Given "planning"
         """
@@ -377,7 +377,7 @@ Feature: Duplicate Planning
         {"expired": "__no_value__"}
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating a Planning item will link to the same Event
         Given "events"
         """
@@ -423,7 +423,7 @@ Feature: Duplicate Planning
         }
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating an expired Planning item will remove the link to the Event
         Given "events"
         """
@@ -471,7 +471,7 @@ Feature: Duplicate Planning
         }
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating a canceled Planning item will clear the state_reason
         Given "events"
         """
@@ -542,7 +542,7 @@ Feature: Duplicate Planning
         }
         """
 
-    @auth
+    @auth @vocabulary
     Scenario: Duplicating a rescheduled Planning item will clear the state_reason
         Given "events"
         """
