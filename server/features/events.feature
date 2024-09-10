@@ -1713,6 +1713,15 @@ Feature: Events
         """
         {"related_events": [{"_id": "#events._id#", "link_type": "secondary"}]}
         """
+        When we get "/events/event_1"
+        Then we get existing resource
+        """
+        {
+            "planning_ids": [
+                "plan1"
+            ]
+        }
+        """
      
     @auth
     Scenario: Link new Event with one_primary link method
