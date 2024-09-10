@@ -116,7 +116,7 @@ export const workqueueItems = createSelector<
                 ...newItems.planning,
             ],
             (i) => i.lock_time
-        )
+        ).filter((x) => x.lock_time != null)
     )
 );
 
