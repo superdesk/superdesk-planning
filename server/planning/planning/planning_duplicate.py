@@ -17,7 +17,13 @@ from superdesk.metadata.utils import item_url, generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.utc import utcnow, utc_to_local
 from flask import request
-from planning.common import ITEM_STATE, WORKFLOW_STATE, TEMP_ID_PREFIX
+from planning.common import (
+    ITEM_STATE,
+    WORKFLOW_STATE,
+    TEMP_ID_PREFIX,
+    get_coverage_status_from_cv,
+    get_config_planning_duplicate_retain_assignee_details,
+)
 from copy import deepcopy
 
 
@@ -104,6 +110,10 @@ class PlanningDuplicateService(BaseService):
             cov.get("planning", {})["scheduled"] = new_plan.get("planning_date")
             cov["coverage_id"] = TEMP_ID_PREFIX + "duplicate"
             cov["workflow_status"] = WORKFLOW_STATE.DRAFT
-            cov["news_coverage_status"] = {"qcode": "ncostat:int", "label": "Planned", "name": "coverage intended"}
+            cov["news_coverage_status"] = get_coverage_status_from_cv("ncostat:int")
+            cov["news_coverage_status"].pop("is_active", None)
+
+            if not get_config_planning_duplicate_retain_assignee_details():
+                cov.pop("assigned_to", None)
 
         return new_plan
