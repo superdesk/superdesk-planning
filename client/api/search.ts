@@ -96,8 +96,7 @@ export const searchRawAndStore = <T>(args: ISearchAPIParams) => {
 
         return res;
     });
-}
-
+};
 
 export function searchRawGetAll<T>(args: ISearchAPIParams): Promise<Array<T>> {
     const params = excludeNullParams(args);
