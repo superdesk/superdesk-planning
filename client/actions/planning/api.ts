@@ -187,7 +187,7 @@ const fetchPlanningsEvents = (plannings: Array<IPlanningItem>) => (
         const loadedEvents = selectors.events.storedEvents(getState());
 
         const linkedEventIds = plannings
-            .map((plan) => getRelatedEventIdsForPlanning(plan, 'primary'))
+            .map((plan) => getRelatedEventIdsForPlanning(plan))
             .flat()
             .filter((eventId) => loadedEvents[eventId] == null);
 

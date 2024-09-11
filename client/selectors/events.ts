@@ -17,7 +17,7 @@ import {currentPlanning, storedPlannings} from './planning';
 import {agendas, userPreferences} from './general';
 import {currentItem, currentItemModal} from './forms';
 import {eventUtils, getSearchDateRange} from '../utils';
-import {getRelatedEventIdsForPlanning, pickRelatedEventsForPlanning} from '../utils/planning';
+import {pickRelatedEventsForPlanning} from '../utils/planning';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 
 function getCurrentListViewType(state?: IPlanningAppState) {
@@ -150,7 +150,7 @@ export const getRelatedEventsForPlanning = createSelector<
             return null;
         }
 
-        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'logic');
+        const pickedEvents = pickRelatedEventsForPlanning(item, Object.values(events ?? {}), 'display');
 
         return pickedEvents.length < 1 ? null : pickedEvents;
     }

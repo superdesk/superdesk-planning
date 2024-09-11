@@ -1628,14 +1628,14 @@ function duplicateCoverage(
 
 export function getRelatedEventLinksForPlanning(
     plan: Partial<IPlanningItem>,
-    linkType: IPlanningRelatedEventLinkType
+    linkType?: IPlanningRelatedEventLinkType
 ): Array<IPlanningRelatedEventLink> {
-    return (plan?.related_events || []).filter((link) => link.link_type === linkType);
+    return (plan?.related_events || []).filter((link) => linkType == null || link.link_type === linkType);
 }
 
 export function getRelatedEventIdsForPlanning(
     plan: Partial<IPlanningItem>,
-    linkType: IPlanningRelatedEventLinkType
+    linkType?: IPlanningRelatedEventLinkType
 ): Array<IEventItem['_id']> {
     return getRelatedEventLinksForPlanning(plan, linkType).map((event) => event._id);
 }
@@ -1646,17 +1646,9 @@ export function pickRelatedEventsForPlanning(
     purpose: 'display' | 'logic',
 ): Array<IEventItem> {
     const events = events_ ?? [];
-    const {assertNever} = superdeskApi.helpers;
+    const allowedEventIds = new Set(getRelatedEventIdsForPlanning(planning, purpose === 'logic' ? 'primary' : null));
 
-    if (purpose === 'logic') {
-        const allowedEventIds = new Set(getRelatedEventIdsForPlanning(planning, 'primary'));
-
-        return events.filter((event) => allowedEventIds.has(event._id));
-    } else if (purpose === 'display') {
-        return events;
-    } else {
-        assertNever(purpose);
-    }
+    return events.filter((event) => allowedEventIds.has(event._id));
 }
 
 export function pickRelatedEventIdsForPlanning(
