@@ -216,23 +216,23 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                             <span className="sd-text__info">{gettext('No attached files added.')}</span>}
                     </ToggleBox>
                 )}
-                {!hideRelatedItems && event && (
-                    <h3 className="side-panel__heading--big">
-                        {gettext('Associated Events')}
-                    </h3>
-                )}
                 {!hideRelatedItems && (relatedEvents?.length ?? 0) > 0 && (
-                    relatedEvents.map((relatedEvent) => (
-                        <EventMetadata
-                            key={`related_event--${relatedEvent._id}`}
-                            event={relatedEvent}
-                            dateOnly={true}
-                            onEditEvent={onEditEvent.bind(null, relatedEvent)}
-                            createUploadLink={getFileDownloadURL}
-                            files={files}
-                            hideEditIcon={hideEditIcon}
-                        />
-                    ))
+                    <>
+                        <h3 className="side-panel__heading--big">
+                            {gettext('Associated Events')}
+                        </h3>
+                        {relatedEvents.map((relatedEvent) => (
+                            <EventMetadata
+                                key={`related_event--${relatedEvent._id}`}
+                                event={relatedEvent}
+                                dateOnly={true}
+                                onEditEvent={onEditEvent.bind(null, relatedEvent)}
+                                createUploadLink={getFileDownloadURL}
+                                files={files}
+                                hideEditIcon={hideEditIcon}
+                            />
+                        ))}
+                    </>
                 )}
                 {!hasCoverage ? null : (
                     <React.Fragment>
