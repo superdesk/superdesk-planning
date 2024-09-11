@@ -194,6 +194,7 @@ export class FieldList extends React.PureComponent<IProps> {
             this.renderList()
         ) : (
             <ToggleBox
+                variant="simple"
                 key={this.props.group._id}
                 title={getProfileGroupNameTranslated(this.props.group)}
                 className="toggle-box--circle toggle-box--no-line"
