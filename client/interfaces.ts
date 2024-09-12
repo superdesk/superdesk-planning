@@ -2207,6 +2207,7 @@ export interface IPlanningAPI {
         getEditorProfile(): ICoverageFormProfile;
     };
     combined: {
+        searchAndStore(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         search(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventOrPlanningItem>>;
         getRecurringEventsAndPlanningItems(
