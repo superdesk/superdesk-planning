@@ -90,7 +90,7 @@ const refetchPlanning = (planningId) => (
     (dispatch, getState) => {
         const storedPlannings = selectors.planning.storedPlannings(getState());
         const plan = get(storedPlannings, planningId);
-        const relatedEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
+        const relatedEventIds = getRelatedEventIdsForPlanning(plan);
         const eventId = relatedEventIds.length > 0 ? relatedEventIds[0] : undefined;
         const events = selectors.eventsPlanning.getRelatedPlanningsList(getState()) || {};
 

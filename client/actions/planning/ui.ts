@@ -209,7 +209,7 @@ const duplicate = (plan) => (
             .then((newPlan) => {
                 notify.success(gettext('Planning duplicated'));
                 const openInModal = selectors.forms.currentItemIdModal(getState());
-                const relatedEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
+                const relatedEventIds = getRelatedEventIdsForPlanning(plan);
 
                 if (relatedEventIds.length > 0) {
                     dispatch(main.unlockAndCancel(plan)).then(() => {

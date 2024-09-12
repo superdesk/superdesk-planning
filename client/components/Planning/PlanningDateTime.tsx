@@ -34,7 +34,7 @@ export const PlanningDateTime = ({
 }: IProps) => {
     const coverages = get(item, 'coverages', []);
     const coverageTypes = planningUtils.mapCoverageByDate(coverages);
-    const hasAssociatedEvent = getRelatedEventIdsForPlanning(item, 'primary').length > 0;
+    const hasAssociatedEvent = getRelatedEventIdsForPlanning(item).length > 0;
     const isSameDay = (scheduled) => scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
     const coverageToDisplay = coverageTypes.filter((coverage) => {
         const scheduled = get(coverage, 'planning.scheduled');

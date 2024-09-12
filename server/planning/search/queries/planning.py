@@ -153,7 +153,7 @@ def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
             elastic.bool_and(
                 [
                     elastic.terms(field="related_events._id", values=event_ids),
-                    elastic.term(field="related_events.link_type", value="primary"),
+                    # elastic.term(field="related_events.link_type", value="primary"),
                 ],
                 "related_events",
             )
