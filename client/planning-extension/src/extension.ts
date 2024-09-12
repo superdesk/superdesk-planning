@@ -109,57 +109,57 @@ const extension: IExtension = {
             && extensionConfig?.assignmentsTopBarWidget === true;
         const {gettext} = superdesk.localization;
 
-            const result: IExtensionActivationResult = {
-                contributions: {
-                    entities: {
-                        article: {
-                            getActions: (item) => [
-                                {
-                                    label: gettext('Unlink as Coverage'),
-                                    groupId: 'planning-actions',
-                                    icon: 'cut',
-                                    onTrigger: () => {
-                                        const superdeskArticle = superdesk.entities.article;
+        const result: IExtensionActivationResult = {
+            contributions: {
+                entities: {
+                    article: {
+                        getActions: (item) => [
+                            {
+                                label: gettext('Unlink as Coverage'),
+                                groupId: 'planning-actions',
+                                icon: 'cut',
+                                onTrigger: () => {
+                                    const superdeskArticle = superdesk.entities.article;
 
-                                        if (
-                                            superdesk.privileges.hasPrivilege('archive') &&
-                                            item.assignment_id != null &&
-                                            !superdeskArticle.isPersonal(item) &&
-                                            !superdeskArticle.isLockedInOtherSession(item) &&
-                                            (
-                                                superdeskArticle.itemAction(item).edit ||
-                                                superdeskArticle.itemAction(item).correct ||
-                                                superdeskArticle.itemAction(item).deschedule
-                                            )
-                                        ) {
-                                            const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
+                                    if (
+                                        superdesk.privileges.hasPrivilege('archive') &&
+                                        item.assignment_id != null &&
+                                        !superdeskArticle.isPersonal(item) &&
+                                        !superdeskArticle.isLockedInOtherSession(item) &&
+                                        (
+                                            superdeskArticle.itemAction(item).edit ||
+                                            superdeskArticle.itemAction(item).correct ||
+                                            superdeskArticle.itemAction(item).deschedule
+                                        )
+                                    ) {
+                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
 
-                                            window.dispatchEvent(event);
-                                        }
-                                    },
-                                }
-                            ],
-                            onSpike: (item: IArticle) => onSpike(superdesk, item),
-                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                        },
-                        ingest: {
-                            ruleHandlers: {
-                                planning_publish: {
-                                    editor: AutopostIngestRuleEditor,
-                                    preview: AutopostIngestRulePreview,
+                                        window.dispatchEvent(event);
+                                    }
                                 },
+                            }
+                        ],
+                        onSpike: (item: IArticle) => onSpike(superdesk, item),
+                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                    },
+                    ingest: {
+                        ruleHandlers: {
+                            planning_publish: {
+                                editor: AutopostIngestRuleEditor,
+                                preview: AutopostIngestRulePreview,
                             },
                         },
                     },
-                    notifications: {
-                        'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
-                    },
-                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
                 },
-            };
+                notifications: {
+                    'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
+                },
+                globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+            },
+        };
 
         return Promise.resolve(result);
     },
