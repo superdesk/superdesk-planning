@@ -8,6 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from typing import Dict, Any
 from copy import deepcopy
 
 import superdesk
@@ -34,11 +35,14 @@ class PlanningTypesService(superdesk.Service):
             if not lookup_name and planning_type:
                 lookup_name = planning_type.get("name")
 
-            default_planning_type = next(
-                (ptype for ptype in DEFAULT_PROFILES if ptype.get("name") == lookup_name),
-                None,
+            default_planning_type = deepcopy(
+                next(
+                    (ptype for ptype in DEFAULT_PROFILES if ptype.get("name") == lookup_name),
+                    {},
+                )
             )
             if not planning_type:
+                self._remove_unsupported_fields(default_planning_type)
                 return default_planning_type
 
             self.merge_planning_type(planning_type, default_planning_type)
@@ -50,7 +54,7 @@ class PlanningTypesService(superdesk.Service):
         planning_types = list(super().get(req, lookup))
         merged_planning_types = []
 
-        for default_planning_type in DEFAULT_PROFILES:
+        for default_planning_type in deepcopy(DEFAULT_PROFILES):
             planning_type = next(
                 (p for p in planning_types if p.get("name") == default_planning_type.get("name")),
                 None,
@@ -58,14 +62,11 @@ class PlanningTypesService(superdesk.Service):
 
             # If nothing is defined in database for this planning_type, use default
             if planning_type is None:
+                self._remove_unsupported_fields(default_planning_type)
                 merged_planning_types.append(default_planning_type)
             else:
                 self.merge_planning_type(planning_type, default_planning_type)
                 merged_planning_types.append(planning_type)
-
-        if not planning_link_updates_to_coverage():
-            coverage_type = [t for t in merged_planning_types if t["name"] == "coverage"][0]
-            coverage_type["editor"]["no_content_linking"]["enabled"] = False
 
         return ListCursor(merged_planning_types)
 
@@ -97,10 +98,17 @@ class PlanningTypesService(superdesk.Service):
         planning_type["schema"] = updated_planning_type["schema"]
         planning_type["editor"] = updated_planning_type["editor"]
         planning_type["groups"] = updated_planning_type["groups"]
+        self._remove_unsupported_fields(planning_type)
 
+    def _remove_unsupported_fields(self, planning_type: Dict[str, Any]):
         # Disable Event ``related_items`` field
         # if ``EVENT_RELATED_ITEM_SEARCH_PROVIDER_NAME`` config is not set
-        if planning_type["name"] == "event":
-            if not get_config_event_related_item_search_provider_name():
-                planning_type["editor"].pop("related_items", None)
-                planning_type["schema"].pop("related_items", None)
+        if planning_type.get("name") == "event" and not get_config_event_related_item_search_provider_name():
+            planning_type["editor"].pop("related_items", None)
+            planning_type["schema"].pop("related_items", None)
+
+        # Disable Coverage ``no_content_linking`` field
+        # if ``PLANNING_LINK_UPDATES_TO_COVERAGES`` config is not ``True``
+        if planning_type.get("name") == "coverage" and not planning_link_updates_to_coverage():
+            planning_type["editor"].pop("no_content_linking", None)
+            planning_type["schema"].pop("no_content_linking", None)
