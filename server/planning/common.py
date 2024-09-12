@@ -267,6 +267,10 @@ def get_default_coverage_status_qcode_on_ingest(current_app=None):
     return (current_app or app).config.get("PLANNING_DEFAULT_COVERAGE_STATUS_ON_INGEST", "ncostat:int")
 
 
+def get_config_planning_duplicate_retain_assignee_details(current_app=None):
+    return (current_app or app).config.get("PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS", False)
+
+
 def get_coverage_status_from_cv(qcode: str):
     coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
 

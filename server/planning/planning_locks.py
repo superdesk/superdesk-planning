@@ -91,7 +91,7 @@ def _get_planning_module_locks():
             continue
 
         lock = {
-            "item_id": item.get("_id") if not item.get("recurrence_id") else item["recurrence_id"],
+            "item_id": item.get("_id"),
             "item_type": item.get("type"),
             "user": item.get("lock_user"),
             "session": item.get("lock_session"),
@@ -99,7 +99,7 @@ def _get_planning_module_locks():
             "time": item.get("lock_time"),
         }
         if item.get("recurrence_id"):
-            locks["recurring"][lock["item_id"]] = lock
+            locks["recurring"][item["recurrence_id"]] = lock
         elif item.get("event_item"):
             locks["event"][item["event_item"]] = lock
         else:
