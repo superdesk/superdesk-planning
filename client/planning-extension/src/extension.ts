@@ -104,15 +104,6 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
     return Promise.resolve();
 }
 
-// FIXME: Unify with existing declaration in older planning code
-export function isContentLinkToCoverageAllowed(item: IArticle) {
-    const config = appConfig as IPlanningConfig;
-
-    return !config?.planning?.allowed_coverage_link_types?.length ?
-        true :
-        config.planning.allowed_coverage_link_types.includes(item.type);
-}
-
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
@@ -120,12 +111,14 @@ const extension: IExtension = {
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
 
+        const {gettext} = superdesk.localization;
+
         const result: IExtensionActivationResult = {
             contributions: {
                 entities: {
                     article: {
                         getActions: (item: IArticle) => [{
-                            label: 'Add to Planning',
+                            label: gettext('Add to Planning'),
                             groupId: 'planning-actions',
                             icon: 'calendar-list',
                             onTrigger: () => {
@@ -136,7 +129,7 @@ const extension: IExtension = {
                                     !superdeskApi.entities.article.isPersonal(item) &&
                                     !superdeskApi.entities.article.isLockedInOtherSession(item) &&
                                     item.state !== 'correction' &&
-                                    isContentLinkToCoverageAllowed(item) &&
+                                    extensionBridge.ui.utils.isContentLinkToCoverageAllowed(item) &&
                                     (
                                         superdeskApi.entities.article.itemAction(item).edit ||
                                         superdeskApi.entities.article.itemAction(item).correct ||
