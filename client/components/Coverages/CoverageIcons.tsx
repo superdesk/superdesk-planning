@@ -94,7 +94,7 @@ export class CoverageIcons extends React.PureComponent<IProps> {
 
         return (
             <WithPopover
-                placement="bottom-end"
+                placement="auto-end"
                 zIndex={1051}
                 component={() => (
                     <div className="coverages-popup">

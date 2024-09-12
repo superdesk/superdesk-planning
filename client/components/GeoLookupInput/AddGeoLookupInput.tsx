@@ -1,6 +1,6 @@
 import React from 'react';
 import Geolookup from 'react-geolookup';
-import DebounceInput from 'react-debounce-input';
+import {DebounceInput} from 'react-debounce-input';
 
 import {appConfig} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
@@ -230,6 +230,7 @@ export class AddGeoLookupInput extends React.Component<IProps, IState> {
                 qcode: location.guid,
                 address: location.address,
                 details: location.details,
+                translations: location.translations,
             };
 
             // external address might not be there.
@@ -274,6 +275,7 @@ export class AddGeoLookupInput extends React.Component<IProps, IState> {
             <React.Fragment>
                 {initialValue?.name == null ? null : (
                     <LocationItem
+                        languageCode={this.props.language}
                         location={initialValue}
                         onRemoveLocation={this.removeLocation}
                         readOnly={readOnly}
