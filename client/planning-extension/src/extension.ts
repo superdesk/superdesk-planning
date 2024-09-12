@@ -13,10 +13,9 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
-import ng from 'superdesk-core/scripts/core/services/ng';
-// import {superdeskApi} from '../../../client/superdeskApi';
-// import {isContentLinkToCoverageAllowed} from '../../../client/utils/archive';
+import {superdeskApi} from '../../../client/superdeskApi';
 import {extensionBridge} from './extension_bridge';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -105,6 +104,15 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
     return Promise.resolve();
 }
 
+// FIXME: Unify with existing declaration in older planning code
+export function isContentLinkToCoverageAllowed(item: IArticle) {
+    const config = appConfig as IPlanningConfig;
+
+    return !config?.planning?.allowed_coverage_link_types?.length ?
+        true :
+        config.planning.allowed_coverage_link_types.includes(item.type);
+}
+
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
@@ -121,22 +129,18 @@ const extension: IExtension = {
                             groupId: 'planning-actions',
                             icon: 'calendar-list',
                             onTrigger: () => {
-                                const privilegesService = ng.get('privileges');
-                                const archiveService = ng.get('archiveService');
-                                const authoringService = ng.get('authoring');
-
                                 if (
-                                    privilegesService.userHasPrivileges({planning_planning_management: 1}) &&
-                                    privilegesService.userHasPrivileges({archive: 1}) &&
+                                    superdeskApi.privileges.hasPrivilege('planning_planning_management') &&
+                                    superdeskApi.privileges.hasPrivilege('archive') &&
                                     !item.assignment_id != null &&
-                                    !archiveService.isPersonal(item) &&
-                                    // !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                                    !['correction'].includes(item.state) &&
-                                    // isContentLinkToCoverageAllowed(item) &&
+                                    !superdeskApi.entities.article.isPersonal(item) &&
+                                    !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                                    item.state !== 'correction' &&
+                                    isContentLinkToCoverageAllowed(item) &&
                                     (
-                                        authoringService.itemActions(item).edit ||
-                                        authoringService.itemActions(item).correct ||
-                                        authoringService.itemActions(item).deschedule
+                                        superdeskApi.entities.article.itemAction(item).edit ||
+                                        superdeskApi.entities.article.itemAction(item).correct ||
+                                        superdeskApi.entities.article.itemAction(item).deschedule
                                     )
                                 ) {
                                     const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});
