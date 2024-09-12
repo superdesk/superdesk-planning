@@ -47,7 +47,7 @@ jobs:
           CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
       - name: Upload screenshots
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: screenshots-e2e-${{ matrix.e2e }}
           path: /tmp/cypress/**/*.png
