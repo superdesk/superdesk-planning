@@ -50,7 +50,7 @@ interface IExtensionBridge {
         registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
             field: string,
             Component: React.ComponentClass<ComponentProps>,
-            props?: (currentProps: React.ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
+            props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
             mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
             forwardRef?: boolean
         ): void;
