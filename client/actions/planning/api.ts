@@ -486,7 +486,7 @@ const unpost = (original, updates) => (
  * Also loads all the associated contacts (if any)
  * @param  {array, object} plannings - An array of planning item objects
  */
-const receivePlannings = (plannings) => (
+const receivePlannings = (plannings): any => (
     (dispatch) => {
         dispatch(actions.contacts.fetchContactsFromPlanning(plannings));
         dispatch({
