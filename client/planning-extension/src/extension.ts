@@ -112,59 +112,60 @@ const extension: IExtension = {
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
 
-            const result: IExtensionActivationResult = {
-                contributions: {
-                    entities: {
-                        article: {
-                            getActions: (item: IArticle) => [{
-                                label: 'Add to Planning',
-                                groupId: 'planning-actions',
-                                icon: 'calendar-list',
-                                onTrigger: () => {
-                                    const privilegesService = ng.get('privileges');
-                                    const archiveService = ng.get('archiveService');
-                                    const authoringService = ng.get('authoring');
+        const result: IExtensionActivationResult = {
+            contributions: {
+                entities: {
+                    article: {
+                        getActions: (item: IArticle) => [{
+                            label: 'Add to Planning',
+                            groupId: 'planning-actions',
+                            icon: 'calendar-list',
+                            onTrigger: () => {
+                                const privilegesService = ng.get('privileges');
+                                const archiveService = ng.get('archiveService');
+                                const authoringService = ng.get('authoring');
 
-                                    if (
-                                        privilegesService.userHasPrivileges({planning_planning_management: 1}) &&
-                                        privilegesService.userHasPrivileges({archive: 1}) &&
-                                        !item.assignment_id != null &&
-                                        !archiveService.isPersonal(item) &&
-                                        // !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                                        !['correction'].includes(item.state) &&
-                                        // isContentLinkToCoverageAllowed(item) &&
-                                        (
-                                            authoringService.itemActions(item).edit ||
-                                            authoringService.itemActions(item).correct ||
-                                            authoringService.itemActions(item).deschedule
-                                        )
-                                    ) {
-                                        const customEvent = new CustomEvent("planning:addToPlanning", {detail: item});
-                                        window.dispatchEvent(customEvent)
-                                    }
-                                },
-                            }],
-                            onSpike: (item: IArticle) => onSpike(superdesk, item),
-                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                        },
-                        ingest: {
-                            ruleHandlers: {
-                                planning_publish: {
-                                    editor: AutopostIngestRuleEditor,
-                                    preview: AutopostIngestRulePreview,
-                                },
+                                if (
+                                    privilegesService.userHasPrivileges({planning_planning_management: 1}) &&
+                                    privilegesService.userHasPrivileges({archive: 1}) &&
+                                    !item.assignment_id != null &&
+                                    !archiveService.isPersonal(item) &&
+                                    // !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                                    !['correction'].includes(item.state) &&
+                                    // isContentLinkToCoverageAllowed(item) &&
+                                    (
+                                        authoringService.itemActions(item).edit ||
+                                        authoringService.itemActions(item).correct ||
+                                        authoringService.itemActions(item).deschedule
+                                    )
+                                ) {
+                                    const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});
+
+                                    window.dispatchEvent(customEvent);
+                                }
+                            },
+                        }],
+                        onSpike: (item: IArticle) => onSpike(superdesk, item),
+                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                    },
+                    ingest: {
+                        ruleHandlers: {
+                            planning_publish: {
+                                editor: AutopostIngestRuleEditor,
+                                preview: AutopostIngestRulePreview,
                             },
                         },
                     },
-                    notifications: {
-                        'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
-                    },
-                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
                 },
-            };
+                notifications: {
+                    'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
+                },
+                globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+            },
+        };
 
         return Promise.resolve(result);
     },
