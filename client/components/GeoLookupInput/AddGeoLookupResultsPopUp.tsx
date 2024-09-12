@@ -79,20 +79,22 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
     }
 
     handleEnterKey() {
+        const {localSuggests, suggests} = this.props;
+        const localSuggestLen = localSuggests?.length ?? 0;
+
         if (this.state.activeOptionIndex > -1) {
-            if (this.state.activeOptionIndex < get(this.props.localSuggests, 'length', -1)) {
-                this.props.onChange(this.props.localSuggests[this.state.activeOptionIndex]);
+            if (this.state.activeOptionIndex < (localSuggests.length ?? -1)) {
+                this.props.onChange(localSuggests[this.state.activeOptionIndex]);
                 return;
             }
 
-            if (this.state.activeOptionIndex === get(this.props.localSuggests, 'length', 0)) {
+            if (this.state.activeOptionIndex === localSuggestLen) {
                 this.onSearch();
                 return;
             }
 
-            if (this.state.activeOptionIndex >= get(this.props.localSuggests, 'length', 0) + 1) {
-                this.props.onChange(this.props.suggests[
-                    this.state.activeOptionIndex - (get(this.props.localSuggests, 'length', 0) + 1)]);
+            if (this.state.activeOptionIndex >= localSuggestLen + 1) {
+                this.props.onChange(suggests[this.state.activeOptionIndex - localSuggestLen + 1]);
             }
         }
     }
@@ -100,8 +102,8 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
     handleDownArrowKey() {
         if (this.state.activeOptionIndex <
             (1 + // External search button
-            get(this.props.localSuggests, 'length', 0) +
-            get(this.props.suggests, 'length', 0)) - 1
+            (this.props.localSuggests?.length ?? 0) +
+            (this.props.suggests?.length ?? 0)) - 1
         ) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex + 1});
 
@@ -141,10 +143,8 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const localSuggests = get(this.props.localSuggests, 'length') > 0 ?
-            this.props.localSuggests : [];
-        const suggests = get(this.props.suggests, 'length') > 0 ?
-            this.props.suggests : [];
+        const localSuggests = this.props.localSuggests ?? [];
+        const suggests = this.props.suggests ?? [];
         const tabLabels = [(
             <TabLabel
                 key="internal"
@@ -200,7 +200,7 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                                         active={index === this.state.activeOptionIndex}
                                     />
                                 ))}
-                                {get(localSuggests, 'length') === 0 && (
+                                {localSuggests.length === 0 && (
                                     <li className="addgeolookup__item">
                                         {gettext('No results found')}
                                     </li>
@@ -220,14 +220,12 @@ export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
                                             key={index}
                                             location={suggest}
                                             onClick={this.props.onChange.bind(null, suggest)}
-                                            active={(
-                                                index +
-                                                get(this.props.localSuggests, 'length', 0) +
-                                                1
-                                            ) === this.state.activeOptionIndex}
+                                            active={(index + localSuggests.length + 1)
+                                                === this.state.activeOptionIndex
+                                            }
                                         />
                                     ))}
-                                    {get(suggests, 'length') === 0 && (
+                                    {suggests.length === 0 && (
                                         <li className="addgeolookup__item">
                                             {gettext('No results found')}
                                         </li>

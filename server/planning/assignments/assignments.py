@@ -67,7 +67,7 @@ from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
-from planning.utils import get_event_formatted_dates, get_formatted_contacts
+from planning.utils import get_event_formatted_dates, get_formatted_contacts, update_event_item_with_translations_value
 from superdesk.preferences import get_user_notification_preferences
 
 logger = logging.getLogger(__name__)
@@ -430,8 +430,16 @@ class AssignmentsService(superdesk.Service):
             event = Event()
             event["UID"] = UID
             event["CLASS"] = "PUBLIC"
-            event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
-            event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
+            # Use Event start and End time based on Config
+            if app.config.get("ASSIGNMENT_MAIL_ICAL_USE_EVENT_DATES") and event_item:
+                event_dates = event_item["dates"]
+                event["DTSTART"] = event_dates["start"].strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = event_dates["end"].strftime("%Y%m%dT%H%M%SZ")
+            else:
+                event["DTSTART"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+                event["DTEND"] = scheduled_time.strftime("%Y%m%dT%H%M%SZ")
+
             event[f"SUMMARY;LANGUAGE={language}"] = summary
             event["DESCRIPTION"] = assignment.get("description_text", "")
             event["PRIORITY"] = priority
@@ -463,6 +471,12 @@ class AssignmentsService(superdesk.Service):
         # get formatted contacts and event date time for email templates
         formatted_contacts = get_formatted_contacts(event_item) if event_item else []
         fomatted_event_date = get_event_formatted_dates(event_item) if event_item else ""
+
+        event_item = (
+            update_event_item_with_translations_value(event_item, assignment.get("planning", {}).get("language"))
+            if event_item
+            else None
+        )
 
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):
