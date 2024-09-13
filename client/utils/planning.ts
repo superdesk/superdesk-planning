@@ -384,7 +384,7 @@ export function mapCoverageByDate(coverages: Array<IPlanningCoverageItem> = []):
 
 // ad hoc plan created directly from planning list and not from an event
 function isPlanAdHoc(plan: IPlanningItem): boolean {
-    return getRelatedEventLinksForPlanning(plan, 'primary').length === 0;
+    return getRelatedEventLinksForPlanning(plan).length === 0;
 }
 
 function isPlanMultiDay(plan: IPlanningItem): boolean {

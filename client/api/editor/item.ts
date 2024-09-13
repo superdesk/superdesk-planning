@@ -27,7 +27,7 @@ export function getItemInstance(type: EDITOR_TYPE): IEditorAPI['item'] {
         return Object.keys(plans)
             .filter((planId) => (
                 plans[planId] != null &&
-                getRelatedEventIdsForPlanning(plans[planId], 'primary').includes(eventId))
+                getRelatedEventIdsForPlanning(plans[planId]).includes(eventId))
             )
             .map((planId) => cloneDeep(plans[planId]));
     }
