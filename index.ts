@@ -120,6 +120,8 @@ function configurePlanning(superdesk) {
             ],
             group: gettext('Planning'),
             privileges: {archive: 1},
+
+            // keep in sync with client/planning-extension/src/extension.ts:126
             additionalCondition: ['archiveService', 'item', 'authoring',
                 function(archiveService, item, authoring) {
                     return item.assignment_id &&
