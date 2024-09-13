@@ -150,13 +150,10 @@ def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if len(event_ids):
         query.must.append(
-            elastic.bool_and(
-                [
-                    elastic.terms(field="related_events._id", values=event_ids),
-                    # elastic.term(field="related_events.link_type", value="primary"),
-                ],
+            elastic.nested(
                 "related_events",
-            )
+                query=elastic.terms(field="related_events._id", values=event_ids),
+            ),
         )
 
 
