@@ -13,7 +13,7 @@ import {getUserInterfaceLanguageFromCV} from './utils/users';
 
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
-import {isContentLinkToCoverageAllowed} from 'utils/archive';
+import {isContentLinkToCoverageAllowed} from './utils/archive';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
