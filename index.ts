@@ -103,6 +103,8 @@ function configurePlanning(superdesk) {
                         !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state);
                 }],
         })
+
+        // TAG: AUTHORING-ANGULAR
         .activity('planning.unlink', {
             label: gettext('Unlink as Coverage'),
             icon: 'cut',
