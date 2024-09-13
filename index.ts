@@ -9,7 +9,7 @@ import planningModule from './client';
 import * as ctrl from './client/controllers';
 import {gettext} from './client/utils/gettext';
 import {isContentLinkToCoverageAllowed} from './client/utils/archive';
-
+import ng from 'superdesk-core/scripts/core/services/ng';
 
 configurePlanning.$inject = ['superdeskProvider'];
 function configurePlanning(superdesk) {
@@ -103,6 +103,8 @@ function configurePlanning(superdesk) {
                         !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state);
                 }],
         })
+
+        // TAG: AUTHORING-ANGULAR
         .activity('planning.unlink', {
             label: gettext('Unlink as Coverage'),
             icon: 'cut',
@@ -120,6 +122,8 @@ function configurePlanning(superdesk) {
             ],
             group: gettext('Planning'),
             privileges: {archive: 1},
+
+            // keep in sync with client/planning-extension/src/extension.ts:126
             additionalCondition: ['archiveService', 'item', 'authoring',
                 function(archiveService, item, authoring) {
                     return item.assignment_id &&
@@ -133,6 +137,16 @@ function configurePlanning(superdesk) {
                 }],
         });
 }
+
+window.addEventListener('planning:unlinkfromcoverage', (event: CustomEvent) => {
+    ctrl.UnlinkAssignmentController(
+        event.detail,
+        ng.get('notify'),
+        ng.get('gettext'),
+        ng.get('api'),
+        ng.get('lock'),
+    );
+});
 
 export default planningModule
     .config(configurePlanning);

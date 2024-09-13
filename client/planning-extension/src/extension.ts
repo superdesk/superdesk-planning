@@ -105,14 +105,41 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
-
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
+        const {gettext} = superdesk.localization;
 
         const result: IExtensionActivationResult = {
             contributions: {
                 entities: {
                     article: {
+                        getActions: (item) => [
+                            {
+                                label: gettext('Unlink as Coverage'),
+                                groupId: 'planning-actions',
+                                icon: 'cut',
+                                onTrigger: () => {
+                                    const superdeskArticle = superdesk.entities.article;
+
+                                    // keep in sync with client/planning-extension/src/extension.ts:123
+                                    if (
+                                        superdesk.privileges.hasPrivilege('archive') &&
+                                        item.assignment_id != null &&
+                                        !superdeskArticle.isPersonal(item) &&
+                                        !superdeskArticle.isLockedInOtherSession(item) &&
+                                        (
+                                            superdeskArticle.itemAction(item).edit ||
+                                            superdeskArticle.itemAction(item).correct ||
+                                            superdeskArticle.itemAction(item).deschedule
+                                        )
+                                    ) {
+                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
+
+                                        window.dispatchEvent(event);
+                                    }
+                                },
+                            }
+                        ],
                         onSpike: (item: IArticle) => onSpike(superdesk, item),
                         onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                         onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
