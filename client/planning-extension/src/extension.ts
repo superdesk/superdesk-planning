@@ -146,6 +146,7 @@ const extension: IExtension = {
                                 groupId: planningActionsGroupId,
                                 icon: 'calendar-list',
                                 onTrigger: () => {
+                                    const itemStates = ['killed', 'recalled', 'unpublished', 'spiked', 'correction'];
 
                                     // keep in sync with index.ts:79
                                     if (
@@ -154,7 +155,7 @@ const extension: IExtension = {
                                         !superdesk.entities.article.isPersonal(item) &&
                                         superdesk.privileges.hasPrivilege('archive') &&
                                         !superdesk.entities.article.isLockedInOtherSession(item) &&
-                                        !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
+                                        !itemStates.includes(item.state)
                                     ) {
                                         const event = new CustomEvent('planning:fulfilassignment', {detail: item});
 
