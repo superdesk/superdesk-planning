@@ -1,14 +1,12 @@
 import React from 'react';
 import {Provider} from 'react-redux';
-import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
+import ng from 'superdesk-core/scripts/core/services/ng';
 import {PlanningPreviewContent} from './Planning/PlanningPreviewContent';
 import {modifyForClient} from '../utils/planning';
 import {WORKSPACE} from '../constants';
 import {fetchAgendas} from '../actions';
 
 interface IProps {
-    api: any;
-    sdPlanningStore: any;
     item: {
         assignment_id: string;
     };
@@ -19,7 +17,9 @@ interface IState {
     planning: any;
 }
 
-export function getItemPlanningInfo(item: IProps['item'], api: IProps['api']) {
+export function getItemPlanningInfo(item: {assignment_id: string}) {
+    const api = ng.get('api');
+
     if (item.assignment_id != null) {
         return api.find('assignments', item.assignment_id)
             .then((assignment) => api.find('planning', assignment.planning_item))
@@ -30,17 +30,25 @@ export function getItemPlanningInfo(item: IProps['item'], api: IProps['api']) {
 }
 
 class PlanningDetailsWidget extends React.Component<IProps, IState> {
+    static defaultProps: Partial<IProps>;
     readonly state = {store: null, planning: null};
+    private sdPlanningStore: any;
+
+    constructor(props: IProps) {
+        super(props);
+
+        this.sdPlanningStore = ng.get('sdPlanningStore');
+    }
 
     componentDidMount() {
-        const {item, api, sdPlanningStore} = this.props;
+        const {item} = this.props;
 
         // Allow the Planning item and store to be loaded concurrently
-        getItemPlanningInfo(item, api).then((planning) => {
+        getItemPlanningInfo(item).then((planning) => {
             this.setState({planning});
         });
 
-        sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
+        this.sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
             // Fetch the agendas before saving the store to the state
             store.dispatch(fetchAgendas()).then(() => {
                 this.setState({store});
@@ -55,16 +63,11 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
         }
 
         return (
-            <div className="widget sd-padding-all--2">
-                <Provider store={this.state.store}>
-                    <PlanningPreviewContent item={this.state.planning} />
-                </Provider>
-            </div>
+            <Provider store={this.state.store}>
+                <PlanningPreviewContent item={this.state.planning} noPadding />
+            </Provider>
         );
     }
 }
 
-export default connectServices<IProps>(
-    PlanningDetailsWidget,
-    ['api', 'sdPlanningStore'],
-);
+export default PlanningDetailsWidget;
