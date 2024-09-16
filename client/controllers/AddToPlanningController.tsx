@@ -197,20 +197,14 @@ export class AddToPlanningController {
         contentProfile: IContentProfile
     }> {
         return this.api.find('archive', this.item._id)
-            .then((newsItem: IArticle) => (
-                superdeskApi.entities.contentProfile.get(newsItem.profile)
-                    .then((contentProfile) => ({
-                        newsItem,
-                        contentProfile,
-                    }))
-                    .catch((error) => {
-                        this.notify.error(
-                            getErrorMessage(error, this.gettext('Failed to load content profile.'))
-                        );
-                        this.$scope.resolve(error);
-                        return Promise.reject(error);
-                    })
-            ), (error) => {
+            .then((newsItem: IArticle) => {
+                const contentProfile = superdeskApi.entities.contentProfile.get(newsItem.profile);
+
+                return Promise.resolve({
+                    newsItem,
+                    contentProfile
+                });
+            }, (error) => {
                 this.notify.error(
                     getErrorMessage(error, this.gettext('Failed to load the item.'))
                 );
