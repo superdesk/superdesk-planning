@@ -14,7 +14,11 @@ import {IPlanningExtensionConfigurationOptions} from './extension_configuration_
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
 import {extensionBridge} from './extension_bridge';
-import {PlanningDetailsWidget, PLANNING_DETAILS_WIDGET_ID, PLANNING_DETAILS_WIDGET_LABEL} from './planning-details-widget';
+import {
+    PlanningDetailsWidget,
+    PLANNING_DETAILS_WIDGET_ID,
+    PLANNING_DETAILS_WIDGET_LABEL,
+} from './planning-details-widget';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
