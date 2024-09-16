@@ -19,7 +19,7 @@
   },
   "author": "Edouard Richard",
   "dependencies": {
-    "dompurify": "^1.0.11",
+    "dompurify": "^2.5.4",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.45",
     "nominatim-browser": "~2.0.2",
