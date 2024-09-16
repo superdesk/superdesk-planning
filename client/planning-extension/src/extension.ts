@@ -106,33 +106,63 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
-
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
+        const {gettext} = superdesk.localization;
+        const planningActionsGroupId = 'planning-actions';
 
         const result: IExtensionActivationResult = {
             contributions: {
                 entities: {
                     article: {
-                        getActions: (item) => [{
-                            label: superdesk.localization.gettext('Fulfil assignment'),
-                            groupId: 'planning-actions',
-                            icon: 'calendar-list',
-                            onTrigger: () => {
-                                if (
-                                    !item.assignment_id &&
-                                    isContentLinkToCoverageAllowed(item) &&
-                                    !superdesk.entities.article.isPersonal(item) &&
-                                    superdesk.privileges.hasPrivilege('archive') &&
-                                    !superdesk.entities.article.isLockedInOtherSession(item) &&
-                                    !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
-                                ) {
-                                    const event = new CustomEvent('planning:fulfilassignment', {detail: item});
+                        getActions: (item) => [
+                            {
+                                label: gettext('Unlink as Coverage'),
+                                groupId: planningActionsGroupId,
+                                icon: 'cut',
+                                onTrigger: () => {
+                                    const superdeskArticle = superdesk.entities.article;
 
-                                    window.dispatchEvent(event);
-                                }
+                                    // keep in sync with index.ts:108
+                                    if (
+                                        superdesk.privileges.hasPrivilege('archive') &&
+                                        item.assignment_id != null &&
+                                        !superdeskArticle.isPersonal(item) &&
+                                        !superdeskArticle.isLockedInOtherSession(item) &&
+                                        (
+                                            superdeskArticle.itemAction(item).edit ||
+                                            superdeskArticle.itemAction(item).correct ||
+                                            superdeskArticle.itemAction(item).deschedule
+                                        )
+                                    ) {
+                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
+
+                                        window.dispatchEvent(event);
+                                    }
+                                },
                             },
-                        }],
+                            {
+                                label: superdesk.localization.gettext('Fulfil assignment'),
+                                groupId: planningActionsGroupId,
+                                icon: 'calendar-list',
+                                onTrigger: () => {
+
+                                    // keep in sync with index.ts:79
+                                    if (
+                                        !item.assignment_id &&
+                                        isContentLinkToCoverageAllowed(item) &&
+                                        !superdesk.entities.article.isPersonal(item) &&
+                                        superdesk.privileges.hasPrivilege('archive') &&
+                                        !superdesk.entities.article.isLockedInOtherSession(item) &&
+                                        !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state)
+                                    ) {
+                                        const event = new CustomEvent('planning:fulfilassignment', {detail: item});
+
+                                        window.dispatchEvent(event);
+                                    }
+                                },
+                            }
+                        ],
                         onSpike: (item: IArticle) => onSpike(superdesk, item),
                         onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                         onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
