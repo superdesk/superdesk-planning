@@ -115,7 +115,7 @@ export class AddToPlanningController {
         return Promise.resolve();
     }
 
-    loadWorkspace(store, workspaceChanged) {
+    loadWorkspace(store) {
         this.store = store;
 
         return this.loadArchiveItem()
@@ -243,13 +243,13 @@ export class AddToPlanningController {
                     .replace('{{ field }}', field);
                 const labels = GET_LABEL_MAP();
 
-                if (newsItem?.assignment_id) {
+                if (newsItem.assignment_id) {
                     errMessages.push(this.gettext('Item already linked to a Planning item'));
                 }
 
                 Object.keys(planningSchema)
                     .filter((field) => (
-                        contentProfile.schema[field] != null &&
+                        contentProfile.schema?.[field] != null &&
                         planningSchema[field]?.required === true &&
                         isEmpty(newsItem[field]) &&
                         !isNumber(newsItem[field])
