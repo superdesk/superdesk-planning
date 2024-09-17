@@ -22,7 +22,7 @@ const DEFAULT_PLANNING_SCHEMA = {
 
 export class AddToPlanningController {
     $scope: any;
-    notify: typeof superdeskApi['ui']['notify'];
+    notify: {error: (message: string) => void};
     gettext: (
         value: string,
         params?: {[placeholder: string]: string | number | React.ComponentType},
