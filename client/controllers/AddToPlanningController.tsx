@@ -11,7 +11,7 @@ import {WORKSPACE, MODALS} from '../constants';
 import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
 import {IArticle, IContentProfile} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
-import {PLANNING_VIEW} from 'interfaces';
+import {PLANNING_VIEW} from '../interfaces';
 
 const DEFAULT_PLANNING_SCHEMA = {
     anpa_category: {required: true},
