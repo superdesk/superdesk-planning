@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {planning} from '../actions';
-import {isEmpty, isNumber} from 'lodash';
+import {get, isEmpty, isNumber} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS} from '../constants';
 import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
@@ -70,17 +70,17 @@ export class AddToPlanningController {
 
         this.store = null;
         this.newsItem = null;
-        this.item = $scope?.locals?.data?.item ?? {};
+        this.item = $scope.locals?.data?.item ?? {};
         this.rendered = false;
 
-        if (this.item?.archive_item) {
+        if (this.item.archive_item) {
             this.item = this.item.archive_item;
         }
 
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);
 
-        if (this.item?.archive_item) {
+        if (this.item.archive_item) {
             this.item = this.item.archive_item;
         }
 
@@ -159,7 +159,7 @@ export class AddToPlanningController {
             }
 
             // update the scope item.
-            if (this.item && this.newsItem?.assignment_id) {
+            if (this.item && this.newsItem.assignment_id) {
                 this.item.assignment_id = this.newsItem.assignment_id;
             }
 
