@@ -7,10 +7,11 @@ import {ModalsContainer} from '../components';
 import {planning} from '../actions';
 import {get, isEmpty, isNumber} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
-import {WORKSPACE, MODALS, MAIN} from '../constants';
+import {WORKSPACE, MODALS} from '../constants';
 import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
 import {IArticle, IContentProfile} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
+import {PLANNING_VIEW} from '../interfaces';
 
 const DEFAULT_PLANNING_SCHEMA = {
     anpa_category: {required: true},
@@ -20,6 +21,24 @@ const DEFAULT_PLANNING_SCHEMA = {
 };
 
 export class AddToPlanningController {
+    $scope: any;
+    notify: {error: (message: string) => void};
+    gettext: (
+        value: string,
+        params?: {[placeholder: string]: string | number | React.ComponentType},
+    ) => string;
+    api: any;
+    lock: any;
+    session: any;
+    userList: any;
+    $timeout: any;
+    superdeskFlags: any;
+    $element: any;
+    store: any;
+    newsItem: any;
+    item: any;
+    rendered: boolean;
+
     constructor(
         $element,
         $scope,
@@ -51,17 +70,17 @@ export class AddToPlanningController {
 
         this.store = null;
         this.newsItem = null;
-        this.item = get($scope, 'locals.data.item', {});
+        this.item = $scope.locals?.data?.item ?? {};
         this.rendered = false;
 
-        if (get(this.item, 'archive_item')) {
+        if (this.item.archive_item) {
             this.item = this.item.archive_item;
         }
 
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);
 
-        if (get(this.item, 'archive_item')) {
+        if (this.item.archive_item) {
             this.item = this.item.archive_item;
         }
 
@@ -96,7 +115,7 @@ export class AddToPlanningController {
         return Promise.resolve();
     }
 
-    loadWorkspace(store, workspaceChanged) {
+    loadWorkspace(store) {
         this.store = store;
 
         return this.loadArchiveItem()
@@ -111,7 +130,7 @@ export class AddToPlanningController {
                 registerNotifications(this.$scope, this.store);
 
                 return Promise.all([
-                    this.store.dispatch(actions.main.filter(MAIN.FILTERS.PLANNING)),
+                    this.store.dispatch(actions.main.filter(PLANNING_VIEW.PLANNING)),
                     planningApi.locks.loadLockedItems(),
                     this.store.dispatch(actions.fetchAgendas()),
                 ]);
@@ -140,7 +159,7 @@ export class AddToPlanningController {
             }
 
             // update the scope item.
-            if (this.item && get(this.newsItem, 'assignment_id')) {
+            if (this.item && this.newsItem.assignment_id) {
                 this.item.assignment_id = this.newsItem.assignment_id;
             }
 
@@ -151,8 +170,9 @@ export class AddToPlanningController {
         }
 
         // Only unlock the item if it was locked when launching this modal
-        if (get(this.newsItem, 'lock_session', null) !== null &&
-            get(this.newsItem, 'lock_action', 'edit') === 'add_to_planning') {
+        if ((this.newsItem?.lock_session ?? null) !== null
+            && (this.newsItem.lock_action ?? 'edit') === 'add_to_planning'
+        ) {
             this.lock.unlock(this.newsItem);
         }
 
@@ -197,20 +217,14 @@ export class AddToPlanningController {
         contentProfile: IContentProfile
     }> {
         return this.api.find('archive', this.item._id)
-            .then((newsItem: IArticle) => (
-                superdeskApi.entities.contentProfile.get(newsItem.profile)
-                    .then((contentProfile) => ({
-                        newsItem,
-                        contentProfile,
-                    }))
-                    .catch((error) => {
-                        this.notify.error(
-                            getErrorMessage(error, this.gettext('Failed to load content profile.'))
-                        );
-                        this.$scope.resolve(error);
-                        return Promise.reject(error);
-                    })
-            ), (error) => {
+            .then((newsItem: IArticle) => {
+                const contentProfile = superdeskApi.entities.contentProfile.get(newsItem.profile);
+
+                return {
+                    newsItem,
+                    contentProfile
+                };
+            }, (error) => {
                 this.notify.error(
                     getErrorMessage(error, this.gettext('Failed to load the item.'))
                 );
@@ -227,15 +241,15 @@ export class AddToPlanningController {
                 const planningSchema = profile.schema || DEFAULT_PLANNING_SCHEMA;
                 const requiredError = (field) => this.gettext('[{{ field }}] is a required field')
                     .replace('{{ field }}', field);
-                const labels = GET_LABEL_MAP(this.gettext);
+                const labels = GET_LABEL_MAP();
 
-                if (get(newsItem, 'assignment_id')) {
+                if (newsItem.assignment_id) {
                     errMessages.push(this.gettext('Item already linked to a Planning item'));
                 }
 
                 Object.keys(planningSchema)
                     .filter((field) => (
-                        contentProfile.schema[field] != null &&
+                        contentProfile.schema?.[field] != null &&
                         planningSchema[field]?.required === true &&
                         isEmpty(newsItem[field]) &&
                         !isNumber(newsItem[field])
