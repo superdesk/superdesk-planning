@@ -220,10 +220,10 @@ export class AddToPlanningController {
             .then((newsItem: IArticle) => {
                 const contentProfile = superdeskApi.entities.contentProfile.get(newsItem.profile);
 
-                return Promise.resolve({
+                return {
                     newsItem,
                     contentProfile
-                });
+                };
             }, (error) => {
                 this.notify.error(
                     getErrorMessage(error, this.gettext('Failed to load the item.'))
