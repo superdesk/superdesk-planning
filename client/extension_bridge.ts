@@ -13,7 +13,9 @@ import {getUserInterfaceLanguageFromCV} from './utils/users';
 import {isContentLinkToCoverageAllowed} from 'utils/archive';
 
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
+
+import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -31,6 +33,9 @@ interface IExtensionBridge {
             StateComponent: React.ComponentType<{assignment: IAssignmentItem}>;
         };
     };
+    planning: {
+        getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
+    },
     ui: {
         utils: {
             getUserInterfaceLanguageFromCV(): string;
@@ -47,6 +52,7 @@ interface IExtensionBridge {
 
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
+            PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}}>;
         };
     };
     fields: {
@@ -78,6 +84,9 @@ export const extensionBridge: IExtensionBridge = {
             StateComponent,
         },
     },
+    planning: {
+        getItemPlanningInfo,
+    },
     ui: {
         utils: {
             getUserInterfaceLanguageFromCV,
@@ -85,6 +94,7 @@ export const extensionBridge: IExtensionBridge = {
         },
         components: {
             EditorFieldVocabulary,
+            PlanningDetailsWidget,
         },
     },
     fields: {

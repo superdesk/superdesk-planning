@@ -14,6 +14,11 @@ import {IPlanningExtensionConfigurationOptions} from './extension_configuration_
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
 import {extensionBridge} from './extension_bridge';
+import {
+    PlanningDetailsWidget,
+    PLANNING_DETAILS_WIDGET_ID,
+    PLANNING_DETAILS_WIDGET_LABEL,
+} from './planning-details-widget';
 const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
@@ -111,6 +116,8 @@ const extension: IExtension = {
         const {gettext} = superdesk.localization;
         const planningActionsGroupId = 'planning-actions';
 
+        const {getItemPlanningInfo} = extensionBridge.planning;
+
         const result: IExtensionActivationResult = {
             contributions: {
                 entities: {
@@ -182,6 +189,24 @@ const extension: IExtension = {
                 notifications: {
                     'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
                 },
+                authoringSideWidgets: [
+                    {
+                        _id: PLANNING_DETAILS_WIDGET_ID,
+                        label: PLANNING_DETAILS_WIDGET_LABEL,
+                        order: 12,
+                        icon: 'tasks',
+                        component: PlanningDetailsWidget,
+                        isAllowed: (item) => item.assignment_id != null,
+                        getBadge: (item) => { // KEEP IN SYNC WITH client/index.ts
+                            if (item.assignment_id == null) {
+                                return Promise.resolve(null);
+                            }
+
+                            return getItemPlanningInfo({assignment_id: item.assignment_id})
+                                .then((planning) => planning.coverages.length.toString());
+                        },
+                    },
+                ],
                 globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
             },
         };
