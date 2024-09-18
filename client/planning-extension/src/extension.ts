@@ -19,7 +19,6 @@ import {
     PLANNING_DETAILS_WIDGET_ID,
     PLANNING_DETAILS_WIDGET_LABEL,
 } from './planning-details-widget';
-const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -115,7 +114,6 @@ const extension: IExtension = {
             && extensionConfig?.assignmentsTopBarWidget === true;
         const {gettext} = superdesk.localization;
         const planningActionsGroupId = 'planning-actions';
-
         const {getItemPlanningInfo} = extensionBridge.planning;
 
         const result: IExtensionActivationResult = {
@@ -154,6 +152,7 @@ const extension: IExtension = {
                                 icon: 'calendar-list',
                                 onTrigger: () => {
                                     const itemStates = ['killed', 'recalled', 'unpublished', 'spiked', 'correction'];
+                                    const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
 
                                     // keep in sync with index.ts:79
                                     if (
