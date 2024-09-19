@@ -134,9 +134,9 @@ const extension: IExtension = {
                                         item.state !== 'correction' &&
                                         extensionBridge.ui.utils.isContentLinkToCoverageAllowed(item) &&
                                         (
-                                            superdesk.entities.article.itemAction(item).edit ||
-                                            superdesk.entities.article.itemAction(item).correct ||
-                                            superdesk.entities.article.itemAction(item).deschedule
+                                            superdesk.entities.article.itemActions(item).edit ||
+                                            superdesk.entities.article.itemActions(item).correct ||
+                                            superdesk.entities.article.itemActions(item).deschedule
                                         )
                                     ) {
                                         const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});
@@ -159,9 +159,9 @@ const extension: IExtension = {
                                         !superdeskArticle.isPersonal(item) &&
                                         !superdeskArticle.isLockedInOtherSession(item) &&
                                         (
-                                            superdeskArticle.itemAction(item).edit ||
-                                            superdeskArticle.itemAction(item).correct ||
-                                            superdeskArticle.itemAction(item).deschedule
+                                            superdeskArticle.itemActions(item).edit ||
+                                            superdeskArticle.itemActions(item).correct ||
+                                            superdeskArticle.itemActions(item).deschedule
                                         )
                                     ) {
                                         const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
