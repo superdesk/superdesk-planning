@@ -103,6 +103,8 @@ function configurePlanning(superdesk) {
                         !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state);
                 }],
         })
+
+        // TAG: AUTHORING-ANGULAR
         .activity('planning.unlink', {
             label: gettext('Unlink as Coverage'),
             icon: 'cut',
@@ -120,6 +122,8 @@ function configurePlanning(superdesk) {
             ],
             group: gettext('Planning'),
             privileges: {archive: 1},
+
+            // keep in sync with client/planning-extension/src/extension.ts:126
             additionalCondition: ['archiveService', 'item', 'authoring',
                 function(archiveService, item, authoring) {
                     return item.assignment_id &&
@@ -160,6 +164,16 @@ window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
         ng.get('userList'),
         ng.get('$timeout'),
         ng.get('superdeskFlags'),
+    );
+});
+
+window.addEventListener('planning:unlinkfromcoverage', (event: CustomEvent) => {
+    ctrl.UnlinkAssignmentController(
+        event.detail,
+        ng.get('notify'),
+        ng.get('gettext'),
+        ng.get('api'),
+        ng.get('lock'),
     );
 });
 
