@@ -12,7 +12,7 @@ from io import BytesIO
 from unittest import mock
 import hmac
 
-from superdesk.tests import TestCase
+from planning.tests import TestCase
 from superdesk.publish import TransmitterFileEntry
 from superdesk.publish.transmitters.ftp import FTPPublishService
 from superdesk.publish.transmitters.http_push import HTTPPushService
