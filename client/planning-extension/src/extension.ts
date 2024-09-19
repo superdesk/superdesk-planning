@@ -13,7 +13,6 @@ import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 import {AutopostIngestRuleEditor} from './ingest_rule_autopost/AutopostIngestRuleEditor';
 import {AutopostIngestRulePreview} from './ingest_rule_autopost/AutopostIngestRulePreview';
-import {superdeskApi} from '../../../client/superdeskApi';
 import {extensionBridge} from './extension_bridge';
 import {
     PlanningDetailsWidget,
@@ -127,17 +126,17 @@ const extension: IExtension = {
                                 icon: 'calendar-list',
                                 onTrigger: () => {
                                     if (
-                                        superdeskApi.privileges.hasPrivilege('planning_planning_management') &&
-                                        superdeskApi.privileges.hasPrivilege('archive') &&
+                                        superdesk.privileges.hasPrivilege('planning_planning_management') &&
+                                        superdesk.privileges.hasPrivilege('archive') &&
                                         !item.assignment_id != null &&
-                                        !superdeskApi.entities.article.isPersonal(item) &&
-                                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                                        !superdesk.entities.article.isPersonal(item) &&
+                                        !superdesk.entities.article.isLockedInOtherSession(item) &&
                                         item.state !== 'correction' &&
                                         extensionBridge.ui.utils.isContentLinkToCoverageAllowed(item) &&
                                         (
-                                            superdeskApi.entities.article.itemAction(item).edit ||
-                                            superdeskApi.entities.article.itemAction(item).correct ||
-                                            superdeskApi.entities.article.itemAction(item).deschedule
+                                            superdesk.entities.article.itemAction(item).edit ||
+                                            superdesk.entities.article.itemAction(item).correct ||
+                                            superdesk.entities.article.itemAction(item).deschedule
                                         )
                                     ) {
                                         const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});

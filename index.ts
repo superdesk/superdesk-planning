@@ -144,11 +144,7 @@ window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const rootScope = ng.get('$rootScope');
 
     newElement.className = 'modal__dialog ng-scope';
-    rootScope.locals = {
-        data: {
-            item: e.detail
-        }
-    };
+    rootScope.locals = {data: {item: e.detail}};
 
     rootScope.resolve = () => newElement.remove();
 
