@@ -20,7 +20,7 @@ from io import BytesIO
 
 from lxml import etree
 from bson import ObjectId
-from flask import json, current_app as app
+from flask import json, current_app as app, request
 from eve.methods.common import resolve_document_etag
 from eve.utils import config, ParsedRequest, date_to_str
 
@@ -1318,23 +1318,24 @@ class PlanningService(Service):
                 if original_assigment:
                     assignment_service.system_update(ObjectId(assign_id), {"_to_delete": True}, original_assigment)
 
-        session_id = get_auth().get("_id")
-        user_id = get_user().get(config.ID_FIELD)
-        if len(deleted_assignments) > 0:
-            push_notification(
-                "assignments:delete",
-                items=deleted_assignments,
-                session=session_id,
-                user=user_id,
-            )
+        if request:
+            session_id = get_auth().get("_id")
+            user_id = get_user().get(config.ID_FIELD)
+            if len(deleted_assignments) > 0:
+                push_notification(
+                    "assignments:delete",
+                    items=deleted_assignments,
+                    session=session_id,
+                    user=user_id,
+                )
 
-        if len(failed_assignments) > 0 and notify:
-            push_notification(
-                "assignments:delete:fail",
-                items=failed_assignments,
-                session=session_id,
-                user=user_id,
-            )
+            if len(failed_assignments) > 0 and notify:
+                push_notification(
+                    "assignments:delete:fail",
+                    items=failed_assignments,
+                    session=session_id,
+                    user=user_id,
+                )
 
     def get_expired_items(self, expiry_datetime, spiked_planning_only=False):
         """Get the expired items
