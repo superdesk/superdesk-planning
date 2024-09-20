@@ -101,7 +101,7 @@ def create_new_plannings_from_embedded_planning(
                 # The Event item contains a value for this field (excluding ``None``), use that
                 new_planning[field] = event.get(field)
 
-        new_planning["subjects"] = get_enabled_subjects(event, profiles.planning)
+        new_planning["subject"] = get_enabled_subjects(event, profiles.planning)
 
         if "description_text" in profiles.planning.enabled_fields and event.get("definition_short"):
             new_planning["description_text"] = event.get("definition_short")
