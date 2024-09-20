@@ -50,7 +50,7 @@ def get_enabled_subjects(item: Dict[str, Any], profile: ContentProfileData) -> L
         return []
 
     try:
-        cv_schemes = profile.profile["schema"]["custom_vocabularies"]["vocabularies"]
+        cv_schemes = profile.profile["schema"]["custom_vocabularies"]["vocabularies"] or []
     except (KeyError, TypeError):
         cv_schemes = []
 
