@@ -237,7 +237,7 @@ class EventsPostService(EventsBaseService):
                     try:
                         planning_post_service.post([doc], related_planning=True)
                     except Exception as e:
-                        failed_planning_ids.append({"_id": doc["planning"], "error": e.description})
+                        failed_planning_ids.append({"_id": doc["planning"], "error": getattr(e, "description", str(e))})
             return failed_planning_ids
         for planning in plannings:
             if not planning.get("pubstatus") and planning.get("state") in [

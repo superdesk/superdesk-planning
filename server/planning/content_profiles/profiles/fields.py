@@ -120,7 +120,6 @@ subjectField = schema.ListField(
                 "type": "string",
                 "required": True,
                 "nullable": True,
-                "allowed": [],
             },
             "service": {"nullable": True},
             "parent": {"nullable": True},

@@ -13,7 +13,7 @@ from typing import List, Set
 from planning.types import StringFieldTranslation
 from planning.content_profiles.utils import AllContentProfileData
 
-from .common import SyncData
+from .common import SyncData, get_enabled_subjects
 
 
 def get_normalised_field_value(item, field):
@@ -143,6 +143,9 @@ def sync_existing_planning_item(
         _sync_planning_multilingual_field(sync_data, field, profiles)
         if field in coverage_sync_fields:
             _sync_coverage_field(sync_data, field, profiles)
+
+    if sync_data.planning.updates.get("subject"):
+        sync_data.planning.updates["subject"] = get_enabled_subjects(sync_data.planning.updates, profiles.planning)
 
     if sync_data.update_translations:
         translations: List[StringFieldTranslation] = []
