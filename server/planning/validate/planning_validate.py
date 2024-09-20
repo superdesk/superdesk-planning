@@ -102,6 +102,12 @@ class SchemaValidator(Validator):
         """
         pass
 
+    def _validate_vocabularies(self, vocabularies, field, value):
+        """
+        {'type': 'list', 'nullable': True}
+        """
+        pass
+
 
 class PlanningValidateResource(Resource):
     endpoint_name = "planning_validator"

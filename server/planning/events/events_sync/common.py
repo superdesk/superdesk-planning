@@ -11,6 +11,8 @@
 from typing import List, Dict, Any
 from dataclasses import dataclass
 
+from planning.content_profiles.utils import ContentProfileData
+
 
 @dataclass
 class SyncItemData:
@@ -34,3 +36,22 @@ class SyncData:
 class VocabsSyncData:
     coverage_states: Dict[str, Dict[str, str]]
     genres: Dict[str, Dict[str, str]]
+
+
+def get_enabled_subjects(item: Dict[str, Any], profile: ContentProfileData) -> List[Dict[str, Any]]:
+    """Returns the list of subjects (including custom_vocabularies) if they're enabled in Planning profile
+
+    :param item: The source item where the subjects are coming from
+    :param profile: The Planning ContentProfile to determine enabled fields & vocabularies
+    :return: A list containing the supported subjects and custom_vocabularies for Planning items
+    """
+
+    if not item.get("subject") or not {"subject", "custom_vocabularies"} & profile.enabled_fields:
+        return []
+
+    try:
+        cv_schemes = profile.profile["schema"]["custom_vocabularies"]["vocabularies"]
+    except (KeyError, TypeError):
+        cv_schemes = []
+
+    return [subject for subject in item["subject"] if not subject.get("scheme") or subject.get("scheme") in cv_schemes]

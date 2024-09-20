@@ -17,7 +17,7 @@ from superdesk import get_resource_service
 from planning.types import Event, EmbeddedPlanning, EmbeddedCoverageItem, Planning, Coverage, StringFieldTranslation
 from planning.content_profiles.utils import AllContentProfileData
 
-from .common import VocabsSyncData
+from .common import VocabsSyncData, get_enabled_subjects
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +47,6 @@ def create_new_plannings_from_embedded_planning(
         ]
         if field in profiles.planning.enabled_fields
     )
-
-    planning_fields.add("subject")
 
     multilingual_enabled = profiles.events.is_multilingual and profiles.planning.is_multilingual
     translations: List[StringFieldTranslation] = []
@@ -102,6 +100,8 @@ def create_new_plannings_from_embedded_planning(
             if event.get(field):
                 # The Event item contains a value for this field (excluding ``None``), use that
                 new_planning[field] = event.get(field)
+
+        new_planning["subjects"] = get_enabled_subjects(event, profiles.planning)
 
         if "description_text" in profiles.planning.enabled_fields and event.get("definition_short"):
             new_planning["description_text"] = event.get("definition_short")

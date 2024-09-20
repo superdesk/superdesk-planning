@@ -8,13 +8,14 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import TypedDict, Dict
+from typing import TypedDict, Dict, List
 
 
 class ContentFieldSchema(TypedDict, total=False):
     multilingual: bool
     field_type: str
     planning_auto_publish: bool  # Only available in ``related_plannings`` field
+    vocabularies: List[str]  # Only available in ``custom_vocabularies`` field
 
 
 class ContentFieldEditor(TypedDict):
