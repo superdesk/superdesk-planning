@@ -166,7 +166,10 @@ const eventsReducer = createReducer<IEventState>(initialState, {
 
         const planningIds = get(event, 'planning_ids', []);
 
-        planningIds.push(payload.planning_item);
+        if (planningIds.includes(payload.planning_item) !== true) {
+            planningIds.push(payload.planning_item);
+        }
+
         event.planning_ids = planningIds;
 
         return {

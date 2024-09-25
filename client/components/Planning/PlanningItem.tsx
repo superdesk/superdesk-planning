@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {Menu, Spacer} from 'superdesk-ui-framework/react';
+import {Menu, Spacer, SpacerBlock} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../superdeskApi';
 import {
@@ -246,89 +246,86 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             {renderFields(get(listFields, 'planning.primary_fields',
                                 PLANNING.LIST.PRIMARY_FIELDS), item, {}, language)}
                         </span>
-
-                        {event && (
-                            <span className="sd-no-wrap">
-                                <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY} />&nbsp;
-                                <EventDateTime item={event} />
-                            </span>
-                        )}
                     </Row>
-                    <Row classes="sd-overflow--visible"> {/** overflow is needed for coverage icons */}
-                        {isExpired && (
-                            <Label
-                                text={gettext('Expired')}
-                                iconType="alert"
-                                isHollow={true}
-                            />
-                        )}
-                        {secondaryFields.includes('state') && renderFields('state', item) }
-                        {eventUtils.isEventCompleted(event) && (
-                            <Label
-                                text={gettext('Event Completed')}
-                                iconType="success"
-                                isHollow={true}
-                            />
-                        )}
-                        {secondaryFields.includes('featured') &&
-                            renderFields('featured', item, {tooltipFlowDirection: 'right'})}
 
-                        {secondaryFields.includes('agendas') &&
-                            renderFields('agendas', item, {
-                                fieldsProps: {
-                                    agendas: {
-                                        agendas: planningUtils.getAgendaNames(item, agendas),
+                    <Spacer h gap="8" justifyContent="space-between" noWrap>
+                        <Spacer h gap="8" justifyContent="start" noWrap>
+                            {isExpired && (
+                                <Label
+                                    text={gettext('Expired')}
+                                    iconType="alert"
+                                    isHollow={true}
+                                />
+                            )}
+                            {secondaryFields.includes('state') && renderFields('state', item) }
+
+                            {eventUtils.isEventCompleted(event) && (
+                                <Label
+                                    text={gettext('Event Completed')}
+                                    iconType="success"
+                                    isHollow={true}
+                                />
+                            )}
+                            {secondaryFields.includes('featured') &&
+                                renderFields('featured', item, {tooltipFlowDirection: 'right'})}
+
+                            {secondaryFields.includes('agendas') &&
+                                renderFields('agendas', item, {
+                                    fieldsProps: {
+                                        agendas: {
+                                            agendas: planningUtils.getAgendaNames(item, agendas),
+                                        },
                                     },
-                                },
-                                noGrow: true,
-                            })}
+                                    noGrow: true,
+                                })}
 
-                        {(() => {
-                            const relatedEvents = this.props.item.related_events ?? [];
-                            const {relatedEventsUI} = this.props;
+                            {(() => {
+                                const relatedEvents = this.props.item.related_events ?? [];
+                                const {relatedEventsUI} = this.props;
 
-                            if (relatedEvents.length < 1 || relatedEventsUI == null) {
-                                return null;
-                            }
+                                if (relatedEvents.length < 1 || relatedEventsUI == null) {
+                                    return null;
+                                }
 
-                            return (
-                                <a
-                                    className="sd-line-input__input--related-item-link"
-                                    onClick={(event) => {
-                                        event.stopPropagation();
+                                return (
+                                    <a
+                                        className="sd-line-input__input--related-item-link"
+                                        onClick={(event) => {
+                                            event.stopPropagation();
 
-                                        relatedEventsUI.setVisibility(!relatedEventsUI.visible);
-                                    }}
-                                >
-                                    <Spacer h gap="4" alignItems="center" noWrap>
-                                        <span
-                                            style={{
-                                                paddingBlockStart: 1, // fixing icon alignment
-                                            }}
-                                        >
-                                            <i className="icon-event" />
-                                        </span>
-                                        <span>
-                                            {
-                                                relatedEventsUI.visible
-                                                    ? gettextPlural(
-                                                        relatedEvents.length,
-                                                        'Hide 1 event',
-                                                        'Hide {{n}} events',
-                                                        {n: relatedEvents.length},
-                                                    )
-                                                    : gettextPlural(
-                                                        relatedEvents.length,
-                                                        'Show 1 event',
-                                                        'Show {{n}} events',
-                                                        {n: relatedEvents.length},
-                                                    )
-                                            }
-                                        </span>
-                                    </Spacer>
-                                </a>
-                            );
-                        })()}
+                                            relatedEventsUI.setVisibility(!relatedEventsUI.visible);
+                                        }}
+                                    >
+                                        <Spacer h gap="4" alignItems="center" noWrap>
+                                            <span
+                                                style={{
+                                                    paddingBlockStart: 1, // fixing icon alignment
+                                                }}
+                                            >
+                                                <i className="icon-event" />
+                                            </span>
+                                            <span>
+                                                {
+                                                    relatedEventsUI.visible
+                                                        ? gettextPlural(
+                                                            relatedEvents.length,
+                                                            'Hide 1 event',
+                                                            'Hide {{n}} events',
+                                                            {n: relatedEvents.length},
+                                                        )
+                                                        : gettextPlural(
+                                                            relatedEvents.length,
+                                                            'Show 1 event',
+                                                            'Show {{n}} events',
+                                                            {n: relatedEvents.length},
+                                                        )
+                                                }
+                                            </span>
+                                        </Spacer>
+                                    </a>
+                                );
+                            })()}
+                        </Spacer>
 
                         {secondaryFields.includes('coverages') && renderFields('coverages', item, {
                             date,
@@ -339,7 +336,10 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             contacts,
                             filterLanguage,
                         })}
-                    </Row>
+                    </Spacer>
+
+                    <SpacerBlock v gap="8" />
+
                 </Column>
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
                     <CreatedUpdatedColumn

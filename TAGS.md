@@ -1,3 +1,7 @@
 # TAG: MULTIPLE_PRIMARY_EVENTS
 
 As we are changing the schema to allow more than one event to be associated to a planning item. To be able to do this gradually, we have introduced event linking types - primary and secondary. Secondary events will only be displayed as linked in the user interface, but will not be used for logic e.g. prevent spiking of a planning item. Events linked via a primary link type will work the same as a single related event used to work before we supported multiple linked events. It is only supported to have one related event that it using primary link. The goal is to eventually support linking multiple events using a primary link. The purpose of this tag is to mark places in the code where that support it missing.
+
+# TAG: AUTHORING-ANGULAR
+
+AUTHORING-ANGULAR tag is meant to mark code that has to be removed together with angular based authoring component when time comes.

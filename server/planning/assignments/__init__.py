@@ -137,14 +137,3 @@ def init_app(app):
         label=lazy_gettext("Default sort preferences for Assignment lists"),
         category=lazy_gettext("Assignments"),
     )
-
-    superdesk.register_default_user_preference(
-        "email:notification:assignments",
-        {
-            "type": "bool",
-            "enabled": True,
-            "default": True,
-        },
-        label=lazy_gettext("Send Assignment notifications via email"),
-        category=lazy_gettext("notifications"),
-    )

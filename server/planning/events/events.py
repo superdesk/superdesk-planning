@@ -175,7 +175,7 @@ class EventsService(superdesk.Service):
         self._enhance_event_item(doc)
 
     def _enhance_event_item(self, doc):
-        plannings = get_related_planning_for_events([doc[ID_FIELD]], "primary")
+        plannings = get_related_planning_for_events([doc[config.ID_FIELD]])
 
         if len(plannings):
             doc["planning_ids"] = [planning.get("_id") for planning in plannings]

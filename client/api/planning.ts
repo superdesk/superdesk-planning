@@ -21,11 +21,11 @@ import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
 import {PLANNING} from '../constants';
 import * as selectors from '../selectors';
-import * as actions from '../actions';
+import planningApis from '../actions/planning/api';
 
 const appConfig = config as IPlanningConfig;
 
-function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
+export function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
         agendas: arrayToString(params.agendas),
         no_agenda_assigned: params.no_agenda_assigned,
@@ -90,7 +90,7 @@ export function getPlanningById(
             .then(modifyItemForClient)
             .then((item) => {
                 if (saveToStore) {
-                    dispatch<any>(actions.planning.api.receivePlannings([item]));
+                    dispatch<any>(planningApis.receivePlannings([item]));
                 }
 
                 return item;
@@ -223,7 +223,7 @@ function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Promise
 
         return planning.update(plan, updates)
             .then((updatedPlan) => {
-                dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
+                dispatch<any>(planningApis.receivePlannings([updatedPlan]));
 
                 return updatedPlan;
             });
@@ -262,7 +262,7 @@ function addCoverageToWorkflow(
     return planning.update(plan, updates)
         .then((updatedPlan) => {
             notify.success(gettext('Coverage added to workflow.'));
-            dispatch<any>(actions.planning.api.receivePlannings([updatedPlan]));
+            dispatch<any>(planningApis.receivePlannings([updatedPlan]));
 
             return updatedPlan;
         })

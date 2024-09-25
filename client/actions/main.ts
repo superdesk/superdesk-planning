@@ -1,7 +1,10 @@
 import {get, isEmpty, isEqual, isNil, omit} from 'lodash';
 import moment from 'moment';
 
-import {appConfig} from 'appConfig';
+import {appConfig as config} from 'appConfig';
+
+const appConfig = config as IPlanningConfig;
+
 import {IUser} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {
@@ -18,6 +21,7 @@ import {
     ITEM_TYPE,
     IEventTemplate,
     IEventItem,
+    IPlanningConfig,
 } from '../interfaces';
 
 import {
@@ -68,6 +72,7 @@ import eventsPlanningUi from './eventsPlanning/ui';
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
 import {searchParamsToOld} from '../utils/search';
+import {searchAndStore} from '../api/combined';
 
 function openForEdit(item: IEventOrPlanningItem, updateUrl: boolean = true, modal: boolean = false) {
     return (dispatch, getState) => {
@@ -716,7 +721,7 @@ const openIgnoreCancelSaveModal = ({
         const storedItems = itemType === ITEM_TYPE.EVENT ?
             selectors.events.storedEvents(getState()) :
             selectors.planning.storedPlannings(getState());
-        const item = get(storedItems, itemId) || {};
+        const item = storedItems[itemId] ?? {};
 
         if (!isExistingItem(item)) {
             delete item._id;
@@ -725,19 +730,17 @@ const openIgnoreCancelSaveModal = ({
         let promise = Promise.resolve(item);
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
-            const originalEvent = get(storedItems, itemId, {});
-
-            promise = dispatch(eventsApi.query({
-                recurrenceId: originalEvent.recurrence_id,
-                maxResults: appConfig.max_recurrent_events,
-                onlyFuture: false,
-            }))
-                .then((relatedEvents) => ({
-                    ...item,
-                    _recurring: relatedEvents || [item],
-                    _events: [],
-                    _originalEvent: originalEvent,
-                }));
+            promise = searchAndStore({
+                recurrence_id: item.recurrence_id,
+                max_results: appConfig.max_recurrent_events,
+                only_future: false,
+                include_associated_planning: true,
+            }).then((relatedEvents) => ({
+                ...item,
+                _recurring: relatedEvents.filter((item) => item.type === 'event') ?? [item],
+                _events: [],
+                _originalEvent: item,
+            }));
         }
 
         return promise.then((itemWithAssociatedData) => (
@@ -1199,8 +1202,10 @@ const openFromLockActions = () => (
             if (action) {
                 /* get the item we're operating on */
                 dispatch(self.fetchById(sessionLastLock.item_id, sessionLastLock.item_type)).then((item) => {
-                    actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: false,
-                        planningOnly: false})[action[0].actionName](item, false, false);
+                    actionUtils.getActionDispatches({
+                        dispatch: dispatch, eventOnly: false,
+                        planningOnly: false
+                    })[action[0].actionName](item, false, false);
                 });
             }
         }
@@ -1459,7 +1464,7 @@ function onItemUnlocked(
             }));
 
             if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(state)
-                    === WORKSPACE.AUTHORING) {
+                === WORKSPACE.AUTHORING) {
                 dispatch(self.closePreviewAndEditorForItems([item]));
             }
         }

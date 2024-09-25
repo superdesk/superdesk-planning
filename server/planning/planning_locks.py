@@ -93,7 +93,7 @@ def _get_planning_module_locks():
             continue
 
         lock = {
-            "item_id": item.get("_id") if not item.get("recurrence_id") else item["recurrence_id"],
+            "item_id": item.get("_id"),
             "item_type": item.get("type"),
             "user": item.get("lock_user"),
             "session": item.get("lock_session"),
@@ -102,7 +102,7 @@ def _get_planning_module_locks():
         }
         primary_event_id = get_first_related_event_id_for_planning(item, "primary")
         if item.get("recurrence_id"):
-            locks["recurring"][lock["item_id"]] = lock
+            locks["recurring"][item["recurrence_id"]] = lock
         elif primary_event_id is not None:
             locks["event"][primary_event_id] = lock
         else:

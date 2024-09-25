@@ -47,7 +47,7 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         const profile = planningApi.contentProfiles.get('planning');
         const groups = getEditorFormGroupsFromProfile(profile);
 
-        if (getRelatedEventLinksForPlanning(item, 'primary').length === 0) {
+        if (getRelatedEventLinksForPlanning(item).length === 0) {
             delete groups['associated_event'];
         }
         const bookmarks = getBookmarksFromFormGroups(groups);

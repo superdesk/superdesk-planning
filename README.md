@@ -187,6 +187,9 @@ Below sections include the config options that can be defined in settings.py.
       * language (includes `languages` if multilingual is enabled)
       * definition_short (copies to Planning item's `Description Text`)
       * priority
+* PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS
+    * Default: False (the current behavior where assignee details are removed)
+    * If true, the `assigned_to` field (assignee details) is retained when duplicating planning items with coverages.
 
 ### Assignments Config
 * SLACK_BOT_TOKEN

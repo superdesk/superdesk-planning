@@ -390,6 +390,7 @@ export interface IEventLocation {
         lat: number;
         lon: number;
     };
+    translations?: ILocation['translations'];
 }
 
 export interface IItemAction {
@@ -2239,6 +2240,7 @@ export interface IPlanningAPI {
         getEditorProfile(): ICoverageFormProfile;
     };
     combined: {
+        searchAndStore(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         search(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventOrPlanningItem>>;
         getRecurringEventsAndPlanningItems(

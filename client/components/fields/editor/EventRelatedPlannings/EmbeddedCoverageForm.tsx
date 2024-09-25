@@ -65,7 +65,7 @@ function getLanguagesForCoverage(
 
     const language = (() => {
         if (isMultilingual) {
-            return event.languages.find((qcode) => (
+            return (event.languages ?? []).find((qcode) => (
                 coverageLanguage?.value?.qcode === qcode
             ));
         } else {

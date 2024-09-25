@@ -187,7 +187,7 @@ const fetchPlanningsEvents = (plannings: Array<IPlanningItem>) => (
         const loadedEvents = selectors.events.storedEvents(getState());
 
         const linkedEventIds = plannings
-            .map((plan) => getRelatedEventIdsForPlanning(plan, 'primary'))
+            .map((plan) => getRelatedEventIdsForPlanning(plan))
             .flat()
             .filter((eventId) => loadedEvents[eventId] == null);
 
@@ -482,7 +482,7 @@ const unpost = (original, updates) => (
  * Also loads all the associated contacts (if any)
  * @param  {array, object} plannings - An array of planning item objects
  */
-const receivePlannings = (plannings) => (
+const receivePlannings = (plannings): any => (
     (dispatch) => {
         dispatch(actions.contacts.fetchContactsFromPlanning(plannings));
         dispatch({

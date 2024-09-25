@@ -223,7 +223,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         if planning_elt is not None:
             headline_elt = planning_elt.find(self.qname("headline"))
             content = planning_elt.find(self.qname("itemClass")).get("qcode")
-            planning = {"slugline": headline_elt.text.strip(), "g2_content_type": content.split(":")[1]}
+            planning = {"slugline": (headline_elt.text or "").strip(), "g2_content_type": content.split(":")[1]}
 
             description_elt = planning_elt.find(self.qname("description"))
             if description_elt is not None and description_elt.text:

@@ -2,9 +2,9 @@ import React from 'react';
 import {NestedItem} from '../../components/UI/List';
 import {PlanningItem} from '../Planning/PlanningItem';
 import {IEventItem, IEventListItemProps, IPlanningListItemProps} from 'interfaces';
-import {planningApi, superdeskApi} from '../../superdeskApi';
+import {superdeskApi} from '../../superdeskApi';
 import {EventItem} from '../../components/Events';
-import {Loader} from 'superdesk-ui-framework/react';
+import {eventUtils} from '../../utils';
 
 interface IProps {
     planningProps: IPlanningListItemProps;
@@ -14,40 +14,17 @@ interface IProps {
 
 interface IState {
     expanded: boolean;
-    events: {status: 'not-initialized'} | {status: 'loading'} | {status: 'ready'; items: Array<IEventItem>};
 }
 
 export class PlanningItemWithEvents extends React.Component<IProps, IState> {
-    private _mounted: boolean;
-
     constructor(props: IProps) {
         super(props);
 
-        this._mounted = false;
-
         this.state = {
             expanded: false,
-            events: {status: 'not-initialized'},
         };
 
-        this.loadEvents = this.loadEvents.bind(this);
         this.setVisibility = this.setVisibility.bind(this);
-    }
-
-    componentDidMount(): void {
-        this._mounted = true;
-    }
-
-    componentWillUnmount(): void {
-        this._mounted = false;
-    }
-
-    private loadEvents(): void {
-        planningApi.events.getByIds(this.props.relatedEventIds, 'draft').then((response) => {
-            if (this._mounted) { // would be good to use an AbortSignal.
-                this.setState({events: {status: 'ready', items: response}});
-            }
-        });
     }
 
     private setVisibility(expanded: boolean) {
@@ -56,18 +33,12 @@ export class PlanningItemWithEvents extends React.Component<IProps, IState> {
             expanded: expanded,
         };
 
-        if (nextState.expanded === true && this.state.events.status === 'not-initialized') {
-            nextState.events = {status: 'loading'};
-
-            this.loadEvents();
-        }
-
         this.setState(nextState);
     }
 
     render() {
         const {planningProps} = this.props;
-        const {assertNever} = superdeskApi.helpers;
+        const {WithLiveResources} = superdeskApi.components;
 
         return (
             <NestedItem
@@ -81,24 +52,31 @@ export class PlanningItemWithEvents extends React.Component<IProps, IState> {
                     />
                 )}
                 nestedChildren={(() => {
-                    switch (this.state.events.status) {
-                    case 'not-initialized':
+                    if (this.state.expanded !== true) {
                         return null;
-                    case 'loading':
-                        return (
-                            <Loader />
-                        );
-                    case 'ready':
-                        return this.state.events.items.map((event) => (
-                            <EventItem
-                                {...this.props.getEventProps(event)}
-                                multiSelectDisabled
-                                key={event._id}
-                            />
-                        ));
-                    default:
-                        assertNever(this.state.events);
                     }
+
+                    return (
+                        <WithLiveResources resources={[{resource: 'events', ids: this.props.relatedEventIds}]}>
+                            {([res]) => (
+                                <div>
+                                    {
+                                        res._items.map((item) => {
+                                            const event = eventUtils.modifyForClient(item);
+
+                                            return (
+                                                <EventItem
+                                                    {...this.props.getEventProps(event)}
+                                                    multiSelectDisabled
+                                                    key={event._id}
+                                                />
+                                            );
+                                        })
+                                    }
+                                </div>
+                            )}
+                        </WithLiveResources>
+                    );
                 })()}
                 expanded={this.state.expanded}
             />

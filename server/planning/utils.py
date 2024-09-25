@@ -89,14 +89,18 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
     return datetime
 
 
+def local_date(datetime: datetime, tz: pytz.BaseTzInfo) -> datetime:
+    return tz.normalize(parse_date(datetime).replace(tzinfo=pytz.utc).astimezone(tz))
+
+
 def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(get_app_config("TIME_FORMAT_SHORT", "%H:%M"))
+        return local_date(datetime, tz).strftime(get_app_config("TIME_FORMAT_SHORT", "%H:%M"))
 
 
 def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(get_app_config("DATE_FORMAT_SHORT", "%d/%m/%Y"))
+        return local_date(datetime, tz).strftime(get_app_config("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
@@ -219,3 +223,14 @@ def get_first_event_item_for_planning_id(
 
 def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
     return get_app_config("PLANNING_EVENT_LINK_METHOD", "one_primary")
+
+
+def update_event_item_with_translations_value(event_item: Dict[str, Any], language: str) -> Dict[str, Any]:
+    if not event_item.get("translations") or not language:
+        return event_item
+    updated_event_item = event_item.copy()
+    for translation in event_item["translations"]:
+        if translation["language"] == language:
+            updated_event_item[translation["field"]] = translation["value"]
+
+    return updated_event_item
