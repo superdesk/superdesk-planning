@@ -101,6 +101,27 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             });
     }
 
+    function dropPlanningItem(newPlanningItem: IPlanningItem) {
+        const editor = planningApi.editor(type);
+        const event = editor.form.getDiff<IEventItem>();
+        const plans = cloneDeep(event.associated_plannings || []);
+        const id = generateTempId();
+
+        plans.push(newPlanningItem);
+
+        editor.form.changeField('associated_plannings', plans)
+            .then(() => {
+                const node = getRelatedPlanningDomRef(id);
+
+                if (node.current != null) {
+                    node.current.scrollIntoView();
+                    editor.form.waitForScroll().then(() => {
+                        node.current.focus();
+                    });
+                }
+            });
+    }
+
     function removePlanningItem(item: DeepPartial<IPlanningItem>) {
         if (!item._id.startsWith(TEMP_ID_PREFIX)) {
             // We don't support removing existing Planning items
@@ -195,6 +216,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         getGroupsForItem,
         getRelatedPlanningDomRef,
         addPlanningItem,
+        dropPlanningItem,
         removePlanningItem,
         updatePlanningItem,
         onEventDatesChanged,
