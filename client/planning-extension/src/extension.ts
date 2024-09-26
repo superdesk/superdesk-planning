@@ -140,9 +140,12 @@ const extension: IExtension = {
                                             superdeskArticle.itemAction(item).deschedule
                                         )
                                     ) {
-                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
 
-                                        window.dispatchEvent(event);
+                                        superdeskArticle.get(item._id).then((_item) => {
+                                            const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item: _item}});
+
+                                            window.dispatchEvent(event);
+                                        })
                                     }
                                 },
                             },
@@ -157,15 +160,18 @@ const extension: IExtension = {
                                     // keep in sync with index.ts:79
                                     if (
                                         !item.assignment_id &&
-                                        isContentLinkToCoverageAllowed(item) &&
                                         !superdesk.entities.article.isPersonal(item) &&
-                                        superdesk.privileges.hasPrivilege('archive') &&
+                                        isContentLinkToCoverageAllowed(item) &&
                                         !superdesk.entities.article.isLockedInOtherSession(item) &&
-                                        !itemStates.includes(item.state)
+                                        !itemStates.includes(item.state) &&
+                                        superdesk.privileges.hasPrivilege('archive')
                                     ) {
-                                        const event = new CustomEvent('planning:fulfilassignment', {detail: item});
+                                        superdesk.entities.article.get(item._id).then((_item) => {
+                                            _item.slugline
+                                            const event = new CustomEvent('planning:fulfilassignment', {detail: {item: _item}});
 
-                                        window.dispatchEvent(event);
+                                            window.dispatchEvent(event);
+                                        })
                                     }
                                 },
                             }

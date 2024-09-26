@@ -75,66 +75,6 @@ function configurePlanning(superdesk) {
                             authoring.itemActions(item).deschedule
                         );
                 }],
-        })
-        .activity('planning.fulfil', {
-            label: gettext('Fulfil Assignment'),
-            icon: 'calendar-list',
-            modal: true,
-            priority: 2000,
-            controller: ctrl.FulFilAssignmentController,
-            filters: [
-                {
-                    action: 'list',
-                    type: 'archive',
-                },
-                {
-                    action: 'external-app',
-                    type: 'fulfill-assignment',
-                },
-            ],
-            group: gettext('Planning'),
-            privileges: {archive: 1},
-            additionalCondition: ['archiveService', 'item',
-                function(archiveService, item: IArticle) {
-                    return !item.assignment_id &&
-                        !archiveService.isPersonal(item) &&
-                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                        isContentLinkToCoverageAllowed(item) &&
-                        !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state);
-                }],
-        })
-
-        // TAG: AUTHORING-ANGULAR
-        .activity('planning.unlink', {
-            label: gettext('Unlink as Coverage'),
-            icon: 'cut',
-            priority: 1000,
-            controller: ctrl.UnlinkAssignmentController,
-            filters: [
-                {
-                    action: 'list',
-                    type: 'archive',
-                },
-                {
-                    action: 'external-app',
-                    type: 'unlink-assignment',
-                },
-            ],
-            group: gettext('Planning'),
-            privileges: {archive: 1},
-
-            // keep in sync with client/planning-extension/src/extension.ts:126
-            additionalCondition: ['archiveService', 'item', 'authoring',
-                function(archiveService, item, authoring) {
-                    return item.assignment_id &&
-                        !archiveService.isPersonal(item) &&
-                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                        (
-                            authoring.itemActions(item).edit ||
-                            authoring.itemActions(item).correct ||
-                            authoring.itemActions(item).deschedule
-                        );
-                }],
         });
 }
 
@@ -148,7 +88,7 @@ window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
 
     localScope.resolve = handleDestroy;
     localScope.reject = handleDestroy;
-    localScope.locals = {data: {item: event.detail}};
+    localScope.locals = {data: {item: event.detail.item}};
 
     new ctrl.FulFilAssignmentController(
         element,
