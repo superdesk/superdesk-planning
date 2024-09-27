@@ -140,12 +140,12 @@ const extension: IExtension = {
                                             superdeskArticle.itemAction(item).deschedule
                                         )
                                     ) {
-
                                         superdeskArticle.get(item._id).then((_item) => {
-                                            const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item: _item}});
-
-                                            window.dispatchEvent(event);
-                                        })
+                                            window.dispatchEvent(new CustomEvent(
+                                                'planning:unlinkfromcoverage',
+                                                {detail: {item: _item}},
+                                            ));
+                                        });
                                     }
                                 },
                             },
@@ -167,11 +167,11 @@ const extension: IExtension = {
                                         superdesk.privileges.hasPrivilege('archive')
                                     ) {
                                         superdesk.entities.article.get(item._id).then((_item) => {
-                                            _item.slugline
-                                            const event = new CustomEvent('planning:fulfilassignment', {detail: {item: _item}});
-
-                                            window.dispatchEvent(event);
-                                        })
+                                            window.dispatchEvent(new CustomEvent(
+                                                'planning:fulfilassignment',
+                                                {detail: {item: _item}},
+                                            ));
+                                        });
                                     }
                                 },
                             }
