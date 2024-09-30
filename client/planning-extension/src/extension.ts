@@ -152,7 +152,6 @@ const extension: IExtension = {
                                 onTrigger: () => {
                                     const superdeskArticle = superdesk.entities.article;
 
-                                    // keep in sync with client/planning-extension/src/extension.ts:123
                                     if (
                                         superdesk.privileges.hasPrivilege('archive') &&
                                         item.assignment_id != null &&

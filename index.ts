@@ -1,14 +1,8 @@
 // styles
 import './client/styles/index.scss';
-
-import {IArticle} from 'superdesk-api';
-import {superdeskApi} from './client/superdeskApi';
-
-// scripts
 import planningModule from './client';
 import * as ctrl from './client/controllers';
 import {gettext} from './client/utils/gettext';
-import {isContentLinkToCoverageAllowed} from './client/utils/archive';
 import ng from 'superdesk-core/scripts/core/services/ng';
 
 configurePlanning.$inject = ['superdeskProvider'];
@@ -40,66 +34,6 @@ function configurePlanning(superdesk) {
             privileges: {
                 planning_locations_management: 1,
             },
-        })
-        .activity('planning.fulfil', {
-            label: gettext('Fulfil Assignment'),
-            icon: 'calendar-list',
-            modal: true,
-            priority: 2000,
-            controller: ctrl.FulFilAssignmentController,
-            filters: [
-                {
-                    action: 'list',
-                    type: 'archive',
-                },
-                {
-                    action: 'external-app',
-                    type: 'fulfill-assignment',
-                },
-            ],
-            group: gettext('Planning'),
-            privileges: {archive: 1},
-            additionalCondition: ['archiveService', 'item',
-                function(archiveService, item: IArticle) {
-                    return !item.assignment_id &&
-                        !archiveService.isPersonal(item) &&
-                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                        isContentLinkToCoverageAllowed(item) &&
-                        !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state);
-                }],
-        })
-
-        // TAG: AUTHORING-ANGULAR
-        .activity('planning.unlink', {
-            label: gettext('Unlink as Coverage'),
-            icon: 'cut',
-            priority: 1000,
-            controller: ctrl.UnlinkAssignmentController,
-            filters: [
-                {
-                    action: 'list',
-                    type: 'archive',
-                },
-                {
-                    action: 'external-app',
-                    type: 'unlink-assignment',
-                },
-            ],
-            group: gettext('Planning'),
-            privileges: {archive: 1},
-
-            // keep in sync with client/planning-extension/src/extension.ts:126
-            additionalCondition: ['archiveService', 'item', 'authoring',
-                function(archiveService, item, authoring) {
-                    return item.assignment_id &&
-                        !archiveService.isPersonal(item) &&
-                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                        (
-                            authoring.itemActions(item).edit ||
-                            authoring.itemActions(item).correct ||
-                            authoring.itemActions(item).deschedule
-                        );
-                }],
         });
 }
 
