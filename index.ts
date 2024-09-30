@@ -41,41 +41,6 @@ function configurePlanning(superdesk) {
                 planning_locations_management: 1,
             },
         })
-        .activity('planning.addto', {
-            label: gettext('Add to Planning'),
-            modal: true,
-            icon: 'calendar-list',
-            priority: 3000,
-            controller: ctrl.AddToPlanningController,
-            filters: [
-                {
-                    action: 'list',
-                    type: 'archive',
-                },
-                {
-                    action: 'external-app',
-                    type: 'addto-planning',
-                },
-            ],
-            group: gettext('Planning'),
-            privileges: {
-                planning_planning_management: 1,
-                archive: 1,
-            },
-            additionalCondition: ['archiveService', 'item', 'authoring',
-                function(archiveService, item: IArticle, authoring) {
-                    return !item.assignment_id &&
-                        !archiveService.isPersonal(item) &&
-                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                        !['correction'].includes(item.state) &&
-                        isContentLinkToCoverageAllowed(item) &&
-                        (
-                            authoring.itemActions(item).edit ||
-                            authoring.itemActions(item).correct ||
-                            authoring.itemActions(item).deschedule
-                        );
-                }],
-        })
         .activity('planning.fulfil', {
             label: gettext('Fulfil Assignment'),
             icon: 'calendar-list',
