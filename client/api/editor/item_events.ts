@@ -109,7 +109,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
 
         plans.push(newPlanningItem);
 
-        editor.form.changeField('associated_plannings', plans)
+        editor.form.changeField('associated_plannings', plans, true, true)
             .then(() => {
                 const node = getRelatedPlanningDomRef(id);
 

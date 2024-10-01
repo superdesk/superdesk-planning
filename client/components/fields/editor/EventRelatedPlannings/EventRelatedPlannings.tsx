@@ -1,5 +1,4 @@
 import * as React from 'react';
-import planningApis from '../../../../actions/planning/api'
 import {connect} from 'react-redux';
 
 import {
@@ -45,7 +44,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                 return false;
             }
             return true;
-        }
+        };
 
         return (
             <div className="related-plannings">
@@ -109,15 +108,21 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                 )}
 
                 <DropZone3
-                    className='basic-drag-block'
-                    canDrop={(event) => canDrop(JSON.parse(event.dataTransfer.getData('application/superdesk.planningItem')))}
+                    className="basic-drag-block"
+                    canDrop={(event) => canDrop(
+                        JSON.parse(event.dataTransfer.getData('application/superdesk.planningItem')),
+                    )}
                     onDrop={(event) => {
                         event.preventDefault();
-                        const planningItem = JSON.parse(event.dataTransfer.getData('application/superdesk.planningItem'));
+                        const planningItem = JSON.parse(
+                            event.dataTransfer.getData('application/superdesk.planningItem'),
+                        );
 
-                        this.props.dispatch(planningApis.save(planningItem, {related_events: [{_id: this.props.item._id}]}))
-                        .then((updatedPlan) => {
-                            this.props.dropPlanningItem(updatedPlan);
+                        const planningItemsArray = planningItem.related_events ?? [];
+
+                        this.props.dropPlanningItem({
+                            ...planningItem,
+                            related_events: [...planningItemsArray, {_id: this.props.item._id}],
                         });
                     }}
                     multiple={true}

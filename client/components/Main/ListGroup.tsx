@@ -241,14 +241,14 @@ export class ListGroup extends React.Component<IProps> {
                                     const mimeTypes = ['application/superdesk.planningItem'];
 
                                     if (item.mimetype && item.mimetype.includes('application')) {
-                                      mimeTypes.push(item.mimetype);
+                                        mimeTypes.push(item.mimetype);
                                     }
 
                                     mimeTypes.forEach((mimetype) => {
-                                      dataTransfer.setData(mimetype, JSON.stringify(item));
+                                        dataTransfer.setData(mimetype, JSON.stringify(item));
                                     });
-                                
-                                    dataTransfer.effectAllowed = 'link'; 
+
+                                    dataTransfer.effectAllowed = 'link';
                                 }}
                             >
                                 <ListGroupItem {...itemProps} />

@@ -105,6 +105,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         }
     }
 
+    // TODO: beginning of function which remove associated_planning after saving
     onChangeHandler(field, value, updateDirtyFlag = true, saveAutosave = true) {
         // Use a callback to `this.setState` so we get the state value at the exact point when updating.
         // This allows consecutive updates to the state, while allowing React to batch these updates.

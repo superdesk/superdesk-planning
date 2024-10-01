@@ -161,6 +161,9 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
         update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
     })
         .then((response) => {
+            // we don't store associated_plannings field on the server but we need to preserve it on the client
+            // TODO: update the planningItem
+
             const events = modifySaveResponseForClient(response);
 
             return planningApi.planning.searchGetAll({

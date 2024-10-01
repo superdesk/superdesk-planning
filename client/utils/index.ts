@@ -229,6 +229,8 @@ export const createStore = (params = {}, app = planningApp) => {
             middlewares.push(createLogger());
         }
 
+        // TODO: log middlewares
+
         // activate redux devtools for non production instances,
         // if it's available in the browser
         // https://github.com/zalmoxisus/redux-devtools-extension
