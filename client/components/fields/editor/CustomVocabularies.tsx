@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import {IVocabulary} from 'superdesk-api';
+import {ISubject, IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps, IProfileSchemaTypeList} from '../../../interfaces';
 import {Row} from '../../UI/Form';
@@ -56,11 +56,14 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                         sortable={true}
                         kind="synchronous"
                         allowMultiple={true}
-                        value={item[itemFieldName] ?? []}
+                        value={item.subject.filter((x) => x.scheme === cv._id)}
                         label={gettext(cv.display_name)}
                         required={required ?? schema?.required}
                         getOptions={() => arrayToTree(
-                            cv.items,
+                            cv.items.map((cvItem) => ({
+                                ...cvItem,
+                                scheme: cv._id,
+                            })) as Array<ISubject>,
                             ({qcode}) => qcode.toString(),
                             ({parent}) => parent?.toString(),
                         ).result}
@@ -69,15 +72,18 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                             'name',
                             language,
                         )}
-                        getId={(item) => item.id}
+                        getId={(item) => item.qcode}
                         invalid={errors?.length > 0 || invalid}
                         error={showErrors ? errors[itemFieldName] : undefined}
                         readOnly={disabled}
                         disabled={disabled}
                         onChange={(vals) => {
-                            const filteredValues = vals.filter((value) => cv._id == null || value?.scheme === cv._id);
+                            const restOfItems = (item.subject ?? []).filter((x) => x.scheme !== cv._id);
 
-                            onChange(itemFieldName, filteredValues);
+                            onChange(
+                                'subject',
+                                [...restOfItems, ...vals],
+                            );
                         }}
                         tabindex={0}
                         zIndex={1051}
