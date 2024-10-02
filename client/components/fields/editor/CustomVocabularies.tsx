@@ -1,12 +1,13 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 
-import {ISubject, IVocabulary} from 'superdesk-api';
+import {IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps, IProfileSchemaTypeList} from '../../../interfaces';
 import {Row} from '../../UI/Form';
-import {getVocabularyItemNameFromString} from '../../../utils/vocabularies';
-import {EditorFieldTreeSelect} from '../editor/base/treeSelect';
+import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
+import {arrayToTree} from 'superdesk-core/scripts/core/helpers/tree';
+import {TreeSelect} from 'superdesk-ui-framework/react';
 
 interface IProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeList;
@@ -33,6 +34,8 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
             required,
             testId,
             language,
+            disabled,
+            invalid,
         } = this.props;
 
         const customVocabularies = vocabularies.filter((cv) =>
@@ -41,7 +44,7 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
 
         return customVocabularies.map((cv) => {
             const cvFieldName = `custom_vocabularies.${cv._id}`;
-            const parentField = cv.schema_field || 'subject';
+            const itemFieldName = cv.schema_field ?? 'subject';
 
             return (
                 <Row
@@ -49,35 +52,35 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                     id={`form-row-${cvFieldName}`}
                     data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
                 >
-                    <EditorFieldTreeSelect
-                        filterScheme={(values) => values.filter((value) => cv._id == null || value?.scheme === cv._id)}
-                        item={item}
-                        field={parentField}
-                        label={gettext(cv.display_name)}
-                        required={required || schema?.required}
-                        allowMultiple={true}
+                    <TreeSelect
                         sortable={true}
-                        getOptions={() => cv.items.map((item: ISubject) => ({value: {...item, scheme: cv._id}}))}
-                        getId={(item: ISubject) => item.qcode}
-                        getLabel={(item: ISubject) => (
-                            getVocabularyItemNameFromString(
-                                item.qcode,
-                                cv.items,
-                                'qcode',
-                                'name',
-                                language
-                            )
+                        kind="synchronous"
+                        allowMultiple={true}
+                        value={item[itemFieldName] ?? []}
+                        label={gettext(cv.display_name)}
+                        required={required ?? schema?.required}
+                        getOptions={() => arrayToTree(
+                            cv.items,
+                            ({qcode}) => qcode.toString(),
+                            ({parent}) => parent?.toString(),
+                        ).result}
+                        getLabel={(item) => getVocabularyItemFieldTranslated(
+                            item,
+                            'name',
+                            language,
                         )}
-                        onChange={(field, value) => {
-                            const otherCvValues = item[parentField] ?? [];
+                        getId={(item) => item.id}
+                        invalid={errors?.length > 0 || invalid}
+                        error={showErrors ? errors[itemFieldName] : undefined}
+                        readOnly={disabled}
+                        disabled={disabled}
+                        onChange={(vals) => {
+                            const filteredValues = vals.filter((value) => cv._id == null || value?.scheme === cv._id);
 
-                            const newValues = value.concat(
-                                otherCvValues.filter((value) => value?.scheme != cv._id)
-                            );
-
-                            onChange(field, newValues);
+                            onChange(itemFieldName, filteredValues);
                         }}
-                        errors={errors}
+                        tabindex={0}
+                        zIndex={1051}
                     />
                 </Row>
             );
