@@ -56,7 +56,7 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                         sortable={true}
                         kind="synchronous"
                         allowMultiple={true}
-                        value={item.subject.filter((x) => x.scheme === cv._id)}
+                        value={(item.subject ?? []).filter((x) => x.scheme === cv._id)}
                         label={gettext(cv.display_name)}
                         required={required ?? schema?.required}
                         getOptions={() => arrayToTree(
