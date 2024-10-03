@@ -48,8 +48,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
-    toggleRelatedPlanning(evt) {
-        evt.stopPropagation();
+    toggleRelatedPlanning(isOpen) {
         if (!this.state.openPlanningItems) {
             this.props.showRelatedPlannings(get(this.props, 'eventProps.item', {}));
         }
@@ -58,7 +57,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
 
         this.setState({
             activeIndex: activeIndex,
-            openPlanningItems: !this.state.openPlanningItems,
+            openPlanningItems: isOpen,
         });
 
         this.activateItem(activeIndex, false);
@@ -205,12 +204,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {gettextPlural} = superdeskApi.localization;
         const planningItems = get(this.props, 'eventProps.item.planning_ids', []).length;
-
-        const relatedPlanningText = this.state.openPlanningItems
-            ? gettextPlural(planningItems, 'Hide 1 planning item', 'Hide {{n}} planning items', {n: planningItems})
-            : gettextPlural(planningItems, 'Show 1 planning item', 'Show {{n}} planning items', {n: planningItems});
 
         const getPlannings = (item) => (
             get(this.props.relatedPlanningsInList, item._id, []).map((plan, index) => {
@@ -226,12 +220,20 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
 
         const eventProps = {
             ...this.props.eventProps,
-            toggleRelatedPlanning: this.toggleRelatedPlanning,
-            relatedPlanningText: relatedPlanningText,
+            planningItemsLength: planningItems,
         };
 
         // Event is always indexed as 0
-        const eventItem = <EventItem {...eventProps} active={this.state.activeIndex === 0} />;
+        const eventItem = (
+            <EventItem
+                {...eventProps}
+                active={this.state.activeIndex === 0}
+                relatedEventsUI={{
+                    visible: this.state.openPlanningItems,
+                    setVisibility: this.toggleRelatedPlanning,
+                }}
+            />
+        );
 
         return (
             <NestedItem
