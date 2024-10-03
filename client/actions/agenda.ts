@@ -10,6 +10,7 @@ import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
 import {convertStringFields} from '../utils/strings';
 import planningApis from '../actions/planning/api';
+import eventsApis from '../actions/events/api';
 
 const openAgenda = () => (
     (dispatch) => (
@@ -311,6 +312,12 @@ const createPlanningFromEvent = (
 
     return (dispatch) => (
         dispatch(planningApis.save({}, newPlanningItem))
+        .then((planningResponse) => {
+            return dispatch(eventsApis.fetchById(event.guid, {force: true, saveToStore: true, loadPlanning: false}))
+            .then(() => {
+                return planningResponse;
+            });
+        })
     );
 };
 
