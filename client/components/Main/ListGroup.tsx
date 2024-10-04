@@ -4,10 +4,13 @@ import {ListGroupItem} from './';
 import {Group, Header} from '../UI/List';
 import {
     ICommonAdvancedSearchParams,
-    IEventOrPlanningItem, ISearchFilter,
-    LIST_VIEW_TYPE, SORT_FIELD
+    IEventOrPlanningItem,
+    ILockedItems,
+    ISearchFilter,
+    LIST_VIEW_TYPE,
+    SORT_FIELD
 } from '../../interfaces';
-import {timeUtils} from '../../utils';
+import {lockUtils, timeUtils} from '../../utils';
 
 const TIME_COLUMN_MIN_WIDTH = {
     WITH_YEAR: '11rem',
@@ -55,7 +58,7 @@ interface IProps {
     onDoubleClick?(): void;
     editItem?: {};
     previewItem?: string;
-    lockedItems: {};
+    lockedItems: ILockedItems;
     agendas: Array<any>;
     session?: {};
     privileges?: {};
@@ -224,6 +227,7 @@ export class ListGroup extends React.Component<IProps> {
 
                         const id = listBoxGroupProps.getChildId(index);
                         const selectedId = listBoxGroupProps.containerProps['aria-activedescendant'];
+                        const isItemLocked = lockUtils.isItemLocked(item, this.props.lockedItems);
 
                         return (
                             <div
@@ -231,6 +235,21 @@ export class ListGroup extends React.Component<IProps> {
                                 role="option"
                                 aria-selected={id === selectedId ? true : undefined}
                                 key={item._id}
+                                draggable={!isItemLocked}
+                                onDragStart={(event) => {
+                                    const dataTransfer = event.dataTransfer;
+                                    const mimeTypes = ['application/superdesk.planningItem'];
+
+                                    if (item.mimetype && item.mimetype.includes('application')) {
+                                        mimeTypes.push(item.mimetype);
+                                    }
+
+                                    mimeTypes.forEach((mimetype) => {
+                                        dataTransfer.setData(mimetype, JSON.stringify(item));
+                                    });
+
+                                    dataTransfer.effectAllowed = 'link';
+                                }}
                             >
                                 <ListGroupItem {...itemProps} />
                             </div>

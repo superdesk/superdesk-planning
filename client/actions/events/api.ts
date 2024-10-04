@@ -394,12 +394,8 @@ const post = (original, updates) => (
             etag: original._etag,
             pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
             update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
-            failed_planning_ids: get(updates, 'failed_planning_ids', []),
         }).then(
-            (data) => Promise.all([
-                dispatch(self.fetchById(original._id, {force: true})),
-                {failedPlanningIds: data?.failed_planning_ids}
-            ]),
+            () => dispatch(self.fetchById(original._id, {force: true})),
             (error) => Promise.reject(error)
         )
     )
@@ -679,21 +675,6 @@ const createEventTemplate = (item: IEventItem) => (dispatch, getState, {api, mod
                         template_name: templateName,
                         based_on_event: item._id,
                         data: {
-                            embedded_planning: item.associated_plannings.map((planning) => ({
-                                coverages: planning.coverages.map((coverage) => ({
-                                    coverage_id: coverage.coverage_id,
-                                    g2_content_type: coverage.planning.g2_content_type,
-                                    desk: coverage.assigned_to.desk,
-                                    user: coverage.assigned_to.user,
-                                    language: coverage.planning.language,
-                                    news_coverage_status: coverage.news_coverage_status.qcode,
-                                    scheduled: coverage.planning.scheduled,
-                                    genre: coverage.planning.genre?.qcode,
-                                    slugline: coverage.planning.slugline,
-                                    ednote: coverage.planning.ednote,
-                                    internal_note: coverage.planning.internal_note,
-                                })),
-                            })),
                         },
                     })
                         .then(() => {

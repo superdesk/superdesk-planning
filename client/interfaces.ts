@@ -2165,6 +2165,7 @@ export interface IEditorAPI {
             };
             getRelatedPlanningDomRef(planId: IPlanningItem['_id']): React.RefObject<any>;
             addPlanningItem(): void;
+            dropPlanningItem(planningItem: IPlanningItem): void;
             removePlanningItem(item: DeepPartial<IPlanningItem>): void;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,
