@@ -12,6 +12,9 @@ module.exports = Object.assign({}, sharedConfigs, {
                 'camelcase': 0,
                 'no-prototype-builtins': 0, // allow hasOwnProperty
                 'react/prop-types': 0, // using interfaces
+
+                // can make functions harder to read; forces into rewriting the function to insert a debugger
+                'arrow-body-style': 0,
             },
         },
         {

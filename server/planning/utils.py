@@ -217,7 +217,7 @@ def get_first_event_item_for_planning_id(
 
 
 def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
-    return app.config.get("PLANNING_EVENT_LINK_METHOD", "one_primary")
+    return app.config.get("PLANNING_EVENT_LINK_METHOD", "one_primary_many_secondary")
 
 
 def update_event_item_with_translations_value(event_item: Dict[str, Any], language: str) -> Dict[str, Any]:

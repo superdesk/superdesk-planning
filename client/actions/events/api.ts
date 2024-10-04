@@ -1,4 +1,4 @@
-import {get, isEqual, cloneDeep, pickBy, has, find, every, take} from 'lodash';
+import {get, cloneDeep, has, find, every, take} from 'lodash';
 
 import {planningApi} from '../../superdeskApi';
 import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
@@ -19,7 +19,6 @@ import {
     isPublishedItemId,
     isTemporaryId,
     gettext,
-    getTimeZoneOffset,
 } from '../../utils';
 
 import planningApis from '../planning/api';
@@ -27,6 +26,9 @@ import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {planning, searchPlanning} from '../../api/planning';
+import {IRestApiResponse} from 'superdesk-api';
+import * as actions from '../../actions';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -547,6 +549,58 @@ const uploadFiles = (event) => (
     }
 );
 
+function getLinkedPlanningItems(eventId: string): Promise<IRestApiResponse<IPlanningItem>> {
+    return searchPlanning({only_future: false, event_item: [eventId]});
+}
+
+function updateLinkedPlanningsForEvent(
+    eventId: IEventItem['_id'],
+
+    /**
+     * these must be final values
+     * missing items will be linked, extra items unlinked
+     */
+    planningIds: Array<IPlanningItem['_id']>,
+):Promise<void> {
+    return getLinkedPlanningItems(eventId).then((res) => {
+        // note: planning items to which `eventId` is linked
+        const currentlyLinked: Array<IPlanningItem> = res._items;
+
+        const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
+        const toLink: Array<IPlanningItem['_id']> = planningIds.filter((id) => currentLinkedIds.has(id) !== true);
+        const toUnlink = currentlyLinked.filter((planningItem) => planningIds.includes(planningItem._id) !== true);
+
+        return Promise.all(
+            [
+                ...toLink.map((planningId) => {
+                    return planning.getById(planningId).then((planningItem) => {
+                        const patch: Partial<IPlanningItem> = {
+                            related_events: [
+                                ...(planningItem.related_events ?? []),
+                                {_id: eventId, link_type: 'secondary'},
+                            ],
+                        };
+
+                        return planning.update(planningItem, patch);
+                    });
+                }),
+                ...toUnlink.map((planningItem) => {
+                    const patch: Partial<IPlanningItem> = {
+                        related_events: (planningItem.related_events ?? [])
+                            .filter((item) => item._id !== eventId),
+                    };
+
+                    return planning.update(planningItem, patch);
+                }),
+            ],
+        ).then((updatedPlanningItems) => {
+            planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(updatedPlanningItems));
+
+            return null;
+        });
+    });
+}
+
 const save = (original, updates) => (
     (dispatch) => {
         let promise;
@@ -574,9 +628,17 @@ const save = (original, updates) => (
                 EVENTS.UPDATE_METHODS[0].value :
                 eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
-            return originalEvent?._id != null ?
+            const createOrUpdatePromise = originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :
                 planningApi.events.create(eventUpdates);
+
+            return createOrUpdatePromise.then((updatedEvents) => {
+                const nextAssociatedPlanningIds = updates.associated_plannings.map(({_id}) => _id);
+
+                return Promise.all(
+                    updatedEvents.map((event) => updateLinkedPlanningsForEvent(event._id, nextAssociatedPlanningIds)),
+                ).then(() => updatedEvents);
+            });
         });
     }
 );

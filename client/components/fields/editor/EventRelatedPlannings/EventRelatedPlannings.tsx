@@ -10,8 +10,7 @@ import {
 } from '../../../../interfaces';
 import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
-import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
-import {Row} from '../../../UI/Form';
+import {Button, Spacer} from 'superdesk-ui-framework/react';
 import {RelatedPlanningItem} from './RelatedPlanningItem';
 import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 
@@ -23,7 +22,7 @@ interface IProps extends IEditorFieldProps {
     coverageProfile?: ISearchProfile;
 
     getRef(value: DeepPartial<IPlanningItem>): React.RefObject<PlanningMetaData | RelatedPlanningItem>;
-    addPlanningItem(): void;
+    addPlanningItem(item?: IPlanningItem): void;
     removePlanningItem(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
     addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
@@ -32,49 +31,44 @@ interface IProps extends IEditorFieldProps {
 export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const {DropZone} = superdeskApi.components;
         const isAgendaEnabled = planningApi.planning.getEditorProfile().editor.agendas.enabled;
         const disabled = this.props.disabled || this.props.schema?.read_only;
 
         return (
             <div className="related-plannings">
-                <Row flex={true} noPadding={true}>
+                <Spacer h gap="4" justifyContent="space-between" noWrap>
                     <label className="InputArray__label side-panel__heading side-panel__heading--big">
                         {gettext('Related Plannings')}
                     </label>
+
                     {disabled ? null : (
-                        <ButtonGroup align="end">
-                            <Button
-                                type="primary"
-                                icon="plus-large"
-                                text="plus-large"
-                                shape="round"
-                                size="small"
-                                iconOnly={true}
-                                onClick={this.props.addPlanningItem}
-                            />
-                        </ButtonGroup>
+                        <Button
+                            type="primary"
+                            icon="plus-large"
+                            text="plus-large"
+                            shape="round"
+                            size="small"
+                            iconOnly={true}
+                            onClick={this.props.addPlanningItem}
+                        />
                     )}
-                </Row>
-                {!this.props.item.associated_plannings?.length ? (
-                    <Row>
-                        <div className="info-box--dashed">
-                            <label>{gettext('No related Planning yet')}</label>
-                        </div>
-                    </Row>
+                </Spacer>
+
+                {disabled ? (
+                    this.props.item.associated_plannings.map((plan, index) => (
+                        <PlanningMetaData
+                            ref={this.props.getRef(plan) as React.RefObject<PlanningMetaData>}
+                            key={plan._id}
+                            field={`plannings[${index}]`}
+                            plan={plan}
+                            scrollInView={true}
+                            tabEnabled={true}
+                        />
+                    ))
                 ) : (
-                    <React.Fragment>
-                        {disabled ? (
-                            this.props.item.associated_plannings.map((plan, index) => (
-                                <PlanningMetaData
-                                    ref={this.props.getRef(plan) as React.RefObject<PlanningMetaData>}
-                                    key={plan._id}
-                                    field={`plannings[${index}]`}
-                                    plan={plan}
-                                    scrollInView={true}
-                                    tabEnabled={true}
-                                />
-                            ))
-                        ) : (
+                    <>
+                        {
                             this.props.item.associated_plannings?.map((plan, index) => (
                                 <RelatedPlanningItem
                                     ref={this.props.getRef(plan) as React.RefObject<RelatedPlanningItem>}
@@ -92,8 +86,27 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     isAgendaEnabled={isAgendaEnabled}
                                 />
                             ))
-                        )}
-                    </React.Fragment>
+                        }
+
+                        <DropZone
+                            canDrop={
+                                (event) => event.dataTransfer.getData(
+                                    'application/superdesk.planning.planning_item',
+                                ) != null
+                            }
+                            onDrop={(event) => {
+                                event.preventDefault();
+                                const planningItem: IPlanningItem = JSON.parse(
+                                    event.dataTransfer.getData('application/superdesk.planning.planning_item'),
+                                );
+
+                                this.props.addPlanningItem(planningItem);
+                            }}
+                            multiple={true}
+                        >
+                            {gettext('Drop planning items here')}
+                        </DropZone>
+                    </>
                 )}
             </div>
         );
