@@ -107,7 +107,7 @@ describe('actions.events.api', () => {
             store.test(done, eventsApi.fetchById('e2'))
                 .then(() => {
                     expect(planningApis.events.getById.callCount).toBe(1);
-                    expect(planningApis.events.getById.args[0]).toEqual(['e2']);
+                    expect(planningApis.events.getById.args[0]).toEqual(['e2', undefined]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsApi.receiveEvents.args[0]).toEqual([[data.events[1]]]);
@@ -141,7 +141,7 @@ describe('actions.events.api', () => {
                     expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
 
                     expect(planningApis.events.getById.callCount).toBe(1);
-                    expect(planningApis.events.getById.args[0]).toEqual(['e2']);
+                    expect(planningApis.events.getById.args[0]).toEqual(['e2', {cache: false}]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsApi.receiveEvents.args[0]).toEqual([[data.events[1]]]);

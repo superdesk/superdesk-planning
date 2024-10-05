@@ -71,9 +71,9 @@ export function searchEventsGetAll(params: ISearchParams): Promise<Array<IEventI
     });
 }
 
-export function getEventById(eventId: IEventItem['_id'], params: IGetRequestParams): Promise<IEventItem> {
+export function getEventById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem> {
     return superdeskApi.dataApi
-        .findOne<IEventItem>('events', eventId + (params?.cache === false ? `?time=${Math.floor(Date.now() / 1000)}` : ''))
+        .findOne<IEventItem>('events', eventId + (params?.cache === false ? `?time=${Math.floor(Date.now() / 1000)}` : ''), params?.cache)
         .then(modifyItemForClient);
 }
 
