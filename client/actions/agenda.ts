@@ -312,12 +312,10 @@ const createPlanningFromEvent = (
 
     return (dispatch) => (
         dispatch(planningApis.save({}, newPlanningItem))
-        .then((planningResponse) => {
-            return dispatch(eventsApis.fetchById(event.guid, {force: true, saveToStore: true, loadPlanning: false}))
-            .then(() => {
-                return planningResponse;
-            });
-        })
+            .then((planningResponse) => dispatch(
+                eventsApis.fetchById(event.guid, {force: true, saveToStore: true, loadPlanning: false})
+            )
+                .then(() => planningResponse))
     );
 };
 
