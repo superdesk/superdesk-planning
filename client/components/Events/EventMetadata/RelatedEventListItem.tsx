@@ -20,7 +20,7 @@ interface IProps {
     showIcon?: boolean;
     shadow?: number;
     dateOnly?: boolean;
-    editEventComponent?: React.ReactNode;
+    eventActions?: React.ReactNode;
     onClick?(): void;
 
     // Redux Store
@@ -87,9 +87,9 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
                         withExpiredStatus={true}
                     />
                 </List.Column>
-                {!this.props.editEventComponent ? null : (
+                {!this.props.eventActions ? null : (
                     <List.ActionMenu>
-                        {this.props.editEventComponent}
+                        {this.props.eventActions}
                     </List.ActionMenu>
                 )}
             </List.Item>
