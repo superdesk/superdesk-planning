@@ -269,14 +269,14 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
                             const relatedPlanningText = relatedEventsUI.visible
                                 ? gettextPlural(
-                                    this.props.planningItemsLength,
+                                    this.props.relatedPlanningsCount,
                                     'Hide 1 planning item', 'Hide {{n}} planning items',
-                                    {n: this.props.planningItemsLength},
+                                    {n: this.props.relatedPlanningsCount},
                                 )
                                 : gettextPlural(
-                                    this.props.planningItemsLength,
+                                    this.props.relatedPlanningsCount,
                                     'Show 1 planning item', 'Show {{n}} planning items',
-                                    {n: this.props.planningItemsLength},
+                                    {n: this.props.relatedPlanningsCount},
                                 );
 
                             return (

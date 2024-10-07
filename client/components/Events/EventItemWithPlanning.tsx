@@ -220,7 +220,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
 
         const eventProps = {
             ...this.props.eventProps,
-            planningItemsLength: planningItems,
+            relatedPlanningsCount: planningItems,
         };
 
         // Event is always indexed as 0

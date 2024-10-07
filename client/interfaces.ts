@@ -926,7 +926,7 @@ export interface IBaseListItemProps<T> {
 export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
     calendars: Array<ICalendar>;
     filterLanguage?: string;
-    planningItemsLength?: number;
+    relatedPlanningsCount: number;
     relatedEventsUI?: {
         visible: boolean;
         setVisibility(value: boolean): void;
