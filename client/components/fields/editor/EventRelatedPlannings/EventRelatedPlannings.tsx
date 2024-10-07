@@ -100,7 +100,14 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     event.dataTransfer.getData('application/superdesk.planning.planning_item'),
                                 );
 
-                                this.props.addPlanningItem(planningItem);
+                                const alreadyExists = (this.props.item.associated_plannings ?? [])
+                                    .find((item) => item._id === planningItem._id) != null;
+
+                                if (alreadyExists) {
+                                    superdeskApi.ui.notify.error(gettext('This item is already added'));
+                                } else {
+                                    this.props.addPlanningItem(planningItem);
+                                }
                             }}
                             multiple={true}
                         >

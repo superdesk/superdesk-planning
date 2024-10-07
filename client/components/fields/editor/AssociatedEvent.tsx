@@ -112,7 +112,7 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
                                 );
 
                                 if (this.relatedItemExists(eventItem._id)) {
-                                    superdeskApi.ui.notify.error(gettext('Can not add the same item twice'));
+                                    superdeskApi.ui.notify.error(gettext('This item is already added'));
                                 } else {
                                     this.addRelatedEvent(eventItem._id);
                                 }
