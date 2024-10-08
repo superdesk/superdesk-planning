@@ -209,7 +209,7 @@ events_schema = {
                 "address": {"type": "object", "dynamic": True},
                 "geo": {"type": "string"},
                 "location": {"type": "geo_point"},
-            }
+            },
         },
         "nullable": True,
     },
