@@ -201,10 +201,12 @@ events_schema = {
     "location": {
         "type": "list",
         "mapping": {
+            "type": "object",
+            "dynamic": False,
             "properties": {
                 "qcode": not_analyzed,
                 "name": {"type": "string"},
-                "address": {"type": "object"},
+                "address": {"type": "object", "dynamic": True},
                 "geo": {"type": "string"},
                 "location": {"type": "geo_point"},
             }
