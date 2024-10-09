@@ -45,8 +45,7 @@ Feature: Coverage Content Profiles
             "xmp_file": {"enabled": false},
             "headline": {"enabled": false},
             "keyword": {"enabled": false},
-            "files": {"enabled": false},
-            "no_content_linking": {"enabled": false}
+            "files": {"enabled": false}
         },
         "schema": {
             "contact_info": {
@@ -101,10 +100,6 @@ Feature: Coverage Content Profiles
                 "required": false,
                 "type": "dict"
             },
-            "no_content_linking": {
-                "required": false,
-                "type": "boolean"
-            },
             "scheduled_updates": {
                 "required": false,
                 "type": "list"
@@ -118,7 +113,7 @@ Feature: Coverage Content Profiles
     Given "planning_types"
     """
     [{
-        "_id": 1,
+        "_id": "coverage",
         "name": "coverage",
         "editor": {
             "language": {
@@ -129,11 +124,16 @@ Feature: Coverage Content Profiles
             "headline": {
                 "enabled": true,
                 "index": 3
-            }
+            },
+            "no_content_linking": {"enabled": true}
         },
         "schema": {
             "language": {"required": true},
-            "headline": {"required": true}
+            "headline": {"required": true},
+            "no_content_linking": {
+                "required": false,
+                "type": "boolean"
+            }
         }
     }]
     """
@@ -168,3 +168,85 @@ Feature: Coverage Content Profiles
         }
     }]}
     """
+
+    @auth
+    Scenario: no_content_linking only available if PLANNING_LINK_UPDATES_TO_COVERAGES is enabled
+        # Test with default values
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": "__no_value__"
+            },
+            "schema": {
+                "no_content_linking": "__no_value__"
+            }
+        }]}
+        """
+        Given config update
+        """
+        {"PLANNING_LINK_UPDATES_TO_COVERAGES": true}
+        """
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": {"enabled": false}
+            },
+            "schema": {
+                "no_content_linking": {"required": false, "type": "boolean"}
+            }
+        }]}
+        """
+        # Now test with custom config
+        Given config update
+        """
+        {"PLANNING_LINK_UPDATES_TO_COVERAGES": false}
+        """
+        Given "planning_types"
+        """
+        [{
+            "_id": "coverage",
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": {"enabled": true}
+            },
+            "schema": {
+                "no_content_linking": {"required": false, "type": "boolean"}
+            }
+        }]
+        """
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": "__no_value__"
+            },
+            "schema": {
+                "no_content_linking": "__no_value__"
+            }
+        }]}
+        """
+        Given config update
+        """
+        {"PLANNING_LINK_UPDATES_TO_COVERAGES": true}
+        """
+        When we get "/planning_types"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "name": "coverage",
+            "editor": {
+                "no_content_linking": {"enabled": true}
+            },
+            "schema": {
+                "no_content_linking": {"required": false, "type": "boolean"}
+            }
+        }]}
+        """

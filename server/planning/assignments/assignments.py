@@ -1195,7 +1195,7 @@ class AssignmentsService(superdesk.Service):
         """
         Validate that we have a lock on the Assignment and it's associated Planning item
         """
-        if doc.get("_to_delete") is True:
+        if doc.get("_to_delete") is True or not request:
             # Already marked for delete - no validation needed (could be the background job)
             return
 
