@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {IVocabularyItem} from 'superdesk-api';
@@ -15,7 +15,10 @@ import {
     IPlanningConfig,
     IItemSubActions,
     IEventOccurStatus,
-    IEmbeddedPlanningItem, IPlanningCoverageItem, IEmbeddedCoverageItem,
+    IPlanningCoverageItem,
+    IEmbeddedCoverageItem,
+    EDITOR_TYPE,
+    IPlanningRelatedEventLink,
 } from '../interfaces';
 import {planningApi} from '../superdeskApi';
 import {appConfig as config} from 'appConfig';
@@ -468,7 +471,7 @@ function getEventItemActions(
     actions: Array<IItemAction>,
     locks: ILockedItems
 ): Array<IItemAction> {
-    let itemActions = [];
+    let itemActions: Array<IItemAction> = [];
     let key = 1;
 
     const actionsValidator = {
@@ -519,6 +522,45 @@ function getEventItemActions(
 
         key++;
     });
+
+    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+
+    if (
+        editor.item.getItemType() === 'planning'
+        && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
+        && editor.dom.fields['associated_event'] != null
+    ) {
+        const planningItem = editor.form.getDiff<IPlanningItem>();
+        const currentRelatedEvents: Array<IPlanningRelatedEventLink>
+            = cloneDeep((planningItem as IPlanningItem).related_events ?? []);
+
+        const alreadyAdded = currentRelatedEvents.some((item) => item._id === event._id);
+
+        if (!alreadyAdded) {
+            itemActions.push({
+                label: gettext('Add as related event'),
+                icon: 'icon-link',
+                callback: () => {
+                    const nextRelatedEvents: Array<IPlanningRelatedEventLink> = [
+                        ...currentRelatedEvents,
+                        {
+                            _id: event._id,
+                            link_type: 'secondary',
+                        },
+                    ];
+
+                    editor.form.changeField(
+                        'related_events',
+                        nextRelatedEvents,
+                        true,
+                        true,
+                    ).then(() => {
+                        editor.form.scrollToBookmarkGroup('associated_event', {focus: false});
+                    });
+                },
+            });
+        }
+    }
 
     if (isEmptyActions(itemActions)) {
         return [];
