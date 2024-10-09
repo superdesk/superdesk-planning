@@ -128,7 +128,6 @@ const extension: IExtension = {
                                 onTrigger: () => {
                                     const superdeskArticle = superdesk.entities.article;
 
-                                    // keep in sync with index.ts:108
                                     if (
                                         superdesk.privileges.hasPrivilege('archive') &&
                                         item.assignment_id != null &&
@@ -157,7 +156,6 @@ const extension: IExtension = {
                                     const itemStates = ['killed', 'recalled', 'unpublished', 'spiked', 'correction'];
                                     const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
 
-                                    // keep in sync with index.ts:79
                                     if (
                                         !item.assignment_id &&
                                         !superdesk.entities.article.isPersonal(item) &&
@@ -172,6 +170,8 @@ const extension: IExtension = {
                                                 {detail: {item: _item}},
                                             ));
                                         });
+                                    } else {
+                                        superdesk.ui.notify.error('This action is not permitted');
                                     }
                                 },
                             }
