@@ -2186,6 +2186,10 @@ export interface IEditorAPI {
     };
 }
 
+export interface IGetRequestParams {
+    cache?: boolean;
+}
+
 export interface IPlanningAPI {
     redux: {
         store: Store;
@@ -2193,7 +2197,7 @@ export interface IPlanningAPI {
     events: {
         search(params: ISearchParams): Promise<IRestApiResponse<IEventItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventItem>>;
-        getById(eventId: IEventItem['_id']): Promise<IEventItem>;
+        getById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem>;
         getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
         getEditorProfile(): IEventFormProfile;
         getSearchProfile(): IEventSearchProfile;
