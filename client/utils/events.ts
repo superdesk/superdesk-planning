@@ -464,6 +464,56 @@ function canMarkEventAsComplete(
     }
 }
 
+/**
+ * Will return true if there is at least one event that can be added
+ */
+export function canAddSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEventItem['_id']>): boolean {
+    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const contentProfileHasRelatedEventsField = editor.dom.fields['associated_event'] != null;
+    const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
+    const currentRelatedEvents: Array<IPlanningRelatedEventLink> = (planningItem?.related_events ?? []);
+
+    const isEventAlreadyAddedAsRelated: (eventId: string) => boolean =
+        (eventId: string) => currentRelatedEvents.find((item) => item._id === eventId) != null;
+
+    return editor.item.getItemType() === 'planning'
+        && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
+        && contentProfileHasRelatedEventsField
+        && eventIds.some((eventId) => isEventAlreadyAddedAsRelated(eventId) !== true);
+}
+
+/**
+ * Events that are already added will be ignored
+ */
+export function addSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEventItem['_id']>) {
+    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
+
+    const currentRelatedEvents: Array<IPlanningRelatedEventLink> = planningItem?.related_events ?? [];
+
+    const isEventAlreadyAddedAsRelated: (eventId: string) => boolean =
+        (eventId: string) => currentRelatedEvents.find((item) => item._id === eventId) != null;
+
+    const nextRelatedEvents: Array<IPlanningRelatedEventLink> = [
+        ...currentRelatedEvents,
+        ...eventIds
+            .filter((eventId) => isEventAlreadyAddedAsRelated(eventId) !== true)
+            .map((eventId): IPlanningRelatedEventLink => ({
+                _id: eventId,
+                link_type: 'secondary',
+            }))
+    ];
+
+    editor.form.changeField(
+        'related_events',
+        nextRelatedEvents,
+        true,
+        true,
+    ).then(() => {
+        editor.form.scrollToBookmarkGroup('associated_event', {focus: false});
+    });
+}
+
 function getEventItemActions(
     event: IEventItem,
     session: ISession,
@@ -523,43 +573,14 @@ function getEventItemActions(
         key++;
     });
 
-    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
-
-    if (
-        editor.item.getItemType() === 'planning'
-        && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
-        && editor.dom.fields['associated_event'] != null
-    ) {
-        const planningItem = editor.form.getDiff<IPlanningItem>();
-        const currentRelatedEvents: Array<IPlanningRelatedEventLink>
-            = cloneDeep((planningItem as IPlanningItem).related_events ?? []);
-
-        const alreadyAdded = currentRelatedEvents.some((item) => item._id === event._id);
-
-        if (!alreadyAdded) {
-            itemActions.push({
-                label: gettext('Add as related event'),
-                icon: 'icon-link',
-                callback: () => {
-                    const nextRelatedEvents: Array<IPlanningRelatedEventLink> = [
-                        ...currentRelatedEvents,
-                        {
-                            _id: event._id,
-                            link_type: 'secondary',
-                        },
-                    ];
-
-                    editor.form.changeField(
-                        'related_events',
-                        nextRelatedEvents,
-                        true,
-                        true,
-                    ).then(() => {
-                        editor.form.scrollToBookmarkGroup('associated_event', {focus: false});
-                    });
-                },
-            });
-        }
+    if (canAddSomeEventsAsRelatedToPlanningEditor([event._id])) {
+        itemActions.push({
+            label: gettext('Add as related event'),
+            icon: 'icon-link',
+            callback: () => {
+                addSomeEventsAsRelatedToPlanningEditor([event._id]);
+            },
+        });
     }
 
     if (isEmptyActions(itemActions)) {

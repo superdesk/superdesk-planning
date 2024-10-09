@@ -8,6 +8,8 @@ import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {Button} from './UI';
 import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
+import {addSomeEventsAsRelatedToPlanningEditor, canAddSomeEventsAsRelatedToPlanningEditor} from '../utils/events';
+import {superdeskApi} from '../superdeskApi';
 
 interface IReduxState {
     selectedEvents: Array<any>;
@@ -191,6 +193,8 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
         );
 
+        const {gettextPlural} = superdeskApi.localization;
+
         let tools = [(
             <Button
                 key={0}
@@ -243,6 +247,19 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             );
         }
 
+        if (canAddSomeEventsAsRelatedToPlanningEditor(selectedEvents.map(({_id}) => _id))) {
+            tools.push(
+                <Button
+                    key={5}
+                    onClick={() => {
+                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents.map(({_id}) => _id));
+                    }}
+                    hollow
+                    text={gettextPlural(selectedEvents.length, 'Add as related event', 'Add as related events')}
+                />
+            );
+        }
+
         return tools;
     }
 
@@ -274,10 +291,19 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             selectedEventIds,
         } = this.props;
 
-        const hideSlidingToolBar = (activeFilter === MAIN.FILTERS.PLANNING &&
-            selectedPlanningIds.length === 0) ||
-            (activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0) ||
-            activeFilter === MAIN.FILTERS.COMBINED;
+        const hideSlidingToolBar =
+            (
+                activeFilter === MAIN.FILTERS.PLANNING &&
+                selectedPlanningIds.length === 0
+            )
+            || (
+                activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0
+            )
+            || activeFilter === MAIN.FILTERS.COMBINED;
+
+        if (hideSlidingToolBar) {
+            return null;
+        }
 
         let innerTools = [(<a key={1} onClick={this.handleDeSelectAll.bind(this)}>{gettext('Deselect All')}</a>)];
 
