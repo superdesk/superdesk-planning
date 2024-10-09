@@ -113,7 +113,7 @@ const extension: IExtension = {
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
         const {gettext} = superdesk.localization;
-
+        const planningActionsGroupId = 'planning-actions';
         const {getItemPlanningInfo} = extensionBridge.planning;
 
         const result: IExtensionActivationResult = {
@@ -123,12 +123,11 @@ const extension: IExtension = {
                         getActions: (item) => [
                             {
                                 label: gettext('Unlink as Coverage'),
-                                groupId: 'planning-actions',
+                                groupId: planningActionsGroupId,
                                 icon: 'cut',
                                 onTrigger: () => {
                                     const superdeskArticle = superdesk.entities.article;
 
-                                    // keep in sync with client/planning-extension/src/extension.ts:123
                                     if (
                                         superdesk.privileges.hasPrivilege('archive') &&
                                         item.assignment_id != null &&
@@ -140,9 +139,39 @@ const extension: IExtension = {
                                             superdeskArticle.itemAction(item).deschedule
                                         )
                                     ) {
-                                        const event = new CustomEvent('planning:unlinkfromcoverage', {detail: {item}});
+                                        superdeskArticle.get(item._id).then((_item) => {
+                                            window.dispatchEvent(new CustomEvent(
+                                                'planning:unlinkfromcoverage',
+                                                {detail: {item: _item}},
+                                            ));
+                                        });
+                                    }
+                                },
+                            },
+                            {
+                                label: superdesk.localization.gettext('Fulfil assignment'),
+                                groupId: planningActionsGroupId,
+                                icon: 'calendar-list',
+                                onTrigger: () => {
+                                    const itemStates = ['killed', 'recalled', 'unpublished', 'spiked', 'correction'];
+                                    const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
 
-                                        window.dispatchEvent(event);
+                                    if (
+                                        !item.assignment_id &&
+                                        !superdesk.entities.article.isPersonal(item) &&
+                                        isContentLinkToCoverageAllowed(item) &&
+                                        !superdesk.entities.article.isLockedInOtherSession(item) &&
+                                        !itemStates.includes(item.state) &&
+                                        superdesk.privileges.hasPrivilege('archive')
+                                    ) {
+                                        superdesk.entities.article.get(item._id).then((_item) => {
+                                            window.dispatchEvent(new CustomEvent(
+                                                'planning:fulfilassignment',
+                                                {detail: {item: _item}},
+                                            ));
+                                        });
+                                    } else {
+                                        superdesk.ui.notify.error('This action is not permitted');
                                     }
                                 },
                             }
