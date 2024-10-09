@@ -10,7 +10,6 @@ import {EditorFieldVocabulary, IEditorFieldVocabularyProps} from './components/f
 
 import {getVocabularyItemFieldTranslated} from './utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from './utils/users';
-import {isContentLinkToCoverageAllowed} from './utils/archive';
 
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
