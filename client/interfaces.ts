@@ -2157,6 +2157,7 @@ export interface IEditorAPI {
     item: {
         getItemType(): string;
         getItemId(): IEventOrPlanningItem['_id'];
+        getItemAction(): IEditorProps['itemAction'];
         getAssociatedPlannings(): Array<IPlanningItem>;
         events: {
             getGroupsForItem(item: Partial<IEventItem>): {
