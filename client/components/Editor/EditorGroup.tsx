@@ -47,7 +47,7 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         }
     }
 
-    scrollIntoView() {
+    scrollIntoView(options?: {focus?: boolean}) {
         if (this.dom.div.current != null) {
             this.dom.div.current.scrollIntoView({behavior: 'smooth'});
         } else if (this.dom.toggle.current != null) {
@@ -61,7 +61,13 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         // Wait for scroll to complete, then attempt to focus the first field
         this.editorApi.form
             .waitForScroll()
-            .then(this.focus);
+            .then(() => {
+                const shouldFocus = options?.focus ?? true;
+
+                if (shouldFocus) {
+                    this.focus();
+                }
+            });
     }
 
     getBoundingClientRect() {

@@ -2053,7 +2053,7 @@ export interface IEditorFormGroup {
 }
 
 export abstract class IEditorRefComponent {
-    abstract scrollIntoView(): void;
+    abstract scrollIntoView(options?: {focus?: boolean}): void;
     abstract getBoundingClientRect(): DOMRect | undefined;
     abstract focus(): void;
 }
@@ -2140,7 +2140,7 @@ export interface IEditorAPI {
         ): Promise<void>;
 
         scrollToTop(): void;
-        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id']): void;
+        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id'], options?: {focus?: boolean}): void;
         waitForScroll(): Promise<void>;
 
         getAction(): IEditorAction;
