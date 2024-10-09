@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {IArticle, IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
-import {IArticle} from 'superdesk-api';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
