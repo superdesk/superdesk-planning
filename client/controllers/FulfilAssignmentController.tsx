@@ -3,12 +3,31 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
-import {get} from 'lodash';
 import {registerNotifications} from '../utils';
 import {WORKSPACE, MODALS, ASSIGNMENTS} from '../constants';
 import {getErrorMessage} from '../utils/index';
+import {IArticle} from 'superdesk-api';
 
 export class FulFilAssignmentController {
+    item: IArticle;
+    notify: {error: (message: string) => void};
+    gettext: (
+        value: string,
+        params?: {[placeholder: string]: string | number | React.ComponentType},
+    ) => string;
+    $scope: any;
+    store: any;
+    newsItem: any;
+    rendered: boolean;
+    $timeout: any;
+    lock: any;
+    $element: any;
+    session: any;
+    superdeskFlags: any;
+    userList: any;
+    api: any;
+    desks: any;
+
     constructor(
         $element,
         $scope,
@@ -43,20 +62,18 @@ export class FulFilAssignmentController {
 
         this.store = null;
         this.newsItem = null;
-        this.item = get($scope, 'locals.data.item', {});
+        this.item = $scope.locals?.data.item ?? {};
         this.rendered = false;
 
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);
 
-        if (get(this.item, 'archive_item')) { // use archive item for published
+        if (this.item?.archive_item) { // use archive item for published
             this.item = this.item.archive_item;
         }
 
-        if (get(this.item, 'slugline', '') === '') {
-            this.notify.error(
-                this.gettext('[SLUGLINE] is a required field')
-            );
+        if (!this.item?.slugline) {
+            this.notify.error(this.gettext('[SLUGLINE] is a required field'));
             this.$scope.resolve();
             return;
         }
@@ -92,7 +109,7 @@ export class FulFilAssignmentController {
         return Promise.resolve();
     }
 
-    loadWorkspace(store, workspaceChanged) {
+    loadWorkspace(store) {
         this.store = store;
 
         return this.loadArchiveItem()
@@ -120,15 +137,15 @@ export class FulFilAssignmentController {
             }, 1000);
 
             // Only unlock the item if it was locked when launching this modal
-            if (get(this.newsItem, 'lock_session', null) !== null &&
-                get(this.newsItem, 'lock_action', 'edit') === 'fulfil_assignment' &&
-                this.lock.isLockedInCurrentSession(this.newsItem)
+            if (this.newsItem?.lock_session != null
+                && (this.newsItem.lock_action ?? 'edit') === 'fulfil_assignment'
+                && this.lock.isLockedInCurrentSession(this.newsItem)
             ) {
                 this.lock.unlock(this.newsItem);
             }
 
             // update the scope item.
-            if (this.item && get(this.newsItem, 'assignment_id')) {
+            if (this.item && this.newsItem?.assignment_id) {
                 this.item.assignment_id = this.newsItem.assignment_id;
             }
         }
@@ -170,51 +187,42 @@ export class FulFilAssignmentController {
     }
 
     loadArchiveItem() {
-        return this.api.find('archive', this.item._id)
-            .then((newsItem) => {
-                if (get(newsItem, 'assignment_id')) {
-                    this.notify.error(
-                        this.gettext('Item already linked to a Planning item')
+        return this.api.find('archive', this.item._id).then((newsItem) => {
+            if (newsItem?.assignment_id) {
+                this.notify.error(this.gettext('Item already linked to a Planning item'));
+                this.$scope.resolve();
+                return Promise.reject();
+            }
+
+            if (this.lock.isLocked(newsItem)) {
+                this.notify.error(this.gettext('Item already locked.'));
+                this.$scope.resolve();
+                return Promise.reject();
+            }
+
+            if (!this.lock.isLockedInCurrentSession(newsItem)) {
+                newsItem._editable = true;
+                return this.lock.lock(newsItem, false, 'fulfil_assignment')
+                    .then(
+                        (lockedItem) => Promise.resolve(lockedItem),
+                        (error) => {
+                            this.notify.error(
+                                this.gettext(getErrorMessage(error, 'Failed to lock the item.'))
+                            );
+                            this.$scope.resolve(error);
+                            return Promise.reject(error);
+                        }
                     );
-                    this.$scope.resolve();
-                    return Promise.reject();
-                }
+            }
 
-                if (this.lock.isLocked(newsItem)) {
-                    this.notify.error(
-                        this.gettext('Item already locked.')
-                    );
-                    this.$scope.resolve();
-                    return Promise.reject();
-                }
-
-                if (!this.lock.isLockedInCurrentSession(newsItem)) {
-                    newsItem._editable = true;
-                    return this.lock.lock(newsItem, false, 'fulfil_assignment')
-                        .then(
-                            (lockedItem) => Promise.resolve(lockedItem),
-                            (error) => {
-                                this.notify.error(
-                                    this.gettext(
-                                        getErrorMessage(error, 'Failed to lock the item.')
-                                    )
-                                );
-                                this.$scope.resolve(error);
-                                return Promise.reject(error);
-                            }
-                        );
-                }
-
-                return Promise.resolve(newsItem);
-            }, (error) => {
-                this.notify.error(
-                    this.gettext(
-                        getErrorMessage(error, 'Failed to load the item.')
-                    )
-                );
-                this.$scope.resolve(error);
-                return Promise.reject(error);
-            });
+            return Promise.resolve(newsItem);
+        }, (error) => {
+            this.notify.error(
+                this.gettext(getErrorMessage(error, 'Failed to load the item.'))
+            );
+            this.$scope.resolve(error);
+            return Promise.reject(error);
+        });
     }
 }
 

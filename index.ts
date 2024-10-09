@@ -37,6 +37,34 @@ function configurePlanning(superdesk) {
         });
 }
 
+window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
+    const element = window.$(document.createElement('div'));
+    const localScope = ng.get('$rootScope').$new(true);
+    const handleDestroy = () => {
+        localScope.$broadcast('$destroy');
+        element[0].remove();
+    };
+
+    localScope.resolve = handleDestroy;
+    localScope.reject = handleDestroy;
+    localScope.locals = {data: {item: event.detail.item}};
+
+    new ctrl.FulFilAssignmentController(
+        element,
+        localScope,
+        ng.get('sdPlanningStore'),
+        ng.get('notify'),
+        ng.get('gettext'),
+        ng.get('lock'),
+        ng.get('session'),
+        ng.get('userList'),
+        ng.get('api'),
+        ng.get('$timeout'),
+        ng.get('superdeskFlags'),
+        ng.get('desks')
+    );
+});
+
 window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const newElement = document.createElement('div');
     const jQueryElement = window.$(newElement);
