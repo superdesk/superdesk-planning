@@ -2165,7 +2165,7 @@ export interface IEditorAPI {
                 groups: Array<IEditorFormGroup>;
             };
             getRelatedPlanningDomRef(planId: IPlanningItem['_id']): React.RefObject<any>;
-            addPlanningItem(item?: IPlanningItem, options?: {scrollIntoViewAndFocus?: boolean}): void;
+            addPlanningItem(item?: IPlanningItem, options?: {scrollIntoViewAndFocus?: boolean}): Promise<void>;
             removePlanningItem(item: DeepPartial<IPlanningItem>): void;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,

@@ -10,6 +10,7 @@ import {Button} from './UI';
 import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
 import {addSomeEventsAsRelatedToPlanningEditor, canAddSomeEventsAsRelatedToPlanningEditor} from '../utils/events';
 import {superdeskApi} from '../superdeskApi';
+import {addSomeRelatedPlanningsToEventEditor, canAddSomeRelatedPlanningsToEventEditor} from '../utils/planning';
 
 interface IReduxState {
     selectedEvents: Array<any>;
@@ -94,6 +95,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
     }
 
     getPlanningTools() {
+        const {gettextPlural} = superdeskApi.localization;
         const {
             selectedPlannings,
             privileges,
@@ -163,6 +165,23 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
                     color="warning"
                     icon="icon-unspike"
                     text={gettext('Unspike')}
+                />
+            );
+        }
+
+        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings.map(({_id}) => _id))) {
+            tools.push(
+                <Button
+                    key={4}
+                    onClick={() => {
+                        addSomeRelatedPlanningsToEventEditor(selectedPlannings);
+                    }}
+                    hollow
+                    text={gettextPlural(
+                        selectedPlannings.length,
+                        'Add as related planning',
+                        'Add as related plannings',
+                    )}
                 />
             );
         }

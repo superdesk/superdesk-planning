@@ -74,7 +74,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         return editor.dom.fields[field];
     }
 
-    function addPlanningItem(item?: IPlanningItem, options?: {scrollIntoViewAndFocus?: boolean}) {
+    function addPlanningItem(item?: IPlanningItem, options?: {scrollIntoViewAndFocus?: boolean}): Promise<void> {
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
         const plans = cloneDeep(event.associated_plannings || []);
@@ -94,7 +94,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
 
         plans.push(newPlanningItem);
 
-        editor.form.changeField('associated_plannings', plans)
+        return editor.form.changeField('associated_plannings', plans)
             .then(() => {
                 if (options.scrollIntoViewAndFocus ?? true) {
                     const node = getRelatedPlanningDomRef(newPlanningItem._id);
