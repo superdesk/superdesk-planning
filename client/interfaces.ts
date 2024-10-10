@@ -924,10 +924,13 @@ export interface IBaseListItemProps<T> {
 }
 
 export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
-    relatedPlanningText?: string;
     calendars: Array<ICalendar>;
     filterLanguage?: string;
-    toggleRelatedPlanning?(event: React.MouseEvent): void;
+    relatedPlanningsCount: number;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
 }
 
 export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem> {
@@ -2187,6 +2190,10 @@ export interface IEditorAPI {
     };
 }
 
+export interface IGetRequestParams {
+    cache?: boolean;
+}
+
 export interface IPlanningAPI {
     redux: {
         store: Store;
@@ -2194,7 +2201,7 @@ export interface IPlanningAPI {
     events: {
         search(params: ISearchParams): Promise<IRestApiResponse<IEventItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventItem>>;
-        getById(eventId: IEventItem['_id']): Promise<IEventItem>;
+        getById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem>;
         getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
         getEditorProfile(): IEventFormProfile;
         getSearchProfile(): IEventSearchProfile;
@@ -2241,6 +2248,7 @@ export interface IPlanningAPI {
         getEditorProfile(): ICoverageFormProfile;
     };
     combined: {
+        searchAndStore(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         search(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventOrPlanningItem>>;
         getRecurringEventsAndPlanningItems(

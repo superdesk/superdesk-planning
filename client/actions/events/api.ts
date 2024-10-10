@@ -319,7 +319,7 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);
         } else {
-            promise = planningApi.events.getById(eventId)
+            promise = planningApi.events.getById(eventId, force ? {cache: false} : undefined)
                 .then((event) => {
                     if (saveToStore) {
                         dispatch(self.receiveEvents([event]));

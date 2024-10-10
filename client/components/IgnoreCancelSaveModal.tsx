@@ -86,7 +86,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component<IProps, ISta
             return (
                 <UpdateRecurringEventsForm
                     original={this.props.modalProps.item}
-                    updates={this.props.modalProps.updates}
+                    updates={this.props.modalProps.updates as Partial<IEventItem>}
                     onEventUpdateMethodChange={this.onEventUpdateMethodChange}
                     onPlanningUpdateMethodChange={this.onPlanningUpdateMethodChange}
                     modalProps={{

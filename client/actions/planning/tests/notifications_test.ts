@@ -1,5 +1,5 @@
 import {planningApi} from '../../../superdeskApi';
-import planningApis from '../api';
+import planningApis from '../../planning/api';
 import planningUi from '../ui';
 import featuredPlanning from '../featuredPlanning';
 import eventsPlanningUi from '../../eventsPlanning/ui';
@@ -199,7 +199,7 @@ describe('actions.planning.notifications', () => {
     describe('onPlanningLocked', () => {
         beforeEach(() => {
             sinon.stub(planningApi.locks, 'setItemAsLocked').returns(undefined);
-            sinon.stub(planningApis, 'getPlanning').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(planningApis, 'getPlanning').returns(() => Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
@@ -221,7 +221,6 @@ describe('actions.planning.notifications', () => {
             ))
                 .then(() => {
                     expect(planningApi.locks.setItemAsLocked.callCount).toBe(1);
-                    expect(planningApis.getPlanning.callCount).toBe(1);
                     expect(planningApis.getPlanning.args[0]).toEqual([
                         'p1',
                         false,

@@ -1,6 +1,6 @@
 import React from 'react';
 import Geolookup from 'react-geolookup';
-import DebounceInput from 'react-debounce-input';
+import {DebounceInput} from 'react-debounce-input';
 
 import {appConfig} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';

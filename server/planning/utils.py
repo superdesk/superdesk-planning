@@ -88,14 +88,18 @@ def parse_date(datetime: Union[str, datetime]) -> datetime:
     return datetime
 
 
+def local_date(datetime: datetime, tz: pytz.BaseTzInfo) -> datetime:
+    return tz.normalize(parse_date(datetime).replace(tzinfo=pytz.utc).astimezone(tz))
+
+
 def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
+        return local_date(datetime, tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
 
 
 def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return parse_date(datetime).astimezone(tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
+        return local_date(datetime, tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:

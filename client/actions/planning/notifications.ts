@@ -14,6 +14,7 @@ import {events, fetchAgendas} from '../index';
 import main from '../main';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
+import planningApis from '../planning/api';
 
 /**
  * WS Action when a new Planning item is created
@@ -103,7 +104,7 @@ const onPlanningLocked = (e: {}, data: IWebsocketMessageData['ITEM_LOCKED']) => 
 
             const sessionId = selectors.general.session(getState()).sessionId;
 
-            return dispatch(planning.api.getPlanning(data.item, false))
+            return dispatch(planningApis.getPlanning(data.item, false))
                 .then((planInStore) => {
                     let plan = {
                         ...planInStore,

@@ -7,6 +7,7 @@ import {
     ISearchSpikeState,
     IPlanningConfig,
     IEventUpdateMethod,
+    IGetRequestParams,
 } from '../interfaces';
 import {appConfig as config} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
@@ -16,7 +17,7 @@ import {EVENTS, TEMP_ID_PREFIX} from '../constants';
 import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGetAll} from './search';
 import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
-import * as actions from '../actions';
+import planningApis from '../actions/planning/api';
 
 const appConfig = config as IPlanningConfig;
 
@@ -70,9 +71,13 @@ export function searchEventsGetAll(params: ISearchParams): Promise<Array<IEventI
     });
 }
 
-export function getEventById(eventId: IEventItem['_id']): Promise<IEventItem> {
+export function getEventById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem> {
     return superdeskApi.dataApi
-        .findOne<IEventItem>('events', eventId)
+        .findOne<IEventItem>(
+            'events',
+            eventId + (params?.cache === false ? `?time=${Math.floor(Date.now() / 1000)}` : ''),
+            params?.cache,
+        )
         .then(modifyItemForClient);
 }
 
@@ -161,7 +166,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
             }).then((planningItems) => {
                 // Make sure to update the Redux Store with the latest Planning items
                 // So that the Editor can set the state with these latest items
-                planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(planningItems));
+                planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(planningItems));
 
                 return events;
             });
@@ -207,7 +212,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
             }).then((planningItems) => {
                 // Make sure to update the Redux Store with the latest Planning items
                 // So that the Editor can set the state with these latest items
-                planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(planningItems));
+                planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(planningItems));
 
                 return events;
             });

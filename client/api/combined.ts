@@ -8,11 +8,11 @@ import {
     IEventOrPlanningItem,
 } from '../interfaces';
 import {IRestApiResponse} from 'superdesk-api';
-import {searchRaw, searchRawGetAll, convertCommonParams, cvsToString, arrayToString} from './search';
+import {searchRaw, searchRawGetAll, convertCommonParams, cvsToString, arrayToString, searchRawAndStore} from './search';
 import {eventUtils, planningUtils} from '../utils';
 import {planningApi} from '../superdeskApi';
 import {combinedSearchProfile} from '../selectors/forms';
-import {searchPlanningGetAll} from './planning';
+import {searchPlanningGetAll, convertPlanningParams} from './planning';
 import {searchEventsGetAll} from './events';
 
 type IResponse = IRestApiResponse<IEventOrPlanningItem>;
@@ -65,6 +65,18 @@ export function searchCombinedGetAll(params: ISearchParams): Promise<Array<IEven
 
             return items;
         });
+}
+
+export function searchAndStore(params: ISearchParams) {
+    return searchRawAndStore<IEventOrPlanningItem>({
+        ...convertCommonParams(params),
+        ...convertPlanningParams(params),
+        repo: FILTER_TYPE.COMBINED,
+    }).then((res) => {
+        res._items.forEach(modifyItemForClient);
+
+        return res._items;
+    });
 }
 
 export function getEventsAndPlanning(params: ISearchParams): Promise<{
@@ -145,5 +157,6 @@ export const combined: IPlanningAPI['combined'] = {
     getRecurringEventsAndPlanningItems: getRecurringEventsAndPlanningItems,
     getEventsAndPlanning: getEventsAndPlanning,
     getSearchProfile: getCombinedSearchProfile,
+    searchAndStore: searchAndStore,
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import DebounceInput from 'react-debounce-input';
+import {DebounceInput} from 'react-debounce-input';
 import {uniqueId} from 'lodash';
 import {KEYCODES} from '../constants';
 import {onEventCapture} from '../utils';

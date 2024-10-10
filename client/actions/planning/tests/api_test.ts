@@ -6,10 +6,8 @@ import {
     restoreSinonStub,
     convertEventDatesToMoment,
 } from '../../../utils/testUtils';
-import {createTestStore} from '../../../utils';
-import {PLANNING, SPIKED_STATE, WORKFLOW_STATE} from '../../../constants';
+import {PLANNING, SPIKED_STATE} from '../../../constants';
 import {MAIN} from '../../../constants';
-import * as selectors from '../../../selectors';
 import contactsApi from '../../contacts';
 import {planningApis} from '../../../api';
 

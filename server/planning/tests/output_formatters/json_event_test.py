@@ -2,7 +2,7 @@ import json
 import tempfile
 
 from unittest import mock
-from superdesk.tests import TestCase
+from planning.tests import TestCase
 from planning.output_formatters.json_event import JsonEventFormatter
 from planning.events import init_app
 from eve.methods.common import store_media_files

@@ -9,9 +9,9 @@ import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
-import planning from '../planning';
 import {hideModal, showModal} from '../index';
 import * as actions from '../../actions';
+import planningApis from '../planning/api';
 
 const _notifyAssignmentEdited = (assignmentId) => (
     (dispatch, getState, {notify}) => {
@@ -191,7 +191,7 @@ const _updatePlannigRelatedToAssignment = (data) => (
             return Promise.resolve();
         }
 
-        dispatch(planning.api.loadPlanningByIds([data.planning]));
+        dispatch(planningApis.loadPlanningByIds([data.planning]));
         dispatch(main.fetchItemHistory(planningItem));
     }
 );
