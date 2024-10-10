@@ -924,10 +924,13 @@ export interface IBaseListItemProps<T> {
 }
 
 export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
-    relatedPlanningText?: string;
     calendars: Array<ICalendar>;
     filterLanguage?: string;
-    toggleRelatedPlanning?(event: React.MouseEvent): void;
+    relatedPlanningsCount: number;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
 }
 
 export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem> {

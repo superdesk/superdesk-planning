@@ -46,6 +46,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
             this.state.hover !== nextState.hover ||
             this.props.minTimeWidth !== nextProps.minTimeWidth ||
             this.props.lockedItems != nextProps.lockedItems ||
+            (this.props.relatedEventsUI && this.props.relatedEventsUI.visible != nextProps.relatedEventsUI.visible) ||
             this.props.filterLanguage !== nextProps.filterLanguage;
     }
 
@@ -143,7 +144,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {gettext} = superdeskApi.localization;
+        const {gettext, gettextPlural} = superdeskApi.localization;
         const {querySelectorParent} = superdeskApi.utilities;
 
         const {
@@ -151,7 +152,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
             onItemClick,
             lockedItems,
             activeFilter,
-            toggleRelatedPlanning,
             onMultiSelectClick,
             calendars,
             listFields,
@@ -260,22 +260,44 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
                         {secondaryFields.includes('files') && renderFields('files', item)}
 
+                        {(() => {
+                            const {relatedEventsUI} = this.props;
 
-                        {(hasPlanning) && (
-                            <span
-                                className="sd-overflow-ellipsis sd-list-item__element-lm-10"
-                            >
-                                <a
-                                    className="sd-line-input__input--related-item-link"
-                                    onClick={toggleRelatedPlanning}
+                            if (!hasPlanning || relatedEventsUI == null) {
+                                return null;
+                            }
+
+                            const relatedPlanningText = relatedEventsUI.visible
+                                ? gettextPlural(
+                                    this.props.relatedPlanningsCount,
+                                    'Hide 1 planning item', 'Hide {{n}} planning items',
+                                    {n: this.props.relatedPlanningsCount},
+                                )
+                                : gettextPlural(
+                                    this.props.relatedPlanningsCount,
+                                    'Show 1 planning item', 'Show {{n}} planning items',
+                                    {n: this.props.relatedPlanningsCount},
+                                );
+
+                            return (
+                                <span
+                                    className="sd-overflow-ellipsis sd-list-item__element-lm-10"
                                 >
-                                    <i className="icon-calendar" />
-                                    <span className="sd-margin-l--0-5">
-                                        {this.props.relatedPlanningText}
-                                    </span>
-                                </a>
-                            </span>
-                        )}
+                                    <a
+                                        className="sd-line-input__input--related-item-link"
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            relatedEventsUI.setVisibility(!relatedEventsUI.visible);
+                                        }}
+                                    >
+                                        <i className="icon-calendar" />
+                                        <span className="sd-margin-l--0-5">
+                                            {relatedPlanningText}
+                                        </span>
+                                    </a>
+                                </span>
+                            );
+                        })()}
 
                         {secondaryFields.includes('location') && renderFields('location', item)}
                     </Row>
