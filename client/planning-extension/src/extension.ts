@@ -153,8 +153,8 @@ const extension: IExtension = {
                 !superdesk.entities.article.isLockedInOtherSession(item) &&
                 !itemStates.includes(item.state) &&
                 superdesk.privileges.hasPrivilege('archive')
-            )
-        }
+            );
+        };
 
         const getPermittedActions = (item: IArticle) => {
             const permittedActions: Array<IAuthoringAction> = [];
@@ -169,7 +169,7 @@ const extension: IExtension = {
 
                         window.dispatchEvent(customEvent);
                     },
-                })
+                });
             }
 
             if (canUnlinkAsCoverage(item)) {
