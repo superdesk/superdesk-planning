@@ -5,6 +5,7 @@ import {
     ISuperdesk,
     IExtensionActivationResult,
     onPublishMiddlewareResult,
+    IAuthoringAction,
 } from 'superdesk-api';
 import {IPlanningAssignmentService} from './interfaces';
 import {IPlanningConfig} from '../../interfaces';
@@ -113,94 +114,104 @@ const extension: IExtension = {
         const displayTopbarWidget = superdesk.privileges.hasPrivilege('planning_assignments_view')
             && extensionConfig?.assignmentsTopBarWidget === true;
         const {gettext} = superdesk.localization;
+        const {article: superdeskArticleApi} = superdesk.entities;
         const planningActionsGroupId = 'planning-actions';
         const {getItemPlanningInfo} = extensionBridge.planning;
+        const canAddToPlanning = (item: IArticle) => (
+            superdesk.privileges.hasPrivilege('planning_planning_management') &&
+            superdesk.privileges.hasPrivilege('archive') &&
+            !item.assignment_id != null &&
+            !superdesk.entities.article.isPersonal(item) &&
+            !superdesk.entities.article.isLockedInOtherSession(item) &&
+            item.state !== 'correction' &&
+            extensionBridge.ui.utils.isContentLinkToCoverageAllowed(item) &&
+            (
+                superdesk.entities.article.itemAction(item).edit ||
+                superdesk.entities.article.itemAction(item).correct ||
+                superdesk.entities.article.itemAction(item).deschedule
+            )
+        );
+        const canUnlinkAsCoverage = (item: IArticle) => (
+            superdesk.privileges.hasPrivilege('archive') &&
+            item.assignment_id != null &&
+            !superdeskArticleApi.isPersonal(item) &&
+            !superdeskArticleApi.isLockedInOtherSession(item) &&
+            (
+                superdeskArticleApi.itemAction(item).edit ||
+                superdeskArticleApi.itemAction(item).correct ||
+                superdeskArticleApi.itemAction(item).deschedule
+            )
+        );
+        const canFulfilAssignment = (item: IArticle) => {
+            const itemStates = ['killed', 'recalled', 'unpublished', 'spiked', 'correction'];
+            const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
+
+            return (
+                !item.assignment_id &&
+                !superdesk.entities.article.isPersonal(item) &&
+                isContentLinkToCoverageAllowed(item) &&
+                !superdesk.entities.article.isLockedInOtherSession(item) &&
+                !itemStates.includes(item.state) &&
+                superdesk.privileges.hasPrivilege('archive')
+            )
+        }
+
+        const getPermittedActions = (item: IArticle) => {
+            const permittedActions: Array<IAuthoringAction> = [];
+
+            if (canAddToPlanning(item)) {
+                permittedActions.push({
+                    label: gettext('Add to Planning'),
+                    groupId: planningActionsGroupId,
+                    icon: 'calendar-list',
+                    onTrigger: () => {
+                        const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});
+
+                        window.dispatchEvent(customEvent);
+                    },
+                })
+            }
+
+            if (canUnlinkAsCoverage(item)) {
+                permittedActions.push({
+                    label: gettext('Unlink as Coverage'),
+                    groupId: planningActionsGroupId,
+                    icon: 'cut',
+                    onTrigger: () => {
+                        superdesk.entities.article.get(item._id).then((_item) => {
+                            window.dispatchEvent(new CustomEvent(
+                                'planning:unlinkfromcoverage',
+                                {detail: {item: _item}},
+                            ));
+                        });
+                    },
+                });
+            }
+
+            if (canFulfilAssignment(item)) {
+                permittedActions.push({
+                    label: superdesk.localization.gettext('Fulfil assignment'),
+                    groupId: planningActionsGroupId,
+                    icon: 'calendar-list',
+                    onTrigger: () => {
+                        superdesk.entities.article.get(item._id).then((_item) => {
+                            window.dispatchEvent(new CustomEvent(
+                                'planning:fulfilassignment',
+                                {detail: {item: _item}},
+                            ));
+                        });
+                    },
+                });
+            }
+
+            return permittedActions;
+        };
 
         const result: IExtensionActivationResult = {
             contributions: {
                 entities: {
                     article: {
-                        getActions: (item) => [
-                            {
-                                label: gettext('Add to Planning'),
-                                groupId: 'planning-actions',
-                                icon: 'calendar-list',
-                                onTrigger: () => {
-                                    if (
-                                        superdesk.privileges.hasPrivilege('planning_planning_management') &&
-                                        superdesk.privileges.hasPrivilege('archive') &&
-                                        !item.assignment_id != null &&
-                                        !superdesk.entities.article.isPersonal(item) &&
-                                        !superdesk.entities.article.isLockedInOtherSession(item) &&
-                                        item.state !== 'correction' &&
-                                        extensionBridge.ui.utils.isContentLinkToCoverageAllowed(item) &&
-                                        (
-                                            superdesk.entities.article.itemAction(item).edit ||
-                                            superdesk.entities.article.itemAction(item).correct ||
-                                            superdesk.entities.article.itemAction(item).deschedule
-                                        )
-                                    ) {
-                                        const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});
-
-                                        window.dispatchEvent(customEvent);
-                                    }
-                                },
-                            },
-                            {
-                                label: gettext('Unlink as Coverage'),
-                                groupId: planningActionsGroupId,
-                                icon: 'cut',
-                                onTrigger: () => {
-                                    const superdeskArticle = superdesk.entities.article;
-
-                                    if (
-                                        superdesk.privileges.hasPrivilege('archive') &&
-                                        item.assignment_id != null &&
-                                        !superdeskArticle.isPersonal(item) &&
-                                        !superdeskArticle.isLockedInOtherSession(item) &&
-                                        (
-                                            superdeskArticle.itemAction(item).edit ||
-                                            superdeskArticle.itemAction(item).correct ||
-                                            superdeskArticle.itemAction(item).deschedule
-                                        )
-                                    ) {
-                                        superdeskArticle.get(item._id).then((_item) => {
-                                            window.dispatchEvent(new CustomEvent(
-                                                'planning:unlinkfromcoverage',
-                                                {detail: {item: _item}},
-                                            ));
-                                        });
-                                    }
-                                },
-                            },
-                            {
-                                label: superdesk.localization.gettext('Fulfil assignment'),
-                                groupId: planningActionsGroupId,
-                                icon: 'calendar-list',
-                                onTrigger: () => {
-                                    const itemStates = ['killed', 'recalled', 'unpublished', 'spiked', 'correction'];
-                                    const {isContentLinkToCoverageAllowed} = extensionBridge.assignments.utils;
-
-                                    if (
-                                        !item.assignment_id &&
-                                        !superdesk.entities.article.isPersonal(item) &&
-                                        isContentLinkToCoverageAllowed(item) &&
-                                        !superdesk.entities.article.isLockedInOtherSession(item) &&
-                                        !itemStates.includes(item.state) &&
-                                        superdesk.privileges.hasPrivilege('archive')
-                                    ) {
-                                        superdesk.entities.article.get(item._id).then((_item) => {
-                                            window.dispatchEvent(new CustomEvent(
-                                                'planning:fulfilassignment',
-                                                {detail: {item: _item}},
-                                            ));
-                                        });
-                                    } else {
-                                        superdesk.ui.notify.error('This action is not permitted');
-                                    }
-                                },
-                            }
-                        ],
+                        getActions: (item) => getPermittedActions(item),
                         onSpike: (item: IArticle) => onSpike(superdesk, item),
                         onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
                         onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
