@@ -27,6 +27,7 @@ import {planningUtils, eventUtils, lockUtils} from '../../../utils';
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {COVERAGES} from '../../../constants';
+import planningActions from '../../../actions/planning/api';
 
 interface IProps {
     original?: IPlanningItem;
@@ -97,9 +98,9 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
-    uploadFiles: (files) => dispatch(actions.planning.api.uploadFiles({files: files})),
-    removeFile: (file) => dispatch(actions.planning.api.removeFile(file)),
+    fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
+    uploadFiles: (files) => dispatch(planningActions.uploadFiles({files: files})),
+    removeFile: (file) => dispatch(planningActions.removeFile(file)),
     setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
     setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });

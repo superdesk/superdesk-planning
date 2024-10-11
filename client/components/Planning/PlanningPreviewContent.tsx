@@ -19,6 +19,7 @@ import {eventUtils, getCreator, getFileDownloadURL} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
+import planningActions from '../../actions/planning/api';
 
 import {
     AuditInformation,
@@ -71,7 +72,7 @@ const mapStateToProps = (state, ownProps) => ({
 const mapDispatchToProps = (dispatch) => ({
     onEditEvent: (event) => dispatch(actions.main.openForEdit(event)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
+    fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
 });
 
 export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
