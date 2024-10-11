@@ -227,6 +227,9 @@ const extension: IExtension = {
                         },
                     },
                 },
+
+                // Current set of planning actions have to be displayed both in authoring and list item actions
+                getAuthoringActions: (item) => getPermittedActions(item),
                 notifications: {
                     'email:notification:assignments': {name: superdesk.localization.gettext('Assignment')}
                 },
