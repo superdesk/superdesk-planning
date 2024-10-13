@@ -96,7 +96,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
 
         return editor.form.changeField('associated_plannings', plans)
             .then(() => {
-                if (options.scrollIntoViewAndFocus ?? true) {
+                if (options?.scrollIntoViewAndFocus ?? true) {
                     const node = getRelatedPlanningDomRef(newPlanningItem._id);
 
                     if (node.current != null) {

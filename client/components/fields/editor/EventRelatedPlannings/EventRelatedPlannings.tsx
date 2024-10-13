@@ -50,7 +50,9 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                             shape="round"
                             size="small"
                             iconOnly={true}
-                            onClick={this.props.addPlanningItem}
+                            onClick={() => {
+                                this.props.addPlanningItem();
+                            }}
                         />
                     )}
                 </Spacer>
