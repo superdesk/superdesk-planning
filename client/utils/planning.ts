@@ -440,7 +440,9 @@ export function addSomeRelatedPlanningsToEventEditor(plannings: Array<IPlanningI
     let promises = Promise.resolve();
 
     for (const planning of planningsToAdd) {
-        promises = promises.then(() => editor.item.events.addPlanningItem(planning, {scrollIntoViewAndFocus: false}));
+        promises = promises
+            .then(() => editor.item.events.addPlanningItem(planning, {scrollIntoViewAndFocus: false}))
+            .then(() => null);
     }
 
     return promises.then(() => {

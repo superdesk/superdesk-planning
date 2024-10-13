@@ -15,6 +15,7 @@ import {RelatedPlanningItem} from './RelatedPlanningItem';
 import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 
 import './style.scss';
+import {TEMP_ID_PREFIX} from '../../../../constants';
 
 interface IProps extends IEditorFieldProps {
     item: IEventItem;
@@ -22,7 +23,7 @@ interface IProps extends IEditorFieldProps {
     coverageProfile?: ISearchProfile;
 
     getRef(value: DeepPartial<IPlanningItem>): React.RefObject<PlanningMetaData | RelatedPlanningItem>;
-    addPlanningItem(item?: IPlanningItem): void;
+    addPlanningItem(item?: IPlanningItem): Promise<Partial<IPlanningItem>>;
     removePlanningItem(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
     addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
@@ -34,6 +35,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
         const {DropZone} = superdeskApi.components;
         const isAgendaEnabled = planningApi.planning.getEditorProfile().editor.agendas.enabled;
         const disabled = this.props.disabled || this.props.schema?.read_only;
+        const planningItems = this.props.item.associated_plannings ?? [];
 
         return (
             <div className="related-plannings">
@@ -58,7 +60,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                 </Spacer>
 
                 {disabled ? (
-                    this.props.item.associated_plannings.map((plan, index) => (
+                    planningItems.map((plan, index) => (
                         <PlanningMetaData
                             ref={this.props.getRef(plan) as React.RefObject<PlanningMetaData>}
                             key={plan._id}
@@ -71,23 +73,28 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                 ) : (
                     <>
                         {
-                            this.props.item.associated_plannings?.map((plan, index) => (
-                                <RelatedPlanningItem
-                                    ref={this.props.getRef(plan) as React.RefObject<RelatedPlanningItem>}
-                                    key={plan._id}
-                                    index={index}
-                                    event={this.props.item}
-                                    item={plan}
-                                    removePlan={this.props.removePlanningItem}
-                                    updatePlanningItem={this.props.updatePlanningItem}
-                                    addCoverageToWorkflow={this.props.addCoverageToWorkflow}
-                                    disabled={false}
-                                    editorType={this.props.editorType}
-                                    profile={this.props.profile}
-                                    coverageProfile={this.props.coverageProfile}
-                                    isAgendaEnabled={isAgendaEnabled}
-                                />
-                            ))
+                            planningItems.map((plan, index) => {
+                                const isNewlyCreatedItem = index === planningItems.length - 1 && plan._id.startsWith(TEMP_ID_PREFIX);
+
+                                return (
+                                    <RelatedPlanningItem
+                                        ref={this.props.getRef(plan) as React.RefObject<RelatedPlanningItem>}
+                                        key={plan._id}
+                                        index={index}
+                                        event={this.props.item}
+                                        item={plan}
+                                        removePlan={this.props.removePlanningItem}
+                                        updatePlanningItem={this.props.updatePlanningItem}
+                                        addCoverageToWorkflow={this.props.addCoverageToWorkflow}
+                                        disabled={false}
+                                        editorType={this.props.editorType}
+                                        profile={this.props.profile}
+                                        coverageProfile={this.props.coverageProfile}
+                                        isAgendaEnabled={isAgendaEnabled}
+                                        initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
+                                    />
+                                );
+                            })
                         }
 
                         <DropZone
@@ -102,7 +109,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     event.dataTransfer.getData('application/superdesk.planning.planning_item'),
                                 );
 
-                                const alreadyExists = (this.props.item.associated_plannings ?? [])
+                                const alreadyExists = planningItems
                                     .find((item) => item._id === planningItem._id) != null;
 
                                 if (alreadyExists) {

@@ -36,6 +36,7 @@ interface IProps {
     ): void;
     addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
     isAgendaEnabled: boolean;
+    initiallyExpanded?: boolean;
 }
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
@@ -153,6 +154,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                             updatePlanningItem={this.update}
                             profile={this.props.profile}
                             coverageProfile={this.props.coverageProfile}
+                            initiallyExpanded={this.props.initiallyExpanded}
                         />
                     </Row>
                 )}
