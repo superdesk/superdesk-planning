@@ -469,6 +469,11 @@ function canMarkEventAsComplete(
  */
 export function canAddSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEventItem['_id']>): boolean {
     const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+
+    if (editor.manager == null) {
+        return false;
+    }
+
     const contentProfileHasRelatedEventsField = editor.dom.fields['associated_event'] != null;
     const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
     const currentRelatedEvents: Array<IPlanningRelatedEventLink> = (planningItem?.related_events ?? []);
@@ -521,6 +526,10 @@ function getEventItemActions(
     actions: Array<IItemAction>,
     locks: ILockedItems
 ): Array<IItemAction> {
+    if (event == null) {
+        return [];
+    }
+
     let itemActions: Array<IItemAction> = [];
     let key = 1;
 

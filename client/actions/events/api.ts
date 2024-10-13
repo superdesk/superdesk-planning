@@ -633,6 +633,10 @@ const save = (original, updates) => (
                 planningApi.events.create(eventUpdates);
 
             return createOrUpdatePromise.then((updatedEvents) => {
+                if (updates.associated_plannings == null) {
+                    return Promise.resolve();
+                }
+
                 const nextAssociatedPlanningIds = updates.associated_plannings.map(({_id}) => _id);
 
                 return Promise.all(

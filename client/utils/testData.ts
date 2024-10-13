@@ -593,45 +593,6 @@ export const templates = {templates: []};
 
 export const form = {};
 
-export const events: Array<IEventItem> = [
-    {
-        _id: 'e1',
-        type: 'event',
-        slugline: 'test slugline',
-        name: 'Event 1',
-        dates: {
-            start: '2016-10-15T13:01:11+0000',
-            end: '2016-10-15T14:01:11+0000',
-            tz: 'Australia/Sydney',
-        },
-        planning_ids: ['p2'],
-        _etag: 'e123',
-    },
-    {
-        _id: 'e2',
-        duplicate_from: 'e1',
-        type: 'event',
-        slugline: 'test slugline 2',
-        name: 'Event 2',
-        dates: {
-            start: '2014-10-15T14:01:11+0000',
-            end: '2014-10-15T15:01:11+0000',
-            tz: 'Australia/Sydney',
-        },
-        planning_ids: [],
-    },
-    {
-        _id: 'e3',
-        type: 'event',
-        name: 'Event 3',
-        dates: {
-            start: '2015-10-15T14:01:11+0000',
-            end: '2015-10-15T15:01:11+0000',
-            tz: 'Australia/Sydney',
-        },
-    },
-];
-
 export const plannings = [
     {
         _id: 'p1',
@@ -713,6 +674,46 @@ export const plannings = [
             },
         ],
         agendas: ['a2'],
+    },
+];
+
+export const events: Array<IEventItem> = [
+    {
+        _id: 'e1',
+        type: 'event',
+        slugline: 'test slugline',
+        name: 'Event 1',
+        dates: {
+            start: '2016-10-15T13:01:11+0000',
+            end: '2016-10-15T14:01:11+0000',
+            tz: 'Australia/Sydney',
+        },
+        planning_ids: ['p2'],
+        associated_plannings: plannings.filter(({_id}) => _id === 'p2'),
+        _etag: 'e123',
+    },
+    {
+        _id: 'e2',
+        duplicate_from: 'e1',
+        type: 'event',
+        slugline: 'test slugline 2',
+        name: 'Event 2',
+        dates: {
+            start: '2014-10-15T14:01:11+0000',
+            end: '2014-10-15T15:01:11+0000',
+            tz: 'Australia/Sydney',
+        },
+        planning_ids: [],
+    },
+    {
+        _id: 'e3',
+        type: 'event',
+        name: 'Event 3',
+        dates: {
+            start: '2015-10-15T14:01:11+0000',
+            end: '2015-10-15T15:01:11+0000',
+            tz: 'Australia/Sydney',
+        },
     },
 ];
 
