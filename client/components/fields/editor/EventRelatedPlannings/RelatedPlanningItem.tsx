@@ -12,7 +12,6 @@ import {
 } from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
 
-import {TEMP_ID_PREFIX} from '../../../../constants';
 import {planningUtils} from '../../../../utils';
 
 import {IconButton} from 'superdesk-ui-framework/react';
@@ -37,6 +36,7 @@ interface IProps {
     ): void;
     addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
     isAgendaEnabled: boolean;
+    initiallyExpanded?: boolean;
 }
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
@@ -106,7 +106,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {item, isAgendaEnabled} = this.props;
-        const hideRemoveIcon = !this.props.item._id.startsWith(TEMP_ID_PREFIX) || this.props.disabled;
+        const hideRemoveIcon = this.props.disabled;
 
         return (
             <div
@@ -154,6 +154,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                             updatePlanningItem={this.update}
                             profile={this.props.profile}
                             coverageProfile={this.props.coverageProfile}
+                            initiallyExpanded={this.props.initiallyExpanded}
                         />
                     </Row>
                 )}

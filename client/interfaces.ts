@@ -2056,7 +2056,7 @@ export interface IEditorFormGroup {
 }
 
 export abstract class IEditorRefComponent {
-    abstract scrollIntoView(): void;
+    abstract scrollIntoView(options?: {focus?: boolean}): void;
     abstract getBoundingClientRect(): DOMRect | undefined;
     abstract focus(): void;
 }
@@ -2143,7 +2143,7 @@ export interface IEditorAPI {
         ): Promise<void>;
 
         scrollToTop(): void;
-        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id']): void;
+        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id'], options?: {focus?: boolean}): void;
         waitForScroll(): Promise<void>;
 
         getAction(): IEditorAction;
@@ -2160,6 +2160,7 @@ export interface IEditorAPI {
     item: {
         getItemType(): string;
         getItemId(): IEventOrPlanningItem['_id'];
+        getItemAction(): IEditorProps['itemAction'];
         getAssociatedPlannings(): Array<IPlanningItem>;
         events: {
             getGroupsForItem(item: Partial<IEventItem>): {
@@ -2167,7 +2168,12 @@ export interface IEditorAPI {
                 groups: Array<IEditorFormGroup>;
             };
             getRelatedPlanningDomRef(planId: IPlanningItem['_id']): React.RefObject<any>;
-            addPlanningItem(): void;
+            addPlanningItem(
+                item?: IPlanningItem,
+                options?: {
+                    scrollIntoViewAndFocus?: boolean;
+                },
+            ): Promise<Partial<IPlanningItem>>;
             removePlanningItem(item: DeepPartial<IPlanningItem>): void;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,

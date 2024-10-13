@@ -104,8 +104,15 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['events'] {
     }
 
     function setEventsPlanningsToAdd(newState: Partial<IEditorState>) {
+        const associatedPlannings = planningApi.editor(type).item.getAssociatedPlannings();
+
         if (newState.diff.type === 'event' && newState.diff.associated_plannings == null) {
-            newState.diff.associated_plannings = planningApi.editor(type).item.getAssociatedPlannings();
+            newState.diff.associated_plannings = associatedPlannings;
+        }
+
+        // needs to be set on initial values as well for correct computation of state.dirty
+        if (newState.initialValues.type === 'event' && newState.initialValues.associated_plannings == null) {
+            newState.initialValues.associated_plannings = associatedPlannings;
         }
     }
 

@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {IVocabularyItem} from 'superdesk-api';
@@ -15,7 +15,10 @@ import {
     IPlanningConfig,
     IItemSubActions,
     IEventOccurStatus,
-    IEmbeddedPlanningItem, IPlanningCoverageItem, IEmbeddedCoverageItem,
+    IPlanningCoverageItem,
+    IEmbeddedCoverageItem,
+    EDITOR_TYPE,
+    IPlanningRelatedEventLink,
 } from '../interfaces';
 import {planningApi} from '../superdeskApi';
 import {appConfig as config} from 'appConfig';
@@ -461,6 +464,61 @@ function canMarkEventAsComplete(
     }
 }
 
+/**
+ * Will return true if there is at least one event that can be added
+ */
+export function canAddSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEventItem['_id']>): boolean {
+    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+
+    if (editor.manager == null) {
+        return false;
+    }
+
+    const contentProfileHasRelatedEventsField = editor.dom.fields['associated_event'] != null;
+    const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
+    const currentRelatedEvents: Array<IPlanningRelatedEventLink> = (planningItem?.related_events ?? []);
+
+    const isEventAlreadyAddedAsRelated: (eventId: string) => boolean =
+        (eventId: string) => currentRelatedEvents.find((item) => item._id === eventId) != null;
+
+    return editor.item.getItemType() === 'planning'
+        && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
+        && contentProfileHasRelatedEventsField
+        && eventIds.some((eventId) => isEventAlreadyAddedAsRelated(eventId) !== true);
+}
+
+/**
+ * Events that are already added will be ignored
+ */
+export function addSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEventItem['_id']>) {
+    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
+
+    const currentRelatedEvents: Array<IPlanningRelatedEventLink> = planningItem?.related_events ?? [];
+
+    const isEventAlreadyAddedAsRelated: (eventId: string) => boolean =
+        (eventId: string) => currentRelatedEvents.find((item) => item._id === eventId) != null;
+
+    const nextRelatedEvents: Array<IPlanningRelatedEventLink> = [
+        ...currentRelatedEvents,
+        ...eventIds
+            .filter((eventId) => isEventAlreadyAddedAsRelated(eventId) !== true)
+            .map((eventId): IPlanningRelatedEventLink => ({
+                _id: eventId,
+                link_type: 'secondary',
+            }))
+    ];
+
+    editor.form.changeField(
+        'related_events',
+        nextRelatedEvents,
+        true,
+        true,
+    ).then(() => {
+        editor.form.scrollToBookmarkGroup('associated_event', {focus: false});
+    });
+}
+
 function getEventItemActions(
     event: IEventItem,
     session: ISession,
@@ -468,7 +526,11 @@ function getEventItemActions(
     actions: Array<IItemAction>,
     locks: ILockedItems
 ): Array<IItemAction> {
-    let itemActions = [];
+    if (event == null) {
+        return [];
+    }
+
+    let itemActions: Array<IItemAction> = [];
     let key = 1;
 
     const actionsValidator = {
@@ -519,6 +581,16 @@ function getEventItemActions(
 
         key++;
     });
+
+    if (canAddSomeEventsAsRelatedToPlanningEditor([event._id])) {
+        itemActions.push({
+            label: gettext('Add as related event'),
+            icon: 'icon-link',
+            callback: () => {
+                addSomeEventsAsRelatedToPlanningEditor([event._id]);
+            },
+        });
+    }
 
     if (isEmptyActions(itemActions)) {
         return [];

@@ -24,6 +24,8 @@ import {FileInput, LinkInput} from '../../UI/Form';
 import {Location} from '../../Location';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../../fields';
 import {RelatedEventListItem} from './RelatedEventListItem';
+import {Spacer} from 'superdesk-ui-framework/react';
+import {superdeskApi} from '../../../superdeskApi';
 
 interface IProps {
     event: IEventItem;
@@ -33,6 +35,7 @@ interface IProps {
     testId?: string;
 
     onEditEvent?(): void;
+    onRemoveEvent?(): void;
     onOpen?(): void;
     onClick?(): void;
     createUploadLink(file: IFile): string;
@@ -74,6 +77,7 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
             dateOnly,
             tabEnabled,
             onEditEvent,
+            onRemoveEvent,
             noOpen,
             onClick,
             navigation,
@@ -92,19 +96,51 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
             true,
             false
         );
-        const editEventComponent = onEditEvent && !hideEditIcon ?
-            (
-                <button
-                    data-sd-tooltip="Edit Event"
-                    data-flow="left"
-                    onClick={(event) => {
-                        onEventCapture(event);
-                        onEditEvent();
-                    }}
-                >
-                    <i className="icon-pencil" />
-                </button>
-            ) : null;
+
+        const {gettext} = superdeskApi.localization;
+
+        const eventActions = (() => {
+            const showEditButton = onEditEvent && !hideEditIcon;
+            const showRemoveButton = onRemoveEvent != null;
+
+            if (showEditButton !== true && showRemoveButton !== true) {
+                return null;
+            } else {
+                return (
+                    <Spacer h gap="4">
+                        {
+                            showEditButton && (
+                                <button
+                                    data-sd-tooltip={gettext('Edit Event')}
+                                    data-flow="left"
+                                    onClick={(event) => {
+                                        onEventCapture(event);
+                                        onEditEvent();
+                                    }}
+                                >
+                                    <i className="icon-pencil" />
+                                </button>
+                            )
+                        }
+
+                        {
+                            showRemoveButton && (
+                                <button
+                                    data-sd-tooltip={gettext('Remove Event')}
+                                    data-flow="left"
+                                    onClick={(event) => {
+                                        onEventCapture(event);
+                                        onRemoveEvent();
+                                    }}
+                                >
+                                    <i className="icon-trash" />
+                                </button>
+                            )
+                        }
+                    </Spacer>
+                );
+            }
+        })();
 
         const eventListView = (
             <RelatedEventListItem
@@ -114,7 +150,7 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                 showBorder={showBorder}
                 showIcon={showIcon}
                 dateOnly={dateOnly}
-                editEventComponent={editEventComponent}
+                eventActions={eventActions}
             />
         );
 
@@ -235,7 +271,7 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                 openItem={eventInDetail}
                 scrollInView={scrollInView}
                 tabEnabled={tabEnabled}
-                tools={editEventComponent}
+                tools={eventActions}
                 noOpen={noOpen}
                 isOpen={isOpen}
                 onClose={onClose}

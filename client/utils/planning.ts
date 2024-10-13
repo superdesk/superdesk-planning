@@ -23,6 +23,7 @@ import {
     IPlanningRelatedEventLink,
     IPlanningRelatedEventLinkType,
     IItemAction,
+    EDITOR_TYPE,
 } from '../interfaces';
 const appConfig = config as IPlanningConfig;
 
@@ -406,6 +407,53 @@ export function isNotForPublication(plan: IPlanningItem): boolean {
     return plan.flags?.marked_for_not_publication === true;
 }
 
+/**
+ * Will return true if there is at least one planning item that can be added
+ */
+export function canAddSomeRelatedPlanningsToEventEditor(planningIds: Array<IPlanningItem['_id']>): boolean {
+    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const event = editor.form.getDiff<IEventItem>();
+    const currentPlannings = new Set<string>(
+        (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),
+    );
+    const contentProfileHasRelatedPlanningsField = editor.dom.fields['related_plannings'] != null;
+
+    return editor.item.getItemType() === 'event'
+        && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
+        && contentProfileHasRelatedPlanningsField
+        && planningIds.some((planningId) => !currentPlannings.has(planningId));
+}
+
+/**
+ * Planning items that are already added will be ignored
+ */
+export function addSomeRelatedPlanningsToEventEditor(plannings: Array<IPlanningItem>): Promise<void> {
+    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const event = editor.form.getDiff<IEventItem>();
+    const currentPlannings = new Set<string>(
+        (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),
+    );
+
+    const planningsToAdd = plannings.filter(({_id}) => !currentPlannings.has(_id));
+    const lastItem = planningsToAdd.at(-1);
+
+    let promises = Promise.resolve();
+
+    for (const planning of planningsToAdd) {
+        promises = promises
+            .then(() => editor.item.events.addPlanningItem(planning, {scrollIntoViewAndFocus: false}))
+            .then(() => null);
+    }
+
+    return promises.then(() => {
+        if (lastItem != null) {
+            editor.item.events.getRelatedPlanningDomRef(lastItem._id).current.scrollIntoView();
+        }
+
+        return null;
+    });
+}
+
 interface IGetPlanningActionArgs {
     item: IPlanningItem;
     events: Array<IEventItem> | null;
@@ -580,6 +628,18 @@ function getPlanningActions(
         () => canRemovedFeatured(item, events, session, privileges, lockedItems),
         () => callBacks[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName].bind(null, item, true)(),
     );
+
+    if (canAddSomeRelatedPlanningsToEventEditor([item._id])) {
+        const action: IItemAction = {
+            label: gettext('Add as related planning'),
+            icon: 'icon-link',
+            callback: () => {
+                addSomeRelatedPlanningsToEventEditor([item]);
+            },
+        };
+
+        actions.push(action);
+    }
 
     if (isEmptyActions(actions)) {
         return [];
