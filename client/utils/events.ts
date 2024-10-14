@@ -12,7 +12,6 @@ import {
     IPlanningItem,
     IPrivileges,
     IItemAction,
-    IPlanningConfig,
     IItemSubActions,
     IEventOccurStatus,
     IPlanningCoverageItem,
@@ -21,9 +20,7 @@ import {
     IPlanningRelatedEventLink,
 } from '../interfaces';
 import {planningApi} from '../superdeskApi';
-import {appConfig as config} from 'appConfig';
-
-const appConfig = config as IPlanningConfig;
+import {appConfig} from 'appConfig';
 
 import {
     PRIVILEGES,

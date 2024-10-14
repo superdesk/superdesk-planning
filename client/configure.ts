@@ -1,6 +1,6 @@
-import {planningConfig} from './config';
-import {IPlanningConfig} from './interfaces';
+import {ISuperdeskGlobalConfig} from 'superdesk-api';
+import {appConfig} from 'appConfig';
 
-export const setCoverageDueDateStrategy = (callback: IPlanningConfig['coverage']['getDueDateStrategy']) => {
-    planningConfig.coverage.getDueDateStrategy = callback;
+export const setCoverageDueDateStrategy = (callback: ISuperdeskGlobalConfig['coverage']['getDueDateStrategy']) => {
+    appConfig.coverage.getDueDateStrategy = callback;
 };

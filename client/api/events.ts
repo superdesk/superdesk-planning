@@ -5,12 +5,11 @@ import {
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    IPlanningConfig,
     IEventUpdateMethod,
     IGetRequestParams,
     IPlanningItem,
 } from '../interfaces';
-import {appConfig as config} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {EVENTS, TEMP_ID_PREFIX} from '../constants';
@@ -20,8 +19,6 @@ import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
 import planningApis from '../actions/planning/api';
 import {searchPlanning} from './planning';
-
-const appConfig = config as IPlanningConfig;
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {

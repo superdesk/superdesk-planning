@@ -1,9 +1,8 @@
 import * as React from 'react';
 import {superdeskApi} from '../../../superdeskApi';
-import {ICoverageAssigned, IEditorFieldProps, IPlanningConfig} from '../../../interfaces';
+import {ICoverageAssigned, IEditorFieldProps} from '../../../interfaces';
 import {EditorFieldSelect} from './base/select';
-import * as config from 'appConfig';
-const appConfig = config.appConfig as IPlanningConfig;
+import {appConfig} from 'appConfig';
 
 interface IProps extends IEditorFieldProps {
     contentTypes: Array<ICoverageAssigned>;

@@ -7,7 +7,6 @@ import {
     onPublishMiddlewareResult,
 } from 'superdesk-api';
 import {IPlanningAssignmentService} from './interfaces';
-import {IPlanningConfig} from '../../interfaces';
 import {getAssignmentService} from './utils';
 import {AssignmentsList} from './assignments-overview';
 import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
@@ -58,7 +57,7 @@ function onPublishArticle(superdesk: ISuperdesk, item: IArticle): Promise<onPubl
         return Promise.resolve({});
     }
 
-    const config: IPlanningConfig = superdesk.instance.config as IPlanningConfig;
+    const {config} = superdesk.instance;
 
     if (config && config.planning_check_for_assignment_on_publish) {
         const assignmentService: IPlanningAssignmentService = getAssignmentService();
@@ -74,7 +73,7 @@ function onArticleRewriteAfter(superdesk: ISuperdesk, item: IArticle): Promise<I
         return Promise.resolve(item);
     }
 
-    const config: IPlanningConfig = superdesk.instance.config as IPlanningConfig;
+    const {config} = superdesk.instance;
 
     if (config && config.planning_link_updates_to_coverage) {
         const assignmentService: IPlanningAssignmentService = getAssignmentService();
@@ -90,7 +89,7 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
         return Promise.resolve();
     }
 
-    const config: IPlanningConfig = superdesk.instance.config as IPlanningConfig;
+    const {config} = superdesk.instance;
 
     if (!config || !config.planning_check_for_assignment_on_send) {
         return Promise.resolve();

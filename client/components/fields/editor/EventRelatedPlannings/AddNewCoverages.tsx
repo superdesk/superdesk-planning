@@ -8,7 +8,6 @@ import {
     IPlanningCoverageItem,
     IPlanningItem,
     IPlanningNewsCoverageStatus,
-    IPlanningConfig,
     IPlanningContentProfile,
     ISearchProfile
 } from '../../../../interfaces';
@@ -20,8 +19,7 @@ import {planningUtils, generateTempId} from '../../../../utils';
 import {ButtonGroup, Button, IconLabel} from 'superdesk-ui-framework/react';
 import {ICoverageDetails, CoverageRowForm} from './CoverageRowForm';
 import {Group} from '../../../UI/List';
-import * as config from 'appConfig';
-const appConfig = config.appConfig as IPlanningConfig;
+import {appConfig} from 'appConfig';
 
 interface IProps {
     event: IEventItem;

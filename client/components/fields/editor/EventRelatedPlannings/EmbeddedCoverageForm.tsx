@@ -4,7 +4,6 @@ import {connect} from 'react-redux';
 import {IDesk, IUser, IVocabularyItem} from 'superdesk-api';
 import {
     IPlanningNewsCoverageStatus,
-    IPlanningConfig,
     IPlanningContentProfile,
     IEventItem,
     ISearchProfile
@@ -16,10 +15,8 @@ import {Select, Option} from 'superdesk-ui-framework/react';
 import * as List from '../../../UI/List';
 import {Row} from '../../../UI/Form';
 import {EditorFieldNewsCoverageStatus} from '../NewsCoverageStatus';
-import * as config from 'appConfig';
+import {appConfig} from 'appConfig';
 import {getLanguagesForTreeSelectInput} from '../../../../selectors/vocabs';
-
-const appConfig = config.appConfig as IPlanningConfig;
 
 interface IProps {
     coverage: ICoverageDetails;

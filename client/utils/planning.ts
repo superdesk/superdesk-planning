@@ -1,7 +1,7 @@
 import moment from 'moment-timezone';
 import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 
-import {appConfig as config} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {
@@ -13,7 +13,6 @@ import {
     ISession,
     ILockedItems,
     IPrivileges,
-    IPlanningConfig,
     IAgenda,
     IPlace,
     IPlanningAppState,
@@ -25,7 +24,6 @@ import {
     IItemAction,
     EDITOR_TYPE,
 } from '../interfaces';
-const appConfig = config as IPlanningConfig;
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -67,7 +65,6 @@ import {
 } from './index';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
-import {planningConfig} from '../config';
 import {isItemAction, isMenuDivider} from '../helpers';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
@@ -1405,7 +1402,7 @@ function defaultCoverageValues(
     }
 
     if (planningItem) {
-        const getCoverageDueDateStrategy = planningConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
+        const getCoverageDueDateStrategy = appConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
         const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);
 
         if (coverageTime) {
