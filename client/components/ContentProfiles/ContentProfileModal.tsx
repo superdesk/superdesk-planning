@@ -392,6 +392,11 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             fields.forEach((item, index) => {
                 profile.editor[item.name] = {...item.field};
                 profile.editor[item.name].index = index;
+
+                // If the field is disabled in the editor, mark it as not required to avoid backend validation issues.
+                if (item.field?.enabled == false) {
+                    profile.schema[item.name].required = false;
+                }
             });
 
             return key === 'profile' ?
