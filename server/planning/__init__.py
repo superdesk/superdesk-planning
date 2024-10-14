@@ -242,6 +242,9 @@ def init_app(app):
         "default_create_planning_series_with_event_series"
     ] = get_config_default_create_planning_series_with_event_series(app)
 
+    # TODO: use get_planning_event_link_method
+    app.client_config["planning_event_link_method"] = "one_primary_many_secondary"
+
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):
         app.config["CELERY_TASK_ROUTES"] = CTR
