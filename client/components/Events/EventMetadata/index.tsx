@@ -24,7 +24,7 @@ import {FileInput, LinkInput} from '../../UI/Form';
 import {Location} from '../../Location';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../../fields';
 import {RelatedEventListItem} from './RelatedEventListItem';
-import {Spacer} from 'superdesk-ui-framework/react';
+import {IconButton, Spacer} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../../superdeskApi';
 
 interface IProps {
@@ -110,31 +110,27 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
                     <Spacer h gap="4">
                         {
                             showEditButton && (
-                                <button
-                                    data-sd-tooltip={gettext('Edit Event')}
-                                    data-flow="left"
+                                <IconButton
+                                    ariaValue={gettext('Edit Event')}
+                                    icon="pencil"
                                     onClick={(event) => {
                                         onEventCapture(event);
                                         onEditEvent();
                                     }}
-                                >
-                                    <i className="icon-pencil" />
-                                </button>
+                                />
                             )
                         }
 
                         {
                             showRemoveButton && (
-                                <button
-                                    data-sd-tooltip={gettext('Remove Event')}
-                                    data-flow="left"
+                                <IconButton
+                                    ariaValue={gettext('Remove Event')}
+                                    icon="trash"
                                     onClick={(event) => {
                                         onEventCapture(event);
                                         onRemoveEvent();
                                     }}
-                                >
-                                    <i className="icon-trash" />
-                                </button>
+                                />
                             )
                         }
                     </Spacer>
