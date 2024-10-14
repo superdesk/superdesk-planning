@@ -165,6 +165,10 @@ declare module 'superdesk-api' {
         planning_use_xmp_for_pic_assignments?: boolean;
         planning_use_xmp_for_pic_slugline?: boolean;
         planning_xmp_assignment_mapping?: string;
+
+        // see: PLANNING_EVENT_LINK_METHOD
+        planning_event_link_method: 'one_primary' | 'many_secondary' | 'one_primary_many_secondary';
+
         street_map_url?: string;
         planning_auto_close_popup_editor?: boolean;
         start_of_week?: number;
