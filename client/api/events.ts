@@ -8,6 +8,7 @@ import {
     IPlanningConfig,
     IEventUpdateMethod,
     IGetRequestParams,
+    IPlanningItem,
 } from '../interfaces';
 import {appConfig as config} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
@@ -18,6 +19,7 @@ import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGet
 import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
 import planningApis from '../actions/planning/api';
+import {searchPlanning} from './planning';
 
 const appConfig = config as IPlanningConfig;
 
@@ -219,6 +221,10 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
         });
 }
 
+function getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>> {
+    return searchPlanning({only_future: false, event_item: [eventId]}).then(({_items}) => _items);
+}
+
 export const events: IPlanningAPI['events'] = {
     search: searchEvents,
     searchGetAll: searchEventsGetAll,
@@ -228,4 +234,5 @@ export const events: IPlanningAPI['events'] = {
     getSearchProfile: getEventSearchProfile,
     create: create,
     update: update,
+    getLinkedPlanningItems: getLinkedPlanningItems,
 };

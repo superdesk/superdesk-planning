@@ -2212,6 +2212,7 @@ export interface IPlanningAPI {
         getSearchProfile(): IEventSearchProfile;
         create(updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
         update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
+        getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>>;
     };
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;

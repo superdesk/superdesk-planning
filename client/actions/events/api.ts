@@ -549,10 +549,6 @@ const uploadFiles = (event) => (
     }
 );
 
-function getLinkedPlanningItems(eventId: string): Promise<IRestApiResponse<IPlanningItem>> {
-    return searchPlanning({only_future: false, event_item: [eventId]});
-}
-
 function updateLinkedPlanningsForEvent(
     eventId: IEventItem['_id'],
 
@@ -562,10 +558,7 @@ function updateLinkedPlanningsForEvent(
      */
     planningIds: Array<IPlanningItem['_id']>,
 ):Promise<void> {
-    return getLinkedPlanningItems(eventId).then((res) => {
-        // note: planning items to which `eventId` is linked
-        const currentlyLinked: Array<IPlanningItem> = res._items;
-
+    return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
         const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
         const toLink: Array<IPlanningItem['_id']> = planningIds.filter((id) => currentLinkedIds.has(id) !== true);
         const toUnlink = currentlyLinked.filter((planningItem) => planningIds.includes(planningItem._id) !== true);
