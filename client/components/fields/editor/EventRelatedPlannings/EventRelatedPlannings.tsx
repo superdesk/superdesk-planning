@@ -74,7 +74,9 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                     <>
                         {
                             planningItems.map((plan, index) => {
-                                const isNewlyCreatedItem = index === planningItems.length - 1 && plan._id.startsWith(TEMP_ID_PREFIX);
+                                const isNewlyCreatedItem =
+                                    index === planningItems.length - 1
+                                    && plan._id.startsWith(TEMP_ID_PREFIX);
 
                                 return (
                                     <RelatedPlanningItem
