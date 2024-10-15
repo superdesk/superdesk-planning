@@ -607,3 +607,94 @@ class EventsRelatedPlanningAutoPublish(TestCase):
             planning_item = planning_service.find_one(req=None, _id=planning_id)
             self.assertIsNotNone(planning_item)
             self.assertEqual(planning_item["pubstatus"], POST_STATE.USABLE)
+
+    def test_related_planning_item_fields_validation_on_post(self):
+        with self.app.app_context():
+            events_service = get_resource_service("events")
+            planning_service = get_resource_service("planning")
+            event = {
+                "type": "event",
+                "_id": "1234",
+                "occur_status": {
+                    "qcode": "eocstat:eos5",
+                    "name": "Planned, occurs certainly",
+                    "label": "Planned, occurs certainly",
+                },
+                "dates": {
+                    "start": datetime(2099, 11, 21, 11, 00, 00, tzinfo=pytz.UTC),
+                    "end": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                    "tz": "Asia/Calcutta",
+                },
+                "calendars": [],
+                "state": "draft",
+                "language": "en",
+                "languages": ["en"],
+                "place": [],
+                "_time_to_be_confirmed": False,
+                "name": "Demo ",
+                "update_method": "single",
+            }
+            event_id = events_service.post([event])
+            planning = {
+                "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "name": "Demo 1",
+                "place": [],
+                "language": "en",
+                "type": "planning",
+                "slugline": "slug",
+                "agendas": [],
+                "languages": ["en"],
+                "event_item": event_id[0],
+                "coverages": [
+                    {
+                        "coverage_id": "urn:newsmle264a179-5b1a-4b52-b73b-332660848cae",
+                        "planning": {
+                            "scheduled": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                            "g2_content_type": "text",
+                            "language": "en",
+                            "genre": "None",
+                        },
+                        "news_coverage_status": {
+                            "qcode": "ncostat:int",
+                            "name": "coverage intended",
+                            "label": "Planned",
+                        },
+                        "workflow_status": "draft",
+                        "assigned_to": {},
+                        "firstcreated": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                    }
+                ],
+            }
+            planning_id = planning_service.post([planning])
+            self.app.data.insert(
+                "planning_types",
+                [
+                    {
+                        "_id": "event",
+                        "name": "event",
+                        "editor": {
+                            "related_plannings": {"enabled": True},
+                        },
+                        "schema": {
+                            "related_plannings": {"planning_auto_publish": True},
+                        },
+                    },
+                    {
+                        "_id": "planning",
+                        "name": "planning",
+                        "editor": {"subject": {"enabled": False}},
+                        "schema": {"subject": {"required": True}},
+                    },
+                ],
+            )
+            get_resource_service("events_post").post(
+                [{"event": event_id[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            )
+
+            event_item = events_service.find_one(req=None, _id=event_id[0])
+            self.assertEqual(len([event_item]), 1)
+            self.assertEqual(event_item.get("state"), "scheduled")
+
+            planning_item = planning_service.find_one(req=None, _id=planning_id[0])
+            self.assertEqual(len([planning_item]), 1)
+            self.assertEqual(planning_item.get("state"), "scheduled")
