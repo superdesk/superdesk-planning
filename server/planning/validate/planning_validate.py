@@ -17,6 +17,7 @@ from superdesk.logging import logger
 from apps.validate.validate import SchemaValidator as Validator
 
 from copy import deepcopy
+from planning.content_profiles.utils import get_enabled_fields
 
 REQUIRED_ERROR = "{} is a required field"
 
@@ -134,14 +135,16 @@ class PlanningValidateService(Service):
         return get_resource_service("planning_types").find_one(req=None, name=doc[ITEM_TYPE])
 
     def _get_validator_schema(self, validator, validate_on_post):
-        """Get schema for given validator.
+        """Get schema for a given validator, excluding fields with None values,
+        and only include fields that are in enabled_fields."""
 
-        And make sure there is no `None` value which would raise an exception.
-        """
+        enabled_fields = get_enabled_fields(validator)
         return {
-            field: get_validator_schema(schema)
-            for field, schema in validator["schema"].items()
-            if schema and schema.get("validate_on_post", False) == validate_on_post
+            field: get_validator_schema(field_schema)
+            for field, field_schema in validator["schema"].items()
+            if field in enabled_fields
+            and field_schema
+            and field_schema.get("validate_on_post", False) == validate_on_post
         }
 
     def _validate(self, doc):
