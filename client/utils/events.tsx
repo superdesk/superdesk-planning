@@ -1,6 +1,7 @@
+import * as React from 'react';
 import moment from 'moment-timezone';
 import RRule from 'rrule';
-import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten, noop} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {IVocabularyItem} from 'superdesk-api';
@@ -19,7 +20,7 @@ import {
     EDITOR_TYPE,
     IPlanningRelatedEventLink,
 } from '../interfaces';
-import {planningApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 import {appConfig} from 'appConfig';
 
 import {
@@ -57,6 +58,8 @@ import {
     sanitizeItemFields,
 } from './index';
 import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
+import {ConfirmationModal} from '../components';
+import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 
 
 /**
@@ -462,9 +465,125 @@ function canMarkEventAsComplete(
 }
 
 /**
- * Will return true if there is at least one event that can be added
+ * This is a pure function. It has no side-effects and is also meant to be used for validation.
  */
-export function canAddSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEventItem['_id']>): boolean {
+function addRelatedEvents(
+    current: Array<IPlanningRelatedEventLink>,
+    _toAdd: Array<IEventItem>
+): {
+    itemsAdded: number;
+    warnings: Array<string>;
+    next: Array<IPlanningRelatedEventLink>;
+} {
+    const {assertNever} = superdeskApi.helpers;
+    const {gettext} = superdeskApi.localization;
+    const currentIds = new Set(current.map(({_id}) => _id));
+    const eventAlreadyAddedWarnings: Array<string> = [];
+    const toAdd = [];
+
+    for (const eventToAdd of _toAdd) {
+        if (currentIds.has(eventToAdd._id)) {
+            eventAlreadyAddedWarnings.push(
+                gettext('Event "{{name}}" is already added as related', {name: eventToAdd.name}),
+            );
+        } else {
+            toAdd.push(eventToAdd);
+        }
+    }
+
+    if (toAdd.length < 1) {
+        return {
+            next: current,
+            itemsAdded: 0,
+            warnings: eventAlreadyAddedWarnings,
+        };
+    }
+
+    switch (appConfig.planning_event_link_method) {
+    case 'one_primary': {
+        if (current.length > 0) {
+            return {
+                next: current,
+                itemsAdded: 0,
+                warnings: [
+                    gettext('Planning item already has one related event. Can not add more.'),
+                ],
+            };
+        } else {
+            const warnings = [];
+            const [first, ...rest] = toAdd;
+
+            if (rest.length > 0) {
+                warnings.push(
+                    gettext(
+                        'You are trying to add multiple related events when only one is allowed.'
+                        + ' '
+                        + 'Only the first event({{name}}) will be added.',
+                        {
+                            name: first.name,
+                        },
+                    )
+                );
+            }
+
+            return {
+                next: [
+                    ...current,
+                    {
+                        _id: first._id,
+                        link_type: 'primary',
+                    },
+                ],
+                itemsAdded: 1,
+                warnings: warnings,
+            };
+        }
+    }
+
+    case 'many_secondary': {
+        return {
+            next: [
+                ...current,
+                ...toAdd.map(({_id}): IPlanningRelatedEventLink => ({
+                    _id: _id,
+                    link_type: 'secondary',
+                }))
+            ],
+            itemsAdded: toAdd.length,
+            warnings: [],
+        };
+    }
+
+    case 'one_primary_many_secondary': {
+        const alreadyHasPrimary = current.some(({link_type}) => link_type === 'primary');
+
+        return {
+            next: [
+                ...current,
+                ...toAdd.map((event, i): IPlanningRelatedEventLink => {
+                    return {
+                        _id: event._id,
+                        link_type: !alreadyHasPrimary && i === 0 ? 'primary' : 'secondary',
+                    };
+                })
+            ],
+            itemsAdded: toAdd.length,
+            warnings: [],
+        };
+    }
+
+    default: {
+        return assertNever(appConfig.planning_event_link_method);
+    }
+    }
+}
+
+/**
+ * Will return true if there is at least one event that can be added
+ *
+ * Note: this function is interactive and might show UI confirmation prompt
+ */
+export function canAddSomeEventsAsRelatedToPlanningEditor(eventsToAdd: Array<IEventItem>): boolean {
     const editor = planningApi.editor(EDITOR_TYPE.INLINE);
 
     if (editor.manager == null) {
@@ -475,44 +594,109 @@ export function canAddSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEvent
     const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
     const currentRelatedEvents: Array<IPlanningRelatedEventLink> = (planningItem?.related_events ?? []);
 
-    const isEventAlreadyAddedAsRelated: (eventId: string) => boolean =
-        (eventId: string) => currentRelatedEvents.find((item) => item._id === eventId) != null;
-
     return editor.item.getItemType() === 'planning'
         && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
         && contentProfileHasRelatedEventsField
-        && eventIds.some((eventId) => isEventAlreadyAddedAsRelated(eventId) !== true);
+        && addRelatedEvents(currentRelatedEvents, eventsToAdd).itemsAdded > 0;
 }
 
 /**
  * Events that are already added will be ignored
  */
-export function addSomeEventsAsRelatedToPlanningEditor(eventIds: Array<IEventItem['_id']>) {
+export function addSomeEventsAsRelatedToPlanningEditor(
+    eventsToAdd: Array<IEventItem>,
+
+    /**
+     * Optional - has a default.
+     * In most cases default will be fine.
+     * Custom handler is added to support dynamic field names when used from an editor field.
+     */
+    onSuccess?: (nextItems: Array<IPlanningRelatedEventLink>) => void,
+): void {
     const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const {gettextPlural} = superdeskApi.localization;
+
+    const defaultSuccessCallback: (nextItems: Array<IPlanningRelatedEventLink>) => void = (nextItems) => {
+        editor.form.changeField(
+            'related_events',
+            nextItems,
+            true,
+            true,
+        ).then(() => {
+            editor.form.scrollToBookmarkGroup('associated_event', {focus: false});
+        });
+    };
+
+    const onSuccessCallback = onSuccess ?? defaultSuccessCallback;
+
     const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
 
     const currentRelatedEvents: Array<IPlanningRelatedEventLink> = planningItem?.related_events ?? [];
 
-    const isEventAlreadyAddedAsRelated: (eventId: string) => boolean =
-        (eventId: string) => currentRelatedEvents.find((item) => item._id === eventId) != null;
+    const result = addRelatedEvents(currentRelatedEvents, eventsToAdd);
 
-    const nextRelatedEvents: Array<IPlanningRelatedEventLink> = [
-        ...currentRelatedEvents,
-        ...eventIds
-            .filter((eventId) => isEventAlreadyAddedAsRelated(eventId) !== true)
-            .map((eventId): IPlanningRelatedEventLink => ({
-                _id: eventId,
-                link_type: 'secondary',
-            }))
-    ];
+    let promise = Promise.resolve();
 
-    editor.form.changeField(
-        'related_events',
-        nextRelatedEvents,
-        true,
-        true,
-    ).then(() => {
-        editor.form.scrollToBookmarkGroup('associated_event', {focus: false});
+    if (result.warnings.length > 0) {
+        promise = promise.then(() => new Promise((resolve) => {
+            superdeskApi.ui.showModal(({closeModal}) => {
+                const issuesJSX = (
+                    <Spacer v gap="16">
+                        <h3>{gettext('Issues detected:')}</h3>
+
+                        <ul>
+                            {result.warnings.map((warning, i) => (
+                                <li key={i}>{warning}</li>
+                            ))}
+                        </ul>
+                    </Spacer>
+                );
+
+                if (result.itemsAdded < 1) {
+                    return (
+                        <Modal
+                            visible
+                            onHide={closeModal}
+                            headerTemplate={
+                                gettextPlural(
+                                    eventsToAdd.length,
+                                    'Item can not be added as related',
+                                    'Items can not be added as related',
+                                )
+                            }
+                            footerTemplate={(
+                                <Button text={gettext('Close')} onClick={() => closeModal()} />
+                            )}
+                        >
+                            {issuesJSX}
+                        </Modal>
+                    );
+                } else {
+                    return (
+                        <ConfirmationModal
+                            handleHide={closeModal}
+                            modalProps={{
+                                // if warnings exist, but some items can still be added, then {{total}} is >= 2
+                                // thus gettextPlural doesn't need to be used
+                                title: gettext('{{some}} of {{total}} items can not be added as related'),
+
+                                body: issuesJSX,
+                                onCancel: noop,
+                                cancelText: gettext('Cancel'),
+                                okText: gettext('Add {{n}} items', {n: result.itemsAdded}),
+                                action: () => {
+                                    resolve();
+                                },
+                            }}
+                        />
+                    );
+                }
+            });
+        }));
+    }
+
+    promise = promise.then(() => {
+        onSuccessCallback(result.next);
     });
 }
 
@@ -579,12 +763,12 @@ function getEventItemActions(
         key++;
     });
 
-    if (canAddSomeEventsAsRelatedToPlanningEditor([event._id])) {
+    if (canAddSomeEventsAsRelatedToPlanningEditor([event])) {
         itemActions.push({
             label: gettext('Add as related event'),
             icon: 'icon-link',
             callback: () => {
-                addSomeEventsAsRelatedToPlanningEditor([event._id]);
+                addSomeEventsAsRelatedToPlanningEditor([event]);
             },
         });
     }
@@ -1449,6 +1633,7 @@ const self = {
     getEndDate,
     getEventDiff,
     convertCoverageToEventEmbedded,
+    addSomeEventsAsRelatedToPlanningEditor,
 };
 
 export default self;

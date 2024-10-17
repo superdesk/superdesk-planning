@@ -8,6 +8,7 @@ import * as selectors from '../../../selectors';
 
 import {EventMetadata} from '../../Events';
 import {superdeskApi} from '../../../superdeskApi';
+import events from '../../../utils/events';
 
 interface IProps extends IEditorFieldProps {
     events?: Array<IEventItem>;
@@ -33,17 +34,13 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
         return relatedEvents;
     }
 
-    private addRelatedEvent(id: IEventItem['_id']) {
-        this.props.onChange(
-            this.props.field,
-            [
-                ...this.getCurrentValue(),
-                {
-                    _id: id,
-                    link_type: 'secondary',
-                },
-            ],
-        );
+    private addRelatedEvent(event: IEventItem) {
+        events.addSomeEventsAsRelatedToPlanningEditor([event], (nextItems) => {
+            this.props.onChange(
+                this.props.field,
+                nextItems,
+            );
+        });
     }
 
     private removeRelatedEvent(id: IEventItem['_id']) {
@@ -109,11 +106,7 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
                                     event.dataTransfer.getData('application/superdesk.planning.event'),
                                 );
 
-                                if (this.relatedItemExists(eventItem._id)) {
-                                    superdeskApi.ui.notify.error(gettext('This item is already added'));
-                                } else {
-                                    this.addRelatedEvent(eventItem._id);
-                                }
+                                this.addRelatedEvent(eventItem);
                             }}
                             multiple={true}
                         >

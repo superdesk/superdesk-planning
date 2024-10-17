@@ -169,7 +169,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             );
         }
 
-        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings.map(({_id}) => _id))) {
+        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings)) {
             tools.push(
                 <Button
                     key={4}
