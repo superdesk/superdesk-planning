@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {superdeskApi} from '../../superdeskApi';
-import {IEventItem} from '../../interfaces';
+import {IEventItem, IPlanningListItemProps} from '../../interfaces';
 
 import {eventUtils, timeUtils} from '../../utils';
 
@@ -13,6 +13,7 @@ interface IProps {
   item: IEventItem;
   ignoreAllDay?: boolean;
   displayLocalTimezone?: boolean;
+  planningItem?: IPlanningListItemProps;
 }
 
 export class EventDateTime extends React.PureComponent<IProps> {
@@ -23,6 +24,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(start, end);
         const multiDay = !eventUtils.isEventSameDay(start, end);
+        const showEventStartDate = eventUtils.showEventStartDate(start, this.props.planningItem?.date);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
         const withYear = multiDay && start.year() !== end.year();
         const localStart = timeUtils.getLocalDate(start, item.dates.tz);
@@ -79,7 +81,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     </span>
                 )}
                 <DateTime
-                    withDate={multiDay}
+                    withDate={(showEventStartDate || multiDay)}
                     withYear={withYear}
                     date={start}
                     {...commonProps}
