@@ -169,12 +169,15 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             );
         }
 
-        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings)) {
+        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)) {
             tools.push(
                 <Button
                     key={4}
                     onClick={() => {
-                        addSomeRelatedPlanningsToEventEditor(selectedPlannings);
+                        addSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
                     }}
                     hollow
                     text={gettextPlural(
@@ -271,7 +274,10 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
                 <Button
                     key={5}
                     onClick={() => {
-                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents.map(({_id}) => _id));
+                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents.map(({_id}) => _id))
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
                     }}
                     hollow
                     text={gettextPlural(selectedEvents.length, 'Add as related event', 'Add as related events')}

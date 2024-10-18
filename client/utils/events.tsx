@@ -1,4 +1,3 @@
-import * as React from 'react';
 import moment from 'moment-timezone';
 import RRule from 'rrule';
 import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten, noop} from 'lodash';
@@ -58,8 +57,7 @@ import {
     sanitizeItemFields,
 } from './index';
 import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
-import {ConfirmationModal} from '../components';
-import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
+import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 
 
 /**
@@ -611,13 +609,14 @@ export function addSomeEventsAsRelatedToPlanningEditor(
      * In most cases default will be fine.
      * Custom handler is added to support dynamic field names when used from an editor field.
      */
-    onSuccess?: (nextItems: Array<IPlanningRelatedEventLink>) => void,
-): void {
+    onSave?: (nextItems: Array<IPlanningRelatedEventLink>) => Promise<void>,
+): Promise<void> {
     const editor = planningApi.editor(EDITOR_TYPE.INLINE);
-    const {gettextPlural} = superdeskApi.localization;
 
-    const defaultSuccessCallback: (nextItems: Array<IPlanningRelatedEventLink>) => void = (nextItems) => {
-        editor.form.changeField(
+    const defaultSuccessCallback: (
+        nextItems: Array<IPlanningRelatedEventLink>,
+    ) => void = (nextItems): Promise<void> => {
+        return editor.form.changeField(
             'related_events',
             nextItems,
             true,
@@ -627,7 +626,7 @@ export function addSomeEventsAsRelatedToPlanningEditor(
         });
     };
 
-    const onSuccessCallback = onSuccess ?? defaultSuccessCallback;
+    const onSuccessCallback = onSave ?? defaultSuccessCallback;
 
     const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
 
@@ -638,66 +637,16 @@ export function addSomeEventsAsRelatedToPlanningEditor(
     let promise = Promise.resolve();
 
     if (result.warnings.length > 0) {
-        promise = promise.then(() => new Promise((resolve) => {
-            superdeskApi.ui.showModal(({closeModal}) => {
-                const issuesJSX = (
-                    <Spacer v gap="16">
-                        <h3>{gettext('Issues detected:')}</h3>
-
-                        <ul>
-                            {result.warnings.map((warning, i) => (
-                                <li key={i}>{warning}</li>
-                            ))}
-                        </ul>
-                    </Spacer>
-                );
-
-                if (result.itemsAdded < 1) {
-                    return (
-                        <Modal
-                            visible
-                            onHide={closeModal}
-                            headerTemplate={
-                                gettextPlural(
-                                    eventsToAdd.length,
-                                    'Item can not be added as related',
-                                    'Items can not be added as related',
-                                )
-                            }
-                            footerTemplate={(
-                                <Button text={gettext('Close')} onClick={() => closeModal()} />
-                            )}
-                        >
-                            {issuesJSX}
-                        </Modal>
-                    );
-                } else {
-                    return (
-                        <ConfirmationModal
-                            handleHide={closeModal}
-                            modalProps={{
-                                // if warnings exist, but some items can still be added, then {{total}} is >= 2
-                                // thus gettextPlural doesn't need to be used
-                                title: gettext('{{some}} of {{total}} items can not be added as related'),
-
-                                body: issuesJSX,
-                                onCancel: noop,
-                                cancelText: gettext('Cancel'),
-                                okText: gettext('Add {{n}} items', {n: result.itemsAdded}),
-                                action: () => {
-                                    resolve();
-                                },
-                            }}
-                        />
-                    );
-                }
-            });
-        }));
+        promise = promise.then(
+            () => confirmAddingRelatedItems(result.warnings, eventsToAdd.length, result.itemsAdded).catch(noop),
+        );
     }
 
     promise = promise.then(() => {
-        onSuccessCallback(result.next);
+        return onSuccessCallback(result.next);
     });
+
+    return promise;
 }
 
 function getEventItemActions(

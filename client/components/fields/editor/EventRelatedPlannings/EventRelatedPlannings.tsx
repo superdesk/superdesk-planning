@@ -1,8 +1,10 @@
 import * as React from 'react';
+import {connect} from 'react-redux';
 
 import {
     IEditorFieldProps,
     IEventItem,
+    ILockedItems,
     IPlanningCoverageItem,
     IPlanningItem,
     IProfileSchemaTypeList,
@@ -16,8 +18,10 @@ import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 
 import './style.scss';
 import {TEMP_ID_PREFIX} from '../../../../constants';
+import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
+import * as selectors from '../../../../selectors';
 
-interface IProps extends IEditorFieldProps {
+interface IOwnProps extends IEditorFieldProps {
     item: IEventItem;
     schema?: IProfileSchemaTypeList;
     coverageProfile?: ISearchProfile;
@@ -29,7 +33,13 @@ interface IProps extends IEditorFieldProps {
     addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
 }
 
-export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps> {
+interface IReduxProps {
+    lockedItems: ILockedItems;
+}
+
+type IProps = IOwnProps & IReduxProps;
+
+export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {DropZone} = superdeskApi.components;
@@ -111,14 +121,7 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                                     event.dataTransfer.getData('application/superdesk.planning.planning_item'),
                                 );
 
-                                const alreadyExists = planningItems
-                                    .find((item) => item._id === planningItem._id) != null;
-
-                                if (alreadyExists) {
-                                    superdeskApi.ui.notify.error(gettext('This item is already added'));
-                                } else {
-                                    this.props.addPlanningItem(planningItem);
-                                }
+                                addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
                             }}
                             multiple={true}
                         >
@@ -130,3 +133,12 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
         );
     }
 }
+
+const mapStateToProps = (state): IReduxProps => ({
+    lockedItems: selectors.locks.getLockedItems(state),
+});
+
+
+export const EditorFieldEventRelatedPlannings = connect(
+    mapStateToProps,
+)(EditorFieldEventRelatedPlanningsComponent);
