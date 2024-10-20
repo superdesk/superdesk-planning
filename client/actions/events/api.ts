@@ -1,7 +1,7 @@
 import {get, cloneDeep, has, find, every, take} from 'lodash';
 
-import {planningApi} from '../../superdeskApi';
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
+import {planningApi, superdeskApi} from '../../superdeskApi';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate, IPlanningRelatedEventLink} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import {
@@ -26,8 +26,7 @@ import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
-import {planning, searchPlanning} from '../../api/planning';
-import {IRestApiResponse} from 'superdesk-api';
+import {planning} from '../../api/planning';
 import * as actions from '../../actions';
 
 /**
@@ -556,26 +555,39 @@ function updateLinkedPlanningsForEvent(
      * these must be final values
      * missing items will be linked, extra items unlinked
      */
-    planningIds: Array<IPlanningItem['_id']>,
+    associatedPlannings: Array<IPlanningItem>,
 ):Promise<void> {
     return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
         const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
-        const toLink: Array<IPlanningItem['_id']> = planningIds.filter((id) => currentLinkedIds.has(id) !== true);
-        const toUnlink = currentlyLinked.filter((planningItem) => planningIds.includes(planningItem._id) !== true);
+
+        const toLink: Array<IPlanningItem> =
+            associatedPlannings.filter(({_id}) => currentLinkedIds.has(_id) !== true);
+
+        const toUnlink: Array<IPlanningItem> = currentlyLinked.filter(
+            (planningItem) => associatedPlannings.find(({_id}) => _id === planningItem._id) == null,
+        );
 
         return Promise.all(
             [
-                ...toLink.map((planningId) => {
-                    return planning.getById(planningId).then((planningItem) => {
-                        const patch: Partial<IPlanningItem> = {
-                            related_events: [
-                                ...(planningItem.related_events ?? []),
-                                {_id: eventId, link_type: 'secondary'},
-                            ],
-                        };
+                ...toLink.map((planningItem) => {
+                    const linkType = planningItem._temporary.link_type;
 
-                        return planning.update(planningItem, patch);
-                    });
+                    if (linkType == null) {
+                        superdeskApi.utilities.logger.error(
+                            new Error('linkType expected but not found'),
+                        );
+
+                        return Promise.resolve(planningItem);
+                    }
+
+                    const patch: Partial<IPlanningItem> = {
+                        related_events: [
+                            ...(planningItem.related_events ?? []),
+                            {_id: eventId, link_type: linkType},
+                        ],
+                    };
+
+                    return planning.update(planningItem, patch);
                 }),
                 ...toUnlink.map((planningItem) => {
                     const patch: Partial<IPlanningItem> = {
@@ -608,7 +620,7 @@ const save = (original, updates) => (
             promise = Promise.resolve({});
         }
 
-        return promise.then((originalEvent) => {
+        return promise.then((originalEvent): any => {
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
             const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
@@ -621,20 +633,19 @@ const save = (original, updates) => (
                 EVENTS.UPDATE_METHODS[0].value :
                 eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
-            const createOrUpdatePromise = originalEvent?._id != null ?
+            const createOrUpdatePromise: Promise<Array<IEventItem>> = originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :
                 planningApi.events.create(eventUpdates);
 
-            return createOrUpdatePromise.then((updatedEvents) => {
+            return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) => {
                 if (updates.associated_plannings == null) {
-                    return Promise.resolve();
+                    return Promise.resolve([updatedEvent]);
                 }
 
-                const nextAssociatedPlanningIds = updates.associated_plannings.map(({_id}) => _id);
-
-                return Promise.all(
-                    updatedEvents.map((event) => updateLinkedPlanningsForEvent(event._id, nextAssociatedPlanningIds)),
-                ).then(() => updatedEvents);
+                return updateLinkedPlanningsForEvent(
+                    updatedEvent._id,
+                    updates.associated_plannings,
+                ).then(() => [updatedEvent]);
             });
         });
     }

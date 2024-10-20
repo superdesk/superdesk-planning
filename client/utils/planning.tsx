@@ -540,6 +540,12 @@ export function addSomeRelatedPlanningsToEventEditor(
     }
 
     for (const {planning, link_type} of result.canBeAdded) {
+        if (planning._temporary == null) {
+            planning._temporary = {};
+        }
+
+        planning._temporary.link_type = link_type;
+
         promises = promises
             .then(() => editor.item.events.addPlanningItem(planning, {scrollIntoViewAndFocus: false}))
             .then(() => null);

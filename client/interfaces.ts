@@ -744,6 +744,16 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;
 
+    /**
+     * This is for storing UI related data that is not a part of the planning item entity itself,
+     * but is required to be persisted to complete a multi-step workflow.
+     * It will be persisted in /planning_autosave, but not in /planning endpoint
+     */
+    _temporary?: {
+        // is used when linking planning items to an event
+        link_type?: IPlanningRelatedEventLinkType;
+    }
+
     // Attributes added by API (removed via modifyForClient)
     // The `_status` field is available when the item comes from a POST/PATCH request
     _status: any;
