@@ -59,7 +59,7 @@ export class PlanningItemWithEvents extends React.Component<IProps, IState> {
                     return (
                         <WithLiveResources resources={[{resource: 'events', ids: this.props.relatedEventIds}]}>
                             {([res]) => (
-                                <div>
+                                <div style={{display: 'contents'}}>
                                     {
                                         res._items.map((item) => {
                                             const event = eventUtils.modifyForClient(item);
