@@ -252,7 +252,7 @@ const extension: IExtension = {
                         },
                     },
                 ],
-                globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [HiddenAssignmentsList],
+                globalMenuHorizontal: [HiddenAssignmentsList, ...(displayTopbarWidget ? [AssignmentsList] : [])],
             },
         };
 

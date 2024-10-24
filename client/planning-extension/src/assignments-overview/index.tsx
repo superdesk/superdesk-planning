@@ -27,12 +27,12 @@ interface IState {
     currentUser: IUser;
 }
 
-export function getAssignmentsQuery(userId: IUser['_id']): ISuperdeskQuery {
+function getAssignmentsQuery(userId: IUser['_id']): ISuperdeskQuery {
     const query: ISuperdeskQuery = {
         filter: {
             $and: [
                 {'assigned_to.user': {$eq: userId}},
-                {'assigned_to.state': {$in: ['assigned']}},
+                {'assigned_to.state': {$in: ['assigned', 'submitted', 'in_progress']}},
             ],
         },
         sort: [{'planning.scheduled': 'asc'}],
