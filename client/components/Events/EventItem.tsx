@@ -305,6 +305,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 <EventDateTimeColumn
                     item={item}
                     multiRow={listViewType === LIST_VIEW_TYPE.LIST}
+                    planningProps={this.props.planningProps}
                 />
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
                     <CreatedUpdatedColumn

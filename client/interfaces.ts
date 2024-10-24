@@ -906,6 +906,7 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
 
 export interface IBaseListItemProps<T> {
     item: T;
+    planningProps?: IPlanningListItemProps;
     lockedItems: ILockedItems;
     session: ISession;
     privileges: {[key: string]: number};

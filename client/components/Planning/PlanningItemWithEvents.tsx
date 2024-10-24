@@ -69,6 +69,7 @@ export class PlanningItemWithEvents extends React.Component<IProps, IState> {
                                                     {...this.props.getEventProps(event)}
                                                     multiSelectDisabled
                                                     key={event._id}
+                                                    planningProps={planningProps}
                                                 />
                                             );
                                         })
