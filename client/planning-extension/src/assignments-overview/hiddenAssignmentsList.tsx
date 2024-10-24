@@ -11,7 +11,7 @@ interface IState {
     currentUser: IUser;
 }
 
-export class HiddenAssignmentsList extends React.PureComponent<{}, {loading: true} | IState> {
+export class AssignmentsCountTracker extends React.PureComponent<{}, {loading: true} | IState> {
     constructor(props: {}) {
         super(props);
 

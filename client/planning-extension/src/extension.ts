@@ -20,7 +20,7 @@ import {
     PLANNING_DETAILS_WIDGET_ID,
     PLANNING_DETAILS_WIDGET_LABEL,
 } from './planning-details-widget';
-import {HiddenAssignmentsList} from './assignments-overview/hiddenAssignmentsList';
+import {AssignmentsCountTracker} from './assignments-overview/hiddenAssignmentsList';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -252,7 +252,7 @@ const extension: IExtension = {
                         },
                     },
                 ],
-                globalMenuHorizontal: [HiddenAssignmentsList, ...(displayTopbarWidget ? [AssignmentsList] : [])],
+                globalMenuHorizontal: [AssignmentsCountTracker, ...(displayTopbarWidget ? [AssignmentsList] : [])],
             },
         };
 
