@@ -13,7 +13,7 @@ import {EventDateTime} from './EventDateTime';
 interface IProps {
     item: IEventItem;
     multiRow?: boolean;
-    planningItem?: IPlanningListItemProps;
+    planningProps?: IPlanningListItemProps;
 }
 
 export class EventDateTimeColumn extends React.PureComponent<IProps> {
@@ -24,7 +24,7 @@ export class EventDateTimeColumn extends React.PureComponent<IProps> {
             return (
                 <Column border={false} className="flex-justify--start sd-padding-t--1">
                     <Row classes="sd-margin--0">
-                        <EventDateTime item={this.props.item} planningItem={this.props.planningItem} />
+                        <EventDateTime item={this.props.item} planningProps={this.props.planningProps} />
                     </Row>
                 </Column>
             );
