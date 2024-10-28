@@ -558,9 +558,9 @@ function addRelatedEvents(
         return {
             next: [
                 ...current,
-                ...toAdd.map((event, i): IPlanningRelatedEventLink => {
+                ...toAdd.map((evt, i): IPlanningRelatedEventLink => {
                     return {
-                        _id: event._id,
+                        _id: evt._id,
                         link_type: !alreadyHasPrimary && i === 0 ? 'primary' : 'secondary',
                     };
                 })

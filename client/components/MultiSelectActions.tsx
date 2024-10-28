@@ -269,12 +269,12 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             );
         }
 
-        if (canAddSomeEventsAsRelatedToPlanningEditor(selectedEvents.map(({_id}) => _id))) {
+        if (canAddSomeEventsAsRelatedToPlanningEditor(selectedEvents)) {
             tools.push(
                 <Button
                     key={5}
                     onClick={() => {
-                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents.map(({_id}) => _id))
+                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents)
                             .then(() => {
                                 this.handleDeSelectAll();
                             });
