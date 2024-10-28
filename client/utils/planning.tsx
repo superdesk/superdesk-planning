@@ -535,7 +535,7 @@ export function addSomeRelatedPlanningsToEventEditor(
                 result.warnings,
                 planningsToAdd.length,
                 result.canBeAdded.length,
-            ).catch(noop)
+            )
         );
     }
 

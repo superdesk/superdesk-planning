@@ -638,7 +638,7 @@ export function addSomeEventsAsRelatedToPlanningEditor(
 
     if (result.warnings.length > 0) {
         promise = promise.then(
-            () => confirmAddingRelatedItems(result.warnings, eventsToAdd.length, result.itemsAdded).catch(noop),
+            () => confirmAddingRelatedItems(result.warnings, eventsToAdd.length, result.itemsAdded),
         );
     }
 
