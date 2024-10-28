@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {Spacer, Modal, Button} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../superdeskApi';
-import {ConfirmationModal} from '../components';
 
 export function confirmAddingRelatedItems(
     warnings: Array<string>,
@@ -51,30 +50,35 @@ export function confirmAddingRelatedItems(
                 );
             } else {
                 return (
-                    <ConfirmationModal
-                        handleHide={closeAndReject}
-                        modalProps={{
-                            // if warnings exist, but some items can still be added, then {{total}} is >= 2
-                            // thus gettextPlural doesn't need to be used
-                            title: gettext(
+                    <Modal
+                        visible
+                        onHide={closeAndReject}
+                        headerTemplate={
+                            gettext(
                                 '{{some}} of {{total}} items can not be added as related',
                                 {
                                     total: attemptedToAdd,
                                     some: attemptedToAdd - canBeAdded,
                                 },
-                            ),
+                            )
+                        }
+                        footerTemplate={(
+                            <Spacer h gap="4" justifyContent="end" noWrap>
+                                <Button text={gettext('Cancel')} onClick={() => closeAndReject()} />
+                                <Button
+                                    text={gettextPlural(canBeAdded, 'Add 1 item', 'Add {{n}} items', {n: canBeAdded})}
+                                    type="primary"
+                                    onClick={() => {
+                                        options.closeModal();
 
-                            body: issuesJSX,
-                            onCancel: closeAndReject,
-                            cancelText: gettext('Cancel'),
-                            okText: gettextPlural(canBeAdded, 'Add 1 item', 'Add {{n}} items', {n: canBeAdded}),
-                            action: () => {
-                                options.closeModal();
-
-                                resolve();
-                            },
-                        }}
-                    />
+                                        resolve();
+                                    }}
+                                />
+                            </Spacer>
+                        )}
+                    >
+                        {issuesJSX}
+                    </Modal>
                 );
             }
         });
