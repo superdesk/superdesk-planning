@@ -81,6 +81,13 @@ function isEventSameDay(startingDate: IDateTime, endingDate: IDateTime): boolean
     return moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY');
 }
 
+function showEventStartDate(eventDate: IDateTime, multiDay: boolean, planningDate?: IDateTime): boolean {
+    if (planningDate == null) {
+        return true;
+    }
+    return (!moment(eventDate).isSame(planningDate, 'day') || multiDay);
+}
+
 function eventHasPlanning(event: IEventItem): boolean {
     return get(event, 'planning_ids', []).length > 0;
 }
@@ -1557,6 +1564,7 @@ const self = {
     canConvertToRecurringEvent,
     canUpdateEventRepetitions,
     isEventSameDay,
+    showEventStartDate,
     isEventRecurring,
     getDateStringForEvent,
     getEventActions,

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import moment from 'moment-timezone';
 
-import {IEventItem} from '../../interfaces';
+import {IEventItem, IPlanningListItemProps} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
 import {eventUtils, timeUtils} from '../../utils';
@@ -13,6 +13,7 @@ import {EventDateTime} from './EventDateTime';
 interface IProps {
     item: IEventItem;
     multiRow?: boolean;
+    planningProps?: IPlanningListItemProps;
 }
 
 export class EventDateTimeColumn extends React.PureComponent<IProps> {
@@ -23,7 +24,7 @@ export class EventDateTimeColumn extends React.PureComponent<IProps> {
             return (
                 <Column border={false} className="flex-justify--start sd-padding-t--1">
                     <Row classes="sd-margin--0">
-                        <EventDateTime item={this.props.item} />
+                        <EventDateTime item={this.props.item} planningProps={this.props.planningProps} />
                     </Row>
                 </Column>
             );
