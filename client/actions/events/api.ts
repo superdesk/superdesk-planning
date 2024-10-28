@@ -1,7 +1,7 @@
 import {get, cloneDeep, has, find, every, take} from 'lodash';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate, IPlanningRelatedEventLink} from '../../interfaces';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import {
