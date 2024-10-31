@@ -11,9 +11,9 @@ import {
     IPlanningCoverageItem,
     IIngestProvider,
     IFeaturedPlanningItem,
-    ISearchParams,
     ICommonSearchParams,
     JUMP_INTERVAL,
+    ICoverageScheduledUpdate,
 } from '../interfaces';
 import {IUser} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
@@ -288,7 +288,7 @@ export const notifyError = (notify, error, defaultMessage) => {
  * @return {object} The user object found or ingest provider id, otherwise nothing is returned
  */
 export function getCreator(
-    item: IEventOrPlanningItem | IPlanningCoverageItem | IFeaturedPlanningItem,
+    item: IEventOrPlanningItem | IPlanningCoverageItem | IFeaturedPlanningItem | ICoverageScheduledUpdate,
     creator: string,
     users: Array<IUser>
 ): IUser | IIngestProvider['id'] | undefined {

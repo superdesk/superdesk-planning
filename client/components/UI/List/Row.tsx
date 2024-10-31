@@ -1,5 +1,4 @@
 import React, {CSSProperties} from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 interface IProps {

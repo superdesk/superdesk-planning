@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {IPlanningCoverageItem, ICoverageScheduledUpdate} from '../../../interfaces';
+import {IPlanningCoverageItem, ICoverageScheduledUpdate, IPlanningConfig} from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
 
 import {getCreator, getItemInArrayById, gettext, planningUtils, onEventCapture} from '../../../utils';
@@ -11,6 +11,10 @@ import {Button} from '../../UI';
 import {UserAvatar} from '../../../components/UserAvatar';
 import {StateLabel} from '../../StateLabel';
 import * as actions from '../../../actions';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
+import {ASSIGNMENTS} from '../../../constants/assignments';
+
+const planningConfig: IPlanningConfig = appConfig as IPlanningConfig;
 
 interface IProps {
     field: string;
@@ -72,12 +76,13 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
-        const deskAssigned = getItemInArrayById(desks, get(value, 'assigned_to.desk'));
-        const coverageProvider = get(value, 'assigned_to.coverage_provider');
-        const assignmentState = get(value, 'assigned_to.state');
-        const cancelled = get(value, 'workflow_status') === 'cancelled';
+        const deskAssigned = getItemInArrayById(desks, value.assigned_to.desk);
+        const coverageProvider = value.assigned_to.coverage_provider;
+        const assignmentState = value.assigned_to.state;
+        const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
         const canEditAssignment = planningUtils.isCoverageDraft(value) ||
-            (!!addNewsItemToPlanning && !get(value, 'coverage_id') && !get(value, 'scheduled_update_id'));
+            (!!addNewsItemToPlanning && !value.coverage_id && !get(value, 'scheduled_update_id'));
+        const shouldShowRemove = (onRemoveAssignment != null && planningConfig.planning_auto_assign_to_workflow === false);
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -130,7 +135,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                             <span className="sd-list-item__text-label sd-list-item__text-label--normal">
                                 {gettext('Desk:')}
                             </span>
-                            <span name={`${field}.assigned_to.desk`}>
+                            <span key={`${field}.assigned_to.desk`}>
                                 {get(deskAssigned, 'name', '')}
                             </span>
                         </span>
@@ -141,7 +146,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 <span className="sd-list-item__text-label sd-list-item__text-label--normal">
                                     {gettext('Assignee:')}
                                 </span>
-                                <span name={`${field}.assigned_to.user`}>
+                                <span key={`${field}.assigned_to.user`}>
                                     {get(userAssigned, 'display_name', '')}
                                 </span>
                             </span>
@@ -168,7 +173,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                         </ListRow>
                     )}
                 </Column>
-                {canEditAssignment && !readOnly && (
+                {(canEditAssignment || planningConfig.planning_auto_assign_to_workflow) && !readOnly && (
                     <Column>
                         <ListRow>
                             <Button
@@ -181,7 +186,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 autoFocus
                             />
                         </ListRow>
-                        {!onRemoveAssignment ? null : (
+                        {shouldShowRemove && (
                             <ListRow>
                                 <Button
                                     text={gettext('Remove')}
