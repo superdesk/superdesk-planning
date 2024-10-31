@@ -82,7 +82,8 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
         const canEditAssignment = planningUtils.isCoverageDraft(value) ||
             (!!addNewsItemToPlanning && !value.coverage_id && !get(value, 'scheduled_update_id'));
-        const shouldShowRemove = (onRemoveAssignment != null && planningConfig.planning_auto_assign_to_workflow === false);
+        const shouldShowRemove = (onRemoveAssignment != null
+            && planningConfig.planning_auto_assign_to_workflow === false);
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
