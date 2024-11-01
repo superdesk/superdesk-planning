@@ -105,7 +105,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onRemoveAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
-})
+});
 
 class CoverageArrayInputComponent extends React.Component<IProps, IState> {
     constructor(props) {

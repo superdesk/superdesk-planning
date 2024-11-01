@@ -8,7 +8,13 @@ import {Row, LineInput} from '../';
 import './style.scss';
 import {superdeskApi} from '../../../../superdeskApi';
 import {planningApis} from '../../../../api';
-import {EDITOR_TYPE, IAssignmentItem, IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from 'interfaces';
+import {
+    EDITOR_TYPE,
+    IAssignmentItem,
+    IG2ContentType,
+    IPlanningCoverageItem,
+    IPlanningNewsCoverageStatus,
+} from 'interfaces';
 import {IDesk} from 'superdesk-api';
 
 interface IProps {
@@ -167,11 +173,10 @@ export class InputArray extends React.PureComponent<IProps> {
                 {(value || []).map((val, index) => (
                     <Component
                         {...props}
-                        onRemoveAssignment={(val) => {
-                            return planningApis.assignments.getById(val.assigned_to.assignment_id).then((assignment) =>
-                                this.props.onRemoveAssignment(assignment)
-                            );
-                        }}
+                        onRemoveAssignment={(val) =>
+                            planningApis.assignments.getById(val.assigned_to.assignment_id)
+                                .then((assignment) => this.props.onRemoveAssignment(assignment))
+                        }
                         key={index}
                         ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
                         testId={`${testId}[${index}]`}
