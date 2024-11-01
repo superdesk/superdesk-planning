@@ -80,8 +80,11 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const coverageProvider = value.assigned_to?.coverage_provider;
         const assignmentState = value.assigned_to?.state;
         const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
-        const canEditAssignment = planningUtils.isCoverageDraft(value) ||
-            (!!addNewsItemToPlanning && !value.coverage_id && !((value as ICoverageScheduledUpdate).scheduled_update_id));
+        const canEditAssignment = planningUtils.isCoverageDraft(value) || (
+            !!addNewsItemToPlanning
+            && !value.coverage_id
+            && !((value as ICoverageScheduledUpdate).scheduled_update_id)
+        );
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
