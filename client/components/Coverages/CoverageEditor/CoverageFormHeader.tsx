@@ -83,8 +83,6 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const canEditAssignment = planningUtils.isCoverageDraft(value) ||
             (!!addNewsItemToPlanning && !value.coverage_id && !get(value, 'scheduled_update_id'));
 
-        const autoAddToWf = true;
-
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
                 <Item noBg={true} noHover={true}>
@@ -174,7 +172,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                         </ListRow>
                     )}
                 </Column>
-                {(canEditAssignment || autoAddToWf) && !readOnly && (
+                {(canEditAssignment || planningConfig.planning_auto_assign_to_workflow) && !readOnly && (
                     <Column>
                         <ListRow>
                             <Button
