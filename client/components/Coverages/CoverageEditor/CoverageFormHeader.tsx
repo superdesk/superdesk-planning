@@ -81,7 +81,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const assignmentState = value.assigned_to?.state;
         const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
         const canEditAssignment = planningUtils.isCoverageDraft(value) ||
-            (!!addNewsItemToPlanning && !value.coverage_id && !get(value, 'scheduled_update_id'));
+            (!!addNewsItemToPlanning && !value.coverage_id && !((value as ICoverageScheduledUpdate).scheduled_update_id));
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -185,7 +185,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 autoFocus
                             />
                         </ListRow>
-                        {onRemoveAssignment != null && (
+                        {onRemoveAssignment != null && value.assigned_to.assignment_id != null && (
                             <ListRow>
                                 <Button
                                     text={gettext('Remove')}
