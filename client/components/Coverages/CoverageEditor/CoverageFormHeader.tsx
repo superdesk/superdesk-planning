@@ -25,7 +25,7 @@ interface IProps {
     addNewsItemToPlanning?: IArticle;
     onChange(field: string, value: any): void;
     onFocus?(): void;
-    onRemoveAssignment?(): void;
+    onRemoveAssignment?(): Promise<void>;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     showEditCoverageAssignmentModal(props: {
         field: string;
@@ -76,14 +76,14 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
-        const deskAssigned = getItemInArrayById(desks, value.assigned_to.desk);
-        const coverageProvider = value.assigned_to.coverage_provider;
-        const assignmentState = value.assigned_to.state;
+        const deskAssigned = getItemInArrayById(desks, value.assigned_to?.desk);
+        const coverageProvider = value.assigned_to?.coverage_provider;
+        const assignmentState = value.assigned_to?.state;
         const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
         const canEditAssignment = planningUtils.isCoverageDraft(value) ||
             (!!addNewsItemToPlanning && !value.coverage_id && !get(value, 'scheduled_update_id'));
-        const shouldShowRemove = (onRemoveAssignment != null
-            && planningConfig.planning_auto_assign_to_workflow === false);
+
+        const autoAddToWf = true;
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -174,7 +174,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                         </ListRow>
                     )}
                 </Column>
-                {(canEditAssignment || planningConfig.planning_auto_assign_to_workflow) && !readOnly && (
+                {(canEditAssignment || autoAddToWf) && !readOnly && (
                     <Column>
                         <ListRow>
                             <Button
@@ -187,12 +187,14 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 autoFocus
                             />
                         </ListRow>
-                        {shouldShowRemove && (
+                        {onRemoveAssignment != null && (
                             <ListRow>
                                 <Button
                                     text={gettext('Remove')}
                                     className="btn btn--hollow btn--small"
-                                    onClick={onRemoveAssignment}
+                                    onClick={() => {
+                                        onRemoveAssignment();
+                                    }}
                                     tabIndex={0}
                                     enterKeyIsClick
                                     disabled={!!addNewsItemToPlanning}
