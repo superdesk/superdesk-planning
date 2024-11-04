@@ -91,9 +91,9 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             1. This view is rendered from AddToPlanning action
             2. There's an already scheduled update for the coverage
         */
-        const canEditAssignment = addNewsItemToPlanning == null
-            && !((value as ICoverageScheduledUpdate).scheduled_update_id);
         const isAssignmentLocked = lockedItems?.assignment && value.assigned_to?.assignment_id in lockedItems.assignment;
+        const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked
+            && !((value as ICoverageScheduledUpdate).scheduled_update_id);
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -193,10 +193,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 expand
                             />
                         </ListRow>
-                        {onRemoveAssignment != null
-                            && !isAssignmentLocked
-                            && !planningUtils.isCoverageDraft(value)
-                            && (
+                        {onRemoveAssignment != null && (
                                 <ListRow>
                                     <Button
                                         text={gettext('Remove')}
