@@ -93,7 +93,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         */
         const canEditAssignment = addNewsItemToPlanning == null
             && !((value as ICoverageScheduledUpdate).scheduled_update_id);
-        const isAssignmentLocked = lockedItems?.assignment && value.assigned_to.assignment_id in lockedItems.assignment;
+        const isAssignmentLocked = lockedItems?.assignment && value.assigned_to?.assignment_id in lockedItems.assignment;
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
