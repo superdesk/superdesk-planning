@@ -91,7 +91,8 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             1. This view is rendered from AddToPlanning action
             2. There's an already scheduled update for the coverage
         */
-        const isAssignmentLocked = lockedItems?.assignment && value.assigned_to?.assignment_id in lockedItems.assignment;
+        const isAssignmentLocked = lockedItems?.assignment
+            && value.assigned_to?.assignment_id in lockedItems.assignment;
         const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked
             && !((value as ICoverageScheduledUpdate).scheduled_update_id);
 
@@ -194,18 +195,18 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                             />
                         </ListRow>
                         {onRemoveAssignment != null && (
-                                <ListRow>
-                                    <Button
-                                        text={gettext('Remove')}
-                                        onClick={() => {
-                                            onRemoveAssignment();
-                                        }}
-                                        style="hollow"
-                                        size="small"
-                                        expand
-                                    />
-                                </ListRow>
-                            )}
+                            <ListRow>
+                                <Button
+                                    text={gettext('Remove')}
+                                    onClick={() => {
+                                        onRemoveAssignment();
+                                    }}
+                                    style="hollow"
+                                    size="small"
+                                    expand
+                                />
+                            </ListRow>
+                        )}
                     </Column>
                 )}
             </Item>
