@@ -30,7 +30,6 @@ export class AutopostIngestRulePreview extends React.PureComponent<IProps, IStat
         this.state = {
             loading: true,
         };
-
     }
 
     componentDidMount(): void {
@@ -42,7 +41,7 @@ export class AutopostIngestRulePreview extends React.PureComponent<IProps, IStat
                 loading: false,
                 agendas: res._items,
             });
-        })
+        });
     }
 
     render() {

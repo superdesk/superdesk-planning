@@ -68,7 +68,7 @@ export class AutopostIngestRuleEditor extends React.PureComponent<IProps, IState
                 loading: false,
                 agendas: res._items,
             });
-        })
+        });
     }
 
     render() {
