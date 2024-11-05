@@ -42,7 +42,7 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
 
         this.state = {
             isAllDay: eventUtils.isEventAllDay(dates.start, dates.end, true),
-            isMultiDay: !eventUtils.isEventSameDay(dates.start, dates.end),
+            isMultiDay: !eventUtils.isSameDay(dates.start, dates.end),
         };
 
         this.onChange = this.onChange.bind(this);
@@ -197,7 +197,7 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
     componentWillReceiveProps(nextProps: Readonly<IProps>) {
         const nextDates = nextProps.diff?.dates ?? {};
         const isAllDay = eventUtils.isEventAllDay(nextDates.start, nextDates.end, true);
-        const isMultiDay = !eventUtils.isEventSameDay(nextDates.start, nextDates.end);
+        const isMultiDay = !eventUtils.isSameDay(nextDates.start, nextDates.end);
 
         const newState: Partial<IState> = {};
 

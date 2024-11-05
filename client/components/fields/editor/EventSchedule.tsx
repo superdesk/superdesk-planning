@@ -80,7 +80,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         const _startTime = this.props.item?._startTime;
         const defaultDurationOnChange = this.props.profile?.editor?.dates?.default_duration_on_change ?? 1;
         const isAllDay = eventUtils.isEventAllDay(startDate, endDate, true);
-        const isMultiDay = !eventUtils.isEventSameDay(startDate, endDate);
+        const isMultiDay = !eventUtils.isSameDay(startDate, endDate);
         const newStartDate = !startDate ?
             value :
             moment(startDate)
@@ -130,7 +130,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             endDate.hour(value.hour()).minute(value.minute()) :
             value;
         const isAllDay = eventUtils.isEventAllDay(startDate, endDate, true);
-        const isMultiDay = !eventUtils.isEventSameDay(startDate, endDate);
+        const isMultiDay = !eventUtils.isSameDay(startDate, endDate);
         const changes = {'dates.end': newEndDate};
 
         if (((_endTime && isAllDay) || !_endTime) &&

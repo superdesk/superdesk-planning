@@ -76,7 +76,7 @@ function isEventAllDay(startingDate: IDateTime, endingDate: IDateTime, checkMult
         end.isSame(end.clone().endOf('day'), 'minute');
 }
 
-function isEventSameDay(startingDate: IDateTime, endingDate: IDateTime): boolean {
+function isSameDay(startingDate: IDateTime, endingDate: IDateTime): boolean {
     return moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY');
 }
 
@@ -843,7 +843,7 @@ function getEventActions(
         const CREATE_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName];
         const CREATE_AND_OPEN_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName];
 
-        (!withMultiPlanningDate || self.isEventSameDay(item)) ?
+        (!withMultiPlanningDate || self.isSameDay(item)) ?
             self.getSingleDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING) :
             self.getMultiDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING);
     }
@@ -1361,7 +1361,7 @@ const self = {
     canUpdateEventTime,
     canConvertToRecurringEvent,
     canUpdateEventRepetitions,
-    isEventSameDay,
+    isSameDay,
     showEventStartDate,
     isEventRecurring,
     getDateStringForEvent,

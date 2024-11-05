@@ -134,8 +134,8 @@ export class RescheduleEventComponent extends React.Component {
             fieldsToValidate // Validate only those fields which can change while rescheduling.
         );
 
-        const multiDayChanged = eventUtils.isEventSameDay(original.dates.start, original.dates.end) &&
-            !eventUtils.isEventSameDay(diff.dates.start, diff.dates.end);
+        const multiDayChanged = eventUtils.isSameDay(original.dates.start, original.dates.end) &&
+            !eventUtils.isSameDay(diff.dates.start, diff.dates.end);
 
         if ((!diff[TO_BE_CONFIRMED_FIELD] &&
             eventUtils.eventsDatesSame(diff, original, TIME_COMPARISON_GRANULARITY.MINUTE)) ||
