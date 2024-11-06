@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
@@ -7,6 +6,20 @@ import {superdeskApi} from '../../superdeskApi';
 import {timeUtils} from '../../utils';
 
 import './style.scss';
+import {IDateTime} from 'interfaces';
+
+interface IPropsDateTime {
+    date: IDateTime,
+    withTime?: boolean,
+    withYear?: boolean,
+    withDate?: boolean,
+    padLeft?: boolean,
+    toBeConfirmed?: boolean,
+    isFullDay?: boolean,
+    isEndEventDateTime?: boolean,
+    noEndTime?: boolean,
+    multiDay?: boolean,
+}
 
 /**
  * @ngdoc react
@@ -24,7 +37,7 @@ function DateTime({
     isEndEventDateTime,
     noEndTime,
     multiDay,
-}) {
+}: IPropsDateTime) {
     const {gettext} = superdeskApi.localization;
     const dateFormat = appConfig.planning.dateformat;
     const timeFormat = appConfig.planning.timeformat;
@@ -70,25 +83,5 @@ function DateTime({
         </time>
     );
 }
-
-DateTime.propTypes = {
-    date: PropTypes.oneOfType([PropTypes.object, PropTypes.string]).isRequired,
-    withTime: PropTypes.bool,
-    withYear: PropTypes.bool,
-    withDate: PropTypes.bool,
-    padLeft: PropTypes.bool,
-    toBeConfirmed: PropTypes.bool,
-    isFullDay: PropTypes.bool,
-    isEndEventDateTime: PropTypes.bool,
-    noEndTime: PropTypes.bool,
-    multiDay: PropTypes.bool,
-};
-
-DateTime.defaultProps = {
-    withTime: true,
-    withDate: true,
-    withYear: true,
-    padLeft: false,
-};
 
 export default DateTime;
