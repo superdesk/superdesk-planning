@@ -6,8 +6,8 @@ import {every} from 'lodash';
 import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
-import {Button} from './UI';
 import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
+import {IconButton} from 'superdesk-ui-framework';
 
 interface IReduxState {
     selectedEvents: Array<any>;
@@ -119,48 +119,46 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 
         if (selectedPlannings.every((planning) => planning.lock_action == null)) {
             tools.push(
-                <Button
+                <IconButton
                     key={0}
-                    hollow={true}
+                    icon="assign"
+                    ariaValue={gettext('Add to workflow')}
                     onClick={() => {
                         this.props.addToWorkflow(this.getItemList());
                     }}
-                    text={gettext('Add to workflow')}
                 />
             );
         }
+
         if (showExport) {
             tools.push(
-                <Button
+                <IconButton
                     key={1}
-                    hollow={true}
+                    icon="upload"
+                    ariaValue={gettext('Export')}
                     onClick={this.exportArticle}
-                    text={gettext('Export')}
                 />
             );
         }
 
         if (showSpike) {
             tools.push(
-                <Button
+                <IconButton
                     key={2}
+                    icon="trash"
+                    ariaValue={gettext('Spike')}
                     onClick={this.itemSpike}
-                    color="alert"
-                    hollow={true}
-                    text={gettext('Spike')}
-                    icon="icon-trash"
                 />
             );
         }
 
         if (showUnspike) {
             tools.push(
-                <Button
+                <IconButton
                     key={3}
+                    icon="unspike"
+                    ariaValue={gettext('Unspike')}
                     onClick={this.itemUnSpike}
-                    color="warning"
-                    icon="icon-unspike"
-                    text={gettext('Unspike')}
                 />
             );
         }
@@ -192,53 +190,50 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
         );
 
         let tools = [(
-            <Button
+            <IconButton
                 key={0}
+                icon="upload"
+                ariaValue={gettext('Export')}
                 onClick={this.exportArticle}
-                hollow
-                text={gettext('Export')}
             />
         ), (
-            <Button
+            <IconButton
                 key={1}
+                icon="download"
+                ariaValue={gettext('Download')}
                 onClick={this.exportArticle.bind(null, true)}
-                color="primary"
-                text={gettext('Download')}
             />
         )];
 
         if (showCreatePlan) {
             tools.push(
-                <Button
+                <IconButton
                     key={2}
+                    icon="calendar"
+                    ariaValue={gettext('Create planning')}
                     onClick={this.createPlanning}
-                    color="primary"
-                    text={gettext('Create planning')}
                 />
             );
         }
 
         if (showSpike) {
             tools.push(
-                <Button
+                <IconButton
                     key={3}
+                    icon="trash"
+                    ariaValue={gettext('Spike')}
                     onClick={this.itemSpike}
-                    color="alert"
-                    hollow={true}
-                    text={gettext('Spike')}
-                    icon="icon-trash"
                 />
             );
         }
 
         if (showUnspike) {
             tools.push(
-                <Button
+                <IconButton
                     key={4}
+                    icon="unspike"
+                    ariaValue={gettext('Unspike')}
                     onClick={this.itemUnSpike}
-                    color="warning"
-                    text={gettext('Unspike')}
-                    icon="icon-unspike"
                 />
             );
         }
