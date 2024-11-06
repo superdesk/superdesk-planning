@@ -9,6 +9,7 @@ import {
     POST_STATE,
     MAIN,
     TO_BE_CONFIRMED_FIELD,
+    TEMP_ID_PREFIX,
 } from '../../constants';
 import * as selectors from '../../selectors';
 import {
@@ -563,14 +564,39 @@ function updateLinkedPlanningsForEvent(
         const toLink: Array<IPlanningItem> =
             associatedPlannings.filter(({_id}) => currentLinkedIds.has(_id) !== true);
 
-        const toUnlink: Array<IPlanningItem> = currentlyLinked.filter(
-            (planningItem) => associatedPlannings.find(({_id}) => _id === planningItem._id) == null,
-        );
+        const toUnlink: Array<IPlanningItem> = currentlyLinked
+            .filter((item) => {
+                const createdAt = new Date(item._created);
+                const now = new Date();
+
+                const ageSeconds = (now.getTime() - createdAt.getTime()) / 1000;
+                const tooRecent = ageSeconds > 30;
+
+                if (tooRecent) {
+                    /**
+                     * This is a hack to workaround our existing "fake ID" workaround.
+                     * In event editor it is possible to create a planning item and relate it to current event at once.
+                     * It would happen only after saving, thus while it's not saved yet, we use a fake ID
+                     * - which will not remain the same after saving.
+                     * This function computes a list of planning items which have to be linked
+                     * and which have to be unlinked based on a desired outcome
+                     * which is that only items specified in {@link associatedPlannings} must remain linked.
+                     * The problem arises that when item with a fake ID is saved, and ID changes,
+                     * that item will immediately get unlinked by this function, because there is no way that
+                     * the new ID could have been a part of {@link associatedPlannings} (which is computed before saving).
+                     */
+                    return false;
+                } else {
+                    const needToUnlink = associatedPlannings.find(({_id}) => _id === item._id) == null;
+
+                    return needToUnlink;
+                }
+            });
 
         return Promise.all(
             [
                 ...toLink.map((planningItem) => {
-                    const linkType = planningItem._temporary.link_type;
+                    const linkType = planningItem._temporary?.link_type;
 
                     if (linkType == null) {
                         superdeskApi.utilities.logger.error(
@@ -644,7 +670,7 @@ const save = (original, updates) => (
 
                 return updateLinkedPlanningsForEvent(
                     updatedEvent._id,
-                    updates.associated_plannings,
+                    updates.associated_plannings.filter(({_id}) => !_id.startsWith(TEMP_ID_PREFIX)),
                 ).then(() => [updatedEvent]);
             });
         });
