@@ -7,7 +7,7 @@ import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
 import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
-import {isSameDay} from 'helpers';
+import {isSameDay} from './../helpers';
 
 const validateRequiredDates = ({value, errors, messages, diff}) => {
     if (!get(value, 'start')) {

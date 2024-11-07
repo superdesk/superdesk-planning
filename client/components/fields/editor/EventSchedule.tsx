@@ -11,7 +11,7 @@ import {EditorFieldStartDateTime} from './StartDateTime';
 import {Row, TimeZoneInput} from '../../UI/Form';
 import {eventUtils, timeUtils} from '../../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
-import {isSameDay} from 'helpers';
+import {isSameDay} from './../../../helpers';
 
 interface IProps extends IEditorFieldProps {
     item: IEventItem;

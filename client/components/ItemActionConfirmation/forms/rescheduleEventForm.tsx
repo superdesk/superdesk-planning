@@ -20,7 +20,7 @@ import {Row} from '../../UI/Preview';
 import {TextAreaInput, Field} from '../../UI/Form';
 
 import '../style.scss';
-import {isSameDay} from 'helpers';
+import {isSameDay} from './../../../helpers';
 
 export class RescheduleEventComponent extends React.Component {
     constructor(props) {

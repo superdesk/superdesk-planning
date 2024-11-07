@@ -9,7 +9,7 @@ import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 import {Row, DateTimeInput, LineInput, ToggleInput, Field, TimeZoneInput} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
-import {isSameDay} from 'helpers';
+import {isSameDay} from './../../../helpers';
 
 interface IProps {
     item: IEventItem;

@@ -57,7 +57,7 @@ import {
     sanitizeItemFields,
 } from './index';
 import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
-import {isSameDay} from 'helpers';
+import {isSameDay} from './../helpers';
 
 
 /**

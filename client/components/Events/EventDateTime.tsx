@@ -9,7 +9,7 @@ import {DateTime} from '../UI';
 
 import './style.scss';
 import {Spacer} from 'superdesk-ui-framework/react';
-import {isSameDay} from 'helpers';
+import {isSameDay} from './../../helpers';
 
 interface IProps {
   item: IEventItem;
