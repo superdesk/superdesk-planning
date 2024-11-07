@@ -570,7 +570,7 @@ function updateLinkedPlanningsForEvent(
                 const now = new Date();
 
                 const ageSeconds = (now.getTime() - createdAt.getTime()) / 1000;
-                const tooRecent = ageSeconds > 30;
+                const tooRecent = ageSeconds < 30;
 
                 if (tooRecent) {
                     /**
@@ -668,6 +668,8 @@ const save = (original, updates) => (
                 if (updates.associated_plannings == null) {
                     return Promise.resolve([updatedEvent]);
                 }
+
+                // return Promise.resolve([updatedEvent]);
 
                 return updateLinkedPlanningsForEvent(
                     updatedEvent._id,
