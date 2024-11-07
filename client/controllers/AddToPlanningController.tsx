@@ -5,11 +5,12 @@ import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {planning} from '../actions';
-import {get, isEmpty, isNumber} from 'lodash';
+import {get, isEmpty, isNumber, noop} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS} from '../constants';
 import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
 import {IArticle, IContentProfile} from 'superdesk-api';
+import {authoringReactViewEnabled} from 'appConfig';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {PLANNING_VIEW} from '../interfaces';
 
@@ -87,7 +88,7 @@ export class AddToPlanningController {
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
             .then(
                 this.render,
-                this.$scope.resolve
+                !authoringReactViewEnabled ? this.$scope.resolve : noop
             );
     }
 
@@ -190,7 +191,9 @@ export class AddToPlanningController {
             this.store.dispatch(actions.resetStore());
 
             if (this.superdeskFlags.flags.authoring || !this.rendered) {
-                this.$scope.resolve();
+                if (!authoringReactViewEnabled) {
+                    this.$scope.resolve();
+                }
                 return;
             }
 
@@ -205,7 +208,9 @@ export class AddToPlanningController {
                         body: this.gettext('The item was unlocked by "{{ username }}"', {username}),
                         action: () => {
                             this.newsItem.lock_session = null;
-                            this.$scope.resolve();
+                            if (!authoringReactViewEnabled) {
+                                this.$scope.resolve();
+                            }
                         },
                     },
                 })));
@@ -263,7 +268,9 @@ export class AddToPlanningController {
                         this.notify.error(err);
                     });
 
-                    this.$scope.resolve('foo');
+                    if (!authoringReactViewEnabled) {
+                        this.$scope.resolve('foo');
+                    }
                     return Promise.reject('foo');
                 }
 
@@ -271,7 +278,9 @@ export class AddToPlanningController {
                     this.notify.error(
                         this.gettext('Item already locked.')
                     );
-                    this.$scope.resolve('bar');
+                    if (!authoringReactViewEnabled) {
+                        this.$scope.resolve('bar');
+                    }
                     return Promise.reject('bar');
                 }
 
@@ -284,13 +293,23 @@ export class AddToPlanningController {
                                 this.notify.error(
                                     getErrorMessage(error, this.gettext('Failed to lock the item.'))
                                 );
-                                this.$scope.resolve(error);
+                                if (!authoringReactViewEnabled) {
+                                    this.$scope.resolve(error);
+                                }
                                 return Promise.reject(error);
                             }
                         );
                 }
 
                 return Promise.resolve(newsItem);
+            }, (error) => {
+                this.notify.error(
+                    getErrorMessage(error, this.gettext('Failed to load the item.'))
+                );
+                if (!authoringReactViewEnabled) {
+                    this.$scope.resolve(error);
+                }
+                return Promise.reject(error);
             });
     }
 }

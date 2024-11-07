@@ -56,7 +56,7 @@ interface IProps {
     onDuplicateCoverage(coverage: DeepPartial<IPlanningCoverageItem>, duplicateAs?: IG2ContentType['qcode']): void;
     onCancelCoverage?(): void;
     onAddCoverageToWorkflow?(): void;
-    onRemoveAssignment?(): void;
+    onRemoveAssignment?(coverage: IPlanningCoverageItem): void;
     popupContainer(): void;
     setCoverageDefaultDesk(): void;
     onPopupOpen(): void;

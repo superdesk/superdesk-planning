@@ -1,9 +1,7 @@
 import * as React from 'react';
 import {
     IIngestRuleHandlerEditorProps,
-    ILiveResourcesProps,
     IRestApiResponse,
-    IVocabulary,
     IVocabularyItem
 } from 'superdesk-api';
 import {IAgenda} from '../../../interfaces';
@@ -12,7 +10,6 @@ import {superdesk} from '../superdesk';
 import {extensionBridge} from '../extension_bridge';
 
 const {EditorFieldVocabulary} = extensionBridge.ui.components;
-const {WithLiveResources} = superdesk.components;
 
 interface IExtraAttributes {
     autopost: boolean,
@@ -22,12 +19,27 @@ interface IExtraAttributes {
 
 type IProps = IIngestRuleHandlerEditorProps<IExtraAttributes>;
 
-export class AutopostIngestRuleEditor extends React.PureComponent<IProps> {
+interface IStateLoading {
+    loading: true;
+}
+
+interface IStateLoaded {
+    loading: false;
+    agendas: Array<IAgenda>;
+}
+
+type IState = IStateLoading | IStateLoaded;
+
+export class AutopostIngestRuleEditor extends React.PureComponent<IProps, IState> {
     constructor(props: IProps) {
         super(props);
 
         this.updateAttributes = this.updateAttributes.bind(this);
         this.updateAutopostValue = this.updateAutopostValue.bind(this);
+
+        this.state = {
+            loading: true,
+        };
     }
 
     updateAttributes<T extends keyof IExtraAttributes>(field: T, value: IExtraAttributes[T]) {
@@ -47,12 +59,26 @@ export class AutopostIngestRuleEditor extends React.PureComponent<IProps> {
         this.updateAttributes('autopost', value);
     }
 
+    componentDidMount(): void {
+        superdesk.httpRequestJsonLocal<IRestApiResponse<IAgenda>>({
+            method: 'GET',
+            path: '/agenda',
+        }).then((res) => {
+            this.setState({
+                loading: false,
+                agendas: res._items,
+            });
+        });
+    }
+
     render() {
+        if (this.state.loading) {
+            return null;
+        }
+
+        const {agendas} = this.state;
+        const calendars = superdesk.entities.vocabulary.getAll().get('event_calendars').items;
         const {gettext} = superdesk.localization;
-        const resources: ILiveResourcesProps['resources'] = [
-            {resource: 'vocabularies', ids: ['event_calendars']},
-            {resource: 'agenda'},
-        ];
 
         return (
             <div>
@@ -61,38 +87,31 @@ export class AutopostIngestRuleEditor extends React.PureComponent<IProps> {
                     value={this.props.rule.actions.extra?.autopost === true}
                     onChange={this.updateAutopostValue}
                 />
-                <WithLiveResources resources={resources}>{(resourcesResponse) => {
-                    const calendars = resourcesResponse[0] as IRestApiResponse<IVocabulary>;
-                    const agendas = resourcesResponse[1] as IRestApiResponse<IAgenda>;
 
-                    return (
-                        <React.Fragment>
-                            <EditorFieldVocabulary
-                                item={this.props.rule.actions.extra ?? {}}
-                                field="calendars"
-                                label={gettext('Calendars')}
-                                defaultValue={[]}
-                                onChange={this.updateAttributes}
-                                options={calendars._items[0].items.filter((item) => (
-                                    item.is_active !== false
-                                ))}
-                                valueAsString={true}
-                            />
-                            <EditorFieldVocabulary
-                                item={this.props.rule.actions.extra ?? {}}
-                                field="agendas"
-                                label={gettext('Agendas')}
-                                defaultValue={[]}
-                                onChange={this.updateAttributes}
-                                options={agendas._items.filter((item) => (
-                                    item.is_enabled !== false
-                                ))}
-                                valueAsString={true}
-                                valueKey="_id"
-                            />
-                        </React.Fragment>
-                    );
-                }}</WithLiveResources>
+                <EditorFieldVocabulary
+                    item={this.props.rule.actions.extra ?? {}}
+                    field="calendars"
+                    label={gettext('Calendars')}
+                    defaultValue={[]}
+                    onChange={this.updateAttributes}
+                    options={calendars.filter((item) => (
+                        item.is_active !== false
+                    ))}
+                    valueAsString={true}
+                />
+
+                <EditorFieldVocabulary
+                    item={this.props.rule.actions.extra ?? {}}
+                    field="agendas"
+                    label={gettext('Agendas')}
+                    defaultValue={[]}
+                    onChange={this.updateAttributes}
+                    options={agendas.filter((item) => (
+                        item.is_enabled !== false
+                    ))}
+                    valueAsString={true}
+                    valueKey="_id"
+                />
             </div>
         );
     }

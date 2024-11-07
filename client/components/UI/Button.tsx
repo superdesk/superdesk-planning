@@ -1,41 +1,60 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {KEYCODES} from './constants';
 import {onEventCapture} from './utils';
 
 
-/**
- * @ngdoc react
- * @name Button
- * @description Generic Button component
- */
+interface IButtonProps {
+    id?: string;
+    className?: string;
+    onClick: (...args: any) => any;
+    icon?: string;
+    title?: string;
+    text?: string;
+    disabled?: boolean;
+    textOnly?: boolean;
+    hollow?: boolean;
+    iconOnly?: boolean;
+    expanded?: boolean;
+    color?: 'primary' | 'success' | 'warning' | 'alert' | 'highlight' | 'sd-green' | 'ui-dark' | 'default';
+    size?: 'small' | 'large';
+    tabIndex?: number;
+    enterKeyIsClick?: boolean;
+    autoFocus?: boolean;
+    onKeyDown?: (e: React.KeyboardEvent) => any;
+    refNode?: (...args: any) => any;
+    iconOnlyCircle?: boolean;
+    children?: React.ReactNode;
+    pullRight?: boolean;
+    empty?: boolean;
+}
+
 const Button = ({
+    disabled = false,
+    textOnly = false,
+    hollow = false,
+    expanded = false,
+    enterKeyIsClick = false,
+    autoFocus = false,
+    iconOnlyCircle = false,
+    pullRight = false,
+    empty = false,
     className,
     onClick,
     icon,
     id,
     title,
     text,
-    disabled,
-    textOnly,
-    hollow,
-    expanded,
     color,
     size,
     iconOnly,
     tabIndex,
-    enterKeyIsClick,
-    autoFocus,
     refNode,
     onKeyDown,
-    iconOnlyCircle,
     children,
-    pullRight,
-    empty,
     ...props
-}) => {
+}: IButtonProps) => {
     const handeKeyDown = (event) => {
         if (event.keyCode === KEYCODES.ENTER) {
             onEventCapture(event);
@@ -80,44 +99,6 @@ const Button = ({
             {children}
         </button>
     );
-};
-
-Button.propTypes = {
-    id: PropTypes.string,
-    className: PropTypes.string,
-    onClick: PropTypes.func.isRequired,
-    icon: PropTypes.string,
-    title: PropTypes.string,
-    text: PropTypes.string,
-    disabled: PropTypes.bool,
-    textOnly: PropTypes.bool,
-    hollow: PropTypes.bool,
-    iconOnly: PropTypes.bool,
-    expanded: PropTypes.bool,
-    color: PropTypes.oneOf(['primary', 'success', 'warning', 'alert', 'highlight', 'sd-green', 'ui-dark', 'default']),
-    size: PropTypes.oneOf(['small', 'large']),
-    tabIndex: PropTypes.number,
-    enterKeyIsClick: PropTypes.bool,
-    autoFocus: PropTypes.bool,
-    onKeyDown: PropTypes.func,
-    refNode: PropTypes.func,
-    iconOnlyCircle: PropTypes.bool,
-    children: PropTypes.node,
-    pullRight: PropTypes.bool,
-    empty: PropTypes.bool,
-};
-
-Button.defaultProps = {
-    disabled: false,
-    textOnly: false,
-    hollow: false,
-    iconOnly: false,
-    expanded: false,
-    enterKeyIsClick: false,
-    autoFocus: false,
-    iconOnlyCircle: false,
-    pullRight: false,
-    empty: false,
 };
 
 export default Button;

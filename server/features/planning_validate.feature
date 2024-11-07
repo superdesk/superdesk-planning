@@ -30,6 +30,11 @@ Feature: Planning Validate
             }
         }, {
             "_id": "planning", "name": "planning",
+            "editor":{
+                "place": {
+                    "enabled":true
+                }
+            },
             "schema": {
                 "slugline": {
                     "type": "string",

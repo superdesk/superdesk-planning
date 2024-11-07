@@ -16,6 +16,8 @@ import {
 import {superdeskApi} from '../../../superdeskApi';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
+import planningActions from '../../../actions/planning/api';
+
 import {assignmentUtils, eventUtils, planningUtils, getFileDownloadURL} from '../../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
 
@@ -262,7 +264,7 @@ const mapDispatchToProps = (dispatch) => ({
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
+    fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
 });
 
 export const AssignmentPreviewContainer = connect<IStateProps, IDispatchProps>(

@@ -10,7 +10,7 @@ import * as actions from '../';
 import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {getErrorMessage, isExistingItem, gettext} from '../../utils';
-import planning from '../planning';
+import planningActions from '../planning/api';
 import {assignmentsViewRequiresArchiveItems} from '../../components/Assignments/AssignmentItem/fields';
 
 const setBaseQuery = ({must = []}) => ({
@@ -415,7 +415,7 @@ const receiveAssignmentHistory = (items) => ({
  * @param {object} assignment - The Assignment to load items for
  */
 const loadPlanningAndEvent = (assignment) => (dispatch) =>
-    dispatch(planning.api.fetchById(assignment.planning_item));
+    dispatch(planningActions.fetchById(assignment.planning_item));
 
 /**
  * Loads the Archive items that are linked to the provided Assignment list

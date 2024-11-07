@@ -7,6 +7,15 @@ import {Button} from '../../';
 import {Row, LineInput} from '../';
 import './style.scss';
 import {superdeskApi} from '../../../../superdeskApi';
+import {planningApis} from '../../../../api';
+import {
+    EDITOR_TYPE,
+    IAssignmentItem,
+    IG2ContentType,
+    IPlanningCoverageItem,
+    IPlanningNewsCoverageStatus,
+} from 'interfaces';
+import {IDesk} from 'superdesk-api';
 
 interface IProps {
     field: string;
@@ -18,7 +27,7 @@ interface IProps {
     maxCount: number;
     addOnly: boolean;
     originalCount: number;
-    element: React.ComponentClass;
+    element: React.ComponentClass<any>;
     defaultElement: any;
     readOnly: boolean;
     message: any;
@@ -37,8 +46,19 @@ interface IProps {
     errors: {[key: string]: any};
     showErrors: boolean;
     testId?: string;
-
+    onRemoveAssignment: (assignment: IAssignmentItem) => Promise<void>;
     getRef?(field: string, value: any): React.RefObject<any>;
+    popupContainer(): HTMLElement;
+    onPopupOpen(): void;
+    onPopupClose(): void;
+    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+    contentTypes: Array<IG2ContentType>;
+    defaultDesk: IDesk;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    navigation: any;
+    openCoverageIds: Array<string>;
+    preferredCoverageDesks: {[key: string]: string};
+    editorType: EDITOR_TYPE;
 }
 
 export class InputArray extends React.PureComponent<IProps> {
@@ -153,6 +173,10 @@ export class InputArray extends React.PureComponent<IProps> {
                 {(value || []).map((val, index) => (
                     <Component
                         {...props}
+                        onRemoveAssignment={(val) =>
+                            planningApis.assignments.getById(val.assigned_to.assignment_id)
+                                .then((assignment) => this.props.onRemoveAssignment(assignment))
+                        }
                         key={index}
                         ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
                         testId={`${testId}[${index}]`}

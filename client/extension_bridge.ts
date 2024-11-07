@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabularyItem} from 'superdesk-api';
 
 import {getAssignmentTypeInfo} from './utils/assignments';
 import {SluglineComponent} from './components/Assignments/AssignmentItem/fields/Slugline';
@@ -13,6 +13,7 @@ import {getUserInterfaceLanguageFromCV} from './utils/users';
 
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
+import {isContentLinkToCoverageAllowed} from './utils/archive';
 
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 
@@ -20,6 +21,7 @@ import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningD
 interface IExtensionBridge {
     assignments: {
         utils: {
+            isContentLinkToCoverageAllowed(item: IArticle): boolean;
             getAssignmentTypeInfo(
                 assignment: IAssignmentItem,
                 contentTypes: Array<IVocabularyItem>,
@@ -46,6 +48,7 @@ interface IExtensionBridge {
                 language?: string,
                 fallbackField?: string
             ): string;
+            isContentLinkToCoverageAllowed(item: IArticle): boolean;
         };
 
         components: {
@@ -74,6 +77,7 @@ export const extensionBridge: IExtensionBridge = {
     assignments: {
         utils: {
             getAssignmentTypeInfo,
+            isContentLinkToCoverageAllowed,
         },
         components: {
             SluglineComponent,
@@ -88,6 +92,7 @@ export const extensionBridge: IExtensionBridge = {
         utils: {
             getUserInterfaceLanguageFromCV,
             getVocabularyItemFieldTranslated,
+            isContentLinkToCoverageAllowed,
         },
         components: {
             EditorFieldVocabulary,
