@@ -9,6 +9,7 @@ import {DateTime} from '../UI';
 
 import './style.scss';
 import {Spacer} from 'superdesk-ui-framework/react';
+import {isSameDay} from 'helpers';
 
 interface IProps {
   item: IEventItem;
@@ -24,8 +25,8 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const start = eventUtils.getStartDate(item);
         const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(start, end);
-        const multiDay = !eventUtils.isSameDay(start, end);
-        const isEventAndPlanningSameDate = eventUtils.isSameDay(start, this.props.planningProps?.date);
+        const multiDay = !isSameDay(start, end);
+        const isEventAndPlanningSameDate = isSameDay(start, this.props.planningProps?.date);
         const showEventStartDate = eventUtils.showEventStartDate(start, multiDay, this.props.planningProps?.date);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
         const withYear = multiDay && start.year() !== end.year();

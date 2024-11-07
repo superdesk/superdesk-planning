@@ -57,6 +57,7 @@ import {
     sanitizeItemFields,
 } from './index';
 import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
+import {isSameDay} from 'helpers';
 
 
 /**
@@ -74,10 +75,6 @@ function isEventAllDay(startingDate: IDateTime, endingDate: IDateTime, checkMult
     return (checkMultiDay || start.isSame(end, 'day')) &&
         start.isSame(start.clone().startOf('day'), 'minute') &&
         end.isSame(end.clone().endOf('day'), 'minute');
-}
-
-function isSameDay(startingDate: IDateTime, endingDate: IDateTime): boolean {
-    return moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY');
 }
 
 function showEventStartDate(eventDate: IDateTime, multiDay: boolean, planningDate?: IDateTime): boolean {
@@ -843,7 +840,7 @@ function getEventActions(
         const CREATE_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName];
         const CREATE_AND_OPEN_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName];
 
-        (!withMultiPlanningDate || self.isSameDay(item)) ?
+        (!withMultiPlanningDate || isSameDay(item)) ?
             self.getSingleDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING) :
             self.getMultiDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING);
     }
@@ -1361,7 +1358,6 @@ const self = {
     canUpdateEventTime,
     canConvertToRecurringEvent,
     canUpdateEventRepetitions,
-    isSameDay,
     showEventStartDate,
     isEventRecurring,
     getDateStringForEvent,
