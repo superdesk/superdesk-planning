@@ -583,7 +583,8 @@ function updateLinkedPlanningsForEvent(
                      * which is that only items specified in {@link associatedPlannings} must remain linked.
                      * The problem arises that when item with a fake ID is saved, and ID changes,
                      * that item will immediately get unlinked by this function, because there is no way that
-                     * the new ID could have been a part of {@link associatedPlannings} (which is computed before saving).
+                     * the new ID could have been a part of {@link associatedPlannings}
+                     * (which is computed before saving).
                      */
                     return false;
                 } else {
