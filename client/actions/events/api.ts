@@ -626,7 +626,7 @@ function updateLinkedPlanningsForEvent(
                 }),
             ],
         ).then((updatedPlanningItems) => {
-            planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(updatedPlanningItems));
+            planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(updatedPlanningItems));
 
             return null;
         });
