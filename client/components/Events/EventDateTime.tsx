@@ -8,6 +8,8 @@ import {eventUtils, timeUtils} from '../../utils';
 import {DateTime} from '../UI';
 
 import './style.scss';
+import {Spacer} from 'superdesk-ui-framework/react';
+import {isSameDay} from './../../helpers';
 
 interface IProps {
   item: IEventItem;
@@ -23,7 +25,8 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const start = eventUtils.getStartDate(item);
         const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(start, end);
-        const multiDay = !eventUtils.isEventSameDay(start, end);
+        const multiDay = !isSameDay(start, end);
+        const isEventAndPlanningSameDate = isSameDay(start, this.props.planningProps?.date);
         const showEventStartDate = eventUtils.showEventStartDate(start, multiDay, this.props.planningProps?.date);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
         const withYear = multiDay && start.year() !== end.year();
@@ -71,7 +74,18 @@ export class EventDateTime extends React.PureComponent<IProps> {
 
         return isAllDay && !ignoreAllDay ? (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
-                {gettext('All day')}
+                <Spacer h gap={'4'}>
+                    {(!isEventAndPlanningSameDate || multiDay) && (
+                        <DateTime
+                            withDate={showEventStartDate}
+                            withYear={false}
+                            date={start}
+                            {...commonProps}
+                            withTime={false}
+                        />
+                    )}
+                    {gettext('All day')}
+                </Spacer>
             </span>
         ) : (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
