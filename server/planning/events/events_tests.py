@@ -657,7 +657,6 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                 "slugline": "slug",
                 "agendas": [],
                 "languages": ["en"],
-                "event_item": event_id[0],
                 "coverages": [
                     {
                         "coverage_id": "urn:newsmle264a179-5b1a-4b52-b73b-332660848cae",
@@ -676,6 +675,9 @@ class EventsRelatedPlanningAutoPublish(TestCase):
                         "assigned_to": {},
                         "firstcreated": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                     }
+                ],
+                "related_events": [
+                    PlanningRelatedEventLink(_id=event_id[0], link_type="primary"),
                 ],
             }
             planning_id = planning_service.post([planning])
