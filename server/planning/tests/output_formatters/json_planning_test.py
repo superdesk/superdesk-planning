@@ -78,7 +78,7 @@ class JsonPlanningTestCase(TestCase):
             PlanningRelatedEventLink(
                 _id="event_prim_1",
                 link_type="primary",
-            )
+            ),
         ],
         "place": [
             {
@@ -410,6 +410,8 @@ class JsonPlanningTestCase(TestCase):
         item = deepcopy(self.item)
         self.assertEqual(self.format(item)["event_item"], "event_prim_1")
 
+        self.app.data.insert("events", [{"_id": "event_prim_1", "name": "Event 1"}])
+
         item["related_events"] = [
             PlanningRelatedEventLink(
                 _id="event_sec_1",
@@ -421,6 +423,16 @@ class JsonPlanningTestCase(TestCase):
             ),
         ]
         self.assertEqual(self.format(item)["event_item"], "event_prim_1")
+        events = self.format(item)["events"]
+        self.assertEqual(2, len(events))
+        self.assertIn(
+            {"literal": "event_prim_1", "rel": "primary", "uri": "urn:event:event_prim_1", "name": "Event 1"},
+            events,
+        )
+        self.assertIn(
+            {"literal": "event_sec_1", "rel": "secondary", "uri": "urn:event:event_sec_1", "name": ""},
+            events,
+        )
 
         item["related_events"] = [
             PlanningRelatedEventLink(
