@@ -44,7 +44,7 @@ export class SubNavBar extends React.PureComponent<IProps> {
         const {gettext} = superdeskApi.localization;
 
         return (
-            <SubNav zIndex={3}>
+            <SubNav>
                 {assignmentListSingleGroupView && (
                     <ButtonGroup align="start">
                         <Tooltip

@@ -86,7 +86,6 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                             );
                         }}
                         tabindex={0}
-                        zIndex={1051}
                     />
                 </Row>
             );

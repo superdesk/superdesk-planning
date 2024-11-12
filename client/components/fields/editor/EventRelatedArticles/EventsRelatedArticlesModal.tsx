@@ -162,8 +162,6 @@ export class EventsRelatedArticlesModal extends React.Component<IProps, IState> 
                             >
                                 <Dropdown
                                     maxHeight={300}
-                                    append
-                                    zIndex={2001}
                                     items={[
                                         {
                                             type: 'group',
