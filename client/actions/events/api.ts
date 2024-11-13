@@ -669,8 +669,6 @@ const save = (original, updates) => (
                     return Promise.resolve([updatedEvent]);
                 }
 
-                // return Promise.resolve([updatedEvent]);
-
                 return updateLinkedPlanningsForEvent(
                     updatedEvent._id,
                     updates.associated_plannings.filter(({_id}) => !_id.startsWith(TEMP_ID_PREFIX)),
