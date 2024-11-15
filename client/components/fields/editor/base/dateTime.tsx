@@ -1,9 +1,9 @@
 import * as React from 'react';
 import moment from 'moment';
-import {get} from 'lodash';
 
 import {IEditorFieldProps} from '../../../../interfaces';
 import {DateTimeInput} from '../../../UI/Form';
+import {get} from 'lodash';
 
 interface IProps extends IEditorFieldProps {
     canClear?: boolean;
@@ -13,6 +13,7 @@ interface IProps extends IEditorFieldProps {
     remoteTimeZone?: string;
     singleValue?: boolean;
     onToBeConfirmed?(field: string): void;
+    dateOnly?: boolean;
 }
 
 export class EditorFieldDateTime extends React.PureComponent<IProps> {
@@ -43,10 +44,8 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
     render() {
         const field = this.props.field;
         const value = get(this.props.item, field, this.props.defaultValue);
-        const momentValue = value != null ?
-            moment(value) :
-            null;
-        const error = get(this.props.errors ?? {}, field);
+        const momentValue = value != null ? moment(value) : undefined; // use moment.utc?
+        const error = get(this.props.errors ?? {}, field) || undefined;
 
         return (
             <DateTimeInput
@@ -63,6 +62,7 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
                 refNode={(node) => {
                     this.node = node;
                 }}
+                dateOnly={this.props.dateOnly}
             />
         );
     }

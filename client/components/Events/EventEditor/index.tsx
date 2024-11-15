@@ -121,6 +121,8 @@ class EventEditorComponent extends React.PureComponent<IProps> {
             start: value['dates.start'],
             end: value['dates.end'],
             tz: value['dates.tz'],
+            all_day: value['dates.all_day'],
+            no_end_time: value['dates.no_end_time'],
         });
 
         this.props.onChangeHandler(value);

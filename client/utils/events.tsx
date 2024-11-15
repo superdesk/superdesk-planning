@@ -1162,14 +1162,16 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
         delete event._status;
     }
 
-    if (get(event, 'dates.start')) {
+    if (event.dates?.start != null) {
         event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
-        event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
+        event._startTime = event.dates.all_day ? null
+            : timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
     }
 
-    if (get(event, 'dates.end')) {
+    if (event.dates?.end != null) {
         event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
-        event._endTime = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
+        event._endTime = event.dates.all_day || event.dates.no_end_time ? null
+            : timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
     }
 
     if (get(event, 'dates.recurring_rule.until')) {

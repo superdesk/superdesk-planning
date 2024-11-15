@@ -26,12 +26,12 @@ const validateRequiredDates = ({value, errors, messages, diff}) => {
     }
 
     if (!get(diff, TO_BE_CONFIRMED_FIELD)) {
-        if (!get(value, '_startTime')) {
+        if (!value._startTime && value.all_day !== true) {
             set(errors, '_startTime', gettext('This field is required'));
             messages.push(gettext('START TIME is a required field'));
         }
 
-        if (!get(value, '_endTime')) {
+        if (!value._endTime && value.all_day !== true && value.no_end_time !== true) {
             set(errors, '_endTime', gettext('This field is required'));
             messages.push(gettext('END TIME is a required field'));
         }
@@ -42,11 +42,11 @@ const validateDateRange = ({value, errors, messages}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
-    if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
+    if (!self.validateStartEndDateValues(value, startDate, endDate)) {
         return;
     }
 
-    if (endDate.isSameOrBefore(startDate, 'minutes')) {
+    if (endDate.isSameOrBefore(startDate, 'minutes') && !value.all_day && !value.no_end_time) {
         if (isSameDay(value.start, value.end)) {
             set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
@@ -136,7 +136,7 @@ const validateMultiDayDuration = ({value, errors, messages}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
-    if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
+    if (!self.validateStartEndDateValues(value, startDate, endDate)) {
         return;
     }
 
@@ -292,10 +292,14 @@ const validateLinks = ({dispatch, getState, field, value, profile, errors, messa
     }
 };
 
-const valdiateStartEndDateValues = (value, startDate, endDate) => {
+const validStartTime = (value) => value.all_day || (value._startTime && moment.isMoment(value._startTime));
+const validEndTime = (value) => value.all_day || value.no_end_time || (
+    value._endTime && moment.isMoment(value._endTime)
+);
+
+const validateStartEndDateValues = (value, startDate, endDate) => {
     if (!get(value, 'start') || !get(value, 'end') || !moment.isMoment(value.start) || !moment.isMoment(value.end) ||
-        !get(value, '_startTime') || !get(value, '_endTime') || !moment.isMoment(value._startTime) ||
-        !moment.isMoment(value._endTime)) {
+        !validStartTime(value) || !validEndTime(value)) {
         return false;
     }
 
@@ -320,7 +324,7 @@ const self = {
     validateFiles,
     validateLinks,
     validateMultiDayDuration,
-    valdiateStartEndDateValues,
+    validateStartEndDateValues,
 };
 
 export default self;
