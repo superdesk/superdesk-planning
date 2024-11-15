@@ -59,6 +59,7 @@ import {
 import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {isSameDay} from './../helpers';
+import {getOpenEditorType} from './editor';
 
 
 /**
@@ -586,7 +587,13 @@ function addRelatedEvents(
  * Note: this function is interactive and might show UI confirmation prompt
  */
 export function canAddSomeEventsAsRelatedToPlanningEditor(eventsToAdd: Array<IEventItem>): boolean {
-    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const openEditorType = getOpenEditorType();
+
+    if (openEditorType == null) {
+        return false;
+    }
+
+    const editor = planningApi.editor(openEditorType);
 
     if (editor.manager == null) {
         return false;
@@ -615,7 +622,7 @@ export function addSomeEventsAsRelatedToPlanningEditor(
      */
     onSave?: (nextItems: Array<IPlanningRelatedEventLink>) => Promise<void>,
 ): Promise<void> {
-    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const editor = planningApi.editor(getOpenEditorType());
 
     const defaultSuccessCallback: (
         nextItems: Array<IPlanningRelatedEventLink>,

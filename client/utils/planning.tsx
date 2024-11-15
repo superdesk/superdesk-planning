@@ -67,6 +67,7 @@ import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {isItemAction, isMenuDivider} from '../helpers';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
+import {getOpenEditorType} from './editor';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -495,7 +496,13 @@ export function canAddSomeRelatedPlanningsToEventEditor(
     planningsToAdd: Array<IPlanningItem>,
     lockedItems: ILockedItems,
 ): boolean {
-    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const openEditorType = getOpenEditorType();
+
+    if (openEditorType == null) {
+        return false;
+    }
+
+    const editor = planningApi.editor(openEditorType);
     const event = editor.form.getDiff<IEventItem>();
     const currentPlannings = new Set<string>(
         (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),
@@ -520,7 +527,7 @@ export function addSomeRelatedPlanningsToEventEditor(
     planningsToAdd: Array<IPlanningItem>,
     lockedItems: ILockedItems,
 ): Promise<void> {
-    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const editor = planningApi.editor(getOpenEditorType());
     const event = editor.form.getDiff<IEventItem>();
     const currentPlannings = new Set<string>(
         (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),

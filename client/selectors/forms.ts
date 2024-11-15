@@ -6,6 +6,7 @@ import {appConfig} from 'appConfig';
 import {ITEM_TYPE, MAIN} from '../constants';
 import {sessionId as getSessionId} from './general';
 import {isExistingItem} from '../utils';
+import {EDITOR_TYPE} from '../interfaces';
 
 // Helper function
 const getcurrentItem = (itemId, itemType, events, plannings, values, modal = false) => {
@@ -131,6 +132,16 @@ export const currentItem = createSelector(
 
 
 /** Forms - Modal Editor */
+
+export const currentEditorType = (state): EDITOR_TYPE | null => {
+    if (state?.forms?.editors?.modal?.itemId != null) {
+        return EDITOR_TYPE.POPUP;
+    } else if (state?.forms?.editors?.panel?.itemId != null) {
+        return EDITOR_TYPE.INLINE;
+    } else {
+        return null;
+    }
+};
 export const currentItemIdModal = (state) => get(state, 'forms.editors.modal.itemId', null);
 export const currentItemTypeModal = (state) => get(state, 'forms.editors.modal.itemType', null);
 export const currentItemActionModal = (state) => get(state, 'forms.editors.modal.action', null);
