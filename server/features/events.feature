@@ -720,7 +720,8 @@ Feature: Events
         """
 
     @auth
-    Scenario: Link new Event as secondary to a Planning item
+    @notification
+    Scenario: Link and unlink event as secondary to a Planning item
         Given config update
         """
         {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
@@ -782,6 +783,32 @@ Feature: Events
             {"_id": "event_2", "link_type": "secondary"}
         ]}
         """
+        When we reset notifications
+        When we patch "/planning/#planning._id#"
+        """
+        {"related_events": [
+            {"_id": "event_2", "link_type": "secondary"}
+        ]}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [
+            {"event": "planning:updated", "extra": {"related_events_changed": true}},
+            {"event": "event:link_updated", "extra": {"event": "event_1", "planning": "#planning._id#", "action": "delete"}}
+        ]
+        """
+        When we reset notifications
+        When we patch "/planning/#planning._id#"
+        """
+        {"name": "Test"}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{"event": "planning:updated", "extra": {"related_events_changed": false}}]
+        """
+
 
     @auth
     Scenario: Attemps to link Event to non existing Planning fails
