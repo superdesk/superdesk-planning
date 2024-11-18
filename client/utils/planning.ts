@@ -68,6 +68,10 @@ import {planningConfig} from '../config';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
+function isCancelPlanWithEventDisabled(): boolean {
+    return (planningApi.events.getEditorProfile().schema.related_plannings?.cancel_plan_with_event ?? true) === false;
+}
+
 function canPostPlanning(
     planning: IPlanningItem,
     event: IEventItem,
@@ -81,14 +85,19 @@ function canPostPlanning(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
-        (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
         !isItemSpiked(planning) &&
-        !isItemSpiked(event) &&
-        (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
-        !isItemCancelled(event) &&
         !isItemRescheduled(planning) &&
-        !isItemRescheduled(event) &&
-        !isNotForPublication(planning)
+        !isNotForPublication(planning) &&
+        (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || (
+                getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED
+                && !isItemSpiked(event)
+                && !isItemRescheduled(event)
+            )
+        )
     );
 }
 
@@ -119,11 +128,17 @@ function canEditPlanning(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         !isItemSpiked(planning) &&
-        !isItemSpiked(event) &&
         !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
         !isItemRescheduled(planning) &&
         (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
-        (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED)
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || (
+                getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED &&
+                !isItemSpiked(event)
+            )
+        )
     );
 }
 
@@ -137,9 +152,13 @@ function canModifyPlanning(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isItemLocked(planning, locks) &&
         !isItemSpiked(planning) &&
-        !isItemSpiked(event) &&
         !isItemCancelled(planning) &&
-        !isItemRescheduled(planning)
+        !isItemRescheduled(planning) &&
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || !isItemSpiked(event)
+        )
     );
 }
 
@@ -215,10 +234,14 @@ function canUnspikePlanning(
         isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemSpiked(event) &&
         (
             !isItemExpired(plan) ||
             !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        ) &&
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || !isItemSpiked(event)
         )
     );
 }
@@ -234,7 +257,11 @@ function canDuplicatePlanning(
         !isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(plan, session, locks) &&
-        !isItemSpiked(event)
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || !isItemSpiked(event)
+        )
     );
 }
 
@@ -249,12 +276,16 @@ function canCancelPlanning(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
-        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
         !(
             getPostedState(planning) === POST_STATE.USABLE &&
             !privileges[PRIVILEGES.POST_PLANNING]
         ) &&
-        !isItemExpired(planning)
+        !isItemExpired(planning) &&
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || !isItemSpiked(event)
+        )
     );
 }
 
@@ -269,13 +300,17 @@ function canCancelAllCoverage(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemSpiked(planning) &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
-        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
         canCancelAllCoverageForPlanning(planning) &&
         !(
             getPostedState(planning) === POST_STATE.USABLE &&
             !privileges[PRIVILEGES.POST_PLANNING]
         ) &&
-        !isItemExpired(planning)
+        !isItemExpired(planning) &&
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || !isItemSpiked(event)
+        )
     );
 }
 
@@ -358,9 +393,13 @@ function canAddCoverages(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         lockUtils.isItemLocked(planning, locks) &&
         lockUtils.isItemLockedInThisSession(planning, session, locks) &&
-        (isNil(event) || !isItemCancelled(event)) &&
         (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning) &&
-        !isItemExpired(planning)
+        !isItemExpired(planning) &&
+        (
+            isNil(event)
+            || isCancelPlanWithEventDisabled()
+            || !isItemCancelled(event)
+        )
     );
 }
 

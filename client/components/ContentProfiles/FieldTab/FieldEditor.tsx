@@ -88,6 +88,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
             'schema.read_only': {enabled: this.props.item.name === 'related_plannings'},
             'schema.planning_auto_publish': {enabled: this.props.item.name === 'related_plannings'},
+            'schema.cancel_plan_with_event': {enabled: this.props.item.name === 'related_plannings'},
             'schema.field_type': {enabled: fieldType != null},
             'schema.minlength': {enabled: !disableMinMax},
             'schema.maxlength': {enabled: !disableMinMax},
@@ -190,6 +191,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                             'schema.languages': {enabled: true, index: 12},
                                             'schema.default_language': {enabled: true, index: 13},
                                             'schema.planning_auto_publish': {enabled: true, index: 14},
+                                            'schema.cancel_plan_with_event': {enabled: true, index: 14},
                                             'schema.default_value': {enabled: true, index: 11},
                                         },
                                         {

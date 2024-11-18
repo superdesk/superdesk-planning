@@ -30,6 +30,7 @@ from planning.common import (
     get_version_item_for_post,
     get_contacts_from_item,
 )
+from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +53,14 @@ class PlanningPostService(BaseService):
     def create(self, docs, **kwargs):
         ids = []
         assignments_to_delete = []
+        cancel_plan_with_event_enabled = is_cancel_planning_with_event_enabled()
         for doc in docs:
             plan = get_resource_service("planning").find_one(req=None, _id=doc["planning"])
             event = None
             if plan.get("event_item"):
                 event = get_resource_service("events").find_one(req=None, _id=plan.get("event_item"))
 
-            self.validate_item(plan, event, doc["pubstatus"])
+            self.validate_item(plan, event, doc["pubstatus"], cancel_plan_with_event_enabled)
 
             if not plan:
                 abort(412)
@@ -91,8 +93,13 @@ class PlanningPostService(BaseService):
             abort(409)
 
     @staticmethod
-    def validate_item(doc, event, new_post_status):
-        if new_post_status == POST_STATE.USABLE and event and event.get("pubstatus") == POST_STATE.CANCELLED:
+    def validate_item(doc, event, new_post_status, cancel_plan_with_event_enabled):
+        if (
+            cancel_plan_with_event_enabled
+            and new_post_status == POST_STATE.USABLE
+            and event
+            and event.get("pubstatus") == POST_STATE.CANCELLED
+        ):
             raise SuperdeskApiError(message="Can't post the planning item as event is already unposted/cancelled.")
 
         errors = get_resource_service("planning_validator").post(

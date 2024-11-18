@@ -1257,3 +1257,109 @@ Feature: Events Post
     """
     {"failed_planning_ids": [{"_id": "123", "error": ["Related planning : SLUGLINE is a required field"]}]}
     """
+
+    @auth
+    @vocabulary
+    Scenario: Unposting an event will not unpost planning based on config
+        Given "planning_types"
+        """
+        [{
+            "_id": "event",
+            "name": "event",
+            "schema": {
+                "related_plannings": {
+                    "planning_auto_publish": false,
+                    "cancel_plan_with_event": false
+                }
+            }
+        }]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "state": "killed",
+            "pubstatus": "cancelled"
+        }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable"
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {"headline": "Updated headline"}
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
