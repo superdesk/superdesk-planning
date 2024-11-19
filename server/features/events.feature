@@ -738,6 +738,12 @@ Feature: Events
             "lock_action": "add_as_event",
             "lock_time": "#DATE#",
             "planning_date": "2016-01-02"
+        },
+        {
+            "_id": "plan2",
+            "guid": "plan2",
+            "state": "draft",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "events"
@@ -784,7 +790,7 @@ Feature: Events
         ]}
         """
         When we reset notifications
-        When we patch "/planning/#planning._id#"
+        When we patch "/planning/plan1"
         """
         {"related_events": [
             {"_id": "event_2", "link_type": "secondary"}
@@ -794,12 +800,12 @@ Feature: Events
         And we get notifications
         """
         [
-            {"event": "planning:updated", "extra": {"related_events_changed": true}},
-            {"event": "event:link_updated", "extra": {"event": "event_1", "planning": "#planning._id#", "action": "delete"}}
+            {"event": "planning:updated", "extra": {"item": "plan1", "related_events_changed": true}},
+            {"event": "event:link_updated", "extra": {"event": "event_1", "planning": "plan1", "action": "delete", "links": []}}
         ]
         """
         When we reset notifications
-        When we patch "/planning/#planning._id#"
+        When we patch "/planning/plan1"
         """
         {"name": "Test"}
         """
@@ -808,7 +814,21 @@ Feature: Events
         """
         [{"event": "planning:updated", "extra": {"related_events_changed": false}}]
         """
-
+        When we reset notifications
+        When we patch "/planning/plan2"
+        """
+        {"related_events": [
+            {"_id": "event_2", "link_type": "secondary"}
+        ]}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [
+            {"event": "planning:updated", "extra": {"item": "plan2", "related_events_changed": true}},
+            {"event": "event:link_updated", "extra": {"event": "event_2", "planning": "plan2", "action": "create", "links": ["plan1", "plan2"]}}
+        ]
+        """
 
     @auth
     Scenario: Attemps to link Event to non existing Planning fails

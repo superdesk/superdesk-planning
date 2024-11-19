@@ -130,7 +130,8 @@ class PlanningValidateService(Service):
 
     def _get_validator_schema(self, validator, validate_on_post):
         """Get schema for a given validator, excluding fields with None values,
-        and only include fields that are in enabled_fields."""
+        and only include fields that are in enabled_fields.
+        """
 
         enabled_fields = get_enabled_fields(validator)
         return {

@@ -482,6 +482,9 @@ class PlanningService(Service):
         added_agendas = list(set(updated_agendas) - set(existing_agendas))
         return added_agendas, removed_agendas
 
+    def _get_event_links(self, event_id) -> List[str]:
+        return [str(link["_id"]) for link in get_related_planning_for_events([event_id])]
+
     def _notify_related_events_changed(self, updates, original) -> bool:
         if "related_events" not in updates:
             return False
@@ -502,6 +505,7 @@ class PlanningService(Service):
                 event=str(_id),
                 planning=str(original.get(config.ID_FIELD)),
                 action="delete" if _id in removed_ids else "create",
+                links=self._get_event_links(_id),
             )
 
         return len(changed_ids) > 0
