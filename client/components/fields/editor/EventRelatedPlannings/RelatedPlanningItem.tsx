@@ -14,11 +14,17 @@ import {superdeskApi} from '../../../../superdeskApi';
 
 import {planningUtils} from '../../../../utils';
 
-import {IconButton} from 'superdesk-ui-framework/react';
+import {IconButton, SpacerBlock, ToggleBox} from 'superdesk-ui-framework/react';
 import {Row} from '../../../UI/Form';
 import {RelatedCoverageItems} from './RelatedCoverageItems';
 import {AddNewCoverages} from './AddNewCoverages';
 import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
+import {PlanningEditorStandalone} from '../../../../components/planning-editor-standalone/planning-editor-standalone';
+import {TEMP_ID_PREFIX} from '../../../../constants';
+import {authoringStoragePlanningItemHttp} from '../../../planning-editor-standalone/authoring-storage-http';
+import {
+    getPlanningItemInMemoryAuthoringStorage
+} from '../../../../components/planning-editor-standalone/authoring-storage-in-memory';
 
 interface IProps {
     event: IEventItem;
@@ -105,8 +111,25 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const {WithLiveResources} = superdeskApi.components;
         const {item, isAgendaEnabled} = this.props;
         const hideRemoveIcon = this.props.disabled;
+
+        const renderPlanning = (planningItem: DeepPartial<IPlanningItem>) => (
+            <RelatedPlanningListItem
+                item={planningItem}
+                isAgendaEnabled={isAgendaEnabled}
+                showIcon={true}
+                shadow={1}
+                editPlanningComponent={hideRemoveIcon ? null : (
+                    <IconButton
+                        icon="trash"
+                        ariaValue={gettext('Remove planning')}
+                        onClick={this.remove}
+                    />
+                )}
+            />
+        );
 
         return (
             <div
@@ -116,21 +139,43 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 ref={this.containerNode}
                 tabIndex={0}
             >
-                <Row noPadding={true}>
-                    <RelatedPlanningListItem
-                        item={item}
-                        isAgendaEnabled={isAgendaEnabled}
-                        showIcon={true}
-                        shadow={1}
-                        editPlanningComponent={hideRemoveIcon ? null : (
-                            <IconButton
-                                icon="trash"
-                                ariaValue="Remove Planning"
-                                onClick={this.remove}
-                            />
-                        )}
+                <ToggleBox
+                    variant="custom-header"
+                    toggleButtonLabel={gettext('Show more')}
+                    header={
+                        item._id.startsWith(TEMP_ID_PREFIX)
+                            ? renderPlanning(item)
+                            : (
+                                <WithLiveResources resources={[{ids: [item._id], resource: 'planning'}]}>
+                                    {(res) => {
+                                        const planning: IPlanningItem = res[0]._items[0];
+
+                                        return renderPlanning(planning);
+                                    }}
+                                </WithLiveResources>
+                            )
+
+                    }
+                >
+                    <PlanningEditorStandalone
+                        itemId={item._id}
+                        authoringStorage={
+                            item._id.startsWith(TEMP_ID_PREFIX)
+                                ? getPlanningItemInMemoryAuthoringStorage(
+                                    item as IPlanningItem,
+                                    (item) => {
+                                        this.update(item);
+
+                                        return Promise.resolve(item);
+                                    },
+                                )
+                                : authoringStoragePlanningItemHttp
+                        }
                     />
-                </Row>
+                </ToggleBox>
+
+                <SpacerBlock v gap="8" />
+
                 <Row noPadding={true}>
                     <span className="form-label">{gettext('Coverages')}</span>
                 </Row>
