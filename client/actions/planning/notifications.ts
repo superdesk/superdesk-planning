@@ -10,7 +10,7 @@ import planning from './index';
 import assignments from '../assignments/index';
 
 import * as selectors from '../../selectors';
-import {events, fetchAgendas} from '../index';
+import {fetchAgendas} from '../index';
 import main from '../main';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
@@ -32,12 +32,6 @@ const onPlanningCreated = (_e: {}, data: IWebsocketMessageData['PLANNING_CREATED
             // If this planning item was created by this user in AddToPlanning Modal
             // Then ignore this notification
             return Promise.resolve();
-        }
-
-        // Update Redux store to mark Event's to have Planning items
-        for (let eventId of data.event_ids) {
-            dispatch(events.api.markEventHasPlannings(eventId, data.item));
-            dispatch(main.fetchItemHistory({_id: eventId, type: ITEM_TYPE.EVENT}));
         }
 
         dispatch(main.setUnsetLoadingIndicator(true));
@@ -62,12 +56,6 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
             // If this planning item was update by this user in AddToPlanning Modal
             // Then ignore this notification
             return Promise.resolve();
-        }
-
-        // Update Redux store to mark Event's to have Planning items
-        for (let eventId of data.event_ids) {
-            dispatch(events.api.markEventHasPlannings(eventId, data.item));
-            dispatch(main.fetchItemHistory({_id: eventId, type: ITEM_TYPE.EVENT}));
         }
 
         const promises = [];

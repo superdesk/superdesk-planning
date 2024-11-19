@@ -2077,7 +2077,15 @@ export interface IWebsocketMessageData {
         removed_agendas: Array<IAgenda['_id']>;
         session: ISession['sessionId'];
         event_ids: Array<IEventItem['_id']>;
+        related_events_changed?: boolean;
     };
+    EVENT_LINK_UPDATED: {
+        action: string;
+        event: IEventItem['_id'];
+        planning: IPlanningItem['_id'];
+        links: Array<IPlanningItem['_id']>;
+        _created: string; // ISO 8601 datetime
+    }
 }
 
 export interface IEditorAPI {
