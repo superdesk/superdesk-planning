@@ -49,7 +49,7 @@ export class AssignmentsCountTracker extends React.PureComponent<{}, {loading: t
                             {menuId: 'MENU_ITEM_PLANNING_ASSIGNMENTS', badgeValue: itemsCount.toString()},
                         );
 
-                        return null;
+                        return <></>;
                     }
                 }
             </LiveAssignmentsHOC>
