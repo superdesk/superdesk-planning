@@ -40,6 +40,8 @@ function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']
     if (data.recurrence_id != null) {
         state.recurring[data.recurrence_id] = lockData;
     } else if ((data.event_ids?.length ?? 0) > 0) {
+        state[data.type][data.item] = lockData;
+
         // For now, only support 1 primary event link for locks
         state.event[data.event_ids[0]] = lockData;
     } else {
