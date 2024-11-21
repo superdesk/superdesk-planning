@@ -44,6 +44,7 @@ function configurePlanning(superdesk) {
         .activity('planning.addto', {
             label: gettext('Add to Planning'),
             modal: true,
+            zIndex: '1050',
             icon: 'calendar-list',
             priority: 3000,
             controller: ctrl.AddToPlanningController,
