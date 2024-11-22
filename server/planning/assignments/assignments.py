@@ -867,8 +867,8 @@ class AssignmentsService(superdesk.Service):
         if not get_config_assignment_manual_reassignment_only():
             updates["assigned_to"]["user"] = assignee
 
-        if assignor:
-            updates["assigned_to"]["assignor_user"] = assignor
+            if assignor:
+                updates["assigned_to"]["assignor_user"] = assignor
 
         return updates
 
