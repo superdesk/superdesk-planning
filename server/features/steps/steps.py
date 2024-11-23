@@ -399,6 +399,11 @@ def then_set_auto_workflow(context):
     context.app.config["PLANNING_AUTO_ASSIGN_TO_WORKFLOW"] = True
 
 
+@when("we set config assignment manual reassignment only to True")
+def then_set_assignment_manual_reassignment_only(context):
+    context.app.config["ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY"] = True
+
+
 @when("we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS")
 def then_set_use_xmp_for_pic_assignments(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))

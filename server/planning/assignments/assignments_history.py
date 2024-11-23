@@ -108,30 +108,32 @@ class AssignmentsHistoryService(HistoryService):
             self._save_history(item, diff, operation)
             return
 
-        # Split an update to two actions if needed
-        planning_history_service = get_resource_service("planning_history")
-        cov_diff = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
-        if "priority" in diff.keys():
-            cov_diff["assigned_to"]["priority"] = diff.pop("priority")
-            self._save_history(
-                item,
-                {"priority": cov_diff["assigned_to"]["priority"]},
-                ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
-            )
-            planning_history_service._save_history(
-                {"_id": original.get("planning_item")},
-                cov_diff,
-                ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
-            )
+        if diff:
+            # Split an update to two actions if needed
+            planning_history_service = get_resource_service("planning_history")
+            cov_diff = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
 
-        if "assigned_to" in diff.keys():
-            cov_diff["assigned_to"] = diff["assigned_to"]
-            self._save_history(item, diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
-            planning_history_service._save_history(
-                {"_id": original.get("planning_item")},
-                cov_diff,
-                ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED,
-            )
+            if "priority" in diff.keys():
+                cov_diff["assigned_to"]["priority"] = diff.pop("priority")
+                self._save_history(
+                    item,
+                    {"priority": cov_diff["assigned_to"]["priority"]},
+                    ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
+                )
+                planning_history_service._save_history(
+                    {"_id": original.get("planning_item")},
+                    cov_diff,
+                    ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
+                )
+
+            if "assigned_to" in diff.keys():
+                cov_diff["assigned_to"] = diff["assigned_to"]
+                self._save_history(item, diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
+                planning_history_service._save_history(
+                    {"_id": original.get("planning_item")},
+                    cov_diff,
+                    ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED,
+                )
 
     def on_item_deleted(self, doc):
         planning = {"_id": doc.get("planning_item")}
