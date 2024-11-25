@@ -87,19 +87,6 @@ describe('lock reducers', () => {
         assignment: {a1: lockUtils.getLockFromItem(lockTypes.assignment)},
     };
 
-    const initialLocks = {
-        events: [
-            lockTypes.events.event,
-            lockTypes.events.recurring,
-        ],
-        plans: [
-            lockTypes.planning.planning,
-            lockTypes.planning.event,
-            lockTypes.planning.recurring,
-        ],
-        assignments: [lockTypes.assignment],
-    };
-
     const getInitialLocks = () => (locks(
         initialState,
         {
@@ -166,7 +153,9 @@ describe('lock reducers', () => {
         );
         expect(result).toEqual({
             event: {e3: lockItems.event.e3},
-            planning: {},
+            planning: {
+                p2: lockUtils.getLockFromItem(lockTypes.planning.event),
+            },
             recurring: {},
             assignment: {},
         });

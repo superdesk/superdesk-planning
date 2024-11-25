@@ -154,14 +154,12 @@ describe('actions.planning.notifications', () => {
 
     describe('`planning:created`', () => {
         beforeEach(() => {
-            sinon.stub(eventsApi, 'markEventHasPlannings').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
         });
 
         afterEach(() => {
-            restoreSinonStub(eventsApi.markEventHasPlannings);
             restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
             restoreSinonStub(main.setUnsetLoadingIndicator);
@@ -176,12 +174,6 @@ describe('actions.planning.notifications', () => {
                 event_ids: [eventId]
             }))
                 .then(() => {
-                    expect(eventsApi.markEventHasPlannings.callCount).toBe(1);
-                    expect(eventsApi.markEventHasPlannings.args[0]).toEqual([
-                        eventId,
-                        data.plannings[1]._id,
-                    ]);
-
                     expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
                     expect(main.setUnsetLoadingIndicator.args).toEqual([
                         [true],
