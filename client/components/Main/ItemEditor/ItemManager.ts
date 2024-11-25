@@ -27,7 +27,6 @@ import * as actions from '../../../actions';
 import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
-import * as selectors from '../../../selectors';
 
 
 export class ItemManager {
@@ -711,32 +710,6 @@ export class ItemManager {
                 ))
             ))
             .then((updatedItem) => {
-                if (updates.type === 'planning' && this.state.initialValues.type === 'planning') {
-                    const state = planningApi.redux.store.getState();
-                    const workqueueItems = new Set<string>(selectors.locks.workqueueItems(state).map(({_id}) => _id));
-
-                    const eventsBefore: Array<IEventItem['_id']> =
-                        (this.state.initialValues.related_events ?? []).map(({_id}) => _id);
-                    const eventsAfter: Array<IEventItem['_id']> = (updates.related_events ?? []).map(({_id}) => _id);
-
-                    const eventsToUnlock = eventsBefore.filter(
-                        (id) =>
-                            !eventsAfter.includes(id)
-                            && !workqueueItems.has(id) // do not unlock if item is in work queue
-                    );
-                    const eventsToLock = eventsAfter.filter((id) => !eventsBefore.includes(id));
-
-                    // PR-TODO: unlock events here
-
-                    // for (const eventId of eventsToUnlock) {
-                    //     planningApi.locks.unlockItemById(eventId, 'event');
-                    // }
-
-                    // for (const eventId of eventsToLock) {
-                    //     planningApi.locks.lockItemById(eventId, 'event', 'planning');
-                    // }
-                }
-
                 if (!updatedItem) {
                     // This occurs during an 'Ignore/Cancel/Save' from ModalEditor
                     // And the user clicks on 'Cancel'

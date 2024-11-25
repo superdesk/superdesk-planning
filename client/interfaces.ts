@@ -2319,6 +2319,7 @@ export interface IPlanningAPI {
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
         setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
         setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
+        reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void;
         lockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
         lockItemById<T extends IAssignmentOrPlanningItem>(
             itemId: T['_id'],

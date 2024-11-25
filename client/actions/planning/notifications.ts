@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 
-import {IWebsocketMessageData, ITEM_TYPE} from '../../interfaces';
+import {IWebsocketMessageData, ITEM_TYPE, IPlanningAppState} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import {gettext, lockUtils} from '../../utils';
@@ -47,7 +47,9 @@ const onPlanningCreated = (_e: {}, data: IWebsocketMessageData['PLANNING_CREATED
  */
 const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED']) => (
     (dispatch, getState) => {
-        if (data.item == null) {
+        const updatedPlanningId = data.item;
+
+        if (updatedPlanningId == null) {
             return Promise.resolve();
         } else if (selectors.general.sessionId(getState()) === data.session && (
             selectors.general.modalType(getState()) === MODALS.ADD_TO_PLANNING ||
@@ -65,8 +67,8 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
                 if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
                     const currentPreviewId = selectors.main.previewId(getState());
 
-                    if (currentPreviewId === data.item) {
-                        dispatch(planning.api.fetchById(data.item, {force: true}));
+                    if (currentPreviewId === updatedPlanningId) {
+                        dispatch(planning.api.fetchById(updatedPlanningId, {force: true}));
                     }
                 }
 
@@ -77,9 +79,26 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
             promises.push(dispatch(fetchAgendas()));
         }
 
-        promises.push(dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING})));
-        promises.push(dispatch(udpateAssignment(data.item)));
-        promises.push(dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item)));
+        promises.push(dispatch(main.fetchItemHistory({_id: updatedPlanningId, type: ITEM_TYPE.PLANNING})));
+        promises.push(dispatch(udpateAssignment(updatedPlanningId)));
+        promises.push(dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(updatedPlanningId)));
+        promises.push(new Promise<void>((resolve) => {
+            const state: IPlanningAppState = getState();
+
+            if ( // check if websocket notification contains updates of items currently in store
+                state.planning.plannings[updatedPlanningId] != null
+                || (data.event_ids ?? []).some((id) => state.events.events[id] != null)
+            ) {
+                return planningApi.planning.getById(updatedPlanningId, true, true)
+                    .then((latestPlanning: IPlanningItem) => {
+                        planningApi.locks.reloadSoftLocksForRelatedEvents(latestPlanning);
+
+                        resolve();
+                    });
+            } else {
+                resolve();
+            }
+        }));
 
         return Promise.all(promises);
     }

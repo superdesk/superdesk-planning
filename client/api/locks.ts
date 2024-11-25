@@ -101,6 +101,15 @@ function setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void {
     });
 }
 
+function reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void {
+    const {dispatch} = planningApi.redux.store;
+
+    dispatch({
+        type: LOCKS.ACTIONS.RELOAD_SOFT_LOCKS_FOR_RELATED_EVENTS,
+        payload: {planning},
+    });
+}
+
 function getLockResourceName(itemType: IAssignmentOrPlanningItem['type']) {
     switch (itemType) {
     case 'event':
@@ -335,6 +344,7 @@ export const locks: IPlanningAPI['locks'] = {
     loadLockedItems: loadLockedItems,
     setItemAsLocked: setItemAsLocked,
     setItemAsUnlocked: setItemAsUnlocked,
+    reloadSoftLocksForRelatedEvents: reloadSoftLocksForRelatedEvents,
     lockItem: lockItem,
     lockItemById: lockItemById,
     unlockItem: unlockItem,
