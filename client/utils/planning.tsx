@@ -62,6 +62,7 @@ import {
     sanitizeItemFields,
     stringUtils,
     planningUtils,
+    isTemporaryId,
 } from './index';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
@@ -412,7 +413,7 @@ export function isNotForPublication(plan: IPlanningItem): boolean {
  * we need to go over {@link planningsToAdd} (which must not be locked),
  * check 'related_events' field, and ensure that {@link eventId} can be added.
  */
-function addRelatedPlannings(
+export function addRelatedPlannings(
     eventId: IEventItem['_id'],
 
     /**
@@ -435,7 +436,7 @@ function addRelatedPlannings(
     planningsToAdd.forEach((planningToAdd) => {
         const relatedEvents = (planningToAdd.related_events ?? []);
 
-        if (lockUtils.isItemLocked(planningToAdd, lockedItems)) {
+        if (!isTemporaryId(planningToAdd._id) && lockUtils.isItemLocked(planningToAdd, lockedItems)) {
             warnings.push(gettext(
                 'Item "{{name}}" is locked and can not be added as related',
                 {name: planningToAdd.slugline},
@@ -445,7 +446,7 @@ function addRelatedPlannings(
         }
 
         if (
-            relatedEvents.some((relatedEvent) => relatedEvent._id === eventId)
+            (!isTemporaryId(planningToAdd._id) && relatedEvents.some((relatedEvent) => relatedEvent._id === eventId))
             || planningsAlreadyAdded.has(planningToAdd._id)
         ) {
             warnings.push(gettext(

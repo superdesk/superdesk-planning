@@ -9,19 +9,21 @@ import {
     IEditorBookmark,
     IEditorFormGroup,
     IEventItem,
+    IPlanningAppState,
     IPlanningCoverageItem,
     IPlanningItem,
     IProfileSchemaTypeList,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 
-import {generateTempId} from '../../utils';
+import {generateTempId, isTemporaryId} from '../../utils';
 import {getBookmarksFromFormGroups, getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
 import {AddPlanningBookmark, AssociatedPlanningsBookmark} from '../../components/Editor/bookmarks';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 import {convertEventToPlanningItem} from '../../actions';
-
+import {addRelatedPlannings} from '../../utils/planning';
+import {confirmAddingRelatedItems} from '../../utils/confirmAddingRelatedItems';
 
 export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events'] {
     function getGroupsForItem(_item: Partial<IEventItem>): {
@@ -97,23 +99,48 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             }
         })();
 
-        plans.push(newPlanningItem);
+        const state: IPlanningAppState = planningApi.redux.store.getState();
 
-        return editor.form.changeField('associated_plannings', plans)
-            .then(() => {
-                if (options?.scrollIntoViewAndFocus ?? true) {
-                    const node = getRelatedPlanningDomRef(newPlanningItem._id);
+        const toAdd = [newPlanningItem as IPlanningItem];
 
-                    if (node.current != null) {
-                        node.current.scrollIntoView();
-                        editor.form.waitForScroll().then(() => {
-                            node.current.focus();
-                        });
-                    }
+        const result = addRelatedPlannings(
+            event._id,
+            new Set(plans.map(({_id}) => _id)),
+            toAdd,
+            state.locks,
+        );
+
+        const toAddConfirmed = result.warnings.length > 0
+            ? confirmAddingRelatedItems(result.warnings, toAdd.length, result.canBeAdded.length)
+            : Promise.resolve();
+
+        return toAddConfirmed.then(() => {
+            for (const item of result.canBeAdded) {
+                if (isTemporaryId(item.planning._id)) {
+                    item.planning._temporary = {
+                        link_type: item.link_type,
+                    };
                 }
 
-                return newPlanningItem;
-            });
+                plans.push(item.planning);
+            }
+
+            return editor.form.changeField('associated_plannings', plans)
+                .then(() => {
+                    if (options?.scrollIntoViewAndFocus ?? true) {
+                        const node = getRelatedPlanningDomRef(newPlanningItem._id);
+
+                        if (node.current != null) {
+                            node.current.scrollIntoView();
+                            editor.form.waitForScroll().then(() => {
+                                node.current.focus();
+                            });
+                        }
+                    }
+
+                    return newPlanningItem;
+                });
+        });
     }
 
     function removePlanningItem(item: DeepPartial<IPlanningItem>) {

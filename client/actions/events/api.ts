@@ -1,4 +1,4 @@
-import {get, cloneDeep, has, find, every, take} from 'lodash';
+import {get, cloneDeep, has, find, every, take, partition} from 'lodash';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
@@ -660,6 +660,15 @@ const save = (original, updates) => (
                 EVENTS.UPDATE_METHODS[0].value :
                 eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
+            const [planningsToCreate, planningsToUpdate] = partition(
+                eventUpdates.associated_plannings ?? [],
+                (item) => item._id.startsWith(TEMP_ID_PREFIX),
+            );
+
+            // ensure `associated_plannings` doesn't contain `planningsToCreate`
+            // otherwise it would get created twice - separately and together with event patch
+            eventUpdates.associated_plannings = planningsToUpdate;
+
             const createOrUpdatePromise: Promise<Array<IEventItem>> = originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :
                 planningApi.events.create(eventUpdates);
@@ -669,12 +678,36 @@ const save = (original, updates) => (
                     return Promise.resolve([updatedEvent]);
                 }
 
-                // return Promise.resolve([updatedEvent]);
+                let promise = Promise.resolve();
 
-                return updateLinkedPlanningsForEvent(
+                promise = promise.then(
+                    () => Promise.all(
+                        planningsToCreate.map((planning) => {
+                            const linkType = planning._temporary?.link_type;
+
+                            delete planning['_temporary'];
+
+                            if (linkType == null) {
+                                throw new Error('linkType expected but not found');
+                            }
+
+                            for (const relatedEvent of (planning.related_events ?? [])) {
+                                if (relatedEvent._id === originalEvent._id) {
+                                    relatedEvent.link_type = linkType;
+                                }
+                            }
+
+                            return planningApi.planning.create(planning);
+                        }),
+                    ).then(() => null)
+                );
+
+                promise = promise.then(() => updateLinkedPlanningsForEvent(
                     updatedEvent._id,
                     updates.associated_plannings.filter(({_id}) => !_id.startsWith(TEMP_ID_PREFIX)),
-                ).then(() => [updatedEvent]);
+                ));
+
+                return promise.then(() => [updatedEvent]);
             });
         });
     }
