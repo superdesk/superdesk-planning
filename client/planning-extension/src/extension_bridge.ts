@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
+import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -46,6 +47,7 @@ interface IExtensionBridge {
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
             PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}}>;
+            AttachmentsInputStandalone: React.ComponentType<IPropsAttachmentsEditorStandalone>;
         };
     };
     fields: {

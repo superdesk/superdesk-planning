@@ -15,6 +15,8 @@ import {registerEditorField} from './components/fields/resources/registerEditorF
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
 
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
+import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalone';
+import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -51,6 +53,7 @@ interface IExtensionBridge {
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
             PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}}>;
+            AttachmentsInputStandalone: React.ComponentType<IPropsAttachmentsEditorStandalone>;
         };
     };
     fields: {
@@ -92,6 +95,7 @@ export const extensionBridge: IExtensionBridge = {
         components: {
             EditorFieldVocabulary,
             PlanningDetailsWidget,
+            AttachmentsInputStandalone,
         },
     },
     fields: {

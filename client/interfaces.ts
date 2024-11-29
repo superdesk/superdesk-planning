@@ -92,8 +92,7 @@ export interface IIngestProvider {
     display_name?: string;
 }
 
-export type IFile = {
-    _id: string;
+export interface IFile extends IBaseRestApiResponse {
     filemeta: {
         content_type: string;
         filename: string;
@@ -107,7 +106,7 @@ export type IFile = {
         name: string;
         _id: string;
     };
-};
+}
 
 export interface IItemUrlParams {
     id: IEventOrPlanningItem['_id'];

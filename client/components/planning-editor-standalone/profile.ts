@@ -86,6 +86,20 @@ export function getProfile() {
                 fieldId,
                 getTextFieldConfig({id: fieldId, label: gettext('Headline'), required: required}),
             );
+        } else if (fieldId === 'files') {
+            const fieldConfig = {};
+
+            const field: IAuthoringFieldV2 = {
+                id: fieldId,
+                name: gettext('Attached files'),
+                fieldType: 'files',
+                fieldConfig: fieldConfig,
+            };
+
+            profileV2.header = profileV2.header.set(
+                fieldId,
+                field,
+            );
         }
 
         // else if (fieldId === 'language') {

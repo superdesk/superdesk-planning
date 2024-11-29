@@ -18,6 +18,7 @@ import {
     PLANNING_DETAILS_WIDGET_ID,
     PLANNING_DETAILS_WIDGET_LABEL,
 } from './planning-details-widget';
+import {getAttachmentsField} from './authoring-react-fields/planning-attachments';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -183,6 +184,9 @@ const extension: IExtension = {
                     },
                 ],
                 globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+                customFieldTypes: [
+                    getAttachmentsField(),
+                ],
             },
         };
 
