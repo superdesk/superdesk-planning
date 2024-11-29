@@ -73,6 +73,7 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
         return (
             <Row testId={this.props.testId} smallPadding={this.props.smallPadding}>
                 <TreeSelect
+                    selectBranchWithChildren
                     kind="synchronous"
                     value={this.getViewValue()}
                     getOptions={this.props.getOptions}
