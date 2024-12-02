@@ -68,7 +68,6 @@ SelectSearchContactsField.propTypes = {
     readOnly: PropTypes.bool,
     onChange: PropTypes.func,
     required: PropTypes.bool,
-    field: PropTypes.string.isRequired,
     onAdd: PropTypes.func,
     onAddText: PropTypes.string,
     onFocus: PropTypes.func,

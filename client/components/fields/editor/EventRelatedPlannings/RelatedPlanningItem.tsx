@@ -108,6 +108,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         const {item, isAgendaEnabled} = this.props;
         const hideRemoveIcon = !this.props.item._id.startsWith(TEMP_ID_PREFIX) || this.props.disabled;
 
+        console.log(this.props.item.coverages, 'this.props.item.coverages');
         return (
             <div
                 className="planning-item"

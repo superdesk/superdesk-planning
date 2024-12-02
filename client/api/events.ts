@@ -176,7 +176,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
 function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
     return superdeskApi.dataApi.patch<IEventItem>('events', original, {
         ...updates,
-        associated_plannings: undefined,
+        associated_plannings: updates.associated_plannings,
         embedded_planning: updates?.associated_plannings?.map((planning) => ({
             planning_id: planning._id.startsWith(TEMP_ID_PREFIX) ? undefined : planning._id,
             update_method: planning.update_method,
@@ -192,6 +192,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 slugline: coverage.planning.slugline,
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
+                headline: coverage.planning.headline,
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
