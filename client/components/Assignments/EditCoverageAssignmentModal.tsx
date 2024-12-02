@@ -94,7 +94,6 @@ export class EditCoverageAssignmentModalComponent extends React.Component<IProps
                         <AssignmentEditor
                             value={diff}
                             onChange={this.onChange}
-                            onClose={handleHide}
                             users={users}
                             desks={desks}
                             coverageProviders={coverageProviders}
