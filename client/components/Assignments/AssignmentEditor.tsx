@@ -1,9 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, isEqual} from 'lodash';
 
-import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../utils';
+import {getUsersForDesk, getDesksForUser, gettext} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
@@ -18,15 +17,15 @@ import {
 import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk, IUser} from 'superdesk-api';
+import {IAssignmentPriority} from 'interfaces';
 
 interface IProps {
     value: any;
     onChange?: (...args: any) => any;
-    onClose?: () => any;
     users: Array<IUser>;
     desks?: Array<IDesk>;
     coverageProviders?: Array<any>;
-    priorities?: Array<any>;
+    priorities?: Array<IAssignmentPriority>;
     priorityPrefix?: string;
     disableDeskSelection?: boolean;
     disableUserSelection?: boolean;
@@ -36,7 +35,7 @@ interface IProps {
     className?: string;
     onValidate?: (diff: any, errors: any) => void;
     setValid?: (valid: boolean) => void;
-    contactTypes?: Array<{qcode: string; name: string; assignable?: boolean;}>;
+    contactTypes?: Array<any>;
 }
 
 interface IState {
@@ -46,11 +45,11 @@ interface IState {
     desk: IDesk;
     filteredUsers: Array<IUser>;
     filteredDesks: Array<IDesk>;
-    priorityQcode: Array<any>;
+    priorityQcode: string;
     priority: any;
     errors: any;
-    providerQcode: any | null;
-    contactType: any | null;
+    providerQcode: string | null;
+    contactType: {qcode?: string; assignable?: string; name?: string} | null;
     contactId: string;
     contact?: any | null;
 }
@@ -180,7 +179,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
     }
 
     onUserChange(value) {
-        const userId = value._id;
+        const userId = value?._id;
 
         if (userId !== this.state.userId) {
             this.onChange(this.FIELDS.USER, userId, {
@@ -192,7 +191,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
     }
 
     onContactChange(contact) {
-        const contactId = contact._id;
+        const contactId = contact?._id;
 
         if (contactId !== this.state.contactId) {
             this.onChange(
@@ -211,7 +210,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
     }
 
     onDeskChange(value) {
-        const deskId = value._id;
+        const deskId = value?._id;
 
         if (deskId !== this.state.deskId) {
             this.onChange(this.FIELDS.DESK, deskId, {
@@ -223,7 +222,7 @@ export class AssignmentEditorComponent extends React.Component<IProps, IState> {
     }
 
     onPriorityChange(value) {
-        const priorityQcode = value.qcode;
+        const priorityQcode = value?.qcode;
 
         if (priorityQcode !== this.state.priorityQcode) {
             this.onChange(this.FIELDS.PRIORITY, priorityQcode, {
