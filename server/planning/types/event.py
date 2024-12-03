@@ -171,7 +171,7 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
     priority: int | None = None
 
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
-    dates: EventDates | None = None
+    dates: EventDates | None = Field(default_factory=EventDates)
 
     # This is an extra field so that we can sort in the combined view of events and planning.
     # It will store the dates.start of the event.

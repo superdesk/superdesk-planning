@@ -877,6 +877,7 @@ class EventsResource(superdesk.Resource):
     merge_nested_documents = True
 
 
+# TODO-ASYNC: moved to `events_utils.py`. Remove when it is no longer referenced
 def generate_recurring_dates(
     start,
     frequency,
@@ -1000,6 +1001,8 @@ def generate_recurring_events(event, recurrence_id=None):
         for key in list(new_event.keys()):
             if key.startswith("_") or key.startswith("lock_"):
                 new_event.pop(key)
+
+            # TODO-ASYNC: check this as apparently `embedded_planning` it is used
             elif key == "embedded_planning":
                 if not embedded_planning_added:
                     # If this is the first Event in the series, then keep

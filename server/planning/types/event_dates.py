@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, TypeAlias
 from datetime import datetime, date
 
 from pydantic.fields import Field
@@ -8,12 +8,14 @@ from superdesk.core.resources import dataclass, fields
 
 # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
 
+RepeatModeType: TypeAlias = Literal["count", "until"]
+
 
 @dataclass
 class RecurringRule:
     frequency: str | None = None
     interval: int | None = None
-    endRepeatMode: Literal["count", "until"] | None = None
+    end_repeat_mode: RepeatModeType | None = Field(default=None, alias="endRepeatMode")
     until: datetime | None = None
     count: int | None = None
     bymonth: str | None = None
@@ -53,7 +55,7 @@ class EventDates:
     duration: str | None = None
     confirmation: str | None = None
     recurring_date: List[date] | None = None
-    recurring_rule: RecurringRule | None = None
+    recurring_rule: RecurringRule | None = Field(default_factory=RecurringRule)
     occur_status: OccurStatus | None = None
     ex_date: List[date] = Field(default_factory=list)
     ex_rule: ExRule | None = None

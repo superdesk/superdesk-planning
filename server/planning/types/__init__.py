@@ -14,10 +14,12 @@ from datetime import datetime
 from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentProfile  # noqa
 
 from .base import BasePlanningModel
+from .common import PlanningSchedule
 from .event import EventResourceModel
 from .planning import PlanningResourceModel
 from .assignment import AssignmentResourceModel
 from .published import PublishedPlanningModel
+
 
 __all__ = [
     "BasePlanningModel",
@@ -25,6 +27,7 @@ __all__ = [
     "PlanningResourceModel",
     "AssignmentResourceModel",
     "PublishedPlanningModel",
+    "PlanningSchedule",
 ]
 
 
