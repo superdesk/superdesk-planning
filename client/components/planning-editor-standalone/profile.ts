@@ -34,6 +34,41 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
     return field;
 }
 
+// function getVocabularyRemoteSourceConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
+//     const config: IDropdownConfig = {
+//         source: 'remote-source',
+//         getId: (item: ILocation) => item._id,
+//         getLabel: (item: ILocation) => item.name,
+//         multiple: false,
+//         searchOptions: (
+//             searchTerm,
+//             language,
+//             callback,
+//         ) => {
+//             return planningApi.locations.searchExternal(searchTerm, language).then((x) => {
+//                 const tree: ITreeWithLookup<Partial<ILocation>> = {
+//                     nodes: x.map((location) => ({value: location})),
+//                     lookup: {},
+//                 };
+
+//                 callback(tree);
+//             });
+//         },
+//     };
+
+//     const field: IAuthoringFieldV2 = {
+//         id: options.id,
+//         name: options.label,
+//         fieldType: 'dropdown',
+//         fieldConfig: {
+//             ...config,
+//             required: options.required,
+//         },
+//     };
+
+//     return field;
+// }
+
 function getDateTimeField(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const config: IDateTimeFieldConfig = {
         allowSeconds: false,
@@ -126,6 +161,18 @@ export function getProfile() {
                 }),
             );
         }
+
+        // TODO: Do only events have location as a field that can be configured?
+        // else if (fieldId === 'location') {
+        //     profileV2.content = profileV2.content.set(
+        //         fieldId,
+        //         getVocabularyRemoteSourceConfig({
+        //             id: 'location',
+        //             label: gettext('Location'),
+        //             required: required,
+        //         }),
+        //     );
+        // }
 
         // else if (fieldId === 'language') {
         //     const languageFieldConfig: IDropdownConfigVocabulary = {
