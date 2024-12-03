@@ -2084,3 +2084,251 @@ Feature: Assignments
             ]
         }
         """
+
+    @auth
+    @vocabularies
+    Scenario: Reassignment to In-Progress but User Restricted by Manual Config instead of null
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "assignor_user": "#CONTEXT_USER_ID#"
+                },
+                "workflow_status": "active"
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress",
+                "assignor_user": "#CONTEXT_USER_ID#"
+            }
+        }
+        """
+        When we post to "/desks" with "FINANCE_DESK_ID" and success
+        """
+        [{"name": "Finance", "desk_type": "production" }]
+        """
+        And we set config assignment manual reassignment only to True
+        And we post to "/archive/#archive._id#/move"
+        """
+        [{"task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#"}}]
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "submitted",
+                "assignor_user": "#CONTEXT_USER_ID#"
+            }
+        }
+        """
+
+    @auth
+    @vocabularies
+    @notification
+    Scenario: Assignee can not changed as the author of content changes based on Manual config
+        Given empty "assignments_history"
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we reset notifications
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                },
+                "workflow_status": "active"
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        And we get notifications
+        """
+        [{
+            "event": "assignments:created",
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": null,
+                "original_assigned_user": null
+            }
+        }]
+        """
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/archive/#archive._id#"
+        """
+        {"headline": "test headline 2"}
+        """
+        Then we get OK response
+        When we reset notifications
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "assignments:updated",
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "in_progress",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": "#desks._id#",
+                "original_assigned_user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
+            }
+        }
+        """
+        When we set config assignment manual reassignment only to True
+        Then we store "old_assignee_id" with value "#CONTEXT_USER_ID#" to context
+        When we switch user
+        When we patch "/archive/#archive._id#"
+        """
+        {"slugline": "I'm changing the user"}
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "state": "in_progress",
+                "user": "#old_assignee_id#"
+            }
+        }
+        """

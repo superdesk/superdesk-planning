@@ -21,7 +21,7 @@ from superdesk.metadata.item import CONTENT_STATE
 from apps.archive.common import ARCHIVE
 
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
-from planning.utils import get_first_related_event_id_for_planning
+from planning.utils import get_first_related_event_id_for_planning, get_related_event_links_for_planning
 from .utils import expand_contact_info, get_matching_products
 from .json_utils import translate_names
 
@@ -109,6 +109,19 @@ class JsonPlanningFormatter(Formatter):
         first_primary_event_id = get_first_related_event_id_for_planning(item, "primary")
         if first_primary_event_id:
             output_item["event_item"] = first_primary_event_id
+
+        events = []
+        for event_ref in get_related_event_links_for_planning(item):
+            event = get_resource_service("events").find_one(req=None, _id=event_ref["_id"])
+            events.append(
+                {
+                    "rel": event_ref["link_type"],
+                    "uri": f"urn:event:{event_ref['_id']}",
+                    "literal": event_ref["_id"],
+                    "name": event.get("name") if event else "",
+                }
+            )
+        output_item["events"] = events
 
         return output_item
 

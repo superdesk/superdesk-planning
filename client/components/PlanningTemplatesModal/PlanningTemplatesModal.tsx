@@ -83,8 +83,6 @@ export default class PlanningTemplatesModal extends React.Component<IProps, ISta
                     >
                         <Dropdown
                             maxHeight={300}
-                            append
-                            zIndex={2001}
                             items={calendarDropdownItems.sort((cal1, cal2) => cal1.label.localeCompare(cal2.label))}
                         >
                             {dropdownLabel}

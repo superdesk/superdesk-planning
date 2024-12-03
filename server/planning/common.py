@@ -271,6 +271,10 @@ def get_config_planning_duplicate_retain_assignee_details(current_app=None):
     return (current_app or app).config.get("PLANNING_DUPLICATE_RETAIN_ASSIGNEE_DETAILS", False)
 
 
+def get_config_assignment_manual_reassignment_only(current_app=None):
+    return (current_app or app).config.get("ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY", False)
+
+
 def get_coverage_status_from_cv(qcode: str):
     coverage_states = get_resource_service("vocabularies").find_one(req=None, _id="newscoveragestatus")
 

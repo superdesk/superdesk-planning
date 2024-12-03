@@ -108,13 +108,6 @@
   justify-content: flex-end;
 }
 
-// Fix second subnav's z-index in Planning page
-#sd-planning-react-container {
-  .subnav + .subnav {
-    z-index: 1002 !important;
-  }
-}
-
 // Fix react-bootstrap OverlayTrigger's Tooltip inside Modals
 .tooltip {
     z-index: 10000 !important;

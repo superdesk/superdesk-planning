@@ -1044,6 +1044,7 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     mandatory_in_list?: {[key: string]: any};
     vocabularies?: Array<IVocabulary['_id']>;
     planning_auto_publish?: boolean;
+    cancel_plan_with_event?: boolean;
 }
 
 export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
@@ -1146,6 +1147,7 @@ export interface IEventFormProfile {
         reference: IProfileEditorField;
         slugline: IProfileEditorField;
         subject: IProfileEditorField;
+        related_plannings: IProfileEditorField;
     };
     name: 'event';
     schema: {
@@ -1169,6 +1171,7 @@ export interface IEventFormProfile {
         reference: IProfileSchemaTypeString;
         slugline: IProfileSchemaTypeString;
         subject: IProfileSchemaTypeList;
+        related_plannings: IProfileSchemaTypeList;
     };
 }
 
