@@ -1709,7 +1709,7 @@ export function pickRelatedEventsForPlanning(
     const events = events_ ?? [];
     const allowedEventIds = new Set(getRelatedEventIdsForPlanning(planning, purpose === 'logic' ? 'primary' : null));
 
-    return events.filter((event) => allowedEventIds.has(event._id));
+    return events.filter((event) => event && allowedEventIds.has(event._id));
 }
 
 export function pickRelatedEventIdsForPlanning(
