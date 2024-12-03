@@ -1,13 +1,9 @@
 import * as React from 'react';
-import {
-    IEditorComponentProps,
-    IUrlsFieldConfig,
-    IUrlsFieldUserPreferences,
-} from 'superdesk-api';
-import {IAttachmentsValueOperational} from './interfaces';
+import {IEditorComponentProps} from 'superdesk-api';
+import {IAttachmentsFieldConfig, IAttachmentsFieldUserPreferences, IAttachmentsValueOperational} from './interfaces';
 import {extensionBridge} from '../../extension_bridge';
 
-type IProps = IEditorComponentProps<IAttachmentsValueOperational, IUrlsFieldConfig, IUrlsFieldUserPreferences>;
+type IProps = IEditorComponentProps<IAttachmentsValueOperational, IAttachmentsFieldConfig, IAttachmentsFieldUserPreferences>;
 
 export class Editor extends React.PureComponent<IProps> {
     render() {
