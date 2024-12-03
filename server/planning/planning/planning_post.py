@@ -98,7 +98,9 @@ class PlanningPostService(BaseService):
             abort(409)
 
     @staticmethod
-    def validate_item(doc: Planning, related_events: List[Event], new_post_status: str, cancel_plan_with_event_enabled: bool):
+    def validate_item(
+        doc: Planning, related_events: List[Event], new_post_status: str, cancel_plan_with_event_enabled: bool
+    ):
         if (
             cancel_plan_with_event_enabled
             and new_post_status == POST_STATE.USABLE
