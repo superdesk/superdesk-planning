@@ -16,6 +16,7 @@ httmock==1.4.0
 responses
 pytest
 pytest-env
+black~=23.0
 
 -e .
 # Install in editable state so we get feature fixtures

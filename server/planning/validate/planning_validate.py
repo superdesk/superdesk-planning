@@ -85,6 +85,12 @@ class SchemaValidator(Validator):
         """
         pass
 
+    def _validate_cancel_plan_with_event(self, cancel_plan_with_event, field, value):
+        """
+        {'type': 'boolean', 'nullable': True}
+        """
+        pass
+
     def _validate_default_language(self, default_language, field, value):
         """
         {'type': string, 'nullable': True}
@@ -100,6 +106,12 @@ class SchemaValidator(Validator):
     def _validate_multilingual(self, multilingual, field, value):
         """
         {'type': 'boolean', 'nullable': True}
+        """
+        pass
+
+    def _validate_vocabularies(self, vocabularies, field, value):
+        """
+        {'type': 'list', 'nullable': True}
         """
         pass
 

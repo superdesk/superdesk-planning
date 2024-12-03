@@ -96,3 +96,10 @@ def is_post_planning_with_event_enabled() -> bool:
         return get_planning_schema("event")["schema"]["related_plannings"]["planning_auto_publish"] is True
     except (KeyError, TypeError):
         return False
+
+
+def is_cancel_planning_with_event_enabled() -> bool:
+    try:
+        return get_planning_schema("event")["schema"]["related_plannings"]["cancel_plan_with_event"] is True
+    except (KeyError, TypeError):
+        return True

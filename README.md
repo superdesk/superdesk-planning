@@ -204,6 +204,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_JSON_ASSIGNED_INFO_EXTENDED
     * Defaults to `false`
     * If `true`, it will add to planning JSON output additional info for coverages like assigned desk name/email and assigned user name/email.
+* ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY
+    * Default: False (preserves the current behavior where automatic user assignment occurs)
+    * If true, Disables automatic user assignment for coverage, ensuring that assignments are updated only through explicit manual reassignment
 
 ### Authoring Config
 * PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH

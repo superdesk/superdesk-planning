@@ -97,7 +97,6 @@ export class CoverageIcons extends React.PureComponent<IProps> {
         return (
             <WithPopover
                 placement="auto-end"
-                zIndex={1051}
                 component={() => (
                     <div className="coverages-popup">
                         <Spacer v gap="16">
