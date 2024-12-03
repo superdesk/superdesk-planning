@@ -482,6 +482,34 @@ class PlanningService(Service):
         added_agendas = list(set(updated_agendas) - set(existing_agendas))
         return added_agendas, removed_agendas
 
+    def _get_event_links(self, event_id) -> List[str]:
+        return [str(link["_id"]) for link in get_related_planning_for_events([event_id])]
+
+    def _notify_related_events_changed(self, updates, original) -> bool:
+        if "related_events" not in updates:
+            return False
+
+        def get_ids(links):
+            return set([str(link["_id"]) for link in links])
+
+        updates_ids = get_ids(updates.get("related_events") or [])
+        original_ids = get_ids(original.get("related_events") or [])
+
+        removed_ids = original_ids - updates_ids
+        added_ids = updates_ids - original_ids
+        changed_ids = removed_ids.union(added_ids)
+
+        for _id in changed_ids:
+            push_notification(
+                "event:link_updated",
+                event=str(_id),
+                planning=str(original.get(config.ID_FIELD)),
+                action="delete" if _id in removed_ids else "create",
+                links=self._get_event_links(_id),
+            )
+
+        return len(changed_ids) > 0
+
     def on_updated(self, updates, original, from_ingest=False):
         added, removed = self._get_added_removed_agendas(updates, original)
         item_id = str(original[config.ID_FIELD])
@@ -489,6 +517,7 @@ class PlanningService(Service):
         user_id = str(updates.get("version_creator", ""))
         doc = deepcopy(original)
         doc.update(updates)
+        related_events_changed = self._notify_related_events_changed(updates, original)
 
         push_notification(
             "planning:updated",
@@ -498,6 +527,7 @@ class PlanningService(Service):
             removed_agendas=removed,
             session=session_id,
             event_ids=get_related_event_ids_for_planning(doc, "primary"),
+            related_events_changed=related_events_changed,
         )
 
         self.generate_related_assignments([doc])

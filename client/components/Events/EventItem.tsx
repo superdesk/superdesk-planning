@@ -197,6 +197,11 @@ class EventItemComponent extends React.Component<IProps, IState> {
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
                 refNode={refNode}
+                draggable={!isItemLocked}
+                onDragstart={(dragEvent) => {
+                    dragEvent.dataTransfer.setData('application/superdesk.planning.event', JSON.stringify(item));
+                    dragEvent.dataTransfer.effectAllowed = 'link';
+                }}
             >
                 <Border state={borderState} />
                 <ItemType

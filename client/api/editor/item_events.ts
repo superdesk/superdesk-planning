@@ -17,7 +17,6 @@ import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {generateTempId} from '../../utils';
 import {getBookmarksFromFormGroups, getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
-import {TEMP_ID_PREFIX} from '../../constants';
 
 import {AddPlanningBookmark, AssociatedPlanningsBookmark} from '../../components/Editor/bookmarks';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
@@ -75,38 +74,49 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         return editor.dom.fields[field];
     }
 
-    function addPlanningItem() {
+    function addPlanningItem(
+        item?: IPlanningItem,
+        options?: {
+            scrollIntoViewAndFocus?: boolean;
+        },
+    ): Promise<Partial<IPlanningItem>> {
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
         const plans = cloneDeep(event.associated_plannings || []);
-        const id = generateTempId();
 
-        const newPlanningItem: Partial<IPlanningItem> = {
-            _id: id,
-            ...convertEventToPlanningItem(event as IEventItem),
-        };
+        const newPlanningItem = (() => {
+            if (item == null) {
+                const newPlanningItem: Partial<IPlanningItem> = {
+                    _id: generateTempId(),
+                    ...convertEventToPlanningItem(event as IEventItem),
+                };
+
+                return newPlanningItem;
+            } else {
+                return item;
+            }
+        })();
 
         plans.push(newPlanningItem);
 
-        editor.form.changeField('associated_plannings', plans)
+        return editor.form.changeField('associated_plannings', plans)
             .then(() => {
-                const node = getRelatedPlanningDomRef(id);
+                if (options?.scrollIntoViewAndFocus ?? true) {
+                    const node = getRelatedPlanningDomRef(newPlanningItem._id);
 
-                if (node.current != null) {
-                    node.current.scrollIntoView();
-                    editor.form.waitForScroll().then(() => {
-                        node.current.focus();
-                    });
+                    if (node.current != null) {
+                        node.current.scrollIntoView();
+                        editor.form.waitForScroll().then(() => {
+                            node.current.focus();
+                        });
+                    }
                 }
+
+                return newPlanningItem;
             });
     }
 
     function removePlanningItem(item: DeepPartial<IPlanningItem>) {
-        if (!item._id.startsWith(TEMP_ID_PREFIX)) {
-            // We don't support removing existing Planning items
-            return;
-        }
-
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
         const plans = (event.associated_plannings || []).filter(

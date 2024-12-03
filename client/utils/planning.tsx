@@ -1,7 +1,7 @@
 import moment from 'moment-timezone';
-import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
+import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten, noop} from 'lodash';
 
-import {appConfig as config} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {
@@ -13,7 +13,6 @@ import {
     ISession,
     ILockedItems,
     IPrivileges,
-    IPlanningConfig,
     IAgenda,
     IPlace,
     IPlanningAppState,
@@ -23,8 +22,8 @@ import {
     IPlanningRelatedEventLink,
     IPlanningRelatedEventLinkType,
     IItemAction,
+    EDITOR_TYPE,
 } from '../interfaces';
-const appConfig = config as IPlanningConfig;
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -66,8 +65,9 @@ import {
 } from './index';
 import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
-import {planningConfig} from '../config';
 import {isItemAction, isMenuDivider} from '../helpers';
+import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
+import {getOpenEditorType} from './editor';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -467,6 +467,169 @@ export function isNotForPublication(plan: IPlanningItem): boolean {
     return plan.flags?.marked_for_not_publication === true;
 }
 
+/**
+ * This is a pure function. It has no side-effects and is also meant to be used for validation.
+ *
+ * Since technically only planning items have related events,
+ * we need to go over {@link planningsToAdd} (which must not be locked),
+ * check 'related_events' field, and ensure that {@link eventId} can be added.
+ */
+function addRelatedPlannings(
+    eventId: IEventItem['_id'],
+
+    /**
+     * Needed in case relation is not saved in the database yet.
+     * e.g. when adding a related planning to event editor.
+     */
+    planningsAlreadyAdded: Set<IPlanningItem['_id']>,
+
+    planningsToAdd: Array<IPlanningItem>,
+    lockedItems: ILockedItems,
+): {
+    warnings: Array<string>;
+    canBeAdded: Array<{planning: IPlanningItem; link_type: IPlanningRelatedEventLinkType}>;
+} {
+    const {assertNever} = superdeskApi.helpers;
+
+    const canBeAdded: Array<{planning: IPlanningItem; link_type: IPlanningRelatedEventLinkType}> = [];
+    const warnings: Array<string> = [];
+
+    planningsToAdd.forEach((planningToAdd) => {
+        const relatedEvents = (planningToAdd.related_events ?? []);
+
+        if (lockUtils.isItemLocked(planningToAdd, lockedItems)) {
+            warnings.push(gettext(
+                'Item "{{name}}" is locked and can not be added as related',
+                {name: planningToAdd.slugline},
+            ));
+
+            return;
+        }
+
+        if (
+            relatedEvents.some((relatedEvent) => relatedEvent._id === eventId)
+            || planningsAlreadyAdded.has(planningToAdd._id)
+        ) {
+            warnings.push(gettext(
+                'Item "{{name}}" is already added as related',
+                {name: planningToAdd.slugline},
+            ));
+
+            return;
+        }
+
+        if (appConfig.planning_event_link_method === 'one_primary') {
+            if (relatedEvents.length < 1) {
+                canBeAdded.push({
+                    planning: planningToAdd,
+                    link_type: 'primary',
+                });
+            } else {
+                warnings.push(gettext('Only 1 item can be linked. Adding this would exceed the limit'));
+            }
+        } else if (appConfig.planning_event_link_method === 'many_secondary') {
+            canBeAdded.push({
+                planning: planningToAdd,
+                link_type: 'secondary',
+            });
+        } else if (appConfig.planning_event_link_method === 'one_primary_many_secondary') {
+            const alreadyHasPrimary = relatedEvents.some(({link_type}) => link_type === 'primary');
+
+            canBeAdded.push({
+                planning: planningToAdd,
+                link_type: alreadyHasPrimary ? 'secondary' : 'primary',
+            });
+        } else {
+            return assertNever(appConfig.planning_event_link_method);
+        }
+    });
+
+    return {
+        warnings: warnings,
+        canBeAdded: canBeAdded,
+    };
+}
+
+/**
+ * Will return true if there is at least one planning item that can be added
+ */
+export function canAddSomeRelatedPlanningsToEventEditor(
+    planningsToAdd: Array<IPlanningItem>,
+    lockedItems: ILockedItems,
+): boolean {
+    const openEditorType = getOpenEditorType();
+
+    if (openEditorType == null) {
+        return false;
+    }
+
+    const editor = planningApi.editor(openEditorType);
+    const event = editor.form.getDiff<IEventItem>();
+    const currentPlannings = new Set<string>(
+        (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),
+    );
+    const contentProfileHasRelatedPlanningsField = editor.dom.fields['related_plannings'] != null;
+
+    return editor.item.getItemType() === 'event'
+        && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
+        && contentProfileHasRelatedPlanningsField
+        && addRelatedPlannings(
+            event._id,
+            currentPlannings,
+            planningsToAdd,
+            lockedItems,
+        ).canBeAdded.length > 0;
+}
+
+/**
+ * Planning items that are already added will be ignored
+ */
+export function addSomeRelatedPlanningsToEventEditor(
+    planningsToAdd: Array<IPlanningItem>,
+    lockedItems: ILockedItems,
+): Promise<void> {
+    const editor = planningApi.editor(getOpenEditorType());
+    const event = editor.form.getDiff<IEventItem>();
+    const currentPlannings = new Set<string>(
+        (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),
+    );
+
+    const result = addRelatedPlannings(event._id, currentPlannings, planningsToAdd, lockedItems);
+    let promises = Promise.resolve();
+
+    if (result.warnings.length > 0) {
+        promises = promises.then(
+            () => confirmAddingRelatedItems(
+                result.warnings,
+                planningsToAdd.length,
+                result.canBeAdded.length,
+            )
+        );
+    }
+
+    for (const {planning, link_type} of result.canBeAdded) {
+        if (planning._temporary == null) {
+            planning._temporary = {};
+        }
+
+        planning._temporary.link_type = link_type;
+
+        promises = promises
+            .then(() => editor.item.events.addPlanningItem(planning, {scrollIntoViewAndFocus: false}))
+            .then(() => null);
+    }
+
+    return promises.then(() => {
+        const lastItem = result.canBeAdded.at(-1);
+
+        if (lastItem != null) {
+            editor.item.events.getRelatedPlanningDomRef(lastItem.planning._id).current.scrollIntoView();
+        }
+
+        return null;
+    });
+}
+
 interface IGetPlanningActionArgs {
     item: IPlanningItem;
     events: Array<IEventItem> | null;
@@ -641,6 +804,18 @@ function getPlanningActions(
         () => canRemovedFeatured(item, events, session, privileges, lockedItems),
         () => callBacks[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName].bind(null, item, true)(),
     );
+
+    if (canAddSomeRelatedPlanningsToEventEditor([item], lockedItems)) {
+        const action: IItemAction = {
+            label: gettext('Add as related planning'),
+            icon: 'icon-link',
+            callback: () => {
+                addSomeRelatedPlanningsToEventEditor([item], lockedItems);
+            },
+        };
+
+        actions.push(action);
+    }
 
     if (isEmptyActions(actions)) {
         return [];
@@ -1406,7 +1581,7 @@ function defaultCoverageValues(
     }
 
     if (planningItem) {
-        const getCoverageDueDateStrategy = planningConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
+        const getCoverageDueDateStrategy = appConfig.coverage?.getDueDateStrategy || getDefaultCoverageDueDate;
         const coverageTime = getCoverageDueDateStrategy(planningItem as IPlanningItem, eventItem);
 
         if (coverageTime) {

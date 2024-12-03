@@ -1,6 +1,6 @@
-import {get, isEqual, cloneDeep, pickBy, has, find, every, take} from 'lodash';
+import {get, cloneDeep, has, find, every, take} from 'lodash';
 
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
@@ -9,6 +9,7 @@ import {
     POST_STATE,
     MAIN,
     TO_BE_CONFIRMED_FIELD,
+    TEMP_ID_PREFIX,
 } from '../../constants';
 import * as selectors from '../../selectors';
 import {
@@ -19,7 +20,6 @@ import {
     isPublishedItemId,
     isTemporaryId,
     gettext,
-    getTimeZoneOffset,
 } from '../../utils';
 
 import planningApis from '../planning/api';
@@ -27,6 +27,8 @@ import eventsUi from './ui';
 import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {planning} from '../../api/planning';
+import * as actions from '../../actions';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -480,11 +482,11 @@ function markEventPostponed(event: IEventItem, reason: string, actionedDate: str
     };
 }
 
-const markEventHasPlannings = (event, planning) => ({
-    type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
+const setEventPlannings = (event_id, planning_ids) => ({
+    type: EVENTS.ACTIONS.SET_EVENT_PLANNINGS,
     payload: {
-        event_id: event,
-        planning_item: planning,
+        event_id,
+        planning_ids,
     },
 });
 
@@ -547,6 +549,90 @@ const uploadFiles = (event) => (
     }
 );
 
+function updateLinkedPlanningsForEvent(
+    eventId: IEventItem['_id'],
+
+    /**
+     * these must be final values
+     * missing items will be linked, extra items unlinked
+     */
+    associatedPlannings: Array<IPlanningItem>,
+):Promise<void> {
+    return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
+        const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
+
+        const toLink: Array<IPlanningItem> =
+            associatedPlannings.filter(({_id}) => currentLinkedIds.has(_id) !== true);
+
+        const toUnlink: Array<IPlanningItem> = currentlyLinked
+            .filter((item) => {
+                const createdAt = new Date(item._created);
+                const now = new Date();
+
+                const ageSeconds = (now.getTime() - createdAt.getTime()) / 1000;
+                const tooRecent = ageSeconds < 30;
+
+                if (tooRecent) {
+                    /**
+                     * This is a hack to workaround our existing "fake ID" workaround.
+                     * In event editor it is possible to create a planning item and relate it to current event at once.
+                     * It would happen only after saving, thus while it's not saved yet, we use a fake ID
+                     * - which will not remain the same after saving.
+                     * This function computes a list of planning items which have to be linked
+                     * and which have to be unlinked based on a desired outcome
+                     * which is that only items specified in {@link associatedPlannings} must remain linked.
+                     * The problem arises that when item with a fake ID is saved, and ID changes,
+                     * that item will immediately get unlinked by this function, because there is no way that
+                     * the new ID could have been a part of {@link associatedPlannings}
+                     * (which is computed before saving).
+                     */
+                    return false;
+                } else {
+                    const needToUnlink = associatedPlannings.find(({_id}) => _id === item._id) == null;
+
+                    return needToUnlink;
+                }
+            });
+
+        return Promise.all(
+            [
+                ...toLink.map((planningItem) => {
+                    const linkType = planningItem._temporary?.link_type;
+
+                    if (linkType == null) {
+                        superdeskApi.utilities.logger.error(
+                            new Error('linkType expected but not found'),
+                        );
+
+                        return Promise.resolve(planningItem);
+                    }
+
+                    const patch: Partial<IPlanningItem> = {
+                        related_events: [
+                            ...(planningItem.related_events ?? []),
+                            {_id: eventId, link_type: linkType},
+                        ],
+                    };
+
+                    return planning.update(planningItem, patch);
+                }),
+                ...toUnlink.map((planningItem) => {
+                    const patch: Partial<IPlanningItem> = {
+                        related_events: (planningItem.related_events ?? [])
+                            .filter((item) => item._id !== eventId),
+                    };
+
+                    return planning.update(planningItem, patch);
+                }),
+            ],
+        ).then((updatedPlanningItems) => {
+            planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(updatedPlanningItems));
+
+            return null;
+        });
+    });
+}
+
 const save = (original, updates) => (
     (dispatch) => {
         let promise;
@@ -561,7 +647,7 @@ const save = (original, updates) => (
             promise = Promise.resolve({});
         }
 
-        return promise.then((originalEvent) => {
+        return promise.then((originalEvent): any => {
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
             const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
@@ -574,9 +660,20 @@ const save = (original, updates) => (
                 EVENTS.UPDATE_METHODS[0].value :
                 eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
-            return originalEvent?._id != null ?
+            const createOrUpdatePromise: Promise<Array<IEventItem>> = originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :
                 planningApi.events.create(eventUpdates);
+
+            return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) => {
+                if (updates.associated_plannings == null) {
+                    return Promise.resolve([updatedEvent]);
+                }
+
+                return updateLinkedPlanningsForEvent(
+                    updatedEvent._id,
+                    updates.associated_plannings.filter(({_id}) => !_id.startsWith(TEMP_ID_PREFIX)),
+                ).then(() => [updatedEvent]);
+            });
         });
     }
 );
@@ -757,7 +854,7 @@ const self = {
     silentlyFetchEventsById,
     cancelEvent,
     markEventCancelled,
-    markEventHasPlannings,
+    setEventPlannings,
     rescheduleEvent,
     updateEventTime,
     markEventPostponed,

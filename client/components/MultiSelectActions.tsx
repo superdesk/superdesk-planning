@@ -7,6 +7,9 @@ import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
+import {addSomeEventsAsRelatedToPlanningEditor, canAddSomeEventsAsRelatedToPlanningEditor} from '../utils/events';
+import {superdeskApi} from '../superdeskApi';
+import {addSomeRelatedPlanningsToEventEditor, canAddSomeRelatedPlanningsToEventEditor} from '../utils/planning';
 import {IconButton} from 'superdesk-ui-framework';
 
 interface IReduxState {
@@ -92,6 +95,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
     }
 
     getPlanningTools() {
+        const {gettextPlural} = superdeskApi.localization;
         const {
             selectedPlannings,
             privileges,
@@ -163,6 +167,26 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             );
         }
 
+        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)) {
+            tools.push(
+                <IconButton
+                    key={4}
+                    onClick={() => {
+                        addSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
+                    }}
+                    icon="link"
+                    ariaValue={gettextPlural(
+                        selectedPlannings.length,
+                        'Add as related planning',
+                        'Add as related plannings',
+                    )}
+                />
+            );
+        }
+
         return tools;
     }
 
@@ -188,6 +212,8 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             selectedEvents,
             (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
         );
+
+        const {gettextPlural} = superdeskApi.localization;
 
         let tools = [(
             <IconButton
@@ -238,6 +264,22 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             );
         }
 
+        if (canAddSomeEventsAsRelatedToPlanningEditor(selectedEvents)) {
+            tools.push(
+                <IconButton
+                    key={5}
+                    onClick={() => {
+                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents)
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
+                    }}
+                    icon="link"
+                    ariaValue={gettextPlural(selectedEvents.length, 'Add as related event', 'Add as related events')}
+                />
+            );
+        }
+
         return tools;
     }
 
@@ -269,10 +311,19 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             selectedEventIds,
         } = this.props;
 
-        const hideSlidingToolBar = (activeFilter === MAIN.FILTERS.PLANNING &&
-            selectedPlanningIds.length === 0) ||
-            (activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0) ||
-            activeFilter === MAIN.FILTERS.COMBINED;
+        const hideSlidingToolBar =
+            (
+                activeFilter === MAIN.FILTERS.PLANNING &&
+                selectedPlanningIds.length === 0
+            )
+            || (
+                activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0
+            )
+            || activeFilter === MAIN.FILTERS.COMBINED;
+
+        if (hideSlidingToolBar) {
+            return null;
+        }
 
         let innerTools = [(<a key={1} onClick={this.handleDeSelectAll.bind(this)}>{gettext('Deselect All')}</a>)];
 

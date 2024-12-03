@@ -1,5 +1,5 @@
 import {cloneDeep} from 'lodash';
-import {EDITOR_TYPE, IEditorAPI} from '../../interfaces';
+import {EDITOR_TYPE, IEditorAPI, IEditorProps} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
@@ -17,6 +17,10 @@ export function getItemInstance(type: EDITOR_TYPE): IEditorAPI['item'] {
 
     function getItemId() {
         return planningApi.editor(type).form.getProps().itemId;
+    }
+
+    function getItemAction(): IEditorProps['itemAction'] {
+        return planningApi.editor(type).form.getProps().itemAction;
     }
 
     function getAssociatedPlannings() {
@@ -37,6 +41,7 @@ export function getItemInstance(type: EDITOR_TYPE): IEditorAPI['item'] {
         planning,
         getItemType,
         getItemId,
+        getItemAction,
         getAssociatedPlannings,
     };
 }

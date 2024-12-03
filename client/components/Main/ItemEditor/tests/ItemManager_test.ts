@@ -41,6 +41,7 @@ describe('components.Main.ItemManager', () => {
             state: 'draft',
             language: 'en',
             languages: ['en'],
+            associated_plannings: [],
         };
 
         newPlan = {
@@ -653,6 +654,7 @@ describe('components.Main.ItemManager', () => {
                 initialValues: {
                     _id: 'tempId-e5',
                     type: 'event',
+                    associated_plannings: [],
                 },
             };
 

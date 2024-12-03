@@ -1,8 +1,10 @@
 import * as React from 'react';
+import {connect} from 'react-redux';
 
 import {
     IEditorFieldProps,
     IEventItem,
+    ILockedItems,
     IPlanningCoverageItem,
     IPlanningItem,
     IProfileSchemaTypeList,
@@ -10,92 +12,133 @@ import {
 } from '../../../../interfaces';
 import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
-import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
-import {Row} from '../../../UI/Form';
+import {Button, Spacer} from 'superdesk-ui-framework/react';
 import {RelatedPlanningItem} from './RelatedPlanningItem';
 import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 
 import './style.scss';
+import {TEMP_ID_PREFIX} from '../../../../constants';
+import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
+import * as selectors from '../../../../selectors';
 
-interface IProps extends IEditorFieldProps {
+interface IOwnProps extends IEditorFieldProps {
     item: IEventItem;
     schema?: IProfileSchemaTypeList;
     coverageProfile?: ISearchProfile;
 
     getRef(value: DeepPartial<IPlanningItem>): React.RefObject<PlanningMetaData | RelatedPlanningItem>;
-    addPlanningItem(): void;
+    addPlanningItem(item?: IPlanningItem): Promise<Partial<IPlanningItem>>;
     removePlanningItem(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
     addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
 }
 
-export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps> {
+interface IReduxProps {
+    lockedItems: ILockedItems;
+}
+
+type IProps = IOwnProps & IReduxProps;
+
+export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const {DropZone} = superdeskApi.components;
         const isAgendaEnabled = planningApi.planning.getEditorProfile().editor.agendas.enabled;
         const disabled = this.props.disabled || this.props.schema?.read_only;
+        const planningItems = this.props.item.associated_plannings ?? [];
 
         return (
             <div className="related-plannings">
-                <Row flex={true} noPadding={true}>
+                <Spacer h gap="4" justifyContent="space-between" noWrap>
                     <label className="InputArray__label side-panel__heading side-panel__heading--big">
                         {gettext('Related Plannings')}
                     </label>
+
                     {disabled ? null : (
-                        <ButtonGroup align="end">
-                            <Button
-                                type="primary"
-                                icon="plus-large"
-                                text="plus-large"
-                                shape="round"
-                                size="small"
-                                iconOnly={true}
-                                onClick={this.props.addPlanningItem}
-                            />
-                        </ButtonGroup>
+                        <Button
+                            type="primary"
+                            icon="plus-large"
+                            text="plus-large"
+                            shape="round"
+                            size="small"
+                            iconOnly={true}
+                            onClick={() => {
+                                this.props.addPlanningItem();
+                            }}
+                        />
                     )}
-                </Row>
-                {!this.props.item.associated_plannings?.length ? (
-                    <Row>
-                        <div className="info-box--dashed">
-                            <label>{gettext('No related Planning yet')}</label>
-                        </div>
-                    </Row>
+                </Spacer>
+
+                {disabled ? (
+                    planningItems.map((plan, index) => (
+                        <PlanningMetaData
+                            ref={this.props.getRef(plan) as React.RefObject<PlanningMetaData>}
+                            key={plan._id}
+                            field={`plannings[${index}]`}
+                            plan={plan}
+                            scrollInView={true}
+                            tabEnabled={true}
+                        />
+                    ))
                 ) : (
-                    <React.Fragment>
-                        {disabled ? (
-                            this.props.item.associated_plannings.map((plan, index) => (
-                                <PlanningMetaData
-                                    ref={this.props.getRef(plan) as React.RefObject<PlanningMetaData>}
-                                    key={plan._id}
-                                    field={`plannings[${index}]`}
-                                    plan={plan}
-                                    scrollInView={true}
-                                    tabEnabled={true}
-                                />
-                            ))
-                        ) : (
-                            this.props.item.associated_plannings?.map((plan, index) => (
-                                <RelatedPlanningItem
-                                    ref={this.props.getRef(plan) as React.RefObject<RelatedPlanningItem>}
-                                    key={plan._id}
-                                    index={index}
-                                    event={this.props.item}
-                                    item={plan}
-                                    removePlan={this.props.removePlanningItem}
-                                    updatePlanningItem={this.props.updatePlanningItem}
-                                    addCoverageToWorkflow={this.props.addCoverageToWorkflow}
-                                    disabled={false}
-                                    editorType={this.props.editorType}
-                                    profile={this.props.profile}
-                                    coverageProfile={this.props.coverageProfile}
-                                    isAgendaEnabled={isAgendaEnabled}
-                                />
-                            ))
-                        )}
-                    </React.Fragment>
+                    <>
+                        {
+                            planningItems.map((plan, index) => {
+                                const isNewlyCreatedItem =
+                                    index === planningItems.length - 1
+                                    && plan._id.startsWith(TEMP_ID_PREFIX);
+
+                                return (
+                                    <RelatedPlanningItem
+                                        ref={this.props.getRef(plan) as React.RefObject<RelatedPlanningItem>}
+                                        key={plan._id}
+                                        index={index}
+                                        event={this.props.item}
+                                        item={plan}
+                                        removePlan={this.props.removePlanningItem}
+                                        updatePlanningItem={this.props.updatePlanningItem}
+                                        addCoverageToWorkflow={this.props.addCoverageToWorkflow}
+                                        disabled={false}
+                                        editorType={this.props.editorType}
+                                        profile={this.props.profile}
+                                        coverageProfile={this.props.coverageProfile}
+                                        isAgendaEnabled={isAgendaEnabled}
+                                        initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
+                                    />
+                                );
+                            })
+                        }
+
+                        <DropZone
+                            canDrop={
+                                (event) => event.dataTransfer.getData(
+                                    'application/superdesk.planning.planning_item',
+                                ) != null
+                            }
+                            onDrop={(event) => {
+                                event.preventDefault();
+                                const planningItem: IPlanningItem = JSON.parse(
+                                    event.dataTransfer.getData('application/superdesk.planning.planning_item'),
+                                );
+
+                                addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
+                            }}
+                            multiple={true}
+                        >
+                            {gettext('Drop planning items here')}
+                        </DropZone>
+                    </>
                 )}
             </div>
         );
     }
 }
+
+const mapStateToProps = (state): IReduxProps => ({
+    lockedItems: selectors.locks.getLockedItems(state),
+});
+
+
+export const EditorFieldEventRelatedPlannings = connect(
+    mapStateToProps,
+)(EditorFieldEventRelatedPlanningsComponent);

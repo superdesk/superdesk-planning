@@ -22,10 +22,10 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         return planningApi.editor(type).manager.getState();
     }
 
-    function scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id']) {
+    function scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id'], options?: {focus?: boolean}) {
         const editor = planningApi.editor(type);
 
-        editor.dom.groups[bookmarkId]?.current?.scrollIntoView();
+        editor.dom.groups[bookmarkId]?.current?.scrollIntoView({focus: options?.focus ?? true});
     }
 
     function scrollToTop() {

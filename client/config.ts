@@ -1,9 +1,7 @@
 import moment from 'moment-timezone';
 
-import {IPlanningConfig, PLANNING_VIEW} from './interfaces';
+import {PLANNING_VIEW} from './interfaces';
 import {appConfig} from 'appConfig';
-
-appConfig = appConfig as IPlanningConfig;
 
 // Set the default values for Planning config entries
 
@@ -103,5 +101,3 @@ export function updateConfigAfterLoad() {
         appConfig.planning.autosave_timeout = 1500;
     }
 }
-
-export const planningConfig = appConfig as IPlanningConfig;
