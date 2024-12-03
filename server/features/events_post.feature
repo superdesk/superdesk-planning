@@ -1295,7 +1295,7 @@ Feature: Events Post
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }
         """
         Then we get OK response
