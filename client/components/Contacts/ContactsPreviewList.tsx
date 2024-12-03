@@ -14,7 +14,6 @@ interface IProps {
     contacts?: {[key: string]: IContactItem};
     contactIds: Array<IContactItem['_id']>;
     scrollInView?: boolean;
-    scrollIntoViewOptions: any;
     tabEnabled?: boolean;
     readOnly?: boolean;
     inner?: boolean;

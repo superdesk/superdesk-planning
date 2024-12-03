@@ -18,7 +18,7 @@ interface IProps {
     required?: boolean;
     labelLeft?: boolean;
     clearable?: boolean;
-    noMargin?: string;
+    noMargin?: boolean;
     iconName: string;
     row?: boolean;
     noValueString?: string
