@@ -7,6 +7,7 @@ import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
 import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
+import {isSameDay} from './../helpers';
 
 const validateRequiredDates = ({value, errors, messages, diff}) => {
     if (!get(value, 'start')) {
@@ -46,7 +47,7 @@ const validateDateRange = ({value, errors, messages}) => {
     }
 
     if (endDate.isSameOrBefore(startDate, 'minutes')) {
-        if (eventUtils.isEventSameDay(value.start, value.end)) {
+        if (isSameDay(value.start, value.end)) {
             set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
         } else {

@@ -136,8 +136,7 @@ export class PlanningList {
             .find('[data-test-id=interval-dropdown-toggle]')
             .click();
 
-        cy.get('[data-test-id=planning-list-panel]')
-            .find('[data-test-id=interval-dropdown]')
+        cy.get('[data-test-id=dropdown-overlay]')
             .find('li')
             .contains(interval)
             .click();

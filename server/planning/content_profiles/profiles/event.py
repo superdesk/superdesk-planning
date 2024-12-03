@@ -47,6 +47,7 @@ class EventSchema(BaseSchema):
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
     related_plannings.schema["planning_auto_publish"] = False
+    related_plannings.schema["cancel_plan_with_event"] = True
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
     accreditation_info = TextField(field_type="single_line")

@@ -86,7 +86,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                 {this.props.withArchiveItem !== true ? null : (
                     <ArchiveItem item={this.props.archiveItem} />
                 )}
-                <SubNav zIndex={3}>
+                <SubNav>
                     <MultiSelectActions />
                     <SearchBox
                         label={gettext('Search planning')}
@@ -110,7 +110,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                         privileges={this.props.privileges}
                     />
                 </SubNav>
-                <SubNav zIndex={2}>
+                <SubNav>
                     <ButtonGroup align="inline">
                         <NavButton
                             icon="filter-large"

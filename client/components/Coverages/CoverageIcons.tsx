@@ -72,13 +72,15 @@ export function getAvatarForCoverage(
 
         return placeholder;
     } else {
+        const statusDotColor = planningUtils.getNewsCoverageStatusDotColor(coverage);
+
         const avatar: Omit<IPropsAvatar, 'size'> = {
             initials: getUserInitials(user.display_name),
             imageUrl: user.picture_url,
             displayName: user.display_name,
             icon: icon,
             customContent: getCustomAvatarContent(user),
-            statusDot: {color: planningUtils.getNewsCoverageStatusDotColor(coverage)},
+            statusDot: statusDotColor != null ? {color: statusDotColor} : null,
         };
 
         return avatar;
@@ -93,7 +95,6 @@ export class CoverageIcons extends React.PureComponent<IProps> {
         return (
             <WithPopover
                 placement="auto-end"
-                zIndex={1051}
                 component={() => (
                     <div className="coverages-popup">
                         <Spacer v gap="16">

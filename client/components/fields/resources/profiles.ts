@@ -36,6 +36,17 @@ registerEditorField(
 );
 
 registerEditorField(
+    'schema.cancel_plan_with_event',
+    EditorFieldCheckbox,
+    () => ({
+        label: superdeskApi.localization.gettext('Cancel planning items with Event'),
+        field: 'schema.cancel_plan_with_event',
+    }),
+    null,
+    true
+);
+
+registerEditorField(
     'schema.planning_auto_publish',
     EditorFieldCheckbox,
     () => ({

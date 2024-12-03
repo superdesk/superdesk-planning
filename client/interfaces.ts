@@ -1043,6 +1043,7 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     mandatory_in_list?: {[key: string]: any};
     vocabularies?: Array<IVocabulary['_id']>;
     planning_auto_publish?: boolean;
+    cancel_plan_with_event?: boolean;
 }
 
 export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
@@ -1145,6 +1146,7 @@ export interface IEventFormProfile {
         reference: IProfileEditorField;
         slugline: IProfileEditorField;
         subject: IProfileEditorField;
+        related_plannings: IProfileEditorField;
     };
     name: 'event';
     schema: {
@@ -1168,6 +1170,7 @@ export interface IEventFormProfile {
         reference: IProfileSchemaTypeString;
         slugline: IProfileSchemaTypeString;
         subject: IProfileSchemaTypeList;
+        related_plannings: IProfileSchemaTypeList;
     };
 }
 
@@ -2076,7 +2079,15 @@ export interface IWebsocketMessageData {
         removed_agendas: Array<IAgenda['_id']>;
         session: ISession['sessionId'];
         event_ids: Array<IEventItem['_id']>;
+        related_events_changed?: boolean;
     };
+    EVENT_LINK_UPDATED: {
+        action: string;
+        event: IEventItem['_id'];
+        planning: IPlanningItem['_id'];
+        links: Array<IPlanningItem['_id']>;
+        _created: string; // ISO 8601 datetime
+    }
 }
 
 export interface IEditorAPI {
@@ -2310,6 +2321,7 @@ export interface IPlanningAPI {
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
         setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
         setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
+        reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void;
         lockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
         lockItemById<T extends IAssignmentOrPlanningItem>(
             itemId: T['_id'],

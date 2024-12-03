@@ -2,15 +2,18 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {IPlanningCoverageItem, ICoverageScheduledUpdate} from '../../../interfaces';
+import {IPlanningCoverageItem, ICoverageScheduledUpdate, ILockedItems} from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
 
-import {getCreator, getItemInArrayById, gettext, planningUtils, onEventCapture} from '../../../utils';
+import {getCreator, getItemInArrayById, gettext, onEventCapture} from '../../../utils';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
-import {Button} from '../../UI';
 import {UserAvatar} from '../../../components/UserAvatar';
 import {StateLabel} from '../../StateLabel';
 import * as actions from '../../../actions';
+import {ASSIGNMENTS} from '../../../constants/assignments';
+import * as selectors from '../../../selectors';
+import {planningUtils} from '../../../utils';
+import {Button} from 'superdesk-ui-framework/react';
 
 interface IProps {
     field: string;
@@ -21,7 +24,7 @@ interface IProps {
     addNewsItemToPlanning?: IArticle;
     onChange(field: string, value: any): void;
     onFocus?(): void;
-    onRemoveAssignment?(): void;
+    onRemoveAssignment?(): Promise<void>;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     showEditCoverageAssignmentModal(props: {
         field: string;
@@ -32,12 +35,17 @@ interface IProps {
         onChange(field: string, value: any): void;
         setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     }): void;
+    lockedItems: ILockedItems;
 }
 
 const mapDispatchToProps = (dispatch) => ({
     showEditCoverageAssignmentModal: (props) => dispatch(
         actions.assignments.ui.showEditCoverageAssignmentModal(props)
     ),
+});
+
+const mapStateToProps = (state) => ({
+    lockedItems: selectors.locks.getLockedItems(state),
 });
 
 export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
@@ -69,15 +77,24 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             addNewsItemToPlanning,
             onRemoveAssignment,
             readOnly,
+            lockedItems,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
-        const deskAssigned = getItemInArrayById(desks, get(value, 'assigned_to.desk'));
-        const coverageProvider = get(value, 'assigned_to.coverage_provider');
-        const assignmentState = get(value, 'assigned_to.state');
-        const cancelled = get(value, 'workflow_status') === 'cancelled';
-        const canEditAssignment = planningUtils.isCoverageDraft(value) ||
-            (!!addNewsItemToPlanning && !get(value, 'coverage_id') && !get(value, 'scheduled_update_id'));
+        const deskAssigned = getItemInArrayById(desks, value.assigned_to?.desk);
+        const coverageProvider = value.assigned_to?.coverage_provider;
+        const assignmentState = value.assigned_to?.state;
+        const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
+
+        /*
+            Check if:
+            1. This view is rendered from AddToPlanning action
+            2. There's an already scheduled update for the coverage
+        */
+        const isAssignmentLocked = lockedItems?.assignment
+            && value.assigned_to?.assignment_id in lockedItems.assignment;
+        const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked
+            && !((value as ICoverageScheduledUpdate).scheduled_update_id);
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -102,11 +119,9 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 <Button
                                     id="editAssignment"
                                     text={gettext('Assign')}
-                                    tabIndex={0}
-                                    enterKeyIsClick
-                                    className="btn btn--primary btn--small"
                                     onClick={this.showAssignmentModal}
-                                    autoFocus
+                                    size="small"
+                                    type="primary"
                                 />
                             </ListRow>
                         )}
@@ -130,7 +145,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                             <span className="sd-list-item__text-label sd-list-item__text-label--normal">
                                 {gettext('Desk:')}
                             </span>
-                            <span name={`${field}.assigned_to.desk`}>
+                            <span key={`${field}.assigned_to.desk`}>
                                 {get(deskAssigned, 'name', '')}
                             </span>
                         </span>
@@ -141,7 +156,7 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 <span className="sd-list-item__text-label sd-list-item__text-label--normal">
                                     {gettext('Assignee:')}
                                 </span>
-                                <span name={`${field}.assigned_to.user`}>
+                                <span key={`${field}.assigned_to.user`}>
                                     {get(userAssigned, 'display_name', '')}
                                 </span>
                             </span>
@@ -173,24 +188,22 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                         <ListRow>
                             <Button
                                 text={gettext('Reassign')}
-                                className="btn btn--hollow btn--small"
                                 onClick={this.showAssignmentModal}
-                                tabIndex={0}
-                                enterKeyIsClick
-                                disabled={!!addNewsItemToPlanning}
-                                autoFocus
+                                style="hollow"
+                                size="small"
+                                expand
                             />
                         </ListRow>
-                        {!onRemoveAssignment ? null : (
+                        {onRemoveAssignment != null && (
                             <ListRow>
                                 <Button
                                     text={gettext('Remove')}
-                                    className="btn btn--hollow btn--small"
-                                    onClick={onRemoveAssignment}
-                                    tabIndex={0}
-                                    enterKeyIsClick
-                                    disabled={!!addNewsItemToPlanning}
-                                    autoFocus
+                                    onClick={() => {
+                                        onRemoveAssignment();
+                                    }}
+                                    style="hollow"
+                                    size="small"
+                                    expand
                                 />
                             </ListRow>
                         )}
@@ -202,6 +215,6 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
 }
 
 export const CoverageFormHeader = connect(
-    null,
+    mapStateToProps,
     mapDispatchToProps
 )(CoverageFormHeaderComponent);

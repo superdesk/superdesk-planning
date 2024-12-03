@@ -44,6 +44,7 @@ export function confirmAddingRelatedItems(
                         footerTemplate={(
                             <Button text={gettext('Close')} onClick={() => closeAndReject()} />
                         )}
+                        zIndex={1050}
                     >
                         {issuesJSX}
                     </Modal>
@@ -76,6 +77,7 @@ export function confirmAddingRelatedItems(
                                 />
                             </Spacer>
                         )}
+                        zIndex={1050}
                     >
                         {issuesJSX}
                     </Modal>

@@ -68,17 +68,22 @@ import * as selectors from '../selectors';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {isItemAction, isMenuDivider} from '../helpers';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
+import {getOpenEditorType} from './editor';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
+function isCancelPlanWithEventDisabled(): boolean {
+    return (planningApi.events.getEditorProfile().schema.related_plannings?.cancel_plan_with_event ?? true) === false;
+}
+
 function canPostPlanning(
     planning: IPlanningItem,
-    events_: Array<IEventItem> | null,
+    events: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
-    const events = events_ ?? [];
+    const primaryEvents = pickRelatedEventsForPlanning(planning, events || [], 'logic');
 
     return (
         isExistingItem(planning) &&
@@ -86,14 +91,20 @@ function canPostPlanning(
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
-        events.every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
         !isItemSpiked(planning) &&
-        events.every((event) => !isItemSpiked(event)) &&
-        (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
-        events.every((event) => !isItemCancelled(event)) &&
         !isItemRescheduled(planning) &&
-        events.every((event) => !isItemRescheduled(event)) &&
-        !isNotForPublication(planning)
+        !isNotForPublication(planning) &&
+        (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => (
+                getItemWorkflowState(event) === WORKFLOW_STATE.KILLED
+                || isItemSpiked(event)
+                || isItemCancelled(event)
+                || isItemRescheduled(event)
+            ))
+        )
     );
 }
 
@@ -114,22 +125,28 @@ function canUnpostPlanning(
 
 function canEditPlanning(
     planning: IPlanningItem,
-    events_: Array<IEventItem> | null,
+    events: Array<IEventItem> | null,
     session: ISession,
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
-    const events = events_ ?? [];
+    const primaryEvents = pickRelatedEventsForPlanning(planning, events || [], 'logic');
 
     return (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         !isItemSpiked(planning) &&
-        events.every((event) => !isItemSpiked(event)) &&
         !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
         !isItemRescheduled(planning) &&
         (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
-        events.every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED)
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => (
+                getItemWorkflowState(event) === WORKFLOW_STATE.KILLED
+                || isItemSpiked(event)
+            ))
+        )
     );
 }
 
@@ -139,13 +156,19 @@ function canModifyPlanning(
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
+    const primaryEvents = pickRelatedEventsForPlanning(planning, events || [], 'logic');
+
     return (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isItemLocked(planning, locks) &&
         !isItemSpiked(planning) &&
-        (events ?? []).every((event) => !isItemSpiked(event)) &&
         !isItemCancelled(planning) &&
-        !isItemRescheduled(planning)
+        !isItemRescheduled(planning) &&
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => isItemSpiked(event))
+        )
     );
 }
 
@@ -217,14 +240,20 @@ function canUnspikePlanning(
     events: Array<IEventItem> | null,
     privileges: IPrivileges
 ): boolean {
+    const primaryEvents = pickRelatedEventsForPlanning(plan, events || [], 'logic');
+
     return (
         isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        (events ?? []).every((event) => !isItemSpiked(event)) &&
         (
             !isItemExpired(plan) ||
             !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        ) &&
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => isItemSpiked(event))
         )
     );
 }
@@ -236,11 +265,17 @@ function canDuplicatePlanning(
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
+    const primaryEvents = pickRelatedEventsForPlanning(plan, events || [], 'logic');
+
     return (
         !isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(plan, session, locks) &&
-        (events ?? []).every((event) => !isItemSpiked(event))
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => isItemSpiked(event))
+        )
     );
 }
 
@@ -251,16 +286,25 @@ function canCancelPlanning(
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
+    const primaryEvents = pickRelatedEventsForPlanning(planning, events || [], 'logic');
+
     return (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
         getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
-        (events ?? []).every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED) &&
         !(
             getPostedState(planning) === POST_STATE.USABLE &&
             !privileges[PRIVILEGES.POST_PLANNING]
         ) &&
-        !isItemExpired(planning)
+        (
+            !isItemExpired(planning) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        ) &&
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => isItemSpiked(event))
+        )
     );
 }
 
@@ -271,17 +315,26 @@ function canCancelAllCoverage(
     privileges: IPrivileges,
     locks: ILockedItems
 ): boolean {
+    const primaryEvents = pickRelatedEventsForPlanning(planning, events || [], 'logic');
+
     return (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemSpiked(planning) &&
         !lockUtils.isLockRestricted(planning, session, locks) &&
-        (events ?? []).every((event) => getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED) &&
         canCancelAllCoverageForPlanning(planning) &&
         !(
             getPostedState(planning) === POST_STATE.USABLE &&
             !privileges[PRIVILEGES.POST_PLANNING]
         ) &&
-        !isItemExpired(planning)
+        (
+            !isItemExpired(planning) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        ) &&
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => isItemSpiked(event))
+        )
     );
 }
 
@@ -359,13 +412,22 @@ function canAddCoverages(
     session: ISession,
     locks: ILockedItems
 ): boolean {
+    const primaryEvents = pickRelatedEventsForPlanning(planning, events || [], 'logic');
+
     return (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         lockUtils.isItemLocked(planning, locks) &&
         lockUtils.isItemLockedInThisSession(planning, session, locks) &&
-        (events ?? []).every((event) => !isItemCancelled(event)) &&
         (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning) &&
-        !isItemExpired(planning)
+        (
+            !isItemExpired(planning) ||
+            !!privileges[PRIVILEGES.EDIT_EXPIRED]
+        ) &&
+        (
+            primaryEvents.length === 0
+            || isCancelPlanWithEventDisabled()
+            || !primaryEvents.some((event) => isItemCancelled(event))
+        )
     );
 }
 
@@ -496,7 +558,13 @@ export function canAddSomeRelatedPlanningsToEventEditor(
     planningsToAdd: Array<IPlanningItem>,
     lockedItems: ILockedItems,
 ): boolean {
-    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const openEditorType = getOpenEditorType();
+
+    if (openEditorType == null) {
+        return false;
+    }
+
+    const editor = planningApi.editor(openEditorType);
     const event = editor.form.getDiff<IEventItem>();
     const currentPlannings = new Set<string>(
         (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),
@@ -521,7 +589,7 @@ export function addSomeRelatedPlanningsToEventEditor(
     planningsToAdd: Array<IPlanningItem>,
     lockedItems: ILockedItems,
 ): Promise<void> {
-    const editor = planningApi.editor(EDITOR_TYPE.INLINE);
+    const editor = planningApi.editor(getOpenEditorType());
     const event = editor.form.getDiff<IEventItem>();
     const currentPlannings = new Set<string>(
         (event.associated_plannings ?? []).flatMap(({_id}) => _id == null ? [] : _id),
@@ -1817,7 +1885,7 @@ export function pickRelatedEventsForPlanning(
     const events = events_ ?? [];
     const allowedEventIds = new Set(getRelatedEventIdsForPlanning(planning, purpose === 'logic' ? 'primary' : null));
 
-    return events.filter((event) => allowedEventIds.has(event._id));
+    return events.filter((event) => event && allowedEventIds.has(event._id));
 }
 
 export function pickRelatedEventIdsForPlanning(

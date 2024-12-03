@@ -482,11 +482,11 @@ function markEventPostponed(event: IEventItem, reason: string, actionedDate: str
     };
 }
 
-const markEventHasPlannings = (event, planning) => ({
-    type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
+const setEventPlannings = (event_id, planning_ids) => ({
+    type: EVENTS.ACTIONS.SET_EVENT_PLANNINGS,
     payload: {
-        event_id: event,
-        planning_item: planning,
+        event_id,
+        planning_ids,
     },
 });
 
@@ -626,7 +626,7 @@ function updateLinkedPlanningsForEvent(
                 }),
             ],
         ).then((updatedPlanningItems) => {
-            planningApi.redux.store.dispatch<any>(actions.planning.api.receivePlannings(updatedPlanningItems));
+            planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(updatedPlanningItems));
 
             return null;
         });
@@ -889,7 +889,7 @@ const self = {
     silentlyFetchEventsById,
     cancelEvent,
     markEventCancelled,
-    markEventHasPlannings,
+    setEventPlannings,
     rescheduleEvent,
     updateEventTime,
     markEventPostponed,

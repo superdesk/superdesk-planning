@@ -35,6 +35,7 @@ from planning.common import (
     get_version_item_for_post,
     get_contacts_from_item,
 )
+from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -57,10 +58,11 @@ class PlanningPostService(BaseService):
     def create(self, docs, **kwargs):
         ids = []
         assignments_to_delete = []
+        cancel_plan_with_event_enabled = is_cancel_planning_with_event_enabled()
         for doc in docs:
             plan = get_resource_service("planning").find_one(req=None, _id=doc["planning"])
             related_events = get_related_event_items_for_planning(plan, "primary")
-            self.validate_item(plan, related_events, doc["pubstatus"])
+            self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
 
             if not plan:
                 abort(412)
@@ -96,9 +98,13 @@ class PlanningPostService(BaseService):
             abort(409)
 
     @staticmethod
-    def validate_item(doc: Planning, related_events: List[Event], new_post_status: str):
-        if new_post_status == POST_STATE.USABLE and any(
-            1 for e in related_events if e.get("pubstatus") == POST_STATE.CANCELLED
+    def validate_item(
+        doc: Planning, related_events: List[Event], new_post_status: str, cancel_plan_with_event_enabled: bool
+    ):
+        if (
+            cancel_plan_with_event_enabled
+            and new_post_status == POST_STATE.USABLE
+            and any(1 for e in related_events if e.get("pubstatus") == POST_STATE.CANCELLED)
         ):
             raise SuperdeskApiError(message="Can't post the planning item as event is already unposted/cancelled.")
 

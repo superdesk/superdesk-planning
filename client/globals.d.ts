@@ -1,3 +1,8 @@
+type IPlanningItem = import('./interfaces').IPlanningItem;
+type IEventItem = import('./interfaces').IEventItem;
+type PLANNING_VIEW = import('./interfaces').PLANNING_VIEW;
+
+
 // ------------------------------------------------------------------------------------------------
 // VARIABLES
 // ------------------------------------------------------------------------------------------------

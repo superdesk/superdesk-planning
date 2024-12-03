@@ -12,6 +12,7 @@
 
 import logging
 import superdesk
+from . import settings
 from eve.utils import config
 from flask_babel import lazy_gettext
 from .agendas import AgendasResource, AgendasService
@@ -78,7 +79,7 @@ from planning.planning_download import init_app as init_planning_download_app
 from planning.planning_locks import init_app as init_planning_locks_app
 from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
 
-__version__ = "2.8.0-dev"
+__version__ = "2.8.2"
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -242,8 +243,7 @@ def init_app(app):
         "default_create_planning_series_with_event_series"
     ] = get_config_default_create_planning_series_with_event_series(app)
 
-    # TODO: use get_planning_event_link_method
-    app.client_config["planning_event_link_method"] = "one_primary_many_secondary"
+    app.client_config["planning_event_link_method"] = app.config.get(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
 
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):
