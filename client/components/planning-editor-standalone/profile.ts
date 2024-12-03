@@ -3,9 +3,7 @@ import {OrderedMap} from 'immutable';
 import {
     IAuthoringFieldV2,
     IContentProfileV2,
-    IDateFieldConfig,
-    IDropdownConfigManualSource,
-    IDropdownConfigVocabulary,
+    IDateTimeFieldConfig,
     IEditor3Config,
 } from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
@@ -29,6 +27,24 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
         fieldType: 'editor3',
         fieldConfig: {
             ...editor3ConfigWithoutFormatting,
+            required: options.required,
+        },
+    };
+
+    return field;
+}
+
+function getDateTimeField(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
+    const config: IDateTimeFieldConfig = {
+        allowSeconds: false,
+    };
+
+    const field: IAuthoringFieldV2 = {
+        id: options.id,
+        name: options.label,
+        fieldType: 'datetime',
+        fieldConfig: {
+            ...config,
             required: options.required,
         },
     };
@@ -99,6 +115,15 @@ export function getProfile() {
             profileV2.header = profileV2.header.set(
                 fieldId,
                 field,
+            );
+        } else if (fieldId === 'planning_date') {
+            profileV2.header = profileV2.header.set(
+                fieldId,
+                getDateTimeField({
+                    id: fieldId,
+                    label: gettext('Planning date'),
+                    required: required,
+                }),
             );
         }
 
