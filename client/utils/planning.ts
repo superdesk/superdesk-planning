@@ -141,7 +141,7 @@ function canEditPlanning(
         (
             primaryEvents.length === 0
             || isCancelPlanWithEventDisabled()
-            || primaryEvents.some((event) => (
+            || !primaryEvents.some((event) => (
                 getItemWorkflowState(event) === WORKFLOW_STATE.KILLED
                 || isItemSpiked(event)
             ))
