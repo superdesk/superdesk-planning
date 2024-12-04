@@ -2,11 +2,12 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {noop} from 'lodash';
 import {Button} from 'superdesk-ui-framework/react';
-import {IAuthoringStorage, ITopBarWidget} from 'superdesk-api';
-import {superdeskApi} from '../../superdeskApi';
+import {IAuthoringStorage, ITopBarWidget, IAuthoringValidationErrors} from 'superdesk-api';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import {IAgenda, IPlanningAppState, IPlanningItem} from 'interfaces';
 import {storageAdapterPlanningItem} from './storage-adapter';
+import {formProfile} from '../../validators/profile';
 
 interface IOwnProps {
     itemId: string;
@@ -18,6 +19,37 @@ interface IReduxProps {
 }
 
 type IProps = IOwnProps & IReduxProps;
+
+function validate(
+    fieldsData: Immutable.Map<string, unknown>,
+    latestItem: IPlanningItem,
+): IAuthoringValidationErrors {
+    const planningProfile = planningApi.contentProfiles.get('planning');
+
+    const errors = {};
+    const messages = [];
+
+    fieldsData.forEach((value, fieldId) => {
+        formProfile({
+            field: fieldId,
+            value: value,
+            profile: planningProfile,
+            errors: errors,
+            messages: messages,
+            diff: latestItem,
+        });
+    });
+
+    const filteredErrors = {};
+
+    for (const [fieldId, error] of Object.entries(errors)) {
+        if (fieldsData.has(fieldId)) {
+            filteredErrors[fieldId] = error;
+        }
+    }
+
+    return filteredErrors;
+}
 
 export class PlanningEditorStandaloneComponent extends React.PureComponent<IProps> {
     render() {
@@ -33,7 +65,13 @@ export class PlanningEditorStandaloneComponent extends React.PureComponent<IProp
                 authoringStorage={this.props.authoringStorage}
                 storageAdapter={storageAdapterPlanningItem}
                 getLanguage={(item) => item.language ?? 'en'}
-                getInlineToolbarActions={({hasUnsavedChanges, save}) => {
+                getInlineToolbarActions={({
+                    hasUnsavedChanges,
+                    save,
+                    addValidationErrors,
+                    fieldsData,
+                    getLatestItem,
+                }) => {
                     const saveButton: ITopBarWidget<IPlanningItem> = {
                         group: 'end',
                         priority: 0.2,
@@ -44,7 +82,13 @@ export class PlanningEditorStandaloneComponent extends React.PureComponent<IProp
                                 type="primary"
                                 disabled={!hasUnsavedChanges()}
                                 onClick={() => {
-                                    save();
+                                    const validationErrors = validate(fieldsData, getLatestItem());
+
+                                    if (Object.keys(validationErrors).length > 0) {
+                                        addValidationErrors(validationErrors);
+                                    } else {
+                                        save();
+                                    }
                                 }}
                             />
                         ),
