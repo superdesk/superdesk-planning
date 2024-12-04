@@ -9,13 +9,15 @@ import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {arrayToTree} from 'superdesk-core/scripts/core/helpers/tree';
 import {TreeSelect} from 'superdesk-ui-framework/react';
 
-interface IProps extends IEditorFieldProps {
+export interface ICustomVocabulariesProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeList;
-    vocabularies: Array<IVocabulary>;
-    popupContainer?(): HTMLElement;
-    onPopupOpen?(): void;
-    onPopupClose?(): void;
 }
+
+interface IReduxStateProps {
+    vocabularies: Array<IVocabulary>;
+}
+
+type IProps = ICustomVocabulariesProps & IReduxStateProps;
 
 const mapStateToProps = (state) => ({
     vocabularies: state.customVocabularies,
@@ -93,4 +95,5 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
     }
 }
 
-export const EditorFieldCustomVocabularies = connect(mapStateToProps)(CustomVocabulariesComponent);
+export const EditorFieldCustomVocabularies =
+    connect<IReduxStateProps, {}, ICustomVocabulariesProps>(mapStateToProps)(CustomVocabulariesComponent);

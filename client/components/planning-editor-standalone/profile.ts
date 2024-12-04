@@ -39,6 +39,29 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
     return field;
 }
 
+function getCustomVocabulariesConfig(options: {
+    id: string;
+    label: string;
+    required: boolean;
+    vocabIds: Array<string>
+}): IAuthoringFieldV2 {
+    const customVocabulariesConfig = {
+        vocabularyIds: options.vocabIds,
+    };
+
+    const field: IAuthoringFieldV2 = {
+        id: options.id,
+        name: options.label,
+        fieldType: 'custom_vocabularies',
+        fieldConfig: {
+            required: options.required,
+            ...customVocabulariesConfig,
+        },
+    };
+
+    return field;
+}
+
 function getDateTimeField(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const config: IDateTimeFieldConfig = {
         allowSeconds: false,
@@ -168,6 +191,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
 }
 
 export function getProfile() {
+    const {gettext} = superdeskApi.localization;
     const planningProfile = planningApi.contentProfiles.get('planning');
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
     const planningFieldIds = Object.values(planningGroups).flatMap(({fields}) => fields);
@@ -186,7 +210,17 @@ export function getProfile() {
     for (const fieldId of planningFieldIds) {
         const required = planningProfile.schema?.[fieldId]?.required ?? false;
 
-        if (fieldDefinitions[fieldId] != null) {
+        if (fieldId === 'custom_vocabularies') {
+            profileV2.header = profileV2.header.set(
+                fieldId,
+                getCustomVocabulariesConfig({
+                    id: fieldId,
+                    label: gettext('Custom Vocabularies'),
+                    required: required,
+                    vocabIds: planningProfile.schema?.[fieldId]?.vocabularies,
+                })
+            );
+        } else if (fieldDefinitions[fieldId] != null) {
             profileV2.header = profileV2.header.set(
                 fieldId,
                 fieldDefinitions[fieldId].getField({id: fieldId, required: required}),
