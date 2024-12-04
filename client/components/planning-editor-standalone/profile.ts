@@ -2,7 +2,6 @@ import {OrderedMap} from 'immutable';
 
 import {
     IAuthoringFieldV2,
-    ICommonFieldConfig,
     IContentProfileV2,
     IDateTimeFieldConfig,
     IDropdownConfigVocabulary,
@@ -39,41 +38,6 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
 
     return field;
 }
-
-// function getVocabularyRemoteSourceConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
-//     const config: IDropdownConfig = {
-//         source: 'remote-source',
-//         getId: (item: ILocation) => item._id,
-//         getLabel: (item: ILocation) => item.name,
-//         multiple: false,
-//         searchOptions: (
-//             searchTerm,
-//             language,
-//             callback,
-//         ) => {
-//             return planningApi.locations.searchExternal(searchTerm, language).then((x) => {
-//                 const tree: ITreeWithLookup<Partial<ILocation>> = {
-//                     nodes: x.map((location) => ({value: location})),
-//                     lookup: {},
-//                 };
-
-//                 callback(tree);
-//             });
-//         },
-//     };
-
-//     const field: IAuthoringFieldV2 = {
-//         id: options.id,
-//         name: options.label,
-//         fieldType: 'dropdown',
-//         fieldConfig: {
-//             ...config,
-//             required: options.required,
-//         },
-//     };
-
-//     return field;
-// }
 
 function getDateTimeField(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const config: IDateTimeFieldConfig = {
@@ -137,6 +101,11 @@ export function getFieldDefinitions(): IFieldDefinitions {
     result.push({
         fieldId: 'headline',
         getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Headline'), required: required}),
+    });
+
+    result.push({
+        fieldId: 'planning_date',
+        getField: ({required, id}) => getDateTimeField({id: id, label: gettext('Planning date'), required: required}),
     });
 
     result.push({
@@ -336,18 +305,18 @@ export function getProfile() {
 //         fieldConfig: categoryFieldConfig,
 //     };
 
-        //     profileV2.header = profileV2.header.set(categoryField.id, categoryField);
-        // }
-        else {
-            skipped.push(fieldId);
-        }
-    }
+//     profileV2.header = profileV2.header.set(categoryField.id, categoryField);
+// }
+//     else {
+//         skipped.push(fieldId);
+//     }
+// }
 
-    profileV2.header.forEach((item) => {
-        item.fieldConfig.width = 100;
-    });
+//     profileV2.header.forEach((item) => {
+//         item.fieldConfig.width = 100;
+//     });
 
-    console.log('skipped -------------------------------- ', skipped, superdeskApi.entities.vocabulary.getAll());
+//     console.log('skipped -------------------------------- ', skipped, superdeskApi.entities.vocabulary.getAll());
 
-    return profileV2;
-}
+//     return profileV2;
+// }
