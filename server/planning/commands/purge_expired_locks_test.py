@@ -12,10 +12,10 @@ from typing import List, Tuple, Union
 from datetime import timedelta
 from bson import ObjectId
 
+from planning.utils import get_service
 from superdesk.utc import utcnow
 from planning.tests import TestCase
-
-from .purge_expired_locks import PurgeExpiredLocks
+from .purge_expired_locks import purge_expired_locks_handler
 
 now = utcnow()
 assignment_1_id = ObjectId()
@@ -26,100 +26,117 @@ assignment_2_id = ObjectId()
 class PurgeExpiredLocksTest(TestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-        self.app.data.insert(
-            "events",
-            [
-                {
-                    "_id": "active_event_1",
-                    "dates": {"start": now, "end": now + timedelta(days=1)},
-                    "lock_user": "user1",
-                    "lock_session": "session1",
-                    "lock_time": now - timedelta(hours=23),
-                    "lock_action": "edit",
-                },
-                {
-                    "_id": "expired_event_1",
-                    "dates": {"start": now, "end": now + timedelta(days=1)},
-                    "lock_user": "user2",
-                    "lock_session": "session2",
-                    "lock_time": now - timedelta(hours=25),
-                    "lock_action": "edit",
-                },
-            ],
-        )
-        self.app.data.insert(
-            "planning",
-            [
-                {
-                    "_id": "active_plan_1",
-                    "planning_date": now,
-                    "lock_user": "user3",
-                    "lock_session": "session3",
-                    "lock_time": now - timedelta(hours=23),
-                    "lock_action": "edit",
-                },
-                {
-                    "_id": "expired_plan_1",
-                    "planning_date": now,
-                    "lock_user": "user4",
-                    "lock_session": "session4",
-                    "lock_time": now - timedelta(hours=25),
-                    "lock_action": "edit",
-                },
-            ],
-        )
-        self.app.data.insert(
-            "assignments",
-            [
-                {
-                    "_id": assignment_1_id,
-                    "lock_user": "user5",
-                    "lock_session": "session5",
-                    "lock_time": now - timedelta(hours=23),
-                    "lock_action": "edit",
-                },
-                {
-                    "_id": assignment_2_id,
-                    "lock_user": "user6",
-                    "lock_session": "session6",
-                    "lock_time": now - timedelta(hours=25),
-                    "lock_action": "edit",
-                },
-            ],
-        )
-        self.assertLockState(
-            [
-                ("events", "active_event_1", True),
-                ("events", "expired_event_1", True),
-                ("planning", "active_plan_1", True),
-                ("planning", "expired_plan_1", True),
-                ("assignments", assignment_1_id, True),
-                ("assignments", assignment_2_id, True),
-            ]
-        )
 
-    def test_invalid_resource(self):
-        with self.assertRaises(ValueError):
-            PurgeExpiredLocks().run("blah")
+        async with self.app.app_context():
+            await self.insert(
+                "events",
+                [
+                    {
+                        "_id": "active_event_1",
+                        "guid": "active_event_1",
+                        "dates": {"start": now, "end": now + timedelta(days=1)},
+                        "lock_user": ObjectId(),
+                        "lock_session": ObjectId(),
+                        "lock_time": now - timedelta(hours=23),
+                        "lock_action": "edit",
+                    },
+                    {
+                        "_id": "expired_event_1",
+                        "guid": "expired_event_1",
+                        "dates": {"start": now, "end": now + timedelta(days=1)},
+                        "lock_user": ObjectId(),
+                        "lock_session": ObjectId(),
+                        "lock_time": now - timedelta(hours=25),
+                        "lock_action": "edit",
+                    },
+                ],
+            )
+            await self.insert(
+                "planning",
+                [
+                    {
+                        "_id": "active_plan_1",
+                        "guid": "active_plan_1",
+                        "planning_date": now,
+                        "lock_user": ObjectId(),
+                        "lock_session": ObjectId(),
+                        "lock_time": now - timedelta(hours=23),
+                        "lock_action": "edit",
+                    },
+                    {
+                        "_id": "expired_plan_1",
+                        "guid": "expired_plan_1",
+                        "planning_date": now,
+                        "lock_user": ObjectId(),
+                        "lock_session": ObjectId(),
+                        "lock_time": now - timedelta(hours=25),
+                        "lock_action": "edit",
+                    },
+                ],
+            )
+            await self.insert(
+                "assignments",
+                [
+                    {
+                        "_id": assignment_1_id,
+                        "guid": assignment_1_id,
+                        "lock_user": ObjectId(),
+                        "lock_session": ObjectId(),
+                        "lock_time": now - timedelta(hours=23),
+                        "lock_action": "edit",
+                        "planning_item": "active_plan_1",
+                    },
+                    {
+                        "_id": assignment_2_id,
+                        "guid": assignment_2_id,
+                        "lock_user": ObjectId(),
+                        "lock_session": ObjectId(),
+                        "lock_time": now - timedelta(hours=25),
+                        "lock_action": "edit",
+                        "planning_item": "expired_plan_1",
+                    },
+                ],
+            )
+            await self.assertLockState(
+                [
+                    ("events", "active_event_1", True),
+                    ("events", "expired_event_1", True),
+                    ("planning", "active_plan_1", True),
+                    ("planning", "expired_plan_1", True),
+                    ("assignments", assignment_1_id, True),
+                    ("assignments", assignment_2_id, True),
+                ]
+            )
 
-    def assertLockState(self, item_tests: List[Tuple[str, Union[str, ObjectId], bool]]):
+    async def insert(self, item_type, items):
+        await get_service(item_type).create(items)
+
+    async def assertLockState(self, item_tests: List[Tuple[str, Union[str, ObjectId], bool]]):
         for resource, item_id, is_locked in item_tests:
-            item = self.app.data.find_one(resource, req=None, _id=item_id)
+            service = get_service(resource)
+            item = await service.find_by_id_raw(item_id)
+            if not item:
+                raise AssertionError(f"{resource} item with ID {item_id} not found")
+
             if is_locked:
-                self.assertIsNotNone(item["lock_user"], f"{resource} item {item_id} is NOT locked, item={item}")
-                self.assertIsNotNone(item["lock_session"], f"{resource} item {item_id} is NOT locked, item={item}")
-                self.assertIsNotNone(item["lock_time"], f"{resource} item {item_id} is NOT locked, item={item}")
-                self.assertIsNotNone(item["lock_action"], f"{resource} item {item_id} is NOT locked, item={item}")
+                self.assertIsNotNone(item.get("lock_user"), f"{resource} item {item_id} is NOT locked, item={item}")
+                self.assertIsNotNone(item.get("lock_session"), f"{resource} item {item_id} is NOT locked, item={item}")
+                self.assertIsNotNone(item.get("lock_time"), f"{resource} item {item_id} is NOT locked, item={item}")
+                self.assertIsNotNone(item.get("lock_action"), f"{resource} item {item_id} is NOT locked, item={item}")
             else:
                 self.assertIsNone(item.get("lock_user"), f"{resource} item {item_id} is locked, item={item}")
                 self.assertIsNone(item.get("lock_session"), f"{resource} item {item_id} is locked, item={item}")
                 self.assertIsNone(item.get("lock_time"), f"{resource} item {item_id} is locked, item={item}")
                 self.assertIsNone(item.get("lock_action"), f"{resource} item {item_id} is locked, item={item}")
 
+    async def test_invalid_resource(self):
+        with self.assertRaises(ValueError):
+            await purge_expired_locks_handler("blah")
+
     async def test_purge_event_locks(self):
         async with self.app.app_context():
-            PurgeExpiredLocks().run("events")
-            self.assertLockState(
+            await purge_expired_locks_handler("events")
+            await self.assertLockState(
                 [
                     ("events", "active_event_1", True),
                     ("events", "expired_event_1", False),
@@ -132,8 +149,8 @@ class PurgeExpiredLocksTest(TestCase):
 
     async def test_purge_planning_locks(self):
         async with self.app.app_context():
-            PurgeExpiredLocks().run("planning")
-            self.assertLockState(
+            await purge_expired_locks_handler("planning")
+            await self.assertLockState(
                 [
                     ("events", "active_event_1", True),
                     ("events", "expired_event_1", True),
@@ -146,8 +163,8 @@ class PurgeExpiredLocksTest(TestCase):
 
     async def test_purge_assignment_locks(self):
         async with self.app.app_context():
-            PurgeExpiredLocks().run("assignments")
-            self.assertLockState(
+            await purge_expired_locks_handler("assignments")
+            await self.assertLockState(
                 [
                     ("events", "active_event_1", True),
                     ("events", "expired_event_1", True),
@@ -160,8 +177,8 @@ class PurgeExpiredLocksTest(TestCase):
 
     async def test_purge_all_locks(self):
         async with self.app.app_context():
-            PurgeExpiredLocks().run("all")
-            self.assertLockState(
+            await purge_expired_locks_handler("all")
+            await self.assertLockState(
                 [
                     ("events", "active_event_1", True),
                     ("events", "expired_event_1", False),
@@ -174,8 +191,8 @@ class PurgeExpiredLocksTest(TestCase):
 
     async def test_purge_all_locks_with_custom_expiry(self):
         async with self.app.app_context():
-            PurgeExpiredLocks().run("all", 2)
-            self.assertLockState(
+            await purge_expired_locks_handler("all", 2)
+            await self.assertLockState(
                 [
                     ("events", "active_event_1", False),
                     ("events", "expired_event_1", False),

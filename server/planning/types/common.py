@@ -230,8 +230,8 @@ class ScheduledUpdate:
     previous_status: fields.Keyword | None = None
 
     assigned_to: CoverageAssignedTo | None = None
-    news_coverage_status: NewsCoverageStatus = Field(default_factory=dict)
-    planning: ScheduledUpdatePlanning = Field(default_factory=dict)
+    news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
+    planning: ScheduledUpdatePlanning = Field(default_factory=ScheduledUpdatePlanning)
 
 
 @dataclass
@@ -249,13 +249,13 @@ class PlanningCoverage:
 
     # News Coverage Details
     # See IPTC-G2-Implementation_Guide 16.4
-    planning: CoverageInternalPlanning = Field(default_factory=dict)
-    news_coverage_status: NewsCoverageStatus = Field(default_factory=dict)
+    planning: CoverageInternalPlanning = Field(default_factory=CoverageInternalPlanning)
+    news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
 
     workflow_status: str | None = None
     previous_status: str | None = None
-    assigned_to: CoverageAssignedTo = Field(default_factory=dict)
-    flags: CoverageFlags = Field(default_factory=dict)
+    assigned_to: CoverageAssignedTo = Field(default_factory=CoverageAssignedTo)
+    flags: CoverageFlags = Field(default_factory=CoverageFlags)
     time_to_be_confirmed: TimeToBeConfirmedType = False
     scheduled_updates: list[ScheduledUpdate] = Field(default_factory=list)
 

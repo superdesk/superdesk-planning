@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Union, List, Dict, Any, TypedDict, Optional
+from typing import Type, Union, List, Dict, Any, TypedDict, Optional
 import logging
 from datetime import datetime
 
@@ -20,12 +20,15 @@ import arrow
 import pytz
 
 from superdesk.core import json, get_app_config
+from superdesk.core.resources.service import AsyncResourceService
 from superdesk.resource_fields import ID_FIELD
 from planning import types
 from superdesk import get_resource_service
 from superdesk.json_utils import cast_item
+from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel, BasePlanningModel
 
 from planning.types import Event, Planning, PLANNING_RELATED_EVENT_LINK_TYPE, PlanningRelatedEventLink
+from werkzeug.exceptions import BadRequest
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +45,19 @@ class FormattedContact(TypedDict):
 
 MULTI_DAY_SECONDS = 24 * 60 * 60  # Number of seconds for an multi-day event
 ALL_DAY_SECONDS = MULTI_DAY_SECONDS - 1  # Number of seconds for an all-day event
+
+RESOURCE_MAPPING: dict[str, Type[BasePlanningModel]] = {
+    "events": EventResourceModel,
+    "planning": PlanningResourceModel,
+    "assignments": AssignmentResourceModel,
+}
+
+
+def get_service(item_type: str) -> AsyncResourceService:
+    resource_model = RESOURCE_MAPPING.get(item_type)
+    if resource_model is None:
+        raise BadRequest()
+    return resource_model.get_service()
 
 
 def try_cast_object_id(value: str) -> Union[ObjectId, str]:

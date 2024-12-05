@@ -1,10 +1,10 @@
-from superdesk.tests import TestCase as _TestCase, update_config
+from typing import Any
+from superdesk.tests import TestCase as BaseTestCase
 
 
-class TestCase(_TestCase):
+class TestCase(BaseTestCase):
     test_context = None  # avoid using test_request_context
-
-    def setUp(self):
-        config = {"INSTALLED_APPS": ["planning"]}
-        update_config(config)
-        super().setUp()
+    app_config: dict[str, Any] = {
+        "INSTALLED_APPS": ["planning"],
+        "MODULES": ["planning.module"],
+    }

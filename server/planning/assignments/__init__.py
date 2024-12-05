@@ -29,9 +29,10 @@ from .assignments_lock import (
 from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryService
 from .delivery import DeliveryResource
 
+from .service import AssignmentsAsyncService
 from .module import assignments_resource_config
 
-__all__ = ["assignments_resource_config"]
+__all__ = ["assignments_resource_config", "AssignmentsAsyncService"]
 
 
 def init_app(app):
