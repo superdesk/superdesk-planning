@@ -85,14 +85,18 @@ export default createReducer(initialLockState, {
         }
 
         for (const relatedEventId of getRelatedEventIdsForPlanning(planning, 'primary')) {
-            nextEventLocks[relatedEventId] = {
-                action: planning.lock_action,
-                item_id: planning._id,
-                item_type: 'planning',
-                session: planning.lock_session,
-                time: planning.lock_time,
-                user: planning.lock_user,
-            };
+            // lock related planning unless event itself is locked
+            // if event itself is locked, locking a related planning item would drop event's lock
+            if (nextEventLocks[relatedEventId]?.item_type !== 'event') {
+                nextEventLocks[relatedEventId] = {
+                    action: planning.lock_action,
+                    item_id: planning._id,
+                    item_type: 'planning',
+                    session: planning.lock_session,
+                    time: planning.lock_time,
+                    user: planning.lock_user,
+                };
+            }
         }
 
         return {
