@@ -15,7 +15,7 @@ export class Editor extends React.PureComponent<IProps> {
         return (
             <Container>
                 <EditorFieldCustomVocabularies
-                    field='custom_vocabularies'
+                    field="custom_vocabularies"
                     item={this.props.item}
                     onChange={(fieldPath, value) => {
                         const valueCopy = cloneDeep(this.props.value ?? []);
