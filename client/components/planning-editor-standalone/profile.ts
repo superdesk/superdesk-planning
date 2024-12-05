@@ -137,6 +137,24 @@ export function getFieldDefinitions(): IFieldDefinitions {
         },
     });
 
+    result.push({
+        fieldId: 'coverages',
+        getField: ({id, required}) => {
+            const fieldConfig: ICommonFieldConfig = {
+                required,
+            };
+
+            const field: IAuthoringFieldV2 = {
+                id: id,
+                name: gettext('Coverages'),
+                fieldType: 'coverages',
+                fieldConfig: fieldConfig,
+            };
+
+            return field;
+        },
+    });
+
     const resultObj = result.reduce((acc, item) => {
         acc[item.fieldId] = item;
 
