@@ -32,9 +32,9 @@ class PostStates(str, Enum):
 
 @unique
 class UpdateMethods(str, Enum):
-    UPDATE_SINGLE = "single"
-    UPDATE_FUTURE = "future"
-    UPDATE_ALL = "all"
+    SINGLE = "single"
+    FUTURE = "future"
+    ALL = "all"
 
 
 @unique

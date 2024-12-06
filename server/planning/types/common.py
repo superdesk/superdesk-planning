@@ -3,7 +3,7 @@ from pydantic import Field, TypeAdapter
 from typing import Any, Annotated, Literal, TypeAlias
 
 from superdesk.utc import utcnow
-from superdesk.core.resources import dataclass, fields
+from superdesk.core.resources import dataclass, fields, Dataclass
 from superdesk.core.elastic.mapping import json_schema_to_elastic_mapping
 from superdesk.core.resources.validators import validate_data_relation_async
 
@@ -63,9 +63,8 @@ class RelationshipItem:
     related: str | None = None
 
 
-@dataclass
-class PlanningSchedule:
-    scheduled: date | None = None
+class PlanningSchedule(Dataclass):
+    scheduled: datetime | None = None
     coverage_id: fields.Keyword | None = None
 
 

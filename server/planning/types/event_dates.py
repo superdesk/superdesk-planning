@@ -3,7 +3,7 @@ from datetime import datetime, date
 
 from pydantic.fields import Field
 
-from superdesk.core.resources import dataclass, fields
+from superdesk.core.resources import dataclass, fields, Dataclass
 
 
 # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
@@ -11,8 +11,7 @@ from superdesk.core.resources import dataclass, fields
 RepeatModeType: TypeAlias = Literal["count", "until"]
 
 
-@dataclass
-class RecurringRule:
+class RecurringRule(Dataclass):
     frequency: str | None = None
     interval: int | None = None
     end_repeat_mode: RepeatModeType | None = Field(default=None, alias="endRepeatMode")
@@ -44,8 +43,8 @@ class OccurStatus:
     label: fields.Keyword | None = None
 
 
-@dataclass
-class EventDates:
+class EventDates(Dataclass):
+    # TODO-ASYNC: double check which ones are required
     start: datetime | None = None
     end: datetime | None = None
     tz: str | None = None
@@ -55,7 +54,7 @@ class EventDates:
     duration: str | None = None
     confirmation: str | None = None
     recurring_date: List[date] | None = None
-    recurring_rule: RecurringRule | None = Field(default_factory=RecurringRule)
+    recurring_rule: RecurringRule | None = None
     occur_status: OccurStatus | None = None
     ex_date: List[date] = Field(default_factory=list)
     ex_rule: ExRule | None = None

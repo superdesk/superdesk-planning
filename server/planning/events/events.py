@@ -51,7 +51,6 @@ from apps.archive.common import get_auth, update_dates_for
 from planning.types import (
     Event,
     EmbeddedPlanning,
-    EmbeddedCoverageItem,
     PlanningRelatedEventLink,
     PLANNING_RELATED_EVENT_LINK_TYPE,
 )
@@ -74,7 +73,6 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
-    TEMP_ID_PREFIX,
 )
 from planning.utils import (
     get_planning_event_link_method,
@@ -84,6 +82,7 @@ from planning.utils import (
 from .events_base_service import EventsBaseService
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
+from .events_utils import get_events_embedded_planning
 
 logger = logging.getLogger(__name__)
 
@@ -97,22 +96,6 @@ organizer_roles = {
     "eorol:travAgent": "Travel agent",
     "eorol:venue": "Venue organiser",
 }
-
-
-def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
-    def get_coverage_id(coverage: EmbeddedCoverageItem) -> str:
-        if not coverage.get("coverage_id"):
-            coverage["coverage_id"] = TEMP_ID_PREFIX + "-" + generate_guid(type=GUID_NEWSML)
-        return coverage["coverage_id"]
-
-    return [
-        EmbeddedPlanning(
-            planning_id=planning.get("planning_id"),
-            update_method=planning.get("update_method") or "single",
-            coverages={get_coverage_id(coverage): coverage for coverage in planning.get("coverages") or []},
-        )
-        for planning in event.pop("embedded_planning", [])
-    ]
 
 
 def get_subject_str(subject: Dict[str, str]) -> str:

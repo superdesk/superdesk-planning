@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, cast
 from copy import deepcopy
 
 import pytz
@@ -20,6 +20,7 @@ from planning.types import Event, EmbeddedPlanning, StringFieldTranslation
 from planning.common import get_config_event_fields_to_sync_with_planning
 from planning.content_profiles.utils import AllContentProfileData
 from planning.utils import get_related_planning_for_events
+from planning.types.event import EmbeddedPlanning as EmbeddedPlanningModel, EventResourceModel
 
 from .common import VocabsSyncData, SyncItemData, SyncData
 from .embedded_planning import (
@@ -39,9 +40,21 @@ def get_translated_fields(translations: List[StringFieldTranslation]) -> Dict[st
     return fields
 
 
+# TODO-ASYNC: use resource models instead of typed dicts
 def sync_event_metadata_with_planning_items(
-    original: Optional[Event], updates: Event, embedded_planning: List[EmbeddedPlanning]
+    original: Optional[Event],
+    updates: Event | EventResourceModel,
+    embedded_planning: list[EmbeddedPlanning] | list[EmbeddedPlanningModel],
 ):
+    # TODO-ASYNC: remove these checks after this is migrated
+    if isinstance(updates, EventResourceModel):
+        updates = cast(Event, updates.to_dict())
+
+    embedded_planning = [
+        cast(EmbeddedPlanning, obj.to_dict()) if isinstance(obj, EmbeddedPlanningModel) else obj
+        for obj in embedded_planning
+    ]
+
     profiles = AllContentProfileData()
 
     if original is None:

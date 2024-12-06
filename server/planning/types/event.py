@@ -5,7 +5,7 @@ from typing import Annotated, Any
 from content_api.items.model import CVItem, Place
 
 from superdesk.utc import utcnow
-from superdesk.core.resources import fields, dataclass
+from superdesk.core.resources import fields, dataclass, Dataclass
 from superdesk.core.resources.validators import validate_data_relation_async
 
 from .base import BasePlanningModel
@@ -101,7 +101,7 @@ class EmbeddedPlanningCoverage:
 
 
 @dataclass
-class EmbeddedPlanning:
+class EmbeddedPlanning(Dataclass):
     planning_id: Annotated[str, validate_data_relation_async("planning")]
     update_method: Annotated[UpdateMethods, fields.keyword_mapping()] | None = None
     coverages: list[EmbeddedPlanningCoverage] | None = Field(default_factory=list)
@@ -123,7 +123,7 @@ class RelatedItem:
 
 
 class EventResourceModel(BasePlanningModel, LockFieldsMixin):
-    guid: fields.Keyword
+    guid: fields.Keyword | None = None
     unique_id: int | None = None
     unique_name: fields.Keyword | None = None
     version: int | None = None
@@ -171,7 +171,7 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
     priority: int | None = None
 
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
-    dates: EventDates | None = Field(default_factory=EventDates)
+    dates: EventDates | None = None
 
     # This is an extra field so that we can sort in the combined view of events and planning.
     # It will store the dates.start of the event.
