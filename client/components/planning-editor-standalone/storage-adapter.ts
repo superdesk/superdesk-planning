@@ -4,9 +4,10 @@ import {
     IEditor3Config,
     IEditor3ValueStorage,
     IStorageAdapter,
+    ISubject,
 } from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
-import {getFieldDefinitions} from './profile';
+import {getFieldDefinitions, SUBJECT_PREFIX_ID} from './profile';
 
 export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
     storeValue: (value, fieldId, item, config, fieldType) => {
@@ -15,7 +16,18 @@ export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
         const fieldDefinitions = getFieldDefinitions();
         const fieldStorageAdapter = fieldDefinitions[fieldId]?.storageAdapter;
 
-        if (fieldStorageAdapter != null) {
+        if (fieldId.includes(SUBJECT_PREFIX_ID)) {
+            const computedValue = fieldStorageAdapter.storeValue({
+                existing: item.subject,
+                fieldId: fieldId,
+                value: value,
+            }) as Array<ISubject>;
+
+            return {
+                ...item,
+                subject: computedValue,
+            };
+        } else if (fieldStorageAdapter != null) {
             return {
                 ...item,
                 [fieldId]: fieldStorageAdapter.storeValue(value),
@@ -45,15 +57,16 @@ export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
     retrieveStoredValue: (item, fieldId, fieldType) => {
         const {getContentStateFromHtml} = superdeskApi.helpers;
         const value = (item as {[key: string]: any})[fieldId] ?? undefined;
-
         const fieldDefinitions = getFieldDefinitions();
         const fieldStorageAdapter = fieldDefinitions[fieldId]?.storageAdapter;
 
-        if (fieldStorageAdapter != null) {
+        if (fieldId.includes(SUBJECT_PREFIX_ID)) {
+            return fieldStorageAdapter.retrieveStoredValue({fieldId: fieldId, subject: item.subject});
+        } else if (fieldStorageAdapter != null) {
             return fieldStorageAdapter.retrieveStoredValue(value);
         } else if (fieldType === 'editor3') {
             const returnValue: IEditor3ValueStorage
-                    = {rawContentState: convertToRaw(getContentStateFromHtml(value ?? ''))};
+                = {rawContentState: convertToRaw(getContentStateFromHtml(value ?? ''))};
 
             return returnValue;
         } else {

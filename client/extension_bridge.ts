@@ -18,7 +18,6 @@ import {isContentLinkToCoverageAllowed} from './utils/archive';
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalone';
 import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
-import {EditorFieldCustomVocabularies, ICustomVocabulariesProps} from './components/fields/editor/CustomVocabularies';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -55,7 +54,6 @@ interface IExtensionBridge {
         };
 
         components: {
-            EditorFieldCustomVocabularies: React.ComponentType<ICustomVocabulariesProps>;
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
             PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}}>;
             AttachmentsInputStandalone: React.ComponentType<IPropsAttachmentsEditorStandalone>;
@@ -100,7 +98,6 @@ export const extensionBridge: IExtensionBridge = {
             isContentLinkToCoverageAllowed,
         },
         components: {
-            EditorFieldCustomVocabularies,
             EditorFieldVocabulary,
             PlanningDetailsWidget,
             AttachmentsInputStandalone,

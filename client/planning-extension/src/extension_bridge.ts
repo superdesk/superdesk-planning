@@ -2,7 +2,6 @@ import * as React from 'react';
 import {IArticle, IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
 import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
-import {ICustomVocabulariesProps} from '../../components/fields/editor/CustomVocabularies';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -48,7 +47,6 @@ interface IExtensionBridge {
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
         };
         components: {
-            EditorFieldCustomVocabularies: React.ComponentType<ICustomVocabulariesProps>;
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
             PlanningDetailsWidget: React.ComponentType<{item: {assignment_id: string}}>;
             AttachmentsInputStandalone: React.ComponentType<IPropsAttachmentsEditorStandalone>;

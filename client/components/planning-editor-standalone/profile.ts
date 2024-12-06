@@ -6,6 +6,8 @@ import {
     IDateTimeFieldConfig,
     IDropdownConfigVocabulary,
     IEditor3Config,
+    ISubject,
+    IVocabulary,
     IVocabularyItem,
 } from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
@@ -13,6 +15,7 @@ import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 import {
     IAttachmentsFieldConfig,
 } from '../../planning-extension/src/authoring-react-fields/planning-attachments/interfaces';
+import {IProfileSchemaTypeList} from 'interfaces';
 
 function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const editor3ConfigWithoutFormatting: IEditor3Config = {
@@ -33,29 +36,6 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
         fieldConfig: {
             ...editor3ConfigWithoutFormatting,
             required: options.required,
-        },
-    };
-
-    return field;
-}
-
-function getCustomVocabulariesConfig(options: {
-    id: string;
-    label: string;
-    required: boolean;
-    vocabIds: Array<string>
-}): IAuthoringFieldV2 {
-    const customVocabulariesConfig = {
-        vocabularyIds: options.vocabIds,
-    };
-
-    const field: IAuthoringFieldV2 = {
-        id: options.id,
-        name: options.label,
-        fieldType: 'custom_vocabularies',
-        fieldConfig: {
-            required: options.required,
-            ...customVocabulariesConfig,
         },
     };
 
@@ -91,10 +71,16 @@ interface IFieldDefinition {
 
 type IFieldDefinitions = {[fieldId: string]: IFieldDefinition};
 
+export const SUBJECT_PREFIX_ID = 'subject--';
+const getCustomVocabulariesId = (vocabularyId: string) => `${SUBJECT_PREFIX_ID}${vocabularyId}`;
+const getStrippedCustomVocabularyId = (customVocabularyId: string) => customVocabularyId.replace(SUBJECT_PREFIX_ID, '');
+
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
-
     const result: Array<IFieldDefinition> = [];
+    const planningProfile = planningApi.contentProfiles.get('planning');
+    const customVocabularyIds =
+        (planningProfile.schema?.['custom_vocabularies'] as IProfileSchemaTypeList)?.vocabularies;
 
     result.push({
         fieldId: 'ednote',
@@ -130,6 +116,66 @@ export function getFieldDefinitions(): IFieldDefinitions {
         fieldId: 'planning_date',
         getField: ({required, id}) => getDateTimeField({id: id, label: gettext('Planning date'), required: required}),
     });
+
+    if ((customVocabularyIds?.length ?? 0) > 0) {
+        const allVocabularies = superdeskApi.entities.vocabulary.getAll();
+
+        for (const id of customVocabularyIds) {
+            result.push({
+                fieldId: getCustomVocabulariesId(id),
+                getField: ({required, id: _id}) => {
+                    const fieldConfig: IDropdownConfigVocabulary = {
+                        source: 'vocabulary',
+                        vocabularyId: id,
+                        multiple: true,
+                        required: required,
+                    };
+
+                    const field: IAuthoringFieldV2 = {
+                        id: _id,
+                        name: id,
+                        fieldType: 'dropdown',
+                        fieldConfig: fieldConfig,
+                    };
+
+                    return field;
+                },
+                storageAdapter: {
+                    storeValue: (operationalValue: {
+                        existing: Array<ISubject>;
+                        fieldId: string;
+                        value?: Array<IVocabularyItem['qcode']>;
+                    }) => {
+                        const {existing = [], fieldId, value = []} = operationalValue;
+                        const strippedId = getStrippedCustomVocabularyId(fieldId);
+                        const vocabulary = allVocabularies.get(strippedId);
+                        const vocabItems = vocabulary.items.filter((x) => value?.includes(x.qcode)) ?? [];
+
+                        // Subfield values
+                        const itemsToSubject: Array<ISubject> = vocabItems.map((x) => ({
+                            name: x.name,
+                            qcode: x.qcode,
+                            scheme: vocabulary._id,
+                        }));
+
+                        // Remove values that don't match the "subfield" ID, so there's no item duplication
+                        const restOfValues = existing.filter((x) => x.scheme !== strippedId);
+
+                        return [
+                            ...itemsToSubject,
+                            ...restOfValues,
+                        ];
+                    },
+                    retrieveStoredValue: (storageValue: {fieldId: string; subject: Array<ISubject>;}) => {
+                        const {fieldId, subject = []} = storageValue;
+                        const strippedId = getStrippedCustomVocabularyId(fieldId);
+
+                        return subject.filter((x) => x.scheme === strippedId).map((x) => x.qcode);
+                    },
+                }
+            });
+        }
+    }
 
     result.push({
         fieldId: 'files',
@@ -191,7 +237,6 @@ export function getFieldDefinitions(): IFieldDefinitions {
 }
 
 export function getProfile() {
-    const {gettext} = superdeskApi.localization;
     const planningProfile = planningApi.contentProfiles.get('planning');
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
     const planningFieldIds = Object.values(planningGroups).flatMap(({fields}) => fields);
@@ -204,22 +249,21 @@ export function getProfile() {
     };
 
     const skipped = new Set<string>();
-
     const fieldDefinitions = getFieldDefinitions();
+    const customVocabularyIds = planningProfile.schema?.['custom_vocabularies']?.vocabularies;
 
     for (const fieldId of planningFieldIds) {
         const required = planningProfile.schema?.[fieldId]?.required ?? false;
 
         if (fieldId === 'custom_vocabularies') {
-            profileV2.header = profileV2.header.set(
-                fieldId,
-                getCustomVocabulariesConfig({
-                    id: fieldId,
-                    label: gettext('Custom Vocabularies'),
-                    required: required,
-                    vocabIds: planningProfile.schema?.[fieldId]?.vocabularies,
-                })
-            );
+            for (const id of customVocabularyIds) {
+                const customVocabFieldId = getCustomVocabulariesId(id);
+
+                profileV2.header = profileV2.header.set(
+                    customVocabFieldId,
+                    fieldDefinitions[customVocabFieldId].getField({id: customVocabFieldId, required: required}),
+                );
+            }
         } else if (fieldDefinitions[fieldId] != null) {
             profileV2.header = profileV2.header.set(
                 fieldId,
