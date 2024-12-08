@@ -6,6 +6,7 @@ from copy import deepcopy
 from bson import ObjectId
 from typing import Any, AsyncGenerator, cast
 from datetime import datetime, timedelta
+from apps.archive.common import get_auth
 from apps.auth import get_user, get_user_id
 
 import superdesk
@@ -289,6 +290,14 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
         sync_event_metadata_with_planning_items(original_event.to_dict(), updates, embedded_planning)
+
+    async def on_deleted(self, doc: EventResourceModel):
+        push_notification(
+            "events:delete",
+            item=str(doc.id),
+            user=str(get_user_id()),
+            lock_session=str(get_auth().get("_id")),
+        )
 
     def validate_event(
         self, updated_event: dict[str, Any] | EventResourceModel, original_event: EventResourceModel | None = None
