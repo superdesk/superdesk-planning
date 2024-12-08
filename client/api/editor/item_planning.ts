@@ -18,28 +18,27 @@ import {
     getEditorFormGroupsFromProfile,
     getGroupFieldsSorted,
 } from '../../utils/contentProfiles';
-import {getRelatedEventLinksForPlanning} from '../../utils/planning';
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 
+export function getCoverageFields(): ISearchProfile {
+    const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
+        .filter((item) => item.field.enabled);
+    const profile: ISearchProfile = {};
+
+    fields.forEach(
+        (field, index) => {
+            profile[field.name] = {
+                enabled: true,
+                index: index,
+            };
+        },
+    );
+
+    return profile;
+}
+
 export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['planning'] {
-    function getCoverageFields(): ISearchProfile {
-        const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
-            .filter((item) => item.field.enabled);
-        const profile: ISearchProfile = {};
-
-        fields.forEach(
-            (field, index) => {
-                profile[field.name] = {
-                    enabled: true,
-                    index: index,
-                };
-            },
-        );
-
-        return profile;
-    }
-
     function getGroupsForItem(item: Partial<IPlanningItem>): {
         bookmarks: Array<IEditorBookmark>,
         groups: Array<IEditorFormGroup>
