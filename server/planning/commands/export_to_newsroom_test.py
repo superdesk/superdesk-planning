@@ -53,7 +53,7 @@ class ExportToNewsroomTest(TestCase):
 
         events = [
             {
-                "id": "draft",
+                "guid": "draft",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -64,7 +64,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "scheduled",
+                "guid": "scheduled",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -76,7 +76,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "postponed",
+                "guid": "postponed",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -88,7 +88,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "rescheduled",
+                "guid": "rescheduled",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -100,7 +100,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "cancelled",
+                "guid": "cancelled",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -112,7 +112,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "killed",
+                "guid": "killed",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -124,7 +124,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "postponed-not-published",
+                "guid": "postponed-not-published",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -135,7 +135,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "rescheduled-not-published",
+                "guid": "rescheduled-not-published",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),
@@ -146,7 +146,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
             {
-                "id": "cancelled-not-published",
+                "guid": "cancelled-not-published",
                 "dates": {
                     "start": utc_now,
                     "end": utc_now + timedelta(days=1),

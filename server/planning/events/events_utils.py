@@ -2,7 +2,7 @@ import re
 import pytz
 
 from datetime import date, datetime
-from typing import AsyncGenerator, Any, Generator, Tuple, Literal, cast, overload
+from typing import AsyncGenerator, Any, Generator, Tuple, Literal, cast
 
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 
@@ -46,7 +46,7 @@ def generate_recurring_dates(
     count: int = 5,
     tz: pytz.BaseTzInfo | None = None,
     date_only: bool = False,
-) -> Generator[datetime | date]:
+) -> Generator[datetime | date, None, None]:
     """
 
     Returns list of dates related to recurring rules
