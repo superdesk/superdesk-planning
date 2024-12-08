@@ -1,8 +1,7 @@
-from planning.events.events_base_service import EventsBaseService
 import pytz
 import itertools
-from copy import deepcopy
 
+from copy import deepcopy
 from bson import ObjectId
 from typing import Any, AsyncGenerator, cast
 from datetime import datetime, timedelta
@@ -43,6 +42,7 @@ from planning.utils import (
     get_related_event_ids_for_planning,
     get_related_planning_for_events,
 )
+from planning.events.events_base_service import EventsBaseService
 
 from .events_sync import sync_event_metadata_with_planning_items
 from .events_utils import generate_recurring_dates, get_events_embedded_planning
