@@ -10,14 +10,15 @@
 
 """Superdesk Events"""
 
-from typing import Dict, Any, Optional, List, Tuple
+
+import re
+import pytz
 import logging
 import itertools
+
 from copy import deepcopy
 from datetime import timedelta
-
-import pytz
-import re
+from typing import Dict, Any, Optional, List, Tuple
 from eve.methods.common import resolve_document_etag
 from eve.utils import date_to_str
 from dateutil.rrule import (
@@ -35,9 +36,9 @@ from dateutil.rrule import (
     SU,
 )
 
+import superdesk
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD
-import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
@@ -48,12 +49,8 @@ from superdesk.users.services import current_user_has_privilege
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 
-from planning.types import (
-    Event,
-    EmbeddedPlanning,
-    PlanningRelatedEventLink,
-    PLANNING_RELATED_EVENT_LINK_TYPE,
-)
+from planning.types import Event, PlanningRelatedEventLink, PLANNING_RELATED_EVENT_LINK_TYPE
+from planning.types.event import EmbeddedPlanning
 from planning.common import (
     UPDATE_SINGLE,
     UPDATE_FUTURE,
@@ -281,9 +278,9 @@ class EventsService(superdesk.Service):
 
         embedded_planning_lists: List[Tuple[Event, List[EmbeddedPlanning]]] = []
         for event in docs:
-            embedded_planning = get_events_embedded_planning(event)
-            if len(embedded_planning):
-                embedded_planning_lists.append((event, embedded_planning))
+            emb_planning = get_events_embedded_planning(event)
+            if len(emb_planning):
+                embedded_planning_lists.append((event, emb_planning))  # type: ignore
 
         ids = self.backend.create(self.datasource, docs, **kwargs)
 

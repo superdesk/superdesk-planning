@@ -16,7 +16,7 @@ from eve.utils import str_to_date
 
 from superdesk import get_resource_service
 
-from planning.types import Event, EmbeddedPlanning, StringFieldTranslation
+from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
 from planning.common import get_config_event_fields_to_sync_with_planning
 from planning.content_profiles.utils import AllContentProfileData
 from planning.utils import get_related_planning_for_events
@@ -44,14 +44,14 @@ def get_translated_fields(translations: List[StringFieldTranslation]) -> Dict[st
 def sync_event_metadata_with_planning_items(
     original: Optional[Event],
     updates: Event | EventResourceModel,
-    embedded_planning: list[EmbeddedPlanning] | list[EmbeddedPlanningModel],
+    embedded_planning: list[EmbeddedPlanningDict] | list[EmbeddedPlanningModel],
 ):
     # TODO-ASYNC: remove these checks after this is migrated
     if isinstance(updates, EventResourceModel):
         updates = cast(Event, updates.to_dict())
 
     embedded_planning = [
-        cast(EmbeddedPlanning, obj.to_dict()) if isinstance(obj, EmbeddedPlanningModel) else obj
+        cast(EmbeddedPlanningDict, obj.to_dict()) if isinstance(obj, EmbeddedPlanningModel) else obj
         for obj in embedded_planning
     ]
 

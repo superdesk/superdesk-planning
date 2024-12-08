@@ -1,9 +1,8 @@
 import re
-from planning.types.enums import UpdateMethods
 import pytz
 
-from datetime import datetime, tzinfo
-from typing import AsyncGenerator, Any, Tuple, Literal
+from datetime import date, datetime
+from typing import AsyncGenerator, Any, Generator, Tuple, Literal, cast, overload
 
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 
@@ -13,8 +12,8 @@ from superdesk.metadata.item import GUID_NEWSML
 from superdesk.metadata.utils import generate_guid
 from superdesk.core.types import SortParam, SortListParam
 
+from planning.types import EventResourceModel, UpdateMethods
 from planning.types.event import EmbeddedPlanning, EmbeddedPlanningCoverage
-from planning.types import EmbeddedCoverageItem, EventResourceModel
 from planning.common import TEMP_ID_PREFIX, WORKFLOW_STATE, get_max_recurrent_events
 
 
@@ -42,12 +41,12 @@ def generate_recurring_dates(
     start: datetime,
     frequency: FrequencyType,
     interval: int = 1,
-    until: datetime = None,
-    byday: str = None,
+    until: datetime | None = None,
+    byday: str | None = None,
     count: int = 5,
-    tz: tzinfo = None,
+    tz: pytz.BaseTzInfo | None = None,
     date_only: bool = False,
-) -> list[datetime]:
+) -> Generator[datetime | date]:
     """
 
     Returns list of dates related to recurring rules
@@ -58,7 +57,7 @@ def generate_recurring_dates(
     :param until datetime: date after which the recurrence rule expires
     :param byday str or list: "MO TU"
     :param count int: number of occurrences of the rule
-    :return list: list of datetime
+    :return Generator: list of datetime
 
     """
     # if tz is given, respect the timezone by starting from the local time
@@ -90,7 +89,7 @@ def generate_recurring_dates(
             day_of_month = int(byday[:1])
             day_of_week = byday[1:]
 
-        byweekday = DAYS.get(day_of_week)(day_of_month)
+        byweekday = DAYS.get(day_of_week)(day_of_month)  # type: ignore[misc]
     else:
         # byday uses DAYS constants
         byweekday = byday and [DAYS.get(d) for d in byday.split()] or None
@@ -121,7 +120,11 @@ def generate_recurring_dates(
             return (date for date in dates)
 
 
-def get_events_embedded_planning(event: EventResourceModel) -> list[EmbeddedPlanning]:
+def get_events_embedded_planning(event: dict[str, Any] | EventResourceModel) -> list[EmbeddedPlanning]:
+    if isinstance(event, dict):
+        event = EventResourceModel.from_dict(event)
+        event = cast(EventResourceModel, event)
+
     def _get_coverage_id(coverage: EmbeddedPlanningCoverage) -> str:
         if not coverage.coverage_id:
             coverage.coverage_id = TEMP_ID_PREFIX + "-" + generate_guid(type=GUID_NEWSML)

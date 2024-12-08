@@ -1,14 +1,20 @@
+from planning.events.events_base_service import EventsBaseService
 import pytz
 import itertools
+from copy import deepcopy
 
 from bson import ObjectId
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, cast
 from datetime import datetime, timedelta
 from apps.auth import get_user, get_user_id
 
+import superdesk
+from superdesk.utc import utcnow
 from superdesk import get_resource_service
+from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import GUID_NEWSML
+from superdesk.notification import push_notification
 from superdesk.core import get_app_config, get_current_app
 from superdesk.core.utils import date_to_str, generate_guid
 
@@ -17,11 +23,25 @@ from planning.types import (
     EventResourceModel,
     PlanningRelatedEventLink,
     PlanningSchedule,
+    PostStates,
+    UpdateMethods,
+    WorkflowState,
 )
 from planning.types.event import EmbeddedPlanning
-from planning.common import WorkflowStates, get_event_max_multi_day_duration, get_max_recurrent_events
+from planning.common import (
+    WorkflowStates,
+    get_event_max_multi_day_duration,
+    get_max_recurrent_events,
+    remove_lock_information,
+    set_ingested_event_state,
+    post_required,
+)
 from planning.core.service import BasePlanningAsyncService
-from planning.utils import get_planning_event_link_method, get_related_event_ids_for_planning
+from planning.utils import (
+    get_planning_event_link_method,
+    get_related_event_ids_for_planning,
+    get_related_planning_for_events,
+)
 
 from .events_sync import sync_event_metadata_with_planning_items
 from .events_utils import generate_recurring_dates, get_events_embedded_planning
@@ -86,6 +106,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         And then uses them to synchronise/process the associated Planning item(s)
         """
 
+        docs = await self._convert_dicts_to_model(docs)
         ids = await super().create(docs)
 
         embedded_planning_lists: list[tuple[EventResourceModel, list[EmbeddedPlanning]]] = []
@@ -130,7 +151,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             if event.expired:
                 event.expired = False
 
-            self._set_planning_schedule(event)
+            event.planning_schedule = self._create_planning_schedule(event)
             original_planning_item = event.planning_item
 
             # validate event
@@ -161,13 +182,123 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         if generated_events:
             docs.extend(generated_events)
 
-    def validate_event(self, updated_event: EventResourceModel, original_event: EventResourceModel | None = None):
-        """Validate the event
+        await super().on_create(docs)
 
-        @:param dict event: event created or updated
+    async def on_created(self, docs: list[EventResourceModel]):
+        """Send WebSocket Notifications for created Events
+
+        Generate the list of IDs for recurring and non-recurring events
+        Then send this list off to the clients so they can fetch these events
+        """
+        notifications_sent = []
+        history_service = get_resource_service("events_history")
+
+        for doc in docs:
+            event_id = doc.id
+
+            # If we duplicated this event, update the history
+            if doc.duplicate_from:
+                parent_id = doc.duplicate_from
+                parent_event = await self.find_by_id(parent_id)
+
+                assert parent_event is not None
+
+                history_service.on_item_updated({"duplicate_id": event_id}, parent_event.to_dict(), "duplicate")
+                history_service.on_item_updated({"duplicate_id": parent_id}, doc.to_dict(), "duplicate_from")
+
+                duplicate_ids = parent_event.duplicate_to or []
+                duplicate_ids.append(event_id)
+
+                await super().update(parent_id, {"duplicate_to": duplicate_ids})
+
+            event_type = "events:created"
+            user_id = doc.original_creator or ""
+
+            if doc.recurrence_id:
+                event_type = "events:created:recurring"
+                event_id = str(doc.recurrence_id)
+
+            # Don't send notification if one has already been sent
+            # This is to ensure recurring events don't send multiple notifications
+            if event_id in notifications_sent or doc.previous_recurrence_id:
+                continue
+
+            notifications_sent.append(event_id)
+            push_notification(event_type, item=event_id, user=user_id)
+
+    async def on_update(self, updates: dict[str, Any], original: EventResourceModel):
+        """Update single or series of recurring events.
+
+        Determine if the supplied event is a single event or a
+        series of recurring events, and call the appropriate method
+        for the event type.
+        """
+        if "skip_on_update" in updates:
+            # this is a recursive update (see below)
+            del updates["skip_on_update"]
+            return
+
+        update_method = updates.pop("update_method", UpdateMethods.SINGLE)
+
+        user = get_user()
+        user_id = user.get(ID_FIELD) if user else None
+
+        if user_id:
+            updates["version_creator"] = user_id
+            set_ingested_event_state(updates, original.to_dict())
+
+        lock_user = original.lock_user or None
+        str_user_id = str(user.get(ID_FIELD)) if user_id else None
+
+        if lock_user and str(lock_user) != str_user_id:
+            raise SuperdeskApiError.forbiddenError("The item was locked by another user")
+
+        # If only the `recurring_rule` was provided, then fill in the rest from the original
+        # This can happen, for example, when converting a single Event to a series of Recurring Events
+        if list(updates.get("dates") or {}) == ["recurring_rule"]:
+            new_dates = original.to_dict()["dates"]
+            new_dates.update(updates["dates"])
+            updates["dates"] = new_dates
+
+        # validate event
+        self.validate_event(updates, original)
+
+        # Run the specific methods based on if the original is a single or a series of recurring events
+        if not getattr((original.dates or {}), "recurring_rule") or update_method == UpdateMethods.SINGLE:
+            await self._update_single_event(updates, original)
+        else:
+            await self._update_recurring_events(updates, original, update_method)
+
+        return await super().on_update(updates, original)
+
+    async def update(self, event_id: str | ObjectId, updates: dict[str, Any], etag: str | None = None):
+        """Updates the event and also extracts out the ``embedded_planning`` before saving the Event
+        And then uses them to synchronise/process the associated Planning item(s)
         """
 
-        assert updated_event is not None
+        updates.setdefault("versioncreated", utcnow())
+        original_event = await self.find_by_id(event_id)
+
+        if original_event is None:
+            raise SuperdeskApiError.badRequestError("Event not found")
+
+        # Extract the ``embedded_planning`` from the updates
+        embedded_planning = get_events_embedded_planning(updates)
+
+        await super().update(event_id, updates, etag)
+
+        # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
+        sync_event_metadata_with_planning_items(original_event.to_dict(), updates, embedded_planning)
+
+    def validate_event(
+        self, updated_event: dict[str, Any] | EventResourceModel, original_event: EventResourceModel | None = None
+    ):
+        """Validate the event"""
+
+        if isinstance(updated_event, dict):
+            updated_event = EventResourceModel.from_dict(updated_event)
+            # mypy complains even when `from_dict` returns a model instance
+            updated_event = cast(EventResourceModel, updated_event)
 
         self._validate_multiday_event_duration(updated_event)
         self._validate_dates(updated_event, original_event)
@@ -220,7 +351,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             raise SuperdeskApiError(message="Recurring event should have an end (until or count)")
 
     def _validate_convert_to_recurring(
-        self, updated_event: EventResourceModel, original: EventResourceModel | None = None
+        self, updated_event: dict[str, Any] | EventResourceModel, original: EventResourceModel | None = None
     ):
         """Validates if the convert to recurring action is valid.
 
@@ -230,6 +361,10 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         """
         if original is None:
             return
+
+        if isinstance(updated_event, dict):
+            updated_event = EventResourceModel.from_dict(updated_event)
+            updated_event = cast(EventResourceModel, updated_event)
 
         if (
             original.lock_action == "convert_recurring"
@@ -261,9 +396,224 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 payload={"template": "This value can't be changed."},
             )
 
+    async def _update_single_event(self, updates: dict[str, Any], original: EventResourceModel):
+        """Updates the metadata of a single event.
+
+        If recurring_rule is provided, we convert this single event into
+        a series of recurring events, otherwise we simply update this event.
+        """
+
+        if post_required(updates, original.to_dict()):
+            merged: EventResourceModel = original.model_copy(updates, deep=True)
+
+            # TODO-ASYNC: replace when `event_post` is async
+            get_resource_service("events_post").validate_item(merged.to_dict())
+
+        # Determine if we're to convert this single event to a recurring of events
+        if (
+            original.lock_action == "convert_recurring"
+            and updates.get("dates", {}).get("recurring_rule", None) is not None
+        ):
+            generated_events = await self._convert_to_recurring_event(updates, original)
+
+            # if the original event was "posted" then post all the generated events
+            # if original.get("pubstatus") in [ POST_STATE.CANCELLED, POST_STATE.USABLE]:
+            if original.pubstatus in [PostStates.CANCELLED, PostStates.USABLE]:
+                post = {
+                    "event": generated_events[0].id,
+                    "etag": generated_events[0].etag,
+                    "update_method": "all",
+                    "pubstatus": original.pubstatus,
+                }
+
+                # TODO-ASYNC: replace when `event_post` is async
+                get_resource_service("events_post").post([post])
+
+            push_notification(
+                "events:updated:recurring",
+                item=str(original.id),
+                user=str(updates.get("version_creator", "")),
+                recurrence_id=str(generated_events[0].recurrence_id),
+            )
+        else:
+            if original.lock_action == "mark_completed" and updates.get("actioned_date"):
+                self.mark_event_complete(updates, original, False)
+
+            # This updates Event metadata only
+            push_notification(
+                "events:updated",
+                item=str(original.id),
+                user=str(updates.get("version_creator", "")),
+            )
+
+    async def _update_recurring_events(
+        self, updates: dict[str, Any], original: EventResourceModel, update_method: UpdateMethods
+    ):
+        """Method to update recurring events.
+
+        If the recurring_rule has been removed for this event, process
+        it separately, otherwise update the event and/or its recurring rules
+        """
+        # This method now only handles updating of Event metadata
+        # So make sure to remove any date information that might be in
+        # the updates
+        updates.pop("dates", None)
+        original_as_dict = original.to_dict()
+
+        if update_method == UpdateMethods.FUTURE:
+            historic, past, future = self._get_recurring_timeline(original_as_dict)
+            events = future
+        else:
+            historic, past, future = self._get_recurring_timeline(original_as_dict)
+            events = historic + past + future
+
+        events_post_service = get_resource_service("events_post")
+
+        # First we want to validate that all events can be posted
+        for e in events:
+            if post_required(updates, e):
+                merged = deepcopy(e)
+                merged.update(updates)
+                events_post_service.validate_item(merged)
+
+        # If this update is from assignToCalendar action
+        # Then we only want to update the calendars of each Event
+        only_calendars = original.lock_action == "assign_calendar"
+        original_calendar_qcodes = [calendar.qcode for calendar in original.calendars]
+
+        # Get the list of calendars added
+        updated_calendars = [
+            calendar for calendar in updates.get("calendars") or [] if calendar["qcode"] not in original_calendar_qcodes
+        ]
+
+        mark_completed = original.lock_action == "mark_completed" and updates.get("actioned_date")
+        mark_complete_validated = False
+        for e in events:
+            event_id = e[ID_FIELD]
+
+            new_updates = deepcopy(updates)
+            new_updates["skip_on_update"] = True
+            new_updates[ID_FIELD] = event_id
+
+            if only_calendars:
+                # Get the original for this item, and add new calendars to it
+                # Skipping calendars already assigned to this item
+                original_event: EventResourceModel = await self.find_by_id(event_id)
+                assert original_event is not None
+                original_qcodes = [calendar.qcode for calendar in original_event.calendars]
+
+                new_updates["calendars"] = deepcopy(original_event.calendars)
+                new_updates["calendars"].extend(
+                    [calendar for calendar in updated_calendars if calendar["qcode"] not in original_qcodes]
+                )
+            elif mark_completed:
+                ev = EventResourceModel.from_dict(e)
+                self.mark_event_complete(updates, ev, mark_complete_validated)
+                # It is validated if the previous funciton did not raise an error
+                mark_complete_validated = True
+
+            # Remove ``embedded_planning`` before updating this event, as this should only be handled
+            # by the event provided to this update request
+            new_updates.pop("embedded_planning", None)
+
+            app = get_current_app().as_any()
+            app.on_updated_events(new_updates, {"_id": event_id})
+
+        # And finally push a notification to connected clients
+        push_notification(
+            "events:updated:recurring",
+            item=str(original[ID_FIELD]),
+            recurrence_id=str(original.recurrence_id),
+            user=str(updates.get("version_creator", "")),
+        )
+
+    def _get_recurring_timeline(self, selected: dict[str, Any], spiked: bool = False):
+        # TODO-ASYNC: replace with an async service
+        events_base_service = EventsBaseService("events", backend=superdesk.get_backend())
+        return events_base_service.get_recurring_timeline(selected, postponed=True, spiked=spiked)
+
+    def mark_event_complete(self, updates: dict[str, Any], event: EventResourceModel, mark_complete_validated: bool):
+        assert event.dates is not None
+        assert event.dates.start is not None
+
+        # If the entire series is in future, raise an error
+        if event.recurrence_id:
+            if not mark_complete_validated:
+                if event.dates.start.date() > updates["actioned_date"].date():
+                    raise SuperdeskApiError.badRequestError("Recurring series has not started.")
+
+            # If we are marking an event as completed
+            # Update only those which are behind the 'actioned_date'
+            if event.dates.start < updates["actioned_date"]:
+                return
+
+        for plan in get_related_planning_for_events([event.id], "primary"):
+            if plan.get("state") != WorkflowState.CANCELLED and len(plan.get("coverages", [])) > 0:
+                # TODO-ASYNC: replace when `planning_cancel` is async
+                get_resource_service("planning_cancel").patch(
+                    plan[ID_FIELD],
+                    {
+                        "reason": "Event Completed",
+                        "cancel_all_coverage": True,
+                    },
+                )
+
+    async def _convert_to_recurring_event(self, updates: dict[str, Any], original: EventResourceModel):
+        """Convert a single event to a series of recurring events"""
+
+        self._validate_convert_to_recurring(updates, original)
+        updates["recurrence_id"] = original.id
+
+        merged: EventResourceModel = original.model_copy(updates, deep=True)
+
+        # Generated new events will be "draft"
+        merged.state = WorkflowState.DRAFT
+        generated_events = self._generate_recurring_events(merged, updates["recurrence_id"])
+        updated_event = generated_events.pop(0)
+
+        assert updated_event.dates is not None
+        assert updated_event.dates.start is not None
+        assert original.dates is not None
+        assert original.dates.start is not None
+
+        # Check to see if the first generated event is different from original
+        # If yes, mark original as rescheduled with generated recurrence_id
+        if updated_event.dates.start.date() != original.dates.start.date():
+            # Reschedule original event
+            updates["update_method"] = UpdateMethods.SINGLE
+            updates["dates"] = updated_event.dates
+            updates["_planning_schedule"] = [x.to_dict() for x in self._create_planning_schedule(updated_event)]
+
+            event_reschedule_service = get_resource_service("events_reschedule")
+            event_reschedule_service.update_single_event(updates, original)
+
+            if updates.get("state") == WorkflowState.RESCHEDULED:
+                history_service = get_resource_service("events_history")
+                history_service.on_reschedule(updates, original.to_dict())
+        else:
+            # Original event falls as a part of the series
+            # Remove the first element in the list (the current event being updated)
+            # And update the start/end dates to be in line with the new recurring rules
+            updates["dates"]["start"] = updated_event.dates.start
+            updates["dates"]["end"] = updated_event.dates.end
+            updates["_planning_schedule"] = [x.to_dict() for x in self._create_planning_schedule(updated_event)]
+            remove_lock_information(item=updates)
+
+        # Create the new events and generate their history
+        await self.create(generated_events)
+        app = get_current_app().as_any()
+        app.on_inserted_events(generated_events)
+
+        return generated_events
+
     def _set_planning_schedule(self, event: EventResourceModel):
         if event.dates and event.dates.start:
             event.planning_schedule = [PlanningSchedule(scheduled=event.dates.start)]
+
+    def _create_planning_schedule(self, event: EventResourceModel) -> list[PlanningSchedule]:
+        if event.dates and event.dates.start:
+            return [PlanningSchedule(scheduled=event.dates.start)]
+        return []
 
     def _overwrite_event_expiry_date(self, event: EventResourceModel):
         if event.expiry:

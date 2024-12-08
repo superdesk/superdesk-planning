@@ -44,7 +44,7 @@ class OccurStatus:
 
 
 class EventDates(Dataclass):
-    # TODO-ASYNC: double check which ones are required
+    # TODO-ASYNC: double check which ones are mandatory
     start: datetime | None = None
     end: datetime | None = None
     tz: str | None = None

@@ -104,7 +104,7 @@ class EmbeddedPlanningCoverage:
 class EmbeddedPlanning(Dataclass):
     planning_id: Annotated[str, validate_data_relation_async("planning")]
     update_method: Annotated[UpdateMethods, fields.keyword_mapping()] | None = None
-    coverages: list[EmbeddedPlanningCoverage] | None = Field(default_factory=list)
+    coverages: list[EmbeddedPlanningCoverage] = Field(default_factory=list)
 
 
 @dataclass
@@ -214,7 +214,7 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
     item_type: Annotated[fields.Keyword, Field(alias="type")] = "event"
 
     # Named Calendars
-    calendars: list[KeywordQCodeName] | None = None
+    calendars: list[KeywordQCodeName] = Field(default_factory=list)
 
     # The previous state the item was in before for example being spiked,
     # when un-spiked it will revert to this state

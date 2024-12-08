@@ -157,7 +157,6 @@ class ExportToNewsroomTest(TestCase):
                 "type": "event",
             },
         ]
-        events = [EventResourceModel.from_dict(ev) for ev in events]
 
         planning = [
             {
