@@ -71,7 +71,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         if spiked_events_only:
             del query["query"]["bool"]["must_not"]
-            query["query"]["bool"]["must"] = [{"term": {"state": WorkflowStates.SPIKED}}]
+            query["query"]["bool"]["must"] = [{"term": {"state": WorkflowState.SPIKED}}]
 
         total_received = 0
         total_events = -1

@@ -13,6 +13,7 @@ from datetime import timedelta
 from bson import ObjectId
 
 from planning.utils import get_service
+from superdesk.flask import g
 from superdesk.utc import utcnow
 from planning.tests import TestCase
 from .purge_expired_locks import purge_expired_locks_handler
@@ -28,6 +29,8 @@ class PurgeExpiredLocksTest(TestCase):
         await super().asyncSetUp()
 
         async with self.app.app_context():
+            self.setup_test_user()
+
             await self.insert(
                 "events",
                 [

@@ -9,12 +9,8 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import mock
-from bson import ObjectId
 from datetime import timedelta
 
-from planning.types.event import EventResourceModel
-
-from superdesk.flask import g
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
 
@@ -42,14 +38,9 @@ class ExportToNewsroomTest(TestCase):
         self.event_service = EventsAsyncService()
         self.planning_service = get_resource_service("planning")
 
-    def setup_user(self):
-        user = {"_id": ObjectId()}
-        self.app.data.insert("users", [user])
-        g.user = user
-
     async def setup_data(self):
         utc_now = utcnow()
-        self.setup_user()
+        self.setup_test_user()
 
         events = [
             {

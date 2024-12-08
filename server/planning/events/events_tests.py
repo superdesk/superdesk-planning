@@ -11,6 +11,7 @@
 from datetime import datetime, timedelta
 from copy import deepcopy
 
+from bson import ObjectId
 from pytest import mark
 import pytz
 from mock import Mock, patch
@@ -431,7 +432,7 @@ class EventPlanningSchedule(TestCase):
             events = list(service.get_from_mongo(req=None, lookup=None))
             self.assertPlanningSchedule(events, 1)
             lock_service = LockService(self.app)
-            locked_event = lock_service.lock(events[0], None, "session", "convert_recurring", "events")
+            locked_event = lock_service.lock(events[0], None, ObjectId(), "convert_recurring", "events")
             self.assertEqual(locked_event.get("lock_action"), "convert_recurring")
             schedule = deepcopy(events[0].get("dates"))
             schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC)

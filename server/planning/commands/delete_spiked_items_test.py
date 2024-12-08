@@ -83,6 +83,8 @@ class DeleteSpikedItemsTest(TestCase):
         self.planning_service = PlanningAsyncService()
         self.assignment_service = AssignmentsAsyncService()
 
+        self.setup_test_user()
+
     async def assertDeleteOperation(self, item_type, ids, not_deleted=False):
         service = self.event_service if item_type == "events" else self.planning_service
 
