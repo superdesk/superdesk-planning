@@ -11,7 +11,7 @@ export function getAttachmentsField()
 : ICustomFieldType<IAttachmentsValueOperational, IAttachmentsValueStorage, IAttachmentsFieldConfig, IAttachmentsFieldUserPreferences> {
     const field: ReturnType<typeof getAttachmentsField> = {
         id: 'files',
-        generic: true,
+        generic: false,
         label: gettext('Attachments'),
         editorComponent: Editor,
         previewComponent: Preview,
