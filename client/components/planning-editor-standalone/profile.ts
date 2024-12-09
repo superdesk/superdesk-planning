@@ -2,12 +2,12 @@ import {OrderedMap} from 'immutable';
 
 import {
     IAuthoringFieldV2,
+    ICommonFieldConfig,
     IContentProfileV2,
     IDateTimeFieldConfig,
     IDropdownConfigVocabulary,
     IEditor3Config,
     ISubject,
-    IVocabulary,
     IVocabularyItem,
 } from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
@@ -77,45 +77,107 @@ const getStrippedCustomVocabularyId = (customVocabularyId: string) => customVoca
 
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
-    const result: Array<IFieldDefinition> = [];
+    const result: Array<IFieldDefinition> = [
+        {
+            fieldId: 'ednote',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Ed Note'), required: required}),
+        },
+        {
+            fieldId: 'internal_note',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Internal Note'), required: required}),
+        },
+        {
+            fieldId: 'name',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Name'), required: required}),
+        },
+        {
+            fieldId: 'slugline',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Slugline'), required: required}),
+        },
+        {
+            fieldId: 'description_text',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Description'), required: required}),
+        },
+        {
+            fieldId: 'headline',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Headline'), required: required}),
+        },
+        {
+            fieldId: 'planning_date',
+            getField: ({required, id}) =>
+                getDateTimeField({id: id, label: gettext('Planning date'), required: required}),
+        },
+        {
+            fieldId: 'files',
+            getField: ({required, id}) => {
+                const fieldConfig: IAttachmentsFieldConfig = {
+                    required,
+                };
+
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Attached files'),
+                    fieldType: 'files',
+                    fieldConfig: fieldConfig,
+                };
+
+                return field;
+            },
+        },
+        {
+            fieldId: 'place',
+            getField: ({id, required}) => {
+                const fieldConfig: IDropdownConfigVocabulary = {
+                    source: 'vocabulary',
+                    vocabularyId: 'locators',
+                    multiple: true,
+                    required: required,
+                };
+
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Place'),
+                    fieldType: 'dropdown',
+                    fieldConfig: fieldConfig,
+                };
+
+                return field;
+            },
+            storageAdapter: {
+                storeValue: (operationalValue: Array<string>): Array<IVocabularyItem> => {
+                    const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
+                    const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
+                        vocabulary.items.map((item) => [item.qcode, item]),
+                    );
+
+                    return operationalValue.map((qcode) => vocabularyItems.get(qcode));
+                },
+                retrieveStoredValue: (storageValue: Array<IVocabularyItem>) => storageValue.map(({qcode}) => qcode),
+            },
+        },
+        {
+            fieldId: 'coverages',
+            getField: ({id, required}) => {
+                const fieldConfig: ICommonFieldConfig = {
+                    required,
+                };
+
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Coverages'),
+                    fieldType: 'coverages',
+                    fieldConfig: fieldConfig,
+                };
+
+                return field;
+            },
+        }
+    ];
     const planningProfile = planningApi.contentProfiles.get('planning');
     const customVocabularyIds =
         (planningProfile.schema?.['custom_vocabularies'] as IProfileSchemaTypeList)?.vocabularies;
-
-    result.push({
-        fieldId: 'ednote',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Ed Note'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'internal_note',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Internal Note'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'name',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Name'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'slugline',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Slugline'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'description_text',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Description'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'headline',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Headline'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'planning_date',
-        getField: ({required, id}) => getDateTimeField({id: id, label: gettext('Planning date'), required: required}),
-    });
 
     if ((customVocabularyIds?.length ?? 0) > 0) {
         const allVocabularies = superdeskApi.entities.vocabulary.getAll();
@@ -176,74 +238,6 @@ export function getFieldDefinitions(): IFieldDefinitions {
             });
         }
     }
-
-    result.push({
-        fieldId: 'files',
-        getField: ({required, id}) => {
-            const fieldConfig: IAttachmentsFieldConfig = {
-                required,
-            };
-
-            const field: IAuthoringFieldV2 = {
-                id: id,
-                name: gettext('Attached files'),
-                fieldType: 'files',
-                fieldConfig: fieldConfig,
-            };
-
-            return field;
-        },
-    });
-
-    result.push({
-        fieldId: 'place',
-        getField: ({id, required}) => {
-            const fieldConfig: IDropdownConfigVocabulary = {
-                source: 'vocabulary',
-                vocabularyId: 'locators',
-                multiple: true,
-                required: required,
-            };
-
-            const field: IAuthoringFieldV2 = {
-                id: id,
-                name: gettext('Place'),
-                fieldType: 'dropdown',
-                fieldConfig: fieldConfig,
-            };
-
-            return field;
-        },
-        storageAdapter: {
-            storeValue: (operationalValue: Array<string>): Array<IVocabularyItem> => {
-                const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
-                const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
-                    vocabulary.items.map((item) => [item.qcode, item]),
-                );
-
-                return operationalValue.map((qcode) => vocabularyItems.get(qcode));
-            },
-            retrieveStoredValue: (storageValue: Array<IVocabularyItem>) => storageValue.map(({qcode}) => qcode),
-        },
-    });
-
-    result.push({
-        fieldId: 'coverages',
-        getField: ({id, required}) => {
-            const fieldConfig: ICommonFieldConfig = {
-                required,
-            };
-
-            const field: IAuthoringFieldV2 = {
-                id: id,
-                name: gettext('Coverages'),
-                fieldType: 'coverages',
-                fieldConfig: fieldConfig,
-            };
-
-            return field;
-        },
-    });
 
     const resultObj = result.reduce((acc, item) => {
         acc[item.fieldId] = item;
