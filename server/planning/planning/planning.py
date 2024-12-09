@@ -1040,7 +1040,6 @@ class PlanningService(superdesk.Service):
                 or "assigned_to" in assignment
                 or "description_text" in assignment
                 or "name" in assignment
-                or "assigned_to" in assignment
             ):
                 assignment_service.system_update(
                     ObjectId(assigned_to.get("assignment_id")),
