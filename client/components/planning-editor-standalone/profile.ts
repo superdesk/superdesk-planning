@@ -262,7 +262,8 @@ export function getProfile() {
 
     const skipped = new Set<string>();
     const fieldDefinitions = getFieldDefinitions();
-    const customVocabularyIds = planningProfile.schema?.['custom_vocabularies']?.vocabularies;
+    const customVocabularyIds =
+        (planningProfile.schema?.['custom_vocabularies'] as IProfileSchemaTypeList)?.vocabularies;
 
     for (const fieldId of planningFieldIds) {
         const required = planningProfile.schema?.[fieldId]?.required ?? false;
