@@ -150,12 +150,14 @@ def create_new_coverage_from_event_and_planning(
         "planning": {},
     }
 
-    if coverage.get("desk") or coverage.get("user"):
+    if coverage.get("desk") or coverage.get("user") or coverage.get("coverage_provider"):
         new_coverage["assigned_to"] = {}
         if coverage.get("desk"):
             new_coverage["assigned_to"]["desk"] = coverage["desk"]
         if coverage.get("user"):
             new_coverage["assigned_to"]["user"] = coverage["user"]
+        if coverage.get("coverage_provider"):
+            new_coverage["assigned_to"]["coverage_provider"] = coverage["coverage_provider"]
 
     if "language" in profiles.coverages.enabled_fields:
         # If ``language`` is enabled for Coverages but not defined in ``embedded_planning``
@@ -353,6 +355,16 @@ def get_existing_plannings_from_embedded_planning(
                 if existing_coverage.get("assigned_to", {}).get("user") != embedded_coverage["user"]:
                     existing_coverage.setdefault("assigned_to", {})
                     existing_coverage["assigned_to"]["user"] = embedded_coverage["user"]
+                    update_required = True
+            except KeyError:
+                pass
+
+            try:
+                if (
+                    existing_coverage.get("assigned_to", {}).get("coverage_provider")
+                    != embedded_coverage["coverage_provider"]
+                ):
+                    existing_coverage["assigned_to"]["coverage_provider"] = embedded_coverage["coverage_provider"]
                     update_required = True
             except KeyError:
                 pass

@@ -374,6 +374,14 @@ events_schema = {
                             "ednote": {"type": "string", "nullable": True},
                             "internal_note": {"type": "string", "nullable": True},
                             "priority": {"type": "integer", "nullable": True},
+                            "coverage_provider": {
+                                "type": "dict",
+                                "schema": {
+                                    "qcode": {"type": "string"},
+                                    "name": {"type": "string"},
+                                    "contact_type": {"type": "string"},
+                                },
+                            },
                         },
                     },
                 },

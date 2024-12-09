@@ -146,6 +146,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
                 headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method
@@ -193,6 +194,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
                 headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
