@@ -25,8 +25,9 @@ import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
-import {getUsersDefaultLanguage} from '../../../utils/users';
 import {renderFieldsForPanel} from '../../fields';
+
+import {getCoverageFields} from '../../../api/editor/item_planning';
 
 import '../style.scss';
 
@@ -333,7 +334,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const defaultGenre = (appConfig.default_genre || [{}])[0];
         const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
         const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
-        const editor = planningApi.editor(this.props.editorType);
 
         const readOnlyFields = planningUtils.getCoverageReadOnlyFields(
             this.props.value,
@@ -452,7 +452,13 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             priority: {field: 'planning.priority'},
         };
 
-        const profile = editor.item.planning.getCoverageFields();
+        const profile = getCoverageFields();
+
+        /**
+         * `editor.dom.fields` aren't being passed anymore because we no longer have access to it
+         * after decoupling this component from `IEditorAPI`.
+         */
+        const editorDomFields = {};
 
         return (
             <div className="coverage-editor">
@@ -464,7 +470,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     null,
                     null,
                     'enabled',
-                    editor.dom.fields,
+                    editorDomFields,
                     this.props.formProfile.schema
                 )}
             </div>

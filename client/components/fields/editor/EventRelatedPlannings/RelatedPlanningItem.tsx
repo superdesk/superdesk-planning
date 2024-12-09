@@ -14,10 +14,7 @@ import {superdeskApi} from '../../../../superdeskApi';
 
 import {planningUtils} from '../../../../utils';
 
-import {IconButton, SpacerBlock, ToggleBox} from 'superdesk-ui-framework/react';
-import {Row} from '../../../UI/Form';
-import {RelatedCoverageItems} from './RelatedCoverageItems';
-import {AddNewCoverages} from './AddNewCoverages';
+import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
 import {PlanningEditorStandalone} from '../../../../components/planning-editor-standalone/planning-editor-standalone';
 import {TEMP_ID_PREFIX} from '../../../../constants';
@@ -173,36 +170,6 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         }
                     />
                 </ToggleBox>
-
-                <SpacerBlock v gap="8" />
-
-                <Row noPadding={true}>
-                    <span className="form-label">{gettext('Coverages')}</span>
-                </Row>
-                {!this.props.item.coverages?.length ? null : (
-                    <RelatedCoverageItems
-                        item={this.props.item}
-                        coverages={this.props.item.coverages}
-                        disabled={this.props.disabled}
-                        editorType={this.props.editorType}
-                        updateCoverage={this.updateCoverage}
-                        removeCoverage={this.removeCoverage}
-                        duplicateCoverage={this.duplicateCoverage}
-                        onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
-                    />
-                )}
-                {this.props.disabled ? null : (
-                    <Row noPadding={true}>
-                        <AddNewCoverages
-                            event={this.props.event}
-                            item={item}
-                            updatePlanningItem={this.update}
-                            profile={this.props.profile}
-                            coverageProfile={this.props.coverageProfile}
-                            initiallyExpanded={this.props.initiallyExpanded}
-                        />
-                    </Row>
-                )}
             </div>
         );
     }

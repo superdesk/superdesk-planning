@@ -75,3 +75,6 @@ export class EditorFieldCoverages extends React.PureComponent<IProps> {
         );
     }
 }
+
+// PR-TODO: pass using the bridge
+window.EditorFieldCoverages = EditorFieldCoverages;

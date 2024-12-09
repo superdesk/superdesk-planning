@@ -3,25 +3,21 @@ import {Editor} from './editor';
 import {Preview} from './preview';
 import {Difference} from './difference';
 import {
-    IAttachmentsFieldConfig,
-    IAttachmentsFieldUserPreferences,
-    IAttachmentsValueOperational,
-    IAttachmentsValueStorage,
+    ICoveragesFieldConfig,
+    ICoveragesFieldUserPreferences,
+    ICoveragesValueOperational,
+    ICoveragesValueStorage,
 } from './interfaces';
 import {superdesk} from '../../superdesk';
 
 const {gettext} = superdesk.localization;
 
-export function getAttachmentsField(): ICustomFieldType<
-    IAttachmentsValueOperational,
-    IAttachmentsValueStorage,
-    IAttachmentsFieldConfig,
-    IAttachmentsFieldUserPreferences
-    > {
-    const field: ReturnType<typeof getAttachmentsField> = {
-        id: 'files',
+export function getCoveragesField()
+: ICustomFieldType<ICoveragesValueOperational, ICoveragesValueStorage, ICoveragesFieldConfig, ICoveragesFieldUserPreferences> {
+    const field: ReturnType<typeof getCoveragesField> = {
+        id: 'coverages',
         generic: false,
-        label: gettext('Attachments'),
+        label: gettext('Coverages'),
         editorComponent: Editor,
         previewComponent: Preview,
 

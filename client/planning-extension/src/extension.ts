@@ -21,6 +21,7 @@ import {
 } from './planning-details-widget';
 import {getAttachmentsField} from './authoring-react-fields/planning-attachments';
 import {AssignmentsCountTracker} from './assignments-overview/hiddenAssignmentsList';
+import {getCoveragesField} from './authoring-react-fields/coverages';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -253,7 +254,10 @@ const extension: IExtension = {
                     },
                 ],
                 globalMenuHorizontal: [AssignmentsCountTracker, ...(displayTopbarWidget ? [AssignmentsList] : [])],
-                customFieldTypes: [getAttachmentsField()],
+                customFieldTypes: [
+                    getAttachmentsField(),
+                    getCoveragesField(),
+                ],
             },
         };
 
