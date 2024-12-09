@@ -31,11 +31,13 @@ from planning.types import (
 from planning.types.event import EmbeddedPlanning
 from planning.common import (
     WorkflowStates,
+    format_address,
     get_event_max_multi_day_duration,
     get_max_recurrent_events,
     remove_lock_information,
     set_ingested_event_state,
     post_required,
+    update_post_item,
 )
 from planning.planning import PlanningAsyncService
 from planning.core.service import BasePlanningAsyncService
@@ -46,7 +48,11 @@ from planning.utils import (
 )
 
 from .events_sync import sync_event_metadata_with_planning_items
-from .events_utils import generate_recurring_dates, get_events_embedded_planning, get_recurring_timeline
+from .events_utils import (
+    generate_recurring_dates,
+    get_events_embedded_planning,
+    get_recurring_timeline,
+)
 
 
 class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
@@ -291,6 +297,49 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
         sync_event_metadata_with_planning_items(original_event.to_dict(), updates, embedded_planning)
+
+    async def on_updated(self, updates: dict[str, Any], original: EventResourceModel, from_ingest: bool = False):
+        # if this Event was converted to a recurring series
+        # then update all associated Planning items with the recurrence_id
+        if updates.get("recurrence_id") and not original.recurrence_id:
+            await PlanningAsyncService().on_event_converted_to_recurring(updates, original)
+
+        if not updates.get("duplicate_to"):
+            posted = update_post_item(updates, original.to_dict())
+            if posted:
+                new_event = await self.find_by_id(original.id)
+                assert new_event is not None
+                updates["_etag"] = new_event.etag
+                updates["state_reason"] = new_event.state_reason
+
+        if original.lock_user and "lock_user" in updates and updates.get("lock_user") is None:
+            # when the event is unlocked by the patch.
+            push_notification(
+                "events:unlock",
+                item=str(original.id),
+                user=str(get_user_id()),
+                lock_session=str(get_auth().get("_id")),
+                etag=updates["_etag"],
+                recurrence_id=original.recurrence_id or None,
+                from_ingest=from_ingest,
+            )
+
+        await self.delete_event_files(updates, original.files)
+
+        if "location" not in updates and original.location:
+            updates["location"] = original.location
+
+        updates[ID_FIELD] = original.id
+        self._enhance_event_item(updates)
+
+    async def delete_event_files(self, updates: dict[str, Any], event_files: list[ObjectId]):
+        files = [f for f in event_files if f not in (updates or {}).get("files", [])]
+        files_service = get_resource_service("events_files")
+
+        for file in files:
+            events_using_file = await self.find({"files": file})
+            if (await events_using_file.count()) == 0:
+                files_service.delete_action(lookup={"_id": file})
 
     async def on_deleted(self, doc: EventResourceModel):
         push_notification(
@@ -755,3 +804,16 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         await planning_service.system_update(event.planning_item, updates)
 
         await signals.planning_update.send(updates, planning_item)
+
+    def _enhance_event_item(self, doc: dict[str, Any]):
+        plannings = get_related_planning_for_events([doc[ID_FIELD]])
+
+        if len(plannings):
+            doc["planning_ids"] = [planning.get("_id") for planning in plannings]
+
+        for location in doc.get("location") or []:
+            format_address(location)
+
+        # this is to fix the existing events have original creator as empty string
+        if not doc.get("original_creator"):
+            doc.pop("original_creator", None)

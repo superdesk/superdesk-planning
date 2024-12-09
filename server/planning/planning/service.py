@@ -1,10 +1,14 @@
-from typing import AsyncGenerator, Any
 from datetime import datetime
-from superdesk.core.utils import date_to_str
+from typing import AsyncGenerator, Any
 
-from planning.types import PlanningResourceModel
+from superdesk.core.utils import date_to_str
+from superdesk.resource_fields import ID_FIELD
+
 from planning.common import WORKFLOW_STATE
+from planning.types import PlanningResourceModel
+from planning.types.event import EventResourceModel
 from planning.core.service import BasePlanningAsyncService
+from planning.utils import get_related_event_links_for_planning, get_related_planning_for_events
 
 
 class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
@@ -82,3 +86,21 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
             # Yield the results for iteration by the callee
             yield items
+
+    async def on_event_converted_to_recurring(self, updates: dict[str, Any], original: EventResourceModel):
+        for item in get_related_planning_for_events([original.id]):
+            related_events = get_related_event_links_for_planning(item)
+
+            # Set the ``recurrence_id`` in the ``planning.related_events`` field
+            for event in related_events:
+                if event["_id"] == original.id:
+                    event["recurrence_id"] = updates["recurrence_id"]
+                    break
+
+            await self.update(
+                item[ID_FIELD],
+                {
+                    "recurrence_id": updates["recurrence_id"],
+                    "related_events": related_events,
+                },
+            )

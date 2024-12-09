@@ -349,6 +349,9 @@ def post_required(updates, original):
 
 def update_post_item(updates, original):
     """Method to update(re-post) a posted item after the item is updated"""
+    # TODO-ASYNC: update once `events_post` & `planning_post` are async
+    # also ot use pydantic models intead of dicts
+
     pub_status = None
     # Save&Post or Save&Unpost
     if updates.get("pubstatus"):
