@@ -84,7 +84,6 @@ class RelatedCoverageItemsComponent extends React.PureComponent<IProps> {
 
                         onChange={this.props.updateCoverage}
                         remove={() => this.props.removeCoverage(coverage)}
-                        onDuplicateCoverage={this.props.duplicateCoverage}
                         setCoverageDefaultDesk={() => this.props.setCoverageDefaultDesk(coverage)}
                         onAddCoverageToWorkflow={() => this.props.onAddCoverageToWorkflow(coverage, index)}
                         openCoverageIds={[]}

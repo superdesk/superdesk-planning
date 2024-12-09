@@ -118,7 +118,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         this.onCoverageChange = this.onCoverageChange.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
-        this.onDuplicateCoverage = this.onDuplicateCoverage.bind(this);
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
         this.onAddScheduledUpdateToWorkflow = this.onAddScheduledUpdateToWorkflow.bind(this);
@@ -259,17 +258,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         if (this.props.currentAgenda?.is_enabled) {
             item.agendas = [this.props.currentAgenda._id];
         }
-    }
-
-    onDuplicateCoverage(coverage: IPlanningCoverageItem, duplicateAs: IG2ContentType['qcode']) {
-        const coverages = planningUtils.duplicateCoverage(
-            this.props.diff,
-            coverage,
-            duplicateAs,
-            this.props.event
-        );
-
-        this.props.onChangeHandler('coverages', coverages);
     }
 
     onCoverageChange(field: string, value: any, planningFormEdited: boolean = true) {
@@ -519,7 +507,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
-                        onDuplicateCoverage: this.onDuplicateCoverage,
                         onCancelCoverage: this.onCancelCoverage,
                         onAddCoverageToWorkflow: this.onAddCoverageToWorkflow,
                         onAddScheduledUpdateToWorkflow: this.onAddScheduledUpdateToWorkflow,

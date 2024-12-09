@@ -33,7 +33,6 @@ interface IProps extends IEditorFieldProps {
     onPopupClose?(): void;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
-    onDuplicateCoverage(coverage: IPlanningCoverageItem, duplicateAs: IG2ContentType['qcode']): void;
     onCancelCoverage(
         coverage: IPlanningCoverageItem,
         index: number,

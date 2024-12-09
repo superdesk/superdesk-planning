@@ -66,7 +66,6 @@ interface IProps {
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     createUploadLink(file: IFile): void;
-    onDuplicateCoverage(coverage: IPlanningCoverageItem, duplicateAs: IG2ContentType['qcode']): void;
     onCancelCoverage(
         coverage: IPlanningCoverageItem,
         index: number,

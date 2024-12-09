@@ -7,6 +7,7 @@ import {
     ICoverageProvider,
     IG2ContentType,
     IGenre,
+    IPlanningAppState,
     IPlanningCoverageItem,
     IPlanningNewsCoverageStatus
 } from '../../../interfaces';
@@ -22,6 +23,8 @@ import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {COVERAGES} from '../../../constants';
+import {getRelatedEventIdsForPlanning} from '../../../utils/planning';
+import {planningApi} from '../../../superdeskApi';
 
 interface IProps {
     testId?: string;
@@ -38,7 +41,7 @@ interface IProps {
     readOnly: boolean;
     message: any;
     item: any;
-    diff: any;
+    diff: any; // planning item
     formProfile: any;
     errors: {[key: string]: any};
     showErrors: boolean;
@@ -53,7 +56,6 @@ interface IProps {
 
     onChange(field: string, value: any): void;
     remove(): void;
-    onDuplicateCoverage(coverage: DeepPartial<IPlanningCoverageItem>, duplicateAs?: IG2ContentType['qcode']): void;
     onCancelCoverage?(): void;
     onAddCoverageToWorkflow?(): void;
     onRemoveAssignment?(coverage: IPlanningCoverageItem): void;
@@ -61,6 +63,36 @@ interface IProps {
     setCoverageDefaultDesk(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
+}
+
+function duplicateCoverage(
+    {
+        planning,
+        coverage,
+        duplicateAs,
+    } : {
+        planning: IPlanningItem;
+        coverage: IPlanningCoverageItem;
+        duplicateAs?: IG2ContentType['qcode'];
+    }
+): Array<DeepPartial<IPlanningCoverageItem>> {
+    const state: IPlanningAppState = planningApi.redux.store.getState();
+
+    // TAG: MULTIPLE_PRIMARY_EVENTS
+    const relatedEventId = getRelatedEventIdsForPlanning(planning, 'primary')[0];
+
+    const relatedEvent: IEventItem | undefined = relatedEventId == null
+        ? undefined
+        : state.events.events[relatedEventId];
+
+    const coverages = planningUtils.duplicateCoverage(
+        planning,
+        coverage,
+        duplicateAs,
+        relatedEvent
+    );
+
+    return coverages;
 }
 
 export class CoverageEditor extends React.PureComponent<IProps> {
@@ -92,7 +124,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             coverageProviders,
             priorities,
             keywords,
-            onDuplicateCoverage,
             onCancelCoverage,
             onAddCoverageToWorkflow,
             onRemoveAssignment,
@@ -116,29 +147,47 @@ export class CoverageEditor extends React.PureComponent<IProps> {
 
         if (!readOnly && !addNewsItemToPlanning) {
             const language = value.planning?.language ?? getUserInterfaceLanguageFromCV();
-            const duplicateActions = contentTypes
-                .filter((contentType) => (
-                    contentType.qcode !== get(value, 'planning.g2_content_type')
-                ))
-                .map((contentType) => ({
-                    label: getVocabularyItemFieldTranslated(
-                        contentType,
-                        'name',
-                        language
-                    ),
-                    callback: onDuplicateCoverage.bind(null, value, contentType.qcode),
-                }));
 
-            itemActions = [{
-                label: gettext('Duplicate'),
-                icon: 'icon-copy',
-                callback: onDuplicateCoverage.bind(null, value),
-            },
-            {
-                label: gettext('Duplicate As'),
-                icon: 'icon-copy',
-                callback: duplicateActions,
-            }];
+            itemActions = [
+                {
+                    label: gettext('Duplicate'),
+                    icon: 'icon-copy',
+                    callback: () => {
+                        this.props.onChange(
+                            'coverages',
+                            duplicateCoverage({
+                                planning: diff,
+                                coverage: value,
+                            }),
+                        );
+                    },
+                },
+                {
+                    label: gettext('Duplicate As'),
+                    icon: 'icon-copy',
+                    callback: contentTypes
+                        .filter((contentType) => (
+                            contentType.qcode !== get(value, 'planning.g2_content_type')
+                        ))
+                        .map((contentType) => ({
+                            label: getVocabularyItemFieldTranslated(
+                                contentType,
+                                'name',
+                                language
+                            ),
+                            callback: () => {
+                                this.props.onChange(
+                                    'coverages',
+                                    duplicateCoverage({
+                                        planning: diff,
+                                        coverage: value,
+                                        duplicateAs: contentType.qcode,
+                                    }),
+                                );
+                            },
+                        })),
+                },
+            ];
 
             if (onCancelCoverage != null && planningUtils.canCancelCoverage(value, diff)) {
                 itemActions.push({
