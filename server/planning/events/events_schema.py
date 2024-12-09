@@ -376,6 +376,7 @@ events_schema = {
                             "priority": {"type": "integer", "nullable": True},
                             "coverage_provider": {
                                 "type": "dict",
+                                "nullable": True,
                                 "schema": {
                                     "qcode": {"type": "string"},
                                     "name": {"type": "string"},

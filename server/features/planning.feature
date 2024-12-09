@@ -1976,7 +1976,7 @@ Feature: Planning
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
+                        "desk": "Sports Desk",
                         "user": "507f191e810c19729de870eb",
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
