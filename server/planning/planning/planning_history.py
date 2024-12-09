@@ -10,12 +10,15 @@
 
 import logging
 from copy import deepcopy
+from typing import Any
+
 
 from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, get_resource_service
 from superdesk.default_settings import strtobool
 
+from planning.types import PlanningResourceModel
 from planning.history import HistoryService
 from planning.common import WORKFLOW_STATE, ITEM_ACTIONS, ASSIGNMENT_WORKFLOW_STATE
 from planning.item_lock import LOCK_ACTION
@@ -71,8 +74,8 @@ class PlanningHistoryService(HistoryService):
 
         self.post([history])
 
-    def on_item_updated(self, updates, original, operation=None):
-        item = deepcopy(original)
+    def on_item_updated(self, updates: dict[str, Any], original: PlanningResourceModel, operation: str | None = None):
+        item = deepcopy(original.to_dict())
         if list(item.keys()) == ["_id"]:
             diff = self._remove_unwanted_fields(updates)
         else:

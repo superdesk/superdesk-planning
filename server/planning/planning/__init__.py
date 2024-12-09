@@ -8,6 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from planning import signals
 from quart_babel import lazy_gettext
 
 import superdesk
@@ -131,8 +132,10 @@ def init_app(app):
     planning_autosave_service = PlanningAutosaveService("planning_autosave", superdesk.get_backend())
     PlanningAutosaveResource("planning_autosave", app=app, service=planning_autosave_service)
 
+    # listen to async signals
+    signals.planning_update.connect(planning_history_service.on_item_updated)
+
     app.on_inserted_planning += planning_history_service.on_item_created
-    app.on_updated_planning += planning_history_service.on_item_updated
     app.on_updated_planning_spike += planning_history_service.on_spike
     app.on_updated_planning_unspike += planning_history_service.on_unspike
     app.on_updated_planning_cancel += planning_history_service.on_cancel

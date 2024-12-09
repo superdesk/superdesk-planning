@@ -10,6 +10,8 @@
 
 import superdesk
 from quart_babel import lazy_gettext
+
+from planning import signals
 from .events import EventsResource, EventsService
 from .events_spike import (
     EventsSpikeResource,
@@ -137,8 +139,14 @@ def init_app(app):
         service=recent_events_template_service,
     )
 
+    # listen to async signals
+    signals.events_created.connect(events_history_service.on_item_created)
+
     app.on_updated_events += events_history_service.on_item_updated
+
+    # TODO-ASYNC: remove `on_inserted_events` when `events_reschedule` is async
     app.on_inserted_events += events_history_service.on_item_created
+
     app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
     app.on_updated_events_spike += events_history_service.on_spike

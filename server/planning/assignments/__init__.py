@@ -11,6 +11,8 @@
 import superdesk
 from quart_babel import lazy_gettext
 from superdesk.services import BaseService
+
+from planning import signals
 from .assignments import AssignmentsResource, AssignmentsService
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
 from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
@@ -93,13 +95,15 @@ def init_app(app):
     delivery_service = BaseService("delivery", backend=superdesk.get_backend())
     DeliveryResource("delivery", app=app, service=delivery_service)
 
+    # listen to async signals
+    signals.events_update.connect(assignments_publish_service.on_events_updated)
+
     # Updating data/lock on assignments based on content item updates from authoring
     app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
     app.on_archive_item_updated += assignments_publish_service.update_assignment_on_archive_operation
     app.on_item_lock += assignments_publish_service.validate_assignment_lock
     app.on_item_locked += assignments_publish_service.sync_assignment_lock
     app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
-    app.on_updated_events += assignments_publish_service.on_events_updated
 
     # Track updates for an assignment if it's news story was updated
     if app.config.get("PLANNING_LINK_UPDATES_TO_COVERAGES", True):

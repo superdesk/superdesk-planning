@@ -71,6 +71,7 @@ from planning.common import (
     planning_auto_assign_to_workflow,
 )
 
+from planning.types import EventResourceModel
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
@@ -1020,10 +1021,10 @@ class AssignmentsService(superdesk.Service):
                 lock_service = get_component(LockService)
                 lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
 
-    def on_events_updated(self, updates, original):
+    def on_events_updated(self, updates: dict[str, Any], original: EventResourceModel):
         """Send assignment notifications if any relevant Event metadata has changed"""
 
-        event = deepcopy(original)
+        event = deepcopy(original.to_dict())
         event.update(updates)
         plannings = get_related_planning_for_events([event[ID_FIELD]], "primary")
 

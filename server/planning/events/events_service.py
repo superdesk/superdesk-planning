@@ -8,16 +8,17 @@ from datetime import datetime, timedelta
 from apps.archive.common import get_auth
 from apps.auth import get_user, get_user_id
 
-import superdesk
 from superdesk.utc import utcnow
+from superdesk.core import get_app_config
 from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
-from superdesk.core import get_app_config, get_current_app
 from superdesk.core.utils import date_to_str, generate_guid
 
+
+from planning import signals
 from planning.types import (
     PLANNING_RELATED_EVENT_LINK_TYPE,
     EventResourceModel,
@@ -36,16 +37,16 @@ from planning.common import (
     set_ingested_event_state,
     post_required,
 )
+from planning.planning import PlanningAsyncService
 from planning.core.service import BasePlanningAsyncService
 from planning.utils import (
     get_planning_event_link_method,
     get_related_event_ids_for_planning,
     get_related_planning_for_events,
 )
-from planning.events.events_base_service import EventsBaseService
 
 from .events_sync import sync_event_metadata_with_planning_items
-from .events_utils import generate_recurring_dates, get_events_embedded_planning
+from .events_utils import generate_recurring_dates, get_events_embedded_planning, get_recurring_timeline
 
 
 class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
@@ -177,7 +178,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 events_history.on_item_created([event.to_dict()])
 
             if original_planning_item:
-                self._link_to_planning(event)
+                await self._link_to_planning(event)
                 del event["_planning_item"]
 
         if generated_events:
@@ -188,8 +189,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
     async def on_created(self, docs: list[EventResourceModel]):
         """Send WebSocket Notifications for created Events
 
-        Generate the list of IDs for recurring and non-recurring events
-        Then send this list off to the clients so they can fetch these events
+        Generate the list of IDs for recurring and non-recurring events,
+        then send this list off to the clients so they can fetch these events
         """
         notifications_sent = []
         history_service = get_resource_service("events_history")
@@ -201,8 +202,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             if doc.duplicate_from:
                 parent_id = doc.duplicate_from
                 parent_event = await self.find_by_id(parent_id)
-
-                assert parent_event is not None
+                if not parent_event:
+                    raise SuperdeskApiError.badRequestError("Parent event not found")
 
                 history_service.on_item_updated({"duplicate_id": event_id}, parent_event.to_dict(), "duplicate")
                 history_service.on_item_updated({"duplicate_id": parent_id}, doc.to_dict(), "duplicate_from")
@@ -423,10 +424,9 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             original.lock_action == "convert_recurring"
             and updates.get("dates", {}).get("recurring_rule", None) is not None
         ):
-            generated_events = await self._convert_to_recurring_event(updates, original)
+            generated_events = await self._convert_to_recurring_events(updates, original)
 
             # if the original event was "posted" then post all the generated events
-            # if original.get("pubstatus") in [ POST_STATE.CANCELLED, POST_STATE.USABLE]:
             if original.pubstatus in [PostStates.CANCELLED, PostStates.USABLE]:
                 post = {
                     "event": generated_events[0].id,
@@ -470,10 +470,10 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         original_as_dict = original.to_dict()
 
         if update_method == UpdateMethods.FUTURE:
-            historic, past, future = self._get_recurring_timeline(original_as_dict)
+            historic, past, future = await get_recurring_timeline(original_as_dict)
             events = future
         else:
-            historic, past, future = self._get_recurring_timeline(original_as_dict)
+            historic, past, future = await get_recurring_timeline(original_as_dict)
             events = historic + past + future
 
         events_post_service = get_resource_service("events_post")
@@ -525,8 +525,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             # by the event provided to this update request
             new_updates.pop("embedded_planning", None)
 
-            app = get_current_app().as_any()
-            app.on_updated_events(new_updates, {"_id": event_id})
+            await signals.events_update.send(new_updates, original)
 
         # And finally push a notification to connected clients
         push_notification(
@@ -535,11 +534,6 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             recurrence_id=str(original.recurrence_id),
             user=str(updates.get("version_creator", "")),
         )
-
-    def _get_recurring_timeline(self, selected: dict[str, Any], spiked: bool = False):
-        # TODO-ASYNC: replace with an async service
-        events_base_service = EventsBaseService("events", backend=superdesk.get_backend())
-        return events_base_service.get_recurring_timeline(selected, postponed=True, spiked=spiked)
 
     def mark_event_complete(self, updates: dict[str, Any], event: EventResourceModel, mark_complete_validated: bool):
         assert event.dates is not None
@@ -567,7 +561,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                     },
                 )
 
-    async def _convert_to_recurring_event(self, updates: dict[str, Any], original: EventResourceModel):
+    async def _convert_to_recurring_events(self, updates: dict[str, Any], original: EventResourceModel):
         """Convert a single event to a series of recurring events"""
 
         self._validate_convert_to_recurring(updates, original)
@@ -610,8 +604,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         # Create the new events and generate their history
         await self.create(generated_events)
-        app = get_current_app().as_any()
-        app.on_inserted_events(generated_events)
+        await signals.events_created.send(generated_events)
 
         return generated_events
 
@@ -653,14 +646,14 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             setattr(event, field, None)
 
     def _generate_recurring_events(
-        self, event: EventResourceModel, recurrence_id: int | None = None
+        self, event: EventResourceModel, recurrence_id: str | None = None
     ) -> list[EventResourceModel]:
         """
         Generate recurring events based on the recurrence rules of the given event.
 
         Args:
             event (EventResourceModel): The original event used as a template for recurrence.
-            recurrence_id (int, optional): The ID of the recurrence group. Defaults to None.
+            recurrence_id (str, optional): The ID of the recurrence group. Defaults to None.
 
         Returns:
             list[EventResourceModel]: A list of newly generated recurring events.
@@ -686,7 +679,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         # for all the dates based on the recurring rules
         # set a limit to prevent too many events to be created
-        for date in itertools.islice(recurring_dates, 0, max_recurring_events):
+        recurring_dates_iter = itertools.islice(recurring_dates, 0, max_recurring_events)
+        for i, date in enumerate(recurring_dates_iter):
             # prepare data for new recurring event
             new_id = generate_guid(type=GUID_NEWSML)
             recurring_event_updates = {"dates": dict(start=date, end=(date + time_delta)), "guid": new_id, "id": new_id}
@@ -712,6 +706,11 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             # let's finally clone the original event & update it with recurring event data
             new_event = event.model_copy(update=recurring_event_updates, deep=True)
 
+            # reset embedded_planning to all Events but the first one, as this auto-generates
+            # associated Planning item with Coverages to the event
+            if i > 0:
+                new_event.embedded_planning = []
+
             # set expiry date
             self._overwrite_event_expiry_date(new_event)
             self._set_planning_schedule(new_event)
@@ -721,18 +720,15 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         return generated_events
 
     @staticmethod
-    def _link_to_planning(event: EventResourceModel):
+    async def _link_to_planning(event: EventResourceModel):
         """
         Links an Event to an existing Planning Item
 
         The Planning item remains locked, it is up to the client to release this lock
         after this operation is complete
         """
-        # TODO-ASYNC: replace when planning service is async
-        planning_service = get_resource_service("planning")
-        plan_id = event.planning_item
-
-        planning_item = planning_service.find_one(req=None, _id=plan_id)
+        planning_service = PlanningAsyncService()
+        planning_item = await planning_service.find_by_id(event.planning_item)
 
         if not planning_item:
             raise SuperdeskApiError.badRequestError("Planning item not found")
@@ -754,8 +750,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             if not planning_item.get("recurrence_id") and link_type == "primary":
                 updates["recurrence_id"] = event.recurrence_id
 
-        planning_service.validate_on_update(updates, planning_item, get_user())
-        planning_service.system_update(plan_id, updates, planning_item)
+        # TODO-ASYNC: migrate `validate_on_update` method to async
+        # planning_service.validate_on_update(updates, planning_item, get_user())
+        await planning_service.system_update(event.planning_item, updates)
 
-        app = get_current_app().as_any()
-        app.on_updated_planning(updates, planning_item)
+        await signals.planning_update.send(updates, planning_item)
