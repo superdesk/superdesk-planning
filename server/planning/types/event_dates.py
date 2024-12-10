@@ -14,7 +14,7 @@ RepeatModeType: TypeAlias = Literal["count", "until"]
 class RecurringRule(Dataclass):
     frequency: str | None = None
     interval: int | None = None
-    end_repeat_mode: RepeatModeType | None = Field(default=None, alias="endRepeatMode")
+    end_repeat_mode: RepeatModeType | None = Field(default=None, validation_alias="endRepeatMode")
     until: datetime | None = None
     count: int | None = None
     bymonth: str | None = None

@@ -20,6 +20,7 @@ import arrow
 import pytz
 
 from superdesk.core import json, get_app_config
+from superdesk.core.utils import str_to_date as superdesk_str_to_date
 from superdesk.core.resources.service import AsyncResourceService
 from superdesk.resource_fields import ID_FIELD
 from planning import types
@@ -250,3 +251,26 @@ def update_event_item_with_translations_value(event_item: Dict[str, Any], langua
             updated_event_item[translation["field"]] = translation["value"]
 
     return updated_event_item
+
+
+def str_to_date(date_string: str, fallback_format: str = "%Y-%m-%dT%H:%M:%S+00:00") -> datetime | None:
+    """
+    Converts a date string to a datetime object using a default format from settings,
+    otherwise it uses a fallback format in case of an error.
+
+    :param date_string: The date string to convert.
+    :param fallback_format: The fallback format. Default: "%Y-%m-%dT%H:%M:%S+00:00"
+    :return: A datetime object or None
+    """
+    try:
+        return superdesk_str_to_date(date_string)
+    except ValueError:
+        try:
+            return datetime.strptime(date_string, fallback_format)
+        except ValueError:
+            pass
+
+    default_format = get_app_config("DATE_FORMAT")
+    raise ValueError(
+        f"Date string '{date_string}' doesn't match any of the formats (`{default_format}` or `{fallback_format}`)."
+    )

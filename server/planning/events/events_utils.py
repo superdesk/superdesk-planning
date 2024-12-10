@@ -46,6 +46,7 @@ def generate_recurring_dates(
     count: int = 5,
     tz: pytz.BaseTzInfo | None = None,
     date_only: bool = False,
+    **_,
 ) -> Generator[datetime | date, None, None]:
     """
 

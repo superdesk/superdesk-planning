@@ -11,6 +11,8 @@
 from copy import deepcopy
 import logging
 
+from planning.types.event import EventResourceModel
+
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource
 from planning.utils import get_related_planning_for_events
@@ -37,6 +39,9 @@ class EventsHistoryService(HistoryService):
         created_from_planning = []
         regular_events = []
         for item in items:
+            if isinstance(item, EventResourceModel):
+                item = item.to_dict()
+
             planning_items = get_related_planning_for_events([item[ID_FIELD]], "primary")
             if len(planning_items) > 0:
                 item["created_from_planning"] = planning_items[0].get("_id")

@@ -1,3 +1,5 @@
+from copy import deepcopy
+from typing_extensions import Self
 from pydantic import Field
 from datetime import datetime
 from typing import Annotated, Any
@@ -272,3 +274,21 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
 
     related_items: list[RelatedItem] = Field(default_factory=list)
     failed_planned_ids: list[str] = Field(default_factory=list)
+
+    def clone_with(self, updates: dict[str, Any]) -> Self:
+        """
+        Deeply clones the instance and applies updates with proper validation.
+
+        Addresses limitations of Pydantic's `model_copy`, which doesn't handle
+        nested data classes or validate updates the given updates.
+
+        Args:
+            updates (dict[str, Any]): Attributes to update in the cloned instance.
+
+        Returns:
+            Self: A new instance with the applied updates.
+        """
+
+        cloned_data = deepcopy(self.to_dict())
+        cloned_data.update(updates)
+        return self.from_dict(cloned_data)

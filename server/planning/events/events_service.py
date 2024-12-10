@@ -115,6 +115,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         """
 
         docs = await self._convert_dicts_to_model(docs)
+        print(docs)
         ids = await super().create(docs)
 
         embedded_planning_lists: list[tuple[EventResourceModel, list[EmbeddedPlanning]]] = []
@@ -463,7 +464,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         """
 
         if post_required(updates, original.to_dict()):
-            merged: EventResourceModel = original.model_copy(updates, deep=True)
+            merged: EventResourceModel = original.clone_with(updates)
 
             # TODO-ASYNC: replace when `event_post` is async
             get_resource_service("events_post").validate_item(merged.to_dict())
@@ -616,7 +617,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         self._validate_convert_to_recurring(updates, original)
         updates["recurrence_id"] = original.id
 
-        merged: EventResourceModel = original.model_copy(updates, deep=True)
+        merged = original.clone_with(updates)
 
         # Generated new events will be "draft"
         merged.state = WorkflowState.DRAFT
@@ -753,7 +754,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 recurring_event_updates[field] = None
 
             # let's finally clone the original event & update it with recurring event data
-            new_event = event.model_copy(update=recurring_event_updates, deep=True)
+            new_event = event.clone_with(recurring_event_updates)
 
             # reset embedded_planning to all Events but the first one, as this auto-generates
             # associated Planning item with Coverages to the event

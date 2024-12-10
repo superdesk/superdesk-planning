@@ -8,18 +8,18 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Dict, Optional, List, cast
-from copy import deepcopy
 
 import pytz
-from eve.utils import str_to_date
+from copy import deepcopy
+from typing import Dict, Optional, List, cast
 
 from superdesk import get_resource_service
 
-from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
-from planning.common import get_config_event_fields_to_sync_with_planning
-from planning.content_profiles.utils import AllContentProfileData
+from planning.utils import str_to_date
 from planning.utils import get_related_planning_for_events
+from planning.content_profiles.utils import AllContentProfileData
+from planning.common import get_config_event_fields_to_sync_with_planning
+from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
 from planning.types.event import EmbeddedPlanning as EmbeddedPlanningModel, EventResourceModel
 
 from .common import VocabsSyncData, SyncItemData, SyncData
@@ -64,6 +64,7 @@ def sync_event_metadata_with_planning_items(
 
     if isinstance(event_updated["dates"]["start"], str):
         event_updated["dates"]["start"] = str_to_date(event_updated["dates"]["start"])
+
     if event_updated["dates"]["start"].tzinfo is None:
         event_updated["dates"]["start"] = event_updated["dates"]["start"].replace(tzinfo=pytz.utc)
 

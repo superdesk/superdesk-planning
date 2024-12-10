@@ -17,3 +17,15 @@ class TestCase(BaseTestCase):
         user = {"_id": ObjectId()}
         self.app.data.insert("users", [user])
         g.user = user
+
+    async def setUp(self):
+        """
+        Set up the test case by entering the application's asynchronous context.
+        This ensures all tests run within the same app context, avoiding repetitive
+        boilerplate and allowing automatic resource cleanup, even if a test fails.
+
+        Using `enterAsyncContext` ensures the app context (`self.app.app_context()`)
+        is properly exited after each test.
+        """
+
+        self.ctx = await self.enterAsyncContext(self.app.app_context())

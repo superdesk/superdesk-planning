@@ -8,22 +8,22 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from datetime import datetime, timedelta
-from copy import deepcopy
-
-from bson import ObjectId
-from pytest import mark
 import pytz
+from pytest import mark
+from copy import deepcopy
+from bson import ObjectId
 from mock import Mock, patch
+from datetime import datetime, timedelta
 
-from superdesk import get_resource_service
 from superdesk.utc import utcnow
+from superdesk import get_resource_service
 
 from planning.tests import TestCase
 from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
+from planning.events import EventsAsyncService
 
 
 class EventTestCase(TestCase):
@@ -37,7 +37,7 @@ class EventTestCase(TestCase):
                     byday="TH FR",
                     interval=2,
                     until=datetime(2016, 2, 1),
-                    endRepeatMode="until",
+                    end_repeat_mode="until",
                 )
             ),
             [
@@ -56,7 +56,7 @@ class EventTestCase(TestCase):
                     frequency="WEEKLY",
                     byday="MO TU WE TH FR",
                     count=2,
-                    endRepeatMode="count",
+                    end_repeat_mode="count",
                 )
             ),
             [
@@ -80,7 +80,7 @@ class EventTestCase(TestCase):
                     frequency="YEARLY",
                     interval=4,
                     count=4,
-                    endRepeatMode="count",
+                    end_repeat_mode="count",
                 )
             ),
             [
@@ -94,7 +94,7 @@ class EventTestCase(TestCase):
         my_birthdays = generate_recurring_dates(
             start=datetime(1989, 12, 13),
             frequency="YEARLY",
-            endRepeatMode="count",
+            end_repeat_mode="count",
             count=200,
         )
         self.assertTrue(datetime(1989, 12, 13) in my_birthdays)
@@ -108,7 +108,7 @@ class EventTestCase(TestCase):
                     frequency="WEEKLY",
                     byday="FR",
                     count=3,
-                    endRepeatMode="count",
+                    end_repeat_mode="count",
                     tz=pytz.timezone("Europe/Berlin"),
                 )
             ),
@@ -233,95 +233,93 @@ class EventPlanningSchedule(TestCase):
             )
 
     async def test_planning_schedule_for_recurring_event(self):
-        async with self.app.app_context():
-            service = get_resource_service("events")
-            event = {
-                "name": "Friday Club",
-                "dates": {
-                    "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                    "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                    "tz": "Australia/Sydney",
-                    "recurring_rule": {
-                        "frequency": "DAILY",
-                        "interval": 1,
-                        "count": 3,
-                        "endRepeatMode": "count",
-                    },
+        service = get_resource_service("events")
+        event = {
+            "name": "Friday Club",
+            "dates": {
+                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "end_repeat_mode": "count",
                 },
-            }
+            },
+        }
 
-            service.post([event])
-            events = list(service.get(req=None, lookup=None))
-            self.assertPlanningSchedule(events, 3)
+        service.post([event])
+        events = list(service.get(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 3)
 
     async def test_planning_schedule_reschedule_event(self):
-        async with self.app.app_context():
-            service = get_resource_service("events")
-            event = {
-                "name": "Friday Club",
-                "dates": {
-                    "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                    "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                    "tz": "Australia/Sydney",
-                    "recurring_rule": {
-                        "frequency": "DAILY",
-                        "interval": 1,
-                        "count": 3,
-                        "endRepeatMode": "count",
-                    },
+        service = get_resource_service("events")
+        event = {
+            "name": "Friday Club",
+            "dates": {
+                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "end_repeat_mode": "count",
                 },
-            }
+            },
+        }
 
-            # create recurring events
-            service.post([event])
-            events = list(service.get(req=None, lookup=None))
-            self.assertPlanningSchedule(events, 3)
+        # create recurring events
+        service.post([event])
+        events = list(service.get(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 3)
 
-            # reschedule recurring event before posting
-            schedule = deepcopy(events[0].get("dates"))
-            schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
-            schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
+        # reschedule recurring event before posting
+        schedule = deepcopy(events[0].get("dates"))
+        schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
+        schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
 
-            reschedule = get_resource_service("events_reschedule")
-            reschedule.REQUIRE_LOCK = False
-            # mocking function
-            is_original_event_func = reschedule.is_original_event
-            reschedule.is_original_event = Mock(return_value=False)
+        reschedule = get_resource_service("events_reschedule")
+        reschedule.REQUIRE_LOCK = False
+        # mocking function
+        is_original_event_func = reschedule.is_original_event
+        reschedule.is_original_event = Mock(return_value=False)
 
-            res = reschedule.patch(events[0].get("_id"), {"dates": schedule})
-            self.assertEqual(res.get("dates").get("start"), schedule["start"])
+        res = reschedule.patch(events[0].get("_id"), {"dates": schedule})
+        self.assertEqual(res.get("dates").get("start"), schedule["start"])
 
-            events = list(service.get(req=None, lookup=None))
-            self.assertPlanningSchedule(events, 3)
+        events = list(service.get(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 3)
 
-            # post recurring events
-            get_resource_service("events_post").post(
-                [
-                    {
-                        "event": events[0].get("_id"),
-                        "etag": events[0].get("etag"),
-                        "pubstatus": "usable",
-                        "update_method": "all",
-                        "failed_planning_ids": [],
-                    }
-                ]
-            )
+        # post recurring events
+        get_resource_service("events_post").post(
+            [
+                {
+                    "event": events[0].get("_id"),
+                    "etag": events[0].get("etag"),
+                    "pubstatus": "usable",
+                    "update_method": "all",
+                    "failed_planning_ids": [],
+                }
+            ]
+        )
 
-            # reschedule posted recurring event
-            schedule = deepcopy(events[0].get("dates"))
-            schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
-            schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
+        # reschedule posted recurring event
+        schedule = deepcopy(events[0].get("dates"))
+        schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
+        schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
 
-            res = reschedule.patch(events[0].get("_id"), {"dates": schedule})
-            rescheduled_event = service.find_one(req=None, _id=events[0].get("_id"))
-            self.assertNotEqual(rescheduled_event.get("dates").get("start"), schedule["start"])
+        res = reschedule.patch(events[0].get("_id"), {"dates": schedule})
+        rescheduled_event = service.find_one(req=None, _id=events[0].get("_id"))
+        self.assertNotEqual(rescheduled_event.get("dates").get("start"), schedule["start"])
 
-            events = list(service.get(req=None, lookup=None))
-            self.assertPlanningSchedule(events, 4)
+        events = list(service.get(req=None, lookup=None))
+        self.assertPlanningSchedule(events, 4)
 
-            # reset mocked function
-            reschedule.is_original_event = is_original_event_func
-            reschedule.REQUIRE_LOCK = True
+        # reset mocked function
+        reschedule.is_original_event = is_original_event_func
+        reschedule.REQUIRE_LOCK = True
 
     async def test_planning_schedule_update_time(self):
         async with self.app.app_context():
@@ -336,7 +334,7 @@ class EventPlanningSchedule(TestCase):
                         "frequency": "DAILY",
                         "interval": 1,
                         "count": 3,
-                        "endRepeatMode": "count",
+                        "end_repeat_mode": "count",
                     },
                 },
             }
@@ -388,7 +386,7 @@ class EventPlanningSchedule(TestCase):
                         "frequency": "DAILY",
                         "interval": 1,
                         "count": 3,
-                        "endRepeatMode": "count",
+                        "end_repeat_mode": "count",
                     },
                 },
             }
@@ -416,37 +414,41 @@ class EventPlanningSchedule(TestCase):
 
     @patch("planning.events.events.get_user")
     async def test_planning_schedule_convert_to_recurring(self, get_user_mock):
-        async with self.app.app_context():
-            service = get_resource_service("events")
-            get_user_mock.return_value = {"_id": "None"}
-            event = {
-                "name": "Friday Club",
-                "dates": {
-                    "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
-                    "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
-                    "tz": "Australia/Sydney",
-                },
-            }
+        service = EventsAsyncService()
+        get_user_mock.return_value = {"_id": "None"}
+        event = {
+            "name": "Friday Club",
+            "dates": {
+                "start": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
+                "end": datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC),
+                "tz": "Australia/Sydney",
+            },
+        }
 
-            service.post([event])
-            events = list(service.get_from_mongo(req=None, lookup=None))
-            self.assertPlanningSchedule(events, 1)
-            lock_service = LockService(self.app)
-            locked_event = lock_service.lock(events[0], None, ObjectId(), "convert_recurring", "events")
-            self.assertEqual(locked_event.get("lock_action"), "convert_recurring")
-            schedule = deepcopy(events[0].get("dates"))
-            schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC)
-            schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC)
-            schedule["recurring_rule"] = {
-                "frequency": "DAILY",
-                "interval": 1,
-                "count": 3,
-                "endRepeatMode": "count",
-            }
+        await service.create([event])
+        events_cursor = await service.find({})
+        events = await events_cursor.to_list_raw()
+        self.assertPlanningSchedule(events, 1)
 
-            service.patch(events[0].get("_id"), {"_id": events[0].get("_id"), "dates": schedule})
-            events = list(service.get(req=None, lookup=None))
-            self.assertPlanningSchedule(events, 3)
+        # TODO-ASYNC: adjust when `LockService` is async as it uses `get_resource_service` dynamically
+        lock_service = LockService(self.app)
+        locked_event = lock_service.lock(events[0], None, ObjectId(), "convert_recurring", "events")
+        self.assertEqual(locked_event.get("lock_action"), "convert_recurring")
+
+        schedule = deepcopy(events[0].get("dates"))
+        schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC)
+        schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC)
+        schedule["recurring_rule"] = {
+            "frequency": "DAILY",
+            "interval": 1,
+            "count": 3,
+            "end_repeat_mode": "count",
+        }
+
+        await service.update(events[0].get("_id"), {"dates": schedule})
+        events_cursor = await service.find({})
+        events = await events_cursor.to_list_raw()
+        self.assertPlanningSchedule(events, 3)
 
 
 def generate_recurring_events(num_events):
