@@ -18,7 +18,12 @@ Feature: Event Embedded Planning
                 "coverages": [{
                     "g2_content_type": "text",
                     "news_coverage_status": "ncostat:int",
-                    "scheduled": "2029-11-21T15:00:00.000Z"
+                    "scheduled": "2029-11-21T15:00:00.000Z",
+                    "coverage_provider": {
+                        "name":"Stringer",
+                        "qcode":"stringer",
+                        "contact_type":"stringer"
+                    }
                 }]
             }]
         }]
@@ -53,6 +58,13 @@ Feature: Event Embedded Planning
                 "original_creator": "#CONTEXT_USER_ID#",
                 "version_creator": "#CONTEXT_USER_ID#",
                 "workflow_status": "draft",
+                "assigned_to": {
+                    "coverage_provider": {
+                        "name":"Stringer",
+                        "qcode":"stringer",
+                        "contact_type":"stringer"
+                    }
+                },
                 "news_coverage_status": {"qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
                 "planning": {
                     "g2_content_type": "text",
