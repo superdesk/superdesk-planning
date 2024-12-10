@@ -17,6 +17,8 @@ export const getCustomVocabularyFields = () => {
         const allVocabularies = superdeskApi.entities.vocabulary.getAll();
 
         for (const id of customVocabularyIds) {
+            const vocabulary = allVocabularies.get(id);
+
             result.push({
                 fieldId: getCustomVocabulariesId(id),
                 getField: ({required, id: _id}) => {
@@ -29,7 +31,7 @@ export const getCustomVocabularyFields = () => {
 
                     const field: IAuthoringFieldV2 = {
                         id: _id,
-                        name: id,
+                        name: vocabulary.display_name,
                         fieldType: 'dropdown',
                         fieldConfig: fieldConfig,
                     };
