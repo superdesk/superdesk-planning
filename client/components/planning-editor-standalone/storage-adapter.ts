@@ -7,31 +7,17 @@ import {
     ISubject,
 } from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
-import {getFieldDefinitions, SUBJECT_PREFIX_ID} from './profile';
+import {getFieldDefinitions} from './profile';
+import {SUBJECT_PREFIX_ID} from './field-adapters/custom-vocabularies';
 
 export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
     storeValue: (value, fieldId, item, config, fieldType) => {
         const {computeEditor3Output} = superdeskApi.helpers;
-
         const fieldDefinitions = getFieldDefinitions();
         const fieldStorageAdapter = fieldDefinitions[fieldId]?.storageAdapter;
 
-        if (fieldId.includes(SUBJECT_PREFIX_ID)) {
-            const computedValue = fieldStorageAdapter.storeValue({
-                existing: item.subject,
-                fieldId: fieldId,
-                value: value,
-            }) as Array<ISubject>;
-
-            return {
-                ...item,
-                subject: computedValue,
-            };
-        } else if (fieldStorageAdapter != null) {
-            return {
-                ...item,
-                [fieldId]: fieldStorageAdapter.storeValue(value),
-            };
+        if (fieldStorageAdapter != null) {
+            return fieldStorageAdapter.storeValue(item, value);
         } else if (fieldType === 'editor3') {
             const editor3Config = config as IEditor3Config;
             const rawState = (value as IEditor3ValueStorage).rawContentState;
@@ -60,7 +46,7 @@ export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
         const fieldDefinitions = getFieldDefinitions();
         const fieldStorageAdapter = fieldDefinitions[fieldId]?.storageAdapter;
 
-        if (fieldId.includes(SUBJECT_PREFIX_ID)) {
+        if (fieldId.startsWith(SUBJECT_PREFIX_ID)) {
             return fieldStorageAdapter.retrieveStoredValue({fieldId: fieldId, subject: item.subject});
         } else if (fieldStorageAdapter != null) {
             return fieldStorageAdapter.retrieveStoredValue(value);
