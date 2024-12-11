@@ -4,11 +4,9 @@ import {
     IEditor3Config,
     IEditor3ValueStorage,
     IStorageAdapter,
-    ISubject,
 } from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {getFieldDefinitions} from './profile';
-import {SUBJECT_PREFIX_ID} from './field-adapters/custom-vocabularies';
 
 export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
     storeValue: (value, fieldId, item, config, fieldType) => {
@@ -42,14 +40,12 @@ export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
 
     retrieveStoredValue: (item, fieldId, fieldType) => {
         const {getContentStateFromHtml} = superdeskApi.helpers;
-        const value = (item as {[key: string]: any})[fieldId] ?? undefined;
         const fieldDefinitions = getFieldDefinitions();
+        const value = (item as {[key: string]: any})[fieldId] ?? undefined;
         const fieldStorageAdapter = fieldDefinitions[fieldId]?.storageAdapter;
 
-        if (fieldId.startsWith(SUBJECT_PREFIX_ID)) {
-            return fieldStorageAdapter.retrieveStoredValue({fieldId: fieldId, subject: item.subject});
-        } else if (fieldStorageAdapter != null) {
-            return fieldStorageAdapter.retrieveStoredValue(value);
+        if (fieldStorageAdapter != null) {
+            return fieldStorageAdapter.retrieveStoredValue(item, fieldId);
         } else if (fieldType === 'editor3') {
             const returnValue: IEditor3ValueStorage
                 = {rawContentState: convertToRaw(getContentStateFromHtml(value ?? ''))};

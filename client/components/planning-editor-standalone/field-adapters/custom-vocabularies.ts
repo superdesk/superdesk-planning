@@ -1,16 +1,12 @@
-import {IProfileSchemaTypeList} from 'interfaces';
 import {IDropdownConfigVocabulary, IAuthoringFieldV2, ISubject, IVocabularyItem} from 'superdesk-api';
-import {planningApi, superdeskApi} from 'superdeskApi';
+import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from '../profile';
-
-export const SUBJECT_PREFIX_ID = 'subject--';
-const getCustomVocabulariesId = (vocabularyId: string) => `${SUBJECT_PREFIX_ID}${vocabularyId}`;
-const getStrippedCustomVocabularyId = (customVocabularyId: string) => customVocabularyId.replace(SUBJECT_PREFIX_ID, '');
+import {getProfileFieldsConverted} from '../profile-converter';
 
 export const getCustomVocabularyFields = () => {
-    const planningProfile = planningApi.contentProfiles.get('planning');
-    const customVocabularyIds =
-        (planningProfile.schema?.['custom_vocabularies'] as IProfileSchemaTypeList)?.vocabularies;
+    const customVocabularyIds = getProfileFieldsConverted()
+        .filter((x) => x.type === 'custom_vocabulary')
+        .map(({vocabularyId}) => vocabularyId);
     const result: Array<IFieldDefinition> = [];
 
     if ((customVocabularyIds?.length ?? 0) > 0) {
@@ -20,7 +16,7 @@ export const getCustomVocabularyFields = () => {
             const vocabulary = allVocabularies.get(id);
 
             result.push({
-                fieldId: getCustomVocabulariesId(id),
+                fieldId: id,
                 getField: ({required, id: _id}) => {
                     const fieldConfig: IDropdownConfigVocabulary = {
                         source: 'vocabulary',
@@ -39,15 +35,9 @@ export const getCustomVocabularyFields = () => {
                     return field;
                 },
                 storageAdapter: {
-                    storeValue: (item, operationalValue: {
-                        existing: Array<ISubject>;
-                        fieldId: string;
-                        value?: Array<IVocabularyItem['qcode']>;
-                    }) => {
-                        const {existing = [], fieldId, value = []} = operationalValue;
-                        const strippedId = getStrippedCustomVocabularyId(fieldId);
-                        const vocabulary = allVocabularies.get(strippedId);
-                        const vocabItems = vocabulary.items.filter((x) => value?.includes(x.qcode)) ?? [];
+                    storeValue: (item, operationalValue: IVocabularyItem['qcode']) => {
+                        const vocabulary = allVocabularies.get(id);
+                        const vocabItems = vocabulary.items.filter((x) => operationalValue?.includes(x.qcode)) ?? [];
 
                         // Subfield values
                         const itemsToSubject: Array<ISubject> = vocabItems.map((x) => ({
@@ -57,7 +47,7 @@ export const getCustomVocabularyFields = () => {
                         }));
 
                         // Remove values that don't match the "subfield" ID, so there's no item duplication
-                        const restOfValues = existing.filter((x) => x.scheme !== strippedId);
+                        const restOfValues = item.subject.filter((x) => x.scheme !== id);
 
                         return {
                             ...item,
@@ -67,11 +57,8 @@ export const getCustomVocabularyFields = () => {
                             ],
                         };
                     },
-                    retrieveStoredValue: (storageValue: {fieldId: string; subject: Array<ISubject>;}) => {
-                        const {fieldId, subject = []} = storageValue;
-                        const strippedId = getStrippedCustomVocabularyId(fieldId);
-
-                        return subject.filter((x) => x.scheme === strippedId).map((x) => x.qcode);
+                    retrieveStoredValue: (item) => {
+                        return (item.subject ?? []).filter((x) => x.scheme === id).map((x) => x.qcode);
                     },
                 }
             });

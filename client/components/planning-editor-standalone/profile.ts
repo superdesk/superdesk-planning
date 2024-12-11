@@ -7,16 +7,15 @@ import {
     IDateTimeFieldConfig,
     IDropdownConfigVocabulary,
     IEditor3Config,
-    ISubject,
     IVocabularyItem,
 } from 'superdesk-api';
-import {planningApi, superdeskApi} from '../../superdeskApi';
-import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
+import {superdeskApi} from '../../superdeskApi';
 import {
     IAttachmentsFieldConfig,
 } from '../../planning-extension/src/authoring-react-fields/planning-attachments/interfaces';
-import {IProfileSchemaTypeList} from 'interfaces';
 import {getCustomVocabularyFields} from './field-adapters/custom-vocabularies';
+import {getProfileFieldsConverted} from './profile-converter';
+import {IEventOrPlanningItem} from 'interfaces';
 
 function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const editor3ConfigWithoutFormatting: IEditor3Config = {
@@ -65,13 +64,13 @@ export interface IFieldDefinition {
     fieldId: string;
     getField: (options: {required: boolean, id: string}) => IAuthoringFieldV2;
     storageAdapter?: {
-        storeValue: <T>(item, operationalValue) => T; // returns stored value
-        retrieveStoredValue: (storageValue) => unknown; // returns operational value
+        storeValue: <T extends IEventOrPlanningItem>(item, operationalValue) => T; // returns stored value
+        retrieveStoredValue:
+            <T extends IEventOrPlanningItem>(item: T, fieldId: string) => unknown; // returns operational value
     };
 }
 
 type IFieldDefinitions = {[fieldId: string]: IFieldDefinition};
-
 
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
@@ -155,7 +154,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
                         place: operationalValue.map((qcode) => vocabularyItems.get(qcode)),
                     };
                 },
-                retrieveStoredValue: (storageValue: Array<IVocabularyItem>) => storageValue.map(({qcode}) => qcode),
+                retrieveStoredValue: (item, fieldId) => item[fieldId].map(({qcode}) => qcode),
             },
         },
         {
@@ -191,10 +190,9 @@ export function getFieldDefinitions(): IFieldDefinitions {
 }
 
 export function getProfile() {
-    const planningProfile = planningApi.contentProfiles.get('planning');
-    const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
-    const planningFieldIds = Object.values(planningGroups).flatMap(({fields}) => fields);
-
+    const planningFieldIds = getProfileFieldsConverted();
+    const skipped = new Set<string>();
+    const fieldDefinitions = getFieldDefinitions();
     const profileV2: IContentProfileV2 = {
         id: 'not-used',
         name: 'not-used',
@@ -202,24 +200,8 @@ export function getProfile() {
         header: OrderedMap(),
     };
 
-    const skipped = new Set<string>();
-    const fieldDefinitions = getFieldDefinitions();
-    const customVocabularyIds =
-        (planningProfile.schema?.['custom_vocabularies'] as IProfileSchemaTypeList)?.vocabularies;
-
-    for (const fieldId of planningFieldIds) {
-        const required = planningProfile.schema?.[fieldId]?.required ?? false;
-
-        if (fieldId === 'custom_vocabularies') {
-            for (const id of customVocabularyIds) {
-                const customVocabFieldId = getCustomVocabulariesId(id);
-
-                profileV2.header = profileV2.header.set(
-                    customVocabFieldId,
-                    fieldDefinitions[customVocabFieldId].getField({id: customVocabFieldId, required: required}),
-                );
-            }
-        } else if (fieldDefinitions[fieldId] != null) {
+    for (const {fieldId, required} of planningFieldIds) {
+        if (fieldDefinitions[fieldId] != null) {
             profileV2.header = profileV2.header.set(
                 fieldId,
                 fieldDefinitions[fieldId].getField({id: fieldId, required: required}),
