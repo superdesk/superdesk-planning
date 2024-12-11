@@ -567,42 +567,6 @@ const addNewCoverageToPlanning = (coverageType, item) => (
     })))
 );
 
-const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel,
-    scheduledUpdate, scheduledUpdateIndex) => (
-    (dispatch, getState) =>
-        dispatch(showModal({
-            modalType: MODALS.ITEM_ACTIONS_MODAL,
-            modalProps: {
-                original: planning,
-                actionType: COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.actionName,
-                coverage: coverage,
-                index: index,
-                onSubmit: onSubmit,
-                onCancel: onCancel,
-                scheduledUpdate: scheduledUpdate,
-                scheduledUpdateIndex: scheduledUpdateIndex,
-            },
-        }))
-);
-
-const cancelCoverage = (original, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) => (
-    (dispatch, getState, {notify}) => {
-        let updates = {coverages: cloneDeep(original.coverages)};
-
-        if (!scheduledUpdate) {
-            updates.coverages[index] = cloneDeep(updatedCoverage);
-        } else {
-            updates.coverages[index].scheduled_updates[scheduledUpdateIndex] = cloneDeep(scheduledUpdate);
-        }
-
-        return dispatch(planningApis.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Coverage cancelled.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
 // eslint-disable-next-line consistent-this
 const self = {
     spike,
@@ -633,8 +597,6 @@ const self = {
     openFeaturedPlanningModal,
     updateItemOnSave,
     addNewCoverageToPlanning,
-    openCancelCoverageModal,
-    cancelCoverage,
     addScheduledUpdateToWorkflow,
 };
 

@@ -22,14 +22,22 @@ import {CoverageFormHeader} from './CoverageFormHeader';
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
-import {COVERAGES} from '../../../constants';
 import {getRelatedEventIdsForPlanning} from '../../../utils/planning';
 import {planningApi} from '../../../superdeskApi';
+import {planningApis} from '../../../api';
 
 interface IProps {
     testId?: string;
     field: string;
     value: IPlanningCoverageItem;
+
+    /**
+     * List of coverages that current coverage (`IProps['value']`) is a part of.
+     * It is needed, because `IProps['onChange']` requires to pass all coverages
+     * even if only a single one is being modified.
+     */
+    coverages: Array<IPlanningCoverageItem>;
+
     users: Array<IUser>;
     desks: Array<IDesk>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
@@ -56,7 +64,6 @@ interface IProps {
 
     onChange(field: string, value: any): void;
     remove(): void;
-    onCancelCoverage?(): void;
     onAddCoverageToWorkflow?(): void;
     onRemoveAssignment?(coverage: IPlanningCoverageItem): void;
     popupContainer(): void;
@@ -124,7 +131,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             coverageProviders,
             priorities,
             keywords,
-            onCancelCoverage,
             onAddCoverageToWorkflow,
             onRemoveAssignment,
             readOnly,
@@ -154,7 +160,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                     icon: 'icon-copy',
                     callback: () => {
                         this.props.onChange(
-                            'coverages',
+                            field,
                             duplicateCoverage({
                                 planning: diff,
                                 coverage: value,
@@ -177,7 +183,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                             ),
                             callback: () => {
                                 this.props.onChange(
-                                    'coverages',
+                                    field,
                                     duplicateCoverage({
                                         planning: diff,
                                         coverage: value,
@@ -189,10 +195,16 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                 },
             ];
 
-            if (onCancelCoverage != null && planningUtils.canCancelCoverage(value, diff)) {
+            if (planningUtils.canCancelCoverage(value, diff)) {
                 itemActions.push({
-                    ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
-                    callback: onCancelCoverage.bind(null, value, index),
+                    label: gettext('Cancel coverage'),
+                    icon: 'icon-close-small',
+                    callback: () => {
+                        planningApis.coverages.cancelCoverage(this.props.coverages, value)
+                            .then((nextCoverages) => {
+                                this.props.onChange(field, nextCoverages);
+                            });
+                    },
                 });
             }
 
@@ -289,7 +301,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                 desks={desks}
                 coverageProviders={coverageProviders}
                 priorities={priorities}
-                onCancelCoverage={onCancelCoverage}
                 includeScheduledUpdates={includeScheduledUpdates}
                 {...props}
             />

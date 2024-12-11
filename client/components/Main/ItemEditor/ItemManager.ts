@@ -61,8 +61,6 @@ export class ItemManager {
         this.addCoverageToWorkflow = this.addCoverageToWorkflow.bind(this);
         this.addScheduledUpdateToWorkflow = this.addScheduledUpdateToWorkflow.bind(this);
         this.removeAssignment = this.removeAssignment.bind(this);
-        this.cancelCoverage = this.cancelCoverage.bind(this);
-        this.finaliseCancelCoverage = this.finaliseCancelCoverage.bind(this);
         this.setStateForPartialSave = this.setStateForPartialSave.bind(this);
 
         this.editorApi = planningApi.editor(this.props.inModalView ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE);
@@ -897,18 +895,6 @@ export class ItemManager {
     removeAssignment(planning, coverage, index) {
         return this.dispatch<any>(actions.planning.ui.removeAssignment(planning, coverage, index))
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
-    }
-
-    cancelCoverage(planning, coverage, index, scheduledUpdate, scheduledUpdateIndex) {
-        return this.dispatch<any>(actions.planning.ui.openCancelCoverageModal(planning,
-            coverage, index, this.finaliseCancelCoverage, this.setStateForPartialSave,
-            scheduledUpdate, scheduledUpdateIndex));
-    }
-
-    finaliseCancelCoverage(planning, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) {
-        return this.dispatch<any>(actions.planning.ui.cancelCoverage(planning, updatedCoverage, index,
-            scheduledUpdate, scheduledUpdateIndex)).then((updates) =>
-            this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     getCoverageAfterPartialSave(updates, index) {

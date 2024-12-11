@@ -33,12 +33,6 @@ interface IProps extends IEditorFieldProps {
     onPopupClose?(): void;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number,
-    ): void;
     onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number): void;
     onAddScheduledUpdateToWorkflow(
         coverage: IPlanningCoverageItem,

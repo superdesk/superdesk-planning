@@ -118,7 +118,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         this.onCoverageChange = this.onCoverageChange.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
-        this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
         this.onAddScheduledUpdateToWorkflow = this.onAddScheduledUpdateToWorkflow.bind(this);
         this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
@@ -336,21 +335,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ) {
-        this.onPartialSave(
-            coverage,
-            index,
-            COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE,
-            scheduledUpdate,
-            scheduledUpdateIndex
-        );
-    }
-
     onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number) {
         this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW);
     }
@@ -415,8 +399,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
             partialSaveAction = this.props.itemManager.addCoverageToWorkflow;
         } else if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
             partialSaveAction = this.props.itemManager.removeAssignment;
-        } else if (action == COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE) {
-            partialSaveAction = this.props.itemManager.cancelCoverage;
         } else if (action == COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW) {
             partialSaveAction = this.props.itemManager.addScheduledUpdateToWorkflow;
         }
@@ -507,7 +489,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
-                        onCancelCoverage: this.onCancelCoverage,
                         onAddCoverageToWorkflow: this.onAddCoverageToWorkflow,
                         onAddScheduledUpdateToWorkflow: this.onAddScheduledUpdateToWorkflow,
                         onRemoveAssignment: this.onRemoveAssignment,

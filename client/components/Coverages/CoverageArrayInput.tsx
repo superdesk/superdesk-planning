@@ -66,12 +66,6 @@ interface IProps {
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     createUploadLink(file: IFile): void;
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number,
-    ): void;
     onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number): void;
     onAddScheduledUpdateToWorkflow(
         coverage: IPlanningCoverageItem,
@@ -211,6 +205,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 labelClassName="side-panel__heading side-panel__heading--big"
                 field={field}
                 value={value}
+                coverages={value}
                 onChange={onChange}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}

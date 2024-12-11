@@ -63,13 +63,8 @@ interface IProps {
     onScheduleChanged(field: string, value: moment.Moment | undefined, coverage: ICoverageScheduledUpdate): void;
     onOpen?(coverage: ICoverageScheduledUpdate): void;
     onClose?(coverage: ICoverageScheduledUpdate): void;
+    onCancelScheduledUpdate?(): void;
     onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledIndex: number
-    ): void;
-    onCancelCoverage(
         coverage: IPlanningCoverageItem,
         coverageIndex: number,
         scheduledUpdate: ICoverageScheduledUpdate,
@@ -85,19 +80,9 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
     constructor(props: IProps) {
         super(props);
 
-        this.cancelCoverage = this.cancelCoverage.bind(this);
         this.addScheduledUpdateToWorkflow = this.addScheduledUpdateToWorkflow.bind(this);
         this.onOpen = this.onOpen.bind(this);
         this.onClose = this.onClose.bind(this);
-    }
-
-    cancelCoverage() {
-        this.props.onCancelCoverage(
-            this.props.diff,
-            this.props.coverageIndex,
-            this.props.value,
-            this.props.index
-        );
     }
 
     addScheduledUpdateToWorkflow() {
@@ -151,7 +136,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             onClose,
             message,
             onAddScheduledUpdateToWorkflow,
-            onCancelCoverage,
             testId,
             ...props
         } = this.props;
@@ -163,9 +147,11 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             // To be done in the next iteration
             if (planningUtils.canCancelCoverage(value, planning, 'scheduled_update_id')) {
                 itemActions.push({
-                    ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
                     label: gettext('Cancel Scheduled Update'),
-                    callback: this.cancelCoverage,
+                    icon: 'icon-close-small',
+                    callback: () => {
+                        this.props.onCancelScheduledUpdate();
+                    },
                 });
             }
 

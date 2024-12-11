@@ -20,6 +20,7 @@ import * as selectors from '../../../selectors';
 import {Button} from 'superdesk-ui-framework/react';
 import {Row, LineInput, Label} from '../../UI/Form';
 import {ScheduledUpdate} from '../../Coverages';
+import {planningApis} from '../../../api';
 
 interface IProps extends IEditorFieldProps {
     index: number;
@@ -38,12 +39,6 @@ interface IProps extends IEditorFieldProps {
         index: number,
         scheduledUpdate: any,
         scheduledUpdateIndex: number
-    ): void;
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
     ): void;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     onRemoveScheduledUpdate(indexToRemove: number): void;
@@ -99,6 +94,11 @@ class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
                         onOpen={this.props.onScheduledUpdateOpen}
                         openScheduledUpdates={this.props.openScheduledUpdates}
                         onChange={this.props.onChange}
+                        onCancelScheduledUpdate={() => {
+                            planningApis.coverages.cancelScheduledUpdate(value, s).then((items) => {
+                                this.props.onChange(field, items);
+                            });
+                        }}
                     />
                 ))}
                 {!this.props.canCreateScheduledUpdate ? null : (

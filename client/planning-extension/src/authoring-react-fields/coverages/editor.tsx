@@ -27,7 +27,6 @@ export class Editor extends React.PureComponent<IProps> {
                         related_events: this.props.item.related_events,
                     }}
                     // PR-TODO: implement functions below
-                    onCancelCoverage={noop}
                     onAddCoverageToWorkflow={noop}
                     onRemoveAssignment={noop}
                     setCoverageDefaultDesk={noop}

@@ -63,12 +63,6 @@ interface IProps {
         scheduledUpdate: any,
         scheduledUpdateIndex: number
     ): void;
-    onCancelCoverage(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     createUploadLink(file: IFile): void;
     removeFile(file: IFile): Promise<void>;
@@ -440,7 +434,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     this.props.addNewsItemToPlanning == null &&
                     !get(this.props.diff, `${this.props.field}.flags.no_content_linking`)
                 ),
-                onCancelCoverage: this.props.onCancelCoverage,
                 index: this.props.index,
                 openScheduledUpdates: this.state.openScheduledUpdates,
                 planning: this.props.diff,

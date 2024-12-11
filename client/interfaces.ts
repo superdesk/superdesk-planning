@@ -1348,13 +1348,6 @@ export interface IFormItemManager {
         coverage: IPlanningCoverageItem,
         index: number
     ): Promise<IPlanningItem>;
-    cancelCoverage(
-        planning: IPlanningItem,
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledUpdateIndex: number
-    ): Promise<void>;
     addScheduledUpdateToWorkflow(
         planning: IPlanningItem,
         coverage: IPlanningCoverageItem,
@@ -2238,6 +2231,15 @@ export interface IPlanningAPI {
     };
     coverages: {
         getEditorProfile(): ICoverageFormProfile;
+        cancelCoverage(
+            items: Array<IPlanningCoverageItem | ICoverageScheduledUpdate>,
+            itemToCancel: IPlanningCoverageItem | ICoverageScheduledUpdate,
+        ): Promise<Array<IPlanningCoverageItem | ICoverageScheduledUpdate>>;
+
+        cancelScheduledUpdate(
+            items: Array<ICoverageScheduledUpdate>,
+            itemToCancel: ICoverageScheduledUpdate,
+        ): Promise<Array<ICoverageScheduledUpdate>>;
     };
     combined: {
         searchAndStore(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;

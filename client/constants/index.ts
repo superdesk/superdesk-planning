@@ -4,7 +4,6 @@ import {assignEventConstantTranslations} from './events';
 import {assignPlanningConstantTranslations} from './planning';
 import {assignAssignmentConstantTranslations} from './assignments';
 import {assignTooltipConstantTranslations} from './tooltips';
-import {assignCoverageConstantTranslations} from './coverages';
 
 export {PRIVILEGES} from './privileges';
 export {PLANNING} from './planning';
@@ -167,5 +166,4 @@ export function assignConstantLabelTranslations() {
     assignPlanningConstantTranslations();
     assignAssignmentConstantTranslations();
     assignTooltipConstantTranslations();
-    assignCoverageConstantTranslations();
 }
