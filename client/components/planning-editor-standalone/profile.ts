@@ -64,7 +64,7 @@ export interface IFieldDefinition {
     fieldId: string;
     getField: (options: {required: boolean, id: string}) => IAuthoringFieldV2;
     storageAdapter?: {
-        storeValue: <T extends IEventOrPlanningItem>(item, operationalValue) => T; // returns stored value
+        storeValue: <T extends IEventOrPlanningItem>(item: T, operationalValue: unknown) => T; // returns stored value
         retrieveStoredValue:
             <T extends IEventOrPlanningItem>(item: T, fieldId: string) => unknown; // returns operational value
     };
