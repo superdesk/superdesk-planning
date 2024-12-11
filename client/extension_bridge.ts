@@ -18,6 +18,8 @@ import {isContentLinkToCoverageAllowed} from './utils/archive';
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalone';
 import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
+import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
+import {EditorFieldCoverages} from './components/fields/editor/Coverages';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -38,6 +40,11 @@ interface IExtensionBridge {
     planning: {
         getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
     },
+    editor: {
+        fields: {
+            EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
+        },
+    }
     ui: {
         utils: {
             getUserInterfaceLanguageFromCV(): string;
@@ -90,6 +97,11 @@ export const extensionBridge: IExtensionBridge = {
     },
     planning: {
         getItemPlanningInfo,
+    },
+    editor: {
+        fields: {
+            EditorFieldCoverages: EditorFieldCoverages,
+        },
     },
     ui: {
         utils: {

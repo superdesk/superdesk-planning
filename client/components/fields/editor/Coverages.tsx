@@ -1,57 +1,13 @@
 import * as React from 'react';
 import {get} from 'lodash';
 
-import {
-    ICoverageScheduledUpdate,
-    IEditorFieldProps,
-    IEventItem, IFile,
-    IG2ContentType,
-    IPlanningCoverageItem,
-    IPlanningItem
-} from '../../../interfaces';
-import {IArticle} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {CoverageArrayInput, CoverageEditor} from '../../Coverages';
+import {CoverageArrayInput} from '../../Coverages';
 import {getFileDownloadURL} from '../../../utils';
+import {IPropsEditorFieldCoverages} from './coverages.interface';
 
-interface IProps extends IEditorFieldProps {
-    item: IPlanningItem;
-    addButtonText?: string; // defaults to 'Add a coverage'
-    addNewsItemToPlanning?: IArticle;
-    useLocalNavigation?: boolean;
-    navigation?: any;
-    maxCoverageCount?: number;
-    addOnly?: boolean;
-    originalCount?: number;
-    message: string | {[key: string]: any};
-    event?: IEventItem;
-    preferredCoverageDesks: {[key: string]: string};
-
-    popupContainer?(): HTMLElement;
-    onPopupOpen?(): void;
-    onPopupClose?(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
-    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
-    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number): void;
-    onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
-    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
-    notifyValidationErrors(errors: Array<string>): void;
-    getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
-}
-
-export class EditorFieldCoverages extends React.PureComponent<IProps> {
+export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldCoverages> {
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'coverages';
@@ -68,6 +24,3 @@ export class EditorFieldCoverages extends React.PureComponent<IProps> {
         );
     }
 }
-
-// PR-TODO: pass using the bridge
-window.EditorFieldCoverages = EditorFieldCoverages;

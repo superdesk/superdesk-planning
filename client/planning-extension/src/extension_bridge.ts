@@ -2,6 +2,7 @@ import * as React from 'react';
 import {IArticle, IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
 import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
+import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface'
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -32,6 +33,11 @@ interface IExtensionBridge {
     planning: {
         getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
     },
+    editor: {
+        fields: {
+            EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
+        },
+    }
     ui: {
         utils: {
             getUserInterfaceLanguageFromCV(): string;

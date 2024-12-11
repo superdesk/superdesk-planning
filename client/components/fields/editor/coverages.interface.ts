@@ -1,0 +1,48 @@
+import {
+    ICoverageScheduledUpdate,
+    IEditorFieldProps,
+    IEventItem, IFile,
+    IPlanningCoverageItem,
+    IPlanningItem
+} from '../../../interfaces';
+import {IArticle} from 'superdesk-api';
+
+
+// can't import CoverageEditor from '../../Coverages' because it would break compilation of planning extension
+type CoverageEditor = any;
+
+export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
+    item: IPlanningItem;
+    addButtonText?: string; // defaults to 'Add a coverage'
+    addNewsItemToPlanning?: IArticle;
+    useLocalNavigation?: boolean;
+    navigation?: any;
+    maxCoverageCount?: number;
+    addOnly?: boolean;
+    originalCount?: number;
+    message: string | {[key: string]: any};
+    event?: IEventItem;
+    preferredCoverageDesks: {[key: string]: string};
+
+    popupContainer?(): HTMLElement;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
+    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number): void;
+    onAddScheduledUpdateToWorkflow(
+        coverage: IPlanningCoverageItem,
+        index: number,
+        scheduledUpdate?: ICoverageScheduledUpdate,
+        scheduledUpdateIndex?: number
+    ): void;
+    onRemoveAssignment(
+        coverage: IPlanningCoverageItem,
+        index: number,
+        scheduledUpdate?: ICoverageScheduledUpdate,
+        scheduledUpdateIndex?: number
+    ): void;
+    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
+    notifyValidationErrors(errors: Array<string>): void;
+    getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
+}
