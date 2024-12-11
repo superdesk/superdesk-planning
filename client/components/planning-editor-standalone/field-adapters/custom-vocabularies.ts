@@ -47,7 +47,7 @@ export const getCustomVocabularyFields = () => {
                         }));
 
                         // Remove values that don't match the "subfield" ID, so there's no item duplication
-                        const restOfValues = item.subject.filter((x) => x.scheme !== id);
+                        const restOfValues = (item.subject ?? []).filter((x) => x.scheme !== id);
 
                         return {
                             ...item,

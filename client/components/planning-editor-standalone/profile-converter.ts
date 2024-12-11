@@ -17,7 +17,7 @@ type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField;
 export const getProfileFieldsConverted = (): Array<IFieldConverted> => {
     const planningProfile = planningApi.contentProfiles.get('planning');
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
-    const planningFieldIds = flatMap(Object.values(planningGroups).map((x) => x.fields));
+    const planningFieldIds = Object.values(planningGroups).flatMap((x) => x.fields);
     const convertedFieldIds: Array<IFieldConverted> = [];
 
     for (const fieldId of planningFieldIds) {
