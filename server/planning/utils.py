@@ -8,28 +8,28 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Type, Union, List, Dict, Any, TypedDict, Optional
+import arrow
+import pytz
 import logging
 from datetime import datetime
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from quart_babel import lazy_gettext
-from eve.utils import str_to_date, ParsedRequest
-import arrow
-import pytz
+from eve.utils import ParsedRequest
+from werkzeug.exceptions import BadRequest
+from typing import Type, Union, List, Dict, Any, TypedDict, Optional
 
-from superdesk.core import json, get_app_config
-from superdesk.core.utils import str_to_date as superdesk_str_to_date
-from superdesk.core.resources.service import AsyncResourceService
-from superdesk.resource_fields import ID_FIELD
-from planning import types
 from superdesk import get_resource_service
 from superdesk.json_utils import cast_item
-from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel, BasePlanningModel
+from superdesk.core.utils import str_to_date
+from superdesk.resource_fields import ID_FIELD
+from superdesk.core import json, get_app_config
+from superdesk.core.resources.service import AsyncResourceService
 
+from planning import types
+from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel, BasePlanningModel
 from planning.types import Event, Planning, PLANNING_RELATED_EVENT_LINK_TYPE, PlanningRelatedEventLink
-from werkzeug.exceptions import BadRequest
 
 
 logger = logging.getLogger(__name__)
@@ -251,26 +251,3 @@ def update_event_item_with_translations_value(event_item: Dict[str, Any], langua
             updated_event_item[translation["field"]] = translation["value"]
 
     return updated_event_item
-
-
-def str_to_date(date_string: str, fallback_format: str = "%Y-%m-%dT%H:%M:%S+00:00") -> datetime | None:
-    """
-    Converts a date string to a datetime object using a default format from settings,
-    otherwise it uses a fallback format in case of an error.
-
-    :param date_string: The date string to convert.
-    :param fallback_format: The fallback format. Default: "%Y-%m-%dT%H:%M:%S+00:00"
-    :return: A datetime object or None
-    """
-    try:
-        return superdesk_str_to_date(date_string)
-    except ValueError:
-        try:
-            return datetime.strptime(date_string, fallback_format)
-        except ValueError:
-            pass
-
-    default_format = get_app_config("DATE_FORMAT")
-    raise ValueError(
-        f"Date string '{date_string}' doesn't match any of the formats (`{default_format}` or `{fallback_format}`)."
-    )

@@ -15,7 +15,7 @@ from typing import Dict, Optional, List, cast
 
 from superdesk import get_resource_service
 
-from planning.utils import str_to_date
+from planning.utils import parse_date
 from planning.utils import get_related_planning_for_events
 from planning.content_profiles.utils import AllContentProfileData
 from planning.common import get_config_event_fields_to_sync_with_planning
@@ -43,13 +43,9 @@ def get_translated_fields(translations: List[StringFieldTranslation]) -> Dict[st
 # TODO-ASYNC: use resource models instead of typed dicts
 def sync_event_metadata_with_planning_items(
     original: Optional[Event],
-    updates: Event | EventResourceModel,
+    updates: Event,
     embedded_planning: list[EmbeddedPlanningDict] | list[EmbeddedPlanningModel],
 ):
-    # TODO-ASYNC: remove these checks after this is migrated
-    if isinstance(updates, EventResourceModel):
-        updates = cast(Event, updates.to_dict())
-
     embedded_planning = [
         cast(EmbeddedPlanningDict, obj.to_dict()) if isinstance(obj, EmbeddedPlanningModel) else obj
         for obj in embedded_planning
@@ -63,7 +59,7 @@ def sync_event_metadata_with_planning_items(
     event_updated.update(updates)
 
     if isinstance(event_updated["dates"]["start"], str):
-        event_updated["dates"]["start"] = str_to_date(event_updated["dates"]["start"])
+        event_updated["dates"]["start"] = parse_date(event_updated["dates"]["start"])
 
     if event_updated["dates"]["start"].tzinfo is None:
         event_updated["dates"]["start"] = event_updated["dates"]["start"].replace(tzinfo=pytz.utc)

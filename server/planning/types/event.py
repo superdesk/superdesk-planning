@@ -9,6 +9,7 @@ from content_api.items.model import CVItem, Place
 from superdesk.utc import utcnow
 from superdesk.core.resources import fields, dataclass, Dataclass
 from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.utils import merge_dicts_deep
 
 from .base import BasePlanningModel
 from .event_dates import EventDates, OccurStatus
@@ -290,5 +291,5 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
         """
 
         cloned_data = deepcopy(self.to_dict())
-        cloned_data.update(updates)
+        cloned_data = dict(merge_dicts_deep(cloned_data, updates))
         return self.from_dict(cloned_data)
