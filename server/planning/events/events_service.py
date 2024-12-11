@@ -112,7 +112,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         self, docs: list[EventResourceModel]
     ) -> list[tuple[EventResourceModel, list[EmbeddedPlanning]]]:
         """
-        Extracts out the ``embedded_planning`` of a given event Event
+        Extracts out the ``embedded_planning`` for a list of given events
         """
 
         embedded_planning_lists: list[tuple[EventResourceModel, list[EmbeddedPlanning]]] = []
