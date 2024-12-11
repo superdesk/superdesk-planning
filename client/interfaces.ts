@@ -1570,7 +1570,15 @@ export interface IEditorFieldProps {
     schema?: IProfileSchemaType;
     editor?: IProfileEditorField;
     showErrors?: boolean;
+
+    /**
+     * @deprecated
+     * Do not use in future code and remove from existing usages where possible.
+     * `editorType` is used to access globals which is breaking usage in multiple editors at once.
+     * For example when editing related plannings.
+     * */
     editorType?: EDITOR_TYPE;
+
     profile?: IPlanningContentProfile;
 
     onChange(field: string | {[key: string]: any}, value: any): void;
