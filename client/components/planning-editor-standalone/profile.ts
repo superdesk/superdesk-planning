@@ -27,7 +27,6 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
         singleLine: true,
         disallowedCharacters: [],
         showStatistics: false,
-        width: 100,
     };
 
     const field: IAuthoringFieldV2 = {
@@ -190,7 +189,6 @@ export function getFieldDefinitions(): IFieldDefinitions {
                     type: 'text',
                     multiple: true,
                     required: required,
-                    width: 100,
                 };
 
                 const field: IAuthoringFieldV2 = {
