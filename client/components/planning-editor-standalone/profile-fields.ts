@@ -14,7 +14,10 @@ interface ICustomVocabularyField extends IBaseField<'custom_vocabulary'> {
 
 type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField;
 
-export const getProfileFieldsConverted = (): Array<IFieldConverted> => {
+/**
+ * A function that handles planning profile field types so they can be used in authoring react.
+ */
+export const getPlanningProfileFields = (): Array<IFieldConverted> => {
     const planningProfile = planningApi.contentProfiles.get('planning');
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
     const planningFieldIds = Object.values(planningGroups).flatMap((x) => x.fields);

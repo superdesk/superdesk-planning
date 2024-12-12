@@ -1,10 +1,10 @@
 import {IDropdownConfigVocabulary, IAuthoringFieldV2, ISubject, IVocabularyItem} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from '../profile';
-import {getProfileFieldsConverted} from '../profile-converter';
+import {getPlanningProfileFields} from '../profile-fields';
 
 export const getCustomVocabularyFields = () => {
-    const customVocabularyIds = getProfileFieldsConverted()
+    const customVocabularyIds = getPlanningProfileFields()
         .filter((x) => x.type === 'custom_vocabulary')
         .map(({vocabularyId}) => vocabularyId);
     const result: Array<IFieldDefinition> = [];
@@ -37,7 +37,7 @@ export const getCustomVocabularyFields = () => {
                 storageAdapter: {
                     storeValue: (item, operationalValue: IVocabularyItem['qcode']) => {
                         const vocabulary = allVocabularies.get(id);
-                        const vocabItems = vocabulary.items.filter((x) => operationalValue?.includes(x.qcode)) ?? [];
+                        const vocabItems = vocabulary.items.filter((x) => operationalValue.includes(x.qcode)) ?? [];
 
                         // Subfield values
                         const itemsToSubject: Array<ISubject> = vocabItems.map((x) => ({

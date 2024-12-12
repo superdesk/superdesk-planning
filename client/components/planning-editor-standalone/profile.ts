@@ -14,7 +14,7 @@ import {
     IAttachmentsFieldConfig,
 } from '../../planning-extension/src/authoring-react-fields/planning-attachments/interfaces';
 import {getCustomVocabularyFields} from './field-adapters/custom-vocabularies';
-import {getProfileFieldsConverted} from './profile-converter';
+import {getPlanningProfileFields} from './profile-fields';
 import {IEventOrPlanningItem} from 'interfaces';
 
 function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
@@ -190,7 +190,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
 }
 
 export function getProfile() {
-    const planningFieldIds = getProfileFieldsConverted();
+    const planningFieldIds = getPlanningProfileFields();
     const skipped = new Set<string>();
     const fieldDefinitions = getFieldDefinitions();
     const profileV2: IContentProfileV2 = {
