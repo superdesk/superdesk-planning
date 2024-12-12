@@ -10,6 +10,7 @@ import {
     ISearchParams,
     ISearchSpikeState,
     IPlanningRelatedEventLink,
+    IPlanningNewsCoverageStatus,
 } from '../interfaces';
 import {appConfig} from 'appConfig';
 
@@ -244,34 +245,19 @@ function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Promise
 }
 
 function addCoverageToWorkflow(
-    plan: IPlanningItem,
-    coverage: IPlanningCoverageItem,
-    index: number
-): Promise<IPlanningItem> {
-    const {getState, dispatch} = planningApi.redux.store;
-    const {gettext} = superdeskApi.localization;
-    const {notify} = superdeskApi.ui;
+    coverages: Array<IPlanningCoverageItem>,
+    coverageToAddToWorkflow: IPlanningCoverageItem,
+): Array<IPlanningCoverageItem> {
+    const {vocabulary} = superdeskApi.entities;
+    const coverageStatuses = vocabulary.getAll().get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
 
-    const coverageStatuses = selectors.general.newsCoverageStatus(getState());
-    const updates = {coverages: cloneDeep(plan.coverages)};
-
-    updates.coverages[index] = planningUtils.getActiveCoverage(coverage, coverageStatuses);
-
-    return planning.update(plan, updates)
-        .then((updatedPlan) => {
-            notify.success(gettext('Coverage added to workflow.'));
-            dispatch<any>(planningApis.receivePlannings([updatedPlan]));
-
-            return updatedPlan;
-        })
-        .catch((error) => {
-            notify.error(getErrorMessage(
-                error,
-                gettext('Failed to add coverage to workflow')
-            ));
-
-            return Promise.reject(error);
-        });
+    return coverages.map((coverage) => {
+        if (coverage.coverage_id === coverageToAddToWorkflow.coverage_id) {
+            return planningUtils.getActiveCoverage(coverageToAddToWorkflow, coverageStatuses);
+        } else {
+            return coverage;
+        }
+    });
 }
 
 export const planning: IPlanningAPI['planning'] = {

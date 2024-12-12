@@ -1,18 +1,14 @@
 import * as React from 'react';
-import {set} from 'lodash';
 
 import {
     EDITOR_TYPE,
     IEventItem,
-    IG2ContentType,
     IPlanningContentProfile,
     IPlanningCoverageItem,
     IPlanningItem,
     ISearchProfile
 } from '../../../../interfaces';
 import {superdeskApi} from '../../../../superdeskApi';
-
-import {planningUtils} from '../../../../utils';
 
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
@@ -37,7 +33,6 @@ interface IProps {
         updates: DeepPartial<IPlanningItem>,
         scrollOnChange: boolean
     ): void;
-    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
     isAgendaEnabled: boolean;
     initiallyExpanded?: boolean;
 }
@@ -52,10 +47,6 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
 
         this.remove = this.remove.bind(this);
         this.update = this.update.bind(this);
-        this.updateCoverage = this.updateCoverage.bind(this);
-        this.removeCoverage = this.removeCoverage.bind(this);
-        this.duplicateCoverage = this.duplicateCoverage.bind(this);
-        this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
     }
 
     scrollIntoView() {
@@ -68,36 +59,6 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
 
     update(updates: DeepPartial<IPlanningItem>, scrollOnChange: boolean = true) {
         this.props.updatePlanningItem(this.props.item, updates, scrollOnChange);
-    }
-
-    updateCoverage(field: string, value: any) {
-        const updates = {coverages: [...this.props.item.coverages]};
-
-        set(updates, field, value);
-        this.update(updates, false);
-    }
-
-    removeCoverage(coverage: DeepPartial<IPlanningCoverageItem>) {
-        const coverages = this.props.item.coverages.filter(
-            (cov) => cov.coverage_id !== coverage.coverage_id
-        );
-
-        this.update({coverages}, false);
-    }
-
-    duplicateCoverage(coverage: DeepPartial<IPlanningCoverageItem>, duplicateAs?: IG2ContentType['qcode']) {
-        const coverages = planningUtils.duplicateCoverage(
-            this.props.item,
-            coverage,
-            duplicateAs,
-            this.props.event
-        );
-
-        this.update({coverages}, false);
-    }
-
-    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number) {
-        this.props.addCoverageToWorkflow(this.props.item, coverage, index);
     }
 
     focus() {

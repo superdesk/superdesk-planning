@@ -66,7 +66,6 @@ interface IProps {
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     createUploadLink(file: IFile): void;
-    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number): void;
     onAddScheduledUpdateToWorkflow(
         coverage: IPlanningCoverageItem,
         index: number,

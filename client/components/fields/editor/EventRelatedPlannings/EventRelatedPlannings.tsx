@@ -30,7 +30,6 @@ interface IOwnProps extends IEditorFieldProps {
     addPlanningItem(item?: IPlanningItem): Promise<Partial<IPlanningItem>>;
     removePlanningItem(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
-    addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
 }
 
 interface IReduxProps {
@@ -97,7 +96,6 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                                         item={plan}
                                         removePlan={this.props.removePlanningItem}
                                         updatePlanningItem={this.props.updatePlanningItem}
-                                        addCoverageToWorkflow={this.props.addCoverageToWorkflow}
                                         disabled={false}
                                         editorType={this.props.editorType}
                                         profile={this.props.profile}

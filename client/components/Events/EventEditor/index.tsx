@@ -207,7 +207,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                         addPlanningItem: editor.item.events.addPlanningItem,
                         removePlanningItem: editor.item.events.removePlanningItem,
                         updatePlanningItem: editor.item.events.updatePlanningItem,
-                        addCoverageToWorkflow: editor.item.events.addCoverageToWorkflow,
                     },
                 }}
             />

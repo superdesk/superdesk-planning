@@ -118,7 +118,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         this.onCoverageChange = this.onCoverageChange.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
-        this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
         this.onAddScheduledUpdateToWorkflow = this.onAddScheduledUpdateToWorkflow.bind(this);
         this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
     }
@@ -335,10 +334,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onAddCoverageToWorkflow(coverage: IPlanningCoverageItem, index: number) {
-        this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW);
-    }
-
     onAddScheduledUpdateToWorkflow(
         coverage: IPlanningCoverageItem,
         coverageIndex: number,
@@ -395,9 +390,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
 
         let partialSaveAction;
 
-        if (action === COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW) {
-            partialSaveAction = this.props.itemManager.addCoverageToWorkflow;
-        } else if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
+        if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
             partialSaveAction = this.props.itemManager.removeAssignment;
         } else if (action == COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW) {
             partialSaveAction = this.props.itemManager.addScheduledUpdateToWorkflow;
@@ -489,7 +482,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
-                        onAddCoverageToWorkflow: this.onAddCoverageToWorkflow,
                         onAddScheduledUpdateToWorkflow: this.onAddScheduledUpdateToWorkflow,
                         onRemoveAssignment: this.onRemoveAssignment,
                         defaultValue: [],

@@ -1767,7 +1767,7 @@ function canAddScheduledUpdateToWorkflow(
 function setCoverageActiveValues(
     coverage: IPlanningCoverageItem | ICoverageScheduledUpdate,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
-) {
+): void {
     set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
     set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
     set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);

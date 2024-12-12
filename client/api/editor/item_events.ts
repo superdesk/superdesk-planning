@@ -188,12 +188,6 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             });
     }
 
-    function addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void {
-        planningApi.planning.coverages.addCoverageToWorkflow(original, coverage, index).then((updatedPlan) => {
-            updatePlanningItem(original, updatedPlan, false);
-        });
-    }
-
     function onEventDatesChanged(updates: Partial<IEventItem['dates']>) {
         const editor = planningApi.editor(type);
         const original = editor.form.getDiff<IEventItem>();
@@ -235,6 +229,5 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         removePlanningItem,
         updatePlanningItem,
         onEventDatesChanged,
-        addCoverageToWorkflow,
     };
 }

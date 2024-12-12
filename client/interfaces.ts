@@ -1338,11 +1338,6 @@ export interface IFormNavigation {
 export interface IFormItemManager {
     forceUpdateInitialValues(updates: Partial<IEventOrPlanningItem>): void;
     startPartialSave(updates: Partial<IEventOrPlanningItem>): boolean;
-    addCoverageToWorkflow(
-        planning: IPlanningItem,
-        coverage: IPlanningCoverageItem,
-        index: number
-    ): Promise<IPlanningItem>;
     removeAssignment(
         planning: IPlanningItem,
         coverage: IPlanningCoverageItem,
@@ -2167,7 +2162,6 @@ export interface IEditorAPI {
                 updates: DeepPartial<IPlanningItem>,
                 scrollOnChange: boolean
             ): void;
-            addCoverageToWorkflow(original: IPlanningItem, coverage: IPlanningCoverageItem, index: number): void;
             onEventDatesChanged(updates: Partial<IEventItem['dates']>): void;
         };
         planning: {
@@ -2224,10 +2218,9 @@ export interface IPlanningAPI {
                 g2contentType?: IG2ContentType['qcode']
             ): DeepPartial<IPlanningCoverageItem>;
             addCoverageToWorkflow(
-                plan: IPlanningItem,
-                coverage: IPlanningCoverageItem,
-                index: number
-            ): Promise<IPlanningItem>;
+                coverages: Array<IPlanningCoverageItem>,
+                coverageToAddToWorkflow: IPlanningCoverageItem,
+            ): Array<IPlanningCoverageItem>;
             bulkAddCoverageToWorkflow(planingItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>>;
         }
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;

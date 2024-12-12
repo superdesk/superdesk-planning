@@ -64,7 +64,6 @@ interface IProps {
 
     onChange(field: string, value: any): void;
     remove(): void;
-    onAddCoverageToWorkflow?(): void;
     onRemoveAssignment?(coverage: IPlanningCoverageItem): void;
     popupContainer(): void;
     setCoverageDefaultDesk(): void;
@@ -131,7 +130,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             coverageProviders,
             priorities,
             keywords,
-            onAddCoverageToWorkflow,
             onRemoveAssignment,
             readOnly,
             message,
@@ -151,6 +149,9 @@ export class CoverageEditor extends React.PureComponent<IProps> {
         // Coverage item actions
         let itemActions = [];
 
+        // `this.props.field` can be 'coverages[0]'
+        const fieldOfArray = 'coverages';
+
         if (!readOnly && !addNewsItemToPlanning) {
             const language = value.planning?.language ?? getUserInterfaceLanguageFromCV();
 
@@ -160,7 +161,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                     icon: 'icon-copy',
                     callback: () => {
                         this.props.onChange(
-                            field,
+                            fieldOfArray,
                             duplicateCoverage({
                                 planning: diff,
                                 coverage: value,
@@ -183,7 +184,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                             ),
                             callback: () => {
                                 this.props.onChange(
-                                    field,
+                                    fieldOfArray,
                                     duplicateCoverage({
                                         planning: diff,
                                         coverage: value,
@@ -202,18 +203,23 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                     callback: () => {
                         planningApis.coverages.cancelCoverage(this.props.coverages, value)
                             .then((nextCoverages) => {
-                                this.props.onChange(field, nextCoverages);
+                                this.props.onChange(fieldOfArray, nextCoverages);
                             });
                     },
                 });
             }
 
-            if (onAddCoverageToWorkflow != null && planningUtils.canAddCoverageToWorkflow(value, diff)) {
+            if (planningUtils.canAddCoverageToWorkflow(value, diff)) {
                 itemActions.push({
                     id: 'addToWorkflow',
                     label: gettext('Add to workflow'),
                     icon: 'icon-assign',
-                    callback: onAddCoverageToWorkflow.bind(null, value, index),
+                    callback: () => {
+                        this.props.onChange(
+                            fieldOfArray,
+                            planningApis.planning.coverages.addCoverageToWorkflow(this.props.coverages, value)
+                        );
+                    },
                 });
             }
 
