@@ -5,8 +5,11 @@ import {
     ICommonFieldConfig,
     IContentProfileV2,
     IDateTimeFieldConfig,
+    IDropdownConfigRemoteSource,
     IDropdownConfigVocabulary,
     IEditor3Config,
+    IRestApiResponse,
+    ITreeWithLookup,
     IVocabularyItem,
 } from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
@@ -15,6 +18,8 @@ import {
 } from '../../planning-extension/src/authoring-react-fields/planning-attachments/interfaces';
 import {getCustomVocabularyFields} from './field-adapters/custom-vocabularies';
 import {getPlanningProfileFields} from './profile-fields';
+import {IAgenda} from 'interfaces';
+import {httpRequestJsonLocal} from 'superdesk-core/scripts/core/helpers/network';
 
 function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const editor3ConfigWithoutFormatting: IEditor3Config = {
@@ -172,7 +177,60 @@ export function getFieldDefinitions(): IFieldDefinitions {
 
                 return field;
             },
-        }
+        },
+        {
+            fieldId: 'agendas',
+            getField: ({id, required}) => {
+                const fieldConfig: IDropdownConfigRemoteSource = {
+                    source: 'remote-source',
+                    searchOptions: (searchTerm, _language, callback) => {
+                        httpRequestJsonLocal<IRestApiResponse<IAgenda>>({
+                            method: 'GET',
+                            path: '/agenda',
+                            urlParams: {
+                                max_results: 200,
+                                name: searchTerm,
+                            },
+                        }).then((res) => {
+                            const tree: ITreeWithLookup<IAgenda> = {
+                                nodes: res._items.map((item) => ({value: item})),
+                                lookup: {},
+                            };
+
+                            callback(tree);
+                        });
+                    },
+                    getId: (option: IAgenda) => option._id,
+                    getLabel: (option: IAgenda) => option.name,
+                    multiple: true,
+                    required: required,
+                    width: 100,
+                };
+
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Agendas'),
+                    fieldType: 'dropdown',
+                    fieldConfig: fieldConfig,
+                };
+
+                return field;
+            },
+            storageAdapter: {
+                storeValue: (item, operationalValue: Array<string>) => {
+                    const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
+                    const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
+                        vocabulary.items.map((item) => [item.qcode, item]),
+                    );
+
+                    return {
+                        ...item,
+                        place: operationalValue.map((qcode) => vocabularyItems.get(qcode)),
+                    };
+                },
+                retrieveStoredValue: (item, fieldId) => item[fieldId].map(({qcode}) => qcode),
+            },
+        },
     ];
 
     result.push(
