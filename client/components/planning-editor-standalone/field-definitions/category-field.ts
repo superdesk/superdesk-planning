@@ -2,19 +2,19 @@ import {IDropdownConfigVocabulary, IAuthoringFieldV2, IVocabularyItem} from 'sup
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldGetter} from '.';
 
-export const getPlaceField: IFieldGetter = () => ({
-    fieldId: 'place',
+export const getCategoriesField: IFieldGetter = () => ({
+    fieldId: 'anpa_category',
     getField: ({id, required}) => {
         const fieldConfig: IDropdownConfigVocabulary = {
             source: 'vocabulary',
-            vocabularyId: 'locators',
+            vocabularyId: 'categories',
             multiple: true,
             required: required,
         };
 
         const field: IAuthoringFieldV2 = {
             id: id,
-            name: superdeskApi.localization.gettext('Place'),
+            name: superdeskApi.localization.gettext('Categories'),
             fieldType: 'dropdown',
             fieldConfig: fieldConfig,
         };
@@ -23,16 +23,16 @@ export const getPlaceField: IFieldGetter = () => ({
     },
     storageAdapter: {
         storeValue: (item, operationalValue: Array<string>) => {
-            const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
+            const vocabulary = superdeskApi.entities.vocabulary.getAll().get('categories');
             const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
                 vocabulary.items.map((item) => [item.qcode, item]),
             );
 
             return {
                 ...item,
-                place: operationalValue.map((qcode) => vocabularyItems.get(qcode)),
+                anpa_category: operationalValue.map((qcode) => vocabularyItems.get(qcode)),
             };
         },
-        retrieveStoredValue: (item, fieldId) => item[fieldId].map(({qcode}) => qcode),
+        retrieveStoredValue: (item, fieldId) => (item[fieldId] ?? []).map(({qcode}) => qcode),
     },
 });
