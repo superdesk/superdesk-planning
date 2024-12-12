@@ -5,16 +5,18 @@ import {
     ICommonFieldConfig,
     IContentProfileV2,
     IDateTimeFieldConfig,
+    IDropdownConfigManualSource,
     IDropdownConfigVocabulary,
     IEditor3Config,
     IVocabularyItem,
 } from 'superdesk-api';
-import {superdeskApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {
     IAttachmentsFieldConfig,
 } from '../../planning-extension/src/authoring-react-fields/planning-attachments/interfaces';
 import {getCustomVocabularyFields} from './field-adapters/custom-vocabularies';
 import {getPlanningProfileFields} from './profile-fields';
+import {IAgenda} from 'interfaces';
 
 function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const editor3ConfigWithoutFormatting: IEditor3Config = {
@@ -25,7 +27,6 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
         singleLine: true,
         disallowedCharacters: [],
         showStatistics: false,
-        width: 100,
     };
 
     const field: IAuthoringFieldV2 = {
@@ -172,7 +173,34 @@ export function getFieldDefinitions(): IFieldDefinitions {
 
                 return field;
             },
-        }
+        },
+        {
+            fieldId: 'agendas',
+            getField: ({id, required}) => {
+                const fieldConfig: IDropdownConfigManualSource = {
+                    source: 'manual-entry',
+                    options: ((planningApi.redux.store.getState().agenda.agendas ?? []) as Array<IAgenda>)
+                        .filter((item) => item.is_enabled)
+                        .map((item) => ({
+                            id: item._id,
+                            label: item.name,
+                        })),
+                    roundCorners: true,
+                    type: 'text',
+                    multiple: true,
+                    required: required,
+                };
+
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Agendas'),
+                    fieldType: 'dropdown',
+                    fieldConfig: fieldConfig,
+                };
+
+                return field;
+            },
+        },
     ];
 
     result.push(
