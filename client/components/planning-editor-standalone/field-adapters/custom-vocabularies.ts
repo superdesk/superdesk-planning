@@ -37,7 +37,7 @@ export const getCustomVocabularyFields = () => {
                 storageAdapter: {
                     storeValue: (item, operationalValue: IVocabularyItem['qcode']) => {
                         const vocabulary = allVocabularies.get(id);
-                        const vocabItems = vocabulary.items.filter((x) => operationalValue.includes(x.qcode)) ?? [];
+                        const vocabItems = vocabulary.items.filter((x) => operationalValue.includes(x.qcode));
 
                         // Subfield values
                         const itemsToSubject: Array<ISubject> = vocabItems.map((x) => ({

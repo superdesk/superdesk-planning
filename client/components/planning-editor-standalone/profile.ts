@@ -15,7 +15,6 @@ import {
 } from '../../planning-extension/src/authoring-react-fields/planning-attachments/interfaces';
 import {getCustomVocabularyFields} from './field-adapters/custom-vocabularies';
 import {getPlanningProfileFields} from './profile-fields';
-import {IEventOrPlanningItem} from 'interfaces';
 
 function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const editor3ConfigWithoutFormatting: IEditor3Config = {
@@ -64,9 +63,9 @@ export interface IFieldDefinition {
     fieldId: string;
     getField: (options: {required: boolean, id: string}) => IAuthoringFieldV2;
     storageAdapter?: {
-        storeValue: <T extends IEventOrPlanningItem>(item: T, operationalValue: unknown) => T; // returns stored value
+        storeValue: <T extends IPlanningItem>(item: T, operationalValue: unknown) => T; // returns stored value
         retrieveStoredValue:
-            <T extends IEventOrPlanningItem>(item: T, fieldId: string) => unknown; // returns operational value
+            <T extends IPlanningItem>(item: T, fieldId: string) => unknown; // returns operational value
     };
 }
 
