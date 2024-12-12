@@ -514,22 +514,6 @@ const saveFromAuthoring = (original, updates) => (
     }
 );
 
-const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, scheduledUpdate, index) => (
-    (dispatch, getState, {notify}) => {
-        let updates = {coverages: cloneDeep(original.coverages)};
-        let coverage = updates.coverages[coverageIndex];
-
-        coverage.scheduled_updates[index] = planningUtils.addToWorkflow(scheduledUpdate,
-            selectors.general.newsCoverageStatus(getState()));
-
-        return dispatch(planningApis.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Scheduled update added to workflow.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
 /**
  * Action to update the values of a single Coverage so the Assignment is placed in the workflow
  * @param {object} original - Original Planning item
@@ -597,7 +581,6 @@ const self = {
     openFeaturedPlanningModal,
     updateItemOnSave,
     addNewCoverageToPlanning,
-    addScheduledUpdateToWorkflow,
 };
 
 export default self;

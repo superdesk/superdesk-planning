@@ -34,7 +34,6 @@ export class Editor extends React.PureComponent<IProps> {
                     setCoverageAddAdvancedMode={() => Promise.resolve()}
                     preferredCoverageDesks={{}}
                     uploadFiles={() => Promise.resolve([])}
-                    onAddScheduledUpdateToWorkflow={noop}
                     message={{}}
                     notifyValidationErrors={noop}
                     onChange={(fieldPath: any, value: any) => {

@@ -11,6 +11,7 @@ import {
     ISearchSpikeState,
     IPlanningRelatedEventLink,
     IPlanningNewsCoverageStatus,
+    ICoverageScheduledUpdate,
 } from '../interfaces';
 import {appConfig} from 'appConfig';
 
@@ -218,7 +219,7 @@ function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Promise
         const updates = {coverages: cloneDeep(plan.coverages)};
 
         updates.coverages = plan.coverages
-            .map((coverage) => planningUtils.addToWorkflow(coverage, coverageStatuses));
+            .map((coverage) => planningUtils.addCoverageToWorkflow(coverage, coverageStatuses));
 
         return planning.update(plan, updates)
             .then((updatedPlan) => {
@@ -253,9 +254,25 @@ function addCoverageToWorkflow(
 
     return coverages.map((coverage) => {
         if (coverage.coverage_id === coverageToAddToWorkflow.coverage_id) {
-            return planningUtils.addToWorkflow(coverageToAddToWorkflow, coverageStatuses);
+            return planningUtils.addCoverageToWorkflow(coverageToAddToWorkflow, coverageStatuses);
         } else {
             return coverage;
+        }
+    });
+}
+
+function addScheduledUpdateToWorkflow(
+    updates: Array<ICoverageScheduledUpdate>,
+    updateToAddToWorkflow: ICoverageScheduledUpdate,
+): Array<ICoverageScheduledUpdate> {
+    const {vocabulary} = superdeskApi.entities;
+    const coverageStatuses = vocabulary.getAll().get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
+
+    return updates.map((update) => {
+        if (update.scheduled_update_id === updateToAddToWorkflow.scheduled_update_id) {
+            return planningUtils.addScheduledUpdateToWorkflow(updateToAddToWorkflow, coverageStatuses);
+        } else {
+            return update;
         }
     });
 }
@@ -274,6 +291,7 @@ export const planning: IPlanningAPI['planning'] = {
     coverages: {
         setDefaultValues: setDefaultValues,
         addCoverageToWorkflow: addCoverageToWorkflow,
+        addScheduledUpdateToWorkflow: addScheduledUpdateToWorkflow,
         bulkAddCoverageToWorkflow: bulkAddCoverageToWorkflow,
     },
 };

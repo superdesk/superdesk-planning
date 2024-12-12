@@ -23,11 +23,13 @@ import {CoverageFormHeader} from '../CoverageEditor/CoverageFormHeader';
 import {CoveragePreviewTopBar} from '../CoveragePreview/CoveragePreviewTopBar';
 
 import {planningUtils, stringUtils, assignmentUtils} from '../../../utils';
-import {PLANNING, COVERAGES} from '../../../constants';
+import {PLANNING} from '../../../constants';
+import {planningApis} from '../../../api';
 
 interface IProps {
     diff: IPlanningCoverageItem;
     planning: IPlanningItem;
+    scheduledUpdates: Array<ICoverageScheduledUpdate>;
     index: number;
     field: string;
     value: ICoverageScheduledUpdate;
@@ -64,12 +66,6 @@ interface IProps {
     onOpen?(coverage: ICoverageScheduledUpdate): void;
     onClose?(coverage: ICoverageScheduledUpdate): void;
     onCancelScheduledUpdate?(): void;
-    onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledIndex: number
-    ): void;
 }
 
 export class ScheduledUpdate extends React.PureComponent<IProps> {
@@ -80,18 +76,8 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
     constructor(props: IProps) {
         super(props);
 
-        this.addScheduledUpdateToWorkflow = this.addScheduledUpdateToWorkflow.bind(this);
         this.onOpen = this.onOpen.bind(this);
         this.onClose = this.onClose.bind(this);
-    }
-
-    addScheduledUpdateToWorkflow() {
-        this.props.onAddScheduledUpdateToWorkflow(
-            this.props.diff,
-            this.props.coverageIndex,
-            this.props.value,
-            this.props.index
-        );
     }
 
     onOpen() {
@@ -135,7 +121,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             onOpen,
             onClose,
             message,
-            onAddScheduledUpdateToWorkflow,
             testId,
             ...props
         } = this.props;
@@ -160,7 +145,15 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                     id: 'addToWorkflow',
                     label: gettext('Add to workflow'),
                     icon: 'icon-assign',
-                    callback: this.addScheduledUpdateToWorkflow,
+                    callback: () => {
+                        this.props.onChange(
+                            'scheduled_updates',
+                            planningApis.planning.coverages.addScheduledUpdateToWorkflow(
+                                this.props.scheduledUpdates,
+                                this.props.value,
+                            ),
+                        );
+                    },
                 });
             }
 

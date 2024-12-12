@@ -1764,30 +1764,47 @@ function canAddScheduledUpdateToWorkflow(
     );
 }
 
-function setCoverageActiveValues(
-    coverage: IPlanningCoverageItem | ICoverageScheduledUpdate,
+function addToWorkflowCommon<T extends IPlanningCoverageItem | ICoverageScheduledUpdate>(
+    item: T,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
-): void {
-    set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
-    set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
-    set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
+): T {
+    const next: T = cloneDeep(item);
+
+    next.news_coverage_status = newsCoverageStatus.find((s) => s.qcode === 'ncostat:int');
+    next.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
+
+    if (next.assigned_to != null) {
+        next.assigned_to.state = ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED;
+    }
+
+    return next;
 }
 
-function addToWorkflow(
-    updatedCoverage: IPlanningCoverageItem,
+function addCoverageToWorkflow(
+    coverage: IPlanningCoverageItem,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ): IPlanningCoverageItem {
-    const coverage = cloneDeep(updatedCoverage);
+    const coverageNext = addToWorkflowCommon(coverage, newsCoverageStatus);
 
-    setCoverageActiveValues(coverage, newsCoverageStatus);
-    (get(coverage, 'scheduled_updates') || []).forEach((s) => {
-        // Add the scheduled_update to workflow if they have an assignment
-        if (get(s, 'assigned_to')) {
-            setCoverageActiveValues(s, newsCoverageStatus);
-        }
-    });
+    if (coverageNext.scheduled_updates != null) {
+        coverageNext.scheduled_updates = coverageNext.scheduled_updates.map((update) => {
+            // Add the scheduled_update to workflow if they have an assignment
+            if (update.assigned_to != null) {
+                return addToWorkflowCommon(update, newsCoverageStatus);
+            } else {
+                return update;
+            }
+        });
+    }
 
-    return coverage;
+    return coverageNext;
+}
+
+function addScheduledUpdateToWorkflow(
+    update: ICoverageScheduledUpdate,
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
+): ICoverageScheduledUpdate {
+    return addToWorkflowCommon(update, newsCoverageStatus);
 }
 
 function getPlanningFiles(planning: IPlanningItem): IPlanningItem['files'] {
@@ -1950,7 +1967,8 @@ const self = {
     getDateStringForPlanning,
     setDefaultAssignment,
     getCoverageDateText,
-    addToWorkflow: addToWorkflow,
+    addCoverageToWorkflow,
+    addScheduledUpdateToWorkflow,
     canAddScheduledUpdateToWorkflow,
     getDefaultCoverageStatus,
     getPlanningFiles,

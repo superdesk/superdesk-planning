@@ -118,7 +118,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         this.onCoverageChange = this.onCoverageChange.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
-        this.onAddScheduledUpdateToWorkflow = this.onAddScheduledUpdateToWorkflow.bind(this);
         this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
     }
 
@@ -334,21 +333,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        index: number
-    ) {
-        this.onPartialSave(
-            coverage,
-            coverageIndex,
-            COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW,
-            scheduledUpdate,
-            index
-        );
-    }
-
     onRemoveAssignment(
         coverage: IPlanningCoverageItem,
         index: number,
@@ -392,8 +376,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
 
         if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
             partialSaveAction = this.props.itemManager.removeAssignment;
-        } else if (action == COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW) {
-            partialSaveAction = this.props.itemManager.addScheduledUpdateToWorkflow;
         }
 
         partialSaveAction(this.props.item, coverage, index, scheduledUpdate, scheduledUpdateIndex);
@@ -482,7 +464,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
-                        onAddScheduledUpdateToWorkflow: this.onAddScheduledUpdateToWorkflow,
                         onRemoveAssignment: this.onRemoveAssignment,
                         defaultValue: [],
                         files: this.props.files,

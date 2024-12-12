@@ -1343,13 +1343,6 @@ export interface IFormItemManager {
         coverage: IPlanningCoverageItem,
         index: number
     ): Promise<IPlanningItem>;
-    addScheduledUpdateToWorkflow(
-        planning: IPlanningItem,
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        index: number
-    ): Promise<IPlanningItem>;
     finalisePartialSave(diff: DeepPartial<IEventOrPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
     setState(newState: Partial<IEditorState>): Promise<IEditorState>;
     getState(): IEditorState;
@@ -2221,6 +2214,10 @@ export interface IPlanningAPI {
                 coverages: Array<IPlanningCoverageItem>,
                 coverageToAddToWorkflow: IPlanningCoverageItem,
             ): Array<IPlanningCoverageItem>;
+            addScheduledUpdateToWorkflow(
+                updates: Array<ICoverageScheduledUpdate>,
+                updateToAddToWorkflow: ICoverageScheduledUpdate,
+            ): Array<ICoverageScheduledUpdate>;
             bulkAddCoverageToWorkflow(planingItems: Array<IPlanningItem>): Promise<Array<IPlanningItem>>;
         }
         create(updates: Partial<IPlanningItem>): Promise<IPlanningItem>;

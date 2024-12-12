@@ -441,6 +441,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     this.props.includeScheduledUpdates &&
                     this.props.value.planning?.g2_content_type === 'text'
                 ),
+                scheduledUpdates: this.props.value.scheduled_updates ?? [],
             },
             priority: {field: 'planning.priority'},
         };

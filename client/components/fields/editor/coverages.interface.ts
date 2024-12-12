@@ -29,12 +29,6 @@ export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
     onPopupClose?(): void;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
-    onAddScheduledUpdateToWorkflow(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
     onRemoveAssignment(
         coverage: IPlanningCoverageItem,
         index: number,

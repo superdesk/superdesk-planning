@@ -58,7 +58,6 @@ export class ItemManager {
         this.addCoverage = this.addCoverage.bind(this);
         this.startPartialSave = this.startPartialSave.bind(this);
         this.openInModal = this.openInModal.bind(this);
-        this.addScheduledUpdateToWorkflow = this.addScheduledUpdateToWorkflow.bind(this);
         this.removeAssignment = this.removeAssignment.bind(this);
         this.setStateForPartialSave = this.setStateForPartialSave.bind(this);
 
@@ -878,12 +877,6 @@ export class ItemManager {
             'coverages',
             [...get(this.state, 'diff.coverages', []), newCoverage]
         );
-    }
-
-    addScheduledUpdateToWorkflow(planning, coverage, covergeIndex, scheduledUpdate, index) {
-        return this.dispatch<any>(actions.planning.ui.addScheduledUpdateToWorkflow(planning, coverage, covergeIndex,
-            scheduledUpdate, index))
-            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     removeAssignment(planning, coverage, index) {
