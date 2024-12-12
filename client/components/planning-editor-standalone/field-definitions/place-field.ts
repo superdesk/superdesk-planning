@@ -1,8 +1,7 @@
 import {IDropdownConfigVocabulary, IAuthoringFieldV2, IVocabularyItem} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
-import {IFieldGetter} from '.';
 
-export const getPlaceField: IFieldGetter = () => ({
+export const getPlaceField = (gettext: (val: string) => string) => ({
     fieldId: 'place',
     getField: ({id, required}) => {
         const fieldConfig: IDropdownConfigVocabulary = {
@@ -14,7 +13,7 @@ export const getPlaceField: IFieldGetter = () => ({
 
         const field: IAuthoringFieldV2 = {
             id: id,
-            name: superdeskApi.localization.gettext('Place'),
+            name: gettext('Place'),
             fieldType: 'dropdown',
             fieldConfig: fieldConfig,
         };
