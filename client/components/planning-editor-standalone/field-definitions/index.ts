@@ -12,6 +12,8 @@ import {IFieldDefinitions, IFieldDefinition} from './interfaces';
 import {getTextFieldConfig} from './text-field-config';
 import {getPlaceField} from './place-field';
 
+export type IFieldGetter = () => IFieldDefinition;
+
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
     const result: Array<IFieldDefinition> = [
@@ -63,7 +65,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
                 return field;
             },
         },
-        getPlaceField(gettext),
+        getPlaceField(),
         {
             fieldId: 'coverages',
             getField: ({id, required}) => {
