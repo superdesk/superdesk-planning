@@ -519,7 +519,7 @@ const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, schedul
         let updates = {coverages: cloneDeep(original.coverages)};
         let coverage = updates.coverages[coverageIndex];
 
-        coverage.scheduled_updates[index] = planningUtils.getActiveCoverage(scheduledUpdate,
+        coverage.scheduled_updates[index] = planningUtils.addToWorkflow(scheduledUpdate,
             selectors.general.newsCoverageStatus(getState()));
 
         return dispatch(planningApis.save(original, updates))

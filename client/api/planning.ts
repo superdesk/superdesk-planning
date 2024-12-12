@@ -218,7 +218,7 @@ function bulkAddCoverageToWorkflow(planningItems: Array<IPlanningItem>): Promise
         const updates = {coverages: cloneDeep(plan.coverages)};
 
         updates.coverages = plan.coverages
-            .map((coverage) => planningUtils.getActiveCoverage(coverage, coverageStatuses));
+            .map((coverage) => planningUtils.addToWorkflow(coverage, coverageStatuses));
 
         return planning.update(plan, updates)
             .then((updatedPlan) => {
@@ -253,7 +253,7 @@ function addCoverageToWorkflow(
 
     return coverages.map((coverage) => {
         if (coverage.coverage_id === coverageToAddToWorkflow.coverage_id) {
-            return planningUtils.getActiveCoverage(coverageToAddToWorkflow, coverageStatuses);
+            return planningUtils.addToWorkflow(coverageToAddToWorkflow, coverageStatuses);
         } else {
             return coverage;
         }

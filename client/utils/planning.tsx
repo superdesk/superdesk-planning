@@ -1773,7 +1773,7 @@ function setCoverageActiveValues(
     set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
 }
 
-function getActiveCoverage(
+function addToWorkflow(
     updatedCoverage: IPlanningCoverageItem,
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>
 ): IPlanningCoverageItem {
@@ -1950,7 +1950,7 @@ const self = {
     getDateStringForPlanning,
     setDefaultAssignment,
     getCoverageDateText,
-    getActiveCoverage,
+    addToWorkflow: addToWorkflow,
     canAddScheduledUpdateToWorkflow,
     getDefaultCoverageStatus,
     getPlanningFiles,
