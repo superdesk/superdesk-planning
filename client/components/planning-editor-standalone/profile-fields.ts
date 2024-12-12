@@ -1,4 +1,3 @@
-import {flatMap} from 'lodash';
 import {planningApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
@@ -14,13 +13,18 @@ interface ICustomVocabularyField extends IBaseField<'custom_vocabulary'> {
 
 type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField;
 
+const FIELDS_TO_FILTER = [
+    'associated_event',
+];
+
 /**
  * A function that handles planning profile field types so they can be used in authoring react.
  */
 export const getPlanningProfileFields = (): Array<IFieldConverted> => {
     const planningProfile = planningApi.contentProfiles.get('planning');
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
-    const planningFieldIds = Object.values(planningGroups).flatMap((x) => x.fields);
+    const planningFieldIds = Object.values(planningGroups).flatMap((x) => x.fields)
+        .filter((x) => !FIELDS_TO_FILTER.includes(x));
     const convertedFieldIds: Array<IFieldConverted> = [];
 
     for (const fieldId of planningFieldIds) {
