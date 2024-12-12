@@ -11,15 +11,11 @@ import {getFieldDefinitions} from './profile';
 export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
     storeValue: (value, fieldId, item, config, fieldType) => {
         const {computeEditor3Output} = superdeskApi.helpers;
-
         const fieldDefinitions = getFieldDefinitions();
         const fieldStorageAdapter = fieldDefinitions[fieldId]?.storageAdapter;
 
         if (fieldStorageAdapter != null) {
-            return {
-                ...item,
-                [fieldId]: fieldStorageAdapter.storeValue(value),
-            };
+            return fieldStorageAdapter.storeValue(item, value);
         } else if (fieldType === 'editor3') {
             const editor3Config = config as IEditor3Config;
             const rawState = (value as IEditor3ValueStorage).rawContentState;
@@ -44,16 +40,15 @@ export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
 
     retrieveStoredValue: (item, fieldId, fieldType) => {
         const {getContentStateFromHtml} = superdeskApi.helpers;
-        const value = (item as {[key: string]: any})[fieldId] ?? undefined;
-
         const fieldDefinitions = getFieldDefinitions();
+        const value = (item as {[key: string]: any})[fieldId] ?? undefined;
         const fieldStorageAdapter = fieldDefinitions[fieldId]?.storageAdapter;
 
         if (fieldStorageAdapter != null) {
-            return fieldStorageAdapter.retrieveStoredValue(value);
+            return fieldStorageAdapter.retrieveStoredValue(item, fieldId);
         } else if (fieldType === 'editor3') {
             const returnValue: IEditor3ValueStorage
-                    = {rawContentState: convertToRaw(getContentStateFromHtml(value ?? ''))};
+                = {rawContentState: convertToRaw(getContentStateFromHtml(value ?? ''))};
 
             return returnValue;
         } else {

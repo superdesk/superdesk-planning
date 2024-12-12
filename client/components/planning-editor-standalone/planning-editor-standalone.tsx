@@ -105,8 +105,6 @@ export class PlanningEditorStandaloneComponent extends React.PureComponent<IProp
                     // PR-TODO: add a close button that will collapse the accordion
                     return {readOnly: false, actions: [saveButton]};
                 }}
-                getAuthoringPrimaryToolbarWidgets={() => []}
-                secondaryToolbarWidgets={[]}
                 getSidebarWidgetsCount={() => 0}
                 getSidebar={() => null}
                 sideWidget={null}

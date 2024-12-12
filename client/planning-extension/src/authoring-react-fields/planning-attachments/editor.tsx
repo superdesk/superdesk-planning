@@ -3,7 +3,11 @@ import {IEditorComponentProps} from 'superdesk-api';
 import {IAttachmentsFieldConfig, IAttachmentsFieldUserPreferences, IAttachmentsValueOperational} from './interfaces';
 import {extensionBridge} from '../../extension_bridge';
 
-type IProps = IEditorComponentProps<IAttachmentsValueOperational, IAttachmentsFieldConfig, IAttachmentsFieldUserPreferences>;
+type IProps = IEditorComponentProps<
+    IAttachmentsValueOperational,
+    IAttachmentsFieldConfig,
+    IAttachmentsFieldUserPreferences
+>;
 
 export class Editor extends React.PureComponent<IProps> {
     render() {

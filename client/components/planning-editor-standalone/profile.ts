@@ -4,17 +4,17 @@ import {
     IAuthoringFieldV2,
     ICommonFieldConfig,
     IContentProfileV2,
-    IDateFieldConfig,
-    IDropdownConfigManualSource,
+    IDateTimeFieldConfig,
     IDropdownConfigVocabulary,
     IEditor3Config,
     IVocabularyItem,
 } from 'superdesk-api';
-import {planningApi, superdeskApi} from '../../superdeskApi';
-import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
+import {superdeskApi} from '../../superdeskApi';
 import {
     IAttachmentsFieldConfig,
 } from '../../planning-extension/src/authoring-react-fields/planning-attachments/interfaces';
+import {getCustomVocabularyFields} from './field-adapters/custom-vocabularies';
+import {getPlanningProfileFields} from './profile-fields';
 
 function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
     const editor3ConfigWithoutFormatting: IEditor3Config = {
@@ -41,12 +41,31 @@ function getTextFieldConfig(options: {id: string; label: string, required: boole
     return field;
 }
 
-interface IFieldDefinition {
+function getDateTimeField(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
+    const config: IDateTimeFieldConfig = {
+        allowSeconds: false,
+    };
+
+    const field: IAuthoringFieldV2 = {
+        id: options.id,
+        name: options.label,
+        fieldType: 'datetime',
+        fieldConfig: {
+            ...config,
+            required: options.required,
+        },
+    };
+
+    return field;
+}
+
+export interface IFieldDefinition {
     fieldId: string;
     getField: (options: {required: boolean, id: string}) => IAuthoringFieldV2;
     storageAdapter?: {
-        storeValue: (operationalValue) => unknown; // returns stored value
-        retrieveStoredValue: (storageValue) => unknown; // returns operational value
+        storeValue: <T extends IPlanningItem>(item: T, operationalValue: unknown) => T; // returns stored value
+        retrieveStoredValue:
+            <T extends IPlanningItem>(item: T, fieldId: string) => unknown; // returns operational value
     };
 }
 
@@ -54,106 +73,111 @@ type IFieldDefinitions = {[fieldId: string]: IFieldDefinition};
 
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
-
-    const result: Array<IFieldDefinition> = [];
-
-    result.push({
-        fieldId: 'ednote',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Ed Note'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'internal_note',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Internal Note'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'name',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Name'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'slugline',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Slugline'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'description_text',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Description'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'headline',
-        getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Headline'), required: required}),
-    });
-
-    result.push({
-        fieldId: 'files',
-        getField: ({required, id}) => {
-            const fieldConfig: IAttachmentsFieldConfig = {
-                required,
-            };
-
-            const field: IAuthoringFieldV2 = {
-                id: id,
-                name: gettext('Attached files'),
-                fieldType: 'files',
-                fieldConfig: fieldConfig,
-            };
-
-            return field;
+    const result: Array<IFieldDefinition> = [
+        {
+            fieldId: 'ednote',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Ed Note'), required: required}),
         },
-    });
-
-    result.push({
-        fieldId: 'place',
-        getField: ({id, required}) => {
-            const fieldConfig: IDropdownConfigVocabulary = {
-                source: 'vocabulary',
-                vocabularyId: 'locators',
-                multiple: true,
-                required: required,
-            };
-
-            const field: IAuthoringFieldV2 = {
-                id: id,
-                name: gettext('Place'),
-                fieldType: 'dropdown',
-                fieldConfig: fieldConfig,
-            };
-
-            return field;
+        {
+            fieldId: 'internal_note',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Internal Note'), required: required}),
         },
-        storageAdapter: {
-            storeValue: (operationalValue: Array<string>): Array<IVocabularyItem> => {
-                const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
-                const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
-                    vocabulary.items.map((item) => [item.qcode, item]),
-                );
+        {
+            fieldId: 'name',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Name'), required: required}),
+        },
+        {
+            fieldId: 'slugline',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Slugline'), required: required}),
+        },
+        {
+            fieldId: 'description_text',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Description'), required: required}),
+        },
+        {
+            fieldId: 'headline',
+            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Headline'), required: required}),
+        },
+        {
+            fieldId: 'planning_date',
+            getField: ({required, id}) =>
+                getDateTimeField({id: id, label: gettext('Planning date'), required: required}),
+        },
+        {
+            fieldId: 'files',
+            getField: ({required, id}) => {
+                const fieldConfig: IAttachmentsFieldConfig = {
+                    required,
+                };
 
-                return operationalValue.map((qcode) => vocabularyItems.get(qcode));
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Attached files'),
+                    fieldType: 'files',
+                    fieldConfig: fieldConfig,
+                };
+
+                return field;
             },
-            retrieveStoredValue: (storageValue: Array<IVocabularyItem>) => storageValue.map(({qcode}) => qcode),
         },
-    });
+        {
+            fieldId: 'place',
+            getField: ({id, required}) => {
+                const fieldConfig: IDropdownConfigVocabulary = {
+                    source: 'vocabulary',
+                    vocabularyId: 'locators',
+                    multiple: true,
+                    required: required,
+                };
 
-    result.push({
-        fieldId: 'coverages',
-        getField: ({id, required}) => {
-            const fieldConfig: ICommonFieldConfig = {
-                required,
-            };
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Place'),
+                    fieldType: 'dropdown',
+                    fieldConfig: fieldConfig,
+                };
 
-            const field: IAuthoringFieldV2 = {
-                id: id,
-                name: gettext('Coverages'),
-                fieldType: 'coverages',
-                fieldConfig: fieldConfig,
-            };
+                return field;
+            },
+            storageAdapter: {
+                storeValue: (item, operationalValue: Array<string>) => {
+                    const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
+                    const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
+                        vocabulary.items.map((item) => [item.qcode, item]),
+                    );
 
-            return field;
+                    return {
+                        ...item,
+                        place: operationalValue.map((qcode) => vocabularyItems.get(qcode)),
+                    };
+                },
+                retrieveStoredValue: (item, fieldId) => item[fieldId].map(({qcode}) => qcode),
+            },
         },
-    });
+        {
+            fieldId: 'coverages',
+            getField: ({id, required}) => {
+                const fieldConfig: ICommonFieldConfig = {
+                    required,
+                };
+
+                const field: IAuthoringFieldV2 = {
+                    id: id,
+                    name: gettext('Coverages'),
+                    fieldType: 'coverages',
+                    fieldConfig: fieldConfig,
+                };
+
+                return field;
+            },
+        }
+    ];
+
+    result.push(
+        ...getCustomVocabularyFields(),
+    );
 
     const resultObj = result.reduce((acc, item) => {
         acc[item.fieldId] = item;
@@ -165,10 +189,9 @@ export function getFieldDefinitions(): IFieldDefinitions {
 }
 
 export function getProfile() {
-    const planningProfile = planningApi.contentProfiles.get('planning');
-    const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
-    const planningFieldIds = Object.values(planningGroups).flatMap(({fields}) => fields);
-
+    const planningFieldIds = getPlanningProfileFields();
+    const skipped = new Set<string>();
+    const fieldDefinitions = getFieldDefinitions();
     const profileV2: IContentProfileV2 = {
         id: 'not-used',
         name: 'not-used',
@@ -176,13 +199,7 @@ export function getProfile() {
         header: OrderedMap(),
     };
 
-    const skipped = new Set<string>();
-
-    const fieldDefinitions = getFieldDefinitions();
-
-    for (const fieldId of planningFieldIds) {
-        const required = planningProfile.schema?.[fieldId]?.required ?? false;
-
+    for (const {fieldId, required} of planningFieldIds) {
         if (fieldDefinitions[fieldId] != null) {
             profileV2.header = profileV2.header.set(
                 fieldId,
@@ -303,4 +320,17 @@ export function getProfile() {
 //     };
 
 //     profileV2.header = profileV2.header.set(categoryField.id, categoryField);
+// }
+//     else {
+//         skipped.push(fieldId);
+//     }
+// }
+
+//     profileV2.header.forEach((item) => {
+//         item.fieldConfig.width = 100;
+//     });
+
+//     console.log('skipped -------------------------------- ', skipped, superdeskApi.entities.vocabulary.getAll());
+
+//     return profileV2;
 // }
