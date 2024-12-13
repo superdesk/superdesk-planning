@@ -11,8 +11,7 @@ import {getDateTimeField} from './date-time-config';
 import {IFieldDefinitions, IFieldDefinition} from './interfaces';
 import {getTextFieldConfig} from './text-field-config';
 import {getPlaceField} from './place-field';
-
-export type IFieldGetter = () => IFieldDefinition;
+import {getAgendasField} from './agendas-field';
 
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
@@ -66,6 +65,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
             },
         },
         getPlaceField(),
+        getAgendasField(),
         {
             fieldId: 'coverages',
             getField: ({id, required}) => {
