@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import {get} from 'lodash';
+import moment from 'moment-timezone';
 
 export {gettext, gettextCatalog} from '../../utils/gettext';
 

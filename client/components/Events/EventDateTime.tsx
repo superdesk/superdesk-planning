@@ -82,6 +82,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                             date={start}
                             {...commonProps}
                             withTime={false}
+                            testId="event-start-date"
                         />
                     )}
                     {gettext('All day')}
@@ -95,9 +96,11 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     </span>
                 )}
                 <DateTime
+                    withTime={!isFullDay}
                     withDate={showEventStartDate}
                     withYear={withYear}
                     date={start}
+                    testId="event-start-date"
                     {...commonProps}
                 />
                 {showDash && <>&ndash;</>}
@@ -106,6 +109,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     withYear={withYear}
                     isEndEventDateTime={true}
                     date={end}
+                    testId="event-end-date"
                     {...commonProps}
                 />
                 {isRemoteTimeZone && (

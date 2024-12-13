@@ -42,7 +42,7 @@ export class AutopostIngestRuleEditor extends React.PureComponent<IProps, IState
         };
     }
 
-    updateAttributes<T extends keyof IExtraAttributes>(field: T, value: IExtraAttributes[T]) {
+    updateAttributes<T extends keyof IExtraAttributes>(field: T, value?: IExtraAttributes[T]) {
         this.props.updateRule({
             ...this.props.rule,
             actions: {

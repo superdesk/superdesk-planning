@@ -1581,7 +1581,9 @@ export interface IEditorFieldProps {
     editorType?: EDITOR_TYPE;
     profile?: IPlanningContentProfile;
 
-    onChange(field: string | {[key: string]: any}, value: any): void;
+    onChange(field: string, value: any): void;
+    onChange(values: {[key: string]: any}): void;
+
     popupContainer?(): HTMLElement;
 }
 
