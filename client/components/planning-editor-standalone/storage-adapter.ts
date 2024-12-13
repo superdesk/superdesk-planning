@@ -6,7 +6,7 @@ import {
     IStorageAdapter,
 } from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
-import {getFieldDefinitions} from './profile';
+import {getFieldDefinitions} from './field-definitions';
 
 export const storageAdapterPlanningItem: IStorageAdapter<IPlanningItem> = {
     storeValue: (value, fieldId, item, config, fieldType) => {
