@@ -1,12 +1,13 @@
-import {IAgenda} from 'interfaces';
+import {IAgenda} from '../../../interfaces';
 import {IDropdownConfigManualSource, IAuthoringFieldV2} from 'superdesk-api';
-import {planningApi} from 'superdeskApi';
-import {gettext} from 'utils';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from './interfaces';
 
 export const getAgendasField = (): IFieldDefinition => ({
     fieldId: 'agendas',
     getField: ({id, required}) => {
+        const {gettext} = superdeskApi.localization;
+
         const fieldConfig: IDropdownConfigManualSource = {
             source: 'manual-entry',
             options: ((planningApi.redux.store.getState().agenda.agendas ?? []) as Array<IAgenda>)
