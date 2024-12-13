@@ -7,7 +7,7 @@ from superdesk.core.resources import (
 
 from planning.types import PlanningResourceModel
 
-from .service import PlanningAsyncService
+from .planning_service import PlanningAsyncService
 
 planning_resource_config = ResourceConfig(
     name="planning",

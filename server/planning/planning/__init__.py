@@ -44,7 +44,7 @@ from .planning_featured import PlanningFeaturedResource, PlanningFeaturedService
 from .planning_files import PlanningFilesResource, PlanningFilesService
 
 from .module import planning_resource_config
-from .service import PlanningAsyncService
+from .planning_service import PlanningAsyncService
 
 
 __all__ = [
