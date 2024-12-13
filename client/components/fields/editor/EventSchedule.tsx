@@ -26,7 +26,11 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         this.changeTimezone = this.changeTimezone.bind(this);
     }
 
-    changeSchedule(field: string, value: moment.Moment) {
+    changeSchedule(field: string | {[key: string]: any}, value?: moment.Moment) {
+        if (value == null) {
+            return; // shouldn't happen
+        }
+
         if (field === 'dates.start.date') {
             this.changeStartDate(value);
         } else if (field === '_startTime') {
@@ -73,7 +77,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             changes['dates.end'] = value.clone();
         }
 
-        this.props.onChange(changes, null);
+        this.props.onChange(changes);
     }
 
     changeStartTime(value?: moment.Moment) {
@@ -90,7 +94,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                 'dates.no_end_time': false,
             };
 
-            this.props.onChange(changes, null);
+            this.props.onChange(changes);
             return;
         }
 
@@ -103,7 +107,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
 
         changes['_startTime'] = newStartDate;
         this.setToBeConfirmed(changes);
-        this.props.onChange(changes, null);
+        this.props.onChange(changes);
     }
 
     changeEndDate(value: moment.Moment) {
@@ -130,7 +134,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             changes['dates.end'] = localDateToUtc(value, this.props.item.dates?.tz);
         }
 
-        this.props.onChange(changes, null);
+        this.props.onChange(changes);
     }
 
     changeEndTime(value?: moment.Moment) {
@@ -145,7 +149,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                 'dates.no_end_time': hasStartTime,
             };
 
-            this.props.onChange(changes, null);
+            this.props.onChange(changes);
             return;
         }
 
@@ -162,7 +166,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         };
 
         this.setToBeConfirmed(changes);
-        this.props.onChange(changes, null);
+        this.props.onChange(changes);
     }
 
     setToBeConfirmed(changes) {
@@ -194,7 +198,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         addChange('dates.end', dates.end);
         addChange('_endTime', _endTime);
 
-        this.props.onChange(changes, null);
+        this.props.onChange(changes);
     }
 
     render() {
@@ -223,7 +227,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     onChange={this.changeSchedule}
                     showToBeConfirmed
                     onToBeConfirmed={() => {
-                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
+                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true});
                     }}
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
@@ -242,7 +246,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     onChange={this.changeSchedule}
                     showToBeConfirmed
                     onToBeConfirmed={() => {
-                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
+                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true});
                     }}
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}

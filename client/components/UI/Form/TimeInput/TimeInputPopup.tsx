@@ -11,7 +11,7 @@ import './style.scss';
 
 interface IProps {
     value: any;
-    onChange(value: string): void;
+    onChange(value: string | null): void;
     close(): void;
     target: string;
     popupContainer(): void;
@@ -82,7 +82,7 @@ export class TimeInputPopup extends React.Component<IProps, IState> {
         const {onChange, close} = this.props;
 
         if (addMinutes) {
-            let newTime = moment(this.state.currentTime);
+            const newTime = moment(this.state.currentTime);
 
             newTime.add(addMinutes, 'm');
             onChange(newTime.format('HH:mm'));

@@ -44,8 +44,8 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
     render() {
         const field = this.props.field;
         const value = get(this.props.item, field, this.props.defaultValue);
-        const momentValue = value != null ? moment(value) : undefined; // use moment.utc?
-        const error = get(this.props.errors ?? {}, field) || undefined;
+        const momentValue = value != null ? moment(value) : undefined;
+        const error = get(this.props.errors ?? {}, field);
 
         return (
             <DateTimeInput
