@@ -6,7 +6,6 @@ import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps, IProfileSchemaTypeList} from '../../../interfaces';
 import {Row} from '../../UI/Form';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
-import {arrayToTree} from 'superdesk-core/scripts/core/helpers/tree';
 import {TreeSelect} from 'superdesk-ui-framework/react';
 
 export interface ICustomVocabulariesProps extends IEditorFieldProps {
@@ -61,7 +60,7 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                         value={(item.subject ?? []).filter((x) => x.scheme === cv._id)}
                         label={gettext(cv.display_name)}
                         required={required ?? schema?.required}
-                        getOptions={() => arrayToTree(
+                        getOptions={() => superdeskApi.utilities.arrayToTree(
                             cv.items.map((cvItem) => ({
                                 ...cvItem,
                                 scheme: cv._id,
