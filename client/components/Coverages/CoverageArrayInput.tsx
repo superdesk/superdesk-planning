@@ -61,7 +61,6 @@ interface IProps {
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
     onPopupClose(): void;
-    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     createUploadLink(file: IFile): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     notifyValidationErrors(errors: Array<string>): void;
@@ -179,7 +178,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             event
         );
 
-        const {desks, users, coverageAddAdvancedMode, setCoverageAddAdvancedMode} = this.props;
+        const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
 
         return (
@@ -207,7 +206,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     desks,
                     users,
                     coverageAddAdvancedMode,
-                    setCoverageAddAdvancedMode,
                     language,
                     editorType,
                 }}

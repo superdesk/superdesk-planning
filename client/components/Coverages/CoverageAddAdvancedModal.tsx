@@ -1,4 +1,5 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import {get} from 'lodash';
 
 import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../interfaces';
@@ -11,10 +12,17 @@ import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import Modal from '../Modal';
 import {SelectInput} from '../UI/Form';
 import {superdeskApi} from '../../superdeskApi';
+import * as actions from '../../actions';
 
 const isInvalid = (coverage) => coverage.user && !coverage.desk;
 
-interface IProps {
+interface IReduxDispatchProps {
+    setCoverageAddAdvancedMode(enable: boolean): void;
+}
+
+type IReduxStateProps = {};
+
+interface IOwnProps {
     field: string;
     value: Array<DeepPartial<IPlanningCoverageItem>>;
     coverageAddAdvancedMode: boolean;
@@ -25,9 +33,10 @@ interface IProps {
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
-    setCoverageAddAdvancedMode(enable: boolean): void;
     close(event?: React.MouseEvent): void;
 }
+
+type IProps = IOwnProps & IReduxStateProps & IReduxDispatchProps;
 
 interface ICoverageSelector {
     id: number;
@@ -50,7 +59,7 @@ interface IState {
     isDirty: boolean;
 }
 
-export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
+class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> {
     id: number;
 
     constructor(props) {
@@ -366,3 +375,12 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch): IReduxDispatchProps => ({
+    setCoverageAddAdvancedMode: (value) => dispatch(actions.users.setCoverageAddAdvancedMode(value)),
+});
+
+export const CoverageAddAdvancedModal = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
+    null,
+    mapDispatchToProps
+)(CoverageAddAdvancedModalComponent);

@@ -9,7 +9,6 @@ import {planningUtils, onEventCapture} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import * as selectors from '../../../selectors';
-import * as actions from '../../../actions';
 
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
 import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
@@ -23,7 +22,6 @@ interface IProps {
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
-    setCoverageAddAdvancedMode(enable: boolean): void;
     onOpen?(): void;
     onAdd(
         qcode: IG2ContentType['qcode'],
@@ -63,10 +61,6 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });
 
 function getCoverageTypesFromProps(
@@ -189,7 +183,6 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
                         desks={this.props.desks}
 
                         coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
-                        setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
                     />
                 )}
             </React.Fragment>
@@ -199,5 +192,4 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
 
 export const AddCoveragesWrapper = connect(
     mapStateToProps,
-    mapDispatchToProps
 )(AddCoveragesWrapperComponent);

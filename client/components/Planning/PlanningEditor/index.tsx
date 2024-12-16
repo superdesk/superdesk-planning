@@ -74,7 +74,6 @@ interface IProps {
     fetchPlanningFiles(item: IPlanningItem): Promise<void>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     removeFile(file: IFile): Promise<void>;
-    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
 }
 
 interface IState {
@@ -100,7 +99,6 @@ const mapDispatchToProps = (dispatch) => ({
     fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
     uploadFiles: (files) => dispatch(planningActions.uploadFiles({files: files})),
     removeFile: (file) => dispatch(planningActions.removeFile(file)),
-    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });
 
 class PlanningEditorComponent extends React.Component<IProps, IState> {
@@ -409,7 +407,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         message: this.props.message,
                         event: this.props.event, // TAG: MULTIPLE_PRIMARY_EVENTS
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
-                        setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
                         defaultValue: [],
                         files: this.props.files,
                         uploadFiles: this.props.uploadFiles,
