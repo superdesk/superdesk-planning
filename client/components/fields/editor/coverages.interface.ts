@@ -29,12 +29,6 @@ export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
     onPopupClose?(): void;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     notifyValidationErrors(errors: Array<string>): void;
     getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;

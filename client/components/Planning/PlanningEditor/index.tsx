@@ -118,7 +118,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         this.onCoverageChange = this.onCoverageChange.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
-        this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
     }
 
     componentDidMount() {
@@ -333,54 +332,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledUpdateIndex: number
-    ) {
-        const forScheduledUpdate = get(scheduledUpdate, 'scheduled_update_id');
-        const toRemove = !forScheduledUpdate ? coverage : scheduledUpdate;
-
-        if (!get(toRemove, 'assigned_to.assignment_id')) {
-            // Non existing assignment, just remove from autosave
-            if (!forScheduledUpdate) {
-                this.onCoverageChange(`coverages[${index}].assigned_to`, {});
-            } else {
-                this.onCoverageChange(`coverages[${index}].scheduled_updates[${scheduledUpdateIndex}].assigned_to`, {});
-            }
-        } else {
-            delete toRemove.assigned_to;
-            this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT);
-        }
-    }
-
-    onPartialSave(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        action: string,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ) {
-        const updates = cloneDeep(this.props.item);
-
-        updates.coverages[index] = coverage;
-
-        // Let the ItemEditor component know we're about to perform a partial save
-        // This is way the 'save' buttons are disabled while we perform our partial save
-        if (!this.props.itemManager.startPartialSave(updates)) {
-            return;
-        }
-
-        let partialSaveAction;
-
-        if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
-            partialSaveAction = this.props.itemManager.removeAssignment;
-        }
-
-        partialSaveAction(this.props.item, coverage, index, scheduledUpdate, scheduledUpdateIndex);
-    }
-
     renderHeader() {
         return !this.props.itemExists ? null : (
             <PlanningEditorHeader
@@ -464,7 +415,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
                         setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
-                        onRemoveAssignment: this.onRemoveAssignment,
                         defaultValue: [],
                         files: this.props.files,
                         uploadFiles: this.props.uploadFiles,

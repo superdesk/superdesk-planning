@@ -46,7 +46,6 @@ interface IProps {
     errors: {[key: string]: any};
     showErrors: boolean;
     testId?: string;
-    onRemoveAssignment: (assignment: IAssignmentItem) => Promise<void>;
     getRef?(field: string, value: any): React.RefObject<any>;
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
@@ -173,10 +172,6 @@ export class InputArray extends React.PureComponent<IProps> {
                 {(value || []).map((val, index) => (
                     <Component
                         {...props}
-                        onRemoveAssignment={(val) =>
-                            planningApis.assignments.getById(val.assigned_to.assignment_id)
-                                .then((assignment) => this.props.onRemoveAssignment(assignment))
-                        }
                         key={index}
                         ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
                         testId={`${testId}[${index}]`}

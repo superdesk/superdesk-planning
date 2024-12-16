@@ -34,12 +34,6 @@ interface IProps extends IEditorFieldProps {
     canCreateScheduledUpdate?: boolean;
     planning: IPlanningItem;
 
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: any,
-        scheduledUpdateIndex: number
-    ): void;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     onRemoveScheduledUpdate(indexToRemove: number): void;
     onScheduleChanged(field: string, newValue: moment.Moment): void;
@@ -85,7 +79,6 @@ class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
                         newsCoverageStatus={this.props.newsCoverageStatus}
                         readOnly={this.props.readOnly}
                         contentTypes={this.props.contentTypes}
-                        onRemoveAssignment={this.props.onRemoveAssignment}
                         setCoverageDefaultDesk={this.props.setCoverageDefaultDesk}
                         onRemove={this.props.onRemoveScheduledUpdate.bind(null, index)}
                         onScheduleChanged={this.props.onScheduleChanged}

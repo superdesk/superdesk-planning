@@ -12,7 +12,6 @@ import {StateLabel} from '../../StateLabel';
 import * as actions from '../../../actions';
 import {ASSIGNMENTS} from '../../../constants/assignments';
 import * as selectors from '../../../selectors';
-import {planningUtils} from '../../../utils';
 import {Button} from 'superdesk-ui-framework/react';
 
 interface IProps {
@@ -24,7 +23,6 @@ interface IProps {
     addNewsItemToPlanning?: IArticle;
     onChange(field: string, value: any): void;
     onFocus?(): void;
-    onRemoveAssignment?(): Promise<void>;
     setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     showEditCoverageAssignmentModal(props: {
         field: string;
@@ -48,7 +46,7 @@ const mapStateToProps = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
 });
 
-export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
+class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
         this.showAssignmentModal = this.showAssignmentModal.bind(this);
@@ -75,7 +73,6 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             users,
             desks,
             addNewsItemToPlanning,
-            onRemoveAssignment,
             readOnly,
             lockedItems,
         } = this.props;
@@ -194,19 +191,24 @@ export class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 expand
                             />
                         </ListRow>
-                        {onRemoveAssignment != null && (
-                            <ListRow>
-                                <Button
-                                    text={gettext('Remove')}
-                                    onClick={() => {
-                                        onRemoveAssignment();
-                                    }}
-                                    style="hollow"
-                                    size="small"
-                                    expand
-                                />
-                            </ListRow>
-                        )}
+
+                        <ListRow>
+                            <Button
+                                text={gettext('Remove')}
+                                onClick={() => {
+                                    this.props.onChange(
+                                        field,
+                                        {
+                                            ...value,
+                                            assigned_to: {},
+                                        },
+                                    );
+                                }}
+                                style="hollow"
+                                size="small"
+                                expand
+                            />
+                        </ListRow>
                     </Column>
                 )}
             </Item>

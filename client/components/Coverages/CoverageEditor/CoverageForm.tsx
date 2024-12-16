@@ -57,12 +57,6 @@ interface IProps {
     onFieldFocus(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: any,
-        scheduledUpdateIndex: number
-    ): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     createUploadLink(file: IFile): void;
     removeFile(file: IFile): Promise<void>;
@@ -423,7 +417,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 field: 'flags.no_content_linking',
             },
             scheduled_updates: {
-                onRemoveAssignment: this.props.onRemoveAssignment,
                 setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                 onRemoveScheduledUpdate: this.onRemoveScheduledUpdate,
                 onScheduleChanged: this.onScheduleChanged,

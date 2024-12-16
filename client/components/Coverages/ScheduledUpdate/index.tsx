@@ -50,13 +50,7 @@ interface IProps {
     testId: string;
 
     onRemove(): void;
-    onChange(field: string, value: any): void;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        coverageIndex: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledIndex: number
-    ): void;
+    onChange(field: string, value: any): void
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
@@ -104,7 +98,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             onChange,
             coverageProviders,
             priorities,
-            onRemoveAssignment,
             readOnly,
             addNewsItemToPlanning,
             popupContainer,
@@ -209,8 +202,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 desks={desks}
                 readOnly={readOnly}
                 addNewsItemToPlanning={addNewsItemToPlanning}
-                onRemoveAssignment={!onRemoveAssignment ? null :
-                    onRemoveAssignment.bind(null, diff, coverageIndex, value, index)}
                 setCoverageDefaultDesk={setCoverageDefaultDesk}
             />
         );

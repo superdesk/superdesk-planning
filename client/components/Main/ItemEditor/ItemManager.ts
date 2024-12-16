@@ -58,7 +58,6 @@ export class ItemManager {
         this.addCoverage = this.addCoverage.bind(this);
         this.startPartialSave = this.startPartialSave.bind(this);
         this.openInModal = this.openInModal.bind(this);
-        this.removeAssignment = this.removeAssignment.bind(this);
         this.setStateForPartialSave = this.setStateForPartialSave.bind(this);
 
         this.editorApi = planningApi.editor(this.props.inModalView ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE);
@@ -877,11 +876,6 @@ export class ItemManager {
             'coverages',
             [...get(this.state, 'diff.coverages', []), newCoverage]
         );
-    }
-
-    removeAssignment(planning, coverage, index) {
-        return this.dispatch<any>(actions.planning.ui.removeAssignment(planning, coverage, index))
-            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     getCoverageAfterPartialSave(updates, index) {
