@@ -7,6 +7,8 @@ import {gettext} from '../../../utils';
 import {ButtonList} from '../../UI';
 import {Popup, Header, Footer, Content} from '../../UI/Popup';
 import {AssignmentEditor} from '../AssignmentEditor';
+import * as actions from '../../../actions';
+import {planningApi} from '../../../superdeskApi';
 
 import './style.scss';
 
@@ -35,7 +37,9 @@ export class AssignmentPopup extends React.Component {
 
     onSubmit() {
         this.props.onChange(this.props.field, this.state.diff);
-        this.props.setCoverageDefaultDesk(this.state.diff);
+
+        planningApi.redux.store.dispatch(actions.users.setCoverageDefaultDesk(this.state.diff));
+
         this.props.onClose();
     }
 
@@ -131,7 +135,6 @@ AssignmentPopup.propTypes = {
     popupContainer: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
-    setCoverageDefaultDesk: PropTypes.func,
 };
 
 AssignmentPopup.defaultProps = {priorityPrefix: ''};

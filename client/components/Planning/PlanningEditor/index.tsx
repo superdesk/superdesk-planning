@@ -6,7 +6,6 @@ import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
-    ICoverageScheduledUpdate,
     IEventItem,
     IFile,
     IFormItemManager,
@@ -26,7 +25,6 @@ import {planningUtils, eventUtils, lockUtils} from '../../../utils';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
-import {COVERAGES} from '../../../constants';
 import planningActions from '../../../actions/planning/api';
 
 interface IProps {
@@ -76,7 +74,6 @@ interface IProps {
     fetchPlanningFiles(item: IPlanningItem): Promise<void>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     removeFile(file: IFile): Promise<void>;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
 }
 
@@ -103,7 +100,6 @@ const mapDispatchToProps = (dispatch) => ({
     fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
     uploadFiles: (files) => dispatch(planningActions.uploadFiles({files: files})),
     removeFile: (file) => dispatch(planningActions.removeFile(file)),
-    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
     setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });
 
@@ -413,7 +409,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         message: this.props.message,
                         event: this.props.event, // TAG: MULTIPLE_PRIMARY_EVENTS
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
-                        setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                         setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
                         defaultValue: [],
                         files: this.props.files,

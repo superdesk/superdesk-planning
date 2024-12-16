@@ -10,6 +10,8 @@ import * as selectors from '../../selectors';
 import {Modal} from '../';
 import {Button} from '../UI';
 import {AssignmentEditor} from './AssignmentEditor';
+import {planningApi} from '../../superdeskApi';
+import * as actions from '../../actions';
 
 export class EditCoverageAssignmentModalComponent extends React.Component {
     constructor(props) {
@@ -36,7 +38,9 @@ export class EditCoverageAssignmentModalComponent extends React.Component {
     onSubmit() {
         this.setState({submitting: true}, () => {
             this.props.modalProps.onChange(this.props.modalProps.field, this.state.diff);
-            this.props.modalProps.setCoverageDefaultDesk(this.state.diff);
+
+            planningApi.redux.store.dispatch(actions.users.setCoverageDefaultDesk(this.state.diff));
+
             this.props.handleHide();
         });
     }
@@ -125,7 +129,6 @@ EditCoverageAssignmentModalComponent.propTypes = {
         priorityPrefix: PropTypes.string,
         disableDeskSelection: PropTypes.bool,
         disableUserSelection: PropTypes.bool,
-        setCoverageDefaultDesk: PropTypes.func,
     }),
     users: PropTypes.array,
     desks: PropTypes.array,

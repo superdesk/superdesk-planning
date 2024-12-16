@@ -50,7 +50,6 @@ interface IProps {
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
     onPopupClose(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     contentTypes: Array<IG2ContentType>;
     defaultDesk: IDesk;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;

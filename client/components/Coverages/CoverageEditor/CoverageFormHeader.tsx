@@ -23,7 +23,6 @@ interface IProps {
     addNewsItemToPlanning?: IArticle;
     onChange(field: string, value: any): void;
     onFocus?(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     showEditCoverageAssignmentModal(props: {
         field: string;
         value: IPlanningCoverageItem | ICoverageScheduledUpdate;
@@ -31,7 +30,6 @@ interface IProps {
         disableUserSelection: boolean;
         priorityPrefix: string;
         onChange(field: string, value: any): void;
-        setCoverageDefaultDesk(coverage: IPlanningCoverageItem | ICoverageScheduledUpdate): void;
     }): void;
     lockedItems: ILockedItems;
 }
@@ -61,7 +59,6 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             onChange: this.props.onChange,
             disableDeskSelection: !!this.props.addNewsItemToPlanning,
             disableUserSelection: !!this.props.addNewsItemToPlanning,
-            setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
             priorityPrefix: 'assigned_to.',
         });
     }

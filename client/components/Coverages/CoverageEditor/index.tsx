@@ -65,7 +65,6 @@ interface IProps {
     onChange(field: string, value: any): void;
     remove(): void;
     popupContainer(): void;
-    setCoverageDefaultDesk(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
 }
@@ -137,7 +136,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            setCoverageDefaultDesk,
             openCoverageIds,
             testId,
             includeScheduledUpdates,
@@ -274,7 +272,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                 desks={desks}
                 readOnly={readOnly}
                 addNewsItemToPlanning={addNewsItemToPlanning}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
                 {...props}
             />
         );
@@ -298,7 +295,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                 onFieldFocus={onFocus}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
                 users={users}
                 desks={desks}
                 coverageProviders={coverageProviders}

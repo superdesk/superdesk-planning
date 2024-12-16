@@ -27,7 +27,6 @@ export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     notifyValidationErrors(errors: Array<string>): void;

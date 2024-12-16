@@ -29,7 +29,6 @@ export class Editor extends React.PureComponent<IProps> {
                         related_events: this.props.item.related_events,
                     } as IPlanningItem}
                     // PR-TODO: implement functions below
-                    setCoverageDefaultDesk={noop}
                     setCoverageAddAdvancedMode={() => Promise.resolve()}
                     preferredCoverageDesks={{}}
                     uploadFiles={() => Promise.resolve([])}

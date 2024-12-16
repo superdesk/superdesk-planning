@@ -54,7 +54,6 @@ interface IProps {
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     onFocus?(): void;
     onScheduleChanged(field: string, value: moment.Moment | undefined, coverage: ICoverageScheduledUpdate): void;
     onOpen?(coverage: ICoverageScheduledUpdate): void;
@@ -103,7 +102,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            setCoverageDefaultDesk,
             openCoverageIds,
             autoAssignToWorkflow,
             onFocus,
@@ -202,7 +200,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 desks={desks}
                 readOnly={readOnly}
                 addNewsItemToPlanning={addNewsItemToPlanning}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
             />
         );
 

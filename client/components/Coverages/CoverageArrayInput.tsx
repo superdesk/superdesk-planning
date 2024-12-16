@@ -61,7 +61,6 @@ interface IProps {
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
     onPopupClose(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
     setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     createUploadLink(file: IFile): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
@@ -158,7 +157,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            setCoverageDefaultDesk,
             preferredCoverageDesks,
             item,
             navigation,
@@ -225,7 +223,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 popupContainer={popupContainer}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
                 contentTypes={contentTypes}
                 defaultDesk={defaultDesk}
                 newsCoverageStatus={newsCoverageStatus}

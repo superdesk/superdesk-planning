@@ -858,7 +858,6 @@ const loadDefaultListSort = () => (
  * @param {string} priorityPrefix - The prefix for the priority field
  * @param {boolean} disableDeskSelection - If true, disables the Desk input field
  * @param {boolean} disableUserSelection - If true, disables the User input field
- * @param {Function} setCoverageDefaultDesk - Callback function to set default desk for coverages
  */
 const showEditCoverageAssignmentModal = ({
     field,
@@ -867,7 +866,6 @@ const showEditCoverageAssignmentModal = ({
     priorityPrefix,
     disableDeskSelection,
     disableUserSelection,
-    setCoverageDefaultDesk,
 }) => (
     (dispatch) => {
         dispatch(showModal({
@@ -879,7 +877,6 @@ const showEditCoverageAssignmentModal = ({
                 priorityPrefix,
                 disableDeskSelection,
                 disableUserSelection,
-                setCoverageDefaultDesk,
             },
         }));
     }
