@@ -20,7 +20,7 @@ export class Editor extends React.PureComponent<IProps> {
         return (
             <Container>
                 <EditorFieldCoverages
-                    field='coverages'
+                    field="coverages"
                     item={{
                         // coverages are the main value
                         coverages: this.props.value,
