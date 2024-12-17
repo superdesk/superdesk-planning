@@ -14,11 +14,12 @@ interface ICustomVocabularyField extends IBaseField<'custom_vocabulary'> {
 type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField;
 
 /**
- * Fields that don't have a planning profile schema
+ * Fields that might exist in the planning profile (database)
+ * but aren't mapped to work in a standalone editor.
  */
-const FIELDS_TO_FILTER = [
+const unimplementedFields = new Set<string>([
     'associated_event',
-];
+]);
 
 /**
  * A function that handles planning profile field types so they can be used in authoring react.
@@ -26,8 +27,9 @@ const FIELDS_TO_FILTER = [
 export const getPlanningProfileFields = (): Array<IFieldConverted> => {
     const planningProfile = planningApi.contentProfiles.get('planning');
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
-    const planningFieldIds = Object.values(planningGroups).flatMap((x) => x.fields)
-        .filter((x) => !FIELDS_TO_FILTER.includes(x));
+    const planningFieldIds = Object.values(planningGroups)
+        .flatMap((x) => x.fields)
+        .filter((x) => !unimplementedFields.has(x));
     const convertedFieldIds: Array<IFieldConverted> = [];
 
     for (const fieldId of planningFieldIds) {
