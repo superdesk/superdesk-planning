@@ -78,7 +78,20 @@ events_schema = {
     "accreditation_deadline": {"type": "datetime"},
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
-    "anpa_category": metadata_schema["anpa_category"],
+    "anpa_category": {
+        "type": "list",
+        "nullable": True,
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "qcode": not_analyzed,
+                "name": not_analyzed,
+                "scheme": not_analyzed,
+                "translations": {"enabled": False},  # explicitly disable
+            },
+        },
+    },
     "files": {
         "type": "list",
         "nullable": True,
@@ -209,6 +222,7 @@ events_schema = {
                 "address": {"type": "object", "dynamic": True},
                 "geo": {"type": "string"},
                 "location": {"type": "geo_point"},
+                "translations": {"enabled": False},  # explicitly disable
             },
         },
         "nullable": True,
@@ -268,6 +282,7 @@ events_schema = {
             "properties": {
                 "qcode": not_analyzed,
                 "name": not_analyzed,
+                "translations": {"enabled": False},  # explicitly disable
             },
         },
     },
