@@ -5,9 +5,10 @@ import {
     IUrlsFieldUserPreferences,
 } from 'superdesk-api';
 import {ICoveragesValueOperational} from './interfaces';
-import {cloneDeep, noop, set} from 'lodash';
+import {cloneDeep, set} from 'lodash';
 import {extensionBridge} from '../../extension_bridge';
 import {IPlanningItem} from '../../../../interfaces';
+import {superdesk} from '../../superdesk';
 
 type IProps = IEditorComponentProps<ICoveragesValueOperational, IUrlsFieldConfig, IUrlsFieldUserPreferences>;
 
@@ -21,6 +22,7 @@ export class Editor extends React.PureComponent<IProps> {
             <Container>
                 <EditorFieldCoverages
                     field="coverages"
+
                     item={{
                         // coverages are the main value
                         coverages: this.props.value,
@@ -28,9 +30,21 @@ export class Editor extends React.PureComponent<IProps> {
                         // related_events are used if available to prefill coverage fields when adding a new coverage
                         related_events: this.props.item.related_events,
                     } as IPlanningItem}
-                    // PR-TODO: implement functions below
+
+                    /**
+                     * It looks like this prop is designed to accept a validation message.
+                     * authoring-react field types don't accept validation messages.
+                     * They are rendered higher in the component tree.
+                     * We do handle it in PlanningEditorStandalone component (on save).
+                     */
                     message={{}}
-                    notifyValidationErrors={noop}
+
+                    notifyValidationErrors={(errors) => {
+                        for (const error of errors) {
+                            superdesk.ui.notify.error(error);
+                        }
+                    }}
+
                     onChange={(fieldPath: any, value: any) => {
                         /**
                          * sample of arguments:
