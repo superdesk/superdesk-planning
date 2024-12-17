@@ -20,7 +20,7 @@ export class Editor extends React.PureComponent<IProps> {
         return (
             <Container>
                 <EditorFieldCoverages
-                    field='coverages'
+                    field="coverages"
                     item={{
                         // coverages are the main value
                         coverages: this.props.value,
@@ -29,9 +29,6 @@ export class Editor extends React.PureComponent<IProps> {
                         related_events: this.props.item.related_events,
                     } as IPlanningItem}
                     // PR-TODO: implement functions below
-                    onRemoveAssignment={noop}
-                    setCoverageDefaultDesk={noop}
-                    setCoverageAddAdvancedMode={() => Promise.resolve()}
                     preferredCoverageDesks={{}}
                     uploadFiles={() => Promise.resolve([])}
                     message={{}}

@@ -514,27 +514,6 @@ const saveFromAuthoring = (original, updates) => (
     }
 );
 
-/**
- * Action to update the values of a single Coverage so the Assignment is placed in the workflow
- * @param {object} original - Original Planning item
- * @param {object} updatedCoverage - Coverage to update (along with any coverage fields to update as well)
- * @param {number} index - index of the Coverage in the coverages[] array
- */
-const removeAssignment = (original, updatedCoverage, index) => (
-    (dispatch, getState, {notify}) => {
-        const updates = {coverages: cloneDeep(original.coverages)};
-        const coverage = cloneDeep(updatedCoverage);
-
-        updates.coverages[index] = coverage;
-
-        return dispatch(planningApis.save(original, updates))
-            .then((savedItem) => {
-                notify.success(gettext('Removed assignment from coverage.'));
-                return dispatch(self.updateItemOnSave(savedItem));
-            });
-    }
-);
-
 const updateItemOnSave = (savedItem) => (
     (dispatch) => {
         const modifiedItem = planningUtils.modifyForClient(savedItem);
@@ -575,7 +554,6 @@ const self = {
     saveFromAuthoring,
     scheduleRefetch,
     assignToAgenda,
-    removeAssignment,
     _modifyPlanningFeatured,
     modifyPlanningFeatured,
     openFeaturedPlanningModal,

@@ -11,6 +11,7 @@ import {getDateTimeField} from './date-time-config';
 import {IFieldDefinitions, IFieldDefinition} from './interfaces';
 import {getTextFieldConfig} from './text-field-config';
 import {getPlaceField} from './place-field';
+import {getCategoriesField} from './category-field';
 import {getAgendasField} from './agendas-field';
 import {getSubjectField} from './subject';
 
@@ -68,6 +69,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
         getPlaceField(),
         getAgendasField(),
         getSubjectField(),
+        getCategoriesField(),
         {
             fieldId: 'coverages',
             getField: ({id, required}) => {

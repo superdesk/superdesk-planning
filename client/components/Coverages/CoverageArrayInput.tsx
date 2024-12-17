@@ -4,10 +4,9 @@ import {isEmpty} from 'lodash';
 
 import {
     EDITOR_TYPE,
-    IAssignmentItem,
     IAssignmentPriority,
     ICoverageFormProfile,
-    ICoverageProvider, ICoverageScheduledUpdate, IEventItem, IFile,
+    ICoverageProvider, IEventItem, IFile,
     IG2ContentType,
     IGenre,
     IKeyword,
@@ -23,7 +22,6 @@ import * as selectors from '../../selectors';
 import {InputArray} from '../UI/Form';
 import {CoverageEditor} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
-import * as actions from '../../actions';
 
 
 interface IProps {
@@ -63,10 +61,7 @@ interface IProps {
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
     onPopupClose(): void;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
-    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
     createUploadLink(file: IFile): void;
-    onRemoveAssignment(assignemnt: IAssignmentItem): Promise<void>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     notifyValidationErrors(errors: Array<string>): void;
 }
@@ -87,10 +82,6 @@ const mapStateToProps = (state) => ({
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    onRemoveAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
 });
 
 class CoverageArrayInputComponent extends React.Component<IProps, IState> {
@@ -165,7 +156,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            setCoverageDefaultDesk,
             preferredCoverageDesks,
             item,
             navigation,
@@ -188,7 +178,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             event
         );
 
-        const {desks, users, coverageAddAdvancedMode, setCoverageAddAdvancedMode} = this.props;
+        const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
 
         return (
@@ -202,7 +192,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 onChange={onChange}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
-                onRemoveAssignment={this.props.onRemoveAssignment}
                 addButtonProps={{
                     contentTypes,
                     defaultDesk,
@@ -217,7 +206,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     desks,
                     users,
                     coverageAddAdvancedMode,
-                    setCoverageAddAdvancedMode,
                     language,
                     editorType,
                 }}
@@ -233,7 +221,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 popupContainer={popupContainer}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
                 contentTypes={contentTypes}
                 defaultDesk={defaultDesk}
                 newsCoverageStatus={newsCoverageStatus}
@@ -249,4 +236,4 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
     }
 }
 
-export const CoverageArrayInput = connect(mapStateToProps, mapDispatchToProps)(CoverageArrayInputComponent);
+export const CoverageArrayInput = connect(mapStateToProps)(CoverageArrayInputComponent);

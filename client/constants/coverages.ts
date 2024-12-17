@@ -1,11 +1,5 @@
-import {superdeskApi} from '../superdeskApi';
-
 export const COVERAGES = {
     WORKFLOW_STATE: {ACTIVE: 'active'},
-    PARTIAL_SAVE: {
-        REMOVE_ASSIGNMENT: 'REMOVE_ASSIGNMENT',
-        SCHEDULED_UPDATES_REMOVE_ASSIGNMENT: 'SCHEDULED_UPDATES_REMOVE_ASSIGNMENT',
-    },
     HISTORY_OPERATIONS: {
         CREATED: 'coverage_created',
         DELETED: 'coverage_deleted',

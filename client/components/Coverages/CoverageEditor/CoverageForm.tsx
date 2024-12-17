@@ -4,7 +4,7 @@ import {get, forEach} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
-import {superdeskApi, planningApi} from '../../../superdeskApi';
+import {superdeskApi} from '../../../superdeskApi';
 import {IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
@@ -57,12 +57,6 @@ interface IProps {
     onFieldFocus(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: any,
-        scheduledUpdateIndex: number
-    ): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     createUploadLink(file: IFile): void;
     removeFile(file: IFile): Promise<void>;
@@ -76,9 +70,6 @@ interface IProps {
     keywords: Array<IKeyword>;
     preferredCoverageDesks: {[key: string]: string};
     planningAllowScheduledUpdates: boolean;
-
-    // Redux Dispatches
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
 }
 
 interface IState {
@@ -95,10 +86,6 @@ const mapStateToProps = (state) => ({
     preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     formProfile: selectors.forms.coverageProfile(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
 });
 
 export class CoverageFormComponent extends React.Component<IProps, IState> {
@@ -423,8 +410,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 field: 'flags.no_content_linking',
             },
             scheduled_updates: {
-                onRemoveAssignment: this.props.onRemoveAssignment,
-                setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
                 onRemoveScheduledUpdate: this.onRemoveScheduledUpdate,
                 onScheduleChanged: this.onScheduleChanged,
                 onScheduledUpdateClose: this.onScheduledUpdateClose,
@@ -472,4 +457,4 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 }
 
-export const CoverageForm = connect(mapStateToProps, mapDispatchToProps)(CoverageFormComponent);
+export const CoverageForm = connect(mapStateToProps)(CoverageFormComponent);

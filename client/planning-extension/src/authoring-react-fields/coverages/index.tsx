@@ -12,8 +12,12 @@ import {superdesk} from '../../superdesk';
 
 const {gettext} = superdesk.localization;
 
-export function getCoveragesField()
-: ICustomFieldType<ICoveragesValueOperational, ICoveragesValueStorage, ICoveragesFieldConfig, ICoveragesFieldUserPreferences> {
+export function getCoveragesField(): ICustomFieldType<
+ICoveragesValueOperational,
+ICoveragesValueStorage,
+ICoveragesFieldConfig,
+ICoveragesFieldUserPreferences
+> {
     const field: ReturnType<typeof getCoveragesField> = {
         id: 'coverages',
         generic: false,

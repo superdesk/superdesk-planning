@@ -6,7 +6,6 @@ import {appConfig} from 'appConfig';
 import {
     EDITOR_TYPE,
     IAgenda,
-    ICoverageScheduledUpdate,
     IEventItem,
     IFile,
     IFormItemManager,
@@ -26,7 +25,6 @@ import {planningUtils, eventUtils, lockUtils} from '../../../utils';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
-import {COVERAGES} from '../../../constants';
 import planningActions from '../../../actions/planning/api';
 
 interface IProps {
@@ -76,8 +74,6 @@ interface IProps {
     fetchPlanningFiles(item: IPlanningItem): Promise<void>;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     removeFile(file: IFile): Promise<void>;
-    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
-    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
 }
 
 interface IState {
@@ -103,8 +99,6 @@ const mapDispatchToProps = (dispatch) => ({
     fetchPlanningFiles: (planning) => dispatch(planningActions.fetchPlanningFiles(planning)),
     uploadFiles: (files) => dispatch(planningActions.uploadFiles({files: files})),
     removeFile: (file) => dispatch(planningActions.removeFile(file)),
-    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
-    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });
 
 class PlanningEditorComponent extends React.Component<IProps, IState> {
@@ -118,7 +112,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         this.onCoverageChange = this.onCoverageChange.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
-        this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
     }
 
     componentDidMount() {
@@ -333,54 +326,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onRemoveAssignment(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        scheduledUpdate: ICoverageScheduledUpdate,
-        scheduledUpdateIndex: number
-    ) {
-        const forScheduledUpdate = get(scheduledUpdate, 'scheduled_update_id');
-        const toRemove = !forScheduledUpdate ? coverage : scheduledUpdate;
-
-        if (!get(toRemove, 'assigned_to.assignment_id')) {
-            // Non existing assignment, just remove from autosave
-            if (!forScheduledUpdate) {
-                this.onCoverageChange(`coverages[${index}].assigned_to`, {});
-            } else {
-                this.onCoverageChange(`coverages[${index}].scheduled_updates[${scheduledUpdateIndex}].assigned_to`, {});
-            }
-        } else {
-            delete toRemove.assigned_to;
-            this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT);
-        }
-    }
-
-    onPartialSave(
-        coverage: IPlanningCoverageItem,
-        index: number,
-        action: string,
-        scheduledUpdate?: ICoverageScheduledUpdate,
-        scheduledUpdateIndex?: number
-    ) {
-        const updates = cloneDeep(this.props.item);
-
-        updates.coverages[index] = coverage;
-
-        // Let the ItemEditor component know we're about to perform a partial save
-        // This is way the 'save' buttons are disabled while we perform our partial save
-        if (!this.props.itemManager.startPartialSave(updates)) {
-            return;
-        }
-
-        let partialSaveAction;
-
-        if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
-            partialSaveAction = this.props.itemManager.removeAssignment;
-        }
-
-        partialSaveAction(this.props.item, coverage, index, scheduledUpdate, scheduledUpdateIndex);
-    }
-
     renderHeader() {
         return !this.props.itemExists ? null : (
             <PlanningEditorHeader
@@ -462,9 +407,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         message: this.props.message,
                         event: this.props.event, // TAG: MULTIPLE_PRIMARY_EVENTS
                         preferredCoverageDesks: this.props.preferredCoverageDesks,
-                        setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
-                        setCoverageAddAdvancedMode: this.props.setCoverageAddAdvancedMode,
-                        onRemoveAssignment: this.onRemoveAssignment,
                         defaultValue: [],
                         files: this.props.files,
                         uploadFiles: this.props.uploadFiles,
