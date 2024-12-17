@@ -1,6 +1,6 @@
 import {IDropdownConfigVocabulary, IAuthoringFieldV2, ISubject, IVocabularyItem} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
-import {IFieldDefinition} from '../profile';
+import {IFieldDefinition} from '../field-definitions/interfaces';
 import {getPlanningProfileFields} from '../profile-fields';
 
 export const getCustomVocabularyFields = () => {
