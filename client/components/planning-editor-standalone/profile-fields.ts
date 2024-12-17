@@ -13,6 +13,9 @@ interface ICustomVocabularyField extends IBaseField<'custom_vocabulary'> {
 
 type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField;
 
+/**
+ * Fields that don't have a planning profile schema
+ */
 const FIELDS_TO_FILTER = [
     'associated_event',
 ];
