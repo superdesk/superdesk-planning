@@ -1,5 +1,4 @@
 import {
-    ICoverageScheduledUpdate,
     IEditorFieldProps,
     IEventItem, IFile,
     IPlanningCoverageItem,
@@ -22,7 +21,6 @@ export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
     originalCount?: number;
     message: string | {[key: string]: any};
     event?: IEventItem;
-    preferredCoverageDesks: {[key: string]: string};
 
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;

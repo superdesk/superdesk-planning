@@ -1940,7 +1940,6 @@ export interface IEditorProps {
     inModalView: boolean;
     hideExternalEdit: boolean;
     defaultDesk: IDesk;
-    preferredCoverageDesks: {[key: string]: string};
     associatedPlannings?: Array<IPlanningItem>;
     associatedEvents?: Array<IEventItem>;
     currentWorkspace: string;

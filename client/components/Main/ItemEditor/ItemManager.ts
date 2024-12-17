@@ -27,6 +27,7 @@ import * as actions from '../../../actions';
 import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
+import * as selectors from '../../../selectors';
 
 
 export class ItemManager {
@@ -863,13 +864,16 @@ export class ItemManager {
     }
 
     addCoverage(g2ContentType) {
+        const state = planningApi.redux.store.getState();
+        const preferredCoverageDesks = selectors.general.preferredCoverageDesks(state)?.desks ?? {};
+
         const newCoverage = planningUtils.defaultCoverageValues(
             this.props.newsCoverageStatus,
             this.state.initialValues,
             this.props.associatedEvents?.[0] ?? null, // TAG: MULTIPLE_PRIMARY_EVENTS
             g2ContentType,
             this.props.defaultDesk,
-            this.props.preferredCoverageDesks
+            preferredCoverageDesks,
         );
 
         this.editor.onChangeHandler(

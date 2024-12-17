@@ -29,7 +29,6 @@ export class Editor extends React.PureComponent<IProps> {
                         related_events: this.props.item.related_events,
                     } as IPlanningItem}
                     // PR-TODO: implement functions below
-                    preferredCoverageDesks={{}}
                     uploadFiles={() => Promise.resolve([])}
                     message={{}}
                     notifyValidationErrors={noop}

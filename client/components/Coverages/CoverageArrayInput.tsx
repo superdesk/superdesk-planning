@@ -38,7 +38,6 @@ interface IProps {
     originalCount?: number;
     message: string | {[key: string]: any};
     event?: IEventItem;
-    preferredCoverageDesks: {[key: string]: string};
     getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
     testId?: string;
     editorType: EDITOR_TYPE;
@@ -156,7 +155,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             popupContainer,
             onPopupOpen,
             onPopupClose,
-            preferredCoverageDesks,
             item,
             navigation,
             useLocalNavigation,
@@ -197,7 +195,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     defaultDesk,
                     onPopupOpen,
                     onPopupClose,
-                    preferredCoverageDesks,
                     newsCoverageStatus,
                     field,
                     value,
@@ -227,7 +224,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 diff={item}
                 navigation={coverageNavigation}
                 openCoverageIds={this.state.openCoverageIds}
-                preferredCoverageDesks={preferredCoverageDesks}
                 getRef={this.props.getRef}
                 editorType={editorType}
                 {...props}
