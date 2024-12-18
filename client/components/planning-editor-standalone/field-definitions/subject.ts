@@ -36,26 +36,12 @@ export function getSubjectField(): IFieldDefinition {
                 return (item.subject ?? []).map(({qcode}) => qcode);
             },
             storeValue: (item, operationalValue: Array<ISubjectCode['qcode']>) => {
-                interface IStorageFormat {
-                    qcode: string;
-                    name: string;
-                    parent?: string;
-                }
-
                 const allSubjects: Array<ISubjectCode> = (planningApi.redux.store.getState().subjects ?? [])
                     .filter((x) => operationalValue.includes(x.qcode));
 
                 return {
                     ...item,
-                    subject: allSubjects.map(({qcode, name, parent}) => {
-                        var itemToStore: IStorageFormat = {qcode, name, parent};
-
-                        if (parent != null) {
-                            itemToStore.parent = parent;
-                        }
-
-                        return itemToStore;
-                    }),
+                    subject: allSubjects,
                 };
             },
         }
