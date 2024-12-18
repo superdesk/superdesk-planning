@@ -208,8 +208,3 @@ a:hover {
         }
     }
 }
-
-// PR-TODO: update ui-framework component so it wouldn't apply max-height if collapsing header is not possible
-.sd-editor-content__authoring-header {
-    max-height: 99990px!important;
-}
