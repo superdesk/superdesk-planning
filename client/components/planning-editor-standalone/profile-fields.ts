@@ -35,6 +35,14 @@ export const getPlanningProfileFields = (): Array<IFieldConverted> => {
     for (const fieldId of planningFieldIds) {
         const fieldSchema = planningProfile.schema[fieldId];
 
+        /**
+         * If a field has show_in_embedded_editor or required toggled on
+         * we must show it in the embedded editor
+         */
+        if (!(fieldSchema.show_in_embedded_editor || fieldSchema.required)) {
+            continue;
+        }
+
         if (fieldSchema?.type === 'list' && ((fieldSchema.vocabularies ?? []).length > 0)) {
             for (const vocabId of fieldSchema.vocabularies) {
                 convertedFieldIds.push({
