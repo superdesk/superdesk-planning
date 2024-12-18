@@ -1546,6 +1546,7 @@ export interface ISearchFilter extends IBaseRestApiResponse {
 export interface IEditorFieldProps {
     item: any;
     field: string;
+    valueOverwrite?: boolean;
     label?: string;
     required?: boolean;
     disabled?: boolean;
