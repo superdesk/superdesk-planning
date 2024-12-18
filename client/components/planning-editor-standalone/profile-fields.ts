@@ -36,8 +36,8 @@ export const getPlanningProfileFields = (): Array<IFieldConverted> => {
         const fieldSchema = planningProfile.schema[fieldId];
 
         /**
-         * If a field has show_in_embedded_editor or required toggled on
-         * we must show it in the embedded editor
+         * If a field does not have show_in_embedded_editor or required toggled on
+         * we must not show it in the embedded editor
          */
         if (!(fieldSchema.show_in_embedded_editor || fieldSchema.required)) {
             continue;
