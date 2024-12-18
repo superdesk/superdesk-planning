@@ -55,7 +55,6 @@ interface IProps {
     user: IUser['_id'];
     contentTypes: Array<IG2ContentType>;
     defaultDesk?: IDesk;
-    preferredCoverageDesks: {[key: string]: string};
     files: Array<IFile>;
     lockedItems: ILockedItems;
 
@@ -87,7 +86,6 @@ const mapStateToProps = (state) => ({
     desk: selectors.general.currentDeskId(state),
     user: selectors.general.currentUserId(state),
     defaultDesk: selectors.general.defaultDesk(state),
-    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     files: selectors.general.files(state),
     contentTypes: selectors.general.contentTypes(state),
     formProfile: selectors.forms.planningProfile(state),
@@ -406,7 +404,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         originalCount: this.props.item?.coverages?.length ?? 0,
                         message: this.props.message,
                         event: this.props.event, // TAG: MULTIPLE_PRIMARY_EVENTS
-                        preferredCoverageDesks: this.props.preferredCoverageDesks,
                         defaultValue: [],
                         files: this.props.files,
                         uploadFiles: this.props.uploadFiles,

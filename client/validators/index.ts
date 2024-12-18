@@ -58,8 +58,8 @@ export const validateItem = ({
         const getValue = (key) => (
             key !== 'dates' ? get(diff, key) : {
                 ...get(diff, key),
-                _startTime: get(diff, '_startTime'),
-                _endTime: get(diff, '_endTime'),
+                _startTime: diff._startTime,
+                _endTime: diff._endTime,
             }
         );
 

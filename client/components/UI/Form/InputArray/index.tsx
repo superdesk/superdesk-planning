@@ -7,12 +7,9 @@ import {Button} from '../../';
 import {Row, LineInput} from '../';
 import './style.scss';
 import {superdeskApi} from '../../../../superdeskApi';
-import {planningApis} from '../../../../api';
 import {
     EDITOR_TYPE,
-    IAssignmentItem,
     IG2ContentType,
-    IPlanningCoverageItem,
     IPlanningNewsCoverageStatus,
 } from 'interfaces';
 import {IDesk} from 'superdesk-api';
@@ -55,7 +52,6 @@ interface IProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     navigation: any;
     openCoverageIds: Array<string>;
-    preferredCoverageDesks: {[key: string]: string};
     editorType: EDITOR_TYPE;
 }
 

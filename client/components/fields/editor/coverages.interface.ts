@@ -1,5 +1,4 @@
 import {
-    ICoverageScheduledUpdate,
     IEditorFieldProps,
     IEventItem, IFile,
     IPlanningCoverageItem,
@@ -22,12 +21,10 @@ export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
     originalCount?: number;
     message: string | {[key: string]: any};
     event?: IEventItem;
-    preferredCoverageDesks: {[key: string]: string};
 
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
-    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     notifyValidationErrors(errors: Array<string>): void;
     getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
 }

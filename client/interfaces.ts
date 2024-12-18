@@ -1569,7 +1569,9 @@ export interface IEditorFieldProps {
 
     profile?: IPlanningContentProfile;
 
-    onChange(field: string | {[key: string]: any}, value: any): void;
+    onChange(field: string, value: any): void;
+    onChange(values: {[key: string]: any}): void;
+
     popupContainer?(): HTMLElement;
 }
 
@@ -1940,7 +1942,6 @@ export interface IEditorProps {
     inModalView: boolean;
     hideExternalEdit: boolean;
     defaultDesk: IDesk;
-    preferredCoverageDesks: {[key: string]: string};
     associatedPlannings?: Array<IPlanningItem>;
     associatedEvents?: Array<IEventItem>;
     currentWorkspace: string;

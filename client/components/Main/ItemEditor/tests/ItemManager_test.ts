@@ -89,7 +89,6 @@ describe('components.Main.ItemManager', () => {
                 inModalView: false,
                 newsCoverageStatus: null,
                 defaultDesk: null,
-                preferredCoverageDesks: null,
                 onCancel: null,
 
                 occurStatuses: testData.vocabularies.eventoccurstatus,

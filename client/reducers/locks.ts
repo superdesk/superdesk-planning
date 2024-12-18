@@ -3,6 +3,8 @@ import {createReducer} from './createReducer';
 import {RESET_STORE, INIT_STORE, LOCKS} from '../constants';
 import {cloneDeep} from 'lodash';
 import {getRelatedEventIdsForPlanning} from '../utils/planning';
+import {cloneDeep} from 'lodash';
+import {getRelatedEventIdsForPlanning} from '../utils/planning';
 
 const initialLockState: ILockedItems = {
     event: {},
