@@ -27,10 +27,6 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
     }
 
     changeSchedule(field: string | {[key: string]: any}, value?: moment.Moment) {
-        if (value == null) {
-            return; // shouldn't happen
-        }
-
         if (field === 'dates.start.date') {
             this.changeStartDate(value);
         } else if (field === '_startTime') {
