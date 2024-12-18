@@ -36,12 +36,12 @@ export function getSubjectField(): IFieldDefinition {
                 return (item.subject ?? []).map(({qcode}) => qcode);
             },
             storeValue: (item, operationalValue: Array<ISubjectCode['qcode']>) => {
-                const filteredSubjects: Array<ISubjectCode> = (planningApi.redux.store.getState().subjects ?? [])
+                const subjectsFull: Array<ISubjectCode> = (planningApi.redux.store.getState().subjects ?? [])
                     .filter((x) => operationalValue.includes(x.qcode));
 
                 return {
                     ...item,
-                    subject: filteredSubjects,
+                    subject: subjectsFull,
                 };
             },
         }
