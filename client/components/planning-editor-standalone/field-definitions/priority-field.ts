@@ -1,6 +1,6 @@
 import {IAuthoringFieldV2, IDropdownConfigManualSource} from 'superdesk-api';
 import {IFieldDefinition} from './interfaces';
-import {superdeskApi} from '../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 export const getPriorityField = (): IFieldDefinition => {
     const {gettext} = superdeskApi.localization;
@@ -8,34 +8,14 @@ export const getPriorityField = (): IFieldDefinition => {
     return {
         fieldId: 'priority',
         getField: ({id, required}) => {
+            const options = planningApi.redux.store.getState().vocabularies.priority.map((x) => ({
+                id: x.qcode,
+                label: x.name,
+            }));
+
             const fieldConfig: IDropdownConfigManualSource = {
                 source: 'manual-entry',
-                options: [
-                    {
-                        id: '1',
-                        label: gettext('1'),
-                    },
-                    {
-                        id: '2',
-                        label: gettext('2'),
-                    },
-                    {
-                        id: '3',
-                        label: gettext('3'),
-                    },
-                    {
-                        id: '4',
-                        label: gettext('4'),
-                    },
-                    {
-                        id: '5',
-                        label: gettext('5'),
-                    },
-                    {
-                        id: '6',
-                        label: gettext('6'),
-                    },
-                ],
+                options: options,
                 roundCorners: true,
                 type: 'text',
                 multiple: false,
