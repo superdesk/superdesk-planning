@@ -1,11 +1,44 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import {get} from 'lodash';
 import {Row, DateInput, TimeInput, Field} from '..';
 import './style.scss';
 import Button from '../../Button';
 import {gettext} from '../../utils';
+
+interface IProps {
+    field: string;
+    label: string;
+    value?: string | moment.Moment;
+    onChange(field: string, value: moment.Moment): void;
+    timeField?: string;
+    hint?: string;
+    required?: boolean;
+    invalid?: boolean;
+    readOnly?: boolean;
+    boxed?: boolean;
+    noMargin?: boolean;
+    canClear?: boolean;
+    item?: {[key: string]: any};
+    diff?: {[key: string]: any};
+    errors?: {[key: string]: any};
+    showErrors?: boolean;
+    popupContainer(): HTMLElement;
+    onFocus?(): void;
+    hideTime?: boolean;
+    halfWidth?: boolean;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+    remoteTimeZone?: string;
+    allowInvalidTime?: boolean;
+    isLocalTimeZoneDifferent?: boolean;
+    refNode?(node: HTMLElement): void;
+    showToBeConfirmed?: boolean;
+    onToBeConfirmed?(field: string): void;
+    toBeConfirmed?: boolean;
+    testId?: string;
+    dateOnly?: boolean;
+}
 
 /**
  * @ngdoc react
@@ -41,48 +74,30 @@ export const DateTimeInput = ({
     toBeConfirmed,
     testId,
     ...props
-}) => (
-    <Row
-        flex={true}
-        halfWidth={halfWidth}
-        noPadding={!!invalid}
-        testId={testId}
-        className={{
-            'date-time-input__row': true,
-            'date-time-input__row--required': required,
-            'date-time-input__row--invalid': invalid,
-        }}
-    >
-        <Field
-            row={false}
-            component={DateInput}
-            field={`${field}.date`}
-            value={value}
-            item={item}
-            diff={diff}
-            readOnly={readOnly}
-            onChange={onChange}
-            errors={errors}
-            showErrors={showErrors}
-            noMargin={!invalid}
-            label={label}
-            required={required}
-            popupContainer={popupContainer}
-            onFocus={onFocus}
-            onPopupOpen={onPopupOpen}
-            onPopupClose={onPopupClose}
-            remoteTimeZone={remoteTimeZone}
-            isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
-            refNode={refNode}
-            halfWidth={!hideTime}
-        />
+}: IProps) => {
+    let timeValue = timeField ? diff?.timeField : value;
 
-        {!hideTime && (
+    if (props.dateOnly) {
+        timeValue = null;
+    }
+
+    return (
+        <Row
+            flex={true}
+            halfWidth={halfWidth}
+            noPadding={!!invalid}
+            testId={testId}
+            className={{
+                'date-time-input__row': true,
+                'date-time-input__row--required': required,
+                'date-time-input__row--invalid': invalid,
+            }}
+        >
             <Field
                 row={false}
-                component={TimeInput}
-                field={timeField ? timeField : `${field}.time`}
-                value={timeField ? get(diff, timeField) : value}
+                component={DateInput}
+                field={`${field}.date`}
+                value={value}
                 item={item}
                 diff={diff}
                 readOnly={readOnly}
@@ -90,32 +105,60 @@ export const DateTimeInput = ({
                 errors={errors}
                 showErrors={showErrors}
                 noMargin={!invalid}
+                label={label}
+                required={required}
                 popupContainer={popupContainer}
                 onFocus={onFocus}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
                 remoteTimeZone={remoteTimeZone}
-                canClear={canClear}
-                allowInvalidText={allowInvalidTime}
-                isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
+                isLocalTimeZoneDifferent={isLocalTimeZoneDifferent && !props.dateOnly}
+                refNode={refNode}
                 halfWidth={!hideTime}
-                showToBeConfirmed={showToBeConfirmed}
-                onToBeConfirmed={onToBeConfirmed}
-                toBeConfirmed={toBeConfirmed}
+                dateOnly={props.dateOnly}
             />
-        )}
-        {canClear && (
-            <Button
-                onClick={() => onChange(field, null)}
-                icon="icon-close-small"
-                size="small"
-                iconOnly={true}
-                title={gettext('Clear date and time')}
-                className="btn--icon-only-circle"
-            />
-        )}
-    </Row>
-);
+
+            {!hideTime && (
+                <Field
+                    row={false}
+                    component={TimeInput}
+                    field={timeField ? timeField : `${field}.time`}
+                    value={timeValue}
+                    item={item}
+                    diff={diff}
+                    readOnly={readOnly}
+                    onChange={onChange}
+                    errors={errors}
+                    showErrors={showErrors}
+                    noMargin={!invalid}
+                    popupContainer={popupContainer}
+                    onFocus={onFocus}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
+                    remoteTimeZone={remoteTimeZone}
+                    canClear={canClear}
+                    allowInvalidText={allowInvalidTime}
+                    isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
+                    halfWidth={!hideTime}
+                    showToBeConfirmed={showToBeConfirmed}
+                    onToBeConfirmed={onToBeConfirmed}
+                    toBeConfirmed={toBeConfirmed}
+                    required={false}
+                />
+            )}
+            {canClear && (
+                <Button
+                    onClick={() => onChange(field, null)}
+                    icon="icon-close-small"
+                    size="small"
+                    iconOnly={true}
+                    title={gettext('Clear date and time')}
+                    className="btn--icon-only-circle"
+                />
+            )}
+        </Row>
+    );
+};
 
 DateTimeInput.propTypes = {
     field: PropTypes.string.isRequired,

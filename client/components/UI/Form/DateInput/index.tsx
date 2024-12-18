@@ -31,6 +31,7 @@ interface IProps {
     remoteTimeZone?: string;
     isLocalTimeZoneDifferent?: boolean;
     inputAsLabel?: boolean;
+    dateOnly?: boolean;
 
     onChange(field: string, value: moment.Moment): void;
     popupContainer(): HTMLElement;
@@ -63,14 +64,14 @@ export class DateInput extends React.Component<IProps, IState> {
             viewValue: this.props.value != null && moment.isMoment(this.props.value) ?
                 this.props.value.format(appConfig.planning.dateformat) :
                 '',
-            previousValidValue: null,
+            previousValidValue: undefined,
         };
         this.dom = {inputField: null};
 
-        this.validateDateText = this.validateDateText.bind(this);
+        this.onInputChange = this.onInputChange.bind(this);
         this.handleInputBlur = this.handleInputBlur.bind(this);
         this.toggleOpenDatePicker = this.toggleOpenDatePicker.bind(this);
-        this.onChange = this.onChange.bind(this);
+        this.onPopupChange = this.onPopupChange.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -104,14 +105,10 @@ export class DateInput extends React.Component<IProps, IState> {
     }
 
     /**
-    * @ngdoc method
-    * @name DateInput#validateDateText
-    * @description validateDateText sets validate-state after text-input of dates
+    * sets validate-state after text-input of dates
     */
-    validateDateText(field, val) {
-        const valMoment = this.props.remoteTimeZone ?
-            moment.tz(val, appConfig.planning.dateformat, true, this.props.remoteTimeZone) :
-            moment(val, appConfig.planning.dateformat, true);
+    onInputChange(field, val) {
+        const valMoment = moment(val, appConfig.planning.dateformat, true);
 
         if (valMoment.isValid()) {
             this.setState({
@@ -119,7 +116,7 @@ export class DateInput extends React.Component<IProps, IState> {
                 viewValue: valMoment.format(appConfig.planning.dateformat),
                 previousValidValue: valMoment,
             });
-            this.onChange(valMoment);
+            this.onPopupChange(valMoment);
         } else {
             this.setState({
                 invalid: true,
@@ -146,15 +143,17 @@ export class DateInput extends React.Component<IProps, IState> {
         }
     }
 
-    onChange(newValue) {
+    onPopupChange(newValue: moment.Moment) {
         const {value, onChange, field, remoteTimeZone} = this.props;
-        let newMoment = newValue;
+        const newMoment = remoteTimeZone ? moment.tz(newValue, remoteTimeZone) : moment(newValue);
 
-        if (!moment.isMoment(newMoment)) {
-            newMoment = moment.tz(newValue, remoteTimeZone);
-        }
+        this.setState({
+            invalid: false,
+            viewValue: newMoment.format(appConfig.planning.dateformat),
+            previousValidValue: newMoment,
+        });
 
-        if (newMoment.isValid() && (!newMoment.isSame(value) || !value)) {
+        if (newMoment.isValid() && (value == null || !newMoment.isSame(value))) {
             onChange(field, newMoment);
         }
     }
@@ -178,8 +177,9 @@ export class DateInput extends React.Component<IProps, IState> {
         } = this.props;
 
         let {message, invalid} = this.props;
-        const eventTimeZoneString = timeUtils.getDateInRemoteTimeZone(value, remoteTimeZone).format('z');
         let displayDateString;
+
+        const eventTimeZoneString = value ? timeUtils.getDateInRemoteTimeZone(value, remoteTimeZone).format('z') : null;
 
         if (moment.isMoment(value) && isLocalTimeZoneDifferent) {
             const displayDate = timeUtils.getDateInRemoteTimeZone(value, timeUtils.localTimeZone());
@@ -217,7 +217,7 @@ export class DateInput extends React.Component<IProps, IState> {
                         field={field}
                         value={this.state.viewValue}
                         placeholder={placeholder || gettext('Date')}
-                        onChange={this.validateDateText}
+                        onChange={this.onInputChange}
                         onFocus={onFocus}
                         onBlur={this.handleInputBlur}
                         type="text"
@@ -241,7 +241,7 @@ export class DateInput extends React.Component<IProps, IState> {
                 {this.state.openDatePicker && (
                     <DateInputPopup
                         value={value}
-                        onChange={this.onChange}
+                        onChange={this.onPopupChange}
                         close={this.toggleOpenDatePicker}
                         target="icon-calendar"
                         popupContainer={popupContainer}

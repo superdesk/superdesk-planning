@@ -114,7 +114,7 @@ function localTimeZone(): string {
     return moment.tz.guess();
 }
 
-function getDateInRemoteTimeZone(date: moment.Moment, tz: string = self.localTimeZone()): moment.Moment {
+function getDateInRemoteTimeZone(date: moment.MomentInput, tz: string = self.localTimeZone()): moment.Moment {
     let dateToCheck;
 
     if (!date) {

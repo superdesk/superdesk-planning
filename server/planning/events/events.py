@@ -14,7 +14,7 @@ from typing import Dict, Any, Optional, List, Tuple
 import logging
 import itertools
 from copy import deepcopy
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytz
 import re
@@ -357,13 +357,19 @@ class EventsService(superdesk.Service):
         @:param dict event:
         """
         event = updates if updates.get("dates") or not original else original
-        start_date = event.get("dates", {}).get("start")
-        end_date = event.get("dates", {}).get("end")
+        dates = event.get("dates", {})
+        start_date = dates.get("start")
+        end_date = dates.get("end")
 
         if not start_date or not end_date:
             raise SuperdeskApiError(message="Event START DATE and END DATE are mandatory.")
 
-        if end_date < start_date:
+        if (
+            dates.get("no_end_time") is True
+            and end_date.date() < get_local_date(dates.get("start"), dates.get("tz")).date()
+        ):
+            raise SuperdeskApiError(message="END TIME should be after START TIME")
+        elif dates.get("no_end_time") is not True and end_date < start_date:
             raise SuperdeskApiError(message="END TIME should be after START TIME")
 
         if (
@@ -1031,3 +1037,10 @@ def generate_recurring_events(event, recurrence_id=None):
 def set_planning_schedule(event):
     if event and event.get("dates") and event["dates"].get("start"):
         event["_planning_schedule"] = [{"scheduled": event["dates"]["start"]}]
+
+
+def get_local_date(date: datetime, tz: str) -> datetime:
+    try:
+        return date.astimezone(pytz.timezone(tz))
+    except pytz.exceptions.UnknownTimeZoneError:
+        return date

@@ -52,6 +52,7 @@ export class EventDateTimeColumn extends React.PureComponent<IProps> {
                                 withYear={!isThisYear}
                                 withTime={false}
                                 date={start}
+                                testId="event-start-date"
                                 {...commonProps}
                             />
                             {!multiDay ? null : (
@@ -62,13 +63,14 @@ export class EventDateTimeColumn extends React.PureComponent<IProps> {
                                         withYear={!isThisYear}
                                         withTime={false}
                                         date={end}
+                                        testId="event-end-date"
                                         {...commonProps}
                                     />
                                 </React.Fragment>
                             )}
                             {!isRemoteTimeZone ? null : (
                                 <span className="sd-margin-l--0-5">(
-                                    <span className="EventDateTime__timezone">
+                                    <span className="EventDateTime__timezone" data-test-id="event-timezone">
                                         {tzCode}
                                     </span>
                                 )</span>
@@ -85,6 +87,7 @@ export class EventDateTimeColumn extends React.PureComponent<IProps> {
                                         withDate={false}
                                         withYear={false}
                                         date={start}
+                                        testId="event-start-date"
                                         {...commonProps}
                                     />
                                     &ndash;
@@ -92,6 +95,7 @@ export class EventDateTimeColumn extends React.PureComponent<IProps> {
                                         withDate={false}
                                         withYear={false}
                                         date={end}
+                                        testId="event-end-date"
                                         {...commonProps}
                                     />
                                 </React.Fragment>
