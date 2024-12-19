@@ -263,7 +263,15 @@ export class FieldTab extends React.Component<IProps, IState> {
                 {this.state.selectedField == null ? null : (
                     <FieldEditor
                         key={this.state.selectedField?.name}
-                        item={this.state.selectedField}
+                        item={(() => {
+                            const profileRes = cloneDeep(this.state.selectedField);
+
+                            if (profileRes.schema?.required === true) {
+                                profileRes.schema.show_in_embedded_editor = true;
+                            }
+
+                            return profileRes;
+                        })()}
                         profile={this.props.profile}
                         isDirty={this.isEditorDirty()}
                         disableMinMax={this.props.disableMinMaxFields?.includes(this.state.selectedField.name)}

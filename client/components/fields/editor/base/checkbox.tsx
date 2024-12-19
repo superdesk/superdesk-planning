@@ -8,7 +8,7 @@ import {Checkbox} from 'superdesk-ui-framework/react';
 export class EditorFieldCheckbox extends React.PureComponent<IEditorFieldProps> {
     render() {
         const field = this.props.field;
-        const value = this.props.valueOverwrite ?? get(this.props.item, field, this.props.defaultValue);
+        const value = get(this.props.item, field, this.props.defaultValue);
 
         return (
             <Row testId={this.props.testId}>
