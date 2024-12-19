@@ -45,7 +45,7 @@ export class Editor extends React.PureComponent<IProps> {
                         }
                     }}
 
-                    onChange={(fieldPath: any, value: any) => {
+                    onChange={(fieldPath: string, value: any): void => {
                         /**
                          * sample of arguments:
                          *      fieldPath - 'coverages[0].planning.slugline'

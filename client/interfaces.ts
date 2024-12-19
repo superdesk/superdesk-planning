@@ -1569,11 +1569,14 @@ export interface IEditorFieldProps {
 
     profile?: IPlanningContentProfile;
 
-    onChange(field: string, value: any): void;
-    onChange(values: {[key: string]: any}): void;
+    // overloads don't work in interfaces
+    // onChange(values: {[key: string]: any}): void;
+    // onChange(field: string, value: any): void;
+    onChange(...any: any): void;
 
     popupContainer?(): HTMLElement;
 }
+
 
 export interface IListFieldProps {
     item: any;

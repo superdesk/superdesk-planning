@@ -1,6 +1,6 @@
 import {
     IEditorFieldProps,
-    IEventItem, IFile,
+    IEventItem,
     IPlanningCoverageItem,
     IPlanningItem
 } from '../../../interfaces';
