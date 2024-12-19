@@ -56,8 +56,8 @@ import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
 
 /**
  * This is the single source of truth for field definitions, allows for registering
- * other fields from a different through `registerEditorField`
- */
+ * other fields from a different place through `registerEditorField`
+*/
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
     featured: EditorFieldFeatured,
