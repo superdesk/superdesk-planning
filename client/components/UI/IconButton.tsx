@@ -24,6 +24,7 @@ const IconButton = ({
     label,
     tooltip,
     tooltipDirection,
+    testId,
     ...props
 }) => {
     const handleKeyDown = (event) => {
@@ -50,6 +51,7 @@ const IconButton = ({
             onKeyDown={enterKeyIsClick ? handleKeyDown : onKeyDown}
             data-sd-tooltip={tooltip}
             data-flow={tooltipDirection}
+            data-test-id={testId}
             {...props}
         >
             <Icon icon={icon} />
@@ -70,6 +72,7 @@ IconButton.propTypes = {
     label: PropTypes.string,
     tooltip: PropTypes.string,
     tooltipDirection: PropTypes.string,
+    testId: PropTypes.string,
 };
 
 IconButton.defaultProps = {
