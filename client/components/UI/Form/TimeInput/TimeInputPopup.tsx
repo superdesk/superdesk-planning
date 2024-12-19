@@ -180,6 +180,7 @@ export class TimeInputPopup extends React.Component<IProps, IState> {
                         size="small"
                         pullRight
                         onClick={() => this.handleClear()}
+                        testId="time-popup-clear"
                     />
                     <Button
                         text={gettext('Confirm')}
@@ -187,12 +188,14 @@ export class TimeInputPopup extends React.Component<IProps, IState> {
                         size="small"
                         pullRight={true}
                         onClick={() => this.handleConfirm(0)}
+                        testId="time-popup-confirm"
                     />
                     <Button
                         text={gettext('Cancel')}
                         size="small"
                         pullRight={true}
                         onClick={this.props.close}
+                        testId="time-popup-cancel"
                     />
 
                 </Footer>

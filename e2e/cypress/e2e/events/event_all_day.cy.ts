@@ -1,10 +1,9 @@
 import moment from 'moment';
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../../support/common';
+import {setup, login, waitForPageLoad, SubNavBar, CLIENT_FORMAT} from '../../support/common';
 import {PlanningList, EventEditor} from '../../support/planning';
 import {getDateStringFor} from '../../support/utils/time';
-import {create} from 'lodash';
 
-describe('Planning.Events: all day', () => {
+describe('Planning.Events: all day events and events without end time', () => {
     const editor = new EventEditor();
     const subnav = new SubNavBar();
     const list = new PlanningList();
@@ -108,4 +107,27 @@ describe('Planning.Events: all day', () => {
         list.item(0).find('[data-test-id="event-end-date"]').should('contain.text', event['dates.end.date']);
     });
 
+    it('can clear time via popup', () => {
+        const event = {
+            ...baseEvent, 
+            'dates.start.date': moment().format(CLIENT_FORMAT),
+            'dates.start.time': '12:00',
+            'dates.end.time': '13:00',
+        };
+
+        editor.openAllToggleBoxes();
+        editor.type(event);
+     
+        cy.get('[data-test-id="field-dates_end"]').find('[data-test-id="time-popup-toggle"]').click();
+        cy.get('[data-test-id="time-popup-clear"]').click();
+
+        cy.get('[data-test-id="field-dates_start"]').find('[data-test-id="time-popup-toggle"]').click();
+        cy.get('[data-test-id="time-popup-clear"]').click();
+
+        editor.createButton
+            .should('exist')
+            .click();
+
+        list.item(0).find('[data-test-id="event-start-date"]').should('contain.text', event['dates.start.date']);
+    });
 });
