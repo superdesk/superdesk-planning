@@ -761,6 +761,7 @@ describe('actions.events.api', () => {
                         name: 'New Event',
                         slugline: 'New Slugline',
                         update_method: 'single',
+                        associated_plannings: [],
                     }]);
 
                     done();

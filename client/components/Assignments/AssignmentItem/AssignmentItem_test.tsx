@@ -5,8 +5,7 @@ import sinon from 'sinon';
 import {createTestStore} from '../../../utils';
 import {List} from '../../UI';
 import {Provider} from 'react-redux';
-import * as helpers from '../../tests/helpers';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, noop} from 'lodash';
 import {AbsoluteDate} from '../../AbsoluteDate';
 import {UserAvatarWithMargin} from '../../UserAvatar';
 
@@ -64,6 +63,7 @@ describe('assignments', () => {
                             assignedUser={user}
                             isCurrentUser={false}
                             contentTypes={contentTypes}
+                            removeAssignment={noop}
                         />
                     </Provider>
                 );
