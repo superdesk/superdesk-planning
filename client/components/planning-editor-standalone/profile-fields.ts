@@ -23,8 +23,9 @@ const unimplementedFields = new Set<string>([
 
 /**
  * A function that handles planning profile field types so they can be used in authoring react.
+ * @embeddedOnly defaults to false
  */
-export const getPlanningProfileFields = (): Array<IFieldConverted> => {
+export const getPlanningProfileFields = (options: {embeddedOnly?: boolean}): Array<IFieldConverted> => {
     const planningProfile = planningApi.contentProfiles.get('planning');
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
     const planningFieldIds = Object.values(planningGroups)
@@ -39,7 +40,7 @@ export const getPlanningProfileFields = (): Array<IFieldConverted> => {
          * If a field does not have show_in_embedded_editor or required toggled on
          * we must not show it in the embedded editor
          */
-        if (!(fieldSchema.show_in_embedded_editor || fieldSchema.required)) {
+        if (options.embeddedOnly && !(fieldSchema.show_in_embedded_editor || fieldSchema.required)) {
             continue;
         }
 
