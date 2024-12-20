@@ -119,7 +119,13 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
         return True
     new_subject = set([get_subject_str(subject) for subject in new_item.get("subject", [])])
     old_subject = set([get_subject_str(subject) for subject in old_item.get("subject", [])])
-    return new_subject != old_subject
+    if new_subject != old_subject:
+        return True
+    old_location = old_item.get("location", [])
+    new_location = new_item.get("location", [])
+    if new_location != old_location:
+        return True
+    return False
 
 
 class EventsService(superdesk.Service):

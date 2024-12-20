@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
 import pytz
+
+from datetime import datetime, timedelta
 from copy import deepcopy
 from mock import Mock, patch
 from superdesk import get_resource_service
@@ -9,6 +10,8 @@ from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
 from werkzeug.exceptions import BadRequest
+
+from .events import is_event_updated
 
 
 class EventTestCase(TestCase):
@@ -698,3 +701,10 @@ class EventsRelatedPlanningAutoPublish(TestCase):
             planning_item = planning_service.find_one(req=None, _id=planning_id[0])
             self.assertEqual(len([planning_item]), 1)
             self.assertEqual(planning_item.get("state"), "scheduled")
+
+
+def test_is_event_updated():
+    new_event = {"location": [{"name": "test"}]}
+    old_events = {"location": [{"name": "test", "state": "bar"}]}
+    assert is_event_updated(new_event, old_events)
+    assert not is_event_updated(new_event, new_event)
