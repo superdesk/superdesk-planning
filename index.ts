@@ -81,6 +81,7 @@ function configurePlanning(superdesk) {
             label: gettext('Fulfil Assignment'),
             icon: 'calendar-list',
             modal: true,
+            zIndex: '1050',
             priority: 2000,
             controller: ctrl.FulFilAssignmentController,
             filters: [
