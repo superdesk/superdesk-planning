@@ -890,7 +890,7 @@ function getPlanningActionsForUiFrameworkMenu(data: IGetPlanningActionArgs): Arr
     return toUIFrameworkInterface(planningUtils.getPlanningActions(data));
 }
 
-export function modifyForClient<T extends IPlanningItem | Partial<IPlanningItem>>(plan: T): T {
+export function modifyForClient(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
     sanitizeItemFields(plan);
 
     // The `_status` field is available when the item comes from a POST/PATCH request

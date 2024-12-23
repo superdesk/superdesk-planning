@@ -129,7 +129,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     onChange(field: string, value: any) {
-        debugger;
         this.props.onChange(
             `${this.props.field}.${field}`,
             value

@@ -19,10 +19,7 @@ export class EditorFieldGenreComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
 
-        console.log('genre props', this.props);
-
         return (
-            <>
             <EditorFieldSelect
                 {...this.props}
                 field={this.props.field ?? 'genre'}
@@ -30,8 +27,6 @@ export class EditorFieldGenreComponent extends React.PureComponent<IProps> {
                 options={this.props.genres}
                 labelField="name"
             />
-            <div>zap: {this.props.field ?? 'genre'}</div>
-            </>
         );
     }
 }

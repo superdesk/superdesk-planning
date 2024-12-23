@@ -5,7 +5,6 @@ import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
 import {omitFields} from './utils';
 import {AutoSavePlanningItem, NoAutoSavePlanningItem} from './authoring-autosave';
-import {planningUtils} from '../../utils';
 
 const getAutosavedPlanningItem = (id: IPlanningItem['_id']): Promise<IPlanningItem | null> => {
     return new Promise((resolve) => {
@@ -31,10 +30,7 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
                 path: `/planning/${id}`,
             })
         ]).then(([autosaved, saved]) => {
-            return {
-                autosaved: autosaved == null ? null : planningUtils.modifyForClient(autosaved),
-                saved: planningUtils.modifyForClient(saved),
-            };
+            return {autosaved, saved};
         });
     },
 
@@ -51,12 +47,7 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
         return httpRequestJsonLocal<IPlanningItem>({
             method: 'PATCH',
             path: `/planning/${original._id}`,
-            payload: omitFields(
-                generatePatch(
-                    planningUtils.modifyForServer(original),
-                    planningUtils.modifyForServer(current),
-                ),
-            ),
+            payload: omitFields(generatePatch(original, current)),
             headers: {
                 'If-Match': original._etag,
             },
