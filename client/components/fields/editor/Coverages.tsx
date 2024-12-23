@@ -12,6 +12,7 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'coverages';
         const value = get(this.props.item, field, this.props.defaultValue);
+        //
 
         return (
             <CoverageArrayInput

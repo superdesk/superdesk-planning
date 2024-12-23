@@ -250,6 +250,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
 
     onCoverageChange(field: string, value: any, planningFormEdited: boolean = true) {
         let valueToUpdate = value;
+        //
 
         if (field.match(/^coverages\[/)) {
             const {newsCoverageStatus} = this.props;
