@@ -1,7 +1,7 @@
 import React from 'react';
 import {isEqual} from 'lodash';
 
-import {EDITOR_TYPE, IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
+import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
 import {superdeskApi, planningApi} from '../../../superdeskApi';
 
@@ -13,7 +13,6 @@ interface IProps {
     className?: string;
     buttonClass?: string;
     language?: string;
-    editorType: EDITOR_TYPE;
 
     onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
     createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
@@ -46,7 +45,13 @@ export class CoverageAddButton extends React.Component<IProps> {
     }
 
     onChange(field: string, coverages: Array<DeepPartial<IPlanningCoverageItem>>) {
-        planningApi.editor(this.props.editorType).item.planning.addCoverages(coverages);
+        this.props.onChange(
+            field,
+            [
+                ...(this.props.value ?? []),
+                ...coverages,
+            ],
+        );
     }
 
     render() {
