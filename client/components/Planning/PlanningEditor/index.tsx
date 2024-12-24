@@ -249,41 +249,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
     }
 
     onCoverageChange(field: string, value: any, planningFormEdited: boolean = true) {
-        let valueToUpdate = value;
-
-        if (field.match(/^coverages\[/)) {
-            const {newsCoverageStatus} = this.props;
-            const coverage = value as IPlanningCoverageItem;
-
-            // If there is an assignment and coverage status not planned,
-            // change it to 'planned'
-            if (newsCoverageStatus.length > 0 &&
-                coverage?.news_coverage_status?.qcode !== newsCoverageStatus[0].qcode &&
-                coverage?.assigned_to?.desk != null
-            ) {
-                valueToUpdate = {
-                    ...coverage,
-                    news_coverage_status: this.props.newsCoverageStatus[0],
-                };
-            }
-
-            if (field.match(/g2_content_type$/) &&
-                value === 'text' &&
-                this.props.defaultDesk?._id != null
-            ) {
-                const coverageStr = field.substr(0, field.indexOf('.'));
-                let existingCoverage = {...get(this.props, `diff.${coverageStr}`)};
-
-                if (get(existingCoverage, 'assigned_to.desk') !== this.props.defaultDesk._id) {
-                    existingCoverage.planning.g2_content_type = value;
-                    this.assignCoverageToDefaultDesk(existingCoverage);
-                    this.props.onChangeHandler(coverageStr, existingCoverage);
-                    return;
-                }
-            }
-        }
-
-        this.props.onChangeHandler(field, valueToUpdate, planningFormEdited);
+        this.props.onChangeHandler(field, value, planningFormEdited);
 
         if (field === 'coverages') {
             // Flush the autosave so the Redux Store get's updated with the
@@ -305,23 +271,6 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
 
     onTimeToBeConfirmed() {
         this.props.onChangeHandler('_time_to_be_confirmed', true);
-    }
-
-    assignCoverageToDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem>) {
-        if (!Object.keys(coverage.assigned_to ?? {}).length) {
-            coverage.assigned_to = {desk: this.props.defaultDesk._id};
-        } else {
-            // TODO: Fix IDesk['members'] type in client-core
-            // @ts-ignore
-            const deskMembers = (this.props.defaultDesk?.members ?? []).map((m) => m.user);
-
-            coverage.assigned_to.desk = this.props.defaultDesk._id;
-
-            // If the user does not belong to default desk, remove the user
-            if (coverage.assigned_to.user && !deskMembers.includes(coverage.assigned_to.user)) {
-                coverage.assigned_to.user = null;
-            }
-        }
     }
 
     renderHeader() {
