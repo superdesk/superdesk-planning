@@ -163,7 +163,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         if applicable, sets up planning schedules, and links events to planning items.
 
         Args:
-            events (list[EventResourceModel]): A list of event models to prepare.
+            docs (list[EventResourceModel]): A list of event models to prepare.
 
         Returns:
             None: Modifies the input list in-place.
@@ -176,9 +176,6 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
             if not event.language:
                 event.language = event.languages[0] if len(event.languages) > 0 else get_app_config("DEFAULT_LANGUAGE")
-
-            # TODO-ASYNC: consider moving this into base service later
-            event.original_creator = ObjectId(get_user_id()) or None
 
             # overwrite expiry date if needed
             self._overwrite_event_expiry_date(event)

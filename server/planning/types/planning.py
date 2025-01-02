@@ -28,11 +28,12 @@ from .common import (
 @dataclass
 class Flags:
     marked_for_not_publication: bool = False
+    # TODO: double check if we can fix this typo `overide` -> `override`
     overide_auto_assign_to_workflow: bool = False
 
 
 class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
-    guid: fields.Keyword
+    guid: fields.Keyword | None = None
     unique_id: fields.Keyword | None = None
 
     firstcreated: datetime = Field(default_factory=utcnow)
@@ -124,7 +125,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
         default_factory=list, alias="updates_schedule"
     )
 
-    planning_date: datetime
+    planning_date: datetime | None = None
     flags: Flags = Field(default_factory=Flags)
     pubstatus: PostStates | None = None
     revert_state: WorkflowState | None = None

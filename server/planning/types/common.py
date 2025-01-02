@@ -127,9 +127,8 @@ class Place:
     rel: fields.Keyword | None = None
 
 
-@dataclass
-class RelatedEvent:
-    id: Annotated[fields.Keyword, validate_data_relation_async("events")] = Field(alias="_id")
+class RelatedEvent(Dataclass):
+    id: Annotated[fields.Keyword, validate_data_relation_async("events")] = Field(validation_alias="_id")
     recurrence_id: fields.Keyword | None = None
     link_type: LinkType | None = None
 
@@ -162,7 +161,7 @@ class CoverageInternalPlanning:
 
     keyword: list[str] = Field(default_factory=list)
     language: fields.Keyword | None = None
-    slugling: SlugLineField | None = None
+    slugline: SlugLineField | None = None
     subject: Annotated[
         list[dict[str, Any]],
         fields.elastic_mapping(
@@ -198,6 +197,10 @@ class CoverageAssignedTo:
     state: fields.Keyword | None = None
     contact: fields.Keyword | None = None
 
+    # TODO-ASYNC: double check if we should add validation relation for desk
+    desk: fields.Keyword | None = None
+    user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
+
     @classmethod
     def to_elastic_properties(cls) -> dict[Literal["properties"], Any]:
         """Generates the elastic mapping properties for the current dataclass"""
@@ -221,20 +224,18 @@ class ScheduledUpdatePlanning:
     workflow_status_reason: str | None = None
 
 
-@dataclass
-class ScheduledUpdate:
+class ScheduledUpdate(Dataclass):
     scheduled_update_id: fields.Keyword | None = None
     coverage_id: fields.Keyword | None = None
     workflow_status: fields.Keyword | None = None
     previous_status: fields.Keyword | None = None
 
-    assigned_to: CoverageAssignedTo | None = None
+    assigned_to: CoverageAssignedTo = Field(default_factory=CoverageAssignedTo)
     news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
     planning: ScheduledUpdatePlanning = Field(default_factory=ScheduledUpdatePlanning)
 
 
-@dataclass
-class PlanningCoverage:
+class PlanningCoverage(Dataclass):
     # Identifiers
     coverage_id: fields.Keyword | None = None
     original_coverage_id: fields.Keyword | None = None
@@ -257,6 +258,7 @@ class PlanningCoverage:
     flags: CoverageFlags = Field(default_factory=CoverageFlags)
     time_to_be_confirmed: TimeToBeConfirmedType = False
     scheduled_updates: list[ScheduledUpdate] = Field(default_factory=list)
+    contact: fields.Keyword | None = None
 
 
 class LockFieldsMixin:

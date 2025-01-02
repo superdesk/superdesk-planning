@@ -465,10 +465,19 @@ def set_original_creator(doc):
     doc["original_creator"] = user
 
 
-def list_uniq_with_order(list):
+def unique_items_in_order(input_list: list) -> list:
+    """
+    Removes duplicates from a list while preserving the original order.
+    """
     seen = set()
-    seen_add = seen.add
-    return [x for x in list if not (x in seen or seen_add(x))]
+    unique_list = []
+
+    for item in input_list:
+        if item not in seen:
+            seen.add(item)
+            unique_list.append(item)
+
+    return unique_list
 
 
 def set_ingested_event_state(updates, original):

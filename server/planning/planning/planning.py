@@ -52,7 +52,7 @@ from planning.common import (
     update_post_item,
     get_coverage_type_name,
     set_original_creator,
-    list_uniq_with_order,
+    unique_items_in_order,
     TEMP_ID_PREFIX,
     DEFAULT_ASSIGNMENT_PRIORITY,
     get_planning_allow_scheduled_updates,
@@ -337,7 +337,7 @@ class PlanningService(Service):
 
         # Remove duplicate agendas
         if len(updates.get("agendas", [])) > 0:
-            updates["agendas"] = list_uniq_with_order(updates["agendas"])
+            updates["agendas"] = unique_items_in_order(updates["agendas"])
 
         # Validate scheduled updates
         for coverage in updates.get("coverages") or []:
