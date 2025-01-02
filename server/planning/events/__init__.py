@@ -27,7 +27,6 @@ from .events_lock import (
     EventsUnlockResource,
     EventsUnlockService,
 )
-from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
 from .events_post import EventsPostService, EventsPostResource
 from .events_cancel import EventsCancelService, EventsCancelResource
 from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
@@ -100,9 +99,6 @@ def init_app(app):
         EventsPostponeResource.endpoint_name, backend=superdesk.get_backend()
     )
     EventsPostponeResource(EventsPostponeResource.endpoint_name, app=app, service=events_postpone_service)
-
-    events_duplicate_service = EventsDuplicateService("events_duplicate", backend=superdesk.get_backend())
-    EventsDuplicateResource("events_duplicate", app=app, service=events_duplicate_service)
 
     events_update_time_service = EventsUpdateTimeService(
         EventsUpdateTimeResource.endpoint_name, backend=superdesk.get_backend()

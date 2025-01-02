@@ -32,9 +32,10 @@ from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryS
 from .delivery import DeliveryResource
 
 from .service import AssignmentsAsyncService
-from .module import assignments_resource_config
+from .delivery_service import DeliveryAsyncService
+from .module import assignments_resource_config, delivery_resource_config
 
-__all__ = ["assignments_resource_config", "AssignmentsAsyncService"]
+__all__ = ["assignments_resource_config", "AssignmentsAsyncService", "delivery_resource_config", "DeliveryAsyncService"]
 
 
 def init_app(app):

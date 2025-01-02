@@ -15,6 +15,7 @@ from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentPro
 
 from .base import BasePlanningModel
 from .common import PlanningSchedule
+from .delivery import DeliveryResourceModel
 from .event import EventResourceModel
 from .planning import PlanningResourceModel
 from .assignment import AssignmentResourceModel
@@ -24,6 +25,7 @@ from .enums import PostStates, UpdateMethods, WorkflowState
 
 __all__ = [
     "BasePlanningModel",
+    "DeliveryResourceModel",
     "EventResourceModel",
     "PlanningResourceModel",
     "AssignmentResourceModel",
