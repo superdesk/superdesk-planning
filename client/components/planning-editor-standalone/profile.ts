@@ -5,7 +5,7 @@ import {getPlanningProfileFields} from './profile-fields';
 import {getFieldDefinitions} from './field-definitions/index';
 
 export function getProfile() {
-    const planningFieldIds = getPlanningProfileFields();
+    const planningFieldIds = getPlanningProfileFields({embeddedOnly: true});
     const skipped = new Set<string>();
     const fieldDefinitions = getFieldDefinitions();
     const profileV2: IContentProfileV2 = {

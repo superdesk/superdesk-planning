@@ -85,6 +85,12 @@ export class FieldEditor extends React.Component<IProps, IState> {
             multilingual.isEnabled(this.props.profile);
 
         const fieldProps = {
+            'schema.show_in_embedded_editor': {
+                /**
+                 * Coverage fields don't need this field config option, only planning and event
+                 */
+                enabled: !this.props.systemRequired && this.props.profile._id !== 'coverage',
+            },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
             'schema.read_only': {enabled: this.props.item.name === 'related_plannings'},
             'schema.planning_auto_publish': {enabled: this.props.item.name === 'related_plannings'},
@@ -178,21 +184,22 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                         'editor',
                                         {
                                             'schema.required': {enabled: true, index: 1},
-                                            'schema.read_only': {enabled: true, index: 2},
-                                            'schema.field_type': {enabled: true, index: 3},
-                                            'schema.expandable': {enabled: true, index: 4},
-                                            'schema.minlength': {enabled: true, index: 5},
-                                            'schema.maxlength': {enabled: true, index: 6},
-                                            'schema.format_options': {enabled: true, index: 7},
-                                            'schema.vocabularies': {enabled: true, index: 8},
-                                            'field.all_day.enabled': {enabled: true, index: 9},
-                                            'field.default_duration_on_change': {enabled: true, index: 10},
-                                            'schema.multilingual': {enabled: true, index: 11},
-                                            'schema.languages': {enabled: true, index: 12},
-                                            'schema.default_language': {enabled: true, index: 13},
-                                            'schema.planning_auto_publish': {enabled: true, index: 14},
-                                            'schema.cancel_plan_with_event': {enabled: true, index: 14},
-                                            'schema.default_value': {enabled: true, index: 11},
+                                            'schema.show_in_embedded_editor': {enabled: true, index: 2},
+                                            'schema.read_only': {enabled: true, index: 3},
+                                            'schema.field_type': {enabled: true, index: 4},
+                                            'schema.expandable': {enabled: true, index: 5},
+                                            'schema.minlength': {enabled: true, index: 6},
+                                            'schema.maxlength': {enabled: true, index: 7},
+                                            'schema.format_options': {enabled: true, index: 8},
+                                            'schema.vocabularies': {enabled: true, index: 9},
+                                            'field.all_day.enabled': {enabled: true, index: 10},
+                                            'field.default_duration_on_change': {enabled: true, index: 11},
+                                            'schema.multilingual': {enabled: true, index: 12},
+                                            'schema.languages': {enabled: true, index: 13},
+                                            'schema.default_language': {enabled: true, index: 14},
+                                            'schema.planning_auto_publish': {enabled: true, index: 15},
+                                            'schema.cancel_plan_with_event': {enabled: true, index: 16},
+                                            'schema.default_value': {enabled: true, index: 17},
                                         },
                                         {
                                             item: this.props.item,

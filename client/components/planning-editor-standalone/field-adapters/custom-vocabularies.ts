@@ -4,7 +4,7 @@ import {getPlanningProfileFields} from '../profile-fields';
 import {IFieldDefinition} from '../field-definitions/interfaces';
 
 export const getCustomVocabularyFields = () => {
-    const customVocabularyIds = getPlanningProfileFields()
+    const customVocabularyIds = getPlanningProfileFields({embeddedOnly: true})
         .filter((x) => x.type === 'custom_vocabulary')
         .map(({vocabularyId}) => vocabularyId);
     const result: Array<IFieldDefinition> = [];

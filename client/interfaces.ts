@@ -1031,6 +1031,7 @@ interface IProfileEditorDatesField extends IProfileEditorField {
 interface IBaseProfileSchemaType<T> {
     type: T;
     required: boolean;
+    show_in_embedded_editor?: boolean;
     validate_on_post?: boolean;
     minlength?: number;
     maxlength?: number;
