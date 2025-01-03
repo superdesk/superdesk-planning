@@ -66,7 +66,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         are not already marked as expired.
 
         By default, items returned are:
-        - Not expired.
+        - Not already marked as expired (expired=True).
         - Have an end date `<= expiry_datetime`.
 
         If `spiked_events_only` is True, only spiked events are returned, still filtered by

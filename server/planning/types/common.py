@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from pydantic import Field, TypeAdapter
 from typing import Any, Annotated, Literal, TypeAlias
 
@@ -70,7 +70,7 @@ class PlanningSchedule(Dataclass):
 
 @dataclass
 class UpdatesSchedule:
-    scheduled: date | None = None
+    scheduled: datetime | None = None
     scheduled_update_id: fields.Keyword | None = None
 
 
@@ -128,7 +128,7 @@ class Place:
 
 
 class RelatedEvent(Dataclass):
-    id: Annotated[fields.Keyword, validate_data_relation_async("events")] = Field(validation_alias="_id")
+    id: Annotated[fields.Keyword, validate_data_relation_async("events")] = Field(alias="_id")
     recurrence_id: fields.Keyword | None = None
     link_type: LinkType | None = None
 
@@ -242,8 +242,8 @@ class PlanningCoverage(Dataclass):
     guid: fields.Keyword | None = None
 
     # Audit Information
-    original_creator: Annotated[fields.ObjectId, validate_data_relation_async("users")] = None
-    version_creator: Annotated[fields.ObjectId, validate_data_relation_async("users")] = None
+    original_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
+    version_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
     firstcreated: datetime = Field(default_factory=utcnow)
     versioncreated: datetime = Field(default_factory=utcnow)
 
