@@ -1,13 +1,3 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-# Copyright 2013, 2014, 2015, 2016, 2017, 2018 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
-
 from datetime import timedelta, datetime
 from bson.objectid import ObjectId
 from contextvars import ContextVar
@@ -84,6 +74,14 @@ async def flag_expired_items_handler():
 
 
 async def flag_expired_events(expiry_datetime: datetime):
+    """
+    Flags events and related plans as `expired` if their schedules are before or equal to the provided expiry_datetime.
+
+    - Events locked by users are skipped.
+    - Events with schedules extending beyond expiry_datetime are considered "in use" and not flagged.
+    - Expired events and their related plans are updated with {"expired": True}.
+    - Notifications are pushed for expired events and plans.
+    """
     log_msg = log_msg_context.get()
     logger.info(f"{log_msg} Starting to flag expired events")
     events_service = EventsAsyncService()
@@ -105,7 +103,7 @@ async def flag_expired_events(expiry_datetime: datetime):
     for event_id, event in events.items():
         if event.get("lock_user"):
             locked_events.add(event_id)
-        elif get_event_schedule(event) > expiry_datetime:
+        elif is_event_in_use(event, expiry_datetime):
             events_in_use.add(event_id)
         else:
             events_expired.add(event_id)
@@ -131,6 +129,14 @@ async def flag_expired_events(expiry_datetime: datetime):
 
 
 async def flag_expired_planning(expiry_datetime: datetime):
+    """
+    Flags planning items as expired if their schedule has passed the provided expiry_datetime.
+
+    - It skips planning items that are locked by users.
+    - All other planning items are marked as expired by setting the `expired` field to `True`.
+    - A notification is pushed with the items' ids that have been flagged as expired.
+    """
+
     log_msg = log_msg_context.get()
     logger.info(f"{log_msg} Starting to flag expired planning items")
     planning_service = PlanningAsyncService()
@@ -161,6 +167,17 @@ async def flag_expired_planning(expiry_datetime: datetime):
 
 
 def set_event_plans(events: dict[str, dict[str, Any]]) -> None:
+    """
+    Populates each event in the given dictionary with its related planning items.
+
+    This function retrieves planning items associated with the provided events and
+    adds them to each event under the `_plans` key. The relationship between events
+    and plans is determined through a "primary".
+
+    Side Effects:
+        - The `events` dictionary is modified in place.
+        - Each event gains a `_plans` key containing a list of related planning items.
+    """
     for plan in get_related_planning_for_events(list(events.keys()), "primary"):
         for related_event_id in get_related_event_ids_for_planning(plan, "primary"):
             event = events[related_event_id]
@@ -169,25 +186,45 @@ def set_event_plans(events: dict[str, dict[str, Any]]) -> None:
             event["_plans"].append(plan)
 
 
-def get_event_schedule(event: dict[str, Any]) -> datetime:
+def is_event_in_use(event: dict[str, Any], expiry_datetime: datetime) -> bool:
+    """
+    Checks if an event is considered 'in use' by comparing its latest
+    scheduled date to the provided expiry_datetime.
+    """
+    return get_latest_scheduled_date(event) > expiry_datetime
+
+
+def get_latest_scheduled_date(event: dict[str, Any]) -> datetime:
+    """
+    Calculates the latest scheduled date for a given event, considering:
+    - The event's own end date
+    - The planning_date of any related plans
+    - The scheduled dates of any coverages within related plans
+
+    Returns:
+        datetime: The latest scheduled datetime.
+    """
     latest_scheduled = datetime.strptime(event["dates"]["end"], "%Y-%m-%dT%H:%M:%S%z")
+
+    # Check related plans' planning dates
     for plan in event.get("_plans", []):
+        planning_date = plan.get("planning_date", latest_scheduled)
+
         # First check the Planning item's planning date
         # and compare to the Event's end date
-        if latest_scheduled < plan.get("planning_date", latest_scheduled):
-            latest_scheduled = plan.get("planning_date")
+        if latest_scheduled < planning_date:
+            latest_scheduled = planning_date
 
         # Next go through all the coverage's scheduled dates
         # and compare to the latest scheduled date
         for planning_schedule in plan.get("_planning_schedule", []):
             scheduled = planning_schedule.get("scheduled")
             if scheduled and isinstance(scheduled, str):
-                scheduled = datetime.strptime(planning_schedule.get("scheduled"), "%Y-%m-%dT%H:%M:%S%z")
+                scheduled = datetime.strptime(scheduled, "%Y-%m-%dT%H:%M:%S%z")
 
             if scheduled and (latest_scheduled < scheduled):
                 latest_scheduled = scheduled
 
-    # Finally return the latest scheduled date among the Event, Planning and Coverages
     return latest_scheduled
 
 
@@ -196,9 +233,6 @@ def remove_expired_published_planning():
 
     Expiry of the planning versions mirrors the expiry of items within the publish queue in Superdesk so it uses the
     same configuration value
-
-    :param self:
-    :return:
     """
     expire_interval = get_app_config("PUBLISH_QUEUE_EXPIRY_MINUTES", 0)
     if expire_interval:
