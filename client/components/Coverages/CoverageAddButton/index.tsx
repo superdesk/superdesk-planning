@@ -73,6 +73,7 @@ export class CoverageAddButton extends React.Component<IProps> {
                             className={buttonClass}
                             onClick={toggleMenu}
                             title={gettext('Create new coverage')}
+                            style={{border: 0}}
                         >
                             <i className="icon-plus-large" />
                             <span className="circle" />
