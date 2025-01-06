@@ -44,23 +44,35 @@ export class Editor extends React.PureComponent<IProps> {
                     }
                 }}
 
+
+                /**
+                 * sample of arguments:
+                 *      fieldPath - 'coverages[0].planning.slugline'
+                 *      value - 'slugline 123'
+                 */
                 onChange={(fieldPath: string, value: any): void => {
                     /**
-                     * sample of arguments:
-                     *      fieldPath - 'coverages[0].planning.slugline'
-                     *      value - 'slugline 123'
+                     * timeout is used to permit multiple calls in a single event loop
+                     *
+                     * e.g. we have an item {a: 5, b: 10} and execute the following code:
+                     * onChange({fieldPath: 'a', value: 6})
+                     * onChange({fieldPath: 'b', value: 10})
+                     *
+                     * since we clone this.props.value and apply the changes, only the values in the last call would get applied
+                     * with setTimeout we wait for re-render so we have the latest this.props.value
                      */
+                    setTimeout(() => {
+                        const item = cloneDeep({coverages: this.props.value});
+                        const nextValue = set(item, fieldPath, value);
 
-                    const item = cloneDeep({coverages: this.props.value});
-                    const nextValue = set(item, fieldPath, value);
-
-                    for (const coverage of nextValue.coverages) {
-                        if (coverage.planning != null) {
-                            delete coverage.planning['_scheduledTime'];
+                        for (const coverage of nextValue.coverages) {
+                            if (coverage.planning != null) {
+                                delete coverage.planning['_scheduledTime'];
+                            }
                         }
-                    }
 
-                    this.props.onChange(nextValue.coverages);
+                        this.props.onChange(nextValue.coverages);
+                    })
                 }}
             >
                 {({addButtonElement, itemsElement, errorMessageElement}) => (
