@@ -2039,7 +2039,7 @@ export abstract class IEditorHeaderComponent {
 
 export interface IInputArrayHocModeOptions {
     itemsElement: React.ReactNode;
-    addButtonElement: React.ReactNode;
+    addButtonElement: JSX.Element;
     errorMessageElement: React.ReactNode;
     labelElement: React.ReactNode;
 }
