@@ -9,7 +9,7 @@ from planning.types import PlanningResourceModel
 
 from .planning_service import PlanningAsyncService
 
-planning_resource_config = ResourceConfig(
+planning_resource_config: ResourceConfig = ResourceConfig(
     name="planning",
     data_class=PlanningResourceModel,
     service=PlanningAsyncService,

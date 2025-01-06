@@ -1460,7 +1460,7 @@ class AssignmentsService(superdesk.Service):
         self.send_acceptance_notification(original)
 
 
-assignments_schema = {
+assignments_schema: dict[str, Any] = {
     ID_FIELD: {
         "type": "objectid",
         "nullable": False,
