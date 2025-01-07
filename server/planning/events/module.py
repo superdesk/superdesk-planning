@@ -31,7 +31,7 @@ events_resource_config: ResourceConfig = ResourceConfig(
     elastic=ElasticResourceConfig(),
 )
 
-events_history_resource_config = ResourceConfig(
+events_history_resource_config: ResourceConfig = ResourceConfig(
     name="events_history",
     data_class=EventsHistoryResourceModel,
     service=EventsHistoryAsyncService,

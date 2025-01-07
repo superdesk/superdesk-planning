@@ -27,7 +27,7 @@ planning_resource_config: ResourceConfig = ResourceConfig(
     elastic=ElasticResourceConfig(),
 )
 
-planning_history_resource_config = ResourceConfig(
+planning_history_resource_config: ResourceConfig = ResourceConfig(
     name="planning_history",
     data_class=PlanningHistoryResourceModel,
     service=PlanningHistoryAsyncService,
