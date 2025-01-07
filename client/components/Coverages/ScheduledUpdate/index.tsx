@@ -5,7 +5,8 @@ import moment from 'moment';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
 import {
     IAssignmentPriority,
-    ICoverageProvider, ICoverageScheduledUpdate,
+    ICoverageProvider,
+    ICoverageScheduledUpdate,
     IGenre,
     IPlanningCoverageItem,
     IPlanningItem,
@@ -213,8 +214,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                     <ContactsPreviewList
                         contactIds={get(value, 'planning.contact_info.length', 0) > 0 ?
                             [value.planning.contact_info] : []}
-                        scrollInView={true}
-                        scrollIntoViewOptions={{block: 'center'}}
                     />
                 </PreviewRow>
                 <PreviewRow

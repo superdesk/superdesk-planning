@@ -1,10 +1,10 @@
 import React from 'react';
-import {Modal} from '../../index';
-import {gettext} from '../../../utils';
+import {gettext} from '../../utils';
 
 import * as ContactFormComponents from 'superdesk-core/scripts/apps/contacts/components/Form';
-import {IContact} from 'superdesk-core/scripts/apps/contacts/Contacts';
 import ng from 'superdesk-core/scripts/core/services/ng';
+import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
+import {IContact} from 'superdesk-api';
 
 interface IProps {
     currentContact: IContact;
@@ -30,7 +30,7 @@ export class ContactEditor extends React.Component<IProps, IState> {
         };
         this.contactForm = React.createRef();
 
-        this.handleCancel = this.handleCancel.bind(this);
+        this.hideModal = this.hideModal.bind(this);
         this.onDirty = this.onDirty.bind(this);
         this.onValidation = this.onValidation.bind(this);
         this.triggerSave = this.triggerSave.bind(this);
@@ -38,7 +38,7 @@ export class ContactEditor extends React.Component<IProps, IState> {
         this.exitEditor = this.exitEditor.bind(this);
     }
 
-    handleCancel() {
+    hideModal() {
         this.setState({
             showModal: false,
         }, () => this.props.onCancel());
@@ -75,7 +75,7 @@ export class ContactEditor extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {ContactFormContainer, ActionBar} = ContactFormComponents;
+        const {ContactFormContainer} = ContactFormComponents;
         const {currentContact} = this.props;
 
         // Provides required services for Contact components
@@ -89,38 +89,37 @@ export class ContactEditor extends React.Component<IProps, IState> {
 
         return (
             <Modal
-                className="contact-details-pane contact-details-pane--editor"
-                large={true}
-                show={this.state.showModal}
+                closeOnEscape
+                visible={this.state.showModal}
+                size="medium"
+                headerTemplate={gettext('Add Contact')}
+                footerTemplate={(
+                    <Spacer gap="4" alignItems="end" justifyContent="end" h noGrow>
+                        <Button
+                            onClick={this.hideModal}
+                            text={gettext('Cancel')}
+                        />
+                        <Button
+                            style="filled"
+                            type="primary"
+                            onClick={this.triggerSave}
+                            text={gettext('Save')}
+                            disabled={!this.state.valid || !this.state.dirty}
+                        />
+                    </Spacer>
+                )}
             >
-                <Modal.Header>
-                    <h3 className="modal__heading">{gettext('Add Contact')}</h3>
-                    <a className="icn-btn" aria-label={gettext('Close')} onClick={this.handleCancel}>
-                        <i className="icon-close-small" />
-                    </a>
-                </Modal.Header>
-                <Modal.Body>
-                    <ContactFormContainer
-                        ref={this.contactForm}
-                        contact={currentContact}
-                        svc={services}
-                        onCancel={this.handleCancel}
-                        onDirty={this.onDirty}
-                        onValidation={this.onValidation}
-                        triggerSave={false}
-                        onSave={this.onSave}
-                        hideActionBar={true}
-                    />
-                </Modal.Body>
-                <Modal.Footer>
-                    <ActionBar
-                        svc={services}
-                        onCancel={this.handleCancel}
-                        dirty={this.state.dirty}
-                        valid={this.state.valid}
-                        onSave={this.triggerSave}
-                    />
-                </Modal.Footer>
+                <ContactFormContainer
+                    ref={this.contactForm}
+                    contact={currentContact}
+                    svc={services}
+                    onCancel={this.hideModal}
+                    onDirty={this.onDirty}
+                    onValidation={this.onValidation}
+                    triggerSave={false}
+                    onSave={this.onSave}
+                    hideActionBar={true}
+                />
             </Modal>
         );
     }

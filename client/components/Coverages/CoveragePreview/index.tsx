@@ -114,8 +114,6 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     >
                         <ContactsPreviewList
                             contactIds={contactId ? [contactId] : []}
-                            scrollInView={true}
-                            scrollIntoViewOptions={{block: 'center'}}
                         />
                     </PreviewRow>
                 )}

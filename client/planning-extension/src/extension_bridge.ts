@@ -2,6 +2,7 @@ import * as React from 'react';
 import {IArticle, IVocabularyItem} from 'superdesk-api';
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
 import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
+import {IContactPropsNoRedux} from '../../components/Contacts/ContactField';
 import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
@@ -35,6 +36,7 @@ interface IExtensionBridge {
     },
     editor: {
         fields: {
+            EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
         },
     }

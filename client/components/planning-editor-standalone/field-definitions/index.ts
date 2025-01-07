@@ -15,6 +15,7 @@ import {getCategoriesField} from './category-field';
 import {getAgendasField} from './agendas-field';
 import {getSubjectField} from './subject';
 import {getPriorityField} from './priority-field';
+import {getContactsField} from './contacts';
 
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
@@ -71,6 +72,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
         getAgendasField(),
         getSubjectField(),
         getCategoriesField(),
+        getContactsField(),
         getPriorityField(),
         {
             fieldId: 'coverages',

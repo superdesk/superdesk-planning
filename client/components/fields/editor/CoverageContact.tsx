@@ -31,8 +31,6 @@ export class EditorFieldCoverageContact extends React.PureComponent<IProps> {
                 />
                 <ContactsPreviewList
                     contactIds={[assignmentValue]}
-                    scrollInView={true}
-                    scrollIntoViewOptions={{block: 'center'}}
                 />
             </Row>
         ) : (

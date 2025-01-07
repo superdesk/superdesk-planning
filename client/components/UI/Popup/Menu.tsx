@@ -1,13 +1,15 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    children: React.ReactNode;
+    noPadding?: boolean;
+}
+
 /**
- * @ngdoc react
- * @name Menu
- * @description Menu Component in a popup
+ * Menu Component in a popup
  */
-const Menu = ({children, noPadding}) => (
+const Menu: React.FunctionComponent<IProps> = ({children, noPadding}) => (
     <div
         className={classNames(
             'popup__menu',
@@ -17,12 +19,5 @@ const Menu = ({children, noPadding}) => (
         {children}
     </div>
 );
-
-Menu.propTypes = {
-    children: PropTypes.node.isRequired,
-    noPadding: PropTypes.bool,
-};
-
-Menu.defaultProps = {noPadding: false};
 
 export default Menu;

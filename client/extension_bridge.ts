@@ -20,6 +20,8 @@ import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalon
 import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
 import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
 import {EditorFieldCoverages} from './components/fields/editor/Coverages';
+import {ContactField} from './components/Contacts';
+import {IContactPropsNoRedux} from './components/Contacts/ContactField';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -42,6 +44,7 @@ interface IExtensionBridge {
     },
     editor: {
         fields: {
+            EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
         },
     }
@@ -100,6 +103,7 @@ export const extensionBridge: IExtensionBridge = {
     },
     editor: {
         fields: {
+            EditorFieldContact: ContactField,
             EditorFieldCoverages: EditorFieldCoverages,
         },
     },

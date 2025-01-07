@@ -52,9 +52,6 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                     <Row label={assignmentUtils.getContactLabel(assignment)}>
                         <ContactsPreviewList
                             contactIds={[contactId]}
-                            scrollInView={true}
-                            scrollIntoViewOptions={{block: 'center'}}
-                            tabEnabled={true}
                         />
                     </Row>
                 )}

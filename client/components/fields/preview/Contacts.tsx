@@ -14,9 +14,6 @@ export class PreviewFieldContacts extends React.PureComponent<IListFieldProps> {
         const children = !contactIds?.length ? null : (
             <ContactsPreviewList
                 contactIds={contactIds}
-                scrollInView={true}
-                scrollIntoViewOptions={{block: 'center'}}
-                tabEnabled={true}
             />
         );
 

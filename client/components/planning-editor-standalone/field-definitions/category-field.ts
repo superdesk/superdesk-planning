@@ -1,8 +1,7 @@
 import {IDropdownConfigVocabulary, IAuthoringFieldV2, IVocabularyItem} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
-import {IFieldGetter} from '.';
 
-export const getCategoriesField: IFieldGetter = () => ({
+export const getCategoriesField = () => ({
     fieldId: 'anpa_category',
     getField: ({id, required}) => {
         const fieldConfig: IDropdownConfigVocabulary = {
