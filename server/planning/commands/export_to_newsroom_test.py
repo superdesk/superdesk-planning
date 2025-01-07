@@ -12,12 +12,12 @@ import mock
 from datetime import timedelta
 
 from superdesk.utc import utcnow
-from superdesk import get_resource_service
 
 from planning.tests import TestCase
 from planning.events.events_service import EventsAsyncService
 
 from .export_to_newsroom import ExportToNewsroom
+from ..planning import PlanningAsyncService
 
 
 class MockTransmitter:
@@ -36,7 +36,7 @@ class ExportToNewsroomTest(TestCase):
         await super().asyncSetUp()
 
         self.event_service = EventsAsyncService()
-        self.planning_service = get_resource_service("planning")
+        self.planning_service = PlanningAsyncService()
 
     async def setup_data(self):
         utc_now = utcnow()
@@ -151,14 +151,14 @@ class ExportToNewsroomTest(TestCase):
 
         planning = [
             {
-                "_id": "draft",
+                "guid": "draft",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "draft",
                 "type": "planning",
             },
             {
-                "_id": "scheduled",
+                "guid": "scheduled",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "scheduled",
@@ -166,7 +166,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "postponed",
+                "guid": "postponed",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "postponed",
@@ -174,7 +174,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "rescheduled",
+                "guid": "rescheduled",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "rescheduled",
@@ -182,7 +182,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "cancelled",
+                "guid": "cancelled",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "cancelled",
@@ -190,7 +190,7 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "killed",
+                "guid": "killed",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "killed",
@@ -198,21 +198,21 @@ class ExportToNewsroomTest(TestCase):
                 "type": "planning",
             },
             {
-                "_id": "postponed-not-published",
+                "guid": "postponed-not-published",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "postponed",
                 "type": "planning",
             },
             {
-                "_id": "rescheduled-not-published",
+                "guid": "rescheduled-not-published",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "rescheduled",
                 "type": "planning",
             },
             {
-                "_id": "cancelled-not-published",
+                "guid": "cancelled-not-published",
                 "planning_date": utc_now,
                 "slugline": "planning slugline",
                 "state": "cancelled",
@@ -221,7 +221,7 @@ class ExportToNewsroomTest(TestCase):
         ]
 
         await self.event_service.create(events)
-        self.planning_service.create(planning)
+        await self.planning_service.create(planning)
 
     @mock.patch("planning.commands.export_to_newsroom.NewsroomHTTPTransmitter")
     async def test_events_events_planning(self, mock_transmitter):
