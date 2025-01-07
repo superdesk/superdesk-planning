@@ -30,7 +30,7 @@ from superdesk import get_resource_service, Service, Resource
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utcnow, utc_to_local
 from superdesk.metadata.utils import generate_guid, item_url
-from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE, CONTENT_STATE
+from superdesk.metadata.item import GUID_NEWSML
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth, update_dates_for
@@ -38,7 +38,6 @@ from apps.archive.common import get_user, get_auth, update_dates_for
 from planning.errors import AssignmentApiError
 from planning.types import (
     Planning,
-    Coverage,
     Event,
     UPDATE_METHOD,
     PlanningRelatedEventLink,
@@ -84,17 +83,9 @@ from planning.utils import (
     get_first_related_event_id_for_planning,
     get_related_event_items_for_planning,
 )
+from .planning_utils import get_coverage_by_id
 
 logger = logging.getLogger(__name__)
-
-
-def get_coverage_by_id(
-    planning_item: Planning, coverage_id: str, field: Optional[str] = "coverage_id"
-) -> Optional[Coverage]:
-    return next(
-        (coverage for coverage in planning_item.get("coverages") or [] if coverage.get(field) == coverage_id),
-        None,
-    )
 
 
 class PlanningService(Service):

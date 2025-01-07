@@ -9,7 +9,6 @@ from typing_extensions import assert_never
 from typing import AsyncGenerator, Any, cast
 
 from apps.auth import get_user, get_auth
-from planning.planning.planning import get_coverage_by_id
 
 from superdesk.core import get_current_app
 from superdesk.utc import utcnow, utc_to_local
@@ -56,6 +55,8 @@ from planning.utils import (
     get_first_related_event_id_for_planning,
     get_related_event_ids_for_planning,
 )
+
+from .planning_utils import get_coverage_by_id
 
 logger = logging.getLogger(__name__)
 
