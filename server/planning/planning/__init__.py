@@ -133,7 +133,7 @@ def init_app(app):
     PlanningAutosaveResource("planning_autosave", app=app, service=planning_autosave_service)
 
     # listen to async signals
-    signals.planning_update.connect(planning_history_service.on_item_updated)
+    signals.planning_updated.connect(planning_history_service.on_item_updated)
 
     app.on_inserted_planning += planning_history_service.on_item_created
     app.on_updated_planning_spike += planning_history_service.on_spike

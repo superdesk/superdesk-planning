@@ -835,7 +835,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         # planning_service.validate_on_update(updates, planning_item, get_user())
         await planning_service.system_update(event.planning_item, updates)
 
-        await signals.planning_update.send(updates, planning_item)
+        await signals.planning_updated.send(updates, planning_item)
 
     def _enhance_event_item(self, doc: dict[str, Any]):
         plannings = get_related_planning_for_events([doc[ID_FIELD]])

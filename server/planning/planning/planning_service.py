@@ -6,9 +6,10 @@ from copy import deepcopy
 from bson import ObjectId
 from datetime import datetime
 from typing_extensions import assert_never
-from typing import AsyncGenerator, Any, List, cast
+from typing import AsyncGenerator, Any, cast
 
-from apps.auth import get_user
+from apps.auth import get_user, get_auth
+from planning.planning.planning import get_coverage_by_id
 
 from superdesk.core import get_current_app
 from superdesk.utc import utcnow, utc_to_local
@@ -28,7 +29,6 @@ from planning.common import (
     WORKFLOW_STATE,
     unique_items_in_order,
     WorkflowStates,
-    ASSIGNMENT_WORKFLOW_STATE,
     DEFAULT_ASSIGNMENT_PRIORITY,
     TO_BE_CONFIRMED_FIELD,
     get_coverage_status_from_cv,
@@ -39,6 +39,8 @@ from planning.common import (
     get_planning_use_xmp_for_pic_assignments,
     TEMP_ID_PREFIX,
     get_planning_allow_scheduled_updates,
+    update_post_item,
+    sync_assignment_details_to_coverages,
 )
 from planning.core.service import BasePlanningAsyncService
 from planning.types import (
@@ -52,6 +54,7 @@ from planning.utils import (
     get_related_planning_for_events,
     get_planning_event_link_method,
     get_first_related_event_id_for_planning,
+    get_related_event_ids_for_planning,
 )
 
 logger = logging.getLogger(__name__)
@@ -166,10 +169,253 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 },
             )
 
-    async def create(self, docs: list[PlanningResourceModel]) -> List[str]:
+    async def create(self, docs: list[PlanningResourceModel]) -> list[str]:
         docs = await self._convert_dicts_to_model(docs)
         await self.prepare_planning_data(docs)
         return await super().create(docs)
+
+    async def on_update(self, updates: dict[str, Any], original: PlanningResourceModel) -> None:
+        await super().on_update(updates, original)
+
+        update_method = updates.pop("update_method", UpdateMethods.SINGLE)
+        updates.setdefault("versioncreated", utcnow())
+
+        user = get_user()
+        self.validate_on_update(updates, original, user)
+
+        if user and user.get(ID_FIELD):
+            updates["version_creator"] = user[ID_FIELD]
+
+        updated_planning = PlanningResourceModel.from_dict(updates)
+        self._handle_coverages(updated_planning, original)
+        self.set_planning_schedule(updated_planning, original)
+
+        # set the updates dictionary with the values from the pydantic model
+        # in case the object was edited in-place.
+        # TODO-ASYNC: unify everything to use only pydantic models
+        updates = updated_planning.to_dict()
+
+        if update_method and update_method != UpdateMethods.SINGLE:
+            await self._update_recurring_planning_items(updates, original, update_method)
+
+    async def on_updated(self, updates: dict[str, Any], original_obj: PlanningResourceModel):
+        # TODO-ASYNC: figure out what to do with the `from_ingest` param here
+        original = original_obj.to_dict()
+        added, removed = self._get_added_removed_agendas(updates, original)
+        item_id = str(original[ID_FIELD])
+        session_id = get_auth().get(ID_FIELD)
+        user_id = str(updates.get("version_creator", ""))
+        doc = deepcopy(original)
+        doc.update(updates)
+
+        push_notification(
+            "planning:updated",
+            item=item_id,
+            user=str(updates.get("version_creator", "")),
+            added_agendas=added,
+            removed_agendas=removed,
+            session=session_id,
+            event_ids=get_related_event_ids_for_planning(doc, "primary"),
+        )
+
+        self.generate_related_assignments([doc])
+        updates["coverages"] = doc.get("coverages") or []
+
+        if original.get("lock_user") and "lock_user" in updates and updates.get("lock_user") is None:
+            # When the Planning is unlocked by a patch
+            push_notification(
+                "planning:unlock",
+                item=item_id,
+                user=user_id,
+                lock_session=session_id,
+                etag=updates["_etag"],
+                event_ids=get_related_event_ids_for_planning(doc, "primary"),  # Event IDs for primary events,
+                recurrence_id=original.get("recurrence_id") or None,
+                from_ingest=False,
+                # from_ingest=from_ingest, # TODO-ASYNC: adjust when we know how to tackle this
+            )
+
+        posted = update_post_item(updates, original)
+        if posted:
+            new_planning = self.find_one(req=None, _id=original.get(ID_FIELD))
+            updates["_etag"] = new_planning["_etag"]
+
+    @staticmethod
+    def _get_added_removed_agendas(updates, original):
+        updated_agendas = [str(a) for a in (updates.get("agendas") or [])]
+        existing_agendas = [str(a) for a in (original.get("agendas") or [])]
+        removed_agendas = list(set(existing_agendas) - set(updated_agendas))
+        added_agendas = list(set(updated_agendas) - set(existing_agendas))
+        return added_agendas, removed_agendas
+
+    @staticmethod
+    def generate_related_assignments(docs):
+        for doc in docs:
+            doc.pop("_planning_schedule", None)
+            doc.pop("_updates_schedule", None)
+            sync_assignment_details_to_coverages(doc)
+
+    def validate_on_update(self, updates: dict[str, Any], original: PlanningResourceModel, user: dict[str, Any]):
+        lock_user = original.lock_user
+        str_user_id = str(user.get(ID_FIELD)) if user else None
+
+        if lock_user and str(lock_user) != str_user_id:
+            raise SuperdeskApiError.forbiddenError("The item was locked by another user")
+
+        self.validate_planning(updates, original)
+
+    async def _update_recurring_planning_items(
+        self, updates: dict[str, Any], original: PlanningResourceModel, update_method: str
+    ):
+        SKIP_PLANNING_FIELDS = {
+            "_id",
+            "guid",
+            "unique_id",
+            "original_creator",
+            "firstcreated",
+            "lock_user",
+            "lock_time",
+            "lock_session",
+            "lock_action",
+            "revert_state",
+            "ingest_provider",
+            "source",
+            "original_source",
+            "ingest_provider_sequence",
+            "ingest_firstcreated",
+            "ingest_versioncreated",
+            "related_events",
+            "state",
+            "pubstatus",
+            "expiry",
+            "expired",
+            "featured",
+            "_planning_schedule",
+            "_updates_schedule",
+            "planning_date",
+            "state_reason",
+        }
+        SKIP_COVERAGE_FIELDS = {
+            "coverage_id",
+            "original_coverage_id",
+            "guid",
+            "original_creator",
+            "firstcreated",
+            "previous_status",
+        }
+
+        async for plan in self._iter_recurring_plannings_to_update(updates, original, update_method):
+            plan_updates = deepcopy(updates)
+            for field in SKIP_PLANNING_FIELDS:
+                plan_updates.pop(field, None)
+
+            try:
+                planning_date_diff = updates["planning_date"] - original.planning_date
+                if planning_date_diff:
+                    plan_updates["planning_date"] = plan["planning_date"] + planning_date_diff
+            except KeyError:
+                pass
+
+            if len(updates.get("coverages") or []) and len(plan.get("coverages") or []):
+                plan_updates["coverages"] = deepcopy(plan["coverages"])
+                for coverage in plan_updates["coverages"]:
+                    try:
+                        original_coverage_id = coverage["original_coverage_id"]
+                    except KeyError:
+                        continue
+
+                    coverage_updates = get_coverage_by_id(updates, original_coverage_id, "original_coverage_id")
+                    if coverage_updates is None:
+                        continue
+
+                    for field, value in coverage_updates.items():
+                        if field in SKIP_COVERAGE_FIELDS:
+                            continue
+                        elif field == "assigned_to":
+                            if coverage.get("workflow_status") != WORKFLOW_STATE.DRAFT:
+                                # This coverage has already been added to the workflow
+                                # ``assigned_to`` information should be managed from the Assignment not Coverage
+                                continue
+
+                            # Copy the ``assigned_to`` data, keeping the original ``assignment_id`` (if any)
+                            original_assignment_id = coverage.get("assignment_id")
+                            coverage[field] = deepcopy(value)
+                            if original_assignment_id is not None:
+                                coverage[field]["assignment_id"] = original_assignment_id
+                        elif field == "planning":
+                            original_scheduled = (coverage.get("planning") or {}).get("scheduled")
+                            coverage["planning"] = deepcopy(value)
+                            coverage_original = get_coverage_by_id(
+                                original.to_dict(), original_coverage_id, "original_coverage_id"
+                            )
+                            if coverage_original is not None:
+                                scheduled_diff = value["scheduled"] - coverage_original["planning"]["scheduled"]
+                                coverage["planning"]["scheduled"] = original_scheduled + scheduled_diff
+                            else:
+                                coverage["planning"]["scheduled"] = original_scheduled
+                        else:
+                            coverage[field] = deepcopy(value)
+
+                # Add new Coverages that were added during this update request
+                for coverage in updates["coverages"]:
+                    if get_coverage_by_id(original.to_dict(), coverage["coverage_id"]) is not None:
+                        # Skip this one, as this Coverage exists in the original
+                        continue
+
+                    new_coverage = deepcopy(coverage)
+                    for field in SKIP_COVERAGE_FIELDS:
+                        new_coverage.pop(field, None)
+
+                    # Remove the Assignment ID (if any)
+                    try:
+                        new_coverage["assigned_to"].pop("assignment_id", None)
+                    except (KeyError, TypeError):
+                        pass
+
+                    # Set the new scheduled date, relative to the planning date
+                    try:
+                        plan_date = plan_updates.get("planning_date") or plan["planning_date"]
+                        if plan_date:
+                            scheduled_diff = coverage["planning"]["scheduled"] - (
+                                updates.get("planning_date") or original.planning_date
+                            )
+                            new_coverage["planning"]["scheduled"] = plan_date + scheduled_diff
+                    except (KeyError, TypeError):
+                        pass
+
+                    plan_updates["coverages"].append(new_coverage)
+
+            # TODO-ASYNC: discuss what's a good replacement or approach to substitute `patch` method usages
+            # we no longer have `patch` method in async services so using system_update to skip
+            # on_update and on_updated hooks here
+            await self.system_update(plan["_id"], plan_updates)
+
+            # TODO-ASYNC: check if this is being used, although it seems it is not
+            # app.on_updated_planning(plan_updates, {"_id": plan["_id"]})
+
+    async def _iter_recurring_plannings_to_update(
+        self, updates: dict[str, Any], original: PlanningResourceModel, update_method
+    ):
+        selected_start = updates.get("planning_date") or original.planning_date
+        assert selected_start is not None
+
+        # Make sure we are working with a datetime instance
+        if not isinstance(selected_start, datetime):
+            selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
+
+        try:
+            lookup = {"planning_recurrence_id": original.planning_recurrence_id}
+        except KeyError:
+            return
+
+        plans_cursor = await self.search(lookup, use_mongo=True)
+        for plan in await plans_cursor.to_list_raw():
+            if plan["_id"] == original.id:
+                # Skip this Planning item, as it is the same item provided to the update request
+                continue
+            elif update_method == UpdateMethods.FUTURE and plan["planning_date"] < selected_start:
+                continue
+            yield plan
 
     async def prepare_planning_data(self, docs: list[PlanningResourceModel]):
         """

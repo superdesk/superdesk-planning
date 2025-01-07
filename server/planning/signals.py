@@ -38,7 +38,7 @@ events_update = AsyncSignal[dict[str, Any], EventResourceModel]("events:update")
 events_created = AsyncSignal[list[EventResourceModel]]("events:created")
 
 
-#: Signal for when a Planning item is about to be updated in the DB
+#: Signal for when a Planning item has been updated in the DB
 #: param updates: Planning item updates
 #: param planning_item: `PlanningResourceModel` instance of the event to be updated
-planning_update = AsyncSignal[dict[str, Any], PlanningResourceModel]("planning:update")
+planning_updated = AsyncSignal[dict[str, Any], PlanningResourceModel]("planning:update")
