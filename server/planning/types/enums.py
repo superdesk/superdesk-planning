@@ -70,3 +70,33 @@ class AssignmentPublishedState(str, Enum):
 class LinkType(str, Enum):
     PRIMARY = "primary"
     SECONDARY = "secondary"
+
+
+@unique
+class AssignmentHistoryActions(str, Enum):
+    ADD_TO_WORKFLOW = "add_to_workflow"
+    EDIT_PRIORITY = "edit_priority"
+    REASSIGNED = "reassigned"
+    CONTENT_LINK = "content_link"
+    COMPLETE = "complete"
+    CONFIRM = "confirm"
+    REVERT = "revert"
+    SUBMITTED = "submitted"
+    CANCELLED = "cancelled"
+    SPIKE_UNLINK = "spike_unlink"
+    UNLINK = "unlink"
+    START_WORKING = "start_working"
+    ASSIGNMENT_REMOVED = "assignment_removed"
+    ACCEPTED = "accepted"
+
+
+@unique
+class ItemActions(str, Enum):
+    CANCEL = "cancel"
+    POSTPONE = "postpone"
+    RESCHEDULE = "reschedule"
+    UPDATE_TIME = "update_time"
+    CONVERT_RECURRING = "convert_recurring"
+    PLANNING_CANCEL = "planning_cancel"
+    CANCEL_ALL_COVERAGE = "cancel_all_coverage"
+    EDIT = "edit"

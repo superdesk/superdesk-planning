@@ -39,6 +39,7 @@ from planning.common import (
     post_required,
     update_post_item,
 )
+from planning.events.events_history_async_service import EventsHistoryAsyncService
 from planning.planning import PlanningAsyncService
 from planning.core.service import BasePlanningAsyncService
 from planning.utils import (
@@ -211,8 +212,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 event.planning_item = original_planning_item
 
             if event.state == WorkflowStates.INGESTED:
-                events_history = get_resource_service("events_history")
-                events_history.on_item_created([event.to_dict()])
+                events_history = EventsHistoryAsyncService()
+                await events_history.on_item_created([event.to_dict()])
 
             if original_planning_item:
                 await self._link_to_planning(event)
@@ -228,7 +229,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         then send this list off to the clients so they can fetch these events
         """
         notifications_sent = []
-        history_service = get_resource_service("events_history")
+        history_service = EventsHistoryAsyncService()
 
         for doc in docs:
             event_id = doc.id
@@ -240,8 +241,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 if not parent_event:
                     raise SuperdeskApiError.badRequestError("Parent event not found")
 
-                history_service.on_item_updated({"duplicate_id": event_id}, parent_event.to_dict(), "duplicate")
-                history_service.on_item_updated({"duplicate_id": parent_id}, doc.to_dict(), "duplicate_from")
+                await history_service.on_item_updated({"duplicate_id": event_id}, parent_event.to_dict(), "duplicate")
+                await history_service.on_item_updated({"duplicate_id": parent_id}, doc.to_dict(), "duplicate_from")
 
                 duplicate_ids = parent_event.duplicate_to or []
                 duplicate_ids.append(event_id)
@@ -668,8 +669,8 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             event_reschedule_service.update_single_event(updates, original)
 
             if updates.get("state") == WorkflowState.RESCHEDULED:
-                history_service = get_resource_service("events_history")
-                history_service.on_reschedule(updates, original.to_dict())
+                history_service = EventsHistoryAsyncService()
+                await history_service.on_reschedule(updates, original.to_dict())
         else:
             # Original event falls as a part of the series
             # Remove the first element in the list (the current event being updated)

@@ -32,6 +32,7 @@ class EventsHistoryResource(Resource):
         "operation": {"type": "string"},
         "update": {"type": "dict", "nullable": True},
     }
+    internal_resource = True
 
 
 class EventsHistoryService(HistoryService):

@@ -46,11 +46,14 @@ from .events_template import (
 from planning.autosave import AutosaveService
 
 from .events_service import EventsAsyncService
-from .module import events_resource_config
+from .events_history_async_service import EventsHistoryAsyncService
+from .module import events_resource_config, events_history_resource_config
 
 __all__ = [
     "EventsAsyncService",
     "events_resource_config",
+    "EventsHistoryAsyncService",
+    "events_history_resource_config",
 ]
 
 

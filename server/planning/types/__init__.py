@@ -17,6 +17,7 @@ from .base import BasePlanningModel
 from .common import PlanningSchedule
 from .delivery import DeliveryResourceModel
 from .event import EventResourceModel
+from .history import HistoryResourceModel, EventsHistoryResourceModel, PlanningHistoryResourceModel
 from .planning import PlanningResourceModel
 from .assignment import AssignmentResourceModel
 from .published import PublishedPlanningModel
@@ -27,7 +28,10 @@ __all__ = [
     "BasePlanningModel",
     "DeliveryResourceModel",
     "EventResourceModel",
+    "EventsHistoryResourceModel",
+    "HistoryResourceModel",
     "PlanningResourceModel",
+    "PlanningHistoryResourceModel",
     "AssignmentResourceModel",
     "PublishedPlanningModel",
     "PlanningSchedule",
