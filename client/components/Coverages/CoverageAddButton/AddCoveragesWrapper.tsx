@@ -13,7 +13,7 @@ import * as selectors from '../../../selectors';
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
 import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
 
-interface IProps {
+interface IOwnProps {
     field: string;
     value: Array<DeepPartial<IPlanningCoverageItem>>;
     target: string;
@@ -30,7 +30,9 @@ interface IProps {
     ): void;
     onPopupOpen?(): void;
     onPopupClose?(): void;
+}
 
+interface IReduxStateProps {
     contentTypes: Array<IG2ContentType>;
     defaultDesk?: IDesk;
     preferredCoverageDesks: {[key: string]: string};
@@ -39,6 +41,8 @@ interface IProps {
     users: Array<IUser>;
     coverageAddAdvancedMode: boolean;
 }
+
+type IProps = IOwnProps & IReduxStateProps;
 
 interface ICoverageTypeEntry {
     id: string;
@@ -53,7 +57,7 @@ interface IState {
     advanced: boolean;
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state): IReduxStateProps => ({
     contentTypes: selectors.general.contentTypes(state),
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},

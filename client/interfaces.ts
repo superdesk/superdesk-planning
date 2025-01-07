@@ -1031,6 +1031,7 @@ interface IProfileEditorDatesField extends IProfileEditorField {
 interface IBaseProfileSchemaType<T> {
     type: T;
     required: boolean;
+    show_in_embedded_editor?: boolean;
     validate_on_post?: boolean;
     minlength?: number;
     maxlength?: number;
@@ -1569,11 +1570,14 @@ export interface IEditorFieldProps {
 
     profile?: IPlanningContentProfile;
 
-    onChange(field: string, value: any): void;
-    onChange(values: {[key: string]: any}): void;
+    // overloads don't work in interfaces
+    // onChange(values: {[key: string]: any}): void;
+    // onChange(field: string, value: any): void;
+    onChange(...any: any): void;
 
     popupContainer?(): HTMLElement;
 }
+
 
 export interface IListFieldProps {
     item: any;
@@ -2031,6 +2035,13 @@ export abstract class IEditorRefComponent {
 
 export abstract class IEditorHeaderComponent {
     abstract unregisterKeyBoardShortcuts(): void;
+}
+
+export interface IInputArrayHocModeOptions {
+    itemsElement: React.ReactNode;
+    addButtonElement: JSX.Element;
+    errorMessageElement: React.ReactNode;
+    labelElement: React.ReactNode;
 }
 
 export interface IWebsocketMessageData {

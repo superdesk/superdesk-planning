@@ -25,6 +25,18 @@ registerEditorField(
 );
 
 registerEditorField(
+    'schema.show_in_embedded_editor',
+    EditorFieldCheckbox,
+    (props) => ({
+        label: superdeskApi.localization.gettext('Show in embedded form'),
+        field: 'schema.show_in_embedded_editor',
+        disabled: props.item.schema.required,
+    }),
+    null,
+    true
+);
+
+registerEditorField(
     'schema.read_only',
     EditorFieldCheckbox,
     () => ({

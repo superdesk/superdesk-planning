@@ -19,39 +19,49 @@ export class Editor extends React.PureComponent<IProps> {
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
 
         return (
-            <Container>
-                <EditorFieldCoverages
-                    field="coverages"
+            <EditorFieldCoverages
+                field="coverages"
 
-                    item={{
-                        // coverages are the main value
-                        coverages: this.props.value,
+                item={{
+                    // coverages are the main value
+                    coverages: this.props.value,
 
-                        // related_events are used if available to prefill coverage fields when adding a new coverage
-                        related_events: this.props.item.related_events,
-                    } as IPlanningItem}
+                    // related_events are used if available to prefill coverage fields when adding a new coverage
+                    related_events: this.props.item.related_events,
+                } as IPlanningItem}
 
+                /**
+                 * It looks like this prop is designed to accept a validation message.
+                 * authoring-react field types don't accept validation messages.
+                 * They are rendered higher in the component tree.
+                 * We do handle it in PlanningEditorStandalone component (on save).
+                 */
+                message={{}}
+
+                notifyValidationErrors={(errors) => {
+                    for (const error of errors) {
+                        superdesk.ui.notify.error(error);
+                    }
+                }}
+
+
+                /**
+                 * sample of arguments:
+                 *      fieldPath - 'coverages[0].planning.slugline'
+                 *      value - 'slugline 123'
+                 */
+                onChange={(fieldPath: string, value: any): void => {
                     /**
-                     * It looks like this prop is designed to accept a validation message.
-                     * authoring-react field types don't accept validation messages.
-                     * They are rendered higher in the component tree.
-                     * We do handle it in PlanningEditorStandalone component (on save).
+                     * timeout is used to permit multiple calls in a single event loop
+                     *
+                     * e.g. we have an item {a: 5, b: 10} and execute the following code:
+                     * onChange({fieldPath: 'a', value: 6})
+                     * onChange({fieldPath: 'b', value: 10})
+                     *
+                     * since we clone this.props.value and apply the changes, only the values in the last call would get applied
+                     * with setTimeout we wait for re-render so we have the latest this.props.value
                      */
-                    message={{}}
-
-                    notifyValidationErrors={(errors) => {
-                        for (const error of errors) {
-                            superdesk.ui.notify.error(error);
-                        }
-                    }}
-
-                    onChange={(fieldPath: any, value: any) => {
-                        /**
-                         * sample of arguments:
-                         *      fieldPath - 'coverages[0].planning.slugline'
-                         *      value - 'slugline 123'
-                         */
-
+                    setTimeout(() => {
                         const item = cloneDeep({coverages: this.props.value});
                         const nextValue = set(item, fieldPath, value);
 
@@ -62,9 +72,16 @@ export class Editor extends React.PureComponent<IProps> {
                         }
 
                         this.props.onChange(nextValue.coverages);
-                    }}
-                />
-            </Container>
+                    })
+                }}
+            >
+                {({addButtonElement, itemsElement, errorMessageElement}) => (
+                    <Container miniToolbar={addButtonElement}>
+                        {errorMessageElement}
+                        {itemsElement}
+                    </Container>
+                )}
+            </EditorFieldCoverages>
         );
     }
 }

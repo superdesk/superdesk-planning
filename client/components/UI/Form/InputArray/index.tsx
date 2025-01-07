@@ -10,6 +10,7 @@ import {superdeskApi} from '../../../../superdeskApi';
 import {
     EDITOR_TYPE,
     IG2ContentType,
+    IInputArrayHocModeOptions,
     IPlanningNewsCoverageStatus,
 } from 'interfaces';
 import {IDesk} from 'superdesk-api';
@@ -53,6 +54,9 @@ interface IProps {
     navigation: any;
     openCoverageIds: Array<string>;
     editorType: EDITOR_TYPE;
+
+    // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
+    children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
 }
 
 export class InputArray extends React.PureComponent<IProps> {
@@ -145,43 +149,59 @@ export class InputArray extends React.PureComponent<IProps> {
         const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
         const addButton = this.renderButton();
 
-        return (
-            <Row
-                noPadding={!!message}
-                testId={testId}
-            >
-                {!label?.length ? null : (
-                    <div>
-                        <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
-                        {buttonWithLabel && showAddButton && addButton}
-                    </div>
-                )}
-                {get(message, field) && (
-                    <LineInput
-                        invalid={true}
-                        message={get(message, field)}
-                        readOnly
-                        noLabel
-                    />
-                )}
-                {(value || []).map((val, index) => (
-                    <Component
-                        {...props}
-                        key={index}
-                        ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
-                        testId={`${testId}[${index}]`}
-                        index={index}
-                        field={`${field}[${index}]`}
-                        onChange={onChange}
-                        value={val}
-                        remove={() => this.remove(index)}
-                        readOnly={isIndexReadOnly(index)}
-                        message={get(message, `[${index}]`)}
-                        invalid={!!get(message, `[${index}]`)}
-                    />
-                ))}
-                {!buttonWithLabel && showAddButton && addButton}
-            </Row>
+        const hasLabel = (label ?? '').length > 0;
+        const addButtonElement: React.ReactNode = showAddButton && addButton;
+        const labelElement: React.ReactNode = !hasLabel ? null : (
+            <div>
+                <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
+                {buttonWithLabel && addButtonElement}
+            </div>
         );
+        const itemsElement = (value || []).map((val, index) => (
+            <Component
+                {...props}
+                key={index}
+                ref={this.props.getRef == null ? null : this.props.getRef(field, val)}
+                testId={`${testId}[${index}]`}
+                index={index}
+                field={`${field}[${index}]`}
+                onChange={onChange}
+                value={val}
+                remove={() => this.remove(index)}
+                readOnly={isIndexReadOnly(index)}
+                message={get(message, `[${index}]`)}
+                invalid={!!get(message, `[${index}]`)}
+            />
+        ));
+
+        const errorMessageElement = get(message, field) && (
+            <LineInput
+                invalid={true}
+                message={get(message, field)}
+                readOnly
+                noLabel
+            />
+        );
+
+        if (typeof this.props.children === 'function') {
+            return this.props.children({
+                itemsElement,
+                addButtonElement,
+                errorMessageElement,
+                labelElement,
+            });
+        } else {
+            return (
+                <Row
+                    noPadding={!!message}
+                    testId={testId}
+                >
+                    {labelElement}
+                    {errorMessageElement}
+                    {itemsElement}
+                    {!buttonWithLabel && addButtonElement}
+                </Row>
+            );
+        }
     }
 }

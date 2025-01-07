@@ -13,6 +13,8 @@ import {getTextFieldConfig} from './text-field-config';
 import {getPlaceField} from './place-field';
 import {getCategoriesField} from './category-field';
 import {getAgendasField} from './agendas-field';
+import {getSubjectField} from './subject';
+import {getPriorityField} from './priority-field';
 
 export function getFieldDefinitions(): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
@@ -67,7 +69,9 @@ export function getFieldDefinitions(): IFieldDefinitions {
         },
         getPlaceField(),
         getAgendasField(),
+        getSubjectField(),
         getCategoriesField(),
+        getPriorityField(),
         {
             fieldId: 'coverages',
             getField: ({id, required}) => {

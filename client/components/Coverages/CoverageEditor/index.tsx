@@ -1,5 +1,6 @@
 import React from 'react';
 import {get} from 'lodash';
+import {connect} from 'react-redux';
 
 import {
     EDITOR_TYPE,
@@ -25,8 +26,9 @@ import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {getRelatedEventIdsForPlanning} from '../../../utils/planning';
 import {planningApi} from '../../../superdeskApi';
 import {planningApis} from '../../../api';
+import * as selectors from '../../../selectors';
 
-interface IProps {
+interface IOwnProps {
     testId?: string;
     field: string;
     value: IPlanningCoverageItem;
@@ -69,6 +71,12 @@ interface IProps {
     onPopupClose(): void;
 }
 
+interface IReduxStateProps {
+    defaultDesk: IDesk | undefined;
+}
+
+type IProps = IOwnProps & IReduxStateProps;
+
 function duplicateCoverage(
     {
         planning,
@@ -99,17 +107,73 @@ function duplicateCoverage(
     return coverages;
 }
 
-export class CoverageEditor extends React.PureComponent<IProps> {
+function assignCoverageToDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem>, defaultDesk: IDesk) {
+    if (!Object.keys(coverage.assigned_to ?? {}).length) {
+        coverage.assigned_to = {desk: defaultDesk._id};
+    } else {
+        // TODO: Fix IDesk['members'] type in client-core
+        // @ts-ignore
+        const deskMembers = (defaultDesk?.members ?? []).map((m) => m.user);
+
+        coverage.assigned_to.desk = defaultDesk._id;
+
+        // If the user does not belong to default desk, remove the user
+        if (coverage.assigned_to.user && !deskMembers.includes(coverage.assigned_to.user)) {
+            coverage.assigned_to.user = null;
+        }
+    }
+}
+
+export class CoverageEditorComponent extends React.PureComponent<IProps> {
     collapseBox: React.RefObject<CollapseBox>;
 
     constructor(props) {
         super(props);
 
         this.collapseBox = React.createRef<CollapseBox>();
+        this.onChange = this.onChange.bind(this);
     }
 
     scrollInView() {
         this.collapseBox.current?.scrollInView(true);
+    }
+
+    onChange(field, value) {
+        let valueToUpdate = value;
+
+        if (field.match(/^coverages\[/)) {
+            const {newsCoverageStatus} = this.props;
+            const coverage = value;
+
+            // If there is an assignment and coverage status not planned,
+            // change it to 'planned'
+            if (newsCoverageStatus.length > 0 &&
+                coverage?.news_coverage_status?.qcode !== newsCoverageStatus[0].qcode &&
+                coverage?.assigned_to?.desk != null
+            ) {
+                valueToUpdate = {
+                    ...coverage,
+                    news_coverage_status: this.props.newsCoverageStatus[0],
+                };
+            }
+
+            if (field.match(/g2_content_type$/) &&
+                value === 'text' &&
+                this.props.defaultDesk?._id != null
+            ) {
+                const coverageStr = field.substr(0, field.indexOf('.'));
+                let existingCoverage: IPlanningCoverageItem = {...get(this.props, `diff.${coverageStr}`)};
+
+                if (existingCoverage?.assigned_to?.desk !== this.props.defaultDesk._id) {
+                    existingCoverage.planning.g2_content_type = value;
+                    assignCoverageToDefaultDesk(existingCoverage, this.props.defaultDesk);
+                    this.props.onChange(coverageStr, existingCoverage);
+                    return;
+                }
+            }
+        }
+
+        this.props.onChange(field, valueToUpdate);
     }
 
     render() {
@@ -124,7 +188,6 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             contentTypes,
             genres,
             newsCoverageStatus,
-            onChange,
             coverageProviders,
             priorities,
             keywords,
@@ -139,8 +202,11 @@ export class CoverageEditor extends React.PureComponent<IProps> {
             openCoverageIds,
             testId,
             includeScheduledUpdates,
+            onChange: __unused, // destructure to avoid it being present in "...props"
             ...props
         } = this.props;
+
+        const {onChange} = this;
 
         // Coverage item actions
         let itemActions = [];
@@ -156,7 +222,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                     label: gettext('Duplicate'),
                     icon: 'icon-copy',
                     callback: () => {
-                        this.props.onChange(
+                        onChange(
                             fieldOfArray,
                             duplicateCoverage({
                                 planning: diff,
@@ -179,7 +245,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                                 language
                             ),
                             callback: () => {
-                                this.props.onChange(
+                                onChange(
                                     fieldOfArray,
                                     duplicateCoverage({
                                         planning: diff,
@@ -199,7 +265,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                     callback: () => {
                         planningApis.coverages.cancelCoverage(this.props.coverages, value)
                             .then((nextCoverages) => {
-                                this.props.onChange(fieldOfArray, nextCoverages);
+                                onChange(fieldOfArray, nextCoverages);
                             });
                     },
                 });
@@ -211,7 +277,7 @@ export class CoverageEditor extends React.PureComponent<IProps> {
                     label: gettext('Add to workflow'),
                     icon: 'icon-assign',
                     callback: () => {
-                        this.props.onChange(
+                        onChange(
                             fieldOfArray,
                             planningApis.planning.coverages.addCoverageToWorkflow(this.props.coverages, value)
                         );
@@ -325,3 +391,14 @@ export class CoverageEditor extends React.PureComponent<IProps> {
         );
     }
 }
+
+function mapStateToProps(state: IPlanningAppState): IReduxStateProps {
+    return {
+        defaultDesk: selectors.general.defaultDesk(state),
+    };
+}
+
+
+export const CoverageEditor = connect(
+    mapStateToProps,
+)(CoverageEditorComponent);
