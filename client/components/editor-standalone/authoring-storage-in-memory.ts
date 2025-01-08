@@ -1,15 +1,14 @@
 import ng from 'superdesk-core/scripts/core/services/ng';
-import {IPlanningItem} from 'interfaces';
 import {IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
-import {NoAutoSavePlanningItem} from './authoring-autosave';
+import {NoAutoSave} from './authoring-autosave';
 
-export function getPlanningItemInMemoryAuthoringStorage(
-    item: IPlanningItem,
-    onSave: (current: IPlanningItem, original: IPlanningItem) => Promise<IPlanningItem>,
-): IAuthoringStorage<IPlanningItem> {
-    const authoringStoragePlanningItemInMemory: IAuthoringStorage<IPlanningItem> = {
-        autosave: new NoAutoSavePlanningItem(),
+export function getAuthoringStorageInMemory<T>(
+    item: T,
+    onSave: (current: T, original: T) => Promise<T>,
+): IAuthoringStorage<T> {
+    const authoringStorage: IAuthoringStorage<T> = {
+        autosave: new NoAutoSave(),
 
         getEntity: () => {
             return Promise.resolve({autosaved: item, saved: item});
@@ -33,6 +32,6 @@ export function getPlanningItemInMemoryAuthoringStorage(
         getUserPreferences: () => ng.get('preferencesService').get()
     };
 
-    return authoringStoragePlanningItemInMemory;
+    return authoringStorage;
 }
 

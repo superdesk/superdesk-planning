@@ -1,15 +1,14 @@
 import ng from 'superdesk-core/scripts/core/services/ng';
-import {IPlanningItem} from 'interfaces';
 import {IAuthoringStorage} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
 import {omitFields} from './utils';
 import {AutoSaveHttp, NoAutoSave} from './authoring-autosave';
-import {planningUtils} from '../../utils';
+import {eventUtils} from '../../utils';
 
-const getAutosavedPlanningItem = (id: IPlanningItem['_id']): Promise<IPlanningItem | null> => {
+const getAutosavedEventItem = (id: IEventItem['_id']): Promise<IEventItem | null> => {
     return new Promise((resolve) => {
-        new AutoSaveHttp<IPlanningItem>('planning_autosave', 0).get(id)
+        new AutoSaveHttp<IEventItem>('event_autosave', 0).get(id)
             .then((res) => {
                 resolve(res);
             })
@@ -19,21 +18,21 @@ const getAutosavedPlanningItem = (id: IPlanningItem['_id']): Promise<IPlanningIt
     });
 };
 
-export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> = {
+export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
     autosave: new NoAutoSave(),
     getEntity: (id) => {
         const {httpRequestJsonLocal} = superdeskApi;
 
         return Promise.all([
-            getAutosavedPlanningItem(id),
-            httpRequestJsonLocal<IPlanningItem>({
+            getAutosavedEventItem(id),
+            httpRequestJsonLocal<IEventItem>({
                 method: 'GET',
                 path: `/planning/${id}`,
             })
         ]).then(([autosaved, saved]) => {
             return {
-                autosaved: autosaved == null ? null : planningUtils.modifyForClient(autosaved),
-                saved: planningUtils.modifyForClient(saved),
+                autosaved: autosaved == null ? null : eventUtils.modifyForClient(autosaved),
+                saved: eventUtils.modifyForClient(saved),
             };
         });
     },
@@ -48,13 +47,13 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
         const {httpRequestJsonLocal} = superdeskApi;
         const {generatePatch} = superdeskApi.utilities;
 
-        return httpRequestJsonLocal<IPlanningItem>({
+        return httpRequestJsonLocal<IEventItem>({
             method: 'PATCH',
             path: `/planning/${original._id}`,
             payload: omitFields(
                 generatePatch(
-                    planningUtils.modifyForServer(original),
-                    planningUtils.modifyForServer(current),
+                    eventUtils.modifyForServer(original),
+                    eventUtils.modifyForServer(current),
                 ),
             ),
             headers: {

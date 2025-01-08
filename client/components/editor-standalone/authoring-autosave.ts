@@ -1,29 +1,31 @@
 import {throttle, DebouncedFunc} from 'lodash';
 import {superdeskApi} from '../../superdeskApi';
-import {IPlanningItem} from '../../interfaces';
 import {omitFields} from './utils';
-import {IAuthoringAutoSave} from 'superdesk-api';
+import {IAuthoringAutoSave, IBaseRestApiResponse} from 'superdesk-api';
 
-export class AutoSavePlanningItem implements IAuthoringAutoSave<IPlanningItem> {
+export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringAutoSave<T> {
     private autoSaveThrottled: DebouncedFunc<typeof this.autosave>;
 
     private autosavePromise: Promise<void> | null;
 
     private latestEtag: string | undefined;
+    private resource: string;
 
-    constructor(delay: number) {
+    constructor(autosaveResource: string, delay: number) {
         this.latestEtag = undefined;
+
+        this.resource = autosaveResource;
 
         this.autoSaveThrottled = throttle(this.autosave, delay, {leading: false});
     }
 
-    private autosave(getItem: () => IPlanningItem, callback: (autosaved: IPlanningItem) => void) {
+    private autosave(getItem: () => T, callback: (autosaved: T) => void) {
         const {httpRequestJsonLocal} = superdeskApi;
-        const item: IPlanningItem = getItem();
+        const item: T = getItem();
 
-        this.autosavePromise = httpRequestJsonLocal<IPlanningItem>({
+        this.autosavePromise = httpRequestJsonLocal<T>({
             method: 'PATCH',
-            path: `/planning_autosave/${item._id}`,
+            path: `/${this.resource}/${item._id}`,
             payload: omitFields(item, true),
             headers: {
                 'If-Match': this.latestEtag ?? item._etag,
@@ -36,28 +38,28 @@ export class AutoSavePlanningItem implements IAuthoringAutoSave<IPlanningItem> {
         });
     }
 
-    get(id: IPlanningItem['_id']) {
+    get(id: T['_id']) {
         const {httpRequestJsonLocal} = superdeskApi;
 
-        return httpRequestJsonLocal<IPlanningItem>({
+        return httpRequestJsonLocal<T>({
             method: 'GET',
-            path: `/planning_autosave/${id}`,
+            path: `/${this.resource}/${id}`,
         });
     }
 
-    delete(id: IPlanningItem['_id'], etag: IPlanningItem['_etag']) {
+    delete(id: T['_id'], etag: T['_etag']) {
         const {httpRequestRawLocal} = superdeskApi;
 
-        return httpRequestRawLocal<IPlanningItem>({
+        return httpRequestRawLocal<T>({
             method: 'DELETE',
-            path: `/planning_autosave/${id}`,
+            path: `/${this.resource}/${id}`,
             headers: {
                 'If-Match': etag,
             },
         }).then(() => undefined);
     }
 
-    schedule(getItem: () => IPlanningItem, callback: (autosaved: IPlanningItem) => void) {
+    schedule(getItem: () => T, callback: (autosaved: T) => void) {
         this.autoSaveThrottled(getItem, callback);
     }
 
@@ -78,8 +80,7 @@ export class AutoSavePlanningItem implements IAuthoringAutoSave<IPlanningItem> {
     }
 }
 
-
-export class NoAutoSavePlanningItem implements IAuthoringAutoSave<IPlanningItem> {
+export class NoAutoSave<T> implements IAuthoringAutoSave<T> {
     get(id: string) {
         return Promise.resolve(null);
     }
@@ -89,8 +90,8 @@ export class NoAutoSavePlanningItem implements IAuthoringAutoSave<IPlanningItem>
     }
 
     schedule(
-        getItem: () => IPlanningItem,
-        callback: (autosaved: IPlanningItem) => void,
+        getItem: () => T,
+        callback: (autosaved: T) => void,
     ) {
         callback(getItem());
     }

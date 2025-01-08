@@ -15,7 +15,7 @@ import {PlanningEditorStandalone} from '../../../editor-standalone/planning-edit
 import {TEMP_ID_PREFIX} from '../../../../constants';
 import {authoringStoragePlanningItemHttp} from '../../../editor-standalone/authoring-storage-planning-http';
 import {
-    getPlanningItemInMemoryAuthoringStorage
+    getAuthoringStorageInMemory
 } from '../../../editor-standalone/authoring-storage-in-memory';
 
 interface IProps {
@@ -118,7 +118,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         itemId={item._id}
                         authoringStorage={
                             item._id.startsWith(TEMP_ID_PREFIX)
-                                ? getPlanningItemInMemoryAuthoringStorage(
+                                ? getAuthoringStorageInMemory(
                                     item as IPlanningItem,
                                     (item) => {
                                         this.update(item);
