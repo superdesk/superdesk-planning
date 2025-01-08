@@ -3,6 +3,10 @@ import {AddGeoLookupInput} from './AddGeoLookupInput';
 
 import {LineInput, Label} from '../UI/Form';
 import {ILocation} from '../../interfaces';
+import {showModal} from '@sourcefabric/common';
+import {CreateNewGeoLookup} from './CreateNewGeoLookup';
+import {Provider} from 'react-redux';
+import {planningApi} from '../../superdeskApi';
 
 interface IProps {
     field: string;
@@ -24,7 +28,6 @@ interface IProps {
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;
     onPopupClose?(): void;
-    showAddLocationForm?(props: any): Promise<ILocation | undefined>;
 }
 
 export class GeoLookupInput extends React.PureComponent<IProps> {
@@ -41,7 +44,6 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
             onFocus,
             popupContainer,
             refNode,
-            showAddLocationForm,
             ...props
         } = this.props;
 
@@ -66,7 +68,24 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
                     popupContainer={popupContainer}
                     onPopupOpen={props.onPopupOpen}
                     onPopupClose={props.onPopupClose}
-                    showAddLocationForm={showAddLocationForm}
+                    showAddLocationForm={(props) => {
+                        let newLocation: ILocation;
+
+                        return showModal(({closeModal}) => (
+                            <Provider store={planningApi.redux.store}>
+                                <CreateNewGeoLookup
+                                    {...props}
+                                    onError={() => {
+                                        closeModal();
+                                    }}
+                                    onSuccess={(location) => {
+                                        newLocation = location;
+                                        closeModal();
+                                    }}
+                                />
+                            </Provider>
+                        )).then(() => newLocation);
+                    }}
                 />
             </LineInput>
         );
