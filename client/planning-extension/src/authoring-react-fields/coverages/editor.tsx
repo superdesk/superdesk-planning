@@ -58,7 +58,8 @@ export class Editor extends React.PureComponent<IProps> {
                      * onChange({fieldPath: 'a', value: 6})
                      * onChange({fieldPath: 'b', value: 10})
                      *
-                     * since we clone this.props.value and apply the changes, only the values in the last call would get applied
+                     * since we clone this.props.value and apply the changes,
+                     * only the values in the last call would get applied.
                      * with setTimeout we wait for re-render so we have the latest this.props.value
                      */
                     setTimeout(() => {
@@ -72,7 +73,7 @@ export class Editor extends React.PureComponent<IProps> {
                         }
 
                         this.props.onChange(nextValue.coverages);
-                    })
+                    });
                 }}
             >
                 {({addButtonElement, itemsElement, errorMessageElement}) => (
