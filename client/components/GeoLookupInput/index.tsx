@@ -69,22 +69,22 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
                     onPopupOpen={props.onPopupOpen}
                     onPopupClose={props.onPopupClose}
                     showAddLocationForm={(props) => {
-                        let newLocation: ILocation;
-
-                        return showModal(({closeModal}) => (
-                            <Provider store={planningApi.redux.store}>
-                                <CreateNewGeoLookup
-                                    {...props}
-                                    onError={() => {
-                                        closeModal();
-                                    }}
-                                    onSuccess={(location) => {
-                                        newLocation = location;
-                                        closeModal();
-                                    }}
-                                />
-                            </Provider>
-                        )).then(() => newLocation);
+                        return new Promise((resolve) => {
+                            showModal(({closeModal}) => (
+                                <Provider store={planningApi.redux.store}>
+                                    <CreateNewGeoLookup
+                                        {...props}
+                                        onError={() => {
+                                            closeModal();
+                                        }}
+                                        onSuccess={(location) => {
+                                            resolve(location);
+                                            closeModal();
+                                        }}
+                                    />
+                                </Provider>
+                            ));
+                        });
                     }}
                 />
             </LineInput>

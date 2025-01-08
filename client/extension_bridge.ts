@@ -1,27 +1,22 @@
 import React from 'react';
 
 import {IArticle, IVocabularyItem} from 'superdesk-api';
-
 import {getAssignmentTypeInfo} from './utils/assignments';
 import {SluglineComponent} from './components/Assignments/AssignmentItem/fields/Slugline';
 import {DueDateComponent} from './components/Assignments/AssignmentItem/fields/DueDate';
 import {StateComponent} from './components/Assignments/AssignmentItem/fields/State';
 import {EditorFieldVocabulary, IEditorFieldVocabularyProps} from './components/fields/editor/base/vocabulary';
-
 import {getVocabularyItemFieldTranslated} from './utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from './utils/users';
-
-import {registerEditorField} from './components/fields/resources/registerEditorFields';
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
 import {isContentLinkToCoverageAllowed} from './utils/archive';
-
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalone';
-import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
-import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
 import {EditorFieldCoverages} from './components/fields/editor/Coverages';
 import {EditorFieldLocation} from './components/fields/editor/Location';
-import {IEditorFieldLocationProps} from './components/fields/editor/Location';
+import type {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
+import type {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
+import type {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
+import type {IEditorFieldLocationProps} from './components/fields/editor/Location';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
