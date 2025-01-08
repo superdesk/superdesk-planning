@@ -1,6 +1,6 @@
 import React from 'react';
 import {IAuthoringStorage} from 'superdesk-api';
-import {BaseEditorStandalone} from './planning-editor-standalone';
+import {BaseEditorStandalone} from './base-editor-standalone';
 import {getStorageAdapter} from './storage-adapter';
 
 interface IProps {
