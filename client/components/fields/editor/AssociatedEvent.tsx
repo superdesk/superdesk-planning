@@ -9,6 +9,10 @@ import * as selectors from '../../../selectors';
 import {EventMetadata} from '../../Events';
 import {superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
+import {ToggleBox} from 'superdesk-ui-framework/react';
+import {EventEditorStandalone} from '../../editor-standalone/event-editor-standalone';
+import {authoringStorageEventItemHttp} from '../../editor-standalone/authoring-storage-event-http';
+import {RelatedEventListItem} from '../../Events/EventMetadata/RelatedEventListItem';
 
 interface IProps extends IEditorFieldProps {
     events?: Array<IEventItem>;
@@ -70,26 +74,61 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
                 </label>
 
                 {
-                    events.map((event) => (
-                        <EventMetadata
-                            key={event._id}
-                            ref={this.props.refNode}
-                            testId={`${this.props.testId}--${event._id}`}
-                            event={event}
-                            navigation={{}}
-                            createUploadLink={getFileDownloadURL}
-                            files={this.props.files}
-                            tabEnabled={this.props.tabEnabled ?? true}
-                            onRemoveEvent={
-                                disabled
-                                    ? undefined
-                                    : () => {
-                                        this.removeRelatedEvent(event._id);
-                                    }
-                            }
-                        />
-                    ))
+                    events.map((event) => {
+                        // PR-TODO: see why lock indicator isn't being applied (maybe it's not *really* locked?)
+                        // PR-TODO: use different authoringStorage for creating a new event.
+                        return (
+                            <ToggleBox
+                                key={event._id}
+                                variant="custom-header"
+                                getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
+                                header={(
+                                    <RelatedEventListItem
+                                        item={event}
+                                        showIcon
+                                    />
+                                )}
+                            >
+                                <EventEditorStandalone
+                                    itemId={event._id}
+                                    authoringStorage={authoringStorageEventItemHttp}
+                                />
+                            </ToggleBox>
+                        );
+                    })
                 }
+
+                {
+                    /**
+                     * PR-TODO: remove EventMetadata component bellow
+                     * I'm keeping it for verifying against new implementation
+                     * */
+                }
+                <div style={{border: '2px dashed orange', margin: '20px 0'}}>
+                    <div style={{padding: 20}}>
+                        {
+                            events.map((event) => (
+                                <EventMetadata
+                                    key={event._id}
+                                    ref={this.props.refNode}
+                                    testId={`${this.props.testId}--${event._id}`}
+                                    event={event}
+                                    navigation={{}}
+                                    createUploadLink={getFileDownloadURL}
+                                    files={this.props.files}
+                                    tabEnabled={this.props.tabEnabled ?? true}
+                                    onRemoveEvent={
+                                        disabled
+                                            ? undefined
+                                            : () => {
+                                                this.removeRelatedEvent(event._id);
+                                            }
+                                    }
+                                />
+                            ))
+                        }
+                    </div>
+                </div>
 
                 {
                     !disabled && (
