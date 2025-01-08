@@ -99,8 +99,8 @@ class EventsHistoryService(HistoryService):
     def on_update_time(self, updates, original):
         self.on_item_updated(updates, original, "update_time")
 
-    def get_by_id(self, id: str) -> list[EventHistoryRecord]:
-        records = self.find(where={"event_id": id})
+    def get_by_id(self, _id: str) -> list[EventHistoryRecord]:
+        records = self.find(where={"event_id": _id})
         return [
             {
                 "event_id": record.get("event_id"),
