@@ -1,13 +1,15 @@
 import {IAuthoringFieldV2} from 'superdesk-api';
 
+export interface IFieldStorageAdapter<T> {
+    storeValue:(item: T, operationalValue: unknown) => T; // returns stored value
+    retrieveStoredValue: (item: T, fieldId: string) => unknown; // returns operational value
+}
+
 export interface IFieldDefinition {
     fieldId: string;
     getField: (options: {required: boolean, id: string}) => IAuthoringFieldV2;
-    storageAdapter?: {
-        storeValue: <T extends IPlanningItem>(item: T, operationalValue: unknown) => T; // returns stored value
-        retrieveStoredValue:
-            <T extends IPlanningItem>(item: T, fieldId: string) => unknown; // returns operational value
-    };
+    storageAdapter?: IFieldStorageAdapter<IPlanningItem>;
+    storageAdapterEvent?: IFieldStorageAdapter<IEventItem>;
 }
 
 export type IFieldDefinitions = {[fieldId: string]: IFieldDefinition};

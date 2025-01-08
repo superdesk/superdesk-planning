@@ -4,7 +4,6 @@ import {
     EDITOR_TYPE,
     IEventItem,
     IPlanningContentProfile,
-    IPlanningCoverageItem,
     IPlanningItem,
     ISearchProfile
 } from '../../../../interfaces';
@@ -12,9 +11,9 @@ import {superdeskApi} from '../../../../superdeskApi';
 
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
-import {PlanningEditorStandalone} from '../../../../components/planning-editor-standalone/planning-editor-standalone';
+import {PlanningEditorStandalone} from '../../../planning-editor-standalone/planning2-editor-standalone';
 import {TEMP_ID_PREFIX} from '../../../../constants';
-import {authoringStoragePlanningItemHttp} from '../../../planning-editor-standalone/authoring-storage-http';
+import {authoringStoragePlanningItemHttp} from '../../../planning-editor-standalone/authoring-storage-planning-http';
 import {
     getPlanningItemInMemoryAuthoringStorage
 } from '../../../../components/planning-editor-standalone/authoring-storage-in-memory';

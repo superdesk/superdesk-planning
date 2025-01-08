@@ -2,29 +2,34 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {noop} from 'lodash';
 import {Button} from 'superdesk-ui-framework/react';
-import {IAuthoringStorage, ITopBarWidget, IAuthoringValidationErrors} from 'superdesk-api';
+import {IAuthoringStorage, ITopBarWidget, IAuthoringValidationErrors, IStorageAdapter} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import {IAgenda, IPlanningAppState, IPlanningItem} from 'interfaces';
-import {storageAdapterPlanningItem} from './storage-adapter';
 import {formProfile} from '../../validators/profile';
 
-interface IOwnProps {
+interface IOwnProps<T extends IPlanningItem | IEventItem> {
+    // will be used as resource and content profile type
+    entityType: 'planning' | 'event';
+
     itemId: string;
-    authoringStorage: IAuthoringStorage<IPlanningItem>;
+
+    authoringStorage: IAuthoringStorage<T>;
+    storageAdapter: IStorageAdapter<T>;
 }
 
 interface IReduxProps {
     agendas: Array<IAgenda>;
 }
 
-type IProps = IOwnProps & IReduxProps;
+type IProps<T extends IPlanningItem | IEventItem> = IOwnProps<T> & IReduxProps;
 
-function validate(
+function validate<T extends IPlanningItem | IEventItem>(
+    entityType: 'planning' | 'event',
     fieldsData: Immutable.Map<string, unknown>,
-    latestItem: IPlanningItem,
+    latestItem: T,
 ): IAuthoringValidationErrors {
-    const planningProfile = planningApi.contentProfiles.get('planning');
+    const planningProfile = planningApi.contentProfiles.get(entityType);
 
     const errors = {};
     const messages = [];
@@ -51,19 +56,19 @@ function validate(
     return filteredErrors;
 }
 
-export class PlanningEditorStandaloneComponent extends React.PureComponent<IProps> {
+export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends React.PureComponent<IProps<T>> {
     render() {
-        const Authoring = superdeskApi.components.getAuthoringComponent<IPlanningItem>();
+        const Authoring = superdeskApi.components.getAuthoringComponent<T>();
         const {gettext} = superdeskApi.localization;
 
         return (
             <Authoring
                 itemId={this.props.itemId}
-                resourceNames={['planning']}
+                resourceNames={[this.props.entityType]}
                 onClose={noop}
                 fieldsAdapter={{}}
                 authoringStorage={this.props.authoringStorage}
-                storageAdapter={storageAdapterPlanningItem}
+                storageAdapter={this.props.storageAdapter}
                 getLanguage={(item) => item.language ?? 'en'}
                 getInlineToolbarActions={({
                     hasUnsavedChanges,
@@ -72,7 +77,7 @@ export class PlanningEditorStandaloneComponent extends React.PureComponent<IProp
                     fieldsData,
                     getLatestItem,
                 }) => {
-                    const saveButton: ITopBarWidget<IPlanningItem> = {
+                    const saveButton: ITopBarWidget<T> = {
                         group: 'end',
                         priority: 0.2,
                         component: () => (
@@ -82,7 +87,11 @@ export class PlanningEditorStandaloneComponent extends React.PureComponent<IProp
                                 type="primary"
                                 disabled={!hasUnsavedChanges()}
                                 onClick={() => {
-                                    const validationErrors = validate(fieldsData, getLatestItem());
+                                    const validationErrors = validate(
+                                        this.props.entityType,
+                                        fieldsData,
+                                        getLatestItem(),
+                                    );
 
                                     if (Object.keys(validationErrors).length > 0) {
                                         addValidationErrors(validationErrors);
@@ -102,7 +111,6 @@ export class PlanningEditorStandaloneComponent extends React.PureComponent<IProp
                         },
                     };
 
-                    // PR-TODO: add a close button that will collapse the accordion
                     return {readOnly: false, actions: [saveButton]};
                 }}
                 getSidebarWidgetsCount={() => 0}
@@ -122,4 +130,4 @@ function mapStateToProps(state: IPlanningAppState): IReduxProps {
     };
 }
 
-export const PlanningEditorStandalone = connect(mapStateToProps)(PlanningEditorStandaloneComponent);
+export const BaseEditorStandalone = connect(mapStateToProps)(BaseEditorComponent);
