@@ -13,7 +13,9 @@ export class Editor extends React.PureComponent<IProps> {
             <EditorFieldLocation
                 field="location"
                 enableExternalSearch
-                item={this.props.item}
+                item={{
+                    location: this.props.value,
+                }}
                 required={this.props.config.required}
                 disabled={this.props.config.readOnly}
                 onChange={(_field, value) => this.props.onChange(value)}

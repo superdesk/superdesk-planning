@@ -62,9 +62,5 @@ export const getPlanningProfileFields = (options: {embeddedOnly?: boolean}): Arr
         }
     }
 
-    return convertedFieldIds.concat({
-        fieldId: 'location',
-        required: false,
-        type: 'normal',
-    });
+    return convertedFieldIds;
 };
