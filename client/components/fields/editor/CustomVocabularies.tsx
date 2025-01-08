@@ -53,6 +53,7 @@ class CustomVocabulariesComponent extends React.PureComponent<IProps> {
                     data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
                 >
                     <TreeSelect
+                        selectBranchWithChildren
                         sortable={true}
                         kind="synchronous"
                         allowMultiple={true}

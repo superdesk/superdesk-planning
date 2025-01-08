@@ -1,12 +1,4 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-# Copyright 2014 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
+import pytz
 
 from datetime import datetime, timedelta
 from copy import deepcopy
@@ -22,6 +14,8 @@ from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
+
+from .events import is_event_updated
 
 
 class EventTestCase(TestCase):
@@ -713,3 +707,10 @@ class EventsRelatedPlanningAutoPublish(TestCase):
             planning_item = planning_service.find_one(req=None, _id=planning_id[0])
             self.assertEqual(len([planning_item]), 1)
             self.assertEqual(planning_item.get("state"), "scheduled")
+
+
+def test_is_event_updated():
+    new_event = {"location": [{"name": "test"}]}
+    old_events = {"location": [{"name": "test", "state": "bar"}]}
+    assert is_event_updated(new_event, old_events)
+    assert not is_event_updated(new_event, new_event)
