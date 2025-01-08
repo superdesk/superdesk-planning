@@ -4,8 +4,11 @@ import {superdeskApi} from '../../superdeskApi';
 import {IPrivileges} from '../../interfaces';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
+import {ContactEditor} from './ContactEditor';
+import {SelectSearchContactsField} from './SelectSearchContactsField';
+import {ContactsPreviewList} from './ContactsPreviewList';
 import {IContact, Omit} from 'superdesk-api';
+import {showModal} from '@sourcefabric/common';
 
 interface IReduxDispatchProps {
     addContact(newContact: Partial<IContact>): void;
@@ -44,11 +47,6 @@ interface IMultiContactProps extends IBaseProps {
 type IContactFieldProps = ISingleContactProps | IMultiContactProps;
 export type IContactPropsNoRedux = Omit<IContactFieldProps, keyof IReduxStateProps | keyof IReduxDispatchProps>;
 
-interface IState {
-    showEditModal: boolean;
-    editContact?: IContact;
-}
-
 const mapStateToProps = (state) => ({
     contacts: selectors.general.contacts(state),
     privileges: selectors.general.privileges(state),
@@ -58,37 +56,31 @@ const mapDispatchToProps = (dispatch) => ({
     addContact: (newContact) => dispatch(actions.contacts.addContact(newContact)),
 });
 
-class ContactFieldComponent extends React.Component<IContactFieldProps, IState> {
+class ContactFieldComponent extends React.Component<IContactFieldProps> {
     constructor(props) {
         super(props);
 
-        this.state = {
-            showEditModal: false,
-            editContact: null,
-        };
-
         this.onChange = this.onChange.bind(this);
         this.showEditModal = this.showEditModal.bind(this);
-        this.closeEditModal = this.closeEditModal.bind(this);
         this.removeContact = this.removeContact.bind(this);
-        this.onContactSaved = this.onContactSaved.bind(this);
     }
 
     /**
      * @param contact optional because on create there's no contact
      */
     showEditModal(contact?: IContact) {
-        this.setState({
-            showEditModal: true,
-            editContact: contact || ({public: false, is_active: true} as IContact),
-        });
-    }
+        const fullContact = contact || ({public: false, is_active: true}) as IContact;
 
-    closeEditModal() {
-        this.setState({
-            showEditModal: false,
-            editContact: null,
-        });
+        return showModal(({closeModal}) => (
+            <ContactEditor
+                closeModal={closeModal}
+                currentContact={fullContact}
+                onSave={(contact) => {
+                    this.onChange(contact);
+                    closeModal();
+                }}
+            />
+        ));
     }
 
     removeContact(contact: IContact) {
@@ -105,11 +97,6 @@ class ContactFieldComponent extends React.Component<IContactFieldProps, IState> 
                 this.props.onChange(this.props.field, value);
             }
         }
-    }
-
-    onContactSaved(contact) {
-        this.onChange(contact);
-        this.closeEditModal();
     }
 
     onChange(savedContact: Partial<IContact>) {
@@ -179,17 +166,11 @@ class ContactFieldComponent extends React.Component<IContactFieldProps, IState> 
                     onEditContact={privileges.contacts ? this.showEditModal : null}
                     onRemoveContact={privileges.contacts ? this.removeContact : null}
                 />
-                {this.state.showEditModal && this.state.editContact != null && (
-                    <ContactEditor
-                        onCancel={this.closeEditModal}
-                        currentContact={this.state.editContact}
-                        onSave={this.onContactSaved}
-                    />
-                )}
             </div>
         );
     }
 }
+
 export const ContactField = connect<
     IReduxStateProps,
     IReduxDispatchProps,

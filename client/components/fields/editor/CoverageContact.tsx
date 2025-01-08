@@ -4,7 +4,8 @@ import {get} from 'lodash';
 import {IEditorFieldProps} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {ContactField, ContactsPreviewList} from '../../Contacts';
+import {ContactField} from '../../Contacts/ContactField';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {Row, Label} from '../../UI/Form';
 
 interface IProps extends IEditorFieldProps {

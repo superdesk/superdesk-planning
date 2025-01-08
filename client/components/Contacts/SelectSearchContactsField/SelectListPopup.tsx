@@ -10,7 +10,7 @@ import {KEYCODES} from '../../../constants';
 import {SearchField, Button} from '../../UI';
 import {IContact} from 'superdesk-api';
 import {Popup} from '../../UI/Popup';
-import {ContactLabel} from '../';
+import {ContactLabel} from '../ContactLabel';
 import './style.scss';
 
 interface IProps {

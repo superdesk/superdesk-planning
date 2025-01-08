@@ -8,12 +8,11 @@ import {IContact} from 'superdesk-api';
 
 interface IProps {
     currentContact: IContact;
-    onCancel(): void;
-    onSave(contact: IContact): void;
+    onSave: (contact: IContact) => void;
+    closeModal: () => void;
 }
 
 interface IState {
-    showModal: boolean;
     dirty: boolean;
     valid: boolean;
 }
@@ -24,24 +23,16 @@ export class ContactEditor extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
-            showModal: true,
             dirty: false,
             valid: false,
         };
         this.contactForm = React.createRef();
 
-        this.hideModal = this.hideModal.bind(this);
         this.onDirty = this.onDirty.bind(this);
         this.onValidation = this.onValidation.bind(this);
         this.triggerSave = this.triggerSave.bind(this);
         this.onSave = this.onSave.bind(this);
         this.exitEditor = this.exitEditor.bind(this);
-    }
-
-    hideModal() {
-        this.setState({
-            showModal: false,
-        }, () => this.props.onCancel());
     }
 
     onDirty() {
@@ -70,8 +61,10 @@ export class ContactEditor extends React.Component<IProps, IState> {
     onSave(result) {
         this.setState({
             dirty: false,
-            showModal: false,
-        }, () => this.exitEditor(result));
+        }, () => {
+            this.exitEditor(result);
+            this.props.closeModal();
+        });
     }
 
     render() {
@@ -90,13 +83,13 @@ export class ContactEditor extends React.Component<IProps, IState> {
         return (
             <Modal
                 closeOnEscape
-                visible={this.state.showModal}
                 size="medium"
+                visible
                 headerTemplate={gettext('Add Contact')}
                 footerTemplate={(
                     <Spacer gap="4" alignItems="end" justifyContent="end" h noGrow>
                         <Button
-                            onClick={this.hideModal}
+                            onClick={this.props.closeModal}
                             text={gettext('Cancel')}
                         />
                         <Button
@@ -113,7 +106,7 @@ export class ContactEditor extends React.Component<IProps, IState> {
                     ref={this.contactForm}
                     contact={currentContact}
                     svc={services}
-                    onCancel={this.hideModal}
+                    onCancel={this.props.closeModal}
                     onDirty={this.onDirty}
                     onValidation={this.onValidation}
                     triggerSave={false}

@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {difference, isEqual} from 'lodash';
 import {IContact} from 'superdesk-api';
-import {ContactMetaData} from './';
+import {ContactMetaData} from './ContactMetaData';
 import {Spacer} from 'superdesk-ui-framework/react';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';

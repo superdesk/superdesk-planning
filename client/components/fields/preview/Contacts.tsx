@@ -5,7 +5,7 @@ import {superdeskApi} from '../../../superdeskApi';
 import {IListFieldProps} from '../../../interfaces';
 
 import {PreviewFormItem} from './base/PreviewFormItem';
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 
 export class PreviewFieldContacts extends React.PureComponent<IListFieldProps> {
     render() {

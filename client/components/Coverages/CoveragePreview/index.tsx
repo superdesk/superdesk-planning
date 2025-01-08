@@ -16,7 +16,7 @@ import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox, FileReadOnlyList} from '../../UI';
 import {assignmentUtils, planningUtils} from '../../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {PLANNING, WORKFLOW_STATE} from '../../../constants';
 import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';

@@ -14,7 +14,7 @@ import {
 } from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';

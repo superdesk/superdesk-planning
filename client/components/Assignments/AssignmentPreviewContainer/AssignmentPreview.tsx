@@ -14,7 +14,7 @@ import {
 
 import {assignmentUtils, planningUtils} from '../../../utils';
 
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {Row} from '../../UI/Preview';
 import {FileReadOnlyList} from '../../UI';
 import {previewGroupToProfile, renderFieldsForPanel} from '../../fields';

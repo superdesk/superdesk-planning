@@ -2,9 +2,11 @@ import * as React from 'react';
 import {superdeskApi} from '../../superdeskApi';
 import {onEventCapture} from '../../utils';
 import {StateLabel} from '..';
-import {ContactInfoContainer, ContactLabel} from '.';
+import {ContactLabel} from './ContactLabel';
 import './SelectSearchContactsField/style.scss';
+import * as ContactComponents from 'superdesk-core/scripts/apps/contacts/components/index';
 import {IconButton, Spacer, ToggleBox} from 'superdesk-ui-framework/react';
+import ng from 'superdesk-core/scripts/core/services/ng';
 import {IContact} from 'superdesk-api';
 
 interface IProps {
@@ -34,6 +36,7 @@ export class ContactMetaData extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const {ContactInfo, ContactFooter} = ContactComponents;
         const {
             contact,
             onEditContact,
@@ -44,7 +47,7 @@ export class ContactMetaData extends React.PureComponent<IProps> {
         return (
             <ToggleBox
                 header={(
-                    <div style={{backgroundColor: 'white', paddingBlockEnd: 2, paddingBlockStart: 2}}>
+                    <div style={{backgroundColor: 'white', padding: 4}}>
                         <Spacer gap="0" h noWrap justifyContent="start">
                             <ContactLabel contact={contact} />
                             <StateLabel
@@ -77,7 +80,13 @@ export class ContactMetaData extends React.PureComponent<IProps> {
                 getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                 variant="custom-header"
             >
-                <ContactInfoContainer currentContact={contact} />
+                <ContactInfo item={this.props.contact} />
+                <ContactFooter
+                    item={this.props.contact}
+                    svc={{
+                        datetime: ng.get('datetime'),
+                    }}
+                />
             </ToggleBox>
         );
     }

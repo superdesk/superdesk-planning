@@ -20,7 +20,7 @@ import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalon
 import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
 import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
 import {EditorFieldCoverages} from './components/fields/editor/Coverages';
-import {ContactField} from './components/Contacts';
+import {ContactField} from './components/Contacts/ContactField';
 import {IContactPropsNoRedux} from './components/Contacts/ContactField';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
