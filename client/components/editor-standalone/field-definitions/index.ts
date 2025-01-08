@@ -16,7 +16,7 @@ import {getAgendasField} from './agendas-field';
 import {getSubjectField} from './subject';
 import {getPriorityField} from './priority-field';
 
-export function getFieldDefinitions(): IFieldDefinitions {
+export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
     const result: Array<IFieldDefinition> = [
         {
@@ -92,7 +92,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
     ];
 
     result.push(
-        ...getCustomVocabularyFields(),
+        ...getCustomVocabularyFields(profileType),
     );
 
     const resultObj = result.reduce((acc, item) => {

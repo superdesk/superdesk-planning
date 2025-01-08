@@ -3,8 +3,8 @@ import {superdeskApi} from '../../../superdeskApi';
 import {getPlanningProfileFields} from '../profile-fields';
 import {IFieldDefinition} from '../field-definitions/interfaces';
 
-export const getCustomVocabularyFields = () => {
-    const customVocabularyIds = getPlanningProfileFields({embeddedOnly: true})
+export const getCustomVocabularyFields = (profileType: 'event' | 'planning') => {
+    const customVocabularyIds = getPlanningProfileFields({embeddedOnly: true, profile: profileType})
         .filter((x) => x.type === 'custom_vocabulary')
         .map(({vocabularyId}) => vocabularyId);
     const result: Array<IFieldDefinition> = [];

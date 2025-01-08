@@ -25,8 +25,13 @@ const unimplementedFields = new Set<string>([
  * A function that handles planning profile field types so they can be used in authoring react.
  * @embeddedOnly defaults to false
  */
-export const getPlanningProfileFields = (options: {embeddedOnly?: boolean}): Array<IFieldConverted> => {
-    const planningProfile = planningApi.contentProfiles.get('planning');
+export const getPlanningProfileFields = (
+    options: {
+        profile: 'planning' | 'event',
+        embeddedOnly?: boolean
+    },
+): Array<IFieldConverted> => {
+    const planningProfile = planningApi.contentProfiles.get(options.profile);
     const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
     const planningFieldIds = Object.values(planningGroups)
         .flatMap((x) => x.fields)

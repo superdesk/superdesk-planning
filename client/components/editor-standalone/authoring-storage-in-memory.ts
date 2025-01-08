@@ -4,6 +4,7 @@ import {getProfile} from './profile';
 import {NoAutoSave} from './authoring-autosave';
 
 export function getAuthoringStorageInMemory<T>(
+    profile: 'event' | 'planning',
     item: T,
     onSave: (current: T, original: T) => Promise<T>,
 ): IAuthoringStorage<T> {
@@ -24,7 +25,7 @@ export function getAuthoringStorageInMemory<T>(
             return onSave(current, original);
         },
         getContentProfile: () => {
-            return Promise.resolve(getProfile());
+            return Promise.resolve(getProfile(profile));
         },
         closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
             return Promise.resolve();

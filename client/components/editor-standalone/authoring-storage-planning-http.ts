@@ -63,7 +63,7 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
         });
     },
     getContentProfile: () => {
-        return Promise.resolve(getProfile());
+        return Promise.resolve(getProfile('planning'));
     },
     closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
         return Promise.resolve();

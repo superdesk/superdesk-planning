@@ -27,7 +27,7 @@ export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
             getAutosavedEventItem(id),
             httpRequestJsonLocal<IEventItem>({
                 method: 'GET',
-                path: `/planning/${id}`,
+                path: `/events/${id}`,
             })
         ]).then(([autosaved, saved]) => {
             return {
@@ -49,7 +49,7 @@ export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
 
         return httpRequestJsonLocal<IEventItem>({
             method: 'PATCH',
-            path: `/planning/${original._id}`,
+            path: `/events/${original._id}`,
             payload: omitFields(
                 generatePatch(
                     eventUtils.modifyForServer(original),
@@ -62,7 +62,7 @@ export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
         });
     },
     getContentProfile: () => {
-        return Promise.resolve(getProfile());
+        return Promise.resolve(getProfile('event'));
     },
     closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
         return Promise.resolve();

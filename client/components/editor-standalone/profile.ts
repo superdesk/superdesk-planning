@@ -4,10 +4,10 @@ import {IContentProfileV2} from 'superdesk-api';
 import {getPlanningProfileFields} from './profile-fields';
 import {getFieldDefinitions} from './field-definitions/index';
 
-export function getProfile() {
-    const planningFieldIds = getPlanningProfileFields({embeddedOnly: true});
+export function getProfile(profileType: 'event' | 'planning') {
+    const planningFieldIds = getPlanningProfileFields({embeddedOnly: true, profile: profileType});
     const skipped = new Set<string>();
-    const fieldDefinitions = getFieldDefinitions();
+    const fieldDefinitions = getFieldDefinitions(profileType);
     const profileV2: IContentProfileV2 = {
         id: 'not-used',
         name: 'not-used',

@@ -10,12 +10,13 @@ import {getFieldDefinitions} from './field-definitions/index';
 import {IFieldDefinition, IFieldStorageAdapter} from './field-definitions/interfaces';
 
 export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
+    profile: 'event' | 'planning',
     getFieldStorageAdapter: (fieldDefinition: IFieldDefinition) => IFieldStorageAdapter<T>
 ): IStorageAdapter<T> {
     const storageAdapter: IStorageAdapter<T> = {
         storeValue: (value, fieldId, item, config, fieldType) => {
             const {computeEditor3Output} = superdeskApi.helpers;
-            const fieldDefinitions = getFieldDefinitions();
+            const fieldDefinitions = getFieldDefinitions(profile);
             const fieldStorageAdapter = getFieldStorageAdapter(fieldDefinitions[fieldId]);
 
             if (fieldStorageAdapter != null) {
@@ -44,7 +45,7 @@ export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
 
         retrieveStoredValue: (item, fieldId, fieldType) => {
             const {getContentStateFromHtml} = superdeskApi.helpers;
-            const fieldDefinitions = getFieldDefinitions();
+            const fieldDefinitions = getFieldDefinitions(profile);
             const value = (item as {[key: string]: any})[fieldId] ?? undefined;
             const fieldStorageAdapter = getFieldStorageAdapter(fieldDefinitions[fieldId]);
 

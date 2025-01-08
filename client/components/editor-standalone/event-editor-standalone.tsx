@@ -14,7 +14,7 @@ export class EventEditorStandalone extends React.PureComponent<IProps> {
             <BaseEditorStandalone
                 entityType="event"
                 itemId={this.props.itemId}
-                storageAdapter={getStorageAdapter(({storageAdapterEvent}) => storageAdapterEvent)}
+                storageAdapter={getStorageAdapter('event', ({storageAdapterEvent}) => storageAdapterEvent)}
                 authoringStorage={this.props.authoringStorage}
             />
         );

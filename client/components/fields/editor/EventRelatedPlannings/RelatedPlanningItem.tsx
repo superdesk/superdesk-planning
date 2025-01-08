@@ -119,6 +119,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         authoringStorage={
                             item._id.startsWith(TEMP_ID_PREFIX)
                                 ? getAuthoringStorageInMemory(
+                                    'planning',
                                     item as IPlanningItem,
                                     (item) => {
                                         this.update(item);
