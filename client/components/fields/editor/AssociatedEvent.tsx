@@ -75,7 +75,6 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
 
                 {
                     events.map((event) => {
-                        // PR-TODO: see why lock indicator isn't being applied (maybe it's not *really* locked?)
                         // PR-TODO: use different authoringStorage for creating a new event.
                         return (
                             <ToggleBox
@@ -86,6 +85,7 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
                                     <RelatedEventListItem
                                         item={event}
                                         showIcon
+                                        showBorder
                                     />
                                 )}
                             >
