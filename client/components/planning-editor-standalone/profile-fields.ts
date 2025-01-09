@@ -1,4 +1,4 @@
-import {isSystemRequiredField, SYSTEM_REQUIRED_FIELDS_SET} from '../../api/utils/constants';
+import {isSystemRequiredField} from '../../api/utils/constants';
 import {planningApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
