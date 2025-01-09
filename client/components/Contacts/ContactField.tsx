@@ -1,7 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {superdeskApi} from '../../superdeskApi';
-import {IPrivileges} from '../../interfaces';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ContactEditor} from './ContactEditor';
@@ -9,43 +8,7 @@ import {SelectSearchContactsField} from './SelectSearchContactsField';
 import {ContactsPreviewList} from './ContactsPreviewList';
 import {IContact, Omit} from 'superdesk-api';
 import {showModal} from '@sourcefabric/common';
-
-interface IReduxDispatchProps {
-    addContact(newContact: Partial<IContact>): void;
-}
-
-interface IReduxStateProps {
-    contacts: Array<IContact>;
-    privileges: IPrivileges;
-}
-
-interface IBaseProps extends IReduxStateProps, IReduxDispatchProps {
-    field: string;
-    label: string;
-    querySearch?: boolean;
-    readOnly?: boolean;
-    paddingTop?: boolean;
-    testId?: string;
-    onFocus?(): void;
-    refNode?(node: HTMLElement): void;
-    onPopupOpen?(): void;
-    onPopupClose?(): void;
-}
-
-interface ISingleContactProps extends IBaseProps {
-    singleValue: true;
-    value: IContact['_id'] | null;
-    onChange(field: string, value: IContact['_id'] | null): void;
-}
-
-interface IMultiContactProps extends IBaseProps {
-    singleValue: false;
-    value: Array<IContact['_id']> | null;
-    onChange(field: string, value: Array<IContact['_id']>): void;
-}
-
-type IContactFieldProps = ISingleContactProps | IMultiContactProps;
-export type IContactPropsNoRedux = Omit<IContactFieldProps, keyof IReduxStateProps | keyof IReduxDispatchProps>;
+import {IContactFieldProps, IContactReduxStateProps, IContactReduxDispatchProps} from './ContactField.interface';
 
 const mapStateToProps = (state) => ({
     contacts: selectors.general.contacts(state),
@@ -172,9 +135,9 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
 }
 
 export const ContactField = connect<
-    IReduxStateProps,
-    IReduxDispatchProps,
-    Omit<IContactFieldProps, keyof IReduxStateProps | keyof IReduxDispatchProps>
+    IContactReduxStateProps,
+    IContactReduxDispatchProps,
+    Omit<IContactFieldProps, keyof IContactReduxStateProps | keyof IContactReduxDispatchProps>
 >(
     mapStateToProps,
     mapDispatchToProps

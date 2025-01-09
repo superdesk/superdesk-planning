@@ -16,12 +16,15 @@ import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} fr
 import {isContentLinkToCoverageAllowed} from './utils/archive';
 
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
+
 import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalone';
 import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
-import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
+
 import {EditorFieldCoverages} from './components/fields/editor/Coverages';
+import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
+
 import {ContactField} from './components/Contacts/ContactField';
-import {IContactPropsNoRedux} from './components/Contacts/ContactField';
+import {IContactPropsNoRedux} from './components/Contacts/ContactField.interface';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {

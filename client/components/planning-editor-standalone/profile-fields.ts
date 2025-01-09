@@ -1,3 +1,4 @@
+import {isSystemRequiredField, SYSTEM_REQUIRED_FIELDS_SET} from '../../api/utils/constants';
 import {planningApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
@@ -21,11 +22,6 @@ const unimplementedFields = new Set<string>([
     'associated_event',
 ]);
 
-const systemRequiredFields = new Set<string>([
-    'coverages',
-    'planning_date',
-]);
-
 /**
  * A function that handles planning profile field types so they can be used in authoring react.
  * @embeddedOnly defaults to false
@@ -46,7 +42,11 @@ export const getPlanningProfileFields = (options: {embeddedOnly?: boolean}): Arr
          * If a field does not have show_in_embedded_editor or required toggled on,
          * or is not a system required field we must not show it in the embedded editor
          */
-        if (systemRequiredFields.has(fieldId) === false && options.embeddedOnly && shouldBeShown != true) {
+        if (
+            !isSystemRequiredField(fieldId)
+            && options.embeddedOnly
+            && shouldBeShown != true
+        ) {
             continue;
         }
 
