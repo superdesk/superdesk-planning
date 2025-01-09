@@ -24,7 +24,7 @@ import {EditorFieldLocation} from './components/fields/editor/Location';
 import {IEditorFieldLocationProps} from 'components/fields/editor/Location.interface';
 
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
-import {registerEditorField} from './planning-extension/src/extension';
+import {registerEditorField} from './components/fields/resources/registerEditorFields';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
