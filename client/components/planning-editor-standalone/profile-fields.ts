@@ -21,6 +21,11 @@ const unimplementedFields = new Set<string>([
     'associated_event',
 ]);
 
+const systemRequiredFields = new Set<string>([
+    'coverages',
+    'planning_date',
+]);
+
 /**
  * A function that handles planning profile field types so they can be used in authoring react.
  * @embeddedOnly defaults to false
@@ -35,12 +40,13 @@ export const getPlanningProfileFields = (options: {embeddedOnly?: boolean}): Arr
 
     for (const fieldId of planningFieldIds) {
         const fieldSchema = planningProfile.schema[fieldId];
+        const shouldBeShown = fieldSchema.show_in_embedded_editor || fieldSchema.required;
 
         /**
-         * If a field does not have show_in_embedded_editor or required toggled on
-         * we must not show it in the embedded editor
+         * If a field does not have show_in_embedded_editor or required toggled on,
+         * or is not a system required field we must not show it in the embedded editor
          */
-        if (options.embeddedOnly && !(fieldSchema.show_in_embedded_editor || fieldSchema.required)) {
+        if (systemRequiredFields.has(fieldId) === false && options.embeddedOnly && shouldBeShown != true) {
             continue;
         }
 
