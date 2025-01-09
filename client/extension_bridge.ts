@@ -19,9 +19,12 @@ import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.i
 
 import {ContactField} from './components/Contacts/ContactField';
 import {IContactPropsNoRedux} from './components/Contacts/ContactField.interface';
-import {EditorFieldLocation, IEditorFieldLocationProps} from 'components/fields/editor/Location';
+
+import {EditorFieldLocation} from './components/fields/editor/Location';
+import {IEditorFieldLocationProps} from 'components/fields/editor/Location.interface';
+
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
-import {registerEditorField} from 'planning-extension/src/extension';
+import {registerEditorField} from './planning-extension/src/extension';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
