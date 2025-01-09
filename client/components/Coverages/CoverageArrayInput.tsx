@@ -9,6 +9,7 @@ import {
     ICoverageProvider, IEventItem, IFile,
     IG2ContentType,
     IGenre,
+    IInputArrayHocModeOptions,
     IPlanningCoverageItem, IPlanningItem,
     IPlanningNewsCoverageStatus,
 } from '../../interfaces';
@@ -41,6 +42,9 @@ interface IOwnProps {
     getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
     testId?: string;
     editorType: EDITOR_TYPE;
+
+    // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
+    children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
 
     onChange(field: string, value: any): void;
     popupContainer(): HTMLElement;
@@ -170,6 +174,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
             event,
             testId,
             editorType,
+            children,
             ...props
         } = this.props;
 
@@ -236,7 +241,9 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 getRef={this.props.getRef}
                 editorType={editorType}
                 {...props}
-            />
+            >
+                {children}
+            </InputArray>
         );
     }
 }

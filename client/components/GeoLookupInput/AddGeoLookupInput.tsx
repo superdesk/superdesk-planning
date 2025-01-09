@@ -233,8 +233,7 @@ export class AddGeoLookupInput extends React.Component<IProps, IState> {
                 translations: location.translations,
             };
 
-            // external address might not be there.
-            if (location.address.external != null) {
+            if (location.address?.external != null) {
                 delete value.address.external;
             }
 

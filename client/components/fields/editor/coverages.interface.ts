@@ -1,6 +1,7 @@
 import {
     IEditorFieldProps,
     IEventItem,
+    IInputArrayHocModeOptions,
     IPlanningCoverageItem,
     IPlanningItem
 } from '../../../interfaces';
@@ -21,6 +22,9 @@ export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
     originalCount?: number;
     message: string | {[key: string]: any};
     event?: IEventItem;
+
+    // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
+    children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
 
     popupContainer?(): HTMLElement;
     onPopupOpen?(): void;

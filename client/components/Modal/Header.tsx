@@ -1,7 +1,11 @@
 import React from 'react';
 import {Modal as _Modal} from 'react-bootstrap';
 
-export default function Header({children}: {children: React.ReactNode}) {
+interface IProps {
+    children: React.ReactNode;
+}
+
+export default function Header({children}: IProps) {
     return (
         <_Modal.Header className="modal__header modal__header--flex">
             {children}

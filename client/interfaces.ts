@@ -2037,6 +2037,13 @@ export abstract class IEditorHeaderComponent {
     abstract unregisterKeyBoardShortcuts(): void;
 }
 
+export interface IInputArrayHocModeOptions {
+    itemsElement: React.ReactNode;
+    addButtonElement: JSX.Element;
+    errorMessageElement: React.ReactNode;
+    labelElement: React.ReactNode;
+}
+
 export interface IWebsocketMessageData {
     ITEM_UNLOCKED: {
         item: IEventOrPlanningItem['_id'];
