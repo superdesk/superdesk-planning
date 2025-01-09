@@ -16,9 +16,17 @@ interface IProps {
     onRemoveContact(): void;
 }
 
-export class ContactMetaData extends React.PureComponent<IProps> {
+interface IState {
+    isOpen: boolean;
+}
+
+export class ContactMetaData extends React.PureComponent<IProps, IState> {
     constructor(props) {
         super(props);
+
+        this.state = {
+            isOpen: false,
+        };
 
         this.editContact = this.editContact.bind(this);
         this.removeContact = this.removeContact.bind(this);
@@ -46,6 +54,11 @@ export class ContactMetaData extends React.PureComponent<IProps> {
 
         return (
             <ToggleBox
+                onToggle={(isOpen) => {
+                    this.setState({
+                        isOpen,
+                    });
+                }}
                 header={(
                     <div style={{backgroundColor: 'white', padding: 4}}>
                         <Spacer gap="0" h noWrap justifyContent="start">
@@ -80,13 +93,8 @@ export class ContactMetaData extends React.PureComponent<IProps> {
                 getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                 variant="custom-header"
             >
-                <ContactInfo item={this.props.contact} />
-                <ContactFooter
-                    item={this.props.contact}
-                    svc={{
-                        datetime: ng.get('datetime'),
-                    }}
-                />
+                <ContactInfo hideHeader={this.state.isOpen} item={this.props.contact} />
+                <ContactFooter item={this.props.contact} />
             </ToggleBox>
         );
     }

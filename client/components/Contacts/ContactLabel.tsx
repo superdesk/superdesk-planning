@@ -17,7 +17,7 @@ export const ContactLabel: React.FunctionComponent<IProps> = ({contact}) => (
         <Spacer h gap="16" justifyContent="center">
             <div
                 style={{
-                    backgroundColor: '#67afa1',
+                    backgroundColor: 'var(--sd-colour-success)',
                     borderRadius: '50%',
                     padding: 4,
                     width: 32,
