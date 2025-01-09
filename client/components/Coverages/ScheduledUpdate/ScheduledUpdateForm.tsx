@@ -11,7 +11,7 @@ import {
     Field,
 } from '../../UI/Form';
 import {InternalNoteLabel} from '../../';
-import {ContactField} from '../../Contacts';
+import {ContactField} from '../../Contacts/ContactField';
 
 export class ScheduledUpdateForm extends React.Component {
     constructor(props) {

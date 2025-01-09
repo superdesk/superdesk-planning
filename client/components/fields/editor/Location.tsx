@@ -1,14 +1,8 @@
 import * as React from 'react';
-import {IEditorFieldProps, ILocation} from '../../../interfaces';
-
 import {superdeskApi} from '../../../superdeskApi';
 import {GeoLookupInput} from '../../GeoLookupInput';
 import {Row} from '../../UI/Form';
-
-export interface IEditorFieldLocationProps extends IEditorFieldProps {
-    enableExternalSearch?: boolean;
-    disableAddLocation?: boolean;
-}
+import {IEditorFieldLocationProps} from './Location.interface';
 
 export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocationProps> {
     render() {

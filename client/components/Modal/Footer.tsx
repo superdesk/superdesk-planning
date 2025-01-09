@@ -2,12 +2,7 @@ import React from 'react';
 import {Modal as _Modal} from 'react-bootstrap';
 import classNames from 'classnames';
 
-interface IProps {
-    children: React.ReactNode;
-    flex?: boolean;
-}
-
-export default function Footer({children, flex}: IProps) {
+export default function Footer({children, flex}: {children: React.ReactNode; flex?: boolean;}) {
     return (
         <_Modal.Footer
             className={classNames(

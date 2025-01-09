@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Portal} from 'react-portal';
 import classNames from 'classnames';
 import {get} from 'lodash';
@@ -13,7 +12,29 @@ import './style.scss';
  * @name Popup
  * @description Main Popup Component which holds the entire popup
  */
-export default class Popup extends React.Component {
+interface PopupProps {
+    children: React.ReactNode;
+    target: string;
+    close: () => void;
+    onKeyDown?: (event: KeyboardEvent) => void;
+    workspaceId?: string;
+    className?: string | object;
+    noPadding?: boolean;
+    popupContainer?: () => HTMLElement;
+    inheritWidth?: boolean;
+    ignoreOnClickElement?: string;
+    onPopupOpen?: () => void;
+    onPopupClose?: () => void;
+}
+
+export default class Popup extends React.Component<PopupProps> {
+    dom: {
+        portal: HTMLElement | null;
+        child: HTMLElement | null;
+        root: HTMLElement | null;
+        parent: HTMLElement | null;
+    };
+
     constructor(props) {
         super(props);
 
@@ -34,7 +55,7 @@ export default class Popup extends React.Component {
     positionPopup() {
         if (this.dom.root) {
             // First render it somewhere not visible
-            this.dom.root.style.zIndex = -1;
+            this.dom.root.style.zIndex = '-1';
 
             // Make sure it's rendered
             this.dom.child.style.display = 'block';
@@ -56,7 +77,7 @@ export default class Popup extends React.Component {
             const targetRect = target.getBoundingClientRect();
 
             // Get the workspace
-            const workspace = document.getElementById(this.props.workspaceId) || document.body;
+            const workspace = document.getElementById(this.props.workspaceId ?? 'main-container') || document.body;
 
             // Compute menu position
             let top = targetRect.top + targetRect.height;
@@ -84,12 +105,12 @@ export default class Popup extends React.Component {
             this.dom.child.style.top = top.toFixed() + 'px';
             this.dom.child.style.left = left.toFixed() + 'px';
             this.dom.child.style.position = 'absolute';
-            this.dom.child.style.zIndex = 9100;
+            this.dom.child.style.zIndex = '9100';
 
-            this.dom.root.style.zIndex = 9000;
+            this.dom.root.style.zIndex = '9000';
             this.dom.root.style.position = 'fixed';
-            this.dom.root.style.top = 0;
-            this.dom.root.style.left = 0;
+            this.dom.root.style.top = '0';
+            this.dom.root.style.left = '0';
         }
     }
 
@@ -97,9 +118,7 @@ export default class Popup extends React.Component {
         document.addEventListener('keydown', this.handleKeydown);
         document.addEventListener('mousedown', this.handleClickOutside);
         this.positionPopup();
-        if (this.props.onPopupOpen) {
-            this.props.onPopupOpen();
-        }
+        this.props.onPopupOpen?.();
     }
 
     componentDidUpdate() {
@@ -109,9 +128,7 @@ export default class Popup extends React.Component {
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleKeydown);
         document.removeEventListener('mousedown', this.handleClickOutside);
-        if (this.props.onPopupClose) {
-            this.props.onPopupClose();
-        }
+        this.props.onPopupClose?.();
     }
 
     handleClickOutside(event) {
@@ -146,7 +163,7 @@ export default class Popup extends React.Component {
         this.dom.portal = node;
 
         if (this.dom.portal) {
-            this.dom.root = this.dom.portal.defaultNode || this.dom.portal.props.node;
+            this.dom.root = (this.dom.portal as any).defaultNode || (this.dom.portal as any).props.node;
         } else {
             this.dom.root = this.dom.child = null;
         }
@@ -177,27 +194,3 @@ export default class Popup extends React.Component {
         );
     }
 }
-
-Popup.propTypes = {
-    children: PropTypes.node.isRequired,
-    target: PropTypes.string.isRequired,
-    close: PropTypes.func.isRequired,
-    onKeyDown: PropTypes.func,
-    workspaceId: PropTypes.string,
-    className: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-    ]),
-    noPadding: PropTypes.bool,
-    popupContainer: PropTypes.func,
-    inheritWidth: PropTypes.bool,
-    ignoreOnClickElement: PropTypes.string,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-};
-
-PropTypes.defaultProps = {
-    workspaceId: 'main-container',
-    noPadding: false,
-    inheritWidth: false,
-};

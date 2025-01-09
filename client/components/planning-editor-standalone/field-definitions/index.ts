@@ -15,6 +15,7 @@ import {getCategoriesField} from './category-field';
 import {getAgendasField} from './agendas-field';
 import {getSubjectField} from './subject';
 import {getPriorityField} from './priority-field';
+import {getContactsField} from './contacts';
 import {getLocationsField} from './locations-field';
 
 export function getFieldDefinitions(): IFieldDefinitions {
@@ -72,6 +73,7 @@ export function getFieldDefinitions(): IFieldDefinitions {
         getAgendasField(),
         getSubjectField(),
         getCategoriesField(),
+        getContactsField(),
         getPriorityField(),
         getLocationsField(),
         {

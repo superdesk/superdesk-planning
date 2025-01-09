@@ -10,13 +10,21 @@ import {getVocabularyItemFieldTranslated} from './utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from './utils/users';
 import {isContentLinkToCoverageAllowed} from './utils/archive';
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
+
 import {AttachmentsInputStandalone} from './components/AttachmentsInputStandalone';
+import {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
+
 import {EditorFieldCoverages} from './components/fields/editor/Coverages';
+import {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
+
+import {ContactField} from './components/Contacts/ContactField';
+import {IContactPropsNoRedux} from './components/Contacts/ContactField.interface';
+
 import {EditorFieldLocation} from './components/fields/editor/Location';
-import type {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from 'interfaces';
-import type {IPropsAttachmentsEditorStandalone} from './components/AttachmentsInputStandalone.interface';
-import type {IPropsEditorFieldCoverages} from './components/fields/editor/coverages.interface';
-import type {IEditorFieldLocationProps} from './components/fields/editor/Location';
+import {IEditorFieldLocationProps} from 'components/fields/editor/Location.interface';
+
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
+import {registerEditorField} from './components/fields/resources/registerEditorFields';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -39,6 +47,7 @@ interface IExtensionBridge {
     },
     editor: {
         fields: {
+            EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
             EditorFieldLocation: React.ComponentType<IEditorFieldLocationProps>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
         },
@@ -98,6 +107,7 @@ export const extensionBridge: IExtensionBridge = {
     },
     editor: {
         fields: {
+            EditorFieldContact: ContactField,
             EditorFieldLocation: EditorFieldLocation,
             EditorFieldCoverages: EditorFieldCoverages,
         },
