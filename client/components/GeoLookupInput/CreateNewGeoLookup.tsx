@@ -19,17 +19,18 @@ import {renderFieldsForPanel} from '../fields';
 
 import './style.scss';
 
-interface IProps {
+interface IReduxStoreProps {
+    defaultCountry: string;
+}
+
+interface IOwnProps {
     initialName?: string;
     initialAddressIsName?: boolean;
-
-    // Redux states
-    defaultCountry?: IVocabularyItem['name'];
-
-    // functions to close the popup (and resolve/reject the Promise)
-    resolve(location: ILocation): void;
-    reject(error?: any): void;
+    onSuccess(location: ILocation): void;
+    onError(error?: any): void;
 }
+
+type IProps = IReduxStoreProps & IOwnProps;
 
 interface IState {
     formInvalid: boolean;
@@ -111,9 +112,9 @@ class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
     onSave() {
         planningApi.locations.getOrCreate(this.getLocationFromState(this.state.item))
             .then((newLocation) => {
-                this.props.resolve(newLocation);
+                this.props.onSuccess(newLocation);
             }, (error) => {
-                this.props.reject(error);
+                this.props.onError(error);
             });
     }
 
@@ -130,7 +131,7 @@ class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
                     <a
                         className="icn-btn"
                         aria-label={gettext('Close')}
-                        onClick={this.props.reject}
+                        onClick={this.props.onError}
                     >
                         <i className="icon-close-small" />
                     </a>
@@ -172,7 +173,7 @@ class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
                     <ButtonGroup align="end">
                         <Button
                             text={gettext('Cancel')}
-                            onClick={this.props.reject}
+                            onClick={this.props.onError}
                             data-test-id="location-form__cancel-button"
                         />
                         <Button
@@ -189,4 +190,5 @@ class CreateNewGeoLookupComponent extends React.Component<IProps, IState> {
     }
 }
 
-export const CreateNewGeoLookup = connect(mapStateToProps)(CreateNewGeoLookupComponent);
+export const CreateNewGeoLookup =
+    connect<IReduxStoreProps, {}, IOwnProps>(mapStateToProps)(CreateNewGeoLookupComponent);

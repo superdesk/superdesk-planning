@@ -1,8 +1,9 @@
 import * as React from 'react';
 import {IArticle, IVocabularyItem} from 'superdesk-api';
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
-import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
-import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface';
+import type {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
+import type {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
+import type {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface';
+import type {IEditorFieldLocationProps} from '../../components/fields/editor/Location';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -35,6 +36,7 @@ interface IExtensionBridge {
     },
     editor: {
         fields: {
+            EditorFieldLocation: React.ComponentType<IEditorFieldLocationProps>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
         },
     }
