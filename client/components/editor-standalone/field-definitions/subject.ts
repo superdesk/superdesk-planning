@@ -4,8 +4,27 @@ import {
     IDropdownConfigManualSource,
 } from 'superdesk-api';
 import {gettext} from 'core/utils';
-import {IFieldDefinition} from './interfaces';
+import {IFieldDefinition, IFieldStorageAdapter} from './interfaces';
 import {planningApi} from '../../../superdeskApi';
+
+function getStorageAdapterCommon<T extends IPlanningItem | IEventItem>(): IFieldStorageAdapter<T> {
+    const storageAdapterCommon: IFieldStorageAdapter<T> = {
+        retrieveStoredValue: (item) => {
+            return (item.subject ?? []).map(({qcode}) => qcode);
+        },
+        storeValue: (item, operationalValue: Array<ISubjectCode['qcode']>) => {
+            const subjectsFull: Array<ISubjectCode> = (planningApi.redux.store.getState().subjects ?? [])
+                .filter((x) => operationalValue.includes(x.qcode));
+
+            return {
+                ...item,
+                subject: subjectsFull,
+            };
+        },
+    };
+
+    return storageAdapterCommon;
+}
 
 export function getSubjectField(): IFieldDefinition {
     return {
@@ -31,19 +50,7 @@ export function getSubjectField(): IFieldDefinition {
 
             return fieldV2;
         },
-        storageAdapter: {
-            retrieveStoredValue: (item) => {
-                return (item.subject ?? []).map(({qcode}) => qcode);
-            },
-            storeValue: (item, operationalValue: Array<ISubjectCode['qcode']>) => {
-                const subjectsFull: Array<ISubjectCode> = (planningApi.redux.store.getState().subjects ?? [])
-                    .filter((x) => operationalValue.includes(x.qcode));
-
-                return {
-                    ...item,
-                    subject: subjectsFull,
-                };
-            },
-        }
+        storageAdapterPlanning: getStorageAdapterCommon(),
+        storageAdapterEvent: getStorageAdapterCommon(),
     };
 }

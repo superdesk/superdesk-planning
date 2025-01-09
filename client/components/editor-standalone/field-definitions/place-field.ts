@@ -1,6 +1,25 @@
 import {IDropdownConfigVocabulary, IAuthoringFieldV2, IVocabularyItem} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
-import {IFieldDefinition} from './interfaces';
+import {IFieldDefinition, IFieldStorageAdapter} from './interfaces';
+
+function getStorageAdapterCommon<T extends IPlanningItem | IEventItem>(): IFieldStorageAdapter<T> {
+    const storageAdapterCommon: IFieldStorageAdapter<T> = {
+        storeValue: (item, operationalValue: Array<string>) => {
+            const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
+            const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
+                vocabulary.items.map((item) => [item.qcode, item]),
+            );
+
+            return {
+                ...item,
+                place: operationalValue.map((qcode) => vocabularyItems.get(qcode)),
+            };
+        },
+        retrieveStoredValue: (item, fieldId) => item[fieldId].map(({qcode}) => qcode),
+    };
+
+    return storageAdapterCommon;
+}
 
 export const getPlaceField = (): IFieldDefinition => ({
     fieldId: 'place',
@@ -21,18 +40,6 @@ export const getPlaceField = (): IFieldDefinition => ({
 
         return field;
     },
-    storageAdapter: {
-        storeValue: (item, operationalValue: Array<string>) => {
-            const vocabulary = superdeskApi.entities.vocabulary.getAll().get('locators');
-            const vocabularyItems = new Map<IVocabularyItem['qcode'], IVocabularyItem>(
-                vocabulary.items.map((item) => [item.qcode, item]),
-            );
-
-            return {
-                ...item,
-                place: operationalValue.map((qcode) => vocabularyItems.get(qcode)),
-            };
-        },
-        retrieveStoredValue: (item, fieldId) => item[fieldId].map(({qcode}) => qcode),
-    },
+    storageAdapterPlanning: getStorageAdapterCommon(),
+    storageAdapterEvent: getStorageAdapterCommon(),
 });

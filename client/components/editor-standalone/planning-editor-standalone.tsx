@@ -14,7 +14,7 @@ export class PlanningEditorStandalone extends React.PureComponent<IProps> {
             <BaseEditorStandalone
                 entityType="planning"
                 itemId={this.props.itemId}
-                storageAdapter={getStorageAdapter('planning', ({storageAdapter}) => storageAdapter)}
+                storageAdapter={getStorageAdapter('planning', ({storageAdapterPlanning}) => storageAdapterPlanning)}
                 authoringStorage={this.props.authoringStorage}
             />
         );
