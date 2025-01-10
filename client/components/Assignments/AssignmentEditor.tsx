@@ -15,7 +15,8 @@ import {
     SelectInput,
     ColouredValueInput,
 } from '../UI/Form';
-import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
+import {ContactsPreviewList} from '../Contacts/ContactsPreviewList';
+import {SelectSearchContactsField} from '../Contacts/SelectSearchContactsField';
 import {superdeskApi} from '../../superdeskApi';
 
 export class AssignmentEditorComponent extends React.Component {

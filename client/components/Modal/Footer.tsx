@@ -1,9 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Modal as _Modal} from 'react-bootstrap';
 import classNames from 'classnames';
 
-export default function Footer({children, flex}) {
+export default function Footer({children, flex}: {children: React.ReactNode; flex?: boolean;}) {
     return (
         <_Modal.Footer
             className={classNames(
@@ -15,11 +14,3 @@ export default function Footer({children, flex}) {
         </_Modal.Footer>
     );
 }
-
-Footer.propTypes = {
-    children: PropTypes.oneOfType([
-        PropTypes.element,
-        PropTypes.arrayOf(PropTypes.element),
-    ]),
-    flex: PropTypes.bool,
-};

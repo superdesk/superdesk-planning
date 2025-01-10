@@ -4,7 +4,7 @@ import {get} from 'lodash';
 import {IEditorFieldProps} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {ContactField} from '../../Contacts';
+import {ContactField} from '../../Contacts/ContactField';
 
 export class EditorFieldContacts extends React.PureComponent<IEditorFieldProps> {
     render() {

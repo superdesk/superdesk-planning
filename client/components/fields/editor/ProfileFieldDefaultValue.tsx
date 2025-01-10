@@ -1,7 +1,4 @@
-import * as React from 'react';
-
 import {IEditorFieldProps, IProfileFieldEntry} from '../../../interfaces';
-
 import {renderFieldsForPanel} from '../index';
 
 interface IProps extends IEditorFieldProps {
