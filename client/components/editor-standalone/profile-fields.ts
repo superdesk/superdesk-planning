@@ -73,9 +73,5 @@ export const getPlanningProfileFields = (
         }
     }
 
-    return convertedFieldIds.concat({
-        fieldId: 'contact',
-        required: true,
-        type: 'normal',
-    });
+    return convertedFieldIds;
 };
