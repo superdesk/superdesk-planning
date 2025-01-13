@@ -1,15 +1,6 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
 
-import {
-    IEditorFieldProps,
-    IEventItem,
-    ILockedItems,
-    IPlanningCoverageItem,
-    IPlanningItem,
-    IProfileSchemaTypeList,
-    ISearchProfile
-} from '../../../../interfaces';
+import {IPlanningItem} from '../../../../interfaces';
 import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
 import {Button, Spacer} from 'superdesk-ui-framework/react';
@@ -19,26 +10,17 @@ import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 import './style.scss';
 import {TEMP_ID_PREFIX} from '../../../../constants';
 import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
-import * as selectors from '../../../../selectors';
+import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
 
-interface IOwnProps extends IEditorFieldProps {
-    item: IEventItem;
-    schema?: IProfileSchemaTypeList;
-    coverageProfile?: ISearchProfile;
+export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
+    relatedPlanningRefs: {[id: string]: any};
 
-    getRef(value: DeepPartial<IPlanningItem>): React.RefObject<PlanningMetaData | RelatedPlanningItem>;
-    addPlanningItem(item?: IPlanningItem): Promise<Partial<IPlanningItem>>;
-    removePlanningItem(item: DeepPartial<IPlanningItem>): void;
-    updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
-}
+    constructor(props: IRelatedPlanningProps) {
+        super(props);
 
-interface IReduxProps {
-    lockedItems: ILockedItems;
-}
+        this.relatedPlanningRefs = {};
+    }
 
-type IProps = IOwnProps & IReduxProps;
-
-export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {DropZone} = superdeskApi.components;
@@ -71,7 +53,6 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                 {disabled ? (
                     planningItems.map((plan, index) => (
                         <PlanningMetaData
-                            ref={this.props.getRef(plan) as React.RefObject<PlanningMetaData>}
                             key={plan._id}
                             field={`plannings[${index}]`}
                             plan={plan}
@@ -81,31 +62,31 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                     ))
                 ) : (
                     <>
-                        {
-                            planningItems.map((plan, index) => {
-                                const isNewlyCreatedItem =
-                                    index === planningItems.length - 1
-                                    && plan._id.startsWith(TEMP_ID_PREFIX);
+                        {planningItems.map((plan, index) => {
+                            const isNewlyCreatedItem =
+                            index === planningItems.length - 1
+                            && plan._id.startsWith(TEMP_ID_PREFIX);
 
-                                return (
-                                    <RelatedPlanningItem
-                                        ref={this.props.getRef(plan) as React.RefObject<RelatedPlanningItem>}
-                                        key={plan._id}
-                                        index={index}
-                                        event={this.props.item}
-                                        item={plan}
-                                        removePlan={this.props.removePlanningItem}
-                                        updatePlanningItem={this.props.updatePlanningItem}
-                                        disabled={false}
-                                        editorType={this.props.editorType}
-                                        profile={this.props.profile}
-                                        coverageProfile={this.props.coverageProfile}
-                                        isAgendaEnabled={isAgendaEnabled}
-                                        initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
-                                    />
-                                );
-                            })
-                        }
+                            return (
+                                <RelatedPlanningItem
+                                    ref={(ref) => {
+                                        this.relatedPlanningRefs[index] = ref;
+                                    }}
+                                    key={plan._id}
+                                    index={index}
+                                    event={this.props.item}
+                                    item={plan}
+                                    removePlan={this.props.removePlanningItem}
+                                    updatePlanningItem={this.props.updatePlanningItem}
+                                    disabled={false}
+                                    editorType={this.props.editorType}
+                                    profile={this.props.profile}
+                                    coverageProfile={this.props.coverageProfile}
+                                    isAgendaEnabled={isAgendaEnabled}
+                                    initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
+                                />
+                            );
+                        })}
 
                         <DropZone
                             canDrop={
@@ -131,12 +112,3 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
         );
     }
 }
-
-const mapStateToProps = (state): IReduxProps => ({
-    lockedItems: selectors.locks.getLockedItems(state),
-});
-
-
-export const EditorFieldEventRelatedPlannings = connect(
-    mapStateToProps,
-)(EditorFieldEventRelatedPlanningsComponent);

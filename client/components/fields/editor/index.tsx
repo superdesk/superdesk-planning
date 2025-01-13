@@ -53,6 +53,7 @@ import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
+import {EventRelatedPlanningWrapper} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
 
 /**
  * This is the single source of truth for field definitions, allows for registering
@@ -125,7 +126,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     contacts: EditorFieldContacts,
     event_contact_info: EditorFieldContacts,
     occur_status: EditorFieldEventOccurenceStatus,
-    related_plannings: EditorFieldEventRelatedPlannings,
+    related_plannings: EventRelatedPlanningWrapper,
     planning_date: EditorFieldPlanningDateTime,
     'flags.marked_for_not_publication': EditorFieldNotForPublication,
     marked_for_not_publication: EditorFieldNotForPublication,

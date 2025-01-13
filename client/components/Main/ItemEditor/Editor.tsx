@@ -19,6 +19,7 @@ import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
 import {EditorHeader} from './EditorHeader';
 import {pickRelatedEventsForPlanning} from './../../../utils/planning';
+import {IExposedFromAuthoring} from 'superdesk-api';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
@@ -58,7 +59,8 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                 tabProps: {
                     forEditor: !this.props.inModalView,
                     forEditorModal: this.props.inModalView,
-                }},
+                }
+            },
         ];
 
         if (this.props.addNewsItemToPlanning) {
@@ -195,57 +197,66 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             return;
         }
 
-        this.autoSave.flushAutosave()
-            .then(() => {
-                const {
-                    openCancelModal,
-                    itemId,
-                    itemType,
-                    addNewsItemToPlanning,
-                } = this.props;
-                const {dirty, errorMessages, initialValues} = this.state;
+        const relatedPlanningsRefs =
+            planningApi.editor(this.props.editorType).dom.fields['related_plannings'].current.relatedPlanningRefs;
 
-                this.setState({submitting: true});
+        const exposedAuthoringArray = Object.values(relatedPlanningsRefs).map((x: any) => {
+            return x.standaloneEditorRef.current.planningEditorRef.current.editorRef.current.getExposed();
+        });
 
-                const updateStates = !addNewsItemToPlanning;
+        exposedAuthoringArray.reduce((promise, x: IExposedFromAuthoring<any>) =>
+            promise.then(() => {
+                if (x.hasUnsavedChanges()) {
+                    return x.handleUnsavedChanges();
+                }
 
-                if (!dirty) {
-                    this.onCancel();
-                } else {
+                return Promise.resolve();
+            }), Promise.resolve(),
+        ).then(() => {
+            this.autoSave.flushAutosave()
+                .then(() => {
+                    const {
+                        openCancelModal,
+                        itemId,
+                        itemType,
+                        addNewsItemToPlanning,
+                    } = this.props;
+                    const {dirty, errorMessages, initialValues} = this.state;
+                    const updateStates = !addNewsItemToPlanning;
+
+                    this.setState({submitting: true});
+
+                    if (!dirty) {
+                        this.onCancel();
+                        return;
+                    }
+
                     const hasErrors = !isEqual(errorMessages, []);
                     const isKilled = isItemKilled(initialValues);
-
                     const onCancel = () => {
                         if (updateStates) {
                             this.setState({submitting: false});
                         }
                     };
-
                     const onIgnore = () => {
                         this.itemManager.unlockAndCancel();
                     };
-
-                    const onSave = (isKilled || hasErrors) ? null :
-                        (withConfirmation, updateMethod, planningUpdateMethods) => (
-                            this.itemManager.save(
-                                withConfirmation,
-                                {name: updateMethod, value: updateMethod},
-                                true,
-                                updateStates,
-                                planningUpdateMethods
-                            )
-                        );
-
-                    const onSaveAndPost = (!isKilled || hasErrors) ? null :
-                        (withConfirmation, updateMethod, planningUpdateMethods) => (
-                            this.itemManager.saveAndPost(
-                                withConfirmation,
-                                updateMethod,
-                                true,
-                                updateStates,
-                                planningUpdateMethods
-                            )
-                        );
+                    const onSave = (isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
+                        this.itemManager.save(
+                            withConfirmation,
+                            {name: updateMethod, value: updateMethod},
+                            true,
+                            updateStates,
+                        )
+                    );
+                    const onSaveAndPost = (!isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
+                        this.itemManager.saveAndPost(
+                            withConfirmation,
+                            updateMethod,
+                            true,
+                            updateStates,
+                        )
+                    );
 
                     openCancelModal({
                         itemId: itemId,
@@ -255,8 +266,8 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                         onSave: onSave,
                         onSaveAndPost: onSaveAndPost,
                     });
-                }
-            });
+                });
+        });
     }
 
     onCancel(updateStates = true) {

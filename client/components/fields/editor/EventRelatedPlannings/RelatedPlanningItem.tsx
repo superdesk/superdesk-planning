@@ -38,11 +38,13 @@ interface IProps {
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
+    public standaloneEditorRef: React.RefObject<PlanningEditorStandalone>;
 
     constructor(props) {
         super(props);
 
         this.containerNode = React.createRef();
+        this.standaloneEditorRef = React.createRef();
 
         this.remove = this.remove.bind(this);
         this.update = this.update.bind(this);
@@ -115,6 +117,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                     }
                 >
                     <PlanningEditorStandalone
+                        ref={this.standaloneEditorRef}
                         itemId={item._id}
                         authoringStorage={
                             item._id.startsWith(TEMP_ID_PREFIX)
