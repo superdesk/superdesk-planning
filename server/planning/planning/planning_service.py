@@ -184,9 +184,6 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         user = get_user()
         self.validate_on_update(updates, original, user)
 
-        if user and user.get(ID_FIELD):
-            updates["version_creator"] = user[ID_FIELD]
-
         updated_planning = PlanningResourceModel.from_dict(updates)
         self._handle_coverages(updated_planning, original)
         self.set_planning_schedule(updated_planning, original)

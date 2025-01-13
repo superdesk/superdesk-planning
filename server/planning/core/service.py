@@ -1,6 +1,6 @@
-from typing import TypeVar, List
+from typing import TypeVar, List, Dict, Any
 from apps.auth import get_user_id
-from superdesk.core.resources.service import AsyncResourceService
+from superdesk.core.resources.service import AsyncResourceService, ResourceModelType
 
 from planning.types import BasePlanningModel
 
@@ -22,3 +22,13 @@ class BasePlanningAsyncService(AsyncResourceService[PlanningResourceModelType]):
             for doc in docs:
                 doc.original_creator = user_id
                 doc.version_creator = user_id
+
+    async def on_update(self, updates: Dict[str, Any], original: ResourceModelType) -> None:
+        """
+        Sets `version_creator` by default from current session's user
+        """
+        await super().on_update(updates, original)
+
+        user_id = get_user_id()
+        if user_id:
+            updates["version_creator"] = user_id
