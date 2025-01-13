@@ -17,6 +17,11 @@ from .resource import PlanningTypesResource
 from .service import PlanningTypesService
 from planning.common import get_config_event_related_item_search_provider_name
 
+from .planning_types_async_service import PlanningTypesAsyncService
+from .module import planning_types_resource_config
+
+__all__ = ["planning_types_resource_config", "PlanningTypesAsyncService"]
+
 
 def init_app(app: Eve):
     superdesk.privilege(
