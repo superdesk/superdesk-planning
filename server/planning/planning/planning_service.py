@@ -424,10 +424,6 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         generated_planning_items = []
 
         for doc in docs:
-            if not doc.guid:
-                doc.guid = generate_guid(type=GUID_NEWSML)
-            doc.id = doc.guid
-
             if not doc.language:
                 doc.language = doc.languages[0] if len(doc.languages) > 0 else get_app_config("DEFAULT_LANGUAGE")
 
