@@ -197,8 +197,7 @@ class CoverageAssignedTo:
     state: fields.Keyword | None = None
     contact: fields.Keyword | None = None
 
-    # TODO-ASYNC: double check if we should add validation relation for desk
-    desk: fields.Keyword | None = None
+    desk: Annotated[fields.Keyword | None, validate_data_relation_async("desks")] = None
     user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
 
     @classmethod
