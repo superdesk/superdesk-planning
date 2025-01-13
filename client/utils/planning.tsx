@@ -1719,18 +1719,24 @@ function getDateStringForPlanning(planning: IPlanningItem): string {
         planning.planning_date :
         moment(planning.planning_date);
 
-    return planning._time_to_be_confirmed ? (
-        planning_date.format(appConfig.planning.dateformat) +
-        ' @ ' +
-        gettext('TBC')
-    ) :
-        getDateTimeString(
-            planning_date,
-            appConfig.planning.dateformat,
-            appConfig.planning.timeformat,
-            ' @ ',
-            false
+    if (planning._time_to_be_confirmed) {
+        return (
+            planning_date.format(appConfig.planning.dateformat) +
+            ' @ ' + gettext('TBC')
         );
+    }
+
+    if (planning.all_day) {
+        return moment.utc(planning_date).format(appConfig.planning.dateformat);
+    }
+
+    return getDateTimeString(
+        planning_date,
+        appConfig.planning.dateformat,
+        appConfig.planning.timeformat,
+        ' @ ',
+        false
+    );
 }
 
 function getCoverageDateText(coverage: IPlanningCoverageItem): string {
