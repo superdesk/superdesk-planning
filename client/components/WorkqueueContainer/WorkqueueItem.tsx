@@ -8,7 +8,6 @@ import {isExistingItem, getItemId} from '../../utils';
 
 import {ItemIcon} from '../';
 import {Icon} from '../UI';
-import {gettext} from 'superdesk-core/scripts/core/utils';
 
 export const WorkqueueItem = ({
     item,

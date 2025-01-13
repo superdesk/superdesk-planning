@@ -1,7 +1,7 @@
 import {ICalendar, IEventTemplate} from 'interfaces';
 import React from 'react';
-import {gettext} from 'superdesk-core/scripts/core/utils';
 import {Heading, BoxedList, BoxedListItem} from 'superdesk-ui-framework/react';
+import {superdeskApi} from '../../superdeskApi';
 
 type ITemplatesListViewProps = {
     closeModal: () => void;
@@ -25,6 +25,7 @@ export const TemplatesListView: React.FC<ITemplatesListViewProps> = ({
     const calendarsFiltered = activeCalendarFilter
         ? [calendars.find(({qcode}) => activeCalendarFilter === qcode)]
         : calendars;
+    const {gettext} = superdeskApi.localization;
 
     const filteredTemplates = calendarsFiltered
         .map((_calendar) => ({
