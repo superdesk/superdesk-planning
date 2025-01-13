@@ -125,7 +125,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
         default_factory=list, alias="updates_schedule"
     )
 
-    planning_date: datetime | None = None
+    planning_date: datetime
     flags: Flags = Field(default_factory=Flags)
     pubstatus: PostStates | None = None
     revert_state: WorkflowState | None = None

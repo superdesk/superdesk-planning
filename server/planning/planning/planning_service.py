@@ -514,7 +514,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             return
 
         if not original:
-            original = PlanningResourceModel()
+            original = PlanningResourceModel(planning_date=utcnow())
 
         self.remove_deleted_coverages(updated_planning, original)
         self.add_coverages(updated_planning, original)
