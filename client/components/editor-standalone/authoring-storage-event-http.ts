@@ -3,38 +3,24 @@ import {IAuthoringStorage} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
 import {omitFields} from './utils';
-import {AutoSaveHttp, NoAutoSave} from './authoring-autosave';
+import {AutoSaveHttp} from './authoring-autosave';
 import {eventUtils} from '../../utils';
 
-const getAutosavedEventItem = (id: IEventItem['_id']): Promise<IEventItem | null> => {
-    return new Promise((resolve) => {
-        new AutoSaveHttp<IEventItem>('event_autosave', 0).get(id)
-            .then((res) => {
-                resolve(res);
-            })
-            .catch(() => {
-                resolve(null);
-            });
-    });
-};
-
 export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
-    autosave: new NoAutoSave(),
+    autosave: new AutoSaveHttp<IEventItem>(
+        'event_autosave',
+        (item) => eventUtils.modifyForServer(item) as IEventItem,
+        (item) => eventUtils.modifyForClient(item) as IEventItem,
+        1000,
+    ),
+
     getEntity: (id) => {
         const {httpRequestJsonLocal} = superdeskApi;
 
-        return Promise.all([
-            getAutosavedEventItem(id),
-            httpRequestJsonLocal<IEventItem>({
-                method: 'GET',
-                path: `/events/${id}`,
-            })
-        ]).then(([autosaved, saved]) => {
-            return {
-                autosaved: autosaved == null ? null : eventUtils.modifyForClient(autosaved),
-                saved: eventUtils.modifyForClient(saved),
-            };
-        });
+        return httpRequestJsonLocal<IEventItem>({
+            method: 'GET',
+            path: `/events/${id}`,
+        }).then((saved) => eventUtils.modifyForClient(saved));
     },
 
     isLockedInCurrentSession: () => true,

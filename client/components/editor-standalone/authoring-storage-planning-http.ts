@@ -4,38 +4,23 @@ import {IAuthoringStorage} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
 import {omitFields} from './utils';
-import {AutoSaveHttp, NoAutoSave} from './authoring-autosave';
+import {AutoSaveHttp} from './authoring-autosave';
 import {planningUtils} from '../../utils';
 
-const getAutosavedPlanningItem = (id: IPlanningItem['_id']): Promise<IPlanningItem | null> => {
-    return new Promise((resolve) => {
-        new AutoSaveHttp<IPlanningItem>('planning_autosave', 0).get(id)
-            .then((res) => {
-                resolve(res);
-            })
-            .catch(() => {
-                resolve(null);
-            });
-    });
-};
-
 export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> = {
-    autosave: new NoAutoSave(),
+    autosave: new AutoSaveHttp<IPlanningItem>(
+        'planning_autosave',
+        (item) => planningUtils.modifyForServer(item) as IPlanningItem,
+        (item) => planningUtils.modifyForClient(item) as IPlanningItem,
+        1000,
+    ),
     getEntity: (id) => {
         const {httpRequestJsonLocal} = superdeskApi;
 
-        return Promise.all([
-            getAutosavedPlanningItem(id),
-            httpRequestJsonLocal<IPlanningItem>({
-                method: 'GET',
-                path: `/planning/${id}`,
-            })
-        ]).then(([autosaved, saved]) => {
-            return {
-                autosaved: autosaved == null ? null : planningUtils.modifyForClient(autosaved),
-                saved: planningUtils.modifyForClient(saved),
-            };
-        });
+        return httpRequestJsonLocal<IPlanningItem>({
+            method: 'GET',
+            path: `/planning/${id}`,
+        }).then((saved) => planningUtils.modifyForClient(saved));
     },
 
     isLockedInCurrentSession: () => true,
