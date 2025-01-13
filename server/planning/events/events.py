@@ -790,7 +790,7 @@ class EventsService(superdesk.Service):
         total_received = 0
         total_events = -1
 
-        while True:
+        while total_received + get_max_recurrent_events() < 10000:  # 10k is max elastic limit
             query["from"] = total_received
 
             results = self.search(query)
