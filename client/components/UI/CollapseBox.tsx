@@ -20,7 +20,7 @@ interface IProps {
 
     collapsedItem: React.ReactNode;
     openItem: React.ReactNode;
-    openItemTopBar: React.ReactNode;
+    openItemTopBar?: React.ReactNode;
     tools: React.ReactNode;
 
     onOpen?(): void;

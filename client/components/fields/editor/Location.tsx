@@ -1,17 +1,10 @@
 import * as React from 'react';
-import {get} from 'lodash';
-import {IEditorFieldProps} from '../../../interfaces';
-
 import {superdeskApi} from '../../../superdeskApi';
 import {GeoLookupInput} from '../../GeoLookupInput';
 import {Row} from '../../UI/Form';
+import {IEditorFieldLocationProps} from './Location.interface';
 
-interface IProps extends IEditorFieldProps {
-    enableExternalSearch?: boolean;
-    disableAddLocation?: boolean;
-}
-
-export class EditorFieldLocation extends React.PureComponent<IProps> {
+export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocationProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'location';

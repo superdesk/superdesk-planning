@@ -1,3 +1,4 @@
+import {isSystemRequiredField} from '../../api/utils/constants';
 import {planningApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
@@ -40,12 +41,17 @@ export const getPlanningProfileFields = (
 
     for (const fieldId of planningFieldIds) {
         const fieldSchema = planningProfile.schema[fieldId];
+        const shouldBeShown = fieldSchema.show_in_embedded_editor || fieldSchema.required;
 
         /**
-         * If a field does not have show_in_embedded_editor or required toggled on
-         * we must not show it in the embedded editor
+         * If a field does not have show_in_embedded_editor or required toggled on,
+         * or is not a system required field we must not show it in the embedded editor
          */
-        if (options.embeddedOnly && !(fieldSchema.show_in_embedded_editor || fieldSchema.required)) {
+        if (
+            !isSystemRequiredField(fieldId)
+            && options.embeddedOnly
+            && shouldBeShown != true
+        ) {
             continue;
         }
 
@@ -67,5 +73,9 @@ export const getPlanningProfileFields = (
         }
     }
 
-    return convertedFieldIds;
+    return convertedFieldIds.concat({
+        fieldId: 'contact',
+        required: true,
+        type: 'normal',
+    });
 };
