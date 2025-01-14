@@ -73,9 +73,14 @@ export const getPlanningProfileFields = (
         }
     }
 
-    return convertedFieldIds.concat({
-        fieldId: 'contact',
-        required: true,
-        type: 'normal',
-    });
+    // PR-TODO: merge Konstantin's PR where this is fixed
+    if (options.profile === 'event') {
+        convertedFieldIds.push({
+            fieldId: 'contact',
+            required: true,
+            type: 'normal',
+        });
+    }
+
+    return convertedFieldIds;
 };
