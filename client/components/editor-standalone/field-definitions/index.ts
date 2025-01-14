@@ -15,9 +15,9 @@ import {getCategoriesField} from './category-field';
 import {getAgendasField} from './agendas-field';
 import {getSubjectField} from './subject';
 import {getPriorityField} from './priority-field';
-import {getContactsField} from './contacts';
 import {getLocationsField} from './locations-field';
 import {getLinksField} from './link-field';
+import {getContactsField} from './contacts';
 
 export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
@@ -76,8 +76,8 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
         getCategoriesField(),
         getContactsField(),
         getPriorityField(),
-        getLocationsField(),
         getLinksField(),
+        getLocationsField(),
         {
             fieldId: 'coverages',
             getField: ({id, required}) => {
