@@ -48,6 +48,7 @@ class IngestRuleHandlerTestCase(TestCase):
                 "end": "2022-07-03T14:00:00+0000",
             },
             "type": "event",
+            "pubstatus": "usable",
         },
         {
             "_id": "event2",
@@ -92,7 +93,7 @@ class IngestRuleHandlerTestCase(TestCase):
                 }
             ],
         )
-        event = self.event_items[0]
+        event = self.event_items[0].copy()
         self.app.data.insert("events", [event])
         original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
@@ -115,7 +116,7 @@ class IngestRuleHandlerTestCase(TestCase):
                 }
             ],
         )
-        event = self.event_items[1]
+        event = self.event_items[1].copy()
         self.app.data.insert("events", [event])
         original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
@@ -159,3 +160,13 @@ class IngestRuleHandlerTestCase(TestCase):
 
         self.assertEqual(len(updated["agendas"]), 1)
         self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
+
+    def test_autopost(self):
+        event = self.event_items[0].copy()
+        self.app.data.insert("events", [event])
+
+        self.handler.apply_rule({"actions": {"extra": {"autopost": True}}}, event, {})
+
+        history = list(self.app.data.find_all("events_history"))
+        assert len(history) == 1
+        assert history[0]["operation"] == "post"

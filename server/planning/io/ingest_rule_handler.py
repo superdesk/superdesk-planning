@@ -164,13 +164,6 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
     def process_autopost(self, ingest_item: Dict[str, Any]):
         """Automatically post this item"""
-
-        if self._is_original_posted(ingest_item):
-            # No need to autopost this item
-            # As the original is already posted
-            # And any updates from ingest should automatically re-post this item
-            return
-
         item_id = ingest_item.get(config.ID_FIELD)
         update_post_item(
             {
