@@ -1,53 +1,104 @@
-import {throttle, DebouncedFunc} from 'lodash';
-import {superdeskApi} from '../../superdeskApi';
-import {omitFields} from './utils';
+import moment from 'moment';
 import {IAuthoringAutoSave, IBaseRestApiResponse} from 'superdesk-api';
+import * as selectors from '../../selectors';
+import {throttle, DebouncedFunc} from 'lodash';
+import {planningApi, superdeskApi} from '../../superdeskApi';
+import {omitFields} from './utils';
 
 export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringAutoSave<T> {
     private autoSaveThrottled: DebouncedFunc<typeof this.autosave>;
 
     private autosavePromise: Promise<void> | null;
 
-    private latestEtag: string | undefined;
     private resource: string;
+    private modifyForServer: (item: T) => T;
+    private modifyForClient: (item: T) => T;
 
-    constructor(autosaveResource: string, delay: number) {
-        this.latestEtag = undefined;
-
+    constructor(
+        autosaveResource: string,
+        modifyForServer: (item: T) => T,
+        modifyForClient: (item: T) => T,
+        delay: number,
+    ) {
         this.resource = autosaveResource;
+        this.modifyForServer = modifyForServer;
+        this.modifyForClient = modifyForClient;
 
         this.autoSaveThrottled = throttle(this.autosave, delay, {leading: false});
     }
 
-    private autosave(getItem: () => T, callback: (autosaved: T) => void) {
+    private autosave(getItem: () => T, previousAutosavedItem: T, callback: (autosaved: T) => void) {
         const {httpRequestJsonLocal} = superdeskApi;
-        const item: T = getItem();
 
-        this.autosavePromise = httpRequestJsonLocal<T>({
-            method: 'PATCH',
-            path: `/${this.resource}/${item._id}`,
-            payload: omitFields(item, true),
-            headers: {
-                'If-Match': this.latestEtag ?? item._etag,
-            },
-        }).then((res) => {
+        const item: T = this.modifyForServer(getItem());
+
+        const autosaveRequest = (() => {
+            if (previousAutosavedItem != null) {
+                const {
+                    lock_action,
+                    lock_user,
+                    lock_session,
+                    lock_time,
+                } = previousAutosavedItem;
+
+                return httpRequestJsonLocal<T>({
+                    method: 'PATCH',
+                    path: `/${this.resource}/${item._id}`,
+                    payload: {
+                        ...omitFields(item, true),
+                        lock_action,
+                        lock_user,
+                        lock_session,
+                        lock_time,
+                    },
+                    headers: {
+                        'If-Match': previousAutosavedItem._etag,
+                    },
+                });
+            } else {
+                const {getState} = planningApi.redux.store;
+
+                const lockInfo = {
+                    lock_action: 'edit',
+                    lock_user: selectors.general.currentUserId(getState()),
+                    lock_session: selectors.general.sessionId(getState()),
+                    lock_time: moment(),
+                };
+
+                return httpRequestJsonLocal<T>({
+                    method: 'POST',
+                    path: `/${this.resource}`,
+                    payload: omitFields({
+                        ...item,
+                        ...lockInfo,
+                    }),
+                });
+            }
+        })();
+
+        this.autosavePromise = autosaveRequest.then((res) => {
             this.autosavePromise = null;
-            this.latestEtag = res._etag;
 
-            callback(res);
+            const result = this.modifyForClient(res);
+
+            callback(result);
         });
     }
 
-    get(id: T['_id']) {
+    public get(id: T['_id']) {
         const {httpRequestJsonLocal} = superdeskApi;
 
         return httpRequestJsonLocal<T>({
             method: 'GET',
             path: `/${this.resource}/${id}`,
+        }).then((res) => {
+            const result = this.modifyForClient(res);
+
+            return result;
         });
     }
 
-    delete(id: T['_id'], etag: T['_etag']) {
+    public delete(id: T['_id'], etag: T['_etag']) {
         const {httpRequestRawLocal} = superdeskApi;
 
         return httpRequestRawLocal<T>({
@@ -59,11 +110,11 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringA
         }).then(() => undefined);
     }
 
-    schedule(getItem: () => T, callback: (autosaved: T) => void) {
-        this.autoSaveThrottled(getItem, callback);
+    public schedule(getItem: () => T, callback: (autosaved: T) => void, previousAutosavedItem: T,) {
+        this.autoSaveThrottled(getItem, previousAutosavedItem, callback);
     }
 
-    flush(): Promise<void> {
+    public flush(): Promise<void> {
         this.autoSaveThrottled.flush();
 
         return new Promise((resolve) => {
@@ -75,7 +126,7 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringA
         });
     }
 
-    cancel() {
+    public cancel() {
         this.autoSaveThrottled.cancel();
     }
 }
@@ -91,6 +142,7 @@ export class NoAutoSave<T> implements IAuthoringAutoSave<T> {
 
     schedule(
         getItem: () => T,
+        autosavedItem: T,
         callback: (autosaved: T) => void,
     ) {
         callback(getItem());

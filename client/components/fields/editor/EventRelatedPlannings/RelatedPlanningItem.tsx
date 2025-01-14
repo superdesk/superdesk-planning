@@ -80,6 +80,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 isAgendaEnabled={isAgendaEnabled}
                 showIcon={true}
                 shadow={1}
+                showBorder
                 editPlanningComponent={hideRemoveIcon ? null : (
                     <IconButton
                         icon="trash"

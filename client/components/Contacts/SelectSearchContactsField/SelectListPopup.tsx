@@ -1,25 +1,49 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import classNames from 'classnames';
 import {get} from 'lodash';
-
 import * as actions from '../../../actions';
 import {contactsLoading, contactsTotal, contactsPage} from '../../../selectors/general';
 import {CONTACTS} from '../../../constants';
-
 import {uiUtils, onEventCapture, gettext} from '../../../utils';
 import {KEYCODES} from '../../../constants';
-
 import {SearchField, Button} from '../../UI';
+import {IContact} from 'superdesk-api';
 import {Popup} from '../../UI/Popup';
-
-import {ContactLabel} from '../';
-
+import {ContactLabel} from '../ContactLabel';
 import './style.scss';
 
+interface IProps {
+    onChange: (value: IContact) => void;
+    value?: Array<string>;
+    target?: string;
+    onFocus?: () => void;
+    onAdd?: () => void;
+    onAddText?: string;
+    readOnly?: boolean;
+    searchContacts?: (text: string, contactType: string, page: number) => Promise<any>;
+    onPopupOpen?: () => void;
+    onPopupClose?: () => void;
+    contactType?: string;
+    minLength?: number;
+    placeholder?: string;
+    page?: number;
+    loading?: boolean;
+    total?: number;
+}
 
-export class SelectListPopupComponent extends React.Component {
+interface IState {
+    search: boolean;
+    activeOptionIndex: number;
+    openFilterList: boolean;
+    filteredList: Array<any>;
+    options: Array<any>;
+    searchText: string;
+}
+
+export class SelectListPopupComponent extends React.Component<IProps, IState> {
+    dom: {listItems: any; searchField: any;};
+
     constructor(props) {
         super(props);
         this.state = {
@@ -50,12 +74,12 @@ export class SelectListPopupComponent extends React.Component {
         }
     }
 
-    onKeyDown(event) {
+    onKeyDown(event: KeyboardEvent) {
         if (event) {
             switch (event.keyCode) {
             case KEYCODES.ENTER:
                 onEventCapture(event);
-                this.handleEnterKey(event);
+                this.handleEnterKey();
                 break;
             case KEYCODES.DOWN:
                 onEventCapture(event);
@@ -63,7 +87,7 @@ export class SelectListPopupComponent extends React.Component {
                 break;
             case KEYCODES.UP:
                 onEventCapture(event);
-                this.handleUpArrowKey(event);
+                this.handleUpArrowKey();
                 break;
             }
         }
@@ -85,7 +109,7 @@ export class SelectListPopupComponent extends React.Component {
         }
     }
 
-    handleUpArrowKey(event) {
+    handleUpArrowKey() {
         this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});
         uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.listItems);
     }
@@ -105,13 +129,13 @@ export class SelectListPopupComponent extends React.Component {
         }
     }
 
-    onAdd(event) {
+    onAdd() {
         this.closeSearchList();
         this.dom.searchField.resetSearch();
         this.props.onAdd();
     }
 
-    onSelect(opt) {
+    onSelect(opt: IContact) {
         if (this.state.openFilterList) {
             this.props.onChange(opt);
             this.dom.searchField.resetSearch();
@@ -119,12 +143,14 @@ export class SelectListPopupComponent extends React.Component {
         }
     }
 
-    getFilteredOptionList(searchList) {
+    getFilteredOptionList(searchList?: Array<any>) {
         return searchList ? searchList : this.state.options;
     }
 
     filterSearchResults(val) {
-        if (this.props.minLength > 0 && (!val || get(val, 'length') < this.props.minLength)) {
+        const minLen = this.props.minLength ?? 1;
+
+        if (minLen > 0 && (!val || get(val, 'length') < minLen)) {
             this.setState({
                 search: false,
                 filteredList: this.getFilteredOptionList(),
@@ -238,7 +264,7 @@ export class SelectListPopupComponent extends React.Component {
                                 }
 
                                 {this.props.onAdd && (
-                                    <li tabIndex="0">
+                                    <li>
                                         <Button
                                             size="small"
                                             expanded={true}
@@ -257,27 +283,6 @@ export class SelectListPopupComponent extends React.Component {
         );
     }
 }
-
-SelectListPopupComponent.propTypes = {
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.arrayOf(PropTypes.string),
-    target: PropTypes.string,
-    onFocus: PropTypes.func,
-    onAdd: PropTypes.func,
-    onAddText: PropTypes.string,
-    readOnly: PropTypes.bool,
-    searchContacts: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    contactType: PropTypes.string,
-    minLength: PropTypes.number,
-    placeholder: PropTypes.string,
-    page: PropTypes.number,
-    loading: PropTypes.bool,
-    total: PropTypes.number,
-};
-
-SelectListPopupComponent.defaultProps = {minLength: 1};
 
 const mapStateToProps = (state) => ({
     loading: contactsLoading(state),

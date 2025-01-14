@@ -14,7 +14,7 @@ import {
 
 import {assignmentUtils, planningUtils} from '../../../utils';
 
-import {ContactsPreviewList} from '../../Contacts';
+import {ContactsPreviewList} from '../../Contacts/ContactsPreviewList';
 import {Row} from '../../UI/Preview';
 import {FileReadOnlyList} from '../../UI';
 import {previewGroupToProfile, renderFieldsForPanel} from '../../fields';
@@ -52,9 +52,6 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                     <Row label={assignmentUtils.getContactLabel(assignment)}>
                         <ContactsPreviewList
                             contactIds={[contactId]}
-                            scrollInView={true}
-                            scrollIntoViewOptions={{block: 'center'}}
-                            tabEnabled={true}
                         />
                     </Row>
                 )}

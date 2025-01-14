@@ -19,7 +19,7 @@ interface IProps {
     formProfile?: IEventFormProfile | IPlanningFormProfile | ICoverageFormProfile;
     item: IEventItem | IPlanningItem | IPlanningCoverageItem;
     createLink(file: IFile): string;
-    files: {[key: string]: IFile};
+    files: Array<IFile>;
     field?: string;
     noToggle: boolean;
 }

@@ -66,8 +66,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
 
-        this.showAddLocationForm = this.showAddLocationForm.bind(this);
-        this.onCloseAddNewLocation = this.onCloseAddNewLocation.bind(this);
         this.onDatesChanged = this.onDatesChanged.bind(this);
     }
 
@@ -94,24 +92,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                 planning_ids: this.props.original?.planning_ids ?? [],
             });
         }
-    }
-
-    showAddLocationForm(props: any): Promise<ILocation | undefined> {
-        const editor = planningApi.editor(this.props.editorType);
-
-        return editor.form.showPopupForm(CreateNewGeoLookup, props)
-            .finally(() => {
-                // Re-focus the location text input
-                const editor = planningApi.editor(this.props.editorType);
-
-                editor.form.scrollToBookmarkGroup('location');
-            });
-    }
-
-    onCloseAddNewLocation() {
-        const editor = planningApi.editor(this.props.editorType);
-
-        editor.form.closePopupForm();
     }
 
     onDatesChanged(value: {[key: string]: any}) {
@@ -191,9 +171,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                     },
                     location: {
                         enableExternalSearch: true,
-                        showAddLocationForm: this.showAddLocationForm,
-                        onPopupClose: this.onCloseAddNewLocation,
-                        onCancel: this.onCloseAddNewLocation,
                     },
                     name: {
                         label: gettext('Event Name'),

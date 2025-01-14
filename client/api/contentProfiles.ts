@@ -18,6 +18,7 @@ import {sortProfileGroups} from '../utils/contentProfiles';
 import {showModalConnectedToStore} from '../utils/ui';
 import {ContentProfileModal} from '../components/ContentProfiles/ContentProfileModal';
 import {getUsersDefaultLanguage} from '../utils/users';
+import {SYSTEM_REQUIRED_FIELDS} from './utils/constants';
 
 const RESOURCE = 'planning_types';
 
@@ -148,11 +149,7 @@ function showManagePlanningProfileModal(): Promise<void> {
             mainProfile: {
                 label: gettext('Planning Fields'),
                 profile: getProfile('planning'),
-                systemRequiredFields: [
-                    ['planning_date'],
-                    ['slugline', 'headline', 'name'],
-                    ['coverages'],
-                ],
+                systemRequiredFields: SYSTEM_REQUIRED_FIELDS,
                 disableMinMaxFields: [
                     'language',
                     'marked_for_not_publication',

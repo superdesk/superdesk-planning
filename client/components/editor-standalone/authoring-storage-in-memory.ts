@@ -12,7 +12,7 @@ export function getAuthoringStorageInMemory<T>(
         autosave: new NoAutoSave(),
 
         getEntity: () => {
-            return Promise.resolve({autosaved: item, saved: item});
+            return Promise.resolve(item);
         },
 
         isLockedInCurrentSession: () => true,
