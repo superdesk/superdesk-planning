@@ -149,6 +149,9 @@ class EventsService(superdesk.Service):
     def patch_in_mongo(self, id, document, original) -> Optional[Dict[str, Any]]:
         """Patch an ingested item onto an existing item locally"""
         prepare_ingested_item_for_storage(document)
+        events_history = get_resource_service("events_history")
+        events_history.on_item_updated(document, original, "ingested")
+
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
         response = self.backend.update_in_mongo(self.datasource, id, document, original)

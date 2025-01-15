@@ -184,12 +184,14 @@ class IngestRuleHandlerTestCase(TestCase):
         assert original["pubstatus"] == "usable"
 
         event["pubstatus"] = "cancelled"
+        event["versioncreated"] = datetime.now()
         events_service.patch_in_mongo(event["_id"], event, original)
 
         self.handler.apply_rule(AUTOPOST_RULE, event, {})
 
         history = self.get_event_history()
-        assert len(history) == 3
+        assert len(history) == 4
+        assert history[-2]["operation"] == "ingested"
         assert history[-1]["operation"] == "post"
 
         original = events_service.find_one(req=None, _id=event["_id"])
