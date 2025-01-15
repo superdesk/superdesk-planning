@@ -142,8 +142,8 @@ export class NoAutoSave<T> implements IAuthoringAutoSave<T> {
 
     schedule(
         getItem: () => T,
-        autosavedItem: T,
         callback: (autosaved: T) => void,
+        autosavedItem: T,
     ) {
         callback(getItem());
     }

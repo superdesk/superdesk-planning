@@ -9,16 +9,26 @@ export class Editor extends React.PureComponent<IProps> {
     render() {
         const {EditorFieldLocation} = extensionBridge.editor.fields;
 
+        const convertedValue = (() => {
+            if (this.props.value?.[0] != null) {
+                return this.props.value[0];
+            }
+
+            return this.props.value;
+        })();
+
         return (
             <EditorFieldLocation
-                field="location"
+                field='location'
                 enableExternalSearch
                 item={{
-                    location: this.props.value,
+                    location: convertedValue,
                 }}
                 required={this.props.config.required}
                 disabled={this.props.config.readOnly}
-                onChange={(_field, value) => this.props.onChange(value)}
+                onChange={(_field, value) => {
+                    this.props.onChange(value);
+                }}
             />
         );
     }
