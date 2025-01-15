@@ -9,6 +9,8 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from bson import ObjectId
+from datetime import datetime
+from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
 from .ingest_rule_handler import PlanningRoutingRuleHandler
 from planning.tests import TestCase
@@ -30,6 +32,8 @@ TEST_RULE = {
     },
 }
 
+AUTOPOST_RULE = {"actions": {"extra": {"autopost": True}}}
+
 
 class IngestRuleHandlerTestCase(TestCase):
     calendars = [
@@ -44,8 +48,8 @@ class IngestRuleHandlerTestCase(TestCase):
         {
             "_id": "event1",
             "dates": {
-                "start": "2022-07-02T14:00:00+0000",
-                "end": "2022-07-03T14:00:00+0000",
+                "start": datetime.fromisoformat("2022-07-02T14:00:00+00:00"),
+                "end": datetime.fromisoformat("2022-07-03T14:00:00+00:00"),
             },
             "type": "event",
             "pubstatus": "usable",
@@ -163,10 +167,48 @@ class IngestRuleHandlerTestCase(TestCase):
 
     def test_autopost(self):
         event = self.event_items[0].copy()
-        self.app.data.insert("events", [event])
+        events_service = get_resource_service("events")
+        events_service.post_in_mongo([event])
 
-        self.handler.apply_rule({"actions": {"extra": {"autopost": True}}}, event, {})
-
-        history = list(self.app.data.find_all("events_history"))
+        history = self.get_event_history()
         assert len(history) == 1
-        assert history[0]["operation"] == "post"
+        assert history[0]["operation"] == "ingested"
+
+        self.handler.apply_rule(AUTOPOST_RULE, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 2
+        assert history[-1]["operation"] == "post"
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+
+        event["pubstatus"] = "cancelled"
+        events_service.patch_in_mongo(event["_id"], event, original)
+
+        self.handler.apply_rule(AUTOPOST_RULE, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 3
+        assert history[-1]["operation"] == "post"
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "cancelled"
+
+    def test_autopost_cancelled(self):
+        event = self.event_items[0].copy()
+        event["pubstatus"] = "cancelled"
+        events_service = get_resource_service("events")
+        events_service.post_in_mongo([event])
+
+        self.handler.apply_rule(AUTOPOST_RULE, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 2
+        assert history[-1]["operation"] == "post"
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "cancelled"
+
+    def get_event_history(self):
+        return list(self.app.data.find_all("events_history"))

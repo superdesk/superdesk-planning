@@ -157,7 +157,7 @@ class EventTestCase(TestCase):
 
             event = service.find_one(req=None, guid="test")
             assert event is not None
-            assert event["pubstatus"] == "cancelled"
+            assert event["ingest_pubstatus"] == "cancelled"
 
 
 class EventLocationFormatAddress(TestCase):

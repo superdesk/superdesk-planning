@@ -128,6 +128,11 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
     return False
 
 
+def prepare_ingested_event_for_storage(event: Event) -> None:
+    event.setdefault("state", "ingested")
+    event["ingest_pubstatus"] = event.pop("pubstatus", "usable")  # pubstatus is set when posted
+
+
 class EventsService(superdesk.Service):
     """Service class for the events model."""
 
@@ -135,6 +140,7 @@ class EventsService(superdesk.Service):
         """Post an ingested item(s)"""
 
         for doc in docs:
+            prepare_ingested_event_for_storage(doc)
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
 
@@ -146,7 +152,7 @@ class EventsService(superdesk.Service):
 
     def patch_in_mongo(self, id, document, original) -> Optional[Dict[str, Any]]:
         """Patch an ingested item onto an existing item locally"""
-
+        prepare_ingested_event_for_storage(document)
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
         response = self.backend.update_in_mongo(self.datasource, id, document, original)

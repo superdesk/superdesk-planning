@@ -379,6 +379,8 @@ def update_post_item(updates, original):
     # Save&Post or Save&Unpost
     if updates.get("pubstatus"):
         pub_status = updates["pubstatus"]
+    elif updates.get("ingest_pubstatus"):
+        pub_status = updates["ingest_pubstatus"]
     elif original.get("pubstatus") == POST_STATE.USABLE:
         # From item actions
         pub_status = POST_STATE.USABLE
