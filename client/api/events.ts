@@ -150,6 +150,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
                 headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method
@@ -196,12 +197,16 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 slugline: coverage.planning.slugline,
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
+                headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
     })
         .then((response) => {
             const events = modifySaveResponseForClient(response);
+
+            events[0].associated_plannings = updates.associated_plannings;
 
             return planningApi.planning.searchGetAll({
                 recurrence_id: events[0].recurrence_id,

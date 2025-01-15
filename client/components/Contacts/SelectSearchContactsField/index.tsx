@@ -6,25 +6,19 @@ import './style.scss';
 
 interface IProps {
     value: Array<string>;
-    label: string;
-    readOnly: boolean;
-    field: string;
+    label?: string;
+    readOnly?: boolean;
+    onChange: (field: string, value: any) => void;
+    required?: boolean;
+    onAdd?: (...args: any) => void;
     onAddText?: string;
+    onFocus?: (...args: any) => void;
     contactType?: string;
     minLengthPopup?: number;
     placeholder?: string;
-    onPopupOpen: () => void;
-    onPopupClose: () => void;
-    onChange: (contact: IContact) => void;
-    onAdd?: () => void;
-    onFocus?: () => void;
 }
 
-interface IState {
-    openSelectPopup: boolean;
-}
-
-export class SelectSearchContactsField extends React.Component<IProps, IState> {
+export class SelectSearchContactsField extends React.Component<IProps, {openSelectPopup: boolean}> {
     constructor(props) {
         super(props);
         this.state = {openSelectPopup: true};
@@ -79,4 +73,3 @@ export class SelectSearchContactsField extends React.Component<IProps, IState> {
         );
     }
 }
-
