@@ -28,7 +28,7 @@ import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
-
+import {handleUnsavedChanges} from '../../../components/editor-standalone/save-handling';
 
 export class ItemManager {
     editor: EditorComponent;
@@ -471,40 +471,42 @@ export class ItemManager {
     }
 
     post() {
-        const newState = {};
+        return handleUnsavedChanges(this.props.editorType).then(() => {
+            const newState = {};
 
-        this.validate(this.props, newState, this.state);
-        if (!isEqual(this.state.errorMessages, [])) {
-            return this.setState({
-                submitting: false,
-                submitFailed: true,
-            })
-                .then(() => {
+            this.validate(this.props, newState, this.state);
+            if (!isEqual(this.state.errorMessages, [])) {
+                return this.setState({
+                    submitting: false,
+                    submitFailed: true,
+                }).then(() => {
                     this.props.notifyValidationErrors(this.state.errorMessages);
                     return Promise.reject();
                 });
-        }
-        return this.setState({
-            submitting: true,
-            submitFailed: false,
-        })
-            .then(() => this.autoSave.flushAutosave())
-            .then(() => this.dispatch<any>(
-                actions.main.post(this.state.initialValues)
-            ))
-            .then(
-                this.afterPostOrUnpost,
-                (error) => {
-                    if (get(error, 'status') === 412) {
-                        // If etag error, then notify user and change editor to read-only
-                        this.dispatch<any>(
-                            actions.main.notifyPreconditionFailed(this.props.inModalView)
-                        );
-                    }
+            }
 
-                    return this.setState({submitting: false});
-                }
-            );
+            return this.setState({
+                submitting: true,
+                submitFailed: false,
+            })
+                .then(() => this.autoSave.flushAutosave())
+                .then(() => this.dispatch<any>(
+                    actions.main.post(this.state.initialValues)
+                ))
+                .then(
+                    this.afterPostOrUnpost,
+                    (error) => {
+                        if (get(error, 'status') === 412) {
+                            // If etag error, then notify user and change editor to read-only
+                            this.dispatch<any>(
+                                actions.main.notifyPreconditionFailed(this.props.inModalView)
+                            );
+                        }
+
+                        return this.setState({submitting: false});
+                    }
+                );
+        });
     }
 
     unpost() {
@@ -657,10 +659,12 @@ export class ItemManager {
         }
 
         const promise = !updateStates ?
-            Promise.resolve() :
-            this.setState({
-                submitting: true,
-                submitFailed: false,
+            handleUnsavedChanges(this.props.editorType) :
+            handleUnsavedChanges(this.props.editorType).then((x) => {
+                return this.setState({
+                    submitting: true,
+                    submitFailed: false,
+                });
             });
 
         if (this.props.addNewsItemToPlanning) {

@@ -38,6 +38,7 @@ interface IProps {
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
+    current: PlanningEditorStandalone;
     public standaloneEditorRef: React.RefObject<PlanningEditorStandalone>;
 
     constructor(props) {
