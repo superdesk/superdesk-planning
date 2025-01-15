@@ -31,7 +31,7 @@ export function getPlanningDateField(): IFieldDefinition {
 
                 return item[fieldId];
             },
-            storeValue: (item, operationalValue) => {
+            storeValue: (item, operationalValue: string | null) => {
                 return {
                     ...item,
                     planning_date: operationalValue ? new Date(operationalValue) : null,
