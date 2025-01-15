@@ -64,8 +64,8 @@ const validateDateInPast = ({getState, value, errors, messages}) => {
     const canCreateInPast = !!privileges[PRIVILEGES.CREATE_IN_PAST];
     const today = moment();
 
-    const startDate = value.all_day ? getDateOnly(value.start) : value.start;
-    const endDate = value.all_day || value.no_end_time ? getDateOnly(value.end) : value.end;
+    const startDate = value.start && value.all_day ? getDateOnly(value.start) : value.start;
+    const endDate = value.end && (value.all_day || value.no_end_time) ? getDateOnly(value.end) : value.end;
 
     if (moment.isMoment(startDate) && startDate.isBefore(today, 'day')) {
         set(errors, 'start.date', gettext('Start date is in the past'));
