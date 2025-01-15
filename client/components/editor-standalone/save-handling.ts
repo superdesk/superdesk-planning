@@ -9,7 +9,7 @@ type IRelatedPlanningRefs = {[id: string]: RelatedPlanningItem};
 export const handleUnsavedChanges = (editorType: EDITOR_TYPE) => {
     const embeddedEditorRef = planningApi.editor(editorType).dom.fields['related_plannings']?.current;
 
-    // Check if we're there's related plannings
+    // Check if there are any related plannings
     if (embeddedEditorRef == null) {
         return Promise.resolve();
     }
