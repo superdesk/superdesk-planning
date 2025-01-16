@@ -152,7 +152,7 @@ class PlanningMLFeedParserTestCase(TestCase):
             }
 
             # Ingest first version
-            ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+            ingested, ids = await ingest_item(source, provider=provider, feeding_service={})
             self.assertTrue(ingested)
             self.assertIn(source["guid"], ids)
             dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
@@ -166,12 +166,12 @@ class PlanningMLFeedParserTestCase(TestCase):
             source["versioncreated"] = source["ingest_versioncreated"]
             source["slugline"] = "Test slugline"
             provider["disable_item_updates"] = True
-            ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+            ingested, ids = await ingest_item(source, provider=provider, feeding_service={})
             self.assertFalse(ingested)
 
             # Attempt to update with a new version
             provider.pop("disable_item_updates")
-            ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+            ingested, ids = await ingest_item(source, provider=provider, feeding_service={})
             self.assertTrue(ingested)
             self.assertIn(source["guid"], ids)
             dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
@@ -194,7 +194,7 @@ class PlanningMLFeedParserTestCase(TestCase):
             }
 
             # Ingest first version
-            ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+            ingested, ids = await ingest_item(source, provider=provider, feeding_service={})
             self.assertTrue(ingested)
             self.assertIn(source["guid"], ids)
 
@@ -216,7 +216,7 @@ class PlanningMLFeedParserTestCase(TestCase):
             # Ingest a new version of the item, and make sure the item is re-published
             source = deepcopy(original_source)
             source["versioncreated"] += timedelta(hours=1)
-            ingest_item(source, provider=provider, feeding_service={})
+            await ingest_item(source, provider=provider, feeding_service={})
             self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 2)
             dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
 
@@ -228,7 +228,7 @@ class PlanningMLFeedParserTestCase(TestCase):
             source = deepcopy(original_source)
             source["versioncreated"] += timedelta(hours=2)
             source["pubstatus"] = POST_STATE.CANCELLED
-            ingest_item(source, provider=provider, feeding_service={})
+            await ingest_item(source, provider=provider, feeding_service={})
             self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 3)
             dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
 

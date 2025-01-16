@@ -57,10 +57,10 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         },
     }
 
-    def can_handle(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
+    async def can_handle(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
         return ingest_item.get(ITEM_TYPE) in [CONTENT_TYPE.EVENT, CONTENT_TYPE.PLANNING]
 
-    def apply_rule(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
+    async def apply_rule(self, rule: Dict[str, Any], ingest_item: Dict[str, Any], routing_scheme: Dict[str, Any]):
         attributes = (rule.get("actions") or {}).get("extra") or {}
         if not attributes:
             # No need to continue if none of the action attributes are set

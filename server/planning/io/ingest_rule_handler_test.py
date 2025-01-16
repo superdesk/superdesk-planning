@@ -73,14 +73,14 @@ class IngestRuleHandlerTestCase(TestCase):
         },
     ]
 
-    def setUp(self):
-        super(IngestRuleHandlerTestCase, self).setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         self.handler = PlanningRoutingRuleHandler()
 
-    def test_can_handle_content(self):
-        self.assertTrue(self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.EVENT}, {}))
-        self.assertTrue(self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.PLANNING}, {}))
-        self.assertFalse(self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.TEXT}, {}))
+    async def test_can_handle_content(self):
+        self.assertTrue(await self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.EVENT}, {}))
+        self.assertTrue(await self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.PLANNING}, {}))
+        self.assertFalse(await self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.TEXT}, {}))
 
     async def test_adds_event_calendars(self):
         async with self.app.app_context():
@@ -97,7 +97,9 @@ class IngestRuleHandlerTestCase(TestCase):
             self.app.data.insert("events", [event])
             original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
-            self.handler.apply_rule({"actions": {"extra": {"calendars": [self.calendars[0]["qcode"]]}}}, event, {})
+            await self.handler.apply_rule(
+                {"actions": {"extra": {"calendars": [self.calendars[0]["qcode"]]}}}, event, {}
+            )
 
             updated = self.app.data.find_one("events", req=None, _id=event["_id"])
             self.assertNotEqual(original["_etag"], updated["_etag"])
@@ -121,7 +123,7 @@ class IngestRuleHandlerTestCase(TestCase):
             self.app.data.insert("events", [event])
             original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
-            self.handler.apply_rule(
+            await self.handler.apply_rule(
                 {"actions": {"extra": {"calendars": [self.calendars[0]["qcode"], self.calendars[1]["qcode"]]}}},
                 event,
                 {},
@@ -141,7 +143,7 @@ class IngestRuleHandlerTestCase(TestCase):
             self.app.data.insert("planning", [plan])
             original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
-            self.handler.apply_rule({"actions": {"extra": {"agendas": [self.agendas[0]["_id"]]}}}, plan, {})
+            await self.handler.apply_rule({"actions": {"extra": {"agendas": [self.agendas[0]["_id"]]}}}, plan, {})
 
             updated = self.app.data.find_one("planning", req=None, _id=plan["_id"])
             self.assertNotEqual(original["_etag"], updated["_etag"])
@@ -156,7 +158,7 @@ class IngestRuleHandlerTestCase(TestCase):
             self.app.data.insert("planning", [plan])
             original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
-            self.handler.apply_rule(
+            await self.handler.apply_rule(
                 {"actions": {"extra": {"agendas": [self.agendas[0]["_id"], self.agendas[1]["_id"]]}}}, plan, {}
             )
 

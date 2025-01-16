@@ -361,7 +361,8 @@ def then_get_transmitted_item(context, path):
 
 
 @when('we fetch events from "{provider_name}" ingest "{guid}"')
-def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
+@async_run_until_complete
+async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
     with context.app.test_request_context(context.app.config["URL_PREFIX"]):
         ingest_provider_service = get_resource_service("ingest_providers")
         provider = ingest_provider_service.find_one(name=provider_name, req=None)
@@ -382,7 +383,7 @@ def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
             item["versioncreated"] = utcnow()
             item["expiry"] = utcnow() + timedelta(minutes=20)
 
-        failed = context.ingest_items(items, provider, provider_service)
+        failed = await context.ingest_items(items, provider, provider_service)
         assert len(failed) == 0, failed
 
         provider = ingest_provider_service.find_one(name=provider_name, req=None)
