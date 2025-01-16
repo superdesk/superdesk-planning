@@ -1814,6 +1814,7 @@ planning_schema = {
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
     "ingest_firstcreated": metadata_schema["versioncreated"],
     "ingest_versioncreated": metadata_schema["versioncreated"],
+    "ingest_pubstatus": metadata_schema["pubstatus"],
     # Agenda Item details
     "agendas": {
         "type": "list",
