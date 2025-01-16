@@ -851,7 +851,6 @@ class EventsService(superdesk.Service):
     def should_update(self, old_item, new_item, provider):
         return old_item is None or not any(
             [
-                old_item.get("version_creator"),
                 old_item.get("pubstatus") == "cancelled",
                 old_item.get("state") == "killed",
             ]
