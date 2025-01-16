@@ -34,7 +34,7 @@ export function getPlanningDateField(): IFieldDefinition {
             storeValue: (item, operationalValue) => {
                 return {
                     ...item,
-                    planning_date: operationalValue,
+                    planning_date: operationalValue ? moment(operationalValue).toISOString() : undefined,
                 };
             }
         }
