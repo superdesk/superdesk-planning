@@ -26,6 +26,8 @@ import {IEditorProps, IEditorState, ILockedItems, IPrivileges, ISession} from 'i
 import {IUser} from 'superdesk-api';
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
+import {embeddedPlanningHasUnsavedChanges} from '../../../components/editor-standalone/save-handling';
+import {IUIButtonProps} from 'components/UI/Button';
 
 interface IProps {
     diff: IEditorState['diff'];
@@ -286,9 +288,7 @@ export class EditorHeader extends React.Component<IProps> {
                         lockedUser={states.lockedUser}
                         users={users}
                         showUnlock={unlockPrivilege && showUnlock}
-                        withLoggedInfo={true}
                         onUnlock={itemManager.unlockThenLock.bind(null, initialValues)}
-                        small={false}
                         noMargin={true}
                     />
                 )}
@@ -321,14 +321,21 @@ export class EditorHeader extends React.Component<IProps> {
             );
         }
 
-        const notDirtyOrSubmitting = !dirty || submitting;
-        const buttons = [{
+        const dirtyWithEmbeddedItems = embeddedPlanningHasUnsavedChanges() || dirty;
+        const notDirtyOrSubmitting = !dirtyWithEmbeddedItems || submitting;
+
+        type IButtonProps = Array<{
+            state: string,
+            props: IUIButtonProps
+        }>;
+
+        const buttons: IButtonProps = [{
             state: 'showCancel',
             props: {
                 color: states.isEvent ? 'ui-dark' : null,
                 disabled: (!states.readOnly && submitting) || loading,
                 onClick: cancel,
-                text: dirty ? gettext('Cancel') : gettext('Close'),
+                text: dirtyWithEmbeddedItems ? gettext('Cancel') : gettext('Close'),
                 tabIndex: 0,
                 enterKeyIsClick: true,
                 id: 'close',
@@ -338,8 +345,8 @@ export class EditorHeader extends React.Component<IProps> {
             props: {
                 color: 'success',
                 disabled: submitting || loading,
-                onClick: dirty ? itemManager.saveAndPost : itemManager.post,
-                text: dirty ? gettext('Save & Post') : gettext('Post'),
+                onClick: dirtyWithEmbeddedItems ? itemManager.saveAndPost : itemManager.post,
+                text: dirtyWithEmbeddedItems ? gettext('Save & Post') : gettext('Post'),
                 id: 'post',
             },
         }, {
@@ -451,7 +458,6 @@ export class EditorHeader extends React.Component<IProps> {
                     <NavButton
                         onClick={minimize}
                         icon="big-icon--minimize"
-                        title={gettext('Minimise')}
                         aria-label={gettext('Minimise')}
                     />
                 )}
@@ -461,7 +467,6 @@ export class EditorHeader extends React.Component<IProps> {
                         onClick={closeEditorAndOpenModal}
                         aria-label={gettext('Edit in popup')}
                         icon="icon-external"
-                        title={gettext('Edit in popup')}
                     />
                 )}
 

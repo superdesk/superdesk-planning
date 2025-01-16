@@ -28,7 +28,7 @@ import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
-import {handleUnsavedChanges} from '../../../components/editor-standalone/save-handling';
+import {handleEmbeddedPlannings} from '../../../components/editor-standalone/save-handling';
 
 export class ItemManager {
     editor: EditorComponent;
@@ -471,7 +471,7 @@ export class ItemManager {
     }
 
     post() {
-        return handleUnsavedChanges(this.props.editorType).then(() => {
+        return handleEmbeddedPlannings(this.props.editorType, 'SAVE').then(() => {
             const newState = {};
 
             this.validate(this.props, newState, this.state);
@@ -659,8 +659,8 @@ export class ItemManager {
         }
 
         const promise = !updateStates ?
-            handleUnsavedChanges(this.props.editorType) :
-            handleUnsavedChanges(this.props.editorType).then((x) => {
+            handleEmbeddedPlannings(this.props.editorType, 'SAVE') :
+            handleEmbeddedPlannings(this.props.editorType, 'SAVE').then((x) => {
                 return this.setState({
                     submitting: true,
                     submitFailed: false,

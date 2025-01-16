@@ -19,7 +19,7 @@ import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
 import {EditorHeader} from './EditorHeader';
 import {pickRelatedEventsForPlanning} from './../../../utils/planning';
-import {handleUnsavedChanges} from '../../../components/editor-standalone/save-handling';
+import {handleEmbeddedPlannings} from '../../../components/editor-standalone/save-handling';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
@@ -197,7 +197,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             return;
         }
 
-        handleUnsavedChanges(this.props.editorType).then(() => {
+        handleEmbeddedPlannings(this.props.editorType, 'HANDLE_UNSAVED_CHANGES').then(() => {
             this.autoSave.flushAutosave().then(() => {
                 const {openCancelModal, itemId, itemType, addNewsItemToPlanning} = this.props;
                 const {dirty, errorMessages, initialValues} = this.state;

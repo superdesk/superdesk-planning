@@ -1,11 +1,9 @@
 import React from 'react';
 import classNames from 'classnames';
-
 import {KEYCODES} from './constants';
 import {onEventCapture} from './utils';
 
-
-interface IButtonProps {
+export interface IUIButtonProps {
     id?: string;
     className?: string;
     onClick: (...args: any) => any;
