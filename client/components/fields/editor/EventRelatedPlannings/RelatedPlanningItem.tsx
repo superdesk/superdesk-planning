@@ -38,14 +38,15 @@ interface IProps {
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
-    current: PlanningEditorStandalone;
     public standaloneEditorRef: React.RefObject<PlanningEditorStandalone>;
+    public toggleBoxRef: React.RefObject<any>;
 
     constructor(props) {
         super(props);
 
         this.containerNode = React.createRef();
         this.standaloneEditorRef = React.createRef();
+        this.toggleBoxRef = React.createRef();
 
         this.remove = this.remove.bind(this);
         this.update = this.update.bind(this);
@@ -101,6 +102,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 tabIndex={0}
             >
                 <ToggleBox
+                    ref={this.toggleBoxRef}
                     variant="custom-header"
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                     header={

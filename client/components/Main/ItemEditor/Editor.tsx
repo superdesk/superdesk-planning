@@ -19,7 +19,7 @@ import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
 import {EditorHeader} from './EditorHeader';
 import {pickRelatedEventsForPlanning} from './../../../utils/planning';
-import {handleEmbeddedPlannings} from '../../../components/editor-standalone/save-handling';
+import {embeddedPlanningHasUnsavedChanges} from '../../../components/editor-standalone/save-handling';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
@@ -197,52 +197,50 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             return;
         }
 
-        handleEmbeddedPlannings(this.props.editorType, 'HANDLE_UNSAVED_CHANGES').then(() => {
-            this.autoSave.flushAutosave().then(() => {
-                const {openCancelModal, itemId, itemType, addNewsItemToPlanning} = this.props;
-                const {dirty, errorMessages, initialValues} = this.state;
-                const updateStates = !addNewsItemToPlanning;
+        this.autoSave.flushAutosave().then(() => {
+            const {openCancelModal, itemId, itemType, addNewsItemToPlanning} = this.props;
+            const {dirty, errorMessages, initialValues} = this.state;
+            const updateStates = !addNewsItemToPlanning;
 
-                this.setState({submitting: true});
+            this.setState({submitting: true});
 
-                if (!dirty) {
-                    this.onCancel();
-                    return;
-                }
+            if (!(dirty || embeddedPlanningHasUnsavedChanges())) {
+                this.onCancel();
+                return;
+            }
 
-                const hasErrors = !isEqual(errorMessages, []);
-                const isKilled = isItemKilled(initialValues);
-                const onSave = (isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
-                    this.itemManager.save(
-                        withConfirmation,
-                        {name: updateMethod, value: updateMethod},
-                        true,
-                        updateStates,
-                    )
-                );
-                const onSaveAndPost = (!isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
-                    this.itemManager.saveAndPost(
-                        withConfirmation,
-                        updateMethod,
-                        true,
-                        updateStates,
-                    )
-                );
+            const hasErrors = !isEqual(errorMessages, []);
+            const isKilled = isItemKilled(initialValues);
+            const onSave = (isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
+                this.itemManager.save(
+                    withConfirmation,
+                    {name: updateMethod, value: updateMethod},
+                    true,
+                    updateStates,
+                )
+            );
+            const onSaveAndPost = (!isKilled || hasErrors) ? null : (withConfirmation, updateMethod) => (
+                this.itemManager.saveAndPost(
+                    withConfirmation,
+                    updateMethod,
+                    true,
+                    updateStates,
+                )
+            );
 
-                openCancelModal({
-                    itemId: itemId,
-                    itemType: itemType,
-                    onCancel: () => {
-                        if (updateStates) {
-                            this.setState({submitting: false});
-                        }
-                    },
-                    onIgnore: () => {
-                        this.itemManager.unlockAndCancel();
-                    },
-                    onSave: onSave,
-                    onSaveAndPost: onSaveAndPost,
-                });
+            openCancelModal({
+                itemId: itemId,
+                itemType: itemType,
+                onCancel: () => {
+                    if (updateStates) {
+                        this.setState({submitting: false});
+                    }
+                },
+                onIgnore: () => {
+                    this.itemManager.unlockAndCancel();
+                },
+                onSave: onSave,
+                onSaveAndPost: onSaveAndPost,
             });
         });
     }

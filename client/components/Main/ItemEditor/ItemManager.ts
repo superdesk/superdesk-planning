@@ -28,7 +28,10 @@ import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
-import {handleEmbeddedPlannings} from '../../../components/editor-standalone/save-handling';
+import {
+    embeddedPlanningHasUnsavedChanges,
+    handleEmbeddedPlannings,
+} from '../../../components/editor-standalone/save-handling';
 
 export class ItemManager {
     editor: EditorComponent;
@@ -658,14 +661,9 @@ export class ItemManager {
                 });
         }
 
-        const promise = !updateStates ?
-            handleEmbeddedPlannings(this.props.editorType, 'SAVE') :
-            handleEmbeddedPlannings(this.props.editorType, 'SAVE').then((x) => {
-                return this.setState({
-                    submitting: true,
-                    submitFailed: false,
-                });
-            });
+        const promise = handleEmbeddedPlannings(this.props.editorType, 'SAVE').then(() =>
+            !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false}),
+        );
 
         if (this.props.addNewsItemToPlanning) {
             return promise.then(() => this._saveFromAuthoring({post, unpost}));
@@ -833,25 +831,29 @@ export class ItemManager {
     }
 
     unlockAndCancel() {
-        const {session, currentWorkspace} = this.props;
-        const {initialValues, diff} = this.state;
-        let promises = [];
+        return handleEmbeddedPlannings(
+            this.props.editorType,
+            embeddedPlanningHasUnsavedChanges() ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+        ).then(() => {
+            const {session, currentWorkspace} = this.props;
+            const {initialValues, diff} = this.state;
+            let promises = [];
 
-        if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
-            promises.push(planningApi.locks.unlockItem(this.props.item));
-            // promises.push(this.unlock());
-        }
+            if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
+                promises.push(planningApi.locks.unlockItem(this.props.item));
+            }
 
-        // If event was created by a planning item, unlock the planning item
-        if (diff?.type === 'event' && diff._planning_item) {
-            planningApi.locks.unlockItemById(diff._planning_item, 'planning');
-        }
+            // If event was created by a planning item, unlock the planning item
+            if (diff?.type === 'event' && diff._planning_item) {
+                planningApi.locks.unlockItemById(diff._planning_item, 'planning');
+            }
 
-        promises.push(this.autoSave.remove());
+            promises.push(this.autoSave.remove());
 
-        this.editor.closeEditor();
+            this.editor.closeEditor();
 
-        return Promise.all(promises);
+            return Promise.all(promises);
+        });
     }
 
     changeAction(action, newItem = null) {
