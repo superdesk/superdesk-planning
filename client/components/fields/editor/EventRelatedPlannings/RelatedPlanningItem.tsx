@@ -102,7 +102,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 tabIndex={0}
             >
                 <ToggleBox
-                    ref={this.toggleBoxRef}
+                    toggleBoxRef={this.toggleBoxRef}
                     variant="custom-header"
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                     header={

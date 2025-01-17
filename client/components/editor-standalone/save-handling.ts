@@ -5,7 +5,7 @@ import {planningApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 
 type IRelatedPlanningRefs = {[id: string]: RelatedPlanningItem};
-type IEmbeddedPlanningsActionType = 'SAVE' | 'HANDLE_UNSAVED_CHANGES' | 'DISCARD';
+export type IEmbeddedPlanningsActionType = 'SAVE' | 'HANDLE_UNSAVED_CHANGES' | 'DISCARD';
 
 const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE) => {
     const embeddedEditorRef = planningApi.editor(editorType).dom.fields['related_plannings']?.current;
@@ -31,13 +31,18 @@ const getEmbeddedPlanningExposed = (editorType: EDITOR_TYPE): Array<IExposedFrom
 const FIRST_ERROR = 0;
 
 const handleErrors = (editorType: EDITOR_TYPE, editorIndex: number) => {
-    const firstRelatedPlanningRef = getEmbeddedAuthoringRefs(editorType)[editorIndex];
+    const relatedPlanningRef = getEmbeddedAuthoringRefs(editorType)[editorIndex];
     const firstEditorRef =
-        firstRelatedPlanningRef.standaloneEditorRef.current.planningEditorRef.current.editorRef.current;
+        relatedPlanningRef.standaloneEditorRef.current.planningEditorRef.current.editorRef.current;
     const fieldErrors = firstEditorRef.getExposed().getValidationErrors();
     const fieldToFocus = firstEditorRef?.fieldRefs[Object.keys(fieldErrors)[FIRST_ERROR]].current as HTMLDivElement;
+    const toggleBoxRef = relatedPlanningRef.toggleBoxRef.current;
 
-    fieldToFocus?.scrollIntoView?.();
+    if (toggleBoxRef.isOpen() === false) {
+        toggleBoxRef.toggle();
+    }
+
+    fieldToFocus?.scrollIntoView?.({behavior: 'smooth'});
 
     return Promise.reject();
 };
@@ -47,7 +52,7 @@ const handleErrors = (editorType: EDITOR_TYPE, editorIndex: number) => {
  * Execution is cancelled on the first encounter of an editor error.
  * If an error occurs the first encountered embedded planning editor and the first error field is focused.
  */
-export const handleEmbeddedPlannings = (editorType: EDITOR_TYPE, action: IEmbeddedPlanningsActionType) => {
+export const handleEmbeddedPlannings = (editorType: EDITOR_TYPE, action: IEmbeddedPlanningsActionType = 'SAVE') => {
     return getEmbeddedPlanningExposed(editorType).reduce<Promise<any>>(
         (promise, editorExposed, editorIndex) => promise.then(() => {
             if (editorExposed.hasUnsavedChanges()) {

@@ -237,7 +237,9 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     }
                 },
                 onIgnore: () => {
-                    this.itemManager.unlockAndCancel();
+                    this.itemManager.unlockAndCancel(
+                        embeddedPlanningHasUnsavedChanges() ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+                    );
                 },
                 onSave: onSave,
                 onSaveAndPost: onSaveAndPost,
@@ -262,7 +264,9 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
             this.props.onCancel();
         }
 
-        return this.itemManager.unlockAndCancel();
+        return this.itemManager.unlockAndCancel(
+            embeddedPlanningHasUnsavedChanges() ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+        );
     }
 
     setActiveTab(tab) {

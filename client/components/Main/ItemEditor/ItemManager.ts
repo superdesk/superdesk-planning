@@ -29,8 +29,8 @@ import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
 import {
-    embeddedPlanningHasUnsavedChanges,
     handleEmbeddedPlannings,
+    IEmbeddedPlanningsActionType,
 } from '../../../components/editor-standalone/save-handling';
 
 export class ItemManager {
@@ -830,10 +830,10 @@ export class ItemManager {
             ));
     }
 
-    unlockAndCancel() {
+    unlockAndCancel(embeddedEditorAction?: IEmbeddedPlanningsActionType) {
         return handleEmbeddedPlannings(
             this.props.editorType,
-            embeddedPlanningHasUnsavedChanges() ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+            embeddedEditorAction,
         ).then(() => {
             const {session, currentWorkspace} = this.props;
             const {initialValues, diff} = this.state;
