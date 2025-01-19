@@ -29,13 +29,16 @@ export function getStartOfNextWeek(): moment.Moment {
 
 export const getDateStringFor = {
     today: () => moment()
+        .set({hour: 0})
         .utc()
         .format('YYYY-MM-DD'),
     yesterday: () => moment()
+        .set({hour: 0})
         .utc()
         .subtract(1, 'd')
         .format('YYYY-MM-DD'),
     tomorrow: () => moment()
+        .set({hour: 0})
         .utc()
         .add(1, 'd')
         .format('YYYY-MM-DD'),
