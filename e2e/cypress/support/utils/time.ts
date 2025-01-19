@@ -45,8 +45,8 @@ export const getDateStringFor = {
 
 export function getTimeStringForHour(hour: number): string {
     return moment()
-        .utc()
         .set({hour: hour})
+        .utc()
         .format('THH:00:00+0000');
 }
 
