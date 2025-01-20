@@ -36,7 +36,7 @@ export const ContactLabel: React.FunctionComponent<IProps> = ({contact}) => (
                         <span className="contact-info__job-info">, {contact.job_title}, {contact.organisation}</span>
                     )}
                 </h5>
-                {contact.contact_email[0] && (
+                {contact?.contact_email?.[0] != null && (
                     <span className="contact-info__mail">
                         {contact.contact_email[0]}
                     </span>
