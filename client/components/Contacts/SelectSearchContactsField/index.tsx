@@ -50,9 +50,11 @@ export class SelectSearchContactsField extends React.Component<IProps, {openSele
             ...props
         } = this.props;
 
+        const hasLabel = (label ?? '').trim();
+
         return (
-            <LineInput readOnly={readOnly} {...props}>
-                {label && (
+            <LineInput readOnly={readOnly} {...props} noLabel={!hasLabel}>
+                {hasLabel && (
                     <Label text={label} />
                 )}
                 <SelectListPopup
