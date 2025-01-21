@@ -520,7 +520,10 @@ export function addRelatedPlannings(
         }
 
         if (appConfig.planning_event_link_method === 'one_primary') {
-            if (relatedEvents.length < 1) {
+            // "this" refers to the event that planning items are being added to in this function
+            const relatedEventsExceptThis = relatedEvents.filter(({_id}) => _id !== eventId);
+
+            if (relatedEventsExceptThis.length < 1) {
                 canBeAdded.push({
                     planning: planningToAdd,
                     link_type: 'primary',
