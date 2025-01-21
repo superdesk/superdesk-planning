@@ -19,7 +19,7 @@ interface IReduxProps {
 
 export type IRelatedPlanningProps = IOwnProps & IReduxProps;
 
-export class EventRelatedPlanningWrapper extends React.PureComponent<IRelatedPlanningProps> {
+class EventRelatedPlanningWrapper extends React.PureComponent<IRelatedPlanningProps> {
     render() {
         const {refNode, ...props} = this.props;
 

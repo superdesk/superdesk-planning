@@ -37,7 +37,6 @@ import {EditorFieldEventRecurringRules} from './EventRecurringRules';
 import {EditorFieldEventSchedule} from './EventSchedule';
 import {EditorFieldContacts} from './Contacts';
 import {EditorFieldEventOccurenceStatus} from './EventOccurenceStatus';
-import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlannings';
 import {EditorFieldPlanningDateTime} from './PlanningDateTime';
 import {EditorFieldNotForPublication} from './NotForPublication';
 import {EditorFieldOverrideAutoAssignToWorkflow} from './OverrideAutoAssignToWorkflow';
@@ -53,7 +52,7 @@ import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
-import {EventRelatedPlanningWrapper} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
+import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
 
 /**
  * This is the single source of truth for field definitions, allows for registering
@@ -126,7 +125,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     contacts: EditorFieldContacts,
     event_contact_info: EditorFieldContacts,
     occur_status: EditorFieldEventOccurenceStatus,
-    related_plannings: EventRelatedPlanningWrapper,
+    related_plannings: EditorFieldEventRelatedPlannings,
     planning_date: EditorFieldPlanningDateTime,
     'flags.marked_for_not_publication': EditorFieldNotForPublication,
     marked_for_not_publication: EditorFieldNotForPublication,
