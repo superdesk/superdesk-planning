@@ -1,6 +1,6 @@
 import React, {RefObject} from 'react';
 import {IAuthoringStorage} from 'superdesk-api';
-import {BaseEditorStandalone} from './base-editor-standalone';
+import {BaseEditorComponent, BaseEditorStandalone} from './base-editor-standalone';
 import {getStorageAdapter} from './storage-adapter';
 
 interface IProps {
@@ -9,7 +9,7 @@ interface IProps {
 }
 
 export class PlanningEditorStandalone extends React.PureComponent<IProps> {
-    planningEditorRef: RefObject<any>;
+    planningEditorRef: RefObject<BaseEditorComponent<IPlanningItem>>;
 
     constructor(props: IProps) {
         super(props);

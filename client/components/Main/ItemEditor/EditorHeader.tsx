@@ -169,58 +169,46 @@ export class EditorHeader extends React.Component<IProps> {
         }
 
         if (states.isLockedInContext) {
+            const assignActions = (options?: {canUnpost: boolean}) => {
+                states.canPost = planningUtils.canPostPlanning(
+                    diffCasted,
+                    associatedEvents,
+                    session,
+                    privileges,
+                    lockedItems,
+                );
+
+                if (options?.canUnpost) {
+                    states.canUnpost = planningUtils.canUnpostPlanning(
+                        initialVals,
+                        session,
+                        privileges,
+                        lockedItems,
+                    );
+                }
+
+                states.canUpdate = planningUtils.canUpdatePlanning(
+                    initialVals,
+                    associatedEvents,
+                    session,
+                    privileges,
+                    lockedItems,
+                );
+                states.canEdit = planningUtils.canEditPlanning(
+                    initialVals,
+                    associatedEvents,
+                    session,
+                    privileges,
+                    lockedItems,
+                );
+            };
+
             switch (get(states, 'itemLock.action')) {
             case 'edit':
-                states.canPost = planningUtils.canPostPlanning(
-                    diffCasted,
-                    associatedEvents,
-                    session,
-                    privileges,
-                    lockedItems,
-                );
-                states.canUnpost = planningUtils.canUnpostPlanning(
-                    initialVals,
-                    session,
-                    privileges,
-                    lockedItems,
-                );
-                states.canUpdate = planningUtils.canUpdatePlanning(
-                    initialVals,
-                    associatedEvents,
-                    session,
-                    privileges,
-                    lockedItems,
-                );
-                states.canEdit = planningUtils.canEditPlanning(
-                    initialVals,
-                    associatedEvents,
-                    session,
-                    privileges,
-                    lockedItems,
-                );
+                assignActions({canUnpost: true});
                 break;
             case 'add_to_planning':
-                states.canPost = planningUtils.canPostPlanning(
-                    diffCasted,
-                    associatedEvents,
-                    session,
-                    privileges,
-                    lockedItems
-                );
-                states.canUpdate = planningUtils.canUpdatePlanning(
-                    initialVals,
-                    associatedEvents,
-                    session,
-                    privileges,
-                    lockedItems,
-                );
-                states.canEdit = planningUtils.canEditPlanning(
-                    initialVals,
-                    associatedEvents,
-                    session,
-                    privileges,
-                    lockedItems
-                );
+                assignActions();
                 break;
             }
         }

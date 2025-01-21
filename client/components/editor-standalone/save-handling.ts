@@ -16,21 +16,16 @@ const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE) => {
 
 const getEmbeddedPlanningExposed = (editorType: EDITOR_TYPE): Array<IExposedFromAuthoring<void>> => {
     const relatedPlanningsRefs = getEmbeddedAuthoringRefs(editorType);
-    const exposedAuthoringArray = Object.values(relatedPlanningsRefs ?? []).map((x) => {
-        try {
-            return x.standaloneEditorRef.current.planningEditorRef.current.editorRef.current.getExposed();
-        } catch {
-            return null;
-        }
-    })
-        .filter(isNullOrUndefined);
+    const exposedAuthoringArray = Object.values(relatedPlanningsRefs ?? []).map((x) =>
+        x.standaloneEditorRef.current.planningEditorRef.current.editorRef.current.getExposed(),
+    );
 
     return exposedAuthoringArray;
 };
 
-const FIRST_ERROR = 0;
 
 const handleErrors = (editorType: EDITOR_TYPE, editorIndex: number) => {
+    const FIRST_ERROR = 0;
     const relatedPlanningRef = getEmbeddedAuthoringRefs(editorType)[editorIndex];
     const firstEditorRef =
         relatedPlanningRef.standaloneEditorRef.current.planningEditorRef.current.editorRef.current;
@@ -52,33 +47,33 @@ const handleErrors = (editorType: EDITOR_TYPE, editorIndex: number) => {
  * Execution is cancelled on the first encounter of an editor error.
  * If an error occurs the first encountered embedded planning editor and the first error field is focused.
  */
-export const handleEmbeddedPlannings = (editorType: EDITOR_TYPE, action: IEmbeddedPlanningsActionType = 'SAVE') => {
-    return getEmbeddedPlanningExposed(editorType).reduce<Promise<any>>(
-        (promise, editorExposed, editorIndex) => promise.then(() => {
-            if (editorExposed.hasUnsavedChanges()) {
+export const handleEmbeddedPlannings = async(
+    editorType: EDITOR_TYPE,
+    action: IEmbeddedPlanningsActionType,
+) => {
+    const planningsExposed = getEmbeddedPlanningExposed(editorType);
+    let editorIndex = 0;
+    let promiseResult = Promise.resolve();
+
+    for (const planning of planningsExposed) {
+        promiseResult = promiseResult.then(() => {
+            if (planning.hasUnsavedChanges()) {
                 if (action === 'SAVE') {
-                    return editorExposed.save().catch(() => handleErrors(editorType, editorIndex));
+                    return planning.save().catch(() => handleErrors(editorType, editorIndex));
                 } else if (action === 'DISCARD') {
-                    return editorExposed.discardUnsavedChanges();
+                    return planning.discardUnsavedChanges();
                 } else {
-                    return editorExposed.handleUnsavedChanges().catch(() => handleErrors(editorType, editorIndex));
+                    return planning.handleUnsavedChanges().catch(() => handleErrors(editorType, editorIndex));
                 }
             }
 
-            return Promise.resolve();
-        }),
-        Promise.resolve(),
-    );
+            editorIndex++;
+        });
+    }
+
+    return promiseResult;
 };
 
 export const embeddedPlanningHasUnsavedChanges = () => {
-    let hasUnsavedChanges = false;
-
-    getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE).forEach((x) => {
-        if (x.hasUnsavedChanges() && hasUnsavedChanges === false) {
-            hasUnsavedChanges = true;
-        }
-    });
-
-    return hasUnsavedChanges;
+    return getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE).some((x) => x.hasUnsavedChanges());
 };

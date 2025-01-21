@@ -830,7 +830,7 @@ export class ItemManager {
             ));
     }
 
-    unlockAndCancel(embeddedEditorAction?: IEmbeddedPlanningsActionType) {
+    unlockAndCancel(embeddedEditorAction: IEmbeddedPlanningsActionType = 'SAVE') {
         return handleEmbeddedPlannings(
             this.props.editorType,
             embeddedEditorAction,
