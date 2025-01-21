@@ -1086,6 +1086,13 @@ class PlanningService(Service):
             if planning_original.get("name") != planning_updates.get("name"):
                 assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
 
+            # If the coverage assignee has been changed and workflow status is active
+            if original.get("workflow_status") != WORKFLOW_STATE.DRAFT and self.is_coverage_assignment_modified(
+                updates, original_assignment
+            ):
+                assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                assignment["assigned_to"] = assigned_to
+
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
                 "internal_note"

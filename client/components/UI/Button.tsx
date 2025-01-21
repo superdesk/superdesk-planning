@@ -26,6 +26,7 @@ export interface IUIButtonProps {
     children?: React.ReactNode;
     pullRight?: boolean;
     empty?: boolean;
+    testId?: string;
 }
 
 const Button = ({
@@ -51,6 +52,7 @@ const Button = ({
     refNode,
     onKeyDown,
     children,
+    testId,
     ...props
 }: IButtonProps) => {
     const handeKeyDown = (event) => {
@@ -90,6 +92,7 @@ const Button = ({
             onKeyDown={enterKeyIsClick ? handeKeyDown : onKeyDown}
             autoFocus={autoFocus}
             ref={refNode}
+            data-test-id={testId}
             {...props}
         >
             {icon && <i className={icon} />}

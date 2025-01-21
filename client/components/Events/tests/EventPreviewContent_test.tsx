@@ -133,10 +133,8 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(eventDetailRows.at(2), 'Long Description:', 'long description');
         verifyDataRow(eventDetailRows.at(3), 'Internal Note:', 'internal note');
 
-        let contacts = wrapper.find('.contact-info');
-
-        expect(contacts.find('.contact-info__name').first()
-            .text()).toBe(`${storeContact.first_name} ${storeContact.last_name} `);
+        expect(wrapper.find('.contact-name').first()
+            .text()).toBe(`${storeContact.first_name} ${storeContact.last_name}`);
 
         let files = wrapper.find('.toggle-box').at(1);
 

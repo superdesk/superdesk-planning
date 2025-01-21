@@ -19,7 +19,7 @@ export class Editor extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldLocation
-                field='location'
+                field="location"
                 enableExternalSearch
                 item={{
                     location: convertedValue,

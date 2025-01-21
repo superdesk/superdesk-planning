@@ -45,12 +45,12 @@ export const validateItem = ({
     profileName,
     diff,
     item = {},
-    formProfiles,
+    formProfiles = null,
     errors,
     messages = [],
     fields = null,
     ignoreDateValidation = false,
-    fieldsToValidate,
+    fieldsToValidate = null,
 }) => (
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());

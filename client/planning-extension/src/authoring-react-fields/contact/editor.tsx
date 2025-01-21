@@ -5,7 +5,6 @@ import {
 } from 'superdesk-api';
 import {IContactFieldConfig, IContactValueOperational} from './interfaces';
 import {extensionBridge} from '../../extension_bridge';
-import {superdesk} from '../../superdesk';
 
 type IProps = IEditorComponentProps<IContactValueOperational, IContactFieldConfig, IUrlsFieldUserPreferences>;
 
@@ -19,7 +18,6 @@ export class Editor extends React.PureComponent<IProps> {
                 <EditorFieldContact
                     testId="contact"
                     field="contact"
-                    label={superdesk.localization.gettext('Contact')}
                     value={this.props.value as any}
                     onChange={(_field: string, value: any) => {
                         this.props.onChange(value);

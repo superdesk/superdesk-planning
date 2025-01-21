@@ -7,13 +7,19 @@ import {Spacer} from 'superdesk-ui-framework/react';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import './style.scss';
+import {IContactItem} from 'interfaces';
 
 interface IProps {
-    contacts?: {[key: string]: IContact};
-    contactIds: Array<IContact['_id']>;
-    fetchContacts(ids: Array<IContact['_id']>): Promise<IContact>;
-    onEditContact?(contact: IContact): void;
-    onRemoveContact?(contact: IContact): void;
+    contacts?: {[key: string]: IContactItem};
+    contactIds: Array<IContactItem['_id']>;
+    scrollInView?: boolean;
+    tabEnabled?: boolean;
+    readOnly?: boolean;
+    inner?: boolean;
+
+    fetchContacts(ids: Array<IContactItem['_id']>): Promise<IContactItem>;
+    onEditContact?(contact: IContactItem): void;
+    onRemoveContact?(contact: IContactItem): void;
 }
 
 interface IState {

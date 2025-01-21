@@ -278,6 +278,7 @@ export class TimeInput extends React.Component {
                     onFocus={onFocus}
                     onClick={!readOnly ? this.toggleOpenTimePicker : null}
                     aria-label={gettext('Time picker')}
+                    testId="time-popup-toggle"
                 />
                 <Input
                     field={field}

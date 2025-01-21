@@ -57,77 +57,75 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
         const itemDescription = this.props.item.name || this.props.item.description_text || '';
 
         return (
-            <List.Group spaceBetween={true} className="m-0">
-                <List.Item
-                    noBg={this.props.noBg}
-                    activated={this.props.active}
-                    shadow={this.props.shadow}
-                    onClick={this.props.onClick}
+            <List.Item
+                noBg={this.props.noBg}
+                activated={this.props.active}
+                shadow={this.props.shadow}
+                onClick={this.props.onClick}
+            >
+                {!(this.props.showBorder && isItemLocked) ? null : (
+                    <List.Border state="locked" />
+                )}
+                <List.Column
+                    grow={true}
+                    border={false}
                 >
-                    {!(this.props.showBorder && isItemLocked) ? null : (
-                        <List.Border state="locked" />
-                    )}
-                    <List.Column
-                        grow={true}
-                        border={false}
-                    >
-                        <List.Row>
-                            {this.props.showIcon !== true ? null : (
-                                <i
-                                    role="presentation"
-                                    className="icon-calendar icon--light-blue"
-                                />
-                            )}
-                            {(this.props.item.slugline?.length ?? 0) === 0 ? null : (
-                                <span className="sd-list-item__slugline">
-                                    {this.props.item.slugline}
-                                </span>
-                            )}
-                            {itemDescription.length === 0 ? null : (
-                                <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                    {this.props.item.name || this.props.item.description_text}
-                                </span>
-                            )}
-                        </List.Row>
-                        <List.Row
-                            classes="sd-list-item__row--overflow-visible me-1"
-                            style={{overflow: 'visible'}} // Adding static style here, so it works with Superdesk 2.7
-                        >
-                            <Label
-                                text={stateLabel.label}
-                                style="translucent"
-                                type={stateLabel.iconType}
+                    <List.Row>
+                        {this.props.showIcon !== true ? null : (
+                            <i
+                                role="presentation"
+                                className="icon-calendar icon--light-blue"
                             />
-                            {this.props.isAgendaEnabled === false ? null : (
-                                <div className="sd-display--flex">
-                                    <span className="sd-list-item__text-label">
-                                        {gettext('Agenda:')}
-                                    </span>
-                                    <span
-                                        className="ms-0-5 sd-overflow--ellipsis
-                                        sd-list-item__text-strong sd-list-item--element-grow"
-                                    >
-                                        <AgendaNameList agendas={agendas} />
-                                    </span>
-                                </div>
-                            )}
-                            <span className="sd-margin-s--auto">
-                                <CoverageIcons
-                                    coverages={(this.props.item.coverages ?? [])}
-                                    users={this.props.users}
-                                    desks={this.props.desks}
-                                    contentTypes={this.props.contentTypes}
-                                />
+                        )}
+                        {(this.props.item.slugline?.length ?? 0) === 0 ? null : (
+                            <span className="sd-list-item__slugline">
+                                {this.props.item.slugline}
                             </span>
-                        </List.Row>
-                    </List.Column>
-                    {this.props.editPlanningComponent == null ? null : (
-                        <List.ActionMenu>
-                            {this.props.editPlanningComponent}
-                        </List.ActionMenu>
-                    )}
-                </List.Item>
-            </List.Group>
+                        )}
+                        {itemDescription.length === 0 ? null : (
+                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                {this.props.item.name || this.props.item.description_text}
+                            </span>
+                        )}
+                    </List.Row>
+                    <List.Row
+                        classes="sd-list-item__row--overflow-visible me-1"
+                        style={{overflow: 'visible'}} // Adding static style here, so it works with Superdesk 2.7
+                    >
+                        <Label
+                            text={stateLabel.label}
+                            style="translucent"
+                            type={stateLabel.iconType}
+                        />
+                        {this.props.isAgendaEnabled === false ? null : (
+                            <div className="sd-display--flex">
+                                <span className="sd-list-item__text-label">
+                                    {gettext('Agenda:')}
+                                </span>
+                                <span
+                                    className="ms-0-5 sd-overflow--ellipsis
+                                    sd-list-item__text-strong sd-list-item--element-grow"
+                                >
+                                    <AgendaNameList agendas={agendas} />
+                                </span>
+                            </div>
+                        )}
+                        <span className="sd-margin-s--auto">
+                            <CoverageIcons
+                                coverages={(this.props.item.coverages ?? [])}
+                                users={this.props.users}
+                                desks={this.props.desks}
+                                contentTypes={this.props.contentTypes}
+                            />
+                        </span>
+                    </List.Row>
+                </List.Column>
+                {this.props.editPlanningComponent == null ? null : (
+                    <List.ActionMenu>
+                        {this.props.editPlanningComponent}
+                    </List.ActionMenu>
+                )}
+            </List.Item>
         );
     }
 }

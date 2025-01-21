@@ -11,12 +11,14 @@ import {superdesk} from '../../superdesk';
 
 const {gettext} = superdesk.localization;
 
-export function getLocationField(): ICustomFieldType<
+type IReturnType = ICustomFieldType<
     ILocationValueOperational,
     ILocationValueStorage,
     ILocationFieldConfig,
     ILocationFieldUserPreferences
-> {
+>;
+
+export function getLocationField(): IReturnType {
     const field: ReturnType<typeof getLocationField> = {
         id: 'location',
         generic: false,
