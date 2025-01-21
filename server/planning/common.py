@@ -856,7 +856,7 @@ def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
         # The local version has not been published yet
         # So remove the provided ``pubstatus``
         updates.pop("pubstatus", None)
-    elif original.get("pubstatus") == updates.get("ingest_pubstatus") or original.get("pubstatus"):
+    elif original.get("pubstatus") == updates.get("ingest_pubstatus"):
         # The local version has been published
         # and no change to ``pubstatus`` on ingested item
         updates.pop("state")
