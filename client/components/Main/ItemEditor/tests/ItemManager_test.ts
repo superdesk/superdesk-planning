@@ -124,7 +124,7 @@ describe('components.Main.ItemManager', () => {
                     editor.props.onCancel();
                 }
 
-                return manager.unlockAndCancel();
+                return manager.unlockAndCancel('SAVE');
             }),
             onChangeHandler: sinon.spy((field, value) => {
                 const diff = field ? Object.assign({}, editor.state.diff) : cloneDeep(value);
@@ -1531,7 +1531,7 @@ describe('components.Main.ItemManager', () => {
                 diff: testData.events[0],
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('SAVE')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
@@ -1554,7 +1554,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('SAVE')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
                     expect(editor.autoSave.remove.callCount).toBe(1);
@@ -1576,7 +1576,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('SAVE')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 

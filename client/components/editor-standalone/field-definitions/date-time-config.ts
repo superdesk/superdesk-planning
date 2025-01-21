@@ -25,6 +25,7 @@ export function getPlanningDateField(): IFieldDefinition {
         },
         storageAdapterPlanning: {
             retrieveStoredValue: (item, fieldId) => {
+                // TODO: FIX THIS console.log(item[fieldId]);
                 if (typeof item[fieldId] === 'object') {
                     return (item[fieldId] as moment.Moment).toString();
                 }
