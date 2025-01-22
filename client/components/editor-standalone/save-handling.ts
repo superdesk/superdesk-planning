@@ -16,8 +16,10 @@ const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE) => {
 
 const getEmbeddedPlanningExposed = (editorType: EDITOR_TYPE): Array<IExposedFromAuthoring<void>> => {
     const relatedPlanningsRefs = getEmbeddedAuthoringRefs(editorType);
+
+    // Crashes whenever there's no embedded plannings
     const exposedAuthoringArray = Object.values(relatedPlanningsRefs ?? []).map((x) =>
-        x.standaloneEditorRef.current.planningEditorRef.current.editorRef.current.getExposed(),
+        x?.standaloneEditorRef?.current?.planningEditorRef?.current?.editorRef?.current?.getExposed?.(),
     );
 
     return exposedAuthoringArray;
@@ -75,5 +77,5 @@ export const handleEmbeddedPlannings = async(
 };
 
 export const embeddedPlanningHasUnsavedChanges = () => {
-    return getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE).some((x) => x.hasUnsavedChanges());
+    return getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE).some((x) => x?.hasUnsavedChanges?.());
 };
