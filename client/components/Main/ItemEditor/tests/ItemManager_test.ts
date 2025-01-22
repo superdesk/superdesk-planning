@@ -1,20 +1,15 @@
 import sinon from 'sinon';
 import {cloneDeep} from 'lodash';
 import moment from 'moment-timezone';
-
 import {appConfig} from 'appConfig';
-
 import {planningApi} from '../../../../superdeskApi';
 import {main} from '../../../../actions';
-import planningUi from '../../../../actions/planning/ui';
-
 import {EVENTS} from '../../../../constants';
 import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues, removeAutosaveFields} from '../../../../utils';
 import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
-
 import {ItemManager} from '../ItemManager';
-
+import {EDITOR_TYPE} from 'interfaces';
 
 describe('components.Main.ItemManager', () => {
     let editor;
@@ -90,7 +85,7 @@ describe('components.Main.ItemManager', () => {
                 newsCoverageStatus: null,
                 defaultDesk: null,
                 onCancel: null,
-
+                editorType: EDITOR_TYPE.INLINE,
                 occurStatuses: testData.vocabularies.eventoccurstatus,
                 defaultCalendar: [],
                 defaultPlace: [],
@@ -1554,6 +1549,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
+            debugger;
             manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);

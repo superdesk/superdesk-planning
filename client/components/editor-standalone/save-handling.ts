@@ -1,4 +1,3 @@
-import {isNullOrUndefined} from 'core/helpers/typescript-helpers';
 import {EDITOR_TYPE} from '../../interfaces';
 import {IExposedFromAuthoring} from 'superdesk-api';
 import {planningApi} from '../../superdeskApi';
@@ -79,9 +78,5 @@ export const handleEmbeddedPlannings = async(
 export const embeddedPlanningHasUnsavedChanges = () => {
     const planningsExposed = getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE);
 
-    if (planningsExposed.length > 0) {
-        return planningsExposed.some((x) => x.hasUnsavedChanges());
-    }
-
-    return false;
+    return (planningsExposed ?? []).some((x) => x.hasUnsavedChanges());
 };
