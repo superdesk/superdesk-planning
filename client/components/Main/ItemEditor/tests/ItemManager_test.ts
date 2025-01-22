@@ -1549,7 +1549,6 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            debugger;
             manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
