@@ -17,7 +17,6 @@ import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
 import {ContentBlock} from '../../UI/SidePanel';
 import {EventScheduleSummary} from '../EventScheduleSummary';
-import {appConfig} from 'appConfig';
 
 interface IProps {
     original?: IEventItem;
@@ -105,10 +104,6 @@ class EventEditorComponent extends React.PureComponent<IProps> {
     }
 
     renderHeader() {
-        if (appConfig.planning_event_link_method === 'many_secondary') {
-            return null;
-        }
-
         return !this.props.itemExists ? null : (
             <React.Fragment>
                 <EventEditorHeader item={this.props.item} />
@@ -157,9 +152,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                         required: true,
                         showAllDay: this.props.formProfile.editor.dates.all_day.enabled,
                         showTimeZone: true,
-                        enabled: appConfig.planning_event_link_method === 'many_secondary'
-                            ? true
-                            : !this.props.itemExists,
+                        enabled: !this.props.itemExists,
                         onChange: this.onDatesChanged,
                     },
                     language: {
