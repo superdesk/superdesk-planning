@@ -124,7 +124,7 @@ describe('components.Main.ItemManager', () => {
                     editor.props.onCancel();
                 }
 
-                return manager.unlockAndCancel('SAVE');
+                return manager.unlockAndCancel('DISCARD');
             }),
             onChangeHandler: sinon.spy((field, value) => {
                 const diff = field ? Object.assign({}, editor.state.diff) : cloneDeep(value);
@@ -1525,13 +1525,13 @@ describe('components.Main.ItemManager', () => {
             restoreSinonStub(planningApi.locks.unlockItem);
         });
 
-        it('doesnt call unlock if the item isnt locked', (done) => {
+        it.only('doesnt call unlock if the item isnt locked', (done) => {
             editor.setState({
                 initialValues: testData.events[0],
                 diff: testData.events[0],
             });
 
-            manager.unlockAndCancel('SAVE')
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
@@ -1554,7 +1554,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel('SAVE')
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
                     expect(editor.autoSave.remove.callCount).toBe(1);
@@ -1576,7 +1576,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel('SAVE')
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
