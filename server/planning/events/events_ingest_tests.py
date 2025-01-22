@@ -16,6 +16,7 @@ class EventIngestTestCase(TestCase):
             "dates": dates,
             "state": "ingested",
             "versioncreated": datetime.now() - timedelta(hours=1),
+            "anpa_category": [{"name": "C1", "qcode": "c1"}],
         }
 
         # event is created
@@ -24,7 +25,7 @@ class EventIngestTestCase(TestCase):
         assert 1 == len(history)
 
         # user updates the event
-        updates = {"definition_short": "manual", "ednote": "manual"}
+        updates = {"definition_short": "manual", "ednote": "manual", "anpa_category": [{"name": "C2", "qcode": "c2"}]}
         with self.app.test_request_context():
             g.user = {"_id": "test"}
             events_service.patch(old_event["_id"], updates)
@@ -40,6 +41,7 @@ class EventIngestTestCase(TestCase):
             "dates": dates,
             "definition_short": "updated",
             "versioncreated": datetime.now() - timedelta(minutes=30),
+            "anpa_category": [{"name": "C1", "qcode": "c1"}],
         }
         old_event = events_service.find_one(req=None, guid="1")
 
@@ -53,3 +55,4 @@ class EventIngestTestCase(TestCase):
         assert updated_event["name"] == "updated"
         assert updated_event["ednote"] == "manual"
         assert updated_event["definition_short"] == "manual"
+        assert updated_event["anpa_category"] == [{"name": "C2", "qcode": "c2"}]

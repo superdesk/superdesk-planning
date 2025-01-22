@@ -95,6 +95,9 @@ CONTENT_FIELDS = {
     "links",
     "ednote",
     "subject",
+    "anpa_category",
+    "location",
+    "event_contact_info",
 }
 
 
