@@ -1525,7 +1525,7 @@ describe('components.Main.ItemManager', () => {
             restoreSinonStub(planningApi.locks.unlockItem);
         });
 
-        it.only('doesnt call unlock if the item isnt locked', (done) => {
+        it('doesnt call unlock if the item isnt locked', (done) => {
             editor.setState({
                 initialValues: testData.events[0],
                 diff: testData.events[0],

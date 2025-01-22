@@ -11,14 +11,14 @@ const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE) => {
     const embeddedEditorRef = planningApi.editor(editorType).dom.fields['related_plannings']?.current;
     const relatedPlanningsRefs: IRelatedPlanningRefs = embeddedEditorRef?.relatedPlanningRefs;
 
-    return relatedPlanningsRefs;
+    return relatedPlanningsRefs ?? [];
 };
 
 const getEmbeddedPlanningExposed = (editorType: EDITOR_TYPE): Array<IExposedFromAuthoring<void>> => {
     const relatedPlanningsRefs = getEmbeddedAuthoringRefs(editorType);
 
     // Crashes whenever there's no embedded plannings
-    const exposedAuthoringArray = Object.values(relatedPlanningsRefs ?? []).map((x) =>
+    const exposedAuthoringArray = Object.values(relatedPlanningsRefs).map((x) =>
         x?.standaloneEditorRef?.current?.planningEditorRef?.current?.editorRef?.current?.getExposed?.(),
     );
 
@@ -77,5 +77,11 @@ export const handleEmbeddedPlannings = async(
 };
 
 export const embeddedPlanningHasUnsavedChanges = () => {
-    return getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE).some((x) => x?.hasUnsavedChanges?.());
+    const planningsExposed = getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE);
+
+    if (planningsExposed.length > 0) {
+        return planningsExposed.some((x) => x.hasUnsavedChanges());
+    }
+
+    return false;
 };
