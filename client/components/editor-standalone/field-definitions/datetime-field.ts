@@ -1,9 +1,8 @@
 import {IAuthoringFieldV2, IDateTimeFieldConfig} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from './interfaces';
-import moment from 'moment';
 
-export function getPlanningDateField(): IFieldDefinition {
+export function getPlanningDateTimeField(): IFieldDefinition {
     return {
         fieldId: 'planning_date',
         getField: ({id, required}) => {
@@ -24,20 +23,11 @@ export function getPlanningDateField(): IFieldDefinition {
             return field;
         },
         storageAdapterPlanning: {
-            retrieveStoredValue: (item, fieldId) => {
-                // TODO: FIX THIS console.log(item[fieldId]);
-                if (typeof item[fieldId] === 'object') {
-                    return (item[fieldId] as moment.Moment).toString();
-                }
-
-                return item[fieldId];
-            },
-            storeValue: (item, operationalValue) => {
-                return {
-                    ...item,
-                    planning_date: operationalValue ? moment(operationalValue).toISOString() : undefined,
-                };
-            }
+            retrieveStoredValue: (item, fieldId) => new Date(item[fieldId]),
+            storeValue: (item, operationalValue) => ({
+                ...item,
+                planning_date: operationalValue,
+            })
         }
     };
 }

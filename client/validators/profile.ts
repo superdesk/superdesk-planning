@@ -1,9 +1,7 @@
-import {get, isEmpty} from 'lodash';
-
-import {IVocabularyItem, ISubject} from 'superdesk-api';
-import {IEditorProfile, IProfileSchemaTypeList, IEventOrPlanningItem} from '../interfaces';
+import {get, isDate, isEmpty} from 'lodash';
+import {ISubject} from 'superdesk-api';
+import {IEditorProfile, IEventOrPlanningItem} from '../interfaces';
 import {planningApi} from '../superdeskApi';
-
 import {gettext} from '../utils';
 
 export const formProfile = ({field, value, profile, errors, messages, diff}) => {
@@ -13,7 +11,6 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
     }
 
     const schema = get(profile, `schema.${field}`) || {};
-
     const fieldValue = (typeof value === 'string') ? value.trim() : value;
 
     if (!schema.required && get(fieldValue, length, 0) < 1) {
@@ -40,8 +37,11 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too long');
             messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required && !schema.multilingual && (
-        typeof fieldValue === 'number' ? !fieldValue : isEmpty(fieldValue))) {
+    } else if (schema.required
+        && !schema.multilingual
+        // lodash's `isEmpty` does not handle date values correctly
+        && ((typeof fieldValue === 'number' || isDate(fieldValue)) ? !fieldValue : isEmpty(fieldValue))
+    ) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else if (schema.required && schema.multilingual && field !== 'language') {
