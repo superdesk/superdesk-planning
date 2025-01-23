@@ -37,7 +37,6 @@ import {EditorFieldEventRecurringRules} from './EventRecurringRules';
 import {EditorFieldEventSchedule} from './EventSchedule';
 import {EditorFieldContacts} from './Contacts';
 import {EditorFieldEventOccurenceStatus} from './EventOccurenceStatus';
-import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlannings';
 import {EditorFieldPlanningDateTime} from './PlanningDateTime';
 import {EditorFieldNotForPublication} from './NotForPublication';
 import {EditorFieldOverrideAutoAssignToWorkflow} from './OverrideAutoAssignToWorkflow';
@@ -53,6 +52,7 @@ import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
+import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
 
 /**
  * This is the single source of truth for field definitions, allows for registering

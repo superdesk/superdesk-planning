@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {createRef, RefObject} from 'react';
 import {connect} from 'react-redux';
 import {noop} from 'lodash';
 import {Button} from 'superdesk-ui-framework/react';
@@ -30,7 +30,6 @@ function validate<T extends IPlanningItem | IEventItem>(
     latestItem: T,
 ): IAuthoringValidationErrors {
     const planningProfile = planningApi.contentProfiles.get(entityType);
-
     const errors = {};
     const messages = [];
 
@@ -57,12 +56,21 @@ function validate<T extends IPlanningItem | IEventItem>(
 }
 
 export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends React.PureComponent<IProps<T>> {
+    editorRef: RefObject<any>;
+
+    constructor(props: IProps<T>) {
+        super(props);
+
+        this.editorRef = createRef();
+    }
+
     render() {
         const Authoring = superdeskApi.components.getAuthoringComponent<T>();
         const {gettext} = superdeskApi.localization;
 
         return (
             <Authoring
+                ref={this.editorRef}
                 itemId={this.props.itemId}
                 resourceNames={[this.props.entityType]}
                 onClose={noop}
@@ -130,4 +138,4 @@ function mapStateToProps(state: IPlanningAppState): IReduxProps {
     };
 }
 
-export const BaseEditorStandalone = connect(mapStateToProps)(BaseEditorComponent);
+export const BaseEditorStandalone = connect(mapStateToProps, null, null, {forwardRef: true})(BaseEditorComponent);

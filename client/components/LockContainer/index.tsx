@@ -1,15 +1,26 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
-
-import {UserAvatarWithMargin} from '../../components/UserAvatar';
+import {UserAvatar} from '../../components/UserAvatar';
 import {LockContainerPopup} from './LockContainerPopup';
 
 import './style.scss';
 
-export class LockContainer extends React.Component {
-    constructor(props) {
+interface LockContainerProps {
+    lockedUser: any;
+    users: any[] | any;
+    displayText?: string;
+    showUnlock?: boolean;
+    onUnlock?: () => void;
+    noMargin?: boolean;
+}
+
+interface LockContainerState {
+    openUnlockPopup: boolean;
+}
+
+export class LockContainer extends React.Component<LockContainerProps, LockContainerState> {
+    constructor(props: LockContainerProps) {
         super(props);
         this.state = {openUnlockPopup: false};
         this.toggleOpenUnlockPopup = this.toggleOpenUnlockPopup.bind(this);
@@ -24,10 +35,8 @@ export class LockContainer extends React.Component {
             lockedUser,
             users,
             displayText,
-            showUnlock,
-            withLoggedInfo,
+            showUnlock = true,
             onUnlock,
-            small,
             noMargin,
         } = this.props;
 
@@ -49,7 +58,7 @@ export class LockContainer extends React.Component {
                     )}
                 >
                     <a onClick={this.toggleOpenUnlockPopup}>
-                        <UserAvatarWithMargin user={user} />
+                        <UserAvatar user={user} />
                     </a>
                 </div>
                 {this.state.openUnlockPopup && (
@@ -66,23 +75,3 @@ export class LockContainer extends React.Component {
         );
     }
 }
-
-LockContainer.propTypes = {
-    lockedUser: PropTypes.object,
-    users: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.object,
-    ]),
-    displayText: PropTypes.string,
-    showUnlock: PropTypes.bool,
-    withLoggedInfo: PropTypes.bool,
-    onUnlock: PropTypes.func,
-    small: PropTypes.bool,
-    noMargin: PropTypes.bool,
-};
-
-LockContainer.defaultProps = {
-    showUnlock: true,
-    withLoggedInfo: true,
-    small: true,
-};

@@ -1,20 +1,15 @@
 import sinon from 'sinon';
 import {cloneDeep} from 'lodash';
 import moment from 'moment-timezone';
-
 import {appConfig} from 'appConfig';
-
 import {planningApi} from '../../../../superdeskApi';
 import {main} from '../../../../actions';
-import planningUi from '../../../../actions/planning/ui';
-
 import {EVENTS} from '../../../../constants';
 import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues, removeAutosaveFields} from '../../../../utils';
 import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
-
 import {ItemManager} from '../ItemManager';
-
+import {EDITOR_TYPE} from 'interfaces';
 
 describe('components.Main.ItemManager', () => {
     let editor;
@@ -90,7 +85,7 @@ describe('components.Main.ItemManager', () => {
                 newsCoverageStatus: null,
                 defaultDesk: null,
                 onCancel: null,
-
+                editorType: EDITOR_TYPE.INLINE,
                 occurStatuses: testData.vocabularies.eventoccurstatus,
                 defaultCalendar: [],
                 defaultPlace: [],
@@ -124,7 +119,7 @@ describe('components.Main.ItemManager', () => {
                     editor.props.onCancel();
                 }
 
-                return manager.unlockAndCancel();
+                return manager.unlockAndCancel('DISCARD');
             }),
             onChangeHandler: sinon.spy((field, value) => {
                 const diff = field ? Object.assign({}, editor.state.diff) : cloneDeep(value);
@@ -1531,7 +1526,7 @@ describe('components.Main.ItemManager', () => {
                 diff: testData.events[0],
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 
@@ -1554,7 +1549,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
                     expect(editor.autoSave.remove.callCount).toBe(1);
@@ -1576,7 +1571,7 @@ describe('components.Main.ItemManager', () => {
                 diff: initialValues,
             });
 
-            manager.unlockAndCancel()
+            manager.unlockAndCancel('DISCARD')
                 .then(() => {
                     expect(planningApi.locks.unlockItem.callCount).toBe(0);
 

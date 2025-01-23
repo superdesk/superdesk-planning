@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
 import {isEqual} from 'lodash';
-
 import {
     IEventItem,
     IEventFormProfile,
@@ -9,19 +8,15 @@ import {
     IPlanningItem,
     IFormItemManager,
     EDITOR_TYPE,
-    ILocation,
 } from '../../../interfaces';
 import {IVocabularyItem} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
-
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-
 import {EditorForm} from '../../Editor/EditorForm';
 import {EventEditorHeader} from './EventEditorHeader';
 import {ContentBlock} from '../../UI/SidePanel';
 import {EventScheduleSummary} from '../EventScheduleSummary';
-import {CreateNewGeoLookup} from '../../GeoLookupInput/CreateNewGeoLookup';
 
 interface IProps {
     original?: IEventItem;

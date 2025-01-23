@@ -1,10 +1,9 @@
-import {get, isEmpty} from 'lodash';
-
-import {IVocabularyItem, ISubject} from 'superdesk-api';
-import {IEditorProfile, IProfileSchemaTypeList, IEventOrPlanningItem} from '../interfaces';
+import {get, isDate, isEmpty} from 'lodash';
+import {ISubject} from 'superdesk-api';
+import {IEditorProfile, IEventOrPlanningItem} from '../interfaces';
 import {planningApi} from '../superdeskApi';
-
 import {gettext} from '../utils';
+import {isValid} from 'date-fns';
 
 export const formProfile = ({field, value, profile, errors, messages, diff}) => {
     // If the field is not enabled or no schema defined, then simply return
@@ -13,7 +12,6 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
     }
 
     const schema = get(profile, `schema.${field}`) || {};
-
     const fieldValue = (typeof value === 'string') ? value.trim() : value;
 
     if (!schema.required && get(fieldValue, length, 0) < 1) {
@@ -32,6 +30,16 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
 
     fieldLabel = gettext(fieldLabel).toUpperCase();
 
+    const hasValidValue = (() => {
+        if (typeof fieldValue === 'number') {
+            return isNaN(fieldValue) === false;
+        } else if (isDate(fieldValue)) {
+            return isValid(fieldValue);
+        }
+
+        return isEmpty(fieldValue) === false;
+    })();
+
     if (get(schema, 'maxlength', 0) > 0 && get(fieldValue, 'length', 0) > schema.maxlength) {
         if (get(schema, 'type', 'string') === 'list') {
             errors[field] = gettext('Too many {{ name }}', {name: field});
@@ -40,8 +48,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too long');
             messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required && !schema.multilingual && (
-        typeof fieldValue === 'number' ? !fieldValue : isEmpty(fieldValue))) {
+    } else if (schema.required && !schema.multilingual && !hasValidValue) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else if (schema.required && schema.multilingual && field !== 'language') {

@@ -1,29 +1,39 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
-
 import './style.scss';
 
-/**
- * @ngdoc react
- * @name Button
- * @description Button Component for a NavBar
- */
-export const Button = ({
+interface IProps {
+    className?: string;
+    onClick?: () => void;
+    icon?: string;
+    tooltip?: string;
+    tooltipDirection?: 'top' | 'down' | 'left' | 'right';
+    children?: React.ReactNode;
+    dropdown?: boolean;
+    textWithIcon?: boolean;
+    left?: boolean;
+    darker?: boolean;
+    active?: boolean;
+    navbtn?: boolean;
+    noBorderNoPadding?: boolean;
+    disabled?: boolean;
+}
+
+export const Button: React.FC<IProps> = ({
     className,
     onClick,
     icon,
     tooltip,
-    tooltipDirection,
+    tooltipDirection = 'top',
     children,
-    dropdown,
-    textWithIcon,
-    left,
-    darker,
-    active,
-    navbtn,
+    dropdown = false,
+    textWithIcon = false,
+    left = false,
+    darker = false,
+    active = false,
+    navbtn = true,
     noBorderNoPadding,
-    disabled,
+    disabled = false,
     ...props
 }) => (
     <button
@@ -51,31 +61,3 @@ export const Button = ({
         {children}
     </button>
 );
-
-Button.propTypes = {
-    className: PropTypes.string,
-    onClick: PropTypes.func,
-    icon: PropTypes.string,
-    tooltip: PropTypes.string,
-    tooltipDirection: PropTypes.oneOf(['top', 'down', 'left', 'right']),
-    children: PropTypes.node,
-    dropdown: PropTypes.bool,
-    textWithIcon: PropTypes.bool,
-    left: PropTypes.bool,
-    darker: PropTypes.bool,
-    active: PropTypes.bool,
-    navbtn: PropTypes.bool,
-    noBorderNoPadding: PropTypes.bool,
-    disabled: PropTypes.bool,
-};
-
-Button.defaultProps = {
-    tooltipDirection: 'top',
-    dropdown: false,
-    textWithIcon: false,
-    left: false,
-    darker: false,
-    active: false,
-    navbtn: true,
-    disabled: false,
-};

@@ -7,7 +7,7 @@ import {
 } from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {getCustomVocabularyFields} from '../field-adapters/custom-vocabularies';
-import {getDateTimeField} from './date-time-config';
+import {getPlanningDateTimeField} from './datetime-field';
 import {IFieldDefinitions, IFieldDefinition} from './interfaces';
 import {getTextFieldConfig} from './text-field-config';
 import {getPlaceField} from './place-field';
@@ -49,11 +49,6 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
             getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Headline'), required: required}),
         },
         {
-            fieldId: 'planning_date',
-            getField: ({required, id}) =>
-                getDateTimeField({id: id, label: gettext('Planning date'), required: required}),
-        },
-        {
             fieldId: 'files',
             getField: ({required, id}) => {
                 const fieldConfig: IAttachmentsFieldConfig = {
@@ -70,6 +65,7 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
                 return field;
             },
         },
+        getPlanningDateTimeField(),
         getPlaceField(),
         getAgendasField(),
         getSubjectField(),
