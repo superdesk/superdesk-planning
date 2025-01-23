@@ -29,6 +29,9 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
 
     fieldLabel = gettext(fieldLabel).toUpperCase();
 
+    // lodash's `isEmpty` does not handle date values, even though they are technically an object instance
+    const isValueEmpty = (typeof fieldValue === 'number' || isDate(fieldValue)) ? !fieldValue : isEmpty(fieldValue);
+
     if (get(schema, 'maxlength', 0) > 0 && get(fieldValue, 'length', 0) > schema.maxlength) {
         if (get(schema, 'type', 'string') === 'list') {
             errors[field] = gettext('Too many {{ name }}', {name: field});
@@ -37,11 +40,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too long');
             messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required
-        && !schema.multilingual
-        // lodash's `isEmpty` does not handle date values correctly
-        && ((typeof fieldValue === 'number' || isDate(fieldValue)) ? !fieldValue : isEmpty(fieldValue))
-    ) {
+    } else if (schema.required && !schema.multilingual && isValueEmpty) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else if (schema.required && schema.multilingual && field !== 'language') {

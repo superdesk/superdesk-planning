@@ -30,7 +30,6 @@ function validate<T extends IPlanningItem | IEventItem>(
     latestItem: T,
 ): IAuthoringValidationErrors {
     const planningProfile = planningApi.contentProfiles.get(entityType);
-
     const errors = {};
     const messages = [];
 
