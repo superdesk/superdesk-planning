@@ -30,14 +30,14 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
 
     fieldLabel = gettext(fieldLabel).toUpperCase();
 
-    const valueIsValid = (() => {
+    const hasValidValue = (() => {
         if (typeof fieldValue === 'number') {
             return isNaN(fieldValue) === false;
         } else if (isDate(fieldValue)) {
             return isValid(fieldValue);
         }
 
-        return isEmpty(fieldValue);
+        return isEmpty(fieldValue) === false;
     })();
 
     if (get(schema, 'maxlength', 0) > 0 && get(fieldValue, 'length', 0) > schema.maxlength) {
@@ -48,7 +48,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too long');
             messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required && !schema.multilingual && valueIsValid) {
+    } else if (schema.required && !schema.multilingual && !hasValidValue) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else if (schema.required && schema.multilingual && field !== 'language') {
