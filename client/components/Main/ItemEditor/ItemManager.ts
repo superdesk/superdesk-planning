@@ -761,7 +761,7 @@ export class ItemManager {
     }
 
     startPartialSave(updates) {
-        const newState = {diff: cloneDeep(updates)};
+        const newState = {diff: cloneDeep(updates), errorMessages: []};
 
         this.validate(this.props, newState, this.state);
 
