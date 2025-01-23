@@ -76,12 +76,18 @@ export class Editor extends React.PureComponent<IProps> {
                     });
                 }}
             >
-                {({addButtonElement, itemsElement, errorMessageElement}) => (
-                    <Container miniToolbar={addButtonElement}>
-                        {errorMessageElement}
-                        {itemsElement}
-                    </Container>
-                )}
+                {({addButtonElement, itemsElement, errorMessageElement}) => {
+                    const miniToolbar = (
+                        <div data-test-id="editor--planning-item__add-coverage">{addButtonElement}</div>
+                    );
+
+                    return (
+                        <Container miniToolbar={miniToolbar}>
+                            {errorMessageElement}
+                            {itemsElement}
+                        </Container>
+                    );
+                }}
             </EditorFieldCoverages>
         );
     }

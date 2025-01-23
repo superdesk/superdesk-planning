@@ -16,6 +16,7 @@ export class EditorFieldCoverages extends React.PureComponent<IPropsEditorFieldC
         return (
             <CoverageArrayInput
                 {...this.props}
+                testId="field-coverages"
                 field={this.props.field ?? 'coverages'}
                 value={value}
                 addButtonText={this.props.addButtonText ?? gettext('Add a coverage')}

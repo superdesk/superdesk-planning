@@ -678,7 +678,7 @@ const save = (original, updates) => (
                     return Promise.resolve([updatedEvent]);
                 }
 
-                let promise = Promise.resolve();
+                let promise = Promise.resolve<void>(null);
 
                 promise = promise.then(
                     () => Promise.all(
@@ -697,14 +697,34 @@ const save = (original, updates) => (
                                 }
                             }
 
-                            return planningApi.planning.create(planning);
+                            return planningApi.planning.create(planning)
+                                .then((saved) => {
+                                    // replace temp ID with newly received permanent ID
+                                    updates.associated_plannings = updates.associated_plannings.map(
+                                        (associated_planning) => {
+                                            if (associated_planning._id === planning._id) {
+                                                return {
+                                                    ...associated_planning,
+                                                    _id: saved._id,
+                                                };
+                                            } else {
+                                                return associated_planning;
+                                            }
+                                        }
+                                    );
+                                });
                         }),
                     ).then(() => null)
                 );
 
+                // ensure temp ID replacement takes effect in the editor
+                promise = promise.then(() => {
+                    updatedEvent.associated_plannings = updates.associated_plannings;
+                });
+
                 promise = promise.then(() => updateLinkedPlanningsForEvent(
                     updatedEvent._id,
-                    updates.associated_plannings.filter(({_id}) => !_id.startsWith(TEMP_ID_PREFIX)),
+                    updates.associated_plannings,
                 ));
 
                 return promise.then(() => [updatedEvent]);
