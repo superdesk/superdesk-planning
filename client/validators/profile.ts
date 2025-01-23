@@ -3,6 +3,7 @@ import {ISubject} from 'superdesk-api';
 import {IEditorProfile, IEventOrPlanningItem} from '../interfaces';
 import {planningApi} from '../superdeskApi';
 import {gettext} from '../utils';
+import {isValid} from 'date-fns';
 
 export const formProfile = ({field, value, profile, errors, messages, diff}) => {
     // If the field is not enabled or no schema defined, then simply return
@@ -29,8 +30,15 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
 
     fieldLabel = gettext(fieldLabel).toUpperCase();
 
-    // lodash's `isEmpty` does not handle date values, even though they are technically an object instance
-    const isValueEmpty = (typeof fieldValue === 'number' || isDate(fieldValue)) ? !fieldValue : isEmpty(fieldValue);
+    const valueIsValid = (() => {
+        if (typeof fieldValue === 'number') {
+            return isNaN(fieldValue) === false;
+        } else if (isDate(fieldValue)) {
+            return isValid(fieldValue);
+        }
+
+        return isEmpty(fieldValue);
+    })();
 
     if (get(schema, 'maxlength', 0) > 0 && get(fieldValue, 'length', 0) > schema.maxlength) {
         if (get(schema, 'type', 'string') === 'list') {
@@ -40,7 +48,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
             errors[field] = gettext('Too long');
             messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required && !schema.multilingual && isValueEmpty) {
+    } else if (schema.required && !schema.multilingual && valueIsValid) {
         errors[field] = gettext('This field is required');
         messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
     } else if (schema.required && schema.multilingual && field !== 'language') {
