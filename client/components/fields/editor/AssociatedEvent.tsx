@@ -1,30 +1,17 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
-
-import {IEditorFieldProps, IEventItem, IFile, ILockedItems, IPlanningRelatedEventLink} from '../../../interfaces';
-
-import {getFileDownloadURL} from '../../../utils';
-import * as selectors from '../../../selectors';
-
-import {EventMetadata} from '../../Events';
+import {IEventItem, IPlanningRelatedEventLink} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
-import {ToggleBox} from 'superdesk-ui-framework/react';
-import {EventEditorStandalone} from '../../editor-standalone/event-editor-standalone';
-import {authoringStorageEventItemHttp} from '../../editor-standalone/authoring-storage-event-http';
-import {RelatedEventListItem} from '../../Events/EventMetadata/RelatedEventListItem';
+import {AssociatedEventItem} from './AssociatedEventItem';
+import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
 
-interface IProps extends IEditorFieldProps {
-    events?: Array<IEventItem>;
-    lockedItems: ILockedItems;
-    files: Array<IFile>;
-    tabEnabled?: boolean; // defaults to true
-}
+export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
+    public relatedItemRefs: {[id: string]: AssociatedEventItem};
 
-class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
-    constructor(props: IProps) {
+    constructor(props: IAssociatedEventFieldProps) {
         super(props);
 
+        this.relatedItemRefs = {};
         this.getCurrentValue = this.getCurrentValue.bind(this);
         this.addRelatedEvent = this.addRelatedEvent.bind(this);
         this.removeRelatedEvent = this.removeRelatedEvent.bind(this);
@@ -44,6 +31,8 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
                 this.props.field,
                 nextItems,
             );
+
+            return Promise.resolve();
         });
     }
 
@@ -73,63 +62,15 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
                     {gettext('Related Events')}
                 </label>
 
-                {
-                    events.map((event) => {
-                        // PR-TODO: use different authoringStorage for creating a new event.
-                        return (
-                            <ToggleBox
-                                key={event._id}
-                                variant="custom-header"
-                                getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
-                                header={(
-                                    <RelatedEventListItem
-                                        item={event}
-                                        showIcon
-                                        showBorder
-                                    />
-                                )}
-                            >
-                                <EventEditorStandalone
-                                    itemId={event._id}
-                                    authoringStorage={authoringStorageEventItemHttp}
-                                />
-                            </ToggleBox>
-                        );
-                    })
-                }
-
-                {
-                    /**
-                     * PR-TODO: remove EventMetadata component bellow
-                     * I'm keeping it for verifying against new implementation
-                     * */
-                }
-                <div style={{border: '2px dashed orange', margin: '20px 0'}}>
-                    <div style={{padding: 20}}>
-                        {
-                            events.map((event) => (
-                                <EventMetadata
-                                    key={event._id}
-                                    ref={this.props.refNode}
-                                    testId={`${this.props.testId}--${event._id}`}
-                                    event={event}
-                                    navigation={{}}
-                                    createUploadLink={getFileDownloadURL}
-                                    files={this.props.files}
-                                    tabEnabled={this.props.tabEnabled ?? true}
-                                    onRemoveEvent={
-                                        disabled
-                                            ? undefined
-                                            : () => {
-                                                this.removeRelatedEvent(event._id);
-                                            }
-                                    }
-                                />
-                            ))
-                        }
-                    </div>
-                </div>
-
+                {events.map((event, i) => (
+                    <AssociatedEventItem
+                        key={event._id}
+                        event={event}
+                        ref={(ref) => {
+                            this.relatedItemRefs[i] = ref;
+                        }}
+                    />
+                ))}
                 {
                     !disabled && (
                         <DropZone
@@ -157,15 +98,3 @@ class EditorFieldAssociatedEventComponent extends React.PureComponent<IProps> {
         );
     }
 }
-
-const mapStateToProps = (state) => ({
-    lockedItems: selectors.locks.getLockedItems(state),
-    files: selectors.general.files(state),
-});
-
-export const EditorFieldAssociatedEvents = connect(
-    mapStateToProps,
-    null,
-    null,
-    {forwardRef: true}
-)(EditorFieldAssociatedEventComponent);

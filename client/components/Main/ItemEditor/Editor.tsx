@@ -238,7 +238,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                 },
                 onIgnore: () => {
                     this.itemManager.unlockAndCancel(
-                        embeddedPlanningHasUnsavedChanges() ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+                        embeddedPlanningHasUnsavedChanges(this.props.itemType) ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
                     );
                 },
                 onSave: onSave,
@@ -265,7 +265,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         }
 
         return this.itemManager.unlockAndCancel(
-            embeddedPlanningHasUnsavedChanges() ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+            embeddedPlanningHasUnsavedChanges(this.props.itemType) ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
         );
     }
 

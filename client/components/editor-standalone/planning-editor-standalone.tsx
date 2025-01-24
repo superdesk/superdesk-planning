@@ -9,18 +9,18 @@ interface IProps {
 }
 
 export class PlanningEditorStandalone extends React.PureComponent<IProps> {
-    planningEditorRef: RefObject<BaseEditorComponent<IPlanningItem>>;
+    editorRef: RefObject<BaseEditorComponent<IPlanningItem>>;
 
     constructor(props: IProps) {
         super(props);
 
-        this.planningEditorRef = React.createRef();
+        this.editorRef = React.createRef();
     }
 
     render() {
         return (
             <BaseEditorStandalone
-                ref={this.planningEditorRef}
+                ref={this.editorRef}
                 entityType="planning"
                 itemId={this.props.itemId}
                 storageAdapter={getStorageAdapter('planning', ({storageAdapterPlanning}) => storageAdapterPlanning)}

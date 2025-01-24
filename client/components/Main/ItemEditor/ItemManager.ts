@@ -474,7 +474,7 @@ export class ItemManager {
     }
 
     post() {
-        return handleEmbeddedPlannings(this.props.editorType, 'SAVE').then(() => {
+        return handleEmbeddedPlannings(this.props.editorType, 'SAVE', this.props.itemType).then(() => {
             const newState = {};
 
             this.validate(this.props, newState, this.state);
@@ -661,7 +661,8 @@ export class ItemManager {
                 });
         }
 
-        const promise = handleEmbeddedPlannings(this.props.editorType, 'SAVE').then(() =>
+        debugger;
+        const promise = handleEmbeddedPlannings(this.props.editorType, 'SAVE', this.props.itemType).then(() =>
             !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false}),
         );
 
@@ -834,6 +835,7 @@ export class ItemManager {
         return handleEmbeddedPlannings(
             this.props.editorType,
             embeddedEditorAction,
+            this.props.itemType,
         ).then(() => {
             const {session, currentWorkspace} = this.props;
             const {initialValues, diff} = this.state;
