@@ -2,26 +2,27 @@ import {EDITOR_TYPE} from '../../interfaces';
 import {IExposedFromAuthoring} from 'superdesk-api';
 import {planningApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
+import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
 
-type IRelatedPlanningRefs = {[id: string]: RelatedPlanningItem};
+type IRelatedItemRefs = {[id: string]: RelatedPlanningItem | AssociatedEventItem};
 type ItemType = 'event' | 'planning';
 export type IEmbeddedPlanningsActionType = 'SAVE' | 'HANDLE_UNSAVED_CHANGES' | 'DISCARD';
 
 const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE, itemType: ItemType) => {
     const fieldId = itemType === 'event' ? 'related_plannings' : 'associated_event';
     const embeddedEditorRef = planningApi.editor(editorType).dom.fields[fieldId]?.current;
-    const relatedItemRefs: IRelatedPlanningRefs = embeddedEditorRef?.relatedItemRefs;
+    const relatedItemRefs: IRelatedItemRefs = embeddedEditorRef?.relatedItemRefs;
 
     return relatedItemRefs ?? [];
 };
 
-const getEmbeddedPlanningExposed = (
+const getEmbeddedItemsExposed = (
     editorType: EDITOR_TYPE,
     itemType: 'event' | 'planning',
 ): Array<IExposedFromAuthoring<void>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
 
-    // Crashes whenever there's no embedded plannings
+    // Crashes whenever there's no embedded items
     const exposedAuthoringArray = Object.values(relatedItemRefs).map((x) =>
         x?.standaloneEditorRef?.current?.editorRef?.current?.editorRef?.current?.getExposed?.(),
     );
@@ -53,16 +54,16 @@ const handleErrors = (editorType: EDITOR_TYPE, editorIndex: number, itemType: It
  * Execution is cancelled on the first encounter of an editor error.
  * If an error occurs the first encountered embedded planning editor and the first error field is focused.
  */
-export const handleEmbeddedPlannings = async(
+export const handleEmbeddedItems = async(
     editorType: EDITOR_TYPE,
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
 ) => {
-    const planningsExposed = getEmbeddedPlanningExposed(editorType, itemType);
+    const itemExposed = getEmbeddedItemsExposed(editorType, itemType);
     let editorIndex = 0;
     let promiseResult = Promise.resolve();
 
-    for (const planning of planningsExposed) {
+    for (const planning of itemExposed) {
         promiseResult = promiseResult.then(() => {
             if (planning.hasUnsavedChanges()) {
                 if (action === 'SAVE') {
@@ -81,8 +82,8 @@ export const handleEmbeddedPlannings = async(
     return promiseResult;
 };
 
-export const embeddedPlanningHasUnsavedChanges = (itemType: ItemType) => {
-    const planningsExposed = getEmbeddedPlanningExposed(EDITOR_TYPE.INLINE, itemType);
+export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {
+    const planningsExposed = getEmbeddedItemsExposed(EDITOR_TYPE.INLINE, itemType);
 
     return (planningsExposed ?? []).some((x) => x.hasUnsavedChanges());
 };

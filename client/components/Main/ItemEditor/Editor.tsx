@@ -19,7 +19,7 @@ import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
 import {EditorHeader} from './EditorHeader';
 import {pickRelatedEventsForPlanning} from './../../../utils/planning';
-import {embeddedPlanningHasUnsavedChanges} from '../../../components/editor-standalone/save-handling';
+import {embeddedItemHasUnsavedChanges} from '../../../components/editor-standalone/save-handling';
 
 export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
     autoSave: AutoSave;
@@ -204,7 +204,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
 
             this.setState({submitting: true});
 
-            if (!(dirty || embeddedPlanningHasUnsavedChanges())) {
+            if (!(dirty || embeddedItemHasUnsavedChanges(this.props.itemType))) {
                 this.onCancel();
                 return;
             }
@@ -238,7 +238,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                 },
                 onIgnore: () => {
                     this.itemManager.unlockAndCancel(
-                        embeddedPlanningHasUnsavedChanges(this.props.itemType) ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+                        embeddedItemHasUnsavedChanges(this.props.itemType) ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
                     );
                 },
                 onSave: onSave,
@@ -265,7 +265,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         }
 
         return this.itemManager.unlockAndCancel(
-            embeddedPlanningHasUnsavedChanges(this.props.itemType) ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
+            embeddedItemHasUnsavedChanges(this.props.itemType) ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
         );
     }
 
