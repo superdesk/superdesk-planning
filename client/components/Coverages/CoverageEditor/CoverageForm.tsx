@@ -31,8 +31,7 @@ import {getCoverageFields} from '../../../api/editor/item_planning';
 
 import '../style.scss';
 
-interface IProps {
-    // Values
+interface IOwnProps {
     field: string;
     value: IPlanningCoverageItem;
     readOnly: boolean;
@@ -46,30 +45,18 @@ interface IProps {
     addNewsItemToPlanning?: IArticle;
     index: number;
     defaultDesk: IDesk;
-    files: Array<IFile>;
+    files?: Array<IFile>;
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
-    language: IVocabularyItem['qcode'];
-
-    // Functions
+    language?: IVocabularyItem['qcode'];
     onChange(field: string, value: any): void;
-    popupContainer(): HTMLElement;
     onFieldFocus(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
-    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
-    createUploadLink(file: IFile): void;
-    removeFile(file: IFile): Promise<void>;
-    notifyValidationErrors(errors: Array<string>): void;
-
-    // Redux States
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    contentTypes: Array<IG2ContentType>;
-    languages: Array<string>;
-    genres: Array<IGenre>;
-    keywords: Array<IKeyword>;
-    preferredCoverageDesks: {[key: string]: string};
-    planningAllowScheduledUpdates: boolean;
+    uploadFiles?(files: Array<Array<File>>): Promise<Array<IFile>>;
+    createUploadLink?(file: IFile): void;
+    removeFile?(file: IFile): Promise<void>;
+    notifyValidationErrors?(errors: Array<string>): void;
 }
 
 interface IState {
@@ -87,6 +74,18 @@ const mapStateToProps = (state) => ({
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     formProfile: selectors.forms.coverageProfile(state),
 });
+
+interface IReduxStateProps {
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    contentTypes: Array<IG2ContentType>;
+    languages: Array<string>;
+    genres: Array<IGenre>;
+    keywords: Array<IKeyword>;
+    preferredCoverageDesks: {[key: string]: string};
+    planningAllowScheduledUpdates: boolean;
+}
+
+type IProps = IOwnProps & IReduxStateProps;
 
 export class CoverageFormComponent extends React.Component<IProps, IState> {
     fullFilePath: string;
@@ -190,7 +189,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     onAddScheduledUpdate() {
-        let defaultScheduledUpdate = {
+        const defaultScheduledUpdate: any = {
             coverage_id: get(this.props, 'value.coverage_id'),
             scheduled_update_id: generateTempId(),
             planning: {
@@ -247,7 +246,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
 
         if (get(fileList, 'length', 0) > 1) {
-            this.props.notifyValidationErrors([gettext('You can associate only one XMP file')]);
+            this.props.notifyValidationErrors?.([gettext('You can associate only one XMP file')]);
             return;
         }
 
@@ -261,7 +260,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         });
 
         if (error) {
-            this.props.notifyValidationErrors([gettext('Only one XMP files are accepted')]);
+            this.props.notifyValidationErrors?.([gettext('Only one XMP files are accepted')]);
             return;
         }
 
@@ -277,7 +276,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath;
 
         this.setState({uploading: true});
-        return this.props.uploadFiles(files)
+        return this.props.uploadFiles?.(files)
             .then((newFiles) => {
                 const value = xmpFile ? get(newFiles, '[0]._id') :
                     [
@@ -457,4 +456,4 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 }
 
-export const CoverageForm = connect(mapStateToProps)(CoverageFormComponent);
+export const CoverageForm = connect<IReduxStateProps, IOwnProps>(mapStateToProps)(CoverageFormComponent);

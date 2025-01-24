@@ -245,7 +245,6 @@ export class ScheduledUpdate extends React.PureComponent<IProps> {
                 newsCoverageStatus={newsCoverageStatus}
                 genres={genres}
                 readOnly={readOnly}
-                invalid={componentInvalid}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 onFieldFocus={onFocus}

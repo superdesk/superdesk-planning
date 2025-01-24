@@ -26,14 +26,14 @@ interface IProps {
     coverage: IPlanningCoverageItem;
     users: Array<IUser>;
     desks: Array<IDesk>;
-    itemActionComponent: React.ReactNode;
+    itemActionComponent?: React.ReactNode;
     contentTypes: Array<IG2ContentType>;
     isPreview?: boolean;
     active?: boolean;
     item: DeepPartial<IPlanningItem>;
     index: number;
     workflowStateReasonPrefix?: string;
-    showBackground: boolean;
+    showBackground?: boolean;
     shadow?: number;
     getContactById(contactId: IContactItem['_id']): Promise<IContactItem>;
     onClick?(): void;
