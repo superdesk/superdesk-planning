@@ -11,15 +11,14 @@ import './style.scss';
 import {TEMP_ID_PREFIX} from '../../../../constants';
 import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
 import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
-import {PlanningEditorStandalone} from 'components/editor-standalone/planning-editor-standalone';
 
 export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
-    relatedPlanningRefs: {[id: string]: React.RefObject<PlanningEditorStandalone>};
+    relatedItemRefs: {[id: string]: RelatedPlanningItem};
 
     constructor(props: IRelatedPlanningProps) {
         super(props);
 
-        this.relatedPlanningRefs = {};
+        this.relatedItemRefs = {};
     }
 
     render() {
@@ -71,7 +70,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                             return (
                                 <RelatedPlanningItem
                                     ref={(ref) => {
-                                        this.relatedPlanningRefs[index] = ref;
+                                        this.relatedItemRefs[index] = ref;
                                     }}
                                     key={plan._id}
                                     index={index}

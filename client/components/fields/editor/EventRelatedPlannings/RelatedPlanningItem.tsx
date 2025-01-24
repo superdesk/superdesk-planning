@@ -17,6 +17,7 @@ import {authoringStoragePlanningItemHttp} from '../../../editor-standalone/autho
 import {
     getAuthoringStorageInMemory
 } from '../../../editor-standalone/authoring-storage-in-memory';
+import {IPropsAuthoring} from 'superdesk-api';
 
 interface IProps {
     event: IEventItem;
@@ -38,14 +39,14 @@ interface IProps {
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
-    public standaloneEditorRef: React.RefObject<PlanningEditorStandalone>;
+    public authoringRef: React.RefObject<React.ComponentType<IPropsAuthoring<IPlanningItem>>>;
     public toggleBoxRef: React.RefObject<any>;
 
     constructor(props) {
         super(props);
 
         this.containerNode = React.createRef();
-        this.standaloneEditorRef = React.createRef();
+        this.authoringRef = React.createRef();
         this.toggleBoxRef = React.createRef();
 
         this.remove = this.remove.bind(this);
@@ -121,7 +122,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                     }
                 >
                     <PlanningEditorStandalone
-                        ref={this.standaloneEditorRef}
+                        editorRef={this.authoringRef}
                         itemId={item._id}
                         authoringStorage={
                             item._id.startsWith(TEMP_ID_PREFIX)

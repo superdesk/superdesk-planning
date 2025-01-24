@@ -1924,7 +1924,7 @@ export interface IEditorState {
 export interface IEditorProps {
     item?: IEventOrPlanningItem;
     itemId?: IEventOrPlanningItem['_id'];
-    itemType: string;
+    itemType: 'event' | 'planning';
     itemAction?: IEditorAction;
     session: ISession;
     privileges: IPrivileges;

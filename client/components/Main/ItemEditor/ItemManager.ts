@@ -29,7 +29,7 @@ import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
 import {
-    handleEmbeddedPlannings,
+    handleEmbeddedItems,
     IEmbeddedPlanningsActionType,
 } from '../../../components/editor-standalone/save-handling';
 
@@ -474,7 +474,7 @@ export class ItemManager {
     }
 
     post() {
-        return handleEmbeddedPlannings(this.props.editorType, 'SAVE').then(() => {
+        return handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType).then(() => {
             const newState = {};
 
             this.validate(this.props, newState, this.state);
@@ -661,7 +661,7 @@ export class ItemManager {
                 });
         }
 
-        const promise = handleEmbeddedPlannings(this.props.editorType, 'SAVE').then(() =>
+        const promise = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType).then(() =>
             !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false}),
         );
 
@@ -759,7 +759,7 @@ export class ItemManager {
     }
 
     startPartialSave(updates) {
-        const newState = {diff: cloneDeep(updates)};
+        const newState = {diff: cloneDeep(updates), errorMessages: []};
 
         this.validate(this.props, newState, this.state);
 
@@ -794,14 +794,14 @@ export class ItemManager {
     }
 
     setStateForPartialSave(initialValues) {
-        let newState = {
+        const newState = {
             partialSave: false,
             submitting: false,
             submitFailed: false,
         };
 
         if (initialValues) {
-            newState.initialValues = initialValues;
+            newState['initialValues'] = initialValues;
         }
 
         return this.setState(newState);
@@ -831,9 +831,10 @@ export class ItemManager {
     }
 
     unlockAndCancel(embeddedEditorAction: IEmbeddedPlanningsActionType) {
-        return handleEmbeddedPlannings(
+        return handleEmbeddedItems(
             this.props.editorType,
             embeddedEditorAction,
+            this.props.itemType,
         ).then(() => {
             const {session, currentWorkspace} = this.props;
             const {initialValues, diff} = this.state;

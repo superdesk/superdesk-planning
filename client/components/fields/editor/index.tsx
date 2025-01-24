@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import {EditorFieldCategories} from './Categories';
 import {EditorFieldCoverageType} from './CoverageType';
 import {EditorFieldEndDateTime} from './EndDateTime';
@@ -40,7 +38,7 @@ import {EditorFieldEventOccurenceStatus} from './EventOccurenceStatus';
 import {EditorFieldPlanningDateTime} from './PlanningDateTime';
 import {EditorFieldNotForPublication} from './NotForPublication';
 import {EditorFieldOverrideAutoAssignToWorkflow} from './OverrideAutoAssignToWorkflow';
-import {EditorFieldAssociatedEvents} from './AssociatedEvent';
+import {EditorFieldAssociatedEvents} from './AssociatedEventWrapper';
 import {EditorFieldCoverages} from './Coverages';
 import {EditorFieldGenre} from './Genre';
 import {EditorFieldNewsCoverageStatus} from './NewsCoverageStatus';
