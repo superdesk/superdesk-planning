@@ -24,20 +24,18 @@ const getEmbeddedItemsExposed = (
 
     // Crashes whenever there's no embedded items
     const exposedAuthoringArray = Object.values(relatedItemRefs).map((x) =>
-        x?.standaloneEditorRef?.current?.editorRef?.current?.editorRef?.current?.getExposed?.(),
+        x?.authoringRef?.current?.getExposed?.()
     );
 
     return exposedAuthoringArray;
 };
 
-
 const handleErrors = (editorType: EDITOR_TYPE, editorIndex: number, itemType: ItemType) => {
     const FIRST_ERROR = 0;
     const relatedItemRef = getEmbeddedAuthoringRefs(editorType, itemType)[editorIndex];
-    const firstEditorRef =
-        relatedItemRef.standaloneEditorRef.current.editorRef.current.editorRef.current;
-    const fieldErrors = firstEditorRef.getExposed().getValidationErrors();
-    const fieldToFocus = firstEditorRef?.fieldRefs[Object.keys(fieldErrors)[FIRST_ERROR]].current as HTMLDivElement;
+    const firstEditorRef = relatedItemRef.authoringRef.current;
+    const fieldErrors = Object.keys(firstEditorRef.getExposed().getValidationErrors() ?? {});
+    const fieldToFocus = firstEditorRef?.fieldRefs[fieldErrors[FIRST_ERROR]].current as HTMLDivElement;
     const toggleBoxRef = relatedItemRef.toggleBoxRef.current;
 
     if (toggleBoxRef.isOpen() === false) {

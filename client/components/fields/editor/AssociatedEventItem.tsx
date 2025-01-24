@@ -4,6 +4,7 @@ import {EventEditorStandalone} from '../../../components/editor-standalone/event
 import {RelatedEventListItem} from '../../../components/Events/EventMetadata/RelatedEventListItem';
 import React, {createRef} from 'react';
 import {ToggleBox} from 'superdesk-ui-framework/react';
+import {IPropsAuthoring} from 'superdesk-api';
 
 interface IProps{
     event: IEventItem;
@@ -11,13 +12,13 @@ interface IProps{
 
 export class AssociatedEventItem extends React.PureComponent<IProps> {
     public toggleBoxRef: React.RefObject<any>;
-    public standaloneEditorRef: React.RefObject<EventEditorStandalone>;
+    public authoringRef: React.RefObject<React.ComponentType<IPropsAuthoring<IEventItem>>>;
 
     constructor(props) {
         super(props);
 
         this.toggleBoxRef = createRef();
-        this.standaloneEditorRef = createRef();
+        this.authoringRef = createRef();
     }
 
     render() {
@@ -39,7 +40,7 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                 )}
             >
                 <EventEditorStandalone
-                    ref={this.standaloneEditorRef}
+                    editorRef={this.authoringRef}
                     itemId={event._id}
                     authoringStorage={authoringStorageEventItemHttp}
                 />

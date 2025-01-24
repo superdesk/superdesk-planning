@@ -1,8 +1,14 @@
-import React, {createRef, RefObject} from 'react';
+import React, {RefObject} from 'react';
 import {connect} from 'react-redux';
 import {noop} from 'lodash';
 import {Button} from 'superdesk-ui-framework/react';
-import {IAuthoringStorage, ITopBarWidget, IAuthoringValidationErrors, IStorageAdapter} from 'superdesk-api';
+import {
+    IAuthoringStorage,
+    ITopBarWidget,
+    IAuthoringValidationErrors,
+    IStorageAdapter,
+    IPropsAuthoring,
+} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import {IAgenda, IPlanningAppState, IPlanningItem} from 'interfaces';
@@ -14,6 +20,7 @@ interface IOwnProps<T extends IPlanningItem | IEventItem> {
 
     itemId: string;
 
+    editorRef: RefObject<React.ComponentType<IPropsAuthoring<T>>>;
     authoringStorage: IAuthoringStorage<T>;
     storageAdapter: IStorageAdapter<T>;
 }
@@ -56,21 +63,13 @@ function validate<T extends IPlanningItem | IEventItem>(
 }
 
 export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends React.PureComponent<IProps<T>> {
-    editorRef: RefObject<any>;
-
-    constructor(props: IProps<T>) {
-        super(props);
-
-        this.editorRef = createRef();
-    }
-
     render() {
         const Authoring = superdeskApi.components.getAuthoringComponent<T>();
         const {gettext} = superdeskApi.localization;
 
         return (
             <Authoring
-                ref={this.editorRef}
+                ref={this.props.editorRef}
                 itemId={this.props.itemId}
                 resourceNames={[this.props.entityType]}
                 onClose={noop}

@@ -1,26 +1,19 @@
-import React, {RefObject} from 'react';
-import {IAuthoringStorage} from 'superdesk-api';
-import {BaseEditorComponent, BaseEditorStandalone} from './base-editor-standalone';
+import React, {ComponentType, RefObject} from 'react';
+import {IAuthoringStorage, IPropsAuthoring} from 'superdesk-api';
+import {BaseEditorStandalone} from './base-editor-standalone';
 import {getStorageAdapter} from './storage-adapter';
 
 interface IProps {
     itemId: string;
     authoringStorage: IAuthoringStorage<IPlanningItem>;
+    editorRef: RefObject<ComponentType<IPropsAuthoring<IPlanningItem>>>;
 }
 
 export class PlanningEditorStandalone extends React.PureComponent<IProps> {
-    editorRef: RefObject<BaseEditorComponent<IPlanningItem>>;
-
-    constructor(props: IProps) {
-        super(props);
-
-        this.editorRef = React.createRef();
-    }
-
     render() {
         return (
             <BaseEditorStandalone
-                ref={this.editorRef}
+                editorRef={this.props.editorRef}
                 entityType="planning"
                 itemId={this.props.itemId}
                 storageAdapter={getStorageAdapter('planning', ({storageAdapterPlanning}) => storageAdapterPlanning)}
