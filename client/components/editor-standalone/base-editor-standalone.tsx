@@ -7,6 +7,7 @@ import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
 import {IAgenda, IPlanningAppState, IPlanningItem} from 'interfaces';
 import {formProfile} from '../../validators/profile';
+import {getPlanningProfileFields} from './profile-fields';
 
 interface IOwnProps<T extends IPlanningItem | IEventItem> {
     // will be used as resource and content profile type
@@ -33,16 +34,16 @@ function validate<T extends IPlanningItem | IEventItem>(
     const errors = {};
     const messages = [];
 
-    fieldsData.forEach((value, fieldId) => {
+    for (const {fieldId} of getPlanningProfileFields({profile: entityType, embeddedOnly: true})) {
         formProfile({
             field: fieldId,
-            value: value,
+            value: latestItem[fieldId],
             profile: planningProfile,
             errors: errors,
             messages: messages,
             diff: latestItem,
         });
-    });
+    }
 
     const filteredErrors = {};
 
