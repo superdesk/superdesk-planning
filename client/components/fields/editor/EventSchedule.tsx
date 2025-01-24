@@ -223,7 +223,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     remoteTimeZone={this.props.item.dates?.tz}
-                    dateOnly={this.props.item.dates?.all_day}
+                    allDay={this.props.item.dates?.all_day}
                 />
                 <EditorFieldEndDateTime
                     {...props}
@@ -242,7 +242,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     remoteTimeZone={this.props.item.dates?.tz}
-                    dateOnly={this.props.item.dates?.no_end_time || this.props.item.dates?.all_day}
+                    allDay={this.props.item.dates?.no_end_time || this.props.item.dates?.all_day}
                 />
                 <Row
                     flex={true}

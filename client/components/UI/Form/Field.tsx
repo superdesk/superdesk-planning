@@ -89,7 +89,7 @@ export class Field extends React.Component<IProps, IState> {
 
         const schema = get(formProfile, `schema["${profileField}"]`) || {};
         let currentError = (this.state.dirty || showErrors) ? (error || get(errors, field)) : null;
-        const currentValue = value || get(diff, field);
+        const currentValue = value !== undefined ? value : get(diff, field);
 
         const Component = component;
         const child = (

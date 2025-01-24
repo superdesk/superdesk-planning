@@ -12,7 +12,7 @@ interface IProps extends IEditorFieldProps {
     isLocalTimeZoneDifferent?: boolean;
     remoteTimeZone?: string;
     onToBeConfirmed?(field: string): void;
-    dateOnly?: boolean;
+    allDay?: boolean;
 }
 
 export class EditorFieldStartDateTime extends React.PureComponent<IProps> {
