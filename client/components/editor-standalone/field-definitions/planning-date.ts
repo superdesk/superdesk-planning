@@ -1,6 +1,6 @@
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from './interfaces';
-import {getDateTimeField} from './date-time-config';
+import {IAuthoringFieldV2, IDateTimeFieldConfig} from 'superdesk-api';
 
 export const getPlanningDate = (): IFieldDefinition => {
     const {gettext} = superdeskApi.localization;
@@ -8,8 +8,23 @@ export const getPlanningDate = (): IFieldDefinition => {
     return {
         fieldId: 'planning_date',
 
-        getField: ({required, id}) =>
-            getDateTimeField({id: id, label: gettext('Planning date'), required: required}),
+        getField: ({id, required}) => {
+            const config: IDateTimeFieldConfig = {
+                allowSeconds: false,
+            };
+
+            const field: IAuthoringFieldV2 = {
+                id: id,
+                name: gettext('Planning Date'),
+                fieldType: 'datetime',
+                fieldConfig: {
+                    ...config,
+                    required: required,
+                },
+            };
+
+            return field;
+        },
 
         /**
          * Make compatible accepting a moment date as an input.

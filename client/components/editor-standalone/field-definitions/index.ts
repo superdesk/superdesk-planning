@@ -7,7 +7,6 @@ import {
 } from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {getCustomVocabularyFields} from '../field-adapters/custom-vocabularies';
-import {getPlanningDateTimeField} from './datetime-field';
 import {getPlanningDate} from './planning-date';
 import {IFieldDefinitions, IFieldDefinition} from './interfaces';
 import {getTextFieldConfig} from './text-field-config';
@@ -66,7 +65,6 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
                 return field;
             },
         },
-        getPlanningDateTimeField(),
         getPlanningDate(),
         getPlaceField(),
         getAgendasField(),
