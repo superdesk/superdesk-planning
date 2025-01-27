@@ -79,12 +79,6 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const coverageProvider = value.assigned_to?.coverage_provider;
         const assignmentState = value.assigned_to?.state;
         const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
-
-        /*
-            Check if:
-            1. This view is rendered from AddToPlanning action
-            2. There's an already scheduled update for the coverage
-        */
         const isAssignmentLocked = lockedItems?.assignment
             && value.assigned_to?.assignment_id in lockedItems.assignment;
         const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked

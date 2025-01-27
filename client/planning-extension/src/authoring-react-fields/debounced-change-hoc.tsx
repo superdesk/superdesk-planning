@@ -1,21 +1,22 @@
 import {DebouncedFunc, debounce, cloneDeep, set} from 'lodash';
 import React = require('react');
+import {IPlanningCoverageItem} from '../../../interfaces';
 
-interface IDebouncedChangeHOCProps<T> {
-    children: (changedValue: T, onChange: (fieldPath: string, value: T) => void) => JSX.Element;
-    value: T;
-    onChange: (newValue: T) => void;
+interface IDebouncedChangeHOCProps {
+    children: (changedValue: Array<IPlanningCoverageItem>, onChange: (fieldPath: string, value: any) => void) => JSX.Element;
+    value: Array<IPlanningCoverageItem>;
+    onChange: (newValue: Array<IPlanningCoverageItem>) => void;
 }
 
-interface IDebouncedChangeHOCState<T> {
-    renderedValue: T;
+interface IDebouncedChangeHOCState {
+    renderedValue: Array<IPlanningCoverageItem>;
 }
 
-export class DebouncedChangeHOC<T extends Array<any>> extends React.PureComponent<IDebouncedChangeHOCProps<T>, IDebouncedChangeHOCState<T>> {
+export class DebouncedChangeHOC extends React.PureComponent<IDebouncedChangeHOCProps, IDebouncedChangeHOCState> {
     debouncedFn: DebouncedFunc<() => void>;
     changeQueue: Array<{fieldPath: string; value: any;}>;
 
-    constructor(props: IDebouncedChangeHOCProps<T>) {
+    constructor(props: IDebouncedChangeHOCProps) {
         super(props);
 
         this.state = {

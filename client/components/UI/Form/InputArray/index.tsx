@@ -14,6 +14,7 @@ import {
     IPlanningNewsCoverageStatus,
 } from 'interfaces';
 import {IDesk} from 'superdesk-api';
+import {CoverageEditorComponent} from 'components/Coverages/CoverageEditor';
 
 interface IProps {
     field: string;
@@ -44,7 +45,7 @@ interface IProps {
     errors: {[key: string]: any};
     showErrors: boolean;
     testId?: string;
-    getRef?(field: string, value: any): React.RefObject<any>;
+    getRef?(field: string, value: any): React.RefObject<CoverageEditorComponent>;
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
     onPopupClose(): void;

@@ -20,7 +20,7 @@ import {planningUtils} from '../../utils';
 import * as selectors from '../../selectors';
 
 import {InputArray} from '../UI/Form';
-import {CoverageEditor} from './CoverageEditor';
+import {CoverageEditor, CoverageEditorComponent} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
 import planningActions from '../../actions/planning/api';
 
@@ -39,7 +39,7 @@ interface IOwnProps {
     originalCount?: number;
     message: string | {[key: string]: any};
     event?: IEventItem;
-    getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditor>;
+    getRef?(field: string, value: IPlanningCoverageItem): React.RefObject<CoverageEditorComponent>;
     testId?: string;
     editorType: EDITOR_TYPE;
 

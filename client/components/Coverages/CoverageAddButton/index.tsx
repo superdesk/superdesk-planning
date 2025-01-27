@@ -47,10 +47,7 @@ export class CoverageAddButton extends React.Component<IProps> {
     onChange(field: string, coverages: Array<DeepPartial<IPlanningCoverageItem>>) {
         this.props.onChange(
             field,
-            [
-                ...(this.props.value ?? []),
-                ...coverages,
-            ],
+            coverages,
         );
     }
 

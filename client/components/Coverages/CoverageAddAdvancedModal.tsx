@@ -10,9 +10,9 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
 import Modal from '../Modal';
-import {SelectInput} from '../UI/Form';
 import {superdeskApi} from '../../superdeskApi';
 import * as actions from '../../actions';
+import {Button, Checkbox, IconButton, Option, Select, Spacer, Tooltip} from 'superdesk-ui-framework/react';
 
 const isInvalid = (coverage) => coverage.user && !coverage.desk;
 
@@ -103,8 +103,8 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                     qcode: contentType.qcode,
                     name: this.getContentTypeName(contentType),
                     icon: icon,
-                    desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
-                    user: users.find((user) => user._id === coverage.assigned_to.user),
+                    desk: desks.find((desk) => desk._id === coverage.assigned_to?.desk),
+                    user: users.find((user) => user._id === coverage.assigned_to?.user),
                     status: coverage.news_coverage_status,
                     popupContainer: null,
                     filteredDesks: desks,
@@ -229,6 +229,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     render() {
         const language = getUserInterfaceLanguageFromCV();
         const {SelectUser} = superdeskApi.components;
+        const saveNotPermitted = this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage));
 
         return (
             <Modal
@@ -252,13 +253,19 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                     </a>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className="sd-list-item-group sd-list-item-group--space-between-items">
+                    <Spacer v gap="8" justifyContent="center" alignItems="center" >
                         {this.state.coverages.map((coverage, index) => (
-                            <div key={coverage.id} className="sd-list-item sd-shadow--z1">
+                            <div
+                                key={coverage.id}
+                                style={coverage.enabled ? {height: 60} : {}}
+                                className="sd-list-item sd-shadow--z1"
+                            >
                                 <div className="sd-list-item__column">
-                                    <input
-                                        type="checkbox"
-                                        value={coverage.enabled}
+                                    <Checkbox
+                                        label={{
+                                            text: gettext('Coverage enabled'),
+                                            hidden: true,
+                                        }}
                                         checked={coverage.enabled}
                                         onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
                                     />
@@ -270,106 +277,112 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                     {coverage.name}
                                 </div>
                                 {coverage.enabled && (
-                                    <React.Fragment>
-                                        <div className="sd-list-item__column sd-list-item__column--grow">
-                                            <div className="grid">
-                                                <div className="grid__item grid__item--col4">
-                                                    <SelectInput
-                                                        placeholder={gettext('Select desk')}
-                                                        field={'desk'}
-                                                        value={coverage.desk}
-                                                        onChange={(field, value) => this.onDeskChange(coverage, value)}
-                                                        options={coverage.filteredDesks}
-                                                        labelField="name"
-                                                        keyField="_id"
-                                                        clearable={true}
-                                                        invalid={isInvalid(coverage)}
-                                                    />
-                                                </div>
-
-                                                <div className="grid__item grid__item--col4">
-                                                    <div
-                                                        style={
-                                                            {
-                                                                margin: '0 0 1.8em 0',
-                                                                paddingBlockStart: '1.8rem',
-                                                                position: 'relative'}
-                                                        }
-                                                    >
-                                                        <SelectUser
-                                                            deskId={coverage.desk?._id ?? undefined}
-                                                            selectedUserId = {coverage.user?._id}
-                                                            onSelect={(user) => {
-                                                                this.onUserChange(coverage, user);
-                                                            }}
-                                                            autoFocus={false}
-                                                            horizontalSpacing={true}
-                                                            clearable={true}
-                                                        />
-                                                        <div ref={(node) => coverage.popupContainer = node} />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid__item grid__item--col4">
-                                                    <SelectInput
-                                                        placeholder={gettext('Select status')}
-                                                        field={'coverage.status'}
-                                                        value={coverage.status}
-                                                        onChange={(field, value) =>
-                                                            this.updateCoverage(coverage, {status: value})}
-                                                        options={this.props.newsCoverageStatus}
-                                                        labelField="label"
-                                                        keyField="qcode"
-                                                        clearable={true}
-                                                        language={language}
-                                                    />
-                                                </div>
+                                    <>
+                                        <Spacer
+                                            h
+                                            gap="8"
+                                            noWrap
+                                            alignItems="center"
+                                            style={{padding: 12}}
+                                            justifyContent="space-between"
+                                        >
+                                            <Select
+                                                fullWidth
+                                                inlineLabel
+                                                labelHidden
+                                                value={coverage.desk?._id}
+                                                onChange={(value) => this.onDeskChange(coverage, value)}
+                                            >
+                                                <Option value={undefined} />
+                                                {coverage.filteredDesks.map((desk) => (
+                                                    <Option key={desk._id} value={desk._id}>{desk.name}</Option>
+                                                ))}
+                                            </Select>
+                                            <div style={{width: '100%'}}>
+                                                <SelectUser
+                                                    deskId={coverage.desk?._id ?? undefined}
+                                                    selectedUserId = {coverage.user?._id}
+                                                    onSelect={(user) => {
+                                                        this.onUserChange(coverage, user);
+                                                    }}
+                                                    autoFocus={false}
+                                                    horizontalSpacing={true}
+                                                    clearable={true}
+                                                />
                                             </div>
-                                        </div>
+                                            <Select
+                                                fullWidth
+                                                inlineLabel
+                                                labelHidden
+                                                value={coverage.status?.qcode}
+                                                onChange={(value) => this.updateCoverage(coverage, {status: value})}
+                                            >
+                                                <Option value={undefined} />
+                                                {this.props.newsCoverageStatus.map((cov) => (
+                                                    <Option key={cov.qcode} value={cov.qcode}>
+                                                        {getVocabularyItemFieldTranslated(cov, 'label', language)}
+                                                    </Option>
+                                                ))}
+                                            </Select>
+                                        </Spacer>
                                         <div
                                             className="sd-list-item__action-menu
                                             sd-list-item__action-menu--direction-row"
                                         >
-                                            <button
-                                                className="icn-btn"
-                                                title={gettext('Duplicate')}
-                                                onClick={() => this.duplicate(index, coverage)}
-                                            >
-                                                <i className="icon-plus-sign" />
-                                            </button>
+                                            <IconButton
+                                                ariaValue={gettext('Duplicate')}
+                                                icon="plus-sign"
+                                                onClick={() => {
+                                                    this.duplicate(index, coverage);
+                                                }}
+                                            />
                                         </div>
-                                    </React.Fragment>
+                                    </>
                                 )}
                             </div>
                         ))}
-                    </div>
+                    </Spacer>
                 </Modal.Body>
                 <Modal.Footer>
-                    <label style={{float: 'left'}}>
-                        <input
-                            type="checkbox"
-                            id="advanced-default-mode"
+                    <Spacer h justifyContent="space-between" gap="0" alignItems="center">
+                        <Checkbox
                             checked={this.state.advancedMode}
-                            onChange={() => this.setState({
-                                advancedMode: !this.state.advancedMode,
-                                isDirty: true,
-                            })}
+                            label={{
+                                text: gettext('make this mode the default'),
+                                side: 'end',
+                            }}
+                            onChange={() => {
+                                this.setState({
+                                    advancedMode: !this.state.advancedMode,
+                                    isDirty: true,
+                                });
+                            }}
                         />
-                        {' '}
-                        {gettext('make this mode the default')}
-                    </label>
-                    <div className="button-group button-group--end button-group--comfort">
-                        <button className="btn" type="button" onClick={this.props.close}>{gettext('Cancel')}</button>
-                        <button
-                            className="btn btn--primary"
-                            type="button"
-                            disabled={
-                                !this.state.isDirty
-                                || this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))
-                            }
-                            onClick={() => this.save()}
-                        >{gettext('Save')}</button>
-                    </div>
+                        <Spacer h gap="8" alignItems="end" justifyContent="end" noGrow>
+                            <Button
+                                text={gettext('Cancel')}
+                                style="hollow"
+                                onClick={this.props.close}
+                            />
+                            <Tooltip
+                                text={gettext(
+                                    'Some coverages aren\'t enabled or you have not assigned them to a desk or a user.'
+                                )}
+                                flow="top"
+                                disabled={!saveNotPermitted}
+                            >
+                                <Button
+                                    text={gettext('Save')}
+                                    type="primary"
+                                    style="filled"
+                                    disabled={saveNotPermitted}
+                                    onClick={() => {
+                                        this.save();
+                                    }}
+                                />
+                            </Tooltip>
+                        </Spacer>
+                    </Spacer>
                 </Modal.Footer>
             </Modal>
         );
