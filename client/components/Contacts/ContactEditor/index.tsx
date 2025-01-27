@@ -5,6 +5,7 @@ import {gettext} from '../../../utils';
 import * as ContactFormComponents from 'superdesk-core/scripts/apps/contacts/components/Form';
 import {IContact} from 'superdesk-core/scripts/apps/contacts/Contacts';
 import ng from 'superdesk-core/scripts/core/services/ng';
+import {ActionBar} from '../ActionBar';
 
 interface IProps {
     currentContact: IContact;
@@ -75,7 +76,7 @@ export class ContactEditor extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {ContactFormContainer, ActionBar} = ContactFormComponents;
+        const {ContactFormContainer} = ContactFormComponents;
         const {currentContact} = this.props;
 
         // Provides required services for Contact components
