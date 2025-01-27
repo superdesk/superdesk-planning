@@ -84,7 +84,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked
             && !((value as ICoverageScheduledUpdate).scheduled_update_id);
 
-        if (!deskAssigned && (!userAssigned || !coverageProvider)) {
+        if (!deskAssigned && !userAssigned && !coverageProvider) {
             return (
                 <Item noBg={true} noHover={true}>
                     <Border />
@@ -128,16 +128,18 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                     />
                 </Column>
                 <Column grow={true} border={false}>
-                    <ListRow>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                {gettext('Desk:')}
+                    {deskAssigned && (
+                        <ListRow>
+                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                    {gettext('Desk:')}
+                                </span>
+                                <span key={`${field}.assigned_to.desk`}>
+                                    {get(deskAssigned, 'name', '')}
+                                </span>
                             </span>
-                            <span key={`${field}.assigned_to.desk`}>
-                                {get(deskAssigned, 'name', '')}
-                            </span>
-                        </span>
-                    </ListRow>
+                        </ListRow>
+                    )}
                     {userAssigned && (
                         <ListRow>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">

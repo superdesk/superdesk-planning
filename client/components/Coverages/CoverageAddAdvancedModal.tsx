@@ -14,8 +14,6 @@ import {superdeskApi} from '../../superdeskApi';
 import * as actions from '../../actions';
 import {Button, Checkbox, IconButton, Option, Select, Spacer, Tooltip} from 'superdesk-ui-framework/react';
 
-const isInvalid = (coverage) => coverage.user && !coverage.desk;
-
 interface IReduxDispatchProps {
     setCoverageAddAdvancedMode(enable: boolean): void;
 }
@@ -159,7 +157,10 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         };
 
         coverages.splice(index + 1, 0, newCoverage);
-        this.setState({coverages});
+        this.setState({
+            coverages: coverages,
+            isDirty: true,
+        });
     }
 
     updateCoverage(selected, updates) {
@@ -167,6 +168,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             if (selected === coverage) {
                 return Object.assign(coverage, updates);
             }
+
             return coverage;
         });
 
@@ -229,7 +231,13 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     render() {
         const language = getUserInterfaceLanguageFromCV();
         const {SelectUser} = superdeskApi.components;
-        const saveNotPermitted = this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage));
+        const savePermitted = this.state.coverages.every((coverage) => {
+            if (coverage.enabled) {
+                return coverage.desk && coverage.user;
+            }
+
+            return true;
+        });
 
         return (
             <Modal
@@ -291,9 +299,14 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                                 inlineLabel
                                                 labelHidden
                                                 value={coverage.desk?._id}
-                                                onChange={(value) => this.onDeskChange(coverage, value)}
+                                                onChange={(newDeskId) => {
+                                                    this.onDeskChange(
+                                                        coverage,
+                                                        coverage.filteredDesks.find(({_id}) => _id === newDeskId),
+                                                    );
+                                                }}
                                             >
-                                                <Option value={undefined} />
+                                                <Option />
                                                 {coverage.filteredDesks.map((desk) => (
                                                     <Option key={desk._id} value={desk._id}>{desk.name}</Option>
                                                 ))}
@@ -317,7 +330,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                                 value={coverage.status?.qcode}
                                                 onChange={(value) => this.updateCoverage(coverage, {status: value})}
                                             >
-                                                <Option value={undefined} />
+                                                <Option />
                                                 {this.props.newsCoverageStatus.map((cov) => (
                                                     <Option key={cov.qcode} value={cov.qcode}>
                                                         {getVocabularyItemFieldTranslated(cov, 'label', language)}
@@ -369,13 +382,13 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                     'Some coverages aren\'t enabled or you have not assigned them to a desk or a user.'
                                 )}
                                 flow="top"
-                                disabled={!saveNotPermitted}
+                                disabled={!savePermitted}
                             >
                                 <Button
                                     text={gettext('Save')}
                                     type="primary"
                                     style="filled"
-                                    disabled={saveNotPermitted}
+                                    disabled={!this.state.isDirty || !savePermitted}
                                     onClick={() => {
                                         this.save();
                                     }}
