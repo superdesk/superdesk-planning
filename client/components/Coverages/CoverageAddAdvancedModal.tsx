@@ -377,23 +377,15 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 style="hollow"
                                 onClick={this.props.close}
                             />
-                            <Tooltip
-                                text={gettext(
-                                    'Some coverages aren\'t enabled or you have not assigned them to a desk or a user.'
-                                )}
-                                flow="top"
-                                disabled={!savePermitted}
-                            >
-                                <Button
-                                    text={gettext('Save')}
-                                    type="primary"
-                                    style="filled"
-                                    disabled={!this.state.isDirty || !savePermitted}
-                                    onClick={() => {
-                                        this.save();
-                                    }}
-                                />
-                            </Tooltip>
+                            <Button
+                                text={gettext('Save')}
+                                type="primary"
+                                style="filled"
+                                disabled={!this.state.isDirty || !savePermitted}
+                                onClick={() => {
+                                    this.save();
+                                }}
+                            />
                         </Spacer>
                     </Spacer>
                 </Modal.Footer>
