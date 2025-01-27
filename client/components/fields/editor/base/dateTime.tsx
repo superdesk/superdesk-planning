@@ -13,7 +13,7 @@ interface IProps extends IEditorFieldProps {
     remoteTimeZone?: string;
     singleValue?: boolean;
     onToBeConfirmed?(field: string): void;
-    dateOnly?: boolean;
+    allDay?: boolean;
 }
 
 export class EditorFieldDateTime extends React.PureComponent<IProps> {
@@ -62,7 +62,7 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
                 refNode={(node) => {
                     this.node = node;
                 }}
-                dateOnly={this.props.dateOnly}
+                allDay={this.props.allDay}
             />
         );
     }

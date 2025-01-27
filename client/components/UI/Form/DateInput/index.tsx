@@ -31,7 +31,6 @@ interface IProps {
     remoteTimeZone?: string;
     isLocalTimeZoneDifferent?: boolean;
     inputAsLabel?: boolean;
-    dateOnly?: boolean;
 
     onChange(field: string, value: moment.Moment): void;
     popupContainer(): HTMLElement;

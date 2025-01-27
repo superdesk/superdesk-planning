@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 import RRule from 'rrule';
-import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten, noop} from 'lodash';
+import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {IVocabularyItem} from 'superdesk-api';
@@ -1261,6 +1261,14 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
                 event.dates.tz
             );
         }
+    } else {
+        if (event.dates?.start != null && moment.isMoment(event.dates.start)) {
+            event.dates.start = event.dates.start.toISOString();
+        }
+
+        if (event.dates?.end != null && moment.isMoment(event.dates.end)) {
+            event.dates.end = event.dates.end.toISOString();
+        }
     }
 
     return event;
@@ -1515,18 +1523,18 @@ function getEventDiff(original: IEventItem, updates: Partial<IEventItem>): Parti
     const originalItem = modifyForServer(cloneDeep(original), true);
 
     // clone the updates as we're going to modify it
-    let eventUpdates = modifyForServer(cloneDeep(updates), true);
+    const eventUpdates = modifyForServer(cloneDeep(updates), true);
 
     originalItem.location = originalItem.location ? [originalItem.location] : null;
 
     // remove all properties starting with `_`
     // and updates that are the same as original
-    eventUpdates = pickBy(eventUpdates, (value, key) => (
+    const diff = pickBy(eventUpdates, (value, key) => (
         (key === TO_BE_CONFIRMED_FIELD || key === '_planning_item' || !key.startsWith('_')) &&
         !isEqual(eventUpdates[key] ?? '', originalItem[key] ?? '')
     ));
 
-    return eventUpdates;
+    return diff;
 }
 
 function convertCoverageToEventEmbedded(coverage: IPlanningCoverageItem): IEmbeddedCoverageItem {
