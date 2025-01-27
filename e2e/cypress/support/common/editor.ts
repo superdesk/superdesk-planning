@@ -60,7 +60,7 @@ export class Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get minimiseButton() {
-        return this.element.find('button[title="Minimise"]');
+        return this.element.find('button[aria-label="Minimise"]');
     }
 
     get editButton() {
