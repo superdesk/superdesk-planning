@@ -3,7 +3,10 @@ import React = require('react');
 import {IPlanningCoverageItem} from '../../../interfaces';
 
 interface IDebouncedChangeHOCProps {
-    children: (changedValue: Array<IPlanningCoverageItem>, onChange: (fieldPath: string, value: any) => void) => JSX.Element;
+    children: (
+        changedValue: Array<IPlanningCoverageItem>,
+        onChange: (fieldPath: string, value: any) => void,
+    ) => JSX.Element;
     value: Array<IPlanningCoverageItem>;
     onChange: (newValue: Array<IPlanningCoverageItem>) => void;
 }
@@ -52,7 +55,7 @@ export class DebouncedChangeHOC extends React.PureComponent<IDebouncedChangeHOCP
             (fieldPath, value) => {
                 this.changeQueue = [
                     ...this.changeQueue,
-                    {fieldPath, value}
+                    {fieldPath, value},
                 ];
 
                 const clonedValue = cloneDeep({coverages: this.state.renderedValue});
@@ -67,6 +70,6 @@ export class DebouncedChangeHOC extends React.PureComponent<IDebouncedChangeHOCP
 
                 this.debouncedFn();
             },
-        )
+        );
     }
 }

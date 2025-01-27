@@ -26,7 +26,8 @@ export class Editor extends React.PureComponent<IProps> {
                             // coverages are the main value
                             coverages: changedValue,
 
-                            // related_events are used if available to prefill coverage fields when adding a new coverage
+                            // related_events are used if available to prefill coverage fields
+                            // when adding a new coverage
                             related_events: this.props.item.related_events,
                         } as IPlanningItem}
 
