@@ -50,6 +50,8 @@ describe('Planning.Assignment: reassign assignment', () => {
             .should('contain.text', 'Draft');
         coverageEditor.clickAction('Add to workflow');
 
+        editor.saveButton.click();
+
         editor.waitForAutosave();
         coverageEditor.element
             .find('.sd-collapse-box__content-block--top')
