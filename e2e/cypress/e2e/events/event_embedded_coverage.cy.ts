@@ -186,7 +186,7 @@ describe('Planning.Events: embedded coverage', () => {
     });
 
     // PR-TODO: drop this test?
-    xit('SDESK-6071: update new Planning when event dates changes', () => {
+    it.skip('SDESK-6071: update new Planning when event dates changes', () => {
         subnav.createEvent();
         editor.waitTillOpen();
         editor.openAllToggleBoxes();
