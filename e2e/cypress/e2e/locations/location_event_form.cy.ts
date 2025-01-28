@@ -1,5 +1,5 @@
 import {setup, login, waitForPageLoad, SubNavBar, addItems} from '../../support/common';
-import {NewLocationPopup} from '../../support/planning/location';
+import {NewLocationPopup} from '../../support/planning/location/newLocationPopup';
 import {EventEditor} from '../../support/planning';
 import {CVs} from '../../fixtures/cvs';
 
