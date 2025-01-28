@@ -48,7 +48,10 @@ describe('Planning.Assignment: edit assignment priority', () => {
             .find('.sd-collapse-box__content-block--top')
             .find('.label')
             .should('contain.text', 'Draft');
+
         coverageEditor.clickAction('Add to workflow');
+
+        editor.saveButton.click();
 
         editor.waitForAutosave();
         coverageEditor.element
