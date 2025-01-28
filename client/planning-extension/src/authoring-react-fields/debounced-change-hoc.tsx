@@ -49,6 +49,14 @@ export class DebouncedChangeHOC extends React.PureComponent<IDebouncedChangeHOCP
         this.debouncedFn.cancel();
     }
 
+    componentDidUpdate(_prevProps: Readonly<IDebouncedChangeHOCProps>, prevState: Readonly<IDebouncedChangeHOCState>): void {
+        if (JSON.stringify(prevState.renderedValue) != JSON.stringify(this.props.value)) {
+            this.setState({
+                renderedValue: this.props.value,
+            });
+        }
+    }
+
     render() {
         return this.props.children(
             this.state.renderedValue,

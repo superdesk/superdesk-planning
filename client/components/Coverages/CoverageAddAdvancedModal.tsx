@@ -1,8 +1,8 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+import {cloneDeep, get} from 'lodash';
 
-import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../interfaces';
+import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus, IWorkflowState} from '../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
 import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
@@ -44,6 +44,7 @@ interface ICoverageSelector {
     icon: string;
     desk: IDesk;
     user: IUser;
+    workflow_status: IWorkflowState;
     status: IPlanningNewsCoverageStatus;
     popupContainer: any;
     filteredDesks: Array<IDesk>;
@@ -69,6 +70,9 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             coverages: [],
             isDirty: false,
         };
+
+        this.duplicate = this.duplicate.bind(this);
+        this.updateCoverage = this.updateCoverage.bind(this);
     }
 
     getContentTypeName(contentType) {
@@ -83,9 +87,6 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         const {value, contentTypes, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
         const savedCoverages = value
-            // Filter coverages that are in workflow
-            // as these are to be managed from the Assignments page only
-            .filter((coverage) => coverage.workflow_status === 'draft')
             .map((coverage) => {
                 const contentType = contentTypes.find(
                     (type) => type.qcode === coverage.planning.g2_content_type
@@ -98,6 +99,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 return {
                     id: this.id++,
                     enabled: true,
+                    workflow_status: coverage.workflow_status,
                     qcode: contentType.qcode,
                     name: this.getContentTypeName(contentType),
                     icon: icon,
@@ -123,6 +125,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                     id: this.id++,
                     enabled: false,
                     qcode: contentType.qcode,
+                    workflow_status: 'draft',
                     name: this.getContentTypeName(contentType),
                     icon: icon,
                     desk: null,
@@ -141,8 +144,8 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     }
 
     duplicate(index, coverage) {
-        const coverages = this.state.coverages.slice();
-        const newCoverage = {
+        const coveragesCopy = cloneDeep(this.state.coverages);
+        const coverageToAdd: ICoverageSelector = {
             id: this.id++,
             enabled: false,
             qcode: coverage.qcode,
@@ -150,15 +153,16 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
             icon: coverage.icon,
             desk: null,
             user: null,
+            workflow_status: 'draft',
             status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
             popupContainer: null,
             filteredDesks: this.props.desks,
             filteredUsers: this.props.users,
         };
 
-        coverages.splice(index + 1, 0, newCoverage);
+        coveragesCopy.splice(index + 1, 0, coverageToAdd);
         this.setState({
-            coverages: coverages,
+            coverages: coveragesCopy,
             isDirty: true,
         });
     }
@@ -208,7 +212,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                     desk: get(coverage, 'desk._id'),
                 };
 
-                if (coverage.coverage_id != null && !coverage.enabled) {
+                if (coverage.coverage_id != null && coverage.enabled === false) {
                     newCoverage.workflow_status = 'spiked';
                 } else if (coverage.status) {
                     newCoverage.news_coverage_status = coverage.status;
@@ -232,8 +236,8 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         const language = getUserInterfaceLanguageFromCV();
         const {SelectUser} = superdeskApi.components;
         const savePermitted = this.state.coverages.every((coverage) => {
-            if (coverage.enabled) {
-                return coverage.desk && coverage.user;
+            if (coverage.enabled && coverage.user) {
+                return coverage.desk != null;
             }
 
             return true;
@@ -268,16 +272,24 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                                 style={coverage.enabled ? {height: 60} : {}}
                                 className="sd-list-item sd-shadow--z1"
                             >
-                                <div className="sd-list-item__column">
-                                    <Checkbox
-                                        label={{
-                                            text: gettext('Coverage enabled'),
-                                            hidden: true,
-                                        }}
-                                        checked={coverage.enabled}
-                                        onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
-                                    />
-                                </div>
+                                <Tooltip
+                                    appendToBody
+                                    flow="top"
+                                    disabled={coverage.workflow_status !== 'active'}
+                                    text={gettext('Coverage has been added to workflow')}
+                                >
+                                    <div className="sd-list-item__column">
+                                        <Checkbox
+                                            disabled={coverage.workflow_status === 'active'}
+                                            label={{
+                                                text: gettext('Coverage enabled'),
+                                                hidden: true,
+                                            }}
+                                            checked={coverage.enabled}
+                                            onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
+                                        />
+                                    </div>
+                                </Tooltip>
                                 <div className="sd-list-item__column">
                                     <i className={coverage.icon} />
                                 </div>

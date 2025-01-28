@@ -3,7 +3,7 @@ import {isEqual} from 'lodash';
 
 import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
-import {superdeskApi, planningApi} from '../../../superdeskApi';
+import {superdeskApi} from '../../../superdeskApi';
 
 import {AddCoveragesWrapper} from './AddCoveragesWrapper';
 
