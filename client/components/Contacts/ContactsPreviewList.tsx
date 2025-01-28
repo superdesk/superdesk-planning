@@ -6,7 +6,6 @@ import {ContactMetaData} from './ContactMetaData';
 import {Spacer} from 'superdesk-ui-framework/react';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import './style.scss';
 import {IContactItem} from 'interfaces';
 
 interface IProps {
@@ -111,23 +110,25 @@ class ContactsPreviewListComponent extends React.Component<IProps, IState> {
         } = this.props;
 
         return (
-            <Spacer v gap="8" justifyContent="center" alignItems="center">
-                {(contactIds || []).map((contactId) => (contacts[contactId] == null ? null : (
-                    <ContactMetaData
-                        key={contactId}
-                        contact={contacts[contactId]}
-                        {...props}
-                        onEditContact={onEditContact != null ?
-                            onEditContact.bind(null, contacts[contactId] || {}) :
-                            null
-                        }
-                        onRemoveContact={onRemoveContact != null ?
-                            onRemoveContact.bind(null, contacts[contactId] || {}) :
-                            null
-                        }
-                    />
-                )))}
-            </Spacer>
+            <div data-test-id="contacts-preview-list">
+                <Spacer v gap="8" justifyContent="center" alignItems="center">
+                    {(contactIds || []).map((contactId) => (contacts[contactId] == null ? null : (
+                        <ContactMetaData
+                            key={contactId}
+                            contact={contacts[contactId]}
+                            {...props}
+                            onEditContact={onEditContact != null ?
+                                onEditContact.bind(null, contacts[contactId] || {}) :
+                                null
+                            }
+                            onRemoveContact={onRemoveContact != null ?
+                                onRemoveContact.bind(null, contacts[contactId] || {}) :
+                                null
+                            }
+                        />
+                    )))}
+                </Spacer>
+            </div>
         );
     }
 }
