@@ -14,6 +14,7 @@ import * as selectors from '../../selectors';
 import {IAgenda, IPlanningAppState, IPlanningItem} from 'interfaces';
 import {formProfile} from '../../validators/profile';
 import {getPlanningProfileFields} from './profile-fields';
+import {FieldTemplate} from './field-template';
 
 interface IOwnProps<T extends IPlanningItem | IEventItem> {
     // will be used as resource and content profile type
@@ -127,6 +128,7 @@ export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends R
                 onSideWidgetChange={noop}
                 getSidePanel={() => null}
                 getSideWidgetIdAtIndex={(_item) => 'no-id-available'}
+                fieldTemplate={FieldTemplate}
             />
         );
     }
