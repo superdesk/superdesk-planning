@@ -44,13 +44,10 @@ interface IOwnProps {
     desks: Array<IDesk>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
-    genres: Array<IGenre>;
     coverageProviders: Array<ICoverageProvider>;
     priorities: Array<IAssignmentPriority>;
-    keywords: Array<string>;
     readOnly: boolean;
     message: any;
-    item: any;
     diff: any; // planning item
     formProfile: any;
     errors: {[key: string]: any};
@@ -59,7 +56,6 @@ interface IOwnProps {
     addNewsItemToPlanning?: IArticle;
     navigation?: any;
     index: number;
-    openCoverageIndex: number;
     openCoverageIds: Array<IPlanningCoverageItem['coverage_id']>;
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
@@ -182,11 +178,8 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
             desks,
             remove,
             contentTypes,
-            genres,
             newsCoverageStatus,
             coverageProviders,
-            priorities,
-            keywords,
             readOnly,
             message,
             invalid,

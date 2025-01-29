@@ -119,6 +119,9 @@ export enum JUMP_INTERVAL {
     MONTH = 'MONTH'
 }
 
+/**
+ * @spiked is only used in the front-end, to remove items from AdvancedCoverage modal
+ */
 export type IPlanningWorkflowStatus = 'draft'
     | 'assigned'
     | 'in_progress'
@@ -127,8 +130,6 @@ export type IPlanningWorkflowStatus = 'draft'
     | 'cancelled'
     | 'reverted'
     | 'active'
-    // `spiked` is only used in the front-end,
-    // to remove items from AdvancedCoverage modal
     | 'spiked';
 
 export type IPlanningPubstatus = 'usable' | 'cancelled';

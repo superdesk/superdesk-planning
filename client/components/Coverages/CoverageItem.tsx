@@ -47,7 +47,6 @@ interface IState {
     displayContentType?: string;
     coverageDateText?: string;
     internalNoteFieldPrefix?: string;
-    coverageInWorkflow?: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -71,7 +70,6 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             displayContentType: '',
             coverageDateText: '',
             internalNoteFieldPrefix: '',
-            coverageInWorkflow: false,
             addedToWorkflow: false,
         };
 
@@ -155,7 +153,6 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
             planningUtils.getCoverageDateTimeText(coverage);
 
         newState.internalNoteFieldPrefix = workflowStateReasonPrefix || `coverages[${index}]`;
-        newState.coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
         newState.coverageProvider = get(coverage, 'assigned_to.coverage_provider.name', '');
 
         this.setState(newState);
@@ -242,6 +239,7 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                     )}
                     <Label
                         text={this.props.coverage.workflow_status}
+                        style="hollow"
                         type={(() => {
                             const {coverage} = this.props;
 

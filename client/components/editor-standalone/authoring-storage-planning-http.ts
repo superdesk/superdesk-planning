@@ -46,12 +46,6 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
             headers: {
                 'If-Match': original._etag,
             },
-        }).catch((e) => {
-            superdeskApi.ui.notify.error(
-                getErrorMessage(e, gettext('Couldn\'t save item'))
-            );
-
-            return Promise.reject();
         });
     },
     getContentProfile: () => {
