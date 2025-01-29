@@ -59,6 +59,16 @@ interface IOwnProps {
     notifyValidationErrors?(errors: Array<string>): void;
 }
 
+interface IReduxStateProps {
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    contentTypes: Array<IG2ContentType>;
+    languages: Array<string>;
+    genres: Array<IGenre>;
+    keywords: Array<IKeyword>;
+    preferredCoverageDesks: {[key: string]: string};
+    planningAllowScheduledUpdates: boolean;
+}
+
 interface IState {
     openScheduledUpdates: Array<ICoverageScheduledUpdate['scheduled_update_id']>;
     uploading: boolean;
@@ -74,16 +84,6 @@ const mapStateToProps = (state) => ({
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     formProfile: selectors.forms.coverageProfile(state),
 });
-
-interface IReduxStateProps {
-    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    contentTypes: Array<IG2ContentType>;
-    languages: Array<string>;
-    genres: Array<IGenre>;
-    keywords: Array<IKeyword>;
-    preferredCoverageDesks: {[key: string]: string};
-    planningAllowScheduledUpdates: boolean;
-}
 
 type IProps = IOwnProps & IReduxStateProps;
 

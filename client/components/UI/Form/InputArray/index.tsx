@@ -45,7 +45,7 @@ interface IProps {
     errors: {[key: string]: any};
     showErrors: boolean;
     testId?: string;
-    getRef?(field: string, value: any): React.RefObject<CoverageEditorComponent>;
+    getRef?(field: string, value: any): React.RefObject<any>;
     popupContainer(): HTMLElement;
     onPopupOpen(): void;
     onPopupClose(): void;

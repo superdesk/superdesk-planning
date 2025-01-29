@@ -5,7 +5,8 @@ import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
 import {omitFields} from './utils';
 import {AutoSaveHttp} from './authoring-autosave';
-import {planningUtils} from '../../utils';
+import {getErrorMessage, planningUtils} from '../../utils';
+import {gettext} from 'core/utils';
 
 export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> = {
     autosave: new AutoSaveHttp<IPlanningItem>(
@@ -45,6 +46,12 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
             headers: {
                 'If-Match': original._etag,
             },
+        }).catch((e) => {
+            superdeskApi.ui.notify.error(
+                getErrorMessage(e, gettext('Couldn\'t save item'))
+            );
+
+            return Promise.reject();
         });
     },
     getContentProfile: () => {
