@@ -198,7 +198,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
     }
 
     save() {
-        const coverages = this.state.coverages
+        const coverages = cloneDeep(this.state.coverages)
             .filter((coverage) => coverage.enabled || coverage.coverage_id != null)
             .map((coverage) => {
                 const newCoverage: DeepPartial<IPlanningCoverageItem> = coverage.coverage_id == null ?
@@ -221,10 +221,12 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                 return newCoverage;
             });
 
-        // create coverages
-        this.props.onChange(this.props.field, coverages);
+        // Update coverages
+        // Important note: `spiked` workflow_status is only used on the frontend
+        // to indicate which coverages should be removed.
+        this.props.onChange(this.props.field, coverages.filter((x) => x.workflow_status !== 'spiked'));
 
-        // save advanced mode preference
+        // Save advanced mode preference
         if (this.state.advancedMode !== this.props.coverageAddAdvancedMode) {
             this.props.setCoverageAddAdvancedMode(this.state.advancedMode);
         }

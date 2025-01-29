@@ -126,6 +126,7 @@ export type IPlanningWorkflowStatus = 'draft'
     | 'submitted'
     | 'cancelled'
     | 'reverted'
+    | 'active'
     // `spiked` is only used in the front-end,
     // to remove items from AdvancedCoverage modal
     | 'spiked';

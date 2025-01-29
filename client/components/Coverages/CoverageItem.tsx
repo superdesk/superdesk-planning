@@ -18,9 +18,9 @@ import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
-import {StateLabel, InternalNoteLabel} from '../../components';
+import {InternalNoteLabel} from '../../components';
 import {CoverageIcons} from './CoverageIcons';
-import {Label} from 'superdesk-ui-framework';
+import {Label} from 'superdesk-ui-framework/react';
 
 interface IProps {
     coverage: IPlanningCoverageItem;
@@ -235,16 +235,28 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
                         showHeaderText={false}
                     />
                     {this.state.addedToWorkflow && (
-                        <div>
-                            <Label
-                                text={gettext('Added to workflow')}
-                                type="success"
-                            />
-                        </div>
+                        <Label
+                            text={gettext('Added to workflow')}
+                            type="success"
+                        />
                     )}
-                    <StateLabel
-                        item={this.state.coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage}
-                        fieldName={this.state.coverageInWorkflow ? 'state' : 'workflow_status'}
+                    <Label
+                        text={this.props.coverage.workflow_status}
+                        type={(() => {
+                            const {coverage} = this.props;
+
+                            if (coverage.workflow_status === 'draft') {
+                                return 'default';
+                            } else if (coverage.workflow_status === 'assigned') {
+                                return 'primary';
+                            } else if (coverage.workflow_status === 'spiked') {
+                                return 'alert';
+                            } else if (coverage.workflow_status === 'active') {
+                                return 'success';
+                            } else {
+                                return 'warning';
+                            }
+                        })()}
                     />
                 </span>
             </Row>
