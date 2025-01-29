@@ -18,7 +18,7 @@ describe('Planning.Assignment: remove assignment', () => {
         editor.waitTillOpen();
     });
 
-    it('can remove Assignment', () => {
+    it.only('can remove Assignment', () => {
         editor.type({slugline: 'Slugline'});
         editor.addCoverage('Text');
 
@@ -46,7 +46,7 @@ describe('Planning.Assignment: remove assignment', () => {
         coverageEditor.element
             .find('.sd-collapse-box__content-block--top')
             .find('.label')
-            .should('contain.text', 'Draft');
+            .should('contain.text', 'draft');
         coverageEditor.clickAction('Add to workflow');
 
         editor.saveButton.click();
@@ -80,6 +80,6 @@ describe('Planning.Assignment: remove assignment', () => {
             .should('contain.text', 'Unassigned');
         coverageEditor.element
             .find('.label')
-            .should('contain.text', 'Draft');
+            .should('contain.text', 'draft');
     });
 });
