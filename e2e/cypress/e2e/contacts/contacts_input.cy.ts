@@ -5,10 +5,10 @@ import {
     waitForPageLoad,
     SubNavBar,
     Workqueue,
-    Modal,
 } from '../../support/common';
 import {EventEditor, PlanningList} from '../../support/planning';
 import {ContactsEditor} from '../../support/contacts';
+import {UiFrameworkModal} from '../../support/common/ui/ui-framework-modal';
 
 describe('MediaContacts: contact input', () => {
     const editors = {
@@ -16,7 +16,7 @@ describe('MediaContacts: contact input', () => {
         contacts: new ContactsEditor(),
     };
     const contactInput = editors.event.fields.event_contact_info;
-    const modal = new Modal();
+    const modal = new UiFrameworkModal();
     const subnav = new SubNavBar();
     const list = new PlanningList();
     const workqueue = new Workqueue();

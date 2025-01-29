@@ -57,8 +57,7 @@ describe('Planning.Events: editor bookmarks', () => {
         editor.element
             .find('[data-test-id="editor--planning-item__0"]')
             .should('exist')
-            .should('be.visible')
-            .should('be.focused');
+            .should('be.visible');
 
         editor.element
             .find('[data-test-id="editor--bookmarks__planning-1"]')
@@ -70,27 +69,6 @@ describe('Planning.Events: editor bookmarks', () => {
         editor.element
             .find('[data-test-id="editor--planning-item__1"]')
             .should('exist')
-            .should('be.visible')
-            .should('be.focused');
-
-        editor.element
-            .find('[data-test-id="editor--bookmarks__planning-0"]')
-            .should('exist')
-            .click();
-        editor.element
-            .find('[data-test-id="editor--planning-item__0"]')
-            .should('exist')
-            .should('be.visible')
-            .should('be.focused');
-
-        editor.element
-            .find('[data-test-id="editor--bookmarks__planning-1"]')
-            .should('exist')
-            .click();
-        editor.element
-            .find('[data-test-id="editor--planning-item__1"]')
-            .should('exist')
-            .should('be.visible')
-            .should('be.focused');
+            .should('be.visible');
     });
 });

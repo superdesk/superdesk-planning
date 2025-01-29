@@ -15,7 +15,7 @@ export class NewLocationPopup extends Popup {
     }
 
     constructor() {
-        super('[data-test-id="editor-popup-form"]');
+        super('.modal__dialog');
 
         const getParent = () => this.element;
 

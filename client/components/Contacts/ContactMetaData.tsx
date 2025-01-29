@@ -53,49 +53,51 @@ export class ContactMetaData extends React.PureComponent<IProps, IState> {
         } = this.props;
 
         return (
-            <ToggleBox
-                onToggle={(isOpen) => {
-                    this.setState({
-                        isOpen,
-                    });
-                }}
-                header={(
-                    <div style={{backgroundColor: 'white', padding: 4}}>
-                        <Spacer gap="0" h noWrap justifyContent="start">
-                            <ContactLabel contact={contact} />
-                            <StateLabel
-                                item={contact}
-                                verbose={true}
-                                className="pull-right"
-                                fieldName="is_active"
-                            />
-                            <Spacer h gap="4" noWrap justifyContent="end" alignItems="center">
-                                {((!readOnly && onEditContact) && (
-                                    <IconButton
-                                        icon="pencil"
-                                        aria-label={gettext('Edit Contact')}
-                                        ariaValue={gettext('Edit Contact')}
-                                        onClick={this.editContact}
-                                    />
-                                ))}
-                                {((!readOnly && onRemoveContact) && (
-                                    <IconButton
-                                        ariaValue={gettext('Remove Contact')}
-                                        icon="trash"
-                                        aria-label={gettext('Remove Contact')}
-                                        onClick={this.removeContact}
-                                    />
-                                ))}
+            <div data-test-id="contact-metadata">
+                <ToggleBox
+                    onToggle={(isOpen) => {
+                        this.setState({
+                            isOpen,
+                        });
+                    }}
+                    header={(
+                        <div style={{backgroundColor: 'white', padding: 4}}>
+                            <Spacer gap="0" h noWrap justifyContent="start">
+                                <ContactLabel contact={contact} />
+                                <StateLabel
+                                    item={contact}
+                                    verbose={true}
+                                    className="pull-right"
+                                    fieldName="is_active"
+                                />
+                                <Spacer h gap="4" noWrap justifyContent="end" alignItems="center">
+                                    {((!readOnly && onEditContact) && (
+                                        <IconButton
+                                            icon="pencil"
+                                            aria-label={gettext('Edit Contact')}
+                                            ariaValue={gettext('Edit Contact')}
+                                            onClick={this.editContact}
+                                        />
+                                    ))}
+                                    {((!readOnly && onRemoveContact) && (
+                                        <IconButton
+                                            ariaValue={gettext('Remove Contact')}
+                                            icon="trash"
+                                            aria-label={gettext('Remove Contact')}
+                                            onClick={this.removeContact}
+                                        />
+                                    ))}
+                                </Spacer>
                             </Spacer>
-                        </Spacer>
-                    </div>
-                )}
-                getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
-                variant="custom-header"
-            >
-                <ContactInfo hideHeader={this.state.isOpen} item={this.props.contact} />
-                <ContactFooter item={this.props.contact} />
-            </ToggleBox>
+                        </div>
+                    )}
+                    getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
+                    variant="custom-header"
+                >
+                    <ContactInfo hideHeader={this.state.isOpen} item={this.props.contact} />
+                    <ContactFooter item={this.props.contact} />
+                </ToggleBox>
+            </div>
         );
     }
 }

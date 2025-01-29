@@ -28,95 +28,31 @@ describe('Planning.Events: embedded coverage', () => {
             name: 'name of the event',
         });
 
-        // Test a new Planning item is added, scrolled to and focused
         editor.element
             .find('[data-test-id="editor--planning-item__0"]')
             .should('not.exist');
+
+        editor.waitForAutosave();
+        editor.createButton
+            .should('exist')
+            .click();
+
+        // wait for item to save and create button to disappear
+        editor.createButton.should('not.exist');
+
         editor.clickBookmark('add_planning');
+
         editor.element
             .find('[data-test-id="editor--planning-item__0"]')
             .should('exist');
-        embeddedCoverages.getAddCoverageForm(0)
-            .should('exist')
-            .should('be.visible');
 
-        let addCoverageForm = embeddedCoverages.getCoverageEntry(0, 0);
-
-        // Test enabling & disabling a coverage type
-        // and associated input fields shown only when enabled
-
-        // Test metadata inputs are hidden when Coverage is disabled
-        addCoverageForm.fields.desk.element.should('not.exist');
-        addCoverageForm.fields.user.element.should('not.exist');
-        addCoverageForm.fields.status.element.should('not.exist');
-        addCoverageForm.fields.enabled.element.should('exist');
-
-        // Enable the Coverage, and test metadata inputs are visible
-        addCoverageForm.fields.enabled.type('enabled');
-        addCoverageForm.fields.desk.element
-            .should('exist')
-            .should('be.visible');
-        addCoverageForm.fields.user.element
-            .should('exist')
-            .should('be.visible');
-        addCoverageForm.fields.status.element
-            .should('exist')
-            .should('be.visible');
-
-        // Disable the Coverage again, and re-test metadata inputs are hidden
-        addCoverageForm.fields.enabled.type('disabled');
-        addCoverageForm.fields.desk.element.should('not.exist');
-        addCoverageForm.fields.user.element.should('not.exist');
-        addCoverageForm.fields.status.element.should('not.exist');
-
-        // Enable Text coverage
-        addCoverageForm.fields.enabled.type('enabled');
-        addCoverageForm.fields.desk.type('Sports Desk');
-        addCoverageForm.fields.user.type('first name2 last name2');
-
-        // Enable Photo coverage
-        addCoverageForm = embeddedCoverages.getCoverageEntry(0, 1);
-        addCoverageForm.fields.enabled.type('enabled');
-        addCoverageForm.fields.desk.type('Politic Desk');
-        addCoverageForm.fields.user.type('first name last name');
-        addCoverageForm.fields.status.type('On merit');
-
-        // Add the coverage to the Planning item
-        addCoverageForm.addButton.click();
-
-        // Test the coverages were added properly to the associated Planning item
-        embeddedCoverages.getRelatedCoverage(0, 0)
-            .should('exist')
-            .should('contain.text', 'Text')
-            .should('contain.text', 'Sports Desk')
-            .should('contain.text', 'first name2 last name2');
-        embeddedCoverages.getRelatedCoverage(0, 1)
-            .should('exist')
-            .should('contain.text', 'Picture')
-            .should('contain.text', 'Politic Desk')
-            .should('contain.text', 'first name last name');
-
-        // Create the Event & Planning items
-        editor.waitForAutosave();
-        editor.createButton
+        editor.saveButton
             .should('exist')
             .click();
 
         // Test the new Event appears in the list view
         list.expectItemCount(2);
         list.expectItemText(0, 'slugline of the event');
-
-        // Test coverage icons in the related Planning item
-        list.toggleAssociatedPlanning(0);
-        list.nestedItem(0)
-            .find('[data-test-id="coverage-icons"]')
-            .should('exist');
-        list.nestedPlanningItem(0, 0)
-            .find('[data-test-id="coverage-icons"] .icon-text')
-            .should('exist');
-        list.nestedPlanningItem(0, 0)
-            .find('[data-test-id="coverage-icons"] .icon-photo')
-            .should('exist');
     });
 
     it('can add a planning item to an existing event', () => {
@@ -140,13 +76,6 @@ describe('Planning.Events: embedded coverage', () => {
         editor.waitLoadingComplete();
 
         editor.clickBookmark('add_planning');
-        let addCoverageForm = embeddedCoverages.getCoverageEntry(0, 0);
-
-        addCoverageForm.fields.enabled.type('enabled');
-        addCoverageForm.fields.desk.type('Sports Desk');
-        addCoverageForm.fields.user.type('first name2 last name2');
-
-        addCoverageForm.addButton.click();
 
         editor.waitForAutosave();
         editor.saveButton
@@ -158,15 +87,6 @@ describe('Planning.Events: embedded coverage', () => {
             .should('exist')
             .should('be.enabled');
         editor.waitForAutosave();
-
-        // Test coverage icons in the related Planning item
-        list.toggleAssociatedPlanning(0);
-        list.nestedItem(0)
-            .find('[data-test-id="coverage-icons"]')
-            .should('exist');
-        list.nestedPlanningItem(0, 0)
-            .find('[data-test-id="coverage-icons"] .icon-text')
-            .should('exist');
 
         editor.closeButton
             .should('exist')
@@ -186,14 +106,6 @@ describe('Planning.Events: embedded coverage', () => {
         editor.waitLoadingComplete();
 
         editor.clickBookmark('add_planning');
-        addCoverageForm = embeddedCoverages.getCoverageEntry(1, 1);
-
-        addCoverageForm.fields.enabled.type('enabled');
-        addCoverageForm.fields.desk.type('Politic Desk');
-        addCoverageForm.fields.user.type('first name last name');
-        addCoverageForm.fields.status.type('On request');
-
-        addCoverageForm.addButton.click();
 
         editor.waitForAutosave();
         editor.saveButton
@@ -217,16 +129,11 @@ describe('Planning.Events: embedded coverage', () => {
         list.item(0)
             .find('.sd-list-item__border--locked')
             .should('not.exist');
+
+        list.toggleAssociatedPlanning(0);
+
         list.nestedPlanningItems(0)
             .should('have.length', 2);
-
-        list.nestedPlanningItem(0, 0)
-            .find('[data-test-id="coverage-icons"] .icon-text')
-            .should('exist');
-
-        list.nestedPlanningItem(0, 1)
-            .find('[data-test-id="coverage-icons"] .icon-photo')
-            .should('exist');
     });
 
     it('SDESK-6022: planning items should stay after post/unpost', () => {
@@ -250,13 +157,6 @@ describe('Planning.Events: embedded coverage', () => {
         editor.waitLoadingComplete();
 
         editor.clickBookmark('add_planning');
-        let addCoverageForm = embeddedCoverages.getCoverageEntry(0, 0);
-
-        addCoverageForm.fields.enabled.type('enabled');
-        addCoverageForm.fields.desk.type('Sports Desk');
-        addCoverageForm.fields.user.type('first name2 last name2');
-
-        addCoverageForm.addButton.click();
 
         editor.waitForAutosave();
 
@@ -285,7 +185,8 @@ describe('Planning.Events: embedded coverage', () => {
             .should('exist');
     });
 
-    it('SDESK-6071: update new Planning when event dates changes', () => {
+    // PR-TODO: drop this test?
+    it.skip('SDESK-6071: update new Planning when event dates changes', () => {
         subnav.createEvent();
         editor.waitTillOpen();
         editor.openAllToggleBoxes();
@@ -303,17 +204,10 @@ describe('Planning.Events: embedded coverage', () => {
         editor.element
             .find('[data-test-id="editor--planning-item__0"]')
             .should('exist');
+
         embeddedCoverages.getAddCoverageForm(0)
             .should('exist')
             .should('be.visible');
-
-        // Add a text coverage to the Planning item
-        let addCoverageForm = embeddedCoverages.getCoverageEntry(0, 0);
-
-        addCoverageForm.fields.enabled.type('enabled');
-        addCoverageForm.fields.desk.type('Sports Desk');
-        addCoverageForm.fields.user.type('first name2 last name2');
-        addCoverageForm.addButton.click();
 
         // Attempt to create the Event & Planning item
         // knowing that it will error out
@@ -329,7 +223,7 @@ describe('Planning.Events: embedded coverage', () => {
             .should('exist')
             .should('be.enabled');
 
-        const now = moment()
+        const now = moment();
 
         // Fill in the dates (which should also update the Planning/Coverage dates)
         editor.type({

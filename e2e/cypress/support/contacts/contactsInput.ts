@@ -38,7 +38,7 @@ export class ContactsInput extends Input {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get list() {
-        return this.container.find('.contact-metadata');
+        return this.container.find('[data-test-id="contacts-preview-list"] [data-test-id="contact-metadata"]');
     }
 
     /**

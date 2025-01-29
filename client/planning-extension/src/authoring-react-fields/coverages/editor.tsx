@@ -73,7 +73,12 @@ export class Editor extends React.PureComponent<IProps> {
                     >
                         {({addButtonElement, itemsElement, errorMessageElement}) => {
                             const miniToolbar = (
-                                <div data-test-id="editor--planning-item__add-coverage">{addButtonElement}</div>
+                                <div
+                                    data-test-id="editor--planning-item__add-coverage"
+                                    style={{display: 'flex'}}
+                                >
+                                    {addButtonElement}
+                                </div>
                             );
 
                             return (
