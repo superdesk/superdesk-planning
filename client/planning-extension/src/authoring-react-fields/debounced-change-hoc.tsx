@@ -1,5 +1,5 @@
-import {DebouncedFunc, debounce, cloneDeep, set} from 'lodash';
-import React = require('react');
+import {PureComponent} from 'react';
+import {DebouncedFunc, debounce} from 'lodash';
 import {IPlanningCoverageItem} from '../../../interfaces';
 
 interface IDebouncedChangeHOCProps {
@@ -9,13 +9,14 @@ interface IDebouncedChangeHOCProps {
     ) => JSX.Element;
     value: Array<IPlanningCoverageItem>;
     onChange: (newValue: Array<IPlanningCoverageItem>) => void;
+    processChangeQueue: (changeQueue: Array<{fieldPath: string; value: any;}>, value: any) => any;
 }
 
 interface IDebouncedChangeHOCState {
     renderedValue: Array<IPlanningCoverageItem>;
 }
 
-export class DebouncedChangeHOC extends React.PureComponent<IDebouncedChangeHOCProps, IDebouncedChangeHOCState> {
+export class DebouncedChangeHOC extends PureComponent<IDebouncedChangeHOCProps, IDebouncedChangeHOCState> {
     debouncedFn: DebouncedFunc<() => void>;
     changeQueue: Array<{fieldPath: string; value: any;}>;
 
@@ -28,33 +29,15 @@ export class DebouncedChangeHOC extends React.PureComponent<IDebouncedChangeHOCP
 
         this.changeQueue = [];
         this.debouncedFn = debounce(() => {
-            const itemCopy = cloneDeep({coverages: this.props.value});
+            const valueUpdated = this.props.processChangeQueue(this.changeQueue, this.state.renderedValue);
 
-            this.changeQueue.forEach((x) => {
-                set(itemCopy, x.fieldPath, x.value);
-            });
-
-            for (const coverage of itemCopy.coverages) {
-                if (coverage.planning != null) {
-                    delete coverage.planning['_scheduledTime'];
-                }
-            }
-
-            this.props.onChange(itemCopy.coverages);
+            this.props.onChange(valueUpdated);
             this.changeQueue = [];
         }, 1500);
     }
 
     componentWillUnmount(): void {
         this.debouncedFn.cancel();
-    }
-
-    componentDidUpdate(_prevProps: Readonly<IDebouncedChangeHOCProps>, prevState: Readonly<IDebouncedChangeHOCState>): void {
-        if (JSON.stringify(prevState.renderedValue) != JSON.stringify(this.props.value)) {
-            this.setState({
-                renderedValue: this.props.value,
-            });
-        }
     }
 
     render() {
@@ -66,14 +49,8 @@ export class DebouncedChangeHOC extends React.PureComponent<IDebouncedChangeHOCP
                     {fieldPath, value},
                 ];
 
-                const clonedValue = cloneDeep({coverages: this.state.renderedValue});
-
-                this.changeQueue.forEach((x) => {
-                    set(clonedValue, x.fieldPath, x.value);
-                });
-
                 this.setState({
-                    renderedValue: clonedValue.coverages,
+                    renderedValue: this.props.processChangeQueue(this.changeQueue, this.state.renderedValue),
                 });
 
                 this.debouncedFn();

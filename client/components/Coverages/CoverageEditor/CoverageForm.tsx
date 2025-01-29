@@ -45,7 +45,7 @@ interface IOwnProps {
     addNewsItemToPlanning?: IArticle;
     index: number;
     defaultDesk: IDesk;
-    files?: Array<IFile>;
+    files: Array<IFile>;
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
     language?: IVocabularyItem['qcode'];
@@ -53,9 +53,9 @@ interface IOwnProps {
     onFieldFocus(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
-    uploadFiles?(files: Array<Array<File>>): Promise<Array<IFile>>;
+    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
     createUploadLink?(file: IFile): void;
-    removeFile?(file: IFile): Promise<void>;
+    removeFile(file: IFile): Promise<void>;
     notifyValidationErrors?(errors: Array<string>): void;
 }
 

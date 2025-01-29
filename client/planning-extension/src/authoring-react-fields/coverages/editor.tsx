@@ -9,6 +9,7 @@ import {extensionBridge} from '../../extension_bridge';
 import {IPlanningItem} from '../../../../interfaces';
 import {superdesk} from '../../superdesk';
 import {DebouncedChangeHOC} from '../debounced-change-hoc';
+import {cloneDeep, set} from 'lodash';
 
 type IProps = IEditorComponentProps<ICoveragesValueOperational, IUrlsFieldConfig, IUrlsFieldUserPreferences>;
 
@@ -18,7 +19,25 @@ export class Editor extends React.PureComponent<IProps> {
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
 
         return (
-            <DebouncedChangeHOC onChange={this.props.onChange} value={this.props.value}>
+            <DebouncedChangeHOC
+                processChangeQueue={(changeQueue, value) => {
+                    const itemCopy = cloneDeep({coverages: value});
+
+                    changeQueue.forEach((x) => {
+                        set(itemCopy, x.fieldPath, x.value);
+                    });
+
+                    for (const coverage of itemCopy.coverages) {
+                        if (coverage.planning != null) {
+                            delete coverage.planning['_scheduledTime'];
+                        }
+                    }
+
+                    return itemCopy.coverages;
+                }}
+                onChange={this.props.onChange}
+                value={this.props.value}
+            >
                 {(changedValue, onChange) => (
                     <EditorFieldCoverages
                         field="coverages"
