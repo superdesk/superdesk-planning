@@ -212,7 +212,7 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
                     desk: get(coverage, 'desk._id'),
                 };
 
-                if (coverage.coverage_id != null && coverage.enabled === false) {
+                if (coverage.coverage_id != null && coverage.enabled !== true) {
                     newCoverage.workflow_status = 'spiked';
                 } else if (coverage.status) {
                     newCoverage.news_coverage_status = coverage.status;

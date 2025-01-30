@@ -1,8 +1,7 @@
 import {omit} from 'lodash';
 import {ASSIGNMENTS} from '../../constants';
 import {IBaseRestApiResponse} from 'superdesk-api';
-import {planningApi} from '../../superdeskApi';
-import {httpRequestVoidLocal} from 'core/helpers/network';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
 export function omitFields<T extends IBaseRestApiResponse>(
     item: Partial<T>,
@@ -53,6 +52,8 @@ export async function handleRemovedAssignments(current: Partial<IPlanningItem>, 
     }
 
     const promiseRes = Promise.resolve();
+
+    const {httpRequestVoidLocal} = superdeskApi;
 
     for (const id of removedAssignmentIds) {
         await promiseRes.then(() =>
