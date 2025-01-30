@@ -3,10 +3,9 @@ import {IPlanningItem} from 'interfaces';
 import {IAuthoringStorage} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
-import {omitFields} from './utils';
+import {handleRemovedAssignments, omitFields} from './utils';
 import {AutoSaveHttp} from './authoring-autosave';
-import {getErrorMessage, planningUtils} from '../../utils';
-import {gettext} from 'core/utils';
+import {planningUtils} from '../../utils';
 
 export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> = {
     autosave: new AutoSaveHttp<IPlanningItem>(
@@ -34,24 +33,26 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
         const {httpRequestJsonLocal} = superdeskApi;
         const {generatePatch} = superdeskApi.utilities;
 
-        return httpRequestJsonLocal<IPlanningItem>({
-            method: 'PATCH',
-            path: `/planning/${original._id}`,
-            payload: omitFields(
-                generatePatch(
-                    planningUtils.modifyForServer(original),
-                    planningUtils.modifyForServer(current),
+        return handleRemovedAssignments(current, original).then((updatedOriginal) =>
+            httpRequestJsonLocal<IPlanningItem>({
+                method: 'PATCH',
+                path: `/planning/${updatedOriginal._id}`,
+                payload: omitFields(
+                    generatePatch(
+                        planningUtils.modifyForServer(updatedOriginal),
+                        planningUtils.modifyForServer(current),
+                    ),
                 ),
-            ),
-            headers: {
-                'If-Match': original._etag,
-            },
-        });
+                headers: {
+                    'If-Match': updatedOriginal._etag,
+                },
+            }),
+        );
     },
     getContentProfile: () => {
         return Promise.resolve(getProfile('planning'));
     },
-    closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
+    closeAuthoring: (_current, _original, _hasUnsavedChanges, _cancelAutosave, doClose) => {
         return Promise.resolve();
     },
     getUserPreferences: () => ng.get('preferencesService').get()

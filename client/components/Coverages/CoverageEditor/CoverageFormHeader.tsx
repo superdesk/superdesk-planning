@@ -1,10 +1,8 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
-
 import {IPlanningCoverageItem, ICoverageScheduledUpdate, ILockedItems} from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
-
 import {getCreator, getItemInArrayById, gettext, onEventCapture} from '../../../utils';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {UserAvatar} from '../../../components/UserAvatar';
@@ -12,9 +10,10 @@ import {StateLabel} from '../../StateLabel';
 import * as actions from '../../../actions';
 import {ASSIGNMENTS} from '../../../constants/assignments';
 import * as selectors from '../../../selectors';
-import {Button} from 'superdesk-ui-framework/react';
+import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
+import {showModal} from '@sourcefabric/common';
 
-interface IProps {
+interface IOwnProps {
     field: string;
     value: IPlanningCoverageItem | ICoverageScheduledUpdate;
     users: Array<IUser>;
@@ -23,6 +22,9 @@ interface IProps {
     addNewsItemToPlanning?: IArticle;
     onChange(field: string, value: any): void;
     onFocus?(): void;
+}
+
+interface IReduxDispatchProps {
     showEditCoverageAssignmentModal(props: {
         field: string;
         value: IPlanningCoverageItem | ICoverageScheduledUpdate;
@@ -31,8 +33,13 @@ interface IProps {
         priorityPrefix: string;
         onChange(field: string, value: any): void;
     }): void;
+}
+
+interface IReduxStateProps {
     lockedItems: ILockedItems;
 }
+
+type IProps = IReduxDispatchProps & IReduxStateProps & IOwnProps;
 
 const mapDispatchToProps = (dispatch) => ({
     showEditCoverageAssignmentModal: (props) => dispatch(
@@ -47,7 +54,9 @@ const mapStateToProps = (state) => ({
 class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
+
         this.showAssignmentModal = this.showAssignmentModal.bind(this);
+        this.removeAssignment = this.removeAssignment.bind(this);
     }
 
     showAssignmentModal(event) {
@@ -61,6 +70,51 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             disableUserSelection: !!this.props.addNewsItemToPlanning,
             priorityPrefix: 'assigned_to.',
         });
+    }
+
+    removeAssignment() {
+        const {value, field} = this.props;
+        const remove = () => {
+            this.props.onChange(field, {
+                ...value,
+                assigned_to: {},
+            });
+        };
+
+        /**
+         * If a coverage is in a workflow, we can't remove `assigned_to` right away,
+         * first the respective assignment entity has to be removed.
+         */
+        if (value.workflow_status === 'draft' || value.workflow_status === 'cancelled') {
+            remove();
+        } else {
+            showModal(({closeModal}) => (
+                <Modal
+                    position="right"
+                    visible
+                    headerTemplate={gettext('Remove assignment')}
+                    footerTemplate={(
+                        <Spacer h gap="4" justifyContent="end" alignItems="end" noWrap>
+                            <Button
+                                type="default"
+                                text={gettext('Cancel')}
+                                onClick={closeModal}
+                            />
+                            <Button
+                                type="primary"
+                                text={gettext('Remove')}
+                                onClick={() => {
+                                    remove();
+                                    closeModal();
+                                }}
+                            />
+                        </Spacer>
+                    )}
+                >
+                    {gettext('This will also remove other linked assignments (if any, for story updates).')}
+                </Modal>
+            ));
+        }
     }
 
     render() {
@@ -184,19 +238,10 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                 expand
                             />
                         </ListRow>
-
                         <ListRow>
                             <Button
                                 text={gettext('Remove')}
-                                onClick={() => {
-                                    this.props.onChange(
-                                        field,
-                                        {
-                                            ...value,
-                                            assigned_to: {},
-                                        },
-                                    );
-                                }}
+                                onClick={this.removeAssignment}
                                 style="hollow"
                                 size="small"
                                 expand
@@ -209,7 +254,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
     }
 }
 
-export const CoverageFormHeader = connect(
+export const CoverageFormHeader = connect<IReduxStateProps, IReduxDispatchProps, IOwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(CoverageFormHeaderComponent);
