@@ -14,7 +14,6 @@ import {
     IPlanningNewsCoverageStatus,
 } from 'interfaces';
 import {IDesk} from 'superdesk-api';
-import {CoverageEditorComponent} from 'components/Coverages/CoverageEditor';
 
 interface IProps {
     field: string;

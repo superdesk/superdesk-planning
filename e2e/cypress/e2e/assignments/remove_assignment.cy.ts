@@ -18,7 +18,7 @@ describe('Planning.Assignment: remove assignment', () => {
         editor.waitTillOpen();
     });
 
-    it.only('can remove Assignment', () => {
+    it('can remove Assignment', () => {
         editor.type({slugline: 'Slugline'});
         editor.addCoverage('Text');
 
