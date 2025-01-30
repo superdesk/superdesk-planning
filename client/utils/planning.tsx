@@ -925,7 +925,7 @@ export function modifyForClient<T extends IPlanningItem | Partial<IPlanningItem>
     return plan;
 }
 
-function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
+function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlanningItem>): Partial<IPlanningItem> {
     const modifyGenre = (coverage) => {
         if (!get(coverage, 'planning.genre', null)) {
             coverage.planning.genre = null;
@@ -934,10 +934,26 @@ function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
         }
     };
 
+    const modifyAssignedTo = (updatedCoverage, originalCoverage) => {
+        if (
+            JSON.stringify(updatedCoverage.assigned_to) != JSON.stringify(originalCoverage.assigned_to)
+            && originalCoverage.assigned_to != null
+            && originalCoverage.workflow_status !== 'draft'
+            && originalCoverage.workflow_status !== 'cancelled'
+        ) {
+            updatedCoverage.assigned_to = originalCoverage.assigned_to;
+        }
+    };
+
     delete plan._agendas;
 
-    get(plan, 'coverages', []).forEach((coverage) => {
-        coverage.planning = coverage.planning || {};
+    get(plan, 'coverages', []).forEach((coverage, i) => {
+        coverage.planning = coverage.planning ?? {};
+
+        if (original != null) {
+            modifyAssignedTo(coverage, original?.coverages[i]);
+        }
+
         modifyGenre(coverage);
 
         delete coverage.planning._scheduledTime;

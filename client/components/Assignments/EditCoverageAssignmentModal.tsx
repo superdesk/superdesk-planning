@@ -19,7 +19,7 @@ interface IProps {
     modalProps: {
         field?: string;
         value?: any;
-        onChange?: (...args: any) => any;
+        onChange: (...args: any) => any;
         priorityPrefix?: string;
         disableDeskSelection?: boolean;
         disableUserSelection?: boolean;
@@ -61,7 +61,7 @@ export class EditCoverageAssignmentModalComponent extends React.Component<IProps
 
     onSubmit() {
         this.setState({submitting: true}, () => {
-            this.props.modalProps.onChange?.(this.props.modalProps.field, this.state.diff);
+            this.props.modalProps.onChange(this.props.modalProps.field, this.state.diff);
 
             planningApi.redux.store.dispatch(actions.users.setCoverageDefaultDesk(this.state.diff));
 

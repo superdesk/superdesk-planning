@@ -33,17 +33,6 @@ export class CoverageAddButton extends React.Component<IProps> {
         this.onChange = this.onChange.bind(this);
     }
 
-    shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<{}>, nextContext: any): boolean {
-        // For some reason this component get's re-rendered (which causes problems with e2e tests)
-        // Make sure to only re-render if Coverage ID's change
-        const prevIds = (this.props.value ?? []).map((coverage) => coverage.coverage_id);
-        const nextIds = (nextProps.value ?? []).map((coverage) => coverage.coverage_id);
-
-        return this.props.field !== nextProps.field ||
-            !isEqual(prevIds, nextIds) ||
-            this.props.language !== nextProps.language;
-    }
-
     onChange(field: string, coverages: Array<DeepPartial<IPlanningCoverageItem>>) {
         this.props.onChange(
             field,

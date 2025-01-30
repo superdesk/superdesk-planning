@@ -6,6 +6,7 @@ import {getProfile} from './profile';
 import {handleRemovedAssignments, omitFields} from './utils';
 import {AutoSaveHttp} from './authoring-autosave';
 import {planningUtils} from '../../utils';
+import {cloneDeep} from 'lodash';
 
 export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> = {
     autosave: new AutoSaveHttp<IPlanningItem>(
@@ -33,21 +34,19 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
         const {httpRequestJsonLocal} = superdeskApi;
         const {generatePatch} = superdeskApi.utilities;
 
-        return handleRemovedAssignments(current, original).then((updatedOriginal) =>
-            httpRequestJsonLocal<IPlanningItem>({
-                method: 'PATCH',
-                path: `/planning/${updatedOriginal._id}`,
-                payload: omitFields(
-                    generatePatch(
-                        planningUtils.modifyForServer(updatedOriginal),
-                        planningUtils.modifyForServer(current),
-                    ),
+        return httpRequestJsonLocal<IPlanningItem>({
+            method: 'PATCH',
+            path: `/planning/${original._id}`,
+            payload: omitFields(
+                generatePatch(
+                    planningUtils.modifyForServer(original),
+                    planningUtils.modifyForServer(cloneDeep(current), original),
                 ),
-                headers: {
-                    'If-Match': updatedOriginal._etag,
-                },
-            }),
-        );
+            ),
+            headers: {
+                'If-Match': original._etag,
+            },
+        }).then((updatedOriginal) => handleRemovedAssignments(current, updatedOriginal));
     },
     getContentProfile: () => {
         return Promise.resolve(getProfile('planning'));

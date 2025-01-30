@@ -22,7 +22,7 @@ export function omitFields<T extends IBaseRestApiResponse>(
     return {...omit(item, baseApiFields)};
 }
 
-export async function handleRemovedAssignments(current: Partial<IPlanningItem>, original: Partial<IPlanningItem>) {
+export async function handleRemovedAssignments(current: Partial<IPlanningItem>, original: IPlanningItem) {
     /**
      * If a coverage has `workflow_status` of `draft` or `cancelled`, assigned_to property can be updated without
      * updating from `/assignments`
@@ -51,26 +51,22 @@ export async function handleRemovedAssignments(current: Partial<IPlanningItem>, 
         return Promise.resolve(original);
     }
 
-    const promiseRes = Promise.resolve();
-
     const {httpRequestVoidLocal} = superdeskApi;
 
     for (const id of removedAssignmentIds) {
-        await promiseRes.then(() =>
-            planningApi.assignments.getById(id).then((result) =>
-                planningApi.locks.lockItem(result, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action).then((item) =>
-                    httpRequestVoidLocal({
-                        method: 'DELETE',
-                        path: `/assignments/${item._id}`,
-                        headers: {
-                            'If-Match': item._etag,
-                        }
-                    }),
-                ),
-            ),
-        );
+        const assignment = await planningApi.assignments.getById(id);
+        const lockedAssignment = await planningApi.locks
+            .lockItem(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action);
+
+        await httpRequestVoidLocal({
+            method: 'DELETE',
+            path: `/assignments/${lockedAssignment._id}`,
+            headers: {
+                'If-Match': lockedAssignment._etag,
+            }
+        });
     }
 
     // Force option is enabled, otherwise we get the old planning item from the store
-    return promiseRes.then(() => planningApi.planning.getById(original._id, true, true));
+    return planningApi.planning.getById(original._id, true, true);
 }
