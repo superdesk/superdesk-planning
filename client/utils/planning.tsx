@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten, noop} from 'lodash';
+import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten, noop, isEqual} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
@@ -936,12 +936,13 @@ function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlann
 
     const modifyAssignedTo = (updatedCoverage, originalCoverage) => {
         if (
-            JSON.stringify(updatedCoverage.assigned_to) != JSON.stringify(originalCoverage.assigned_to)
-            && originalCoverage.assigned_to != null
+            originalCoverage.assigned_to != null
+            && isEqual(updatedCoverage.assigned_to, {})
             && originalCoverage.workflow_status !== 'draft'
             && originalCoverage.workflow_status !== 'cancelled'
         ) {
             updatedCoverage.assigned_to = originalCoverage.assigned_to;
+            updatedCoverage.workflow_status = originalCoverage.workflow_status;
         }
     };
 
@@ -950,7 +951,7 @@ function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlann
     get(plan, 'coverages', []).forEach((coverage, i) => {
         coverage.planning = coverage.planning ?? {};
 
-        if (original != null) {
+        if (original?.coverages[i] != null) {
             modifyAssignedTo(coverage, original?.coverages[i]);
         }
 

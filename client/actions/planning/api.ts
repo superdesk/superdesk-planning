@@ -1,9 +1,7 @@
-import {get, cloneDeep, pickBy, has, every} from 'lodash';
-
+import {get, cloneDeep, pickBy, every, isEqual} from 'lodash';
 import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
-
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import {
@@ -25,6 +23,7 @@ import {
 import main from '../main';
 import {planningParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {handleRemovedAssignments} from '../../components/editor-standalone/utils';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -367,7 +366,7 @@ const save = (original, planUpdates) => (
         if (original) {
             promise = Promise.resolve(original);
         } else if (isExistingItem(planUpdates)) {
-            promise = dispatch(self.fetchById(planUpdates._id));
+            promise = dispatch(self.fetchById(planUpdates._id, {force: true, saveToStore: true}));
         } else {
             promise = Promise.resolve({});
         }
@@ -392,18 +391,26 @@ const save = (original, planUpdates) => (
                 updates.agendas = updates.agendas.map((agenda) => agenda._id || agenda);
             }
 
-            planningUtils.modifyForServer(updates);
+            const cleanedUpdates = planningUtils.modifyForServer(cloneDeep(updates), originalPlan);
 
-            if (isExistingItem(originalPlan) || get(updates, 'coverages.length', 0) < 1) {
-                return api('planning').save(originalItem, updates);
+            if (isExistingItem(originalPlan) || get(cleanedUpdates, 'coverages.length', 0) < 1) {
+                return api('planning').save(originalItem, cleanedUpdates)
+                    .then((x) => {
+                        // console.log(updates.coverages.some((x) => isEqual(x.assigned_to, {})), 'has assigned_to {}');
+                        if (updates.coverages.some((x) => isEqual(x.assigned_to, {}))) {
+                            return handleRemovedAssignments(updates, x);
+                        }
+
+                        return x;
+                    });
             }
 
             // If the new Planning item has coverages then we need to create
             // the planning first before saving the coverages
             // As assignments are created and require a Planning ID
-            let modifiedUpdates = cloneDeep(updates);
+            let modifiedUpdates = cloneDeep(cleanedUpdates);
 
-            if (updates.pubstatus === POST_STATE.USABLE) {
+            if (cleanedUpdates.pubstatus === POST_STATE.USABLE) {
                 // We are create&posting from add-to-planning
                 delete modifiedUpdates.pubstatus;
                 delete modifiedUpdates.state;
@@ -415,16 +422,11 @@ const save = (original, planUpdates) => (
 
             return api('planning').save(
                 {},
-                {
-                    ...modifiedUpdates,
-                    coverages: [],
-                }, addToPlanning
-
+                {...modifiedUpdates, coverages: []},
+                addToPlanning,
             )
-                .then(
-                    (originalItem) => api('planning').save(originalItem, updates, addToPlanning),
-                    (error) => Promise.reject(error)
-                );
+                .then((originalItem) => api('planning').save(originalItem, cleanedUpdates, addToPlanning))
+                .catch((error) => Promise.reject(error));
         });
     }
 );

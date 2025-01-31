@@ -6,7 +6,7 @@ import {getProfile} from './profile';
 import {handleRemovedAssignments, omitFields} from './utils';
 import {AutoSaveHttp} from './authoring-autosave';
 import {planningUtils} from '../../utils';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, isEqual} from 'lodash';
 
 export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> = {
     autosave: new AutoSaveHttp<IPlanningItem>(
@@ -46,7 +46,13 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
             headers: {
                 'If-Match': original._etag,
             },
-        }).then((updatedOriginal) => handleRemovedAssignments(current, updatedOriginal));
+        }).then((updatedOriginal) => {
+            if (current.coverages.some((x) => isEqual(x.assigned_to, {}))) {
+                return handleRemovedAssignments(current, updatedOriginal);
+            }
+
+            return updatedOriginal;
+        });
     },
     getContentProfile: () => {
         return Promise.resolve(getProfile('planning'));

@@ -21,7 +21,7 @@ import {
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 import * as selectors from '../../selectors';
-import {PLANNING, WORKSPACE, MODALS, MAIN, COVERAGES} from '../../constants';
+import {PLANNING, WORKSPACE, MODALS, MAIN} from '../../constants';
 import * as actions from '../index';
 
 /**
@@ -470,7 +470,7 @@ const saveFromAuthoring = (original, updates) => (
         dispatch(actions.actionInProgress(true));
         let resolved = true;
 
-        return dispatch(planningApis.save(original, updates))
+        return dispatch(planningApis.save(original, planningUtils.modifyForServer(updates)))
             .then((newPlan) => {
                 const newsItem = get(selectors.general.modalProps(getState()), 'newsItem') ||
                     get(selectors.general.previousModalProps(getState()), 'newsItem');
@@ -490,7 +490,8 @@ const saveFromAuthoring = (original, updates) => (
                         resolved = false;
                         return Promise.reject(error);
                     });
-            }, (error) => {
+            })
+            .catch((error) => {
                 resolved = false;
                 notify.error(
                     getErrorMessage(error, 'Failed to save the Planning item!')

@@ -78,6 +78,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
             this.props.onChange(field, {
                 ...value,
                 assigned_to: {},
+                workflow_status: 'draft',
             });
         };
 

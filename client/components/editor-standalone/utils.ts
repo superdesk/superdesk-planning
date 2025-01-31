@@ -27,8 +27,12 @@ export async function handleRemovedAssignments(current: Partial<IPlanningItem>, 
      * If a coverage has `workflow_status` of `draft` or `cancelled`, assigned_to property can be updated without
      * updating from `/assignments`
      */
+
+    // Coverages that were previously active, but now because they got unassigned they are moved to draft
     const assignmentsCurrent = current.coverages
-        .filter((x) => x.workflow_status !== 'draft' && x.workflow_status !== 'cancelled');
+        .filter((x) => x.workflow_status === 'draft'
+            && original.coverages.find((z) => z.coverage_id === x.coverage_id && z.workflow_status === 'active') != null
+        );
     const assignmentsOriginal = original.coverages
         .filter((x) => x.workflow_status !== 'draft' && x.workflow_status !== 'cancelled');
 
@@ -48,7 +52,7 @@ export async function handleRemovedAssignments(current: Partial<IPlanningItem>, 
     })();
 
     if (removedAssignmentIds.length <= 0) {
-        return Promise.resolve(original);
+        return original;
     }
 
     const {httpRequestVoidLocal} = superdeskApi;
@@ -67,6 +71,8 @@ export async function handleRemovedAssignments(current: Partial<IPlanningItem>, 
         });
     }
 
+    const freshItem = await planningApi.planning.getById(original._id, true, true);
+
     // Force option is enabled, otherwise we get the old planning item from the store
-    return planningApi.planning.getById(original._id, true, true);
+    return freshItem;
 }
