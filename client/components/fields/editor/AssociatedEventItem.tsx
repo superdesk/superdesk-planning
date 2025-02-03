@@ -25,7 +25,6 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
         const {event} = this.props;
         const {gettext} = superdeskApi.localization;
 
-        // PR-TODO: use different authoringStorage for creating a new event.
         return (
             <ToggleBox
                 variant="custom-header"

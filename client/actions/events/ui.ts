@@ -737,14 +737,9 @@ const receiveEventHistory = (eventHistoryItems) => ({
     payload: eventHistoryItems,
 });
 
-/**
- * Action to create a new Event from an existing Planning item
- * @param {object} plan - The Planning item to creat the Event from
- */
-const createEventFromPlanning = (plan: IPlanningItem) => (
-    (dispatch, getState) => {
-        const state = getState();
-        const defaultDurationOnChange = selectors.forms.defaultEventDuration(state);
+export const convertPlanningToEvent = (plan, getState) => {
+    const state = getState();
+    const defaultDurationOnChange = selectors.forms.defaultEventDuration(state);
         const occurStatuses = selectors.vocabs.eventOccurStatuses(state);
         const defaultCalendar = selectors.events.defaultCalendarValue(state);
         const defaultPlace = selectors.general.defaultPlaceList(state);
@@ -795,13 +790,22 @@ const createEventFromPlanning = (plan: IPlanningItem) => (
             fieldsToConvert.push(['slugline', 'slugline']);
         }
 
-        newEvent = convertStringFields(
+        return convertStringFields(
             plan,
             newEvent,
             'planning',
             'event',
             fieldsToConvert,
         );
+}
+
+/**
+ * Action to create a new Event from an existing Planning item
+ * @param {object} plan - The Planning item to creat the Event from
+ */
+const createEventFromPlanning = (plan: IPlanningItem) => (
+    (dispatch, getState) => {
+        const newEvent = convertPlanningToEvent(plan, getState);
 
         return Promise.all([
             planningApi.locks.lockItem(plan, 'add_as_event'),

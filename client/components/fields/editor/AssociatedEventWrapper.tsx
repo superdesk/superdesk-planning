@@ -4,14 +4,19 @@ import * as selectors from '../../../selectors';
 import {EditorFieldAssociatedEventComponent} from './AssociatedEvent';
 import {IEditorFieldProps, IFile, ILockedItems} from 'interfaces';
 
-export interface IAssociatedEventFieldProps extends IEditorFieldProps {
-    events?: Array<IEventItem>;
+interface IReduxStoreProps {
     lockedItems: ILockedItems;
     files: Array<IFile>;
+}
+
+export interface IAssociatedEventFieldProps extends IEditorFieldProps {
+    events?: Array<IEventItem>;
     tabEnabled?: boolean; // defaults to true
 }
 
-export class AssociatedEventField extends React.PureComponent<IAssociatedEventFieldProps> {
+export type IAssociatedEventPropsAll = IAssociatedEventFieldProps & IReduxStoreProps;
+
+export class AssociatedEventField extends React.PureComponent<IAssociatedEventPropsAll> {
     render() {
         return (
             <EditorFieldAssociatedEventComponent
@@ -22,7 +27,7 @@ export class AssociatedEventField extends React.PureComponent<IAssociatedEventFi
     }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state): IReduxStoreProps => ({
     lockedItems: selectors.locks.getLockedItems(state),
     files: selectors.general.files(state),
 });

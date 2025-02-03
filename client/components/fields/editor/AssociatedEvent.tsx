@@ -1,14 +1,17 @@
 import * as React from 'react';
 import {IEventItem, IPlanningRelatedEventLink} from '../../../interfaces';
-import {superdeskApi} from '../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
-import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
+import {IAssociatedEventPropsAll} from './AssociatedEventWrapper';
+import {Spacer, Button} from 'superdesk-ui-framework/react';
+import {removeAutosaveFields} from '../../../utils';
+import {convertPlanningToEvent} from '../../../actions/events/ui';
 
-export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
+export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventPropsAll> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
 
-    constructor(props: IAssociatedEventFieldProps) {
+    constructor(props: IAssociatedEventPropsAll) {
         super(props);
 
         this.relatedItemRefs = {};
@@ -16,6 +19,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         this.addRelatedEvent = this.addRelatedEvent.bind(this);
         this.removeRelatedEvent = this.removeRelatedEvent.bind(this);
         this.relatedItemExists = this.relatedItemExists.bind(this);
+        this.addNewRelatedEvent = this.addNewRelatedEvent.bind(this);
     }
 
     private getCurrentValue(): Array<IPlanningRelatedEventLink> {
@@ -50,6 +54,15 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         return relatedEvents.find((event) => event._id === id);
     }
 
+    private addNewRelatedEvent() {
+        const newEvent = convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
+
+        planningApi.events.create(removeAutosaveFields({...newEvent, associated_plannings: []}))
+            .then(([firstResult]) => {
+                this.addRelatedEvent(firstResult);
+            });
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {DropZone} = superdeskApi.components;
@@ -58,10 +71,22 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
 
         return (
             <div>
-                <label className="InputArray__label side-panel__heading side-panel__heading--big">
-                    {gettext('Related Events')}
-                </label>
-
+                <Spacer h gap="4" justifyContent="space-between" noWrap>
+                    <label className="InputArray__label side-panel__heading side-panel__heading--big">
+                        {gettext('Related Events')}
+                    </label>
+                    {disabled !== true && this.props.item._id.includes('temp') === false && (
+                        <Button
+                            type="primary"
+                            icon="plus-large"
+                            text="plus-large"
+                            shape="round"
+                            size="small"
+                            iconOnly={true}
+                            onClick={this.addNewRelatedEvent}
+                        />
+                    )}
+                </Spacer>
                 {events.map((event, i) => (
                     <AssociatedEventItem
                         key={event._id}
