@@ -11,6 +11,8 @@ import './style.scss';
 import {TEMP_ID_PREFIX} from '../../../../constants';
 import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
 import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
+import {isTemporaryId} from '../../../../utils';
+import {Tooltip} from '@sourcefabric/common';
 
 export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
     relatedItemRefs: {[id: string]: RelatedPlanningItem};
@@ -28,6 +30,25 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
         const disabled = this.props.disabled || this.props.schema?.read_only;
         const planningItems = this.props.item.associated_plannings ?? [];
 
+        const canAddItems: {allowed: boolean; error: string | null} = (() => {
+            if (this.props.disabled || this.props.schema?.read_only) {
+                return {
+                    allowed: false,
+                    error: null,
+                };
+            } else if (isTemporaryId(this.props.item._id)) {
+                return {
+                    allowed: false,
+                    error: gettext('Event has to be created before adding related plannings'),
+                };
+            } else {
+                return {
+                    allowed: true,
+                    error: null,
+                };
+            }
+        })();
+
         return (
             <div className="related-plannings">
                 <Spacer h gap="4" justifyContent="space-between" noWrap>
@@ -35,7 +56,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                         {gettext('Related Plannings')}
                     </label>
 
-                    {disabled ? null : (
+                    <Tooltip content={canAddItems.error}>
                         <Button
                             type="primary"
                             icon="plus-large"
@@ -43,11 +64,12 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                             shape="round"
                             size="small"
                             iconOnly={true}
+                            disabled={!canAddItems.allowed}
                             onClick={() => {
                                 this.props.addPlanningItem();
                             }}
                         />
-                    )}
+                    </Tooltip>
                 </Spacer>
 
                 {disabled ? (
@@ -103,8 +125,9 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                                 addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
                             }}
                             multiple={true}
+                            disabled={!canAddItems.allowed}
                         >
-                            {gettext('Drop planning items here')}
+                            {canAddItems.allowed ? gettext('Drop planning items here') : canAddItems.error}
                         </DropZone>
                     </>
                 )}
