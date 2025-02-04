@@ -926,6 +926,8 @@ export function modifyForClient<T extends IPlanningItem | Partial<IPlanningItem>
 }
 
 function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlanningItem>): Partial<IPlanningItem> {
+    delete plan?.event;
+
     const modifyGenre = (coverage) => {
         if (!get(coverage, 'planning.genre', null)) {
             coverage.planning.genre = null;

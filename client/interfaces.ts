@@ -745,6 +745,9 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;
 
+    // added by client - should be dropped before sending to server
+    event?: IEventItem;
+
     /**
      * This is for storing UI related data that is not a part of the planning item entity itself,
      * but is required to be persisted to complete a multi-step workflow.
