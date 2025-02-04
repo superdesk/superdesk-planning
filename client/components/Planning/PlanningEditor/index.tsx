@@ -317,14 +317,18 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onPlanningDateChange(field, value) {
-        let changes: Partial<IPlanningItem> = {planning_date: value};
+    onPlanningDateChange(fieldOrValue: string | {[key: string]: any}, value?: any) {
+        if (typeof fieldOrValue === 'string') {
+            let changes: Partial<IPlanningItem> = {planning_date: value};
 
-        if (field.indexOf('.time') >= 0) {
-            changes._time_to_be_confirmed = false;
+            if (fieldOrValue.indexOf('.time') >= 0) {
+                changes._time_to_be_confirmed = false;
+            }
+
+            this.props.onChangeHandler(changes, null);
+        } else {
+            this.props.onChangeHandler(fieldOrValue, value);
         }
-
-        this.props.onChangeHandler(changes, null);
     }
 
     onTimeToBeConfirmed() {

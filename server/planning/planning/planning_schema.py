@@ -335,6 +335,7 @@ planning_schema = {
         "type": "datetime",
         "nullable": False,
     },
+    "all_day": {"type": "boolean"},
     "flags": {
         "type": "dict",
         "schema": {

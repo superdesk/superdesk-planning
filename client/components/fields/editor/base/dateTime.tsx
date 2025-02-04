@@ -14,6 +14,7 @@ interface IProps extends IEditorFieldProps {
     singleValue?: boolean;
     onToBeConfirmed?(field: string): void;
     allDay?: boolean;
+    hideTime?: boolean;
 }
 
 export class EditorFieldDateTime extends React.PureComponent<IProps> {
