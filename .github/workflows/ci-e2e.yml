@@ -12,7 +12,7 @@ jobs:
         node-version: ['14']
         e2e: ['a', 'b']
     env:
-      INSTALL_NODE_MODULES: true
+      INSTALL_NODE_MODULES: false
       RUN_SERVICES: true
       E2E: true
       TZ: Australia/Sydney
@@ -28,6 +28,12 @@ jobs:
           cache-dependency-path: 'server/requirements.txt'
       - name: Setup Environment
         run: ./scripts/ci-install.sh
+      - name: Install Planning Client
+        run: npm ci
+        working-directory: ./
+      - name: Install E2E Client
+        run: npm install
+        working-directory: ./e2e
       - name: Build Client
         working-directory: ./e2e
         run: npm run build
