@@ -83,7 +83,7 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         /*
             Check if:
             1. This view is rendered from AddToPlanning action
-            2. There's an already scheduled update for the coverage
+            2. The item isn't a scheduled update
         */
         const isAssignmentLocked = lockedItems?.assignment
             && value.assigned_to?.assignment_id in lockedItems.assignment;
@@ -198,6 +198,8 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                         {
                                             ...value,
                                             assigned_to: {},
+                                            add_coverage_to_workflow: false,
+                                            workflow_status: 'draft',
                                         },
                                     );
                                 }}

@@ -271,20 +271,6 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
                 });
             }
 
-            if (planningUtils.canAddCoverageToWorkflow(value, diff)) {
-                itemActions.push({
-                    id: 'addToWorkflow',
-                    label: gettext('Add to workflow'),
-                    icon: 'icon-assign',
-                    callback: () => {
-                        onChange(
-                            fieldOfArray,
-                            planningApis.planning.coverages.addCoverageToWorkflow(this.props.coverages, value)
-                        );
-                    },
-                });
-            }
-
             if (planningUtils.canRemoveCoverage(value, diff)) {
                 itemActions.push({
                     label: gettext('Remove coverage'),

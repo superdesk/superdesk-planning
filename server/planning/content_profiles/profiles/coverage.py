@@ -14,6 +14,7 @@ from .fields import BaseSchema, DateTimeField, BooleanField, TextField
 
 
 class CoverageSchema(BaseSchema):
+    add_coverage_to_workflow = BooleanField()
     contact_info = schema.StringField()
     ednote = TextField(field_type="multi_line")
     files = schema.ListField()
@@ -35,37 +36,41 @@ class CoverageSchema(BaseSchema):
 DEFAULT_COVERAGE_PROFILE = {
     "name": "coverage",
     "editor": {
-        "g2_content_type": {
+        "add_coverage_to_workflow": {
             "enabled": True,
             "index": 1,
         },
-        "genre": {
+        "g2_content_type": {
             "enabled": True,
             "index": 2,
         },
-        "slugline": {
+        "genre": {
             "enabled": True,
             "index": 3,
         },
-        "ednote": {
+        "slugline": {
             "enabled": True,
             "index": 4,
         },
-        "internal_note": {
+        "ednote": {
             "enabled": True,
             "index": 5,
         },
-        "news_coverage_status": {
+        "internal_note": {
             "enabled": True,
             "index": 6,
         },
-        "scheduled": {
+        "news_coverage_status": {
             "enabled": True,
             "index": 7,
         },
-        "scheduled_updates": {
+        "scheduled": {
             "enabled": True,
             "index": 8,
+        },
+        "scheduled_updates": {
+            "enabled": True,
+            "index": 9,
         },
         # Fields disabled by default
         "contact_info": {"enabled": False},

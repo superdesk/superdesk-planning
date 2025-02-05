@@ -377,7 +377,7 @@ function canCancelCoverage(
     );
 }
 
-function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: IPlanningItem): boolean {
+function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: Partial<IPlanningItem>): boolean {
     return (
         isExistingItem(coverage, 'coverage_id') &&
         isCoverageDraft(coverage) &&
@@ -1775,6 +1775,7 @@ function addToWorkflowCommon<T extends IPlanningCoverageItem | ICoverageSchedule
 
     next.news_coverage_status = newsCoverageStatus.find((s) => s.qcode === 'ncostat:int');
     next.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
+    next.add_coverage_to_workflow = true;
 
     if (next.assigned_to != null) {
         next.assigned_to.state = ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED;

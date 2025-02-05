@@ -20,7 +20,6 @@ import {
 } from '../../../interfaces';
 
 import * as selectors from '../../../selectors';
-import * as actions from '../../../actions';
 import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 
 import {WORKFLOW_STATE} from '../../../constants';
@@ -50,6 +49,7 @@ interface IProps {
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
     language: IVocabularyItem['qcode'];
+    coverages: Array<IPlanningCoverageItem>;
 
     // Functions
     onChange(field: string, value: any): void;
@@ -110,6 +110,8 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         this.onAddXmpFile = this.onAddXmpFile.bind(this);
         this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
         this.onContentTypeChange = this.onContentTypeChange.bind(this);
+        this.onAddToWorkflowChange = this.onAddToWorkflowChange.bind(this);
+
         this.dom = {
             contentType: React.createRef(),
             popupContainer: null,
@@ -310,6 +312,29 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         }
     }
 
+    // Only used to add to workflow.
+    // Removing from workflow is done if the user removes the assignee.
+    onAddToWorkflowChange() {
+        const {vocabulary} = superdeskApi.entities;
+        const coverageStatuses =
+            vocabulary.getAll().get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
+        const updatedCoverage = planningUtils.addCoverageToWorkflow(this.props.value, coverageStatuses);
+
+        this.onChange(
+            'workflow_status',
+            updatedCoverage.workflow_status,
+        );
+        this.onChange(
+            'news_coverage_status',
+            updatedCoverage.news_coverage_status,
+        );
+        this.onChange(
+            'assigned_to.state',
+            updatedCoverage.assigned_to.state,
+        );
+        this.onChange('add_coverage_to_workflow', updatedCoverage.add_coverage_to_workflow);
+    }
+
     render() {
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
         const defaultGenre = (appConfig.default_genre || [{}])[0];
@@ -337,6 +362,16 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
                 label: assignmentUtils.getContactLabel(this.props.value),
+            },
+            add_coverage_to_workflow: {
+                field: 'add_coverage_to_workflow',
+                onChange: this.onAddToWorkflowChange,
+                label: superdeskApi.localization.gettext('Add to workflow'),
+                disabled:
+                    planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
+                    || this.props.value.add_coverage_to_workflow === true
+                    || this.props.value.assigned_to.user == null
+                    || this.props.value.assigned_to.desk == null,
             },
             g2_content_type: {
                 readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
@@ -450,7 +485,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     null,
                     'enabled',
                     editorDomFields,
-                    this.props.formProfile.schema
+                    this.props.formProfile.schema,
                 )}
             </div>
         );

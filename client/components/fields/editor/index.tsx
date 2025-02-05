@@ -51,6 +51,7 @@ import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
 import {EditorFieldCustomVocabularies} from './CustomVocabularies';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
 import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
+import {EditorFieldAddCoverageToWorkflow} from './AddCoverageToWorkflow';
 
 /**
  * This is the single source of truth for field definitions, allows for registering
@@ -141,6 +142,7 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     coverage_contact: EditorFieldCoverageContact,
     contact_info: EditorFieldCoverageContact,
     xmp_file: EditorFieldXMPFile,
+    add_coverage_to_workflow: EditorFieldAddCoverageToWorkflow,
     scheduled_updates: EditorFieldScheduledUpdates,
     custom_vocabularies: EditorFieldCustomVocabularies,
     coverage_assignment_status: EditorFieldAssignedCoverageComponent,
