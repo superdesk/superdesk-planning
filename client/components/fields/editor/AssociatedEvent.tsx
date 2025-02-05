@@ -4,7 +4,7 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
 import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
-import {Spacer, Button} from 'superdesk-ui-framework/react';
+import {Spacer, Button, EmptyState} from 'superdesk-ui-framework/react';
 import {isTemporaryId, removeAutosaveFields} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
 import {Tooltip} from '@sourcefabric/common';
@@ -72,9 +72,9 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         const planningItemCreated = !isTemporaryId(this.props.item._id);
 
         return (
-            <div>
+            <Spacer v gap="16">
                 <Spacer h gap="4" justifyContent="space-between" noWrap>
-                    <label className="InputArray__label side-panel__heading side-panel__heading--big">
+                    <label className="side-panel__heading side-panel__heading--big">
                         {gettext('Related Events')}
                     </label>
                     <Tooltip
@@ -96,39 +96,53 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                         />
                     </Tooltip>
                 </Spacer>
-                {events.map((event, i) => (
-                    <AssociatedEventItem
-                        key={event._id}
-                        event={event}
-                        ref={(ref) => {
-                            this.relatedItemRefs[i] = ref;
-                        }}
+                {events.length > 0 ? (
+                    <Spacer gap="8" v>
+                        {events.map((event, i) => (
+                            <AssociatedEventItem
+                                index={i}
+                                key={event._id}
+                                event={event}
+                                removeEventItem={this.props.removeEventItem}
+                                disabled={this.props.disabled}
+                                ref={(ref) => {
+                                    this.relatedItemRefs[i] = ref;
+                                }}
+                            />
+                        ))}
+                    </Spacer>
+                ) : (
+                    <EmptyState
+                        title={gettext('No associated events have been added')}
+                        description={
+                            gettext('To add some, click the plus icon at the top right or drop an existing one')
+                        }
+                        illustration="1"
+                        size="small"
                     />
-                ))}
-                {
-                    !disabled && (
-                        <DropZone
-                            canDrop={
-                                (event) => event.dataTransfer.getData(
-                                    'application/superdesk.planning.event',
-                                ) != null
-                            }
-                            onDrop={(event) => {
-                                event.preventDefault();
+                )}
+                {!disabled && (
+                    <DropZone
+                        canDrop={
+                            (event) => event.dataTransfer.getData(
+                                'application/superdesk.planning.event',
+                            ) != null
+                        }
+                        onDrop={(event) => {
+                            event.preventDefault();
 
-                                const eventItem: IEventItem = JSON.parse(
-                                    event.dataTransfer.getData('application/superdesk.planning.event'),
-                                );
+                            const eventItem: IEventItem = JSON.parse(
+                                event.dataTransfer.getData('application/superdesk.planning.event'),
+                            );
 
-                                this.addRelatedEvent(eventItem);
-                            }}
-                            multiple={true}
-                        >
-                            {gettext('Drop events here')}
-                        </DropZone>
-                    )
-                }
-            </div>
+                            this.addRelatedEvent(eventItem);
+                        }}
+                        multiple={true}
+                    >
+                        {gettext('Drop events here')}
+                    </DropZone>
+                )}
+            </Spacer>
         );
     }
 }
