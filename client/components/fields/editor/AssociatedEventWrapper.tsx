@@ -1,21 +1,13 @@
 import React from 'react';
-import {connect} from 'react-redux';
-import * as selectors from '../../../selectors';
 import {EditorFieldAssociatedEventComponent} from './AssociatedEvent';
-import {IEditorFieldProps, IFile} from 'interfaces';
-
-interface IReduxStoreProps {
-    files: Array<IFile>;
-}
+import {IEditorFieldProps} from 'interfaces';
 
 export interface IAssociatedEventFieldProps extends IEditorFieldProps {
     events?: Array<IEventItem>;
     tabEnabled?: boolean; // defaults to true
 }
 
-export type IAssociatedEventPropsAll = IAssociatedEventFieldProps & IReduxStoreProps;
-
-export class AssociatedEventField extends React.PureComponent<IAssociatedEventPropsAll> {
+export class EditorFieldAssociatedEvents extends React.PureComponent<IAssociatedEventFieldProps> {
     render() {
         return (
             <EditorFieldAssociatedEventComponent
@@ -25,14 +17,3 @@ export class AssociatedEventField extends React.PureComponent<IAssociatedEventPr
         );
     }
 }
-
-const mapStateToProps = (state): IReduxStoreProps => ({
-    files: selectors.general.files(state),
-});
-
-export const EditorFieldAssociatedEvents = connect(
-    mapStateToProps,
-    null,
-    null,
-    {forwardRef: true}
-)(AssociatedEventField);

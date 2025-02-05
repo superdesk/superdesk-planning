@@ -3,16 +3,16 @@ import {IEventItem, IPlanningRelatedEventLink} from '../../../interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
-import {IAssociatedEventPropsAll} from './AssociatedEventWrapper';
+import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
 import {Spacer, Button} from 'superdesk-ui-framework/react';
 import {isTemporaryId, removeAutosaveFields} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
 import {Tooltip} from '@sourcefabric/common';
 
-export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventPropsAll> {
+export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
 
-    constructor(props: IAssociatedEventPropsAll) {
+    constructor(props: IAssociatedEventFieldProps) {
         super(props);
 
         this.relatedItemRefs = {};
