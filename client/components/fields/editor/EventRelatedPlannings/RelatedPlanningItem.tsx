@@ -27,6 +27,7 @@ interface IProps {
     editorType: EDITOR_TYPE;
     profile: IPlanningContentProfile;
     coverageProfile?: ISearchProfile;
+    removeRef(): void;
     removePlan(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
@@ -69,6 +70,10 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         if (this.containerNode.current != null) {
             this.containerNode.current.focus();
         }
+    }
+
+    componentWillUnmount(): void {
+        this.props.removeRef();
     }
 
     render() {

@@ -7,6 +7,7 @@ import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {AuthoringReact} from 'apps/authoring-react/authoring-react';
 
 interface IProps{
+    removeRef: () => void;
     removeEventItem(item: DeepPartial<IEventItem>): void;
     event: IEventItem;
     index: number;
@@ -22,6 +23,10 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
 
         this.toggleBoxRef = createRef();
         this.authoringRef = createRef();
+    }
+
+    componentWillUnmount(): void {
+        this.props.removeRef();
     }
 
     render() {

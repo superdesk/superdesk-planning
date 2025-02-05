@@ -13,7 +13,7 @@ const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE, itemType: ItemType) =
     const embeddedEditorRef = planningApi.editor(editorType).dom.fields[fieldId]?.current;
     const relatedItemRefs: IRelatedItemRefs = embeddedEditorRef?.relatedItemRefs;
 
-    return (relatedItemRefs ?? {}) as IRelatedItemRefs;
+    return relatedItemRefs;
 };
 
 const getEmbeddedItemsExposed = (
@@ -22,9 +22,7 @@ const getEmbeddedItemsExposed = (
 ): Array<IExposedFromAuthoring<void>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
 
-
-    // Use Object.values instead of Object.keys because when refs are removed value becomes `null` and keys stay
-    if (Object.values(relatedItemRefs ?? {}).filter(superdeskApi.helpers.notNullOrUndefined).length < 1) {
+    if (Object.values(relatedItemRefs).filter(superdeskApi.helpers.notNullOrUndefined).length < 1) {
         return [];
     }
 
@@ -88,7 +86,7 @@ export const handleEmbeddedItems = async(
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {
     const planningsExposed = getEmbeddedItemsExposed(EDITOR_TYPE.INLINE, itemType);
 
-    if ((planningsExposed ?? []).length < 1) {
+    if (planningsExposed.length < 1) {
         return false;
     }
 

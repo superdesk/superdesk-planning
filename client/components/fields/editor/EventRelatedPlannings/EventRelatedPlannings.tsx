@@ -108,6 +108,9 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
 
                                 return (
                                     <RelatedPlanningItem
+                                        removeRef={() => {
+                                            delete this.relatedItemRefs[index];
+                                        }}
                                         ref={(ref) => {
                                             this.relatedItemRefs[index] = ref;
                                         }}
