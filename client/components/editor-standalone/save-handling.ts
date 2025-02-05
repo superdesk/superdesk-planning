@@ -1,6 +1,6 @@
-import {EDITOR_TYPE, IEventOrPlanningItem} from '../../interfaces';
+import {EDITOR_TYPE} from '../../interfaces';
 import {IExposedFromAuthoring} from 'superdesk-api';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
 
@@ -22,7 +22,9 @@ const getEmbeddedItemsExposed = (
 ): Array<IExposedFromAuthoring<void>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
 
-    if (Object.keys(relatedItemRefs ?? {}).length < 1) {
+
+    // Use Object.values instead of Object.keys because when refs are removed value becomes `null` and keys stay
+    if (Object.values(relatedItemRefs ?? {}).filter(superdeskApi.helpers.notNullOrUndefined).length < 1) {
         return [];
     }
 
