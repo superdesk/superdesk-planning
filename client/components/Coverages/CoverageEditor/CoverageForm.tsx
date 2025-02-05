@@ -364,14 +364,8 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 label: assignmentUtils.getContactLabel(this.props.value),
             },
             add_coverage_to_workflow: {
-                field: 'add_coverage_to_workflow',
                 onChange: this.onAddToWorkflowChange,
-                label: superdeskApi.localization.gettext('Add to workflow'),
-                disabled:
-                    planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
-                    || this.props.value.add_coverage_to_workflow === true
-                    || this.props.value.assigned_to.user == null
-                    || this.props.value.assigned_to.desk == null,
+                disabled: planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
             },
             g2_content_type: {
                 readOnly: this.props.readOnly || readOnlyFields.g2_content_type,

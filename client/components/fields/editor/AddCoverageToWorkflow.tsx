@@ -11,8 +11,8 @@ export class EditorFieldAddCoverageToWorkflow extends React.PureComponent<IEdito
         return (
             <EditorFieldToggle
                 {...this.props}
-                field={this.props.field ?? 'add_coverage_to_workflow'}
-                label={this.props.label ?? gettext('Add Coverage To Workflow')}
+                field="add_coverage_to_workflow"
+                label={gettext('Add to workflow')}
                 defaultValue={false}
             />
         );
