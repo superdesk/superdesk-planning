@@ -4,9 +4,10 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
 import {IAssociatedEventPropsAll} from './AssociatedEventWrapper';
-import {Spacer, Button, Tooltip} from 'superdesk-ui-framework/react';
+import {Spacer, Button} from 'superdesk-ui-framework/react';
 import {isTemporaryId, removeAutosaveFields} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
+import {Tooltip} from '@sourcefabric/common';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventPropsAll> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
@@ -68,6 +69,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         const {DropZone} = superdeskApi.components;
         const events = this.props.events ?? [];
         const disabled = this.props.disabled ?? false;
+        const planningItemCreated = !isTemporaryId(this.props.item._id);
 
         return (
             <div>
@@ -76,9 +78,11 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                         {gettext('Related Events')}
                     </label>
                     <Tooltip
-                        flow="left"
-                        text={gettext('Item not saved')}
-                        disabled={isTemporaryId(this.props.item._id) === false}
+                        content={
+                            planningItemCreated
+                                ? null
+                                : gettext('Planning item has to be created before adding related events')
+                        }
                     >
                         <Button
                             type="primary"
@@ -88,7 +92,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                             size="small"
                             iconOnly={true}
                             onClick={this.addNewRelatedEvent}
-                            disabled={disabled || isTemporaryId(this.props.item._id)}
+                            disabled={disabled || !planningItemCreated}
                         />
                     </Tooltip>
                 </Spacer>
