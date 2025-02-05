@@ -77,8 +77,8 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     </label>
                     <Tooltip
                         flow="left"
-                        text={gettext('Item not saved or you\'re in preview')}
-                        disabled={disabled !== true && isTemporaryId(this.props.item._id) === false}
+                        text={gettext('Item not saved')}
+                        disabled={isTemporaryId(this.props.item._id) === false}
                     >
                         <Button
                             type="primary"
