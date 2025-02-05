@@ -1008,7 +1008,8 @@ function createNewPlanningFromNewsItem(
         type: 'planning',
         slugline: addNewsItemToPlanning.slugline,
         headline: get(addNewsItemToPlanning, 'headline'),
-        planning_date: moment(),
+        planning_date: getDefaultPlanningDate(),
+        all_day: appConfig.planning?.all_day || false,
         ednote: get(addNewsItemToPlanning, 'ednote'),
         subject: get(addNewsItemToPlanning, 'subject'),
         anpa_category: get(addNewsItemToPlanning, 'anpa_category'),
@@ -1496,6 +1497,10 @@ function shouldLockPlanningForEdit(item: IPlanningItem, privileges: IPrivileges)
     );
 }
 
+function getDefaultPlanningDate(): moment.Moment {
+    return appConfig.planning?.all_day ? moment.utc(moment().format('YYYY-MM-DD')) : moment();
+}
+
 function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array<IPlace>): Partial<IPlanningItem> {
     const {contentProfiles} = planningApi;
     const planningProfile = contentProfiles.get('planning');
@@ -1504,7 +1509,8 @@ function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array
     const newPlanning: Partial<IPlanningItem> = Object.assign(
         {
             type: 'planning',
-            planning_date: moment(),
+            planning_date: getDefaultPlanningDate(),
+            all_day: appConfig.planning?.all_day || false,
             agendas: get(currentAgenda, 'is_enabled') ?
                 [getItemId(currentAgenda)] : [],
             state: 'draft',
