@@ -173,7 +173,6 @@ export const isViewFiltered = createSelector<
             'startOfWeek',
             'sortField',
             'sortOrder',
-            'include_associated_planning',
         ];
 
         exclude.forEach((field) => {

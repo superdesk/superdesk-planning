@@ -56,7 +56,6 @@ function loadLockedItems(types?: Array<'events_and_planning' | 'featured_plannin
                 include_killed: true,
                 spike_state: 'draft',
                 exclude_rescheduled_and_cancelled: false,
-                include_associated_planning: true,
             }).then(
                 (items) => {
                     dispatch({
