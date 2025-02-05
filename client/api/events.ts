@@ -160,7 +160,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
             const events = modifySaveResponseForClient(response);
 
             // Update redux store, so changes are reflected in associated_event field
-            planningApi.redux.store.dispatch<any>(eventsApi.receiveEvents([response]));
+            planningApi.redux.store.dispatch<any>(eventsApi.receiveEvents(events));
 
             return planningApi.planning.searchGetAll({
                 recurrence_id: events[0].recurrence_id,

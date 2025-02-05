@@ -4,8 +4,8 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
 import {IAssociatedEventPropsAll} from './AssociatedEventWrapper';
-import {Spacer, Button} from 'superdesk-ui-framework/react';
-import {removeAutosaveFields} from '../../../utils';
+import {Spacer, Button, Tooltip} from 'superdesk-ui-framework/react';
+import {isTemporaryId, removeAutosaveFields} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventPropsAll> {
@@ -55,7 +55,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
     }
 
     private addNewRelatedEvent() {
-        const newEvent = convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
+        const newEvent = convertPlanningToEvent(this.props.item, planningApi.redux.store.getState);
 
         planningApi.events.create(removeAutosaveFields({...newEvent, associated_plannings: []}))
             .then(([firstResult]) => {
@@ -75,7 +75,11 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     <label className="InputArray__label side-panel__heading side-panel__heading--big">
                         {gettext('Related Events')}
                     </label>
-                    {disabled !== true && this.props.item._id.includes('temp') === false && (
+                    <Tooltip
+                        flow="left"
+                        text={gettext('Item not saved or you\'re in preview')}
+                        disabled={disabled !== true && isTemporaryId(this.props.item._id) === false}
+                    >
                         <Button
                             type="primary"
                             icon="plus-large"
@@ -84,8 +88,9 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                             size="small"
                             iconOnly={true}
                             onClick={this.addNewRelatedEvent}
+                            disabled={disabled || isTemporaryId(this.props.item._id)}
                         />
-                    )}
+                    </Tooltip>
                 </Spacer>
                 {events.map((event, i) => (
                     <AssociatedEventItem
