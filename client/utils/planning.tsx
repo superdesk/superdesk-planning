@@ -384,7 +384,7 @@ function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: Par
         isCoverageAssigned(coverage) &&
         !appConfig.planning_auto_assign_to_workflow &&
         !isItemExpired(planning) &&
-        this.props.value.add_coverage_to_workflow === true
+        coverage.add_coverage_to_workflow !== true
     );
 }
 
