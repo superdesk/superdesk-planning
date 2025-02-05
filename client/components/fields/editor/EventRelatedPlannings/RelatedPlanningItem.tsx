@@ -17,7 +17,7 @@ import {authoringStoragePlanningItemHttp} from '../../../editor-standalone/autho
 import {
     getAuthoringStorageInMemory
 } from '../../../editor-standalone/authoring-storage-in-memory';
-import {IPropsAuthoring} from 'superdesk-api';
+import {AuthoringReact} from 'apps/authoring-react/authoring-react';
 
 interface IProps {
     event: IEventItem;
@@ -39,7 +39,7 @@ interface IProps {
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
-    public authoringRef: React.RefObject<React.ComponentType<IPropsAuthoring<IPlanningItem>>>;
+    public authoringRef: React.RefObject<AuthoringReact<IPlanningItem>>;
     public toggleBoxRef: React.RefObject<any>;
 
     constructor(props) {
@@ -89,6 +89,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         icon="trash"
                         ariaValue={gettext('Remove planning')}
                         onClick={this.remove}
+                        toolTipFlow="left"
                     />
                 )}
             />

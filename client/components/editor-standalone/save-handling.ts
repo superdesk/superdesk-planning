@@ -1,4 +1,4 @@
-import {EDITOR_TYPE} from '../../interfaces';
+import {EDITOR_TYPE, IEventOrPlanningItem} from '../../interfaces';
 import {IExposedFromAuthoring} from 'superdesk-api';
 import {planningApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
@@ -13,7 +13,7 @@ const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE, itemType: ItemType) =
     const embeddedEditorRef = planningApi.editor(editorType).dom.fields[fieldId]?.current;
     const relatedItemRefs: IRelatedItemRefs = embeddedEditorRef?.relatedItemRefs;
 
-    return relatedItemRefs ?? [];
+    return (relatedItemRefs ?? {}) as IRelatedItemRefs;
 };
 
 const getEmbeddedItemsExposed = (
@@ -22,9 +22,12 @@ const getEmbeddedItemsExposed = (
 ): Array<IExposedFromAuthoring<void>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
 
-    // Crashes whenever there's no embedded items
+    if (Object.keys(relatedItemRefs ?? {}).length < 1) {
+        return [];
+    }
+
     const exposedAuthoringArray = Object.values(relatedItemRefs).map((x) =>
-        x?.authoringRef?.current?.getExposed?.()
+        x?.authoringRef?.current?.getExposed?.() as unknown as IExposedFromAuthoring<void>
     );
 
     return exposedAuthoringArray;
@@ -83,5 +86,9 @@ export const handleEmbeddedItems = async(
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {
     const planningsExposed = getEmbeddedItemsExposed(EDITOR_TYPE.INLINE, itemType);
 
-    return (planningsExposed ?? []).some((x) => x.hasUnsavedChanges());
+    if ((planningsExposed ?? []).length < 1) {
+        return false;
+    }
+
+    return planningsExposed.some((x) => x.hasUnsavedChanges());
 };

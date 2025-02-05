@@ -1,4 +1,4 @@
-import {createRef} from 'react';
+import {createRef, RefObject} from 'react';
 import {cloneDeep} from 'lodash';
 
 import {
@@ -20,6 +20,7 @@ import {
 } from '../../utils/contentProfiles';
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
+import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
 
 export function getCoverageFields(): ISearchProfile {
     const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
@@ -80,6 +81,32 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         return editor.dom.fields[field];
     }
 
+    function getRelatedEventsDomRef(eventId: IEventItem['_id']): RefObject<AssociatedEventItem> {
+        const editor = planningApi.editor(type);
+        const field = `planning-item--${eventId}`;
+
+        if (editor.dom.fields[field] == null) {
+            editor.dom.fields[field] = createRef();
+        }
+
+        return editor.dom.fields[field];
+    }
+
+    function removeEventItem(item: DeepPartial<IEventItem>): void {
+        const editor = planningApi.editor(type);
+        const planning = editor.form.getDiff<IPlanningItem>();
+        const events = (planning.related_events || []).filter(
+            (event) => event._id !== item._id
+        );
+
+        editor.form.changeField('related_events', events)
+            .then(() => {
+                const lastEvent = events[events.length - 1];
+
+                getRelatedEventsDomRef(lastEvent?._id).current?.toggleBoxRef.current.scrollIntoView();
+            });
+    }
+
     function addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>) {
         const editor = planningApi.editor(type);
         const diff = editor.manager.getState().diff as DeepPartial<IPlanningItem>;
@@ -114,6 +141,8 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
     return {
         getGroupsForItem,
         getCoverageFields,
+        getRelatedEventsDomRef,
+        removeEventItem,
         getCoverageFieldDomRef,
         addCoverages,
     };

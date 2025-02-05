@@ -15,6 +15,7 @@ import {IAgenda, IPlanningAppState, IPlanningItem} from 'interfaces';
 import {formProfile} from '../../validators/profile';
 import {getPlanningProfileFields} from './profile-fields';
 import {FieldTemplate} from './field-template';
+import {AuthoringReact} from 'apps/authoring-react/authoring-react';
 
 interface IOwnProps<T extends IPlanningItem | IEventItem> {
     // will be used as resource and content profile type
@@ -22,7 +23,7 @@ interface IOwnProps<T extends IPlanningItem | IEventItem> {
 
     itemId: string;
 
-    editorRef: RefObject<React.ComponentType<IPropsAuthoring<T>>>;
+    editorRef: RefObject<AuthoringReact<T>>;
     authoringStorage: IAuthoringStorage<T>;
     storageAdapter: IStorageAdapter<T>;
 }
