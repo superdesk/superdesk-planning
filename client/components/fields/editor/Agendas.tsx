@@ -36,22 +36,18 @@ export class EditorFieldAgendasComponent extends React.PureComponent<IProps> {
         };
 
         return (
-            <div>
-                AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-                <EditorFieldVocabulary
-                    {...this.props}
-                    field={field}
-                    label={this.props.label ?? gettext('Agendas')}
-                    options={this.props.agendas.filter(
-                        (agenda) => agenda.is_enabled
-                    )}
-                    defaultValue={[]}
-                    valueKey="_id"
-                    item={item}
-                    onChange={onChange}
-                />
-            </div>
+            <EditorFieldVocabulary
+                {...this.props}
+                field={field}
+                label={this.props.label ?? gettext('Agendas')}
+                options={this.props.agendas.filter(
+                    (agenda) => agenda.is_enabled
+                )}
+                defaultValue={[]}
+                valueKey="_id"
+                item={item}
+                onChange={onChange}
+            />
         );
     }
 }
