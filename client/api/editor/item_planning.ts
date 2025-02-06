@@ -20,7 +20,7 @@ import {
 } from '../../utils/contentProfiles';
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
-import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
+import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
 
 export function getCoverageFields(): ISearchProfile {
     const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
