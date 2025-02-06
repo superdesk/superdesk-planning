@@ -23,7 +23,10 @@ const getEmbeddedItemsExposed = (
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
 
     // Use Object.values instead of Object.keys because when refs are removed value becomes null and keys stay
-    if (Object.values(relatedItemRefs).filter(superdeskApi.helpers.notNullOrUndefined).length < 1) {
+    if (
+        relatedItemRefs == null
+        || Object.values(relatedItemRefs).filter(superdeskApi.helpers.notNullOrUndefined).length < 1
+    ) {
         return [];
     }
 
@@ -64,6 +67,10 @@ export const handleEmbeddedItems = async(
     const itemExposed = getEmbeddedItemsExposed(editorType, itemType);
     let editorIndex = 0;
     let promiseResult = Promise.resolve();
+
+    if (itemExposed.length < 1) {
+        return promiseResult;
+    }
 
     for (const planning of itemExposed) {
         promiseResult = promiseResult.then(() => {
