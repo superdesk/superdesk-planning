@@ -13,7 +13,7 @@ import {
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
 import * as React from 'react';
-import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
+import {AssociatedEventItem} from './components/fields/editor/AssociatedEventItem';
 
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
