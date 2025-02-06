@@ -1,20 +1,19 @@
-from planning.types import EventResourceModel, PlanningResourceModel
+from planning.types import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from superdesk.core.resources import AsyncResourceService
 from superdesk.errors import SuperdeskApiError
-from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 
 
 class AutosaveAsyncService(AsyncResourceService):
     """Async Service class for the Autosave model."""
 
-    async def on_create(self, docs: list[EventResourceModel | PlanningResourceModel]) -> None:
+    async def on_create(self, docs: list[EventAutosaveResourceModel | PlanningAutosaveResourceModel]) -> None:
         await super().on_create(docs)
 
         for doc in docs:
             self._validate(doc)
-            delattr(doc, "expired")
+            doc.expired = False
 
-    async def on_delete(self, doc: EventResourceModel | PlanningResourceModel):
+    async def on_delete(self, doc: EventAutosaveResourceModel | PlanningAutosaveResourceModel):
         from planning.events.events_service import EventsAsyncService
 
         await super().on_delete(doc)
@@ -24,7 +23,7 @@ class AutosaveAsyncService(AsyncResourceService):
             await events_service.delete_event_files({}, doc.files)
 
     @staticmethod
-    def _validate(doc: EventResourceModel | PlanningResourceModel):
+    def _validate(doc: EventAutosaveResourceModel | PlanningAutosaveResourceModel):
         """Validate the autosave to ensure it contains user/session"""
 
         if not doc.lock_user:
@@ -32,6 +31,3 @@ class AutosaveAsyncService(AsyncResourceService):
 
         if not doc.lock_session:
             raise SuperdeskApiError.badRequestError(message="Autosave failed, User Session not supplied")
-
-    async def on_session_end(self, user_id, session_id, is_last_session):
-        await self.delete_many(lookup={LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)})

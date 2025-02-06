@@ -155,8 +155,6 @@ def init_app(app):
 
     app.on_locked_planning += planning_service.on_locked_planning
 
-    app.on_session_end += planning_autosave_service.on_session_end
-
     superdesk.privilege(
         name="planning_planning_management",
         label=lazy_gettext("Planning - Planning Item Management"),

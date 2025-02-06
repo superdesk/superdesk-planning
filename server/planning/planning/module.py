@@ -6,8 +6,12 @@ from superdesk.core.resources import (
     RestEndpointConfig,
 )
 
-from planning.types import PlanningResourceModel, PlanningHistoryResourceModel, PlanningFeaturedResourceModel
-
+from planning.types import (
+    PlanningResourceModel,
+    PlanningHistoryResourceModel,
+    PlanningFeaturedResourceModel,
+    PlanningAutosaveResourceModel,
+)
 from .planning_service import PlanningAsyncService
 from .planning_history_async_service import PlanningHistoryAsyncService
 from .planning_featured_async_service import PlanningFeaturedAsyncService
@@ -54,7 +58,7 @@ planning_featured_resource_config: ResourceConfig = ResourceConfig(
 
 planning_autosave_resource_config: ResourceConfig = ResourceConfig(
     name="planning_autosave",
-    data_class=PlanningResourceModel,
+    data_class=PlanningAutosaveResourceModel,
     service=PlanningAutosaveAsyncService,
     mongo=MongoResourceConfig(
         indexes=[
@@ -62,11 +66,13 @@ planning_autosave_resource_config: ResourceConfig = ResourceConfig(
                 name="planning_autosave_user",
                 keys=[("lock_user", 1)],
                 background=True,
+                unique=False,
             ),
             MongoIndexOptions(
                 name="planning_autosave_session",
                 keys=[("lock_session", 1)],
                 background=True,
+                unique=False,
             ),
         ],
     ),

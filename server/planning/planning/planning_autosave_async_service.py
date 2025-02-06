@@ -20,7 +20,7 @@ class PlanningAutosaveAsyncService(AutosaveAsyncService):
         coverage = next((c for c in coverages if c.get("coverage_id") == coverage_id), None)
 
         if not coverage:
-            logger.warn("Coverage {} not found in autosave for item {}".format(coverage_id, planning_id))
+            logger.warning("Coverage {} not found in autosave for item {}".format(coverage_id, planning_id))
             return
 
         # Remove assignment info from the coverage

@@ -6,7 +6,7 @@ from superdesk.core.resources import (
     RestEndpointConfig,
 )
 
-from planning.types import EventResourceModel, EventsHistoryResourceModel
+from planning.types import EventResourceModel, EventsHistoryResourceModel, EventAutosaveResourceModel
 from .events_service import EventsAsyncService
 from .events_history_async_service import EventsHistoryAsyncService
 from .events_autosave_async_service import EventsAutosaveAsyncService
@@ -50,12 +50,12 @@ events_history_resource_config: ResourceConfig = ResourceConfig(
 
 events_autosave_resource_config: ResourceConfig = ResourceConfig(
     name="event_autosave",
-    data_class=EventResourceModel,
+    data_class=EventAutosaveResourceModel,
     service=EventsAutosaveAsyncService,
     mongo=MongoResourceConfig(
         indexes=[
-            MongoIndexOptions(name="event_autosave_user", keys=[("lock_user", 1)], background=True),
-            MongoIndexOptions(name="event_autosave_session", keys=[("lock_session", 1)], background=True),
+            MongoIndexOptions(name="event_autosave_user", keys=[("lock_user", 1)], background=True, unique=False),
+            MongoIndexOptions(name="event_autosave_session", keys=[("lock_session", 1)], background=True, unique=False),
         ],
     ),
     rest_endpoints=RestEndpointConfig(resource_methods=["GET", "POST"], item_methods=["GET", "PUT", "PATCH", "DELETE"]),

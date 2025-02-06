@@ -25,6 +25,7 @@ from .enums import PostStates, UpdateMethods, WorkflowState
 from .agendas import AgendasResourceModel
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
+from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 
 
 __all__ = [
@@ -46,6 +47,8 @@ __all__ = [
     "PlanningRelatedEventLink",
     "AgendasResourceModel",
     "PlanningFeaturedResourceModel",
+    "EventAutosaveResourceModel",
+    "PlanningAutosaveResourceModel",
 ]
 
 

@@ -159,8 +159,6 @@ def init_app(app):
     app.on_updated_events_update_time += events_history_service.on_update_time
     app.on_locked_events += events_search_service.on_locked_event
 
-    app.on_session_end += event_autosave_service.on_session_end
-
     # Privileges
     superdesk.privilege(
         name="planning_event_management",
