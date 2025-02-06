@@ -49,31 +49,25 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
             }
         })();
 
-        const PlanningItemsMetadata = () => {
-            if (planningItems.length > 0) {
-                return (
-                    <>
-                        {planningItems.map((plan, index) => (
-                            <PlanningMetaData
-                                key={plan._id}
-                                field={`plannings[${index}]`}
-                                plan={plan}
-                                scrollInView={true}
-                                tabEnabled={true}
-                            />
-                        ))}
-                    </>
-                );
-            } else {
-                return (
-                    <EmptyState
-                        title={superdeskApi.localization.gettext('No planning items have been added')}
-                        illustration="2"
-                        size="small"
+        const planningItemsMetadata = planningItems.length > 0 ? (
+            <>
+                {planningItems.map((plan, index) => (
+                    <PlanningMetaData
+                        key={plan._id}
+                        field={`plannings[${index}]`}
+                        plan={plan}
+                        scrollInView={true}
+                        tabEnabled={true}
                     />
-                );
-            }
-        };
+                ))}
+            </>
+        ) : (
+            <EmptyState
+                title={superdeskApi.localization.gettext('No planning items have been added')}
+                illustration="2"
+                size="small"
+            />
+        );
 
         return (
             <div className="related-plannings">
@@ -98,7 +92,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                     </Tooltip>
                 </Spacer>
 
-                {disabled ? <PlanningItemsMetadata /> : (
+                {disabled ? planningItemsMetadata : (
                     <>
                         {planningItems.length > 0 ? (
                             planningItems.map((plan, index) => {
