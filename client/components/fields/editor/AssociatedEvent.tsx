@@ -100,9 +100,6 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     <Spacer gap="8" v>
                         {events.map((event, i) => (
                             <AssociatedEventItem
-                                removeRef={() => {
-                                    delete this.relatedItemRefs[i];
-                                }}
                                 index={i}
                                 key={event._id}
                                 event={event}

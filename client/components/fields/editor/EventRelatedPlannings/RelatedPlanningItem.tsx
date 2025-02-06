@@ -17,7 +17,7 @@ import {authoringStoragePlanningItemHttp} from '../../../editor-standalone/autho
 import {
     getAuthoringStorageInMemory
 } from '../../../editor-standalone/authoring-storage-in-memory';
-import {AuthoringReact} from 'apps/authoring-react/authoring-react';
+import {IAuthoringReact} from 'superdesk-api';
 
 interface IProps {
     event: IEventItem;
@@ -27,7 +27,6 @@ interface IProps {
     editorType: EDITOR_TYPE;
     profile: IPlanningContentProfile;
     coverageProfile?: ISearchProfile;
-    removeRef(): void;
     removePlan(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
@@ -40,7 +39,7 @@ interface IProps {
 
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
-    public authoringRef: React.RefObject<AuthoringReact<IPlanningItem>>;
+    public authoringRef: React.RefObject<IAuthoringReact<IPlanningItem>>;;
     public toggleBoxRef: React.RefObject<any>;
 
     constructor(props) {
@@ -70,10 +69,6 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         if (this.containerNode.current != null) {
             this.containerNode.current.focus();
         }
-    }
-
-    componentWillUnmount(): void {
-        this.props.removeRef();
     }
 
     render() {

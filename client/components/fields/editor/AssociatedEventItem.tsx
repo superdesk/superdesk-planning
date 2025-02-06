@@ -4,10 +4,9 @@ import {EventEditorStandalone} from '../../../components/editor-standalone/event
 import {RelatedEventListItem} from '../../../components/Events/EventMetadata/RelatedEventListItem';
 import React, {createRef} from 'react';
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
-import {AuthoringReact} from 'apps/authoring-react/authoring-react';
+import {IAuthoringReact} from 'superdesk-api';
 
 interface IProps{
-    removeRef: () => void;
     removeEventItem(item: DeepPartial<IEventItem>): void;
     event: IEventItem;
     index: number;
@@ -16,17 +15,13 @@ interface IProps{
 
 export class AssociatedEventItem extends React.PureComponent<IProps> {
     public toggleBoxRef: React.RefObject<any>;
-    public authoringRef: React.RefObject<AuthoringReact<IEventItem>>;
+    public authoringRef: React.RefObject<IAuthoringReact<IEventItem>>;
 
     constructor(props) {
         super(props);
 
         this.toggleBoxRef = createRef();
         this.authoringRef = createRef();
-    }
-
-    componentWillUnmount(): void {
-        this.props.removeRef();
     }
 
     render() {

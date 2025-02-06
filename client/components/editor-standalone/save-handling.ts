@@ -22,6 +22,7 @@ const getEmbeddedItemsExposed = (
 ): Array<IExposedFromAuthoring<void>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
 
+    // Use Object.values instead of Object.keys because when refs are removed value becomes null and keys stay
     if (Object.values(relatedItemRefs).filter(superdeskApi.helpers.notNullOrUndefined).length < 1) {
         return [];
     }
@@ -68,15 +69,20 @@ export const handleEmbeddedItems = async(
         promiseResult = promiseResult.then(() => {
             if (planning.hasUnsavedChanges()) {
                 if (action === 'SAVE') {
-                    return planning.save().catch(() => handleErrors(editorType, editorIndex, itemType));
+                    return planning
+                        .save()
+                        .catch(() => handleErrors(editorType, editorIndex, itemType));
                 } else if (action === 'DISCARD') {
                     return planning.discardUnsavedChanges();
                 } else {
-                    return planning.handleUnsavedChanges().catch(() => handleErrors(editorType, editorIndex, itemType));
+                    return planning
+                        .handleUnsavedChanges()
+                        .catch(() => handleErrors(editorType, editorIndex, itemType));
                 }
+            } else {
+                editorIndex++;
+                return Promise.resolve();
             }
-
-            editorIndex++;
         });
     }
 
@@ -85,10 +91,6 @@ export const handleEmbeddedItems = async(
 
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {
     const planningsExposed = getEmbeddedItemsExposed(EDITOR_TYPE.INLINE, itemType);
-
-    if (planningsExposed.length < 1) {
-        return false;
-    }
 
     return planningsExposed.some((x) => x.hasUnsavedChanges());
 };

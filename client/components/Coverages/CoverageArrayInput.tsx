@@ -207,7 +207,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                     <EmptyState
                         title={superdeskApi.localization.gettext('No coverages have been added')}
                         description={
-                            superdeskApi.localization.gettext('To add some, click the plus icon at the top right')
+                            superdeskApi.localization.gettext('To add some, click the plus icon')
                         }
                         illustration="2"
                         size="small"
