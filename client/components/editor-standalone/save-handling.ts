@@ -68,10 +68,6 @@ export const handleEmbeddedItems = async(
     let editorIndex = 0;
     let promiseResult = Promise.resolve();
 
-    if (itemExposed.length < 1) {
-        return promiseResult;
-    }
-
     for (const planning of itemExposed) {
         promiseResult = promiseResult.then(() => {
             if (planning.hasUnsavedChanges()) {

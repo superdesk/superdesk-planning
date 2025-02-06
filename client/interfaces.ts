@@ -13,7 +13,6 @@ import {
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
 import * as React from 'react';
-import {AssociatedEventItem} from './components/fields/editor/AssociatedEventItem';
 
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
@@ -2169,7 +2168,7 @@ export interface IEditorAPI {
                 groups: Array<IEditorFormGroup>;
             };
             removeEventItem(item: DeepPartial<IEventItem>): void;
-            getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<AssociatedEventItem>;
+            getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(): ISearchProfile;
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;
