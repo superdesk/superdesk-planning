@@ -20,6 +20,7 @@ module.exports = {
         extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
         alias: {
             images: path.resolve(__dirname, 'node_modules/superdesk-core/images'),
+            'draft-js': path.resolve(__dirname, 'node_modules/@sourcefabric/draft-js'),
         }
     },
     module: {
