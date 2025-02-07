@@ -47,13 +47,16 @@ from planning.autosave import AutosaveService
 
 from .events_service import EventsAsyncService
 from .events_history_async_service import EventsHistoryAsyncService
-from .module import events_resource_config, events_history_resource_config
+from .events_autosave_async_service import EventsAutosaveAsyncService
+from .module import events_resource_config, events_history_resource_config, events_autosave_resource_config
 
 __all__ = [
     "EventsAsyncService",
     "events_resource_config",
     "EventsHistoryAsyncService",
     "events_history_resource_config",
+    "EventsAutosaveAsyncService",
+    "events_autosave_resource_config",
 ]
 
 
@@ -155,8 +158,6 @@ def init_app(app):
     app.on_updated_events_postpone += events_history_service.on_postpone
     app.on_updated_events_update_time += events_history_service.on_update_time
     app.on_locked_events += events_search_service.on_locked_event
-
-    app.on_session_end += event_autosave_service.on_session_end
 
     # Privileges
     superdesk.privilege(

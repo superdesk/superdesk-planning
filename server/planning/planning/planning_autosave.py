@@ -47,6 +47,7 @@ class PlanningAutosaveResource(Resource):
     }
 
     merge_nested_documents = True
+    internal_resource = True
 
 
 class PlanningAutosaveService(AutosaveService):

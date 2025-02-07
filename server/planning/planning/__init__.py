@@ -42,10 +42,17 @@ from .planning_featured_lock import (
 )
 from .planning_files import PlanningFilesResource, PlanningFilesService
 
-from .module import planning_resource_config, planning_history_resource_config, planning_featured_resource_config
+from .module import (
+    planning_resource_config,
+    planning_resource_config,
+    planning_history_resource_config,
+    planning_featured_resource_config,
+    planning_autosave_resource_config,
+)
 from .planning_service import PlanningAsyncService
 from .planning_history_async_service import PlanningHistoryAsyncService
 from .planning_featured_async_service import PlanningFeaturedAsyncService
+from .planning_autosave_async_service import PlanningAutosaveAsyncService
 
 
 __all__ = [
@@ -55,6 +62,8 @@ __all__ = [
     "planning_history_resource_config",
     "PlanningFeaturedAsyncService",
     "planning_featured_resource_config",
+    "PlanningAutosaveAsyncService",
+    "planning_autosave_resource_config",
 ]
 
 
@@ -145,8 +154,6 @@ def init_app(app):
     app.on_updated_planning_postpone += planning_history_service.on_postpone
 
     app.on_locked_planning += planning_service.on_locked_planning
-
-    app.on_session_end += planning_autosave_service.on_session_end
 
     superdesk.privilege(
         name="planning_planning_management",
