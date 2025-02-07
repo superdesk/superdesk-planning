@@ -396,7 +396,6 @@ const save = (original, planUpdates) => (
             if (isExistingItem(originalPlan) || get(cleanedUpdates, 'coverages.length', 0) < 1) {
                 return api('planning').save(originalItem, cleanedUpdates)
                     .then((x) => {
-                        // console.log(updates.coverages.some((x) => isEqual(x.assigned_to, {})), 'has assigned_to {}');
                         if (updates.coverages.some((x) => isEqual(x.assigned_to, {}))) {
                             return handleRemovedAssignments(updates, x);
                         }
