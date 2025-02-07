@@ -3,7 +3,7 @@ import * as React from 'react';
 import {IPlanningItem} from '../../../../interfaces';
 import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
-import {Button, Spacer} from 'superdesk-ui-framework/react';
+import {Button, EmptyState, Spacer} from 'superdesk-ui-framework/react';
 import {RelatedPlanningItem} from './RelatedPlanningItem';
 import {PlanningMetaData} from '../../../RelatedPlannings/PlanningMetaData';
 
@@ -11,6 +11,8 @@ import './style.scss';
 import {TEMP_ID_PREFIX} from '../../../../constants';
 import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
 import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
+import {isTemporaryId} from '../../../../utils';
+import {Tooltip} from '@sourcefabric/common';
 
 export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
     relatedItemRefs: {[id: string]: RelatedPlanningItem};
@@ -28,6 +30,45 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
         const disabled = this.props.disabled || this.props.schema?.read_only;
         const planningItems = this.props.item.associated_plannings ?? [];
 
+        const canAddItems: {allowed: boolean; error: string | null} = (() => {
+            if (this.props.disabled || this.props.schema?.read_only) {
+                return {
+                    allowed: false,
+                    error: null,
+                };
+            } else if (isTemporaryId(this.props.item._id)) {
+                return {
+                    allowed: false,
+                    error: gettext('Event has to be created before adding related plannings'),
+                };
+            } else {
+                return {
+                    allowed: true,
+                    error: null,
+                };
+            }
+        })();
+
+        const planningItemsMetadata = planningItems.length > 0 ? (
+            <>
+                {planningItems.map((plan, index) => (
+                    <PlanningMetaData
+                        key={plan._id}
+                        field={`plannings[${index}]`}
+                        plan={plan}
+                        scrollInView={true}
+                        tabEnabled={true}
+                    />
+                ))}
+            </>
+        ) : (
+            <EmptyState
+                title={superdeskApi.localization.gettext('No planning items have been added')}
+                illustration="2"
+                size="small"
+            />
+        );
+
         return (
             <div className="related-plannings">
                 <Spacer h gap="4" justifyContent="space-between" noWrap>
@@ -35,7 +76,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                         {gettext('Related Plannings')}
                     </label>
 
-                    {disabled ? null : (
+                    <Tooltip content={canAddItems.error}>
                         <Button
                             type="primary"
                             icon="plus-large"
@@ -43,51 +84,52 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                             shape="round"
                             size="small"
                             iconOnly={true}
+                            disabled={!canAddItems.allowed}
                             onClick={() => {
                                 this.props.addPlanningItem();
                             }}
                         />
-                    )}
+                    </Tooltip>
                 </Spacer>
 
-                {disabled ? (
-                    planningItems.map((plan, index) => (
-                        <PlanningMetaData
-                            key={plan._id}
-                            field={`plannings[${index}]`}
-                            plan={plan}
-                            scrollInView={true}
-                            tabEnabled={true}
-                        />
-                    ))
-                ) : (
+                {disabled ? planningItemsMetadata : (
                     <>
-                        {planningItems.map((plan, index) => {
-                            const isNewlyCreatedItem =
+                        {planningItems.length > 0 ? (
+                            planningItems.map((plan, index) => {
+                                const isNewlyCreatedItem =
                             index === planningItems.length - 1
                             && plan._id.startsWith(TEMP_ID_PREFIX);
 
-                            return (
-                                <RelatedPlanningItem
-                                    ref={(ref) => {
-                                        this.relatedItemRefs[index] = ref;
-                                    }}
-                                    key={plan._id}
-                                    index={index}
-                                    event={this.props.item}
-                                    item={plan}
-                                    removePlan={this.props.removePlanningItem}
-                                    updatePlanningItem={this.props.updatePlanningItem}
-                                    disabled={false}
-                                    editorType={this.props.editorType}
-                                    profile={this.props.profile}
-                                    coverageProfile={this.props.coverageProfile}
-                                    isAgendaEnabled={isAgendaEnabled}
-                                    initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
-                                />
-                            );
-                        })}
-
+                                return (
+                                    <RelatedPlanningItem
+                                        ref={(ref) => {
+                                            this.relatedItemRefs[index] = ref;
+                                        }}
+                                        key={plan._id}
+                                        index={index}
+                                        event={this.props.item}
+                                        item={plan}
+                                        removePlan={this.props.removePlanningItem}
+                                        updatePlanningItem={this.props.updatePlanningItem}
+                                        disabled={false}
+                                        editorType={this.props.editorType}
+                                        profile={this.props.profile}
+                                        coverageProfile={this.props.coverageProfile}
+                                        isAgendaEnabled={isAgendaEnabled}
+                                        initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
+                                    />
+                                );
+                            })
+                        ) : (
+                            <EmptyState
+                                title={gettext('No planning items have been added')}
+                                description={
+                                    gettext('To add some, click the plus icon at the top right or drop an existing one')
+                                }
+                                illustration="2"
+                                size="small"
+                            />
+                        )}
                         <DropZone
                             canDrop={
                                 (event) => event.dataTransfer.getData(
@@ -103,8 +145,9 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                                 addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
                             }}
                             multiple={true}
+                            disabled={!canAddItems.allowed}
                         >
-                            {gettext('Drop planning items here')}
+                            {canAddItems.allowed ? gettext('Drop planning items here') : canAddItems.error}
                         </DropZone>
                     </>
                 )}

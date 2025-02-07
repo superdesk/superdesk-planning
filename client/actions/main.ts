@@ -731,7 +731,6 @@ const openIgnoreCancelSaveModal = ({
                 recurrence_id: item.recurrence_id,
                 max_results: appConfig.max_recurrent_events,
                 only_future: false,
-                include_associated_planning: true,
             }).then((relatedEvents) => ({
                 ...item,
                 _recurring: relatedEvents.filter((item) => item.type === 'event') ?? [item],

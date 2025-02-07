@@ -23,7 +23,6 @@ function convertCombinedParams(params: ISearchParams): Partial<ISearchAPIParams>
         slugline: params.slugline,
         calendars: cvsToString(params.calendars),
         agendas: arrayToString(params.agendas),
-        include_associated_planning: params.include_associated_planning,
         source: cvsToString(params.source, 'id'),
         coverage_user_id: params.coverage_user_id,
         priority: arrayToString(params.priority),
@@ -118,7 +117,6 @@ function getRecurringEventsAndPlanningItems(
             item_ids: event.recurrence_id != null ? null : [event._id],
             spike_state: 'both',
             only_future: false,
-            include_associated_planning: true,
         });
     } else if (!loadEvents) {
         return searchPlanningGetAll({

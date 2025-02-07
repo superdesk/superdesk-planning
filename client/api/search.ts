@@ -53,7 +53,6 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         sort_field: params.sort_field,
         tz_offset: params.date_filter ? getTimeZoneOffset() : null,
         time_zone: timeUtils.localTimeZone(),
-        include_associated_planning: params.include_associated_planning,
     };
 }
 
@@ -88,10 +87,7 @@ export const searchRawAndStore = <T>(args: ISearchAPIParams) => {
     ).then((res) => {
         const [relatedPlans, events] = partition(res._items, (item: IEventOrPlanningItem) => item.type === 'planning');
 
-        if (args.include_associated_planning) {
-            dispatch(planningApi.receivePlannings(relatedPlans));
-        }
-
+        dispatch(planningApi.receivePlannings(relatedPlans));
         dispatch(eventsApi.receiveEvents(events));
 
         return res;

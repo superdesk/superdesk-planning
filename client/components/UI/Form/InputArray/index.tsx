@@ -20,6 +20,7 @@ interface IProps {
     value: Array<any>;
     onChange(field: string, value: Array<any>): void;
     addButtonComponent: React.ComponentClass;
+    emptyStateElement: React.ReactNode;
     addButtonProps: any;
     addButtonText: string;
     maxCount: number;
@@ -192,15 +193,18 @@ export class InputArray extends React.PureComponent<IProps> {
             });
         } else {
             return (
-                <Row
-                    noPadding={!!message}
-                    testId={testId}
-                >
-                    {labelElement}
-                    {errorMessageElement}
-                    {itemsElement}
-                    {!buttonWithLabel && addButtonElement}
-                </Row>
+                <>
+                    <Row
+                        noPadding={!!message}
+                        testId={testId}
+                    >
+                        {labelElement}
+                        {errorMessageElement}
+                        {itemsElement}
+                        {!buttonWithLabel && addButtonElement}
+                    </Row>
+                    {(this.props.value?.length ?? 0) < 1 && this.props.emptyStateElement}
+                </>
             );
         }
     }

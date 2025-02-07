@@ -737,71 +737,75 @@ const receiveEventHistory = (eventHistoryItems) => ({
     payload: eventHistoryItems,
 });
 
+export const convertPlanningToEvent = (plan, getState) => {
+    const state = getState();
+    const defaultDurationOnChange = selectors.forms.defaultEventDuration(state);
+    const occurStatuses = selectors.vocabs.eventOccurStatuses(state);
+    const defaultCalendar = selectors.events.defaultCalendarValue(state);
+    const defaultPlace = selectors.general.defaultPlaceList(state);
+    const unplannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos0', 'qcode') || {
+        label: 'Unplanned event',
+        qcode: 'eocstat:eos0',
+        name: 'Unplanned event',
+    };
+    const eventProfile = selectors.forms.eventProfile(getState());
+    let newEvent: Partial<IEventItem> = {
+        ...eventUtils.defaultEventValues(occurStatuses, defaultCalendar, defaultPlace),
+        dates: {
+            start: moment(plan.planning_date).clone(),
+            end: moment(plan.planning_date)
+                .clone()
+                .add(defaultDurationOnChange, 'h'),
+            tz: moment.tz.guess(),
+        },
+        subject: plan.subject,
+        anpa_category: plan.anpa_category,
+        calendars: [],
+        place: plan.place,
+        occur_status: unplannedStatus,
+        _planning_item: plan._id,
+        language: plan.language,
+    };
+
+    if (plan.languages != null) {
+        newEvent.languages = plan.languages;
+    }
+    if (plan.priority != null) {
+        newEvent.priority = plan.priority;
+    }
+
+    const fieldsToConvert: Array<[keyof IPlanningItem, keyof IEventItem]> = [
+        ['description_text', 'definition_short'],
+        ['internal_note', 'internal_note'],
+        ['slugline', 'slugline'],
+    ];
+
+    if (plan.name?.length) {
+        fieldsToConvert.push(['name', 'name']);
+    } else {
+        fieldsToConvert.push(['slugline', 'name']);
+    }
+
+    if (get(eventProfile, 'editor.slugline.enabled', false)) {
+        fieldsToConvert.push(['slugline', 'slugline']);
+    }
+
+    return convertStringFields(
+        plan,
+        newEvent,
+        'planning',
+        'event',
+        fieldsToConvert,
+    );
+};
+
 /**
  * Action to create a new Event from an existing Planning item
  * @param {object} plan - The Planning item to creat the Event from
  */
 const createEventFromPlanning = (plan: IPlanningItem) => (
     (dispatch, getState) => {
-        const state = getState();
-        const defaultDurationOnChange = selectors.forms.defaultEventDuration(state);
-        const occurStatuses = selectors.vocabs.eventOccurStatuses(state);
-        const defaultCalendar = selectors.events.defaultCalendarValue(state);
-        const defaultPlace = selectors.general.defaultPlaceList(state);
-        const unplannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos0', 'qcode') || {
-            label: 'Unplanned event',
-            qcode: 'eocstat:eos0',
-            name: 'Unplanned event',
-        };
-        const eventProfile = selectors.forms.eventProfile(getState());
-        let newEvent: Partial<IEventItem> = {
-            ...eventUtils.defaultEventValues(occurStatuses, defaultCalendar, defaultPlace),
-            dates: {
-                start: moment(plan.planning_date).clone(),
-                end: moment(plan.planning_date)
-                    .clone()
-                    .add(defaultDurationOnChange, 'h'),
-                tz: moment.tz.guess(),
-            },
-            subject: plan.subject,
-            anpa_category: plan.anpa_category,
-            calendars: [],
-            place: plan.place,
-            occur_status: unplannedStatus,
-            _planning_item: plan._id,
-            language: plan.language,
-        };
-
-        if (plan.languages != null) {
-            newEvent.languages = plan.languages;
-        }
-        if (plan.priority != null) {
-            newEvent.priority = plan.priority;
-        }
-
-        const fieldsToConvert: Array<[keyof IPlanningItem, keyof IEventItem]> = [
-            ['description_text', 'definition_short'],
-            ['internal_note', 'internal_note'],
-            ['slugline', 'slugline'],
-        ];
-
-        if (plan.name?.length) {
-            fieldsToConvert.push(['name', 'name']);
-        } else {
-            fieldsToConvert.push(['slugline', 'name']);
-        }
-
-        if (get(eventProfile, 'editor.slugline.enabled', false)) {
-            fieldsToConvert.push(['slugline', 'slugline']);
-        }
-
-        newEvent = convertStringFields(
-            plan,
-            newEvent,
-            'planning',
-            'event',
-            fieldsToConvert,
-        );
+        const newEvent = convertPlanningToEvent(plan, getState);
 
         return Promise.all([
             planningApi.locks.lockItem(plan, 'add_as_event'),

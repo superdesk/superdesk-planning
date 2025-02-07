@@ -1,12 +1,12 @@
 import React, {RefObject} from 'react';
-import {IAuthoringStorage, IPropsAuthoring} from 'superdesk-api';
+import {IAuthoringReact, IAuthoringStorage} from 'superdesk-api';
 import {BaseEditorStandalone} from './base-editor-standalone';
 import {getStorageAdapter} from './storage-adapter';
 
 interface IProps {
     itemId: string;
     authoringStorage: IAuthoringStorage<IEventItem>;
-    editorRef: RefObject<React.ComponentType<IPropsAuthoring<IEventItem>>>;
+    editorRef: RefObject<IAuthoringReact<IEventItem>>;
 }
 
 export class EventEditorStandalone extends React.PureComponent<IProps> {
