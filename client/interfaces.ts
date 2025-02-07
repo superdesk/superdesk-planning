@@ -975,7 +975,6 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     source?:string;
     coverage_user_id?:string;
     coverage_assignment_status?:ICoverageAssigned['qcode'];
-    include_associated_planning: boolean;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -1423,9 +1422,6 @@ export interface ISearchParams {
     include_scheduled_updates?: boolean;
     event_item?: Array<IEventItem['_id']>;
 
-    // Combined Params
-    include_associated_planning?: boolean;
-
     // Pagination
     page?: number;
     max_results?: number;
@@ -1478,9 +1474,6 @@ export interface ISearchAPIParams {
     include_scheduled_updates?: boolean;
     event_item?: string;
     coverage_assignment_status?:ICoverageAssigned['qcode']
-
-    // Combined Params
-    include_associated_planning?: boolean;
 
     // Pagination
     page?: number;
@@ -2174,6 +2167,8 @@ export interface IEditorAPI {
                 bookmarks: Array<IEditorBookmark>;
                 groups: Array<IEditorFormGroup>;
             };
+            removeEventItem(item: DeepPartial<IEventItem>): void;
+            getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(): ISearchProfile;
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;

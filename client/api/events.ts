@@ -18,6 +18,7 @@ import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGet
 import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
 import planningApis from '../actions/planning/api';
+import eventsApi from '../actions/events/api';
 import {searchPlanning} from './planning';
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
@@ -157,6 +158,9 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
     })
         .then((response) => {
             const events = modifySaveResponseForClient(response);
+
+            // Update redux store, so changes are reflected in associated_event field
+            planningApi.redux.store.dispatch<any>(eventsApi.receiveEvents(events));
 
             return planningApi.planning.searchGetAll({
                 recurrence_id: events[0].recurrence_id,
