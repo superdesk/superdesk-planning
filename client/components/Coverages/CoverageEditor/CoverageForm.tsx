@@ -2,7 +2,6 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, forEach} from 'lodash';
 import moment from 'moment';
-
 import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../../superdeskApi';
 import {IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
@@ -18,17 +17,17 @@ import {
     IKeyword,
     IFile,
 } from '../../../interfaces';
-
 import * as selectors from '../../../selectors';
 import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
-
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
-
+import {showModal} from '@sourcefabric/common';
+import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 import {getCoverageFields} from '../../../api/editor/item_planning';
 
 import '../style.scss';
+import {gettextPlural} from 'core/utils';
 
 interface IProps {
     // Values
@@ -312,27 +311,67 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         }
     }
 
-    // Only used to add to workflow.
-    // Removing from workflow is done if the user removes the assignee.
     onAddToWorkflowChange() {
         const {vocabulary} = superdeskApi.entities;
-        const coverageStatuses =
-            vocabulary.getAll().get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
+        const {gettext} = superdeskApi.localization;
+        const coverageStatuses = vocabulary
+            .getAll()
+            .get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
         const updatedCoverage = planningUtils.addCoverageToWorkflow(this.props.value, coverageStatuses);
+        const filteredCoverages = this.props.coverages.filter((x) => x.coverage_id !== updatedCoverage.coverage_id);
+        const {workflow_status, news_coverage_status, assigned_to, add_coverage_to_workflow} = updatedCoverage;
 
-        this.onChange(
-            'workflow_status',
-            updatedCoverage.workflow_status,
-        );
-        this.onChange(
-            'news_coverage_status',
-            updatedCoverage.news_coverage_status,
-        );
-        this.onChange(
-            'assigned_to.state',
-            updatedCoverage.assigned_to.state,
-        );
-        this.onChange('add_coverage_to_workflow', updatedCoverage.add_coverage_to_workflow);
+        if (updatedCoverage.add_coverage_to_workflow) {
+            this.props.onChange(
+                'coverages',
+                [
+                    ...filteredCoverages,
+                    {
+                        ...this.props.value,
+                        workflow_status: workflow_status,
+                        news_coverage_status: news_coverage_status,
+                        assigned_to: {
+                            ...assigned_to,
+                            state: assigned_to.state,
+                        },
+                        add_coverage_to_workflow: add_coverage_to_workflow,
+                    },
+                ],
+            );
+        } else {
+            showModal(({closeModal}) => (
+                <Modal
+                    visible
+                    headerTemplate={gettext('Are you sure?')}
+                    footerTemplate={(
+                        <Spacer h gap="4" noWrap justifyContent="end" alignItems="end">
+                            <Button text={gettext('Cancel')} onClick={closeModal} />
+                            <Button
+                                text={gettext('Remove')}
+                                type="primary"
+                                onClick={() => {
+                                    this.props.onChange(
+                                        'coverages',
+                                        [
+                                            ...filteredCoverages,
+                                            {
+                                                ...this.props.value,
+                                                workflow_status: 'draft',
+                                                assigned_to: {},
+                                                add_coverage_to_workflow: add_coverage_to_workflow,
+                                            },
+                                        ],
+                                    );
+                                    closeModal();
+                                }}
+                            />
+                        </Spacer>
+                    )}
+                >
+                    {gettext('This will also remove coverage\'s assignment')}
+                </Modal>
+            ));
+        }
     }
 
     render() {
@@ -365,7 +404,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             },
             add_coverage_to_workflow: {
                 onChange: this.onAddToWorkflowChange,
-                disabled: planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
+                disabled: this.props.value.add_coverage_to_workflow
+                    ? false
+                    : planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
             },
             g2_content_type: {
                 readOnly: this.props.readOnly || readOnlyFields.g2_content_type,

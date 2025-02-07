@@ -383,8 +383,7 @@ function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: Par
         isCoverageDraft(coverage) &&
         isCoverageAssigned(coverage) &&
         !appConfig.planning_auto_assign_to_workflow &&
-        !isItemExpired(planning) &&
-        coverage.add_coverage_to_workflow !== true
+        !isItemExpired(planning)
     );
 }
 
@@ -1776,7 +1775,11 @@ function addToWorkflowCommon<T extends IPlanningCoverageItem | ICoverageSchedule
 
     next.news_coverage_status = newsCoverageStatus.find((s) => s.qcode === 'ncostat:int');
     next.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
-    next.add_coverage_to_workflow = true;
+
+    // Scheduled update does not have `add_coverage_to_workflow`
+    if ('original_coverage_id' in (item as IPlanningCoverageItem)) {
+        next.add_coverage_to_workflow = !(item.add_coverage_to_workflow ?? false);
+    }
 
     if (next.assigned_to != null) {
         next.assigned_to.state = ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED;
