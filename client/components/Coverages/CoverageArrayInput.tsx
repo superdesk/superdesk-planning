@@ -23,6 +23,7 @@ import {InputArray} from '../UI/Form';
 import {CoverageEditor} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
 import planningActions from '../../actions/planning/api';
+import {EmptyState} from 'superdesk-ui-framework/react';
 
 
 interface IOwnProps {
@@ -202,6 +203,16 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 value={value}
                 coverages={value}
                 onChange={onChange}
+                emptyStateElement={(
+                    <EmptyState
+                        title={superdeskApi.localization.gettext('No coverages have been added')}
+                        description={
+                            superdeskApi.localization.gettext('To add some, click the plus icon')
+                        }
+                        illustration="2"
+                        size="small"
+                    />
+                )}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
                 addButtonProps={{

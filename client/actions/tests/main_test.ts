@@ -314,7 +314,6 @@ describe('actions.main', () => {
                         fulltext: '',
                         spikeState: 'draft',
                         filter_id: null,
-                        include_associated_planning: true,
                     }]);
                     done();
                 })

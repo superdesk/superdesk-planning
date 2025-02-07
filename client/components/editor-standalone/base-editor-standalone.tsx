@@ -7,7 +7,7 @@ import {
     ITopBarWidget,
     IAuthoringValidationErrors,
     IStorageAdapter,
-    IPropsAuthoring,
+    IAuthoringReact,
 } from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
@@ -22,7 +22,7 @@ interface IOwnProps<T extends IPlanningItem | IEventItem> {
 
     itemId: string;
 
-    editorRef: RefObject<React.ComponentType<IPropsAuthoring<T>>>;
+    editorRef: RefObject<IAuthoringReact<T>>;
     authoringStorage: IAuthoringStorage<T>;
     storageAdapter: IStorageAdapter<T>;
 }
@@ -71,7 +71,7 @@ export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends R
 
         return (
             <Authoring
-                ref={this.props.editorRef}
+                ref={this.props.editorRef as any}
                 itemId={this.props.itemId}
                 resourceNames={[this.props.entityType]}
                 onClose={noop}

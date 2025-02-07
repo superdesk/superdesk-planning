@@ -339,6 +339,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         files: this.props.files,
                     },
                     associated_event: {
+                        removeEventItem: editor.item.planning.removeEventItem,
                         field: 'related_events',
                         events: (this.props.diff.related_events ?? [])
                             .map((relatedEvent) => this.props.events[relatedEvent._id]),
