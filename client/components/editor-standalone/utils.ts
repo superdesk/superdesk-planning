@@ -1,4 +1,4 @@
-import {omit} from 'lodash';
+import {isEqual, omit} from 'lodash';
 import {ASSIGNMENTS} from '../../constants';
 import {IBaseRestApiResponse} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
@@ -41,7 +41,7 @@ export async function handleRemovedAssignments(current: Partial<IPlanningItem>, 
 
         for (let i = 0; i <= assignmentsOriginal.length - 1; i++) {
             if (
-                JSON.stringify(assignmentsCurrent[i].assigned_to) != JSON.stringify(assignmentsOriginal[i].assigned_to)
+                isEqual(assignmentsCurrent[i].assigned_to, assignmentsOriginal[i].assigned_to)
                 && assignmentsOriginal[i].assigned_to.assignment_id != null
             ) {
                 changed.push(assignmentsOriginal[i].assigned_to.assignment_id);
