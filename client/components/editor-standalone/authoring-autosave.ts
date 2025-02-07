@@ -130,29 +130,3 @@ export class AutoSaveHttp<T extends IBaseRestApiResponse> implements IAuthoringA
         this.autoSaveThrottled.cancel();
     }
 }
-
-export class NoAutoSave<T> implements IAuthoringAutoSave<T> {
-    get(id: string) {
-        return Promise.resolve(null);
-    }
-
-    delete() {
-        return Promise.resolve();
-    }
-
-    schedule(
-        getItem: () => T,
-        callback: (autosaved: T) => void,
-        autosavedItem: T,
-    ) {
-        callback(getItem());
-    }
-
-    cancel() {
-        // noop
-    }
-
-    flush(): Promise<void> {
-        return Promise.resolve();
-    }
-}

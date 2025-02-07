@@ -1,13 +1,40 @@
 import ng from 'superdesk-core/scripts/core/services/ng';
-import {IAuthoringStorage} from 'superdesk-api';
+import {IAuthoringAutoSave, IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
-import {NoAutoSave} from './authoring-autosave';
 
 export function getAuthoringStorageInMemory<T>(
     profile: 'event' | 'planning',
     item: T,
     onSave: (current: T, original: T) => Promise<T>,
 ): IAuthoringStorage<T> {
+    class NoAutoSave implements IAuthoringAutoSave<T> {
+        get(id: string) {
+            // return an empty object so authoring-react compares with saved item sees it as dirty
+            // otherwise, it is not seen as dirty and wouldn't trigger to fill required fields.
+            return Promise.resolve({} as T);
+        }
+
+        delete() {
+            return Promise.resolve();
+        }
+
+        schedule(
+            getItem: () => T,
+            callback: (autosaved: T) => void,
+            autosavedItem: T,
+        ) {
+            callback(getItem());
+        }
+
+        cancel() {
+            // noop
+        }
+
+        flush(): Promise<void> {
+            return Promise.resolve();
+        }
+    }
+
     const authoringStorage: IAuthoringStorage<T> = {
         autosave: new NoAutoSave(),
 

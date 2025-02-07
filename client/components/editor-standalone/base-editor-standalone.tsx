@@ -82,7 +82,7 @@ export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends R
                 getInlineToolbarActions={({
                     hasUnsavedChanges,
                     save,
-                    addValidationErrors,
+                    setValidationErrors,
                     fieldsData,
                     getLatestItem,
                 }) => {
@@ -103,7 +103,7 @@ export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends R
                                     );
 
                                     if (Object.keys(validationErrors).length > 0) {
-                                        addValidationErrors(validationErrors);
+                                        setValidationErrors(validationErrors);
                                     } else {
                                         save();
                                     }
