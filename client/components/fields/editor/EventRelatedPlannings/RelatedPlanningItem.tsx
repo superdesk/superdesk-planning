@@ -107,6 +107,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                     toggleBoxRef={this.toggleBoxRef}
                     variant="custom-header"
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
+                    alwaysRenderChildren
                     header={
                         item._id.startsWith(TEMP_ID_PREFIX)
                             ? renderPlanning(item)

@@ -37,6 +37,7 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                     variant="custom-header"
                     toggleBoxRef={this.toggleBoxRef}
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
+                    alwaysRenderChildren
                     header={(
                         <RelatedEventListItem
                             item={event}

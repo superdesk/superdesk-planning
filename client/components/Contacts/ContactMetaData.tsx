@@ -6,7 +6,6 @@ import {ContactLabel} from './ContactLabel';
 import './SelectSearchContactsField/style.scss';
 import * as ContactComponents from 'superdesk-core/scripts/apps/contacts/components/index';
 import {IconButton, Spacer, ToggleBox} from 'superdesk-ui-framework/react';
-import ng from 'superdesk-core/scripts/core/services/ng';
 import {IContact} from 'superdesk-api';
 
 interface IProps {
@@ -93,6 +92,7 @@ export class ContactMetaData extends React.PureComponent<IProps, IState> {
                     )}
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                     variant="custom-header"
+                    alwaysRenderChildren
                 >
                     <ContactInfo hideHeader={this.state.isOpen} item={this.props.contact} />
                     <ContactFooter item={this.props.contact} />
