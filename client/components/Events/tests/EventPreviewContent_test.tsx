@@ -1,3 +1,4 @@
+/* eslint-disable jasmine/no-focused-tests */
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
@@ -133,8 +134,12 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(eventDetailRows.at(2), 'Long Description:', 'long description');
         verifyDataRow(eventDetailRows.at(3), 'Internal Note:', 'internal note');
 
-        expect(wrapper.find('.contact-name').first()
-            .text()).toBe(`${storeContact.first_name} ${storeContact.last_name}`);
+        expect(
+            wrapper.find('.contact-info__name')
+                .first()
+                .text()
+                .trim()
+        ).toBe(`${storeContact.first_name} ${storeContact.last_name}`);
 
         let files = wrapper.find('.toggle-box').at(1);
 
