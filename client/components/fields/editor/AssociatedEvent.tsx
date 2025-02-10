@@ -1,14 +1,12 @@
-/* eslint-disable no-nested-ternary */
 import * as React from 'react';
 import {IEventItem, IPlanningRelatedEventLink} from '../../../interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
 import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
-import {Spacer, Button, EmptyState} from 'superdesk-ui-framework/react';
+import {Spacer, Button} from 'superdesk-ui-framework/react';
 import {isTemporaryId, removeAutosaveFields} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
-import {Tooltip} from '@sourcefabric/common';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
