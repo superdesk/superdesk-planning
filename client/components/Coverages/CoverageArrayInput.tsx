@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {isEmpty} from 'lodash';
+import {isEmpty, noop} from 'lodash';
 
 import {
     EDITOR_TYPE,
@@ -23,7 +23,6 @@ import {InputArray} from '../UI/Form';
 import {CoverageEditor} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
 import planningActions from '../../actions/planning/api';
-import {EmptyState} from 'superdesk-ui-framework/react';
 
 
 interface IOwnProps {
@@ -193,6 +192,7 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
 
         const {desks, users, coverageAddAdvancedMode} = this.props;
         const language = this.props.item.language;
+        const {DropZone} = superdeskApi.components;
 
         return (
             <InputArray
@@ -203,10 +203,10 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 value={value}
                 coverages={value}
                 onChange={onChange}
-                emptyStateElement={(
-                    <div className="sd-border--medium border-dashed p-1-5 radius-md d-flex items-center justify-center">
-                        <span className="text-sm text-color-subdued">No Coverages yet</span>
-                    </div>
+                emptyValueElement={(
+                    <DropZone disabled canDrop={() => false} onDrop={noop}>
+                        {gettext('No Coverages Yet')}
+                    </DropZone>
                 )}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}

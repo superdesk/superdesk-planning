@@ -2032,9 +2032,10 @@ export abstract class IEditorHeaderComponent {
 
 export interface IInputArrayHocModeOptions {
     itemsElement: React.ReactNode;
-    addButtonElement: JSX.Element;
+    addButtonElement: React.ReactNode;
     errorMessageElement: React.ReactNode;
     labelElement: React.ReactNode;
+    emptyValueElement: React.ReactNode;
 }
 
 export interface IWebsocketMessageData {

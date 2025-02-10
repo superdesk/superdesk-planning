@@ -76,7 +76,7 @@ export class Editor extends React.PureComponent<IProps> {
                     });
                 }}
             >
-                {({addButtonElement, itemsElement, errorMessageElement}) => {
+                {({addButtonElement, itemsElement, errorMessageElement, emptyValueElement}) => {
                     const miniToolbar = (
                         <div
                             data-test-id="editor--planning-item__add-coverage"
@@ -88,8 +88,14 @@ export class Editor extends React.PureComponent<IProps> {
 
                     return (
                         <Container miniToolbar={miniToolbar}>
-                            {errorMessageElement}
-                            {itemsElement}
+                            {this.props.value.length < 1 ? (
+                                emptyValueElement
+                            ) : (
+                                <>
+                                    {errorMessageElement}
+                                    {itemsElement}
+                                </>
+                            )}
                         </Container>
                     );
                 }}
