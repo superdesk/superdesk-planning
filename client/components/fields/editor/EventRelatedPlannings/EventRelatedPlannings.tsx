@@ -76,7 +76,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                         {gettext('Related Plannings')}
                     </label>
 
-                    <Tooltip content={canAddItems.error}>
+                    {canAddItems.allowed && (
                         <Button
                             type="primary"
                             icon="plus-large"
@@ -84,73 +84,59 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                             shape="round"
                             size="small"
                             iconOnly={true}
-                            disabled={!canAddItems.allowed}
                             onClick={() => {
                                 this.props.addPlanningItem();
                             }}
                         />
-                    </Tooltip>
+                    )}
                 </Spacer>
-
                 {disabled ? planningItemsMetadata : (
                     <>
-                        {planningItems.length > 0 ? (
-                            planningItems.map((plan, index) => {
-                                const isNewlyCreatedItem =
-                            index === planningItems.length - 1
-                            && plan._id.startsWith(TEMP_ID_PREFIX);
+                        {planningItems.map((plan, index) => {
+                            const isNewlyCreatedItem = index === planningItems.length - 1
+                                && plan._id.startsWith(TEMP_ID_PREFIX);
 
-                                return (
-                                    <RelatedPlanningItem
-                                        ref={(ref) => {
-                                            this.relatedItemRefs[index] = ref;
-                                        }}
-                                        key={plan._id}
-                                        index={index}
-                                        event={this.props.item}
-                                        item={plan}
-                                        removePlan={this.props.removePlanningItem}
-                                        updatePlanningItem={this.props.updatePlanningItem}
-                                        disabled={false}
-                                        editorType={this.props.editorType}
-                                        profile={this.props.profile}
-                                        coverageProfile={this.props.coverageProfile}
-                                        isAgendaEnabled={isAgendaEnabled}
-                                        initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
-                                    />
-                                );
-                            })
-                        ) : (
-                            <EmptyState
-                                title={gettext('No planning items have been added')}
-                                description={
-                                    gettext('To add some, click the plus icon at the top right or drop an existing one')
-                                }
-                                illustration="2"
-                                size="small"
-                            />
-                        )}
-                        <DropZone
-                            canDrop={
-                                (event) => event.dataTransfer.getData(
-                                    'application/superdesk.planning.planning_item',
-                                ) != null
-                            }
-                            onDrop={(event) => {
-                                event.preventDefault();
-                                const planningItem: IPlanningItem = JSON.parse(
-                                    event.dataTransfer.getData('application/superdesk.planning.planning_item'),
-                                );
-
-                                addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
-                            }}
-                            multiple={true}
-                            disabled={!canAddItems.allowed}
-                        >
-                            {canAddItems.allowed ? gettext('Drop planning items here') : canAddItems.error}
-                        </DropZone>
+                            return (
+                                <RelatedPlanningItem
+                                    ref={(ref) => {
+                                        this.relatedItemRefs[index] = ref;
+                                    }}
+                                    key={plan._id}
+                                    index={index}
+                                    event={this.props.item}
+                                    item={plan}
+                                    removePlan={this.props.removePlanningItem}
+                                    updatePlanningItem={this.props.updatePlanningItem}
+                                    disabled={false}
+                                    editorType={this.props.editorType}
+                                    profile={this.props.profile}
+                                    coverageProfile={this.props.coverageProfile}
+                                    isAgendaEnabled={isAgendaEnabled}
+                                    initiallyExpanded={isNewlyCreatedItem && (plan.coverages ?? []).length < 1}
+                                />
+                            );
+                        })}
                     </>
                 )}
+                <DropZone
+                    canDrop={
+                        (event) => event.dataTransfer.getData(
+                            'application/superdesk.planning.planning_item',
+                        ) != null
+                    }
+                    onDrop={(event) => {
+                        event.preventDefault();
+                        const planningItem: IPlanningItem = JSON.parse(
+                            event.dataTransfer.getData('application/superdesk.planning.planning_item'),
+                        );
+
+                        addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
+                    }}
+                    multiple={true}
+                    disabled={!canAddItems.allowed}
+                >
+                    {canAddItems.allowed ? gettext('Drop planning items here') : canAddItems.error}
+                </DropZone>
             </div>
         );
     }

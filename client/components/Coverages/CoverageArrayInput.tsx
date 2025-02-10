@@ -204,14 +204,9 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 coverages={value}
                 onChange={onChange}
                 emptyStateElement={(
-                    <EmptyState
-                        title={superdeskApi.localization.gettext('No coverages have been added')}
-                        description={
-                            superdeskApi.localization.gettext('To add some, click the plus icon')
-                        }
-                        illustration="2"
-                        size="small"
-                    />
+                    <div className="sd-border--medium border-dashed p-1-5 radius-md d-flex items-center justify-center">
+                        <span className="text-sm text-color-subdued">No Coverages yet</span>
+                    </div>
                 )}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
