@@ -109,7 +109,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         this.onAddXmpFile = this.onAddXmpFile.bind(this);
         this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
         this.onContentTypeChange = this.onContentTypeChange.bind(this);
-        this.onAddToWorkflowChange = this.onAddToWorkflowChange.bind(this);
+        this.toggleAddToWorkflow = this.toggleAddToWorkflow.bind(this);
 
         this.dom = {
             contentType: React.createRef(),
@@ -311,21 +311,22 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onAddToWorkflowChange() {
+    toggleAddToWorkflow() {
         const {vocabulary} = superdeskApi.entities;
         const {gettext} = superdeskApi.localization;
         const coverageStatuses = vocabulary
             .getAll()
             .get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
         const updatedCoverage = planningUtils.addCoverageToWorkflow(this.props.value, coverageStatuses);
-        const filteredCoverages = this.props.coverages.filter((x) => x.coverage_id !== updatedCoverage.coverage_id);
+        const coveragesWithoutUpdated =
+            this.props.coverages.filter((x) => x.coverage_id !== updatedCoverage.coverage_id);
         const {workflow_status, news_coverage_status, assigned_to, add_coverage_to_workflow} = updatedCoverage;
 
         if (updatedCoverage.add_coverage_to_workflow) {
             this.props.onChange(
                 'coverages',
                 [
-                    ...filteredCoverages,
+                    ...coveragesWithoutUpdated,
                     {
                         ...this.props.value,
                         workflow_status: workflow_status,
@@ -339,38 +340,23 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 ],
             );
         } else {
-            showModal(({closeModal}) => (
-                <Modal
-                    visible
-                    headerTemplate={gettext('Are you sure?')}
-                    footerTemplate={(
-                        <Spacer h gap="4" noWrap justifyContent="end" alignItems="end">
-                            <Button text={gettext('Cancel')} onClick={closeModal} />
-                            <Button
-                                text={gettext('Remove')}
-                                type="primary"
-                                onClick={() => {
-                                    this.props.onChange(
-                                        'coverages',
-                                        [
-                                            ...filteredCoverages,
-                                            {
-                                                ...this.props.value,
-                                                workflow_status: 'draft',
-                                                assigned_to: {},
-                                                add_coverage_to_workflow: add_coverage_to_workflow,
-                                            },
-                                        ],
-                                    );
-                                    closeModal();
-                                }}
-                            />
-                        </Spacer>
-                    )}
-                >
-                    {gettext('This will also remove coverage\'s assignment')}
-                </Modal>
-            ));
+            superdeskApi.ui.confirm(gettext('This will also remove coverage\'s assignment'))
+                .then((response) => {
+                    if (response) {
+                        this.props.onChange(
+                            'coverages',
+                            [
+                                ...coveragesWithoutUpdated,
+                                {
+                                    ...this.props.value,
+                                    workflow_status: 'draft',
+                                    assigned_to: {},
+                                    add_coverage_to_workflow: add_coverage_to_workflow,
+                                },
+                            ],
+                        );
+                    }
+                });
         }
     }
 
@@ -403,7 +389,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 label: assignmentUtils.getContactLabel(this.props.value),
             },
             add_coverage_to_workflow: {
-                onChange: this.onAddToWorkflowChange,
+                onChange: this.toggleAddToWorkflow,
                 disabled: this.props.value.add_coverage_to_workflow
                     ? false
                     : planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
