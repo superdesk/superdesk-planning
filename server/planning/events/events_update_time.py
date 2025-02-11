@@ -39,6 +39,7 @@ class EventsUpdateTimeResource(EventsResource):
     schema = events_schema
 
     merge_nested_documents = True
+    internal_resource = True
 
 
 class EventsUpdateTimeService(EventsBaseService):

@@ -17,6 +17,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from quart_babel import lazy_gettext
 from eve.utils import ParsedRequest
+from superdesk.core.types import Request
 from werkzeug.exceptions import BadRequest
 from typing import Type, Union, List, Dict, Any, TypedDict, Optional
 
@@ -287,3 +288,10 @@ def is_coverage_assignment_modified(updates: dict[str, Any], original: dict[str,
             return True
 
     return False
+
+
+async def get_json_or_400_async(req: Request):
+    data = await req.get_json()
+    if not isinstance(data, dict):
+        await req.abort(400)
+    return data
