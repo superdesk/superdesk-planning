@@ -953,7 +953,7 @@ function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlann
     get(plan, 'coverages', []).forEach((coverage, i) => {
         coverage.planning = coverage.planning ?? {};
 
-        if (original?.coverages[i] != null) {
+        if (original?.coverages?.[i] != null) {
             modifyAssignedTo(coverage, original?.coverages[i]);
         }
 
