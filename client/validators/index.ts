@@ -177,6 +177,7 @@ export const validators = {
         _scheduledTime: [planningValidators.validateCoverageScheduleDate],
         slugline: [formProfile],
         scheduled_updates: [planningValidators.validateScheduledUpdatesDate],
+        language: [formProfile],
     },
     assignment: {
         _all: [validateAssignment],
