@@ -88,7 +88,7 @@ export class Editor extends React.PureComponent<IProps> {
 
                     return (
                         <Container miniToolbar={miniToolbar}>
-                            {this.props.value.length < 1 ? (
+                            {(this.props.value ?? []).length < 1 ? (
                                 emptyValueElement
                             ) : (
                                 <>
