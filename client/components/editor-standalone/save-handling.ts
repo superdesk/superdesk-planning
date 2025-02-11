@@ -37,59 +37,29 @@ const getEmbeddedItemsExposed = (
     return exposedAuthoringArray;
 };
 
-const handleErrors = (editorType: EDITOR_TYPE, editorIndex: number, itemType: ItemType) => {
-    const FIRST_ERROR = 0;
-    const relatedItemRef = getEmbeddedAuthoringRefs(editorType, itemType)[editorIndex];
-    const firstEditorRef = relatedItemRef.authoringRef.current;
-    const fieldErrors = Object.keys(firstEditorRef.getExposed().getValidationErrors() ?? {});
-    const fieldToFocus = firstEditorRef?.fieldRefs[fieldErrors[FIRST_ERROR]].current as HTMLDivElement;
-    const toggleBoxRef = relatedItemRef.toggleBoxRef.current;
-
-    if (toggleBoxRef.isOpen() === false) {
-        toggleBoxRef.toggle();
-    }
-
-    fieldToFocus?.scrollIntoView?.({behavior: 'smooth'});
-
-    return Promise.reject();
-};
-
 /**
- * Function that handles editor changes using editor refs.
- * Execution is cancelled on the first encounter of an editor error.
- * If an error occurs the first encountered embedded planning editor and the first error field is focused.
+ * Iterate over related items and perform chosen action.
+ * Will stop on first error.
+ * User will be prompted about the issue in the UI and is expected to try again.
  */
 export const handleEmbeddedItems = async(
     editorType: EDITOR_TYPE,
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
-) => {
-    const itemExposed = getEmbeddedItemsExposed(editorType, itemType);
-    let editorIndex = 0;
-    let promiseResult = Promise.resolve();
+): Promise<void> => {
+    for (const exposed of getEmbeddedItemsExposed(editorType, itemType)) {
+        if (!exposed.hasUnsavedChanges()) {
+            continue;
+        }
 
-    for (const planning of itemExposed) {
-        promiseResult = promiseResult.then(() => {
-            if (planning.hasUnsavedChanges()) {
-                if (action === 'SAVE') {
-                    return planning
-                        .save()
-                        .catch(() => handleErrors(editorType, editorIndex, itemType));
-                } else if (action === 'DISCARD') {
-                    return planning.discardUnsavedChanges();
-                } else {
-                    return planning
-                        .handleUnsavedChanges()
-                        .catch(() => handleErrors(editorType, editorIndex, itemType));
-                }
-            } else {
-                editorIndex++;
-                return Promise.resolve();
-            }
-        });
+        if (action === 'SAVE') {
+            await exposed.save();
+        } else if (action === 'DISCARD') {
+            await exposed.discardUnsavedChanges();
+        } else {
+            await exposed.handleUnsavedChanges();
+        }
     }
-
-    return promiseResult;
 };
 
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {
