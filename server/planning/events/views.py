@@ -60,7 +60,7 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
     # And calculate the new duration of the events
     duration = updates["dates"]["end"] - updates["dates"]["start"]
 
-    app = get_current_app().as_any()
+    app = get_current_app().as_any()  # TODO-ASYNC: Confirm if this remains as is for async
     for event in new_series:
         if not event.get(ID_FIELD):
             continue
@@ -94,7 +94,7 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
 
 @blueprint.endpoint(
     "/update_time/<string:event_id>", methods=["PATCH"], auth=[]
-)  # TODO: Confirm on auth_rules in planning module
+)  # TODO-ASYNC Confirm on auth_rules in planning module
 async def update_time(args: EventsArgs, params: None, request: Request) -> Response:
     events_service = EventsAsyncService()
 

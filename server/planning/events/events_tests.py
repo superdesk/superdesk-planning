@@ -355,6 +355,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
         schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
 
+        # TODO-ASYNC: Confirm on change to this section with the new endpoint
         update_time = get_resource_service("events_update_time")
         update_time.REQUIRE_LOCK = False
         # mocking function
