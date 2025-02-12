@@ -174,7 +174,8 @@ export const validators = {
         internal_note: [formProfile],
         keyword: [formProfile],
         scheduled: [planningValidators.validateCoverageScheduleDate],
-        _scheduledTime: [planningValidators.validateCoverageScheduleDate],
+        // PR-TODO: re-enable validation
+        // _scheduledTime: [planningValidators.validateCoverageScheduleDate],
         slugline: [formProfile],
         scheduled_updates: [planningValidators.validateScheduledUpdatesDate],
         language: [formProfile],

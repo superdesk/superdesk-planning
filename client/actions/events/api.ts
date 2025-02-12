@@ -20,6 +20,7 @@ import {
     isPublishedItemId,
     isTemporaryId,
     gettext,
+    planningUtils,
 } from '../../utils';
 
 import planningApis from '../planning/api';
@@ -661,7 +662,7 @@ const save = (original, updates) => (
                 eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
             const [planningsToCreate, planningsToUpdate] = partition(
-                eventUpdates.associated_plannings ?? [],
+                (eventUpdates.associated_plannings ?? []).map((planning) => planningUtils.modifyForServer(planning)),
                 (item) => item._id.startsWith(TEMP_ID_PREFIX),
             );
 
