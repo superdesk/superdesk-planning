@@ -438,7 +438,7 @@ describe('actions.planning.ui', () => {
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0]))
                 .then(() => { /* no-op */ }, () => {
-                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.callCount).toBe(2);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     expect(modalProps.$scope.resolve.callCount).toBe(0);

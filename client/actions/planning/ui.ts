@@ -465,12 +465,12 @@ const onAddCoverageClick = (item) => (
     }
 );
 
-const saveFromAuthoring = (original, updates) => (
+const saveFromAuthoring = (original, updates?: Partial<IPlanningItem>) => (
     (dispatch, getState, {notify}) => {
         dispatch(actions.actionInProgress(true));
         let resolved = true;
 
-        return dispatch(planningApis.save(original, planningUtils.modifyForServer(updates)))
+        return dispatch(planningApis.save(original, planningUtils.modifyForServer(updates ?? {})))
             .then((newPlan) => {
                 const newsItem = get(selectors.general.modalProps(getState()), 'newsItem') ||
                     get(selectors.general.previousModalProps(getState()), 'newsItem');
@@ -483,11 +483,13 @@ const saveFromAuthoring = (original, updates) => (
                         notify.success('Content linked to the planning item.');
 
                         return Promise.resolve(newPlan);
-                    }, (error) => {
+                    })
+                    .catch((error) => {
                         notify.error(
                             getErrorMessage(error, 'Failed to link to the Planning item!')
                         );
                         resolved = false;
+
                         return Promise.reject(error);
                     });
             })

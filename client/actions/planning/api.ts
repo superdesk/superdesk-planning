@@ -366,7 +366,7 @@ const save = (original, planUpdates) => (
         if (original) {
             promise = Promise.resolve(original);
         } else if (isExistingItem(planUpdates)) {
-            promise = dispatch(self.fetchById(planUpdates._id, {force: true, saveToStore: true}));
+            promise = dispatch(self.fetchById(planUpdates._id));
         } else {
             promise = Promise.resolve({});
         }
