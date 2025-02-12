@@ -646,6 +646,7 @@ export interface IPlanningCoverageItem {
     version_creator: string;
     firstcreated: string;
     versioncreated: string;
+    add_coverage_to_workflow: boolean;
 
     planning: ICoveragePlanningDetails;
 
@@ -1049,6 +1050,7 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
 export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
 export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
 export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
+export interface IProfileSchemaTypeBoolean extends IBaseProfileSchemaType<'boolean'> {}
 
 export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
     field_type: 'single_line' | 'multi_line' | 'editor_3';

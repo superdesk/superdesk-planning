@@ -49,7 +49,7 @@ describe('Planning.Assignment: edit assignment priority', () => {
             .find('.label')
             .should('contain.text', 'Draft');
 
-        coverageEditor.clickAction('Add to workflow');
+        coverageEditor.toggleAddToWorkflow();
 
         editor.saveButton.click();
 

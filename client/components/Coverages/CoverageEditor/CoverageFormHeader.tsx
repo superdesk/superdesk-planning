@@ -80,15 +80,10 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         const assignmentState = value.assigned_to?.state;
         const cancelled = value.workflow_status === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
 
-        /*
-            Check if:
-            1. This view is rendered from AddToPlanning action
-            2. There's an already scheduled update for the coverage
-        */
         const isAssignmentLocked = lockedItems?.assignment
             && value.assigned_to?.assignment_id in lockedItems.assignment;
-        const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked
-            && !((value as ICoverageScheduledUpdate).scheduled_update_id);
+        const itemIsScheduledUpdate = (value as ICoverageScheduledUpdate).scheduled_update_id;
+        const canEditAssignment = addNewsItemToPlanning == null && !isAssignmentLocked && !itemIsScheduledUpdate;
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -198,6 +193,8 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
                                         {
                                             ...value,
                                             assigned_to: {},
+                                            add_coverage_to_workflow: false,
+                                            workflow_status: 'draft',
                                         },
                                     );
                                 }}
