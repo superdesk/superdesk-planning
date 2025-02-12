@@ -1,7 +1,7 @@
 /* eslint-disable react/no-multi-comp */
 import React from 'react';
 import classNames from 'classnames';
-import {get} from 'lodash';
+import {get, noop} from 'lodash';
 
 import {Button} from '../../';
 import {Row, LineInput} from '../';
@@ -20,7 +20,6 @@ interface IProps {
     value: Array<any>;
     onChange(field: string, value: Array<any>): void;
     addButtonComponent: React.ComponentClass;
-    emptyStateElement: React.ReactNode;
     addButtonProps: any;
     addButtonText: string;
     maxCount: number;
@@ -151,8 +150,8 @@ export class InputArray extends React.PureComponent<IProps> {
         const addButton = this.renderButton();
 
         const hasLabel = (label ?? '').length > 0;
-        const addButtonElement: React.ReactNode = showAddButton && addButton;
-        const labelElement: React.ReactNode = !hasLabel ? null : (
+        const addButtonElement = showAddButton && addButton;
+        const labelElement = !hasLabel ? null : (
             <div>
                 <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
                 {buttonWithLabel && addButtonElement}
@@ -184,12 +183,22 @@ export class InputArray extends React.PureComponent<IProps> {
             />
         );
 
+        const {DropZone} = superdeskApi.components;
+        const {gettext} = superdeskApi.localization;
+
+        const emptyValueElement = (
+            <DropZone disabled canDrop={() => false} onDrop={noop}>
+                {gettext('No Coverages Yet')}
+            </DropZone>
+        );
+
         if (typeof this.props.children === 'function') {
             return this.props.children({
                 itemsElement,
                 addButtonElement,
                 errorMessageElement,
                 labelElement,
+                emptyValueElement,
             });
         } else {
             return (
@@ -203,7 +212,7 @@ export class InputArray extends React.PureComponent<IProps> {
                         {itemsElement}
                         {!buttonWithLabel && addButtonElement}
                     </Row>
-                    {(this.props.value?.length ?? 0) < 1 && this.props.emptyStateElement}
+                    {(this.props.value?.length ?? 0) < 1 && emptyValueElement}
                 </>
             );
         }

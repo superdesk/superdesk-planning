@@ -4,10 +4,9 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
 import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
-import {Spacer, Button, EmptyState} from 'superdesk-ui-framework/react';
+import {Spacer, Button} from 'superdesk-ui-framework/react';
 import {isTemporaryId, removeAutosaveFields} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
-import {Tooltip} from '@sourcefabric/common';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
@@ -70,6 +69,15 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         const events = this.props.events ?? [];
         const disabled = this.props.disabled ?? false;
         const planningItemCreated = !isTemporaryId(this.props.item._id);
+        const dropZoneText = (() => {
+            if (planningItemCreated === false) {
+                return gettext('Event has to be created before adding related plannings');
+            } else if (events.length < 1) {
+                return gettext('No events yet, drop some here, or click the plus button');
+            } else {
+                return gettext('Drop events here');
+            }
+        })();
 
         return (
             <Spacer v gap="16">
@@ -77,13 +85,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     <label className="side-panel__heading side-panel__heading--big">
                         {gettext('Related Events')}
                     </label>
-                    <Tooltip
-                        content={
-                            planningItemCreated
-                                ? null
-                                : gettext('Planning item has to be created before adding related events')
-                        }
-                    >
+                    {planningItemCreated && !disabled && (
                         <Button
                             type="primary"
                             icon="plus-large"
@@ -92,35 +94,23 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                             size="small"
                             iconOnly={true}
                             onClick={this.addNewRelatedEvent}
-                            disabled={disabled || !planningItemCreated}
                         />
-                    </Tooltip>
+                    )}
                 </Spacer>
-                {events.length > 0 ? (
-                    <Spacer gap="8" v>
-                        {events.map((event, i) => (
-                            <AssociatedEventItem
-                                index={i}
-                                key={event._id}
-                                event={event}
-                                removeEventItem={this.props.removeEventItem}
-                                disabled={this.props.disabled}
-                                ref={(ref) => {
-                                    this.relatedItemRefs[i] = ref;
-                                }}
-                            />
-                        ))}
-                    </Spacer>
-                ) : (
-                    <EmptyState
-                        title={gettext('No associated events have been added')}
-                        description={
-                            gettext('To add some, click the plus icon at the top right or drop an existing one')
-                        }
-                        illustration="1"
-                        size="small"
-                    />
-                )}
+                <Spacer gap="8" v>
+                    {events.map((event, i) => (
+                        <AssociatedEventItem
+                            index={i}
+                            key={event._id}
+                            event={event}
+                            removeEventItem={this.props.removeEventItem}
+                            disabled={this.props.disabled}
+                            ref={(ref) => {
+                                this.relatedItemRefs[i] = ref;
+                            }}
+                        />
+                    ))}
+                </Spacer>
                 {!disabled && (
                     <DropZone
                         canDrop={
@@ -139,7 +129,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                         }}
                         multiple={true}
                     >
-                        {gettext('Drop events here')}
+                        {dropZoneText}
                     </DropZone>
                 )}
             </Spacer>

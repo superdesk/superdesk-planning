@@ -21,5 +21,8 @@
     "clean": "grunt clean",
     "build": "npx @superdesk/build-tools build-root-repo ./",
     "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server"
+  },
+  "volta": {
+    "node": "14.21.3"
   }
 }
