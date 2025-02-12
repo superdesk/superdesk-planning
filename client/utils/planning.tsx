@@ -936,27 +936,9 @@ function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlann
         }
     };
 
-    const modifyAssignedTo = (updatedCoverage, originalCoverage) => {
-        if (
-            originalCoverage.assigned_to != null
-            && isEqual(updatedCoverage.assigned_to, {})
-            && originalCoverage.workflow_status !== 'draft'
-            && originalCoverage.workflow_status !== 'cancelled'
-        ) {
-            updatedCoverage.assigned_to = originalCoverage.assigned_to;
-            updatedCoverage.workflow_status = originalCoverage.workflow_status;
-        }
-    };
-
     delete plan._agendas;
 
     get(plan, 'coverages', []).forEach((coverage, i) => {
-        coverage.planning = coverage.planning ?? {};
-
-        if (original?.coverages?.[i] != null) {
-            modifyAssignedTo(coverage, original?.coverages[i]);
-        }
-
         modifyGenre(coverage);
 
         delete coverage.planning._scheduledTime;

@@ -22,38 +22,11 @@ export function omitFields<T extends IBaseRestApiResponse>(
     return {...omit(item, baseApiFields)};
 }
 
-export async function handleRemovedAssignments(current: Partial<IPlanningItem>, original: IPlanningItem) {
+export async function handleRemovedAssignments(removedAssignmentIds: Array<string>, originalItemId: string) {
     /**
      * If a coverage has `workflow_status` of `draft` or `cancelled`, assigned_to property can be updated without
      * updating from `/assignments`
      */
-
-    // Coverages that were previously active, but now because they got unassigned they are moved to draft
-    const assignmentsCurrent = current.coverages
-        .filter((x) => x.workflow_status === 'draft'
-            && original.coverages.find((z) => z.coverage_id === x.coverage_id && z.workflow_status === 'active') != null
-        );
-    const assignmentsOriginal = original.coverages
-        .filter((x) => x.workflow_status !== 'draft' && x.workflow_status !== 'cancelled');
-
-    const removedAssignmentIds = (() => {
-        const changed = [];
-
-        for (let i = 0; i <= assignmentsOriginal.length - 1; i++) {
-            if (
-                isEqual(assignmentsCurrent[i].assigned_to, assignmentsOriginal[i].assigned_to)
-                && assignmentsOriginal[i].assigned_to.assignment_id != null
-            ) {
-                changed.push(assignmentsOriginal[i].assigned_to.assignment_id);
-            }
-        }
-
-        return changed;
-    })();
-
-    if (removedAssignmentIds.length <= 0) {
-        return original;
-    }
 
     const {httpRequestVoidLocal} = superdeskApi;
 
@@ -71,8 +44,5 @@ export async function handleRemovedAssignments(current: Partial<IPlanningItem>, 
         });
     }
 
-    const freshItem = await planningApi.planning.getById(original._id, true, true);
-
-    // Force option is enabled, otherwise we get the old planning item from the store
-    return freshItem;
+    return await planningApi.planning.getById(originalItemId, true, true);
 }

@@ -47,8 +47,16 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
                 'If-Match': original._etag,
             },
         }).then((updatedOriginal) => {
-            if (current.coverages.some((x) => isEqual(x.assigned_to, {}))) {
-                return handleRemovedAssignments(current, updatedOriginal);
+            const assignmentsCurrent = current.coverages
+                .filter((x) => x.add_coverage_to_workflow === false);
+            const assignmentsOriginal = original.coverages.filter((x) => x.add_coverage_to_workflow === true);
+
+            const removedAssignmentIds = assignmentsOriginal.filter((orig) =>
+                assignmentsCurrent.filter((x) => x.coverage_id === orig.coverage_id),
+            ).map((x) => x.assigned_to.assignment_id);
+
+            if (removedAssignmentIds.length > 0) {
+                return handleRemovedAssignments(removedAssignmentIds, updatedOriginal._id);
             }
 
             return updatedOriginal;

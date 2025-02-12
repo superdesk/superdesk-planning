@@ -10,8 +10,8 @@ import {StateLabel} from '../../StateLabel';
 import * as actions from '../../../actions';
 import {ASSIGNMENTS} from '../../../constants/assignments';
 import * as selectors from '../../../selectors';
-import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
-import {showModal} from '@sourcefabric/common';
+import {Button} from 'superdesk-ui-framework/react';
+import {superdeskApi} from '../../../superdeskApi';
 
 interface IOwnProps {
     field: string;
@@ -22,6 +22,7 @@ interface IOwnProps {
     addNewsItemToPlanning?: IArticle;
     onChange(field: string, value: any): void;
     onFocus?(): void;
+    coverages: Array<IPlanningCoverageItem>;
 }
 
 interface IReduxDispatchProps {
@@ -73,13 +74,24 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
     }
 
     removeAssignment() {
-        const {value, field} = this.props;
+        const {value} = this.props;
+
         const remove = () => {
-            this.props.onChange(field, {
-                ...value,
-                assigned_to: {},
-                workflow_status: 'draft',
-            });
+            const coveragesWithoutUpdated =
+                this.props.coverages.filter((x) => x.coverage_id !== value.coverage_id);
+
+            this.props.onChange(
+                'coverages',
+                [
+                    ...coveragesWithoutUpdated,
+                    {
+                        ...this.props.value,
+                        workflow_status: 'draft',
+                        assigned_to: {},
+                        add_coverage_to_workflow: false,
+                    },
+                ],
+            );
         };
 
         /**
@@ -89,32 +101,13 @@ class CoverageFormHeaderComponent extends React.PureComponent<IProps> {
         if (value.workflow_status === 'draft' || value.workflow_status === 'cancelled') {
             remove();
         } else {
-            showModal(({closeModal}) => (
-                <Modal
-                    position="right"
-                    visible
-                    headerTemplate={gettext('Remove assignment')}
-                    footerTemplate={(
-                        <Spacer h gap="4" justifyContent="end" alignItems="end" noWrap>
-                            <Button
-                                type="default"
-                                text={gettext('Cancel')}
-                                onClick={closeModal}
-                            />
-                            <Button
-                                type="primary"
-                                text={gettext('Remove')}
-                                onClick={() => {
-                                    remove();
-                                    closeModal();
-                                }}
-                            />
-                        </Spacer>
-                    )}
-                >
-                    {gettext('This will also remove other linked assignments (if any, for story updates).')}
-                </Modal>
-            ));
+            superdeskApi.ui.confirm(
+                superdeskApi.localization.gettext('This will also remove linked assignments if any')
+            ).then((confirmed) => {
+                if (confirmed === true) {
+                    remove();
+                }
+            });
         }
     }
 
