@@ -211,6 +211,8 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Headline');
     case 'g2_content_type':
         return gettext('Content Type');
+    case 'add_coverage_to_workflow':
+        return gettext('Add Coverage To Workflow');
     case 'genre':
         return gettext('Genre');
     case 'news_coverage_status':

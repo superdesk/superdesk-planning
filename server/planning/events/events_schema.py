@@ -406,6 +406,7 @@ events_schema = {
                         "type": "dict",
                         "schema": {
                             "coverage_id": {"type": "string"},
+                            "add_coverage_to_workflow": {"type": "boolean"},
                             "g2_content_type": {"type": "string"},
                             "news_coverage_status": {"type": "string"},
                             "scheduled": {"type": "datetime"},

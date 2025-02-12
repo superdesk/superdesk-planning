@@ -2,7 +2,6 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get, forEach} from 'lodash';
 import moment from 'moment';
-
 import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../../superdeskApi';
 import {IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
@@ -18,18 +17,17 @@ import {
     IKeyword,
     IFile,
 } from '../../../interfaces';
-
 import * as selectors from '../../../selectors';
-import * as actions from '../../../actions';
 import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
-
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
-
+import {showModal} from '@sourcefabric/common';
+import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 import {getCoverageFields} from '../../../api/editor/item_planning';
 
 import '../style.scss';
+import {gettextPlural} from 'core/utils';
 
 interface IOwnProps {
     field: string;
@@ -48,7 +46,10 @@ interface IOwnProps {
     files: Array<IFile>;
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
-    language?: IVocabularyItem['qcode'];
+    language: IVocabularyItem['qcode'];
+    coverages: Array<IPlanningCoverageItem>;
+
+    // Functions
     onChange(field: string, value: any): void;
     onFieldFocus(): void;
     onPopupOpen(): void;
@@ -109,6 +110,8 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         this.onAddXmpFile = this.onAddXmpFile.bind(this);
         this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
         this.onContentTypeChange = this.onContentTypeChange.bind(this);
+        this.toggleAddToWorkflow = this.toggleAddToWorkflow.bind(this);
+
         this.dom = {
             contentType: React.createRef(),
             popupContainer: null,
@@ -309,6 +312,55 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         }
     }
 
+    toggleAddToWorkflow() {
+        const {vocabulary} = superdeskApi.entities;
+        const {gettext} = superdeskApi.localization;
+        const coverageStatuses = vocabulary
+            .getAll()
+            .get('newscoveragestatus').items as Array<IPlanningNewsCoverageStatus>;
+        const updatedCoverage = planningUtils.addCoverageToWorkflow(this.props.value, coverageStatuses);
+        const coveragesWithoutUpdated =
+            this.props.coverages.filter((x) => x.coverage_id !== updatedCoverage.coverage_id);
+        const {workflow_status, news_coverage_status, assigned_to, add_coverage_to_workflow} = updatedCoverage;
+
+        if (updatedCoverage.add_coverage_to_workflow) {
+            this.props.onChange(
+                'coverages',
+                [
+                    ...coveragesWithoutUpdated,
+                    {
+                        ...this.props.value,
+                        workflow_status: workflow_status,
+                        news_coverage_status: news_coverage_status,
+                        assigned_to: {
+                            ...assigned_to,
+                            state: assigned_to.state,
+                        },
+                        add_coverage_to_workflow: add_coverage_to_workflow,
+                    },
+                ],
+            );
+        } else {
+            superdeskApi.ui.confirm(gettext('This will also remove coverage\'s assignment'))
+                .then((response) => {
+                    if (response) {
+                        this.props.onChange(
+                            'coverages',
+                            [
+                                ...coveragesWithoutUpdated,
+                                {
+                                    ...this.props.value,
+                                    workflow_status: 'draft',
+                                    assigned_to: {},
+                                    add_coverage_to_workflow: add_coverage_to_workflow,
+                                },
+                            ],
+                        );
+                    }
+                });
+        }
+    }
+
     render() {
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
         const defaultGenre = (appConfig.default_genre || [{}])[0];
@@ -336,6 +388,12 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
                 label: assignmentUtils.getContactLabel(this.props.value),
+            },
+            add_coverage_to_workflow: {
+                onChange: this.toggleAddToWorkflow,
+                disabled: this.props.value.add_coverage_to_workflow
+                    ? false
+                    : planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
             },
             g2_content_type: {
                 readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
@@ -449,7 +507,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     null,
                     'enabled',
                     editorDomFields,
-                    this.props.formProfile.schema
+                    this.props.formProfile.schema,
                 )}
             </div>
         );

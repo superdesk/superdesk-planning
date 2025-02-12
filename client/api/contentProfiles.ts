@@ -18,7 +18,7 @@ import {sortProfileGroups} from '../utils/contentProfiles';
 import {showModalConnectedToStore} from '../utils/ui';
 import {ContentProfileModal} from '../components/ContentProfiles/ContentProfileModal';
 import {getUsersDefaultLanguage} from '../utils/users';
-import {SYSTEM_REQUIRED_FIELDS} from './utils/constants';
+import {PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from './utils/constants';
 
 const RESOURCE = 'planning_types';
 
@@ -149,7 +149,7 @@ function showManagePlanningProfileModal(): Promise<void> {
             mainProfile: {
                 label: gettext('Planning Fields'),
                 profile: getProfile('planning'),
-                systemRequiredFields: SYSTEM_REQUIRED_FIELDS,
+                systemRequiredFields: PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS,
                 disableMinMaxFields: [
                     'language',
                     'marked_for_not_publication',
@@ -167,7 +167,8 @@ function showManagePlanningProfileModal(): Promise<void> {
                 profile: getProfile('coverage'),
                 systemRequiredFields: [
                     ['g2_content_type'],
-                    ['scheduled']
+                    ['scheduled'],
+                    ['add_coverage_to_workflow']
                 ],
                 disableMinMaxFields: [
                     'g2_content_type',

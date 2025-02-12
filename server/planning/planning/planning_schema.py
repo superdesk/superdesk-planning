@@ -112,6 +112,7 @@ coverage_schema = {
         },
     },
     "workflow_status": {"type": "string"},
+    "add_coverage_to_workflow": {"type": "boolean"},
     "previous_status": {"type": "string"},
     "assigned_to": assigned_to_schema,
     "flags": {
