@@ -20,9 +20,7 @@ class EventsArgs(BaseModel):
     "/update_time/<string:event_id>", methods=["PATCH"], auth=[required_privilege_rule("planning_event_management")]
 )
 async def update_time(args: EventsArgs, params: None, request: Request) -> Response:
-    events_service = EventsAsyncService()
-
-    original = await events_service.find_by_id_raw(args.event_id)
+    original = await EventsAsyncService().find_by_id_raw(args.event_id)
     if not original:
         await request.abort(404, "Event not found")
 

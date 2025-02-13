@@ -1,5 +1,4 @@
 import re
-from planning import signals
 import pytz
 
 from copy import deepcopy
@@ -14,6 +13,7 @@ from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.metadata.utils import generate_guid
 
+from planning import signals
 from planning.common import (
     TEMP_ID_PREFIX,
     TO_BE_CONFIRMED_FIELD,
@@ -281,7 +281,7 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
     # And calculate the new duration of the events
     duration = updates["dates"]["end"] - updates["dates"]["start"]
 
-    app = get_current_app().as_any()  # TODO-ASYNC: Confirm if this remains as is for async
+    app = get_current_app().as_any()
     for event in new_series:
         if not event.get(ID_FIELD):
             continue
@@ -320,8 +320,8 @@ async def process_update_time(
     """
     Processes the event time update, handling both single and recurring events.
 
-    :param original: The original event document.
     :param updates: The update payload from the client.
+    :param original: The original event document.
     :param require_lock: Whether to enforce lock removal (default True).
     :return: The updated event document.
     """
