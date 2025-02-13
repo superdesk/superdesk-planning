@@ -6,10 +6,10 @@ import {
 } from 'superdesk-api';
 import {ICoveragesValueOperational} from './interfaces';
 import {extensionBridge} from '../../extension_bridge';
-import {IPlanningItem} from '../../../../interfaces';
+import {IPlanningCoverageItem, IPlanningItem} from '../../../../interfaces';
 import {superdesk} from '../../superdesk';
 import {DebouncedChangeHOC} from '../debounced-change-hoc';
-import {cloneDeep, set} from 'lodash';
+import {cloneDeep, omit, set} from 'lodash';
 
 type IProps = IEditorComponentProps<ICoveragesValueOperational, IUrlsFieldConfig, IUrlsFieldUserPreferences>;
 
@@ -17,6 +17,7 @@ export class Editor extends React.PureComponent<IProps> {
     render() {
         const Container = this.props.container;
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
+        const itemIsNotSaved = this.props.item._id == null || (this.props.item._id ?? '').includes('temp-');
 
         return (
             <DebouncedChangeHOC
@@ -27,19 +28,18 @@ export class Editor extends React.PureComponent<IProps> {
                         set(itemCopy, x.fieldPath, x.value);
                     });
 
-                    for (const coverage of itemCopy.coverages) {
-                        if (coverage.planning != null) {
-                            delete coverage.planning['_scheduledTime'];
-                        }
-                    }
-
-                    return itemCopy.coverages;
+                    return itemCopy.coverages.map((x: IPlanningCoverageItem) => (omit(x, 'planning._scheduledTime')));
                 }}
                 onChange={this.props.onChange}
-                value={this.props.value}
+                value={
+                    cloneDeep(this.props.value).map((x) => (
+                        omit(x, 'planning._scheduledTime')
+                    ))
+                }
             >
                 {(changedValue, onChange) => (
                     <EditorFieldCoverages
+                        readOnly={itemIsNotSaved}
                         field="coverages"
                         item={{
                             // coverages are the main value

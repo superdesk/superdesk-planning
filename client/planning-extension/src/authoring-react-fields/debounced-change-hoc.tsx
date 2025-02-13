@@ -1,5 +1,5 @@
 import {PureComponent} from 'react';
-import {DebouncedFunc, debounce} from 'lodash';
+import {DebouncedFunc, debounce, isEqual} from 'lodash';
 import {IPlanningCoverageItem} from '../../../interfaces';
 
 interface IDebouncedChangeHOCProps {
@@ -34,6 +34,16 @@ export class DebouncedChangeHOC extends PureComponent<IDebouncedChangeHOCProps, 
             this.props.onChange(valueUpdated);
             this.changeQueue = [];
         }, 1500);
+    }
+
+    componentDidUpdate(_prevProps: Readonly<IDebouncedChangeHOCProps>, prevState: Readonly<IDebouncedChangeHOCState>): void {
+        const {value} = this.props;
+
+        if (isEqual(value, prevState.renderedValue) === false) {
+            this.setState({
+                renderedValue: value,
+            });
+        }
     }
 
     componentWillUnmount(): void {
