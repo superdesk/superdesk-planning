@@ -6,7 +6,7 @@ import {
 } from 'superdesk-api';
 import {ICoveragesValueOperational} from './interfaces';
 import {extensionBridge} from '../../extension_bridge';
-import {IPlanningCoverageItem, IPlanningItem} from '../../../../interfaces';
+import {IPlanningItem} from '../../../../interfaces';
 import {superdesk} from '../../superdesk';
 import {DebouncedChangeHOC} from '../debounced-change-hoc';
 import {cloneDeep, omit, set} from 'lodash';
@@ -28,7 +28,7 @@ export class Editor extends React.PureComponent<IProps> {
                         set(itemCopy, x.fieldPath, x.value);
                     });
 
-                    return itemCopy.coverages.map((x: IPlanningCoverageItem) => (omit(x, 'planning._scheduledTime')));
+                    return itemCopy.coverages;
                 }}
                 onChange={this.props.onChange}
                 value={
