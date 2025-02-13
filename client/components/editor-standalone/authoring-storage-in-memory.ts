@@ -1,7 +1,6 @@
 import ng from 'superdesk-core/scripts/core/services/ng';
 import {IAuthoringAutoSave, IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
-import {cloneDeep} from 'lodash';
 
 export function getAuthoringStorageInMemory<T>(
     profile: 'event' | 'planning',
