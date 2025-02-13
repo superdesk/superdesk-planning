@@ -1,30 +1,38 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {LineInput, Label, Input} from './';
-import {LineInputProps, LineInputDefaultProps} from './LineInput';
+import {ILineInputProps} from './LineInput';
 import {get, uniqueId} from 'lodash';
 
-/**
- * @ngdoc react
- * @name TextInput
- * @description Component to recieve text input in
- */
+interface IProps extends ILineInputProps {
+    field?: string;
+    label?: string;
+    value?: string | number;
+    onChange?: (...args: any) => void;
+    maxLength?: number;
+    type?: string;
+    refNode?: (node: HTMLInputElement) => void;
+    inputClassName?: string;
+    autoFocus?: boolean;
+    testId?: string;
+    onFocus?(event: React.FocusEvent<HTMLInputElement>): void;
+}
+
 export const TextInput = ({
     field,
     label,
-    value,
+    value = '',
     onChange,
-    maxLength,
+    maxLength = 0,
     invalid,
     readOnly,
-    type,
+    type = 'text',
     inputClassName,
     refNode,
     autoFocus,
     onFocus,
     testId,
     ...props
-}) => {
+}: IProps) => {
     const inputId = uniqueId('input-');
 
     return (
@@ -38,7 +46,6 @@ export const TextInput = ({
                 readOnly={readOnly}
                 refNode={refNode}
                 className={inputClassName}
-                autoFocus={autoFocus}
                 onFocus={onFocus}
                 testId={testId}
                 id={inputId}
@@ -49,28 +56,4 @@ export const TextInput = ({
             }
         </LineInput>
     );
-};
-
-TextInput.propTypes = {
-    field: PropTypes.string,
-    label: PropTypes.string,
-    value: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-    ]),
-    onChange: PropTypes.func,
-    maxLength: PropTypes.number,
-    type: PropTypes.string,
-    refNode: PropTypes.func,
-    inputClassName: PropTypes.string,
-    autoFocus: PropTypes.bool,
-    testId: PropTypes.string,
-    ...LineInputProps,
-};
-
-TextInput.defaultProps = {
-    maxLength: 0,
-    type: 'text',
-    value: '',
-    ...LineInputDefaultProps,
 };
