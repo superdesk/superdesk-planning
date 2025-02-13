@@ -23,7 +23,6 @@ import {
 import main from '../main';
 import {planningParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
-import {handleRemovedAssignments} from '../../components/editor-standalone/utils';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -394,14 +393,7 @@ const save = (original, planUpdates) => (
             const cleanedUpdates = planningUtils.modifyForServer(cloneDeep(updates), originalPlan);
 
             if (isExistingItem(originalPlan) || get(cleanedUpdates, 'coverages.length', 0) < 1) {
-                return api('planning').save(originalItem, cleanedUpdates)
-                    .then((x) => {
-                        if (updates.coverages.some((x) => isEqual(x.assigned_to, {}))) {
-                            return handleRemovedAssignments(updates, x);
-                        }
-
-                        return x;
-                    });
+                return api('planning').save(originalItem, cleanedUpdates);
             }
 
             // If the new Planning item has coverages then we need to create
