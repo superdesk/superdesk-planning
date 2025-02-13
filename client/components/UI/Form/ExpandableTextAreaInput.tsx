@@ -1,11 +1,22 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
-
 import {LineInput, Label, ExpandableTextArea} from './';
-import {LineInputProps, LineInputDefaultProps} from './LineInput';
-
+import {ILineInputProps} from './LineInput';
 import './style.scss';
+
+interface IProps extends ILineInputProps {
+    field: string;
+    label?: string;
+    labelIcon?: string;
+    value?: string;
+    onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    maxLength?: number;
+    placeholder?: string;
+    readOnly?: boolean;
+    refNode?: (node: HTMLTextAreaElement) => void;
+    nativeOnChange?: boolean;
+    initialFocus?: boolean;
+}
 
 export const ExpandableTextAreaInput = ({
     field,
@@ -13,16 +24,17 @@ export const ExpandableTextAreaInput = ({
     labelIcon,
     value,
     onChange,
-    maxLength,
+    maxLength = 0,
     placeholder,
     invalid,
     readOnly,
     refNode,
     nativeOnChange,
     initialFocus,
+    borderBottom = true,
     ...props
-}) => (
-    <LineInput {...props} invalid={invalid} readOnly={readOnly}>
+}: IProps) => (
+    <LineInput borderBottom={borderBottom} {...props} invalid={invalid} readOnly={readOnly}>
         <Label text={label} icon={labelIcon} />
         <ExpandableTextArea
             field={field}
@@ -43,26 +55,3 @@ export const ExpandableTextAreaInput = ({
     </LineInput>
 );
 
-ExpandableTextAreaInput.propTypes = {
-    field: PropTypes.string,
-    label: PropTypes.string,
-    labelIcon: PropTypes.string,
-    value: PropTypes.string,
-    onChange: PropTypes.func,
-    maxLength: PropTypes.string,
-    placeholder: PropTypes.string,
-    readOnly: PropTypes.bool,
-    refNode: PropTypes.func,
-    nativeOnChange: PropTypes.bool,
-
-    ...LineInputProps,
-};
-
-ExpandableTextAreaInput.defaultProps = {
-    readOnly: false,
-    nativeOnChange: false,
-    initialFocus: false,
-    maxLength: 0,
-
-    ...LineInputDefaultProps,
-};

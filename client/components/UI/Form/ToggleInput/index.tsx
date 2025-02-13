@@ -1,19 +1,24 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-
 import {LineInput, Label} from '../';
-import {LineInputProps, LineInputDefaultProps} from '../LineInput';
+import {ILineInputProps} from '../LineInput';
 import {Toggle} from '../../';
 
 import './style.scss';
 
-/**
- * @ngdoc react
- * @name ToggleInput
- * @description Component to toggle input values
- */
+
+interface IProps extends ILineInputProps {
+    field: string,
+    label?: string;
+    value?: boolean;
+    onChange: (...args: any) => void;
+    className?: string;
+    labelLeftAuto?: boolean;
+    title?: string;
+    onFocus: () => void;
+}
+
 export const ToggleInput = ({field, label, value, onChange, readOnly, className, labelLeftAuto,
-    onFocus, title, ...props}) => (
+    onFocus, title, ...props}: IProps) => (
     <LineInput {...props} readOnly={readOnly} labelLeftAuto={labelLeftAuto} className="sd-line-input__toggle">
         <Label text={label} />
         <Toggle
@@ -28,19 +33,3 @@ export const ToggleInput = ({field, label, value, onChange, readOnly, className,
     </LineInput>
 );
 
-ToggleInput.propTypes = {
-    field: PropTypes.string.isRequired,
-    label: PropTypes.string,
-    value: PropTypes.bool,
-    onChange: PropTypes.func.isRequired,
-    className: PropTypes.string,
-    labelLeftAuto: PropTypes.bool,
-    title: PropTypes.string,
-    ...LineInputProps,
-};
-
-ToggleInput.defaultProps = {
-    value: false,
-    labelLeftAuto: false,
-    ...LineInputDefaultProps,
-};
