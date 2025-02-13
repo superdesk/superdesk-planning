@@ -3,10 +3,9 @@ import {IPlanningItem} from 'interfaces';
 import {IAuthoringStorage} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
-import {handleRemovedAssignments, omitFields} from './utils';
+import {omitFields} from './utils';
 import {AutoSaveHttp} from './authoring-autosave';
 import {planningUtils} from '../../utils';
-import {cloneDeep, isEqual} from 'lodash';
 
 export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> = {
     autosave: new AutoSaveHttp<IPlanningItem>(
@@ -40,32 +39,18 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
             payload: omitFields(
                 generatePatch(
                     planningUtils.modifyForServer(original),
-                    planningUtils.modifyForServer(cloneDeep(current), original),
+                    planningUtils.modifyForServer(current, original),
                 ),
             ),
             headers: {
                 'If-Match': original._etag,
             },
-        }).then((updatedOriginal) => {
-            const assignmentsCurrent = current.coverages
-                .filter((x) => x.add_coverage_to_workflow === false);
-            const assignmentsOriginal = original.coverages.filter((x) => x.add_coverage_to_workflow === true);
-
-            const removedAssignmentIds = assignmentsOriginal.filter((orig) =>
-                assignmentsCurrent.filter((x) => x.coverage_id === orig.coverage_id),
-            ).map((x) => x.assigned_to.assignment_id);
-
-            if (removedAssignmentIds.length > 0) {
-                return handleRemovedAssignments(removedAssignmentIds, updatedOriginal._id);
-            }
-
-            return updatedOriginal;
         });
     },
     getContentProfile: () => {
         return Promise.resolve(getProfile('planning'));
     },
-    closeAuthoring: (_current, _original, _hasUnsavedChanges, _cancelAutosave, doClose) => {
+    closeAuthoring: (_current, _original, _hasUnsavedChanges, _cancelAutosave, _doClose) => {
         return Promise.resolve();
     },
     getUserPreferences: () => ng.get('preferencesService').get()

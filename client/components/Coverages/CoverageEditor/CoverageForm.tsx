@@ -22,12 +22,9 @@ import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
-import {showModal} from '@sourcefabric/common';
-import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 import {getCoverageFields} from '../../../api/editor/item_planning';
 
 import '../style.scss';
-import {gettextPlural} from 'core/utils';
 
 interface IOwnProps {
     field: string;

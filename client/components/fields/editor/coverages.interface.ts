@@ -22,6 +22,7 @@ export interface IPropsEditorFieldCoverages extends IEditorFieldProps {
     originalCount?: number;
     message: string | {[key: string]: any};
     event?: IEventItem;
+    readOnly: boolean;
 
     // HOC mode - optional; added to support "add button" as mini toolbar in authoring-react
     children?: (options: IInputArrayHocModeOptions) => React.ReactNode;
