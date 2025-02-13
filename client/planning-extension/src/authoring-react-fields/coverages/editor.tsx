@@ -21,6 +21,7 @@ export class Editor extends React.PureComponent<IProps> {
 
         return (
             <DebouncedChangeHOC
+                key={(this.props.value ?? []).map((x) => x.coverage_id).join('')}
                 processChangeQueue={(changeQueue, value) => {
                     const itemCopy = cloneDeep({coverages: value});
 
@@ -32,7 +33,7 @@ export class Editor extends React.PureComponent<IProps> {
                 }}
                 onChange={this.props.onChange}
                 value={
-                    cloneDeep(this.props.value).map((x) => (
+                    cloneDeep(this.props.value ?? []).map((x) => (
                         omit(x, 'planning._scheduledTime')
                     ))
                 }
