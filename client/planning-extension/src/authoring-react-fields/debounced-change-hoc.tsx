@@ -40,14 +40,12 @@ export class DebouncedChangeHOC extends PureComponent<IDebouncedChangeHOCProps, 
         const {value} = this.props;
 
         if (isEqual(value, prevState.renderedValue) === false) {
-            this.setState({
-                renderedValue: value,
-            });
+            this.debouncedFn.flush();
         }
     }
 
     componentWillUnmount(): void {
-        this.debouncedFn.cancel();
+        this.debouncedFn.flush();
     }
 
     render() {
