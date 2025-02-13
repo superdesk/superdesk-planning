@@ -1,6 +1,7 @@
 import ng from 'superdesk-core/scripts/core/services/ng';
 import {IAuthoringAutoSave, IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
+import {cloneDeep} from 'lodash';
 
 export function getAuthoringStorageInMemory<T>(
     profile: 'event' | 'planning',
@@ -9,9 +10,9 @@ export function getAuthoringStorageInMemory<T>(
 ): IAuthoringStorage<T> {
     class NoAutoSave implements IAuthoringAutoSave<T> {
         get(id: string) {
-            // return an empty object so authoring-react compares with saved item sees it as dirty
-            // otherwise, it is not seen as dirty and wouldn't trigger to fill required fields.
-            return Promise.resolve({} as T);
+            // return a different reference so authoring-react sees it as having unsaved changes.
+            // otherwise, it will consider all saved and won't attempt to save - which won't trigger validation.
+            return Promise.resolve({...item});
         }
 
         delete() {
