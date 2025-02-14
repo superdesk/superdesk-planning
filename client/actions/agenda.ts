@@ -11,6 +11,7 @@ import {planning, showModal, main} from './index';
 import {convertStringFields} from '../utils/strings';
 import planningApis from '../actions/planning/api';
 import eventsApis from '../actions/events/api';
+import {appConfig} from 'appConfig';
 
 const openAgenda = () => (
     (dispatch) => (
@@ -258,6 +259,7 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
         type: 'planning',
         related_events: [eventLink],
         planning_date: event._sortDate || event.dates?.start,
+        all_day: appConfig.planning.all_day === true,
         place: event.place || defaultPlace,
         subject: event.subject,
         anpa_category: event.anpa_category,
