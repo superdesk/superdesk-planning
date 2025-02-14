@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field, field_validator
 
 from superdesk.core import json
 from superdesk import get_resource_service
-from superdesk.core import get_app_config
 from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Response, SearchRequest, SearchArgs, ESQuery
 
@@ -19,7 +18,7 @@ from planning.utils import get_first_related_event_id_for_planning
 from planning.search.queries.elastic import ElasticQuery, field_exists
 
 
-planning_locks_endpoints = EndpointGroup("/planning_locks", __name__, url_prefix=get_app_config("URL_PREFIX"))
+planning_locks_endpoints = EndpointGroup("/planning_locks", __name__, url_prefix="api")
 
 
 @unique
