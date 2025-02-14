@@ -10,6 +10,7 @@
 
 from typing import List, Iterator, Tuple, Dict
 from copy import deepcopy
+from flask import current_app as app
 import logging
 
 from superdesk import get_resource_service
@@ -101,6 +102,7 @@ def create_new_plannings_from_embedded_planning(
             "state": "draft",
             "type": "planning",
             "planning_date": event["dates"]["start"],
+            "all_day": app.config.get("PLANNING_PLANNING_ALL_DAY") or False,
             "related_events": [related_event],
             "coverages": [],
         }
