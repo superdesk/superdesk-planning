@@ -45,7 +45,11 @@ events_history_resource_config: ResourceConfig = ResourceConfig(
             ),
         ],
     ),
-    rest_endpoints=RestEndpointConfig(resource_methods=["GET"], item_methods=["GET"]),
+    rest_endpoints=RestEndpointConfig(
+        resource_methods=["GET"],
+        item_methods=["GET"],
+        enable_cors=True,
+    ),
 )
 
 events_autosave_resource_config: ResourceConfig = ResourceConfig(
@@ -58,5 +62,9 @@ events_autosave_resource_config: ResourceConfig = ResourceConfig(
             MongoIndexOptions(name="event_autosave_session", keys=[("lock_session", 1)], background=True, unique=False),
         ],
     ),
-    rest_endpoints=RestEndpointConfig(resource_methods=["GET", "POST"], item_methods=["GET", "PUT", "PATCH", "DELETE"]),
+    rest_endpoints=RestEndpointConfig(
+        resource_methods=["GET", "POST"],
+        item_methods=["GET", "PUT", "PATCH", "DELETE"],
+        enable_cors=True,
+    ),
 )

@@ -76,5 +76,9 @@ planning_autosave_resource_config: ResourceConfig = ResourceConfig(
             ),
         ],
     ),
-    rest_endpoints=RestEndpointConfig(resource_methods=["GET", "POST"], item_methods=["GET", "PUT", "PATCH", "DELETE"]),
+    rest_endpoints=RestEndpointConfig(
+        resource_methods=["GET", "POST"],
+        item_methods=["GET", "PUT", "PATCH", "DELETE"],
+        enable_cors=True,
+    ),
 )
