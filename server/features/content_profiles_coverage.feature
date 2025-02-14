@@ -8,37 +8,41 @@ Feature: Coverage Content Profiles
     {"_items": [{
         "name": "coverage",
         "editor": {
-            "g2_content_type": {
+            "add_coverage_to_workflow": {
                 "enabled": true,
                 "index": 1
             },
-            "genre": {
+            "g2_content_type": {
                 "enabled": true,
                 "index": 2
             },
-            "slugline": {
+            "genre": {
                 "enabled": true,
                 "index": 3
             },
-            "ednote": {
+            "slugline": {
                 "enabled": true,
                 "index": 4
             },
-            "internal_note": {
+            "ednote": {
                 "enabled": true,
                 "index": 5
             },
-            "news_coverage_status": {
+            "internal_note": {
                 "enabled": true,
                 "index": 6
             },
-            "scheduled": {
+            "news_coverage_status": {
                 "enabled": true,
                 "index": 7
             },
-            "scheduled_updates": {
+            "scheduled": {
                 "enabled": true,
                 "index": 8
+            },
+            "scheduled_updates": {
+                "enabled": true,
+                "index": 9
             },
             "contact_info": {"enabled": false},
             "language": {"enabled": false},
@@ -48,6 +52,10 @@ Feature: Coverage Content Profiles
             "files": {"enabled": false}
         },
         "schema": {
+            "add_coverage_to_workflow": {
+                "required": false,
+                "type": "boolean"
+            },
             "contact_info": {
                 "required": false,
                 "type": "string"
@@ -147,13 +155,17 @@ Feature: Coverage Content Profiles
                 "enabled": true,
                 "index": 1
             },
-            "slugline": {
-                "enabled": false,
-                "index": 3
+            "g2_content_type": {
+                "enabled": true,
+                "index": 2
             },
             "headline": {
                 "enabled": true,
                 "index": 3
+            },
+            "slugline": {
+                "enabled": false,
+                "index": 4
             }
         },
         "schema": {

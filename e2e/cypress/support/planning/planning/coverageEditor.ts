@@ -112,4 +112,11 @@ export class CoverageEditor extends Editor {
             .getAction(label)
             .click();
     }
+
+    toggleAddToWorkflow() {
+        return this.element
+            .find('[data-test-id="field-add_coverage_to_workflow"]')
+            .find('[role="checkbox"]')
+            .click();
+    }
 }

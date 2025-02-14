@@ -47,7 +47,7 @@ describe('Planning.Assignment: remove assignment', () => {
             .find('.sd-collapse-box__content-block--top')
             .find('.label')
             .should('contain.text', 'Draft');
-        coverageEditor.clickAction('Add to workflow');
+        coverageEditor.toggleAddToWorkflow();
 
         editor.saveButton.click();
 

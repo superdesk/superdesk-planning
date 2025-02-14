@@ -90,7 +90,7 @@ describe('Planning.Planning: edit metadata', () => {
         editor.waitLoadingComplete();
 
         coverageEditor.element.click();
-        coverageEditor.clickAction('Add to workflow');
+        coverageEditor.toggleAddToWorkflow();
     });
 
     it('not_for_publication flag will not enable post button', () => {
