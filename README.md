@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/superdesk/superdesk-planning/badge.svg?branch=master)](https://coveralls.io/github/superdesk/superdesk-planning?branch=master)
 
 ## Overview
-This is a plugin for [superdesk](https://github.com/superdesk/superdesk).  
+This is a plugin for [superdesk](https://github.com/superdesk/superdesk).
 It allows to ingest and manage events, to create planning within agenda, and to link coverages to them.
 
 ## Table of contents
@@ -26,13 +26,13 @@ It allows to ingest and manage events, to create planning within agenda, and to 
 * [Testing](#running-tests)
     * [Client](#tests-client)
     * [Server](#tests-server)
-    
+
 
 ## Installation
 In order for Superdesk to expose the Planning module, you must configure it in both the client and server config files.
 
 ### Install Client
-Add the dependency to your instance of superdesk.  
+Add the dependency to your instance of superdesk.
 In `superdesk/client/package.json` add `superdesk-planning` to the dependencies
 (replacing `#a79d428` with the specific commit you require):
 ```js
@@ -83,7 +83,7 @@ In `superdesk/server/requirements.txt` add `superdesk-planning` to the dependenc
 git+git://github.com/superdesk/superdesk-planning.git@a5b14c23e#egg=superdesk-planning
 ```
 
-Last thing you need to configure is to add `planning` to the list of installed apps.  
+Last thing you need to configure is to add `planning` to the list of installed apps.
 In `superdesk/server/settings.py` add the following:
 ```python
 INSTALLED_APPS.extend([
@@ -100,7 +100,7 @@ pip install -r requirements.txt
 ### Install for Development
 After performing the above steps, you can enable editing of your local copy for use with development.
 
-First you will need to clone the repo from GitHub.  
+First you will need to clone the repo from GitHub.
 In the root folder where your current superdesk folder is, run the following:
 ```
 git clone git@github.com:superdesk/superdesk-planning.git
@@ -248,7 +248,7 @@ There are a couple of steps to take to enable slack for assignment notifications
     * `SLACK USERNAME` in the `Overview` of each user
 
 ## Celery Tasks
-The following are celery tasks configured to perform periodic tasks specific to Planning. 
+The following are celery tasks configured to perform periodic tasks specific to Planning.
 
 ### Celery Tasks: Expire Items
 There is a Celery Task to expire items after a configured amount of time.
@@ -381,3 +381,4 @@ cd superdesk-planning/server
 behave
 cd ../..
 ```
+check ci 250214
