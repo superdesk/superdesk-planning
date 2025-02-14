@@ -1,20 +1,9 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-#  Copyright 2013, 2014 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
-
 """Superdesk Planning Plugin."""
 
 import logging
 import superdesk
 from quart_babel import lazy_gettext
 
-from superdesk.resource_fields import ID_FIELD
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import (
     PlanningExportTemplatesResource,
@@ -75,12 +64,11 @@ import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 import planning.io  # noqa
 from planning.planning_download import init_app as init_planning_download_app
-from planning.planning_locks import init_app as init_planning_locks_app
 from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
 
 from .module import module  # noqa
 
-__version__ = "2.8.2"
+__version__ = "3.0.0.dev0"
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -115,7 +103,6 @@ def init_app(app):
     init_assignments_app(app)
     init_search_app(app)
     init_planning_download_app(app)
-    init_planning_locks_app(app)
     init_planning_autocomplete_app(app)
 
     superdesk.register_resource(

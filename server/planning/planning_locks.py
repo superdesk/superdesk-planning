@@ -1,45 +1,34 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-#  Copyright 2023 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
-
-from enum import Enum
+from enum import Enum, unique
+from typing import Annotated
 
 from eve.utils import ParsedRequest
-from eve.render import send_response
+from pydantic import BaseModel, Field, field_validator
 
 from superdesk.core import json
-from superdesk.flask import request, Blueprint
-from superdesk import Resource, get_resource_service, blueprint
-from superdesk.auth.decorator import blueprint_auth
+from superdesk import get_resource_service
+from superdesk.core import get_app_config
+from superdesk.core.web import EndpointGroup
+from superdesk.core.types import Response, Request
 
 from planning.utils import get_first_related_event_id_for_planning
 from planning.search.queries.elastic import ElasticQuery, field_exists
 
 
-class PlanningLocksResource(Resource):
-    resource_methods = ["GET"]
-    item_methods = []
-    endpoint_name = "planning_locks"
-    allow_unknown = True
+planning_locks_endpoints = EndpointGroup("/planning_locks", __name__, url_prefix=get_app_config("URL_PREFIX"))
 
 
-class PlanningLockRepos(Enum):
+@unique
+class PlanningLockRepos(str, Enum):
     EVENTS_AND_PLANNING = "events_and_planning"
     FEATURED_PLANNING = "featured_planning"
     ASSIGNMENTS = "assignments"
 
 
-DEFAULT_REPOS = (
-    f"{PlanningLockRepos.EVENTS_AND_PLANNING.value},"
-    f"{PlanningLockRepos.FEATURED_PLANNING.value},"
-    f"{PlanningLockRepos.ASSIGNMENTS.value}"
-)
+DEFAULT_REPOS = [
+    PlanningLockRepos.EVENTS_AND_PLANNING,
+    PlanningLockRepos.FEATURED_PLANNING,
+    PlanningLockRepos.ASSIGNMENTS,
+]
 
 PROJECTED_FIELDS = [
     "_id",
@@ -53,32 +42,38 @@ PROJECTED_FIELDS = [
 ]
 
 
-bp = Blueprint("planning_locks", __name__)
+class PlanningLocksParams(BaseModel):
+    repos: Annotated[list[PlanningLockRepos], Field(default=DEFAULT_REPOS)]
+
+    @field_validator("repos", mode="before")
+    def parse_repos(cls, value: list[PlanningLockRepos] | str) -> list[str]:
+        """If value is not a list, then convert it to a list here"""
+
+        return value.split(",") if isinstance(value, str) else value
 
 
-@bp.route("/planning_locks", methods=["GET", "OPTIONS"])
-@blueprint_auth()
-def get_planning_locks():
-    resp = _get_planning_module_locks() if request.method == "GET" else None
-    return send_response(None, (resp, None, None, 200))
+@planning_locks_endpoints.endpoint("/planning_locks", methods=["GET"])
+def get_planning_locks(_: None, params: PlanningLocksParams, request: Request):
+    resp = _get_planning_module_locks(params.repos)
+    return Response(resp)
 
 
-def _get_planning_module_locks():
-    repos = (request.args.get("repos") or DEFAULT_REPOS).split(",")
-
+def _get_planning_module_locks(repos: list[PlanningLockRepos]):
     item_locks = []
     locks = {}
-    for repo in repos:
-        if repo == PlanningLockRepos.EVENTS_AND_PLANNING.value:
-            locks.update({"event": {}, "planning": {}, "recurring": {}})
-            item_locks.extend(list(_get_event_locks()))
-            item_locks.extend(list(_get_planning_locks()))
-        elif repo == PlanningLockRepos.FEATURED_PLANNING.value:
-            locks["featured"] = None
-            item_locks.extend(list(_get_planning_featured_lock()))
-        elif repo == PlanningLockRepos.ASSIGNMENTS.value:
-            locks["assignment"] = {}
-            item_locks.extend(list(_get_assignment_locks()))
+
+    if PlanningLockRepos.EVENTS_AND_PLANNING in repos:
+        locks.update({"event": {}, "planning": {}, "recurring": {}})
+        item_locks.extend(list(_get_event_locks()))
+        item_locks.extend(list(_get_planning_locks()))
+
+    if PlanningLockRepos.FEATURED_PLANNING in repos:
+        locks["featured"] = None
+        item_locks.extend(list(_get_planning_featured_lock()))
+
+    if PlanningLockRepos.ASSIGNMENTS in repos:
+        locks["assignment"] = {}
+        item_locks.extend(list(_get_assignment_locks()))
 
     for item in item_locks:
         if item.get("_type") == "planning_featured_lock":
@@ -145,7 +140,3 @@ def _get_planning_featured_lock():
 
 def _get_assignment_locks():
     return get_resource_service("assignments").get(req=_get_query(), lookup=None)
-
-
-def init_app(app):
-    blueprint(bp, app)
