@@ -1,8 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-interface IProps {
+export interface ILineInputProps {
     required?: boolean;
     invalid?: boolean;
     readOnly?: boolean;
@@ -45,7 +44,7 @@ export const LineInput = ({
     message,
     className,
     onClick,
-}: IProps): JSX.Element => (
+}: ILineInputProps): JSX.Element => (
     <div
         className={classNames(
             'sd-line-input',
