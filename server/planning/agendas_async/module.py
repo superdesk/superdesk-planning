@@ -10,5 +10,9 @@ agendas_resource_config = ResourceConfig(
     name="agenda",
     data_class=AgendasResourceModel,
     service=AgendasAsyncService,
-    rest_endpoints=RestEndpointConfig(resource_methods=["GET", "POST"], item_methods=["GET", "PATCH", "DELETE"]),
+    rest_endpoints=RestEndpointConfig(
+        resource_methods=["GET", "POST"],
+        item_methods=["GET", "PATCH", "DELETE"],
+        enable_cors=True,
+    ),
 )

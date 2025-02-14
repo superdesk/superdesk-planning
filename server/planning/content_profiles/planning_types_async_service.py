@@ -110,7 +110,8 @@ class PlanningTypesAsyncService(AsyncResourceService[PlanningTypesResourceModel]
                 self.merge_planning_type(planning_type, default_planning_type)
                 merged_planning_types.append(planning_type)
 
-        return ElasticsearchResourceCursorAsync(data_class=PlanningTypesResourceModel, hits=merged_planning_types)
+        hits = {"hits": {"hits": merged_planning_types, "total": len(merged_planning_types)}}
+        return ElasticsearchResourceCursorAsync(data_class=PlanningTypesResourceModel, hits=hits)
 
     def merge_planning_type(self, planning_type: dict[str, Any], default_planning_type: dict[str, Any]):
         # Update schema fields with database schema fields
