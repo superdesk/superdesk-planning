@@ -29,7 +29,8 @@ from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
 from planning.events.events_service import EventsAsyncService
-from planning.events.events_utils import get_recurring_timeline, process_update_time
+from planning.events.events_utils import get_recurring_timeline
+from planning.events.events_update_time import process_update_time
 
 
 class EventsBaseTestCase(TestCase):

@@ -290,7 +290,7 @@ def is_coverage_assignment_modified(updates: dict[str, Any], original: dict[str,
     return False
 
 
-async def get_json_or_400_async(req: Request):
+async def get_json_or_400_async(req: Request) -> dict:
     data = await req.get_json()
     if not isinstance(data, dict):
         await req.abort(400)
