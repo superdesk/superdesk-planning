@@ -8,5 +8,9 @@ planning_types_resource_config = ResourceConfig(
     name="planning_types",
     data_class=PlanningTypesResourceModel,
     service=PlanningTypesAsyncService,
-    rest_endpoints=RestEndpointConfig(resource_methods=["GET", "POST"], item_methods=["GET", "PATCH"]),
+    rest_endpoints=RestEndpointConfig(
+        resource_methods=["GET", "POST"],
+        item_methods=["GET", "PATCH"],
+        enable_cors=True,
+    ),
 )
