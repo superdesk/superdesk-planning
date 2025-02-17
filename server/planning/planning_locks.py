@@ -56,8 +56,6 @@ class PlanningLocksParams(BaseModel):
 
 @endpoint("planning_locks", methods=["GET"])
 async def get_planning_locks(_: None, params: PlanningLocksParams, _r: None):
-    print("*" * 100)
-    print(params.repos)
     resp = await _get_planning_module_locks(params.repos)
     return Response(resp)
 
