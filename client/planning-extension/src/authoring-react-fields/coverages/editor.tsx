@@ -9,7 +9,7 @@ import {extensionBridge} from '../../extension_bridge';
 import {IPlanningItem} from '../../../../interfaces';
 import {superdesk} from '../../superdesk';
 import {DebouncedChangeHOC} from '../debounced-change-hoc';
-import {cloneDeep, omit, set} from 'lodash';
+import {cloneDeep, set} from 'lodash';
 
 type IProps = IEditorComponentProps<ICoveragesValueOperational, IUrlsFieldConfig, IUrlsFieldUserPreferences>;
 
@@ -17,10 +17,15 @@ export class Editor extends React.PureComponent<IProps> {
     render() {
         const Container = this.props.container;
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
-        const itemIsNotSaved = this.props.item._id == null || (this.props.item._id ?? '').includes('temp-');
+        const itemSaved = (this.props.item._id != null) && (this.props.item._id ?? '').startsWith('temp-') === false;
 
         return (
             <DebouncedChangeHOC
+
+                /**
+                 * Update component when value from props changes. Otherwise the component won't
+                 * re-render if changes from outside occur.
+                 */
                 key={(this.props.value ?? []).map((x) => x.coverage_id).join('')}
                 processChangeQueue={(changeQueue, value) => {
                     const itemCopy = cloneDeep({coverages: value});
@@ -32,15 +37,11 @@ export class Editor extends React.PureComponent<IProps> {
                     return itemCopy.coverages;
                 }}
                 onChange={this.props.onChange}
-                value={
-                    cloneDeep(this.props.value ?? []).map((x) => (
-                        omit(x, 'planning._scheduledTime')
-                    ))
-                }
+                value={this.props.value}
             >
                 {(changedValue, onChange) => (
                     <EditorFieldCoverages
-                        readOnly={itemIsNotSaved}
+                        readOnly={!itemSaved}
                         field="coverages"
                         item={{
                             // coverages are the main value
