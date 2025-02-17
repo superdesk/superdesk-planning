@@ -103,6 +103,7 @@ async def process_update_time(
     :return: The updated event document.
     """
     events_service = EventResourceModel.get_service()
+    ACTION = "update_time"
 
     # Set version_creator and update ingested state
     user_id = get_user_id()
@@ -111,7 +112,7 @@ async def process_update_time(
         set_ingested_event_state(updates, original)
 
     # Perform additional validation for event action
-    validate_event_action(updates, original, require_lock)
+    validate_event_action(updates, original, ACTION, require_lock)
 
     # Determine update method, ensuring non-recurring events use UPDATE_SINGLE
     update_method = updates.pop("update_method", UPDATE_SINGLE)
@@ -131,7 +132,7 @@ async def process_update_time(
     await events_service.update(original[ID_FIELD], updates)
 
     # Perform post update actions
-    post_update_event_actions(updates, original)
+    post_update_event_actions(updates, original, ACTION)
 
     updated_event = await events_service.find_by_id_raw(original[ID_FIELD])
     return updated_event

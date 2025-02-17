@@ -242,7 +242,12 @@ async def get_recurring_timeline(
     return historic, past, future
 
 
-def validate_event_action(updates: dict[str, Any], original: dict[str, Any], require_lock: bool = True):
+def validate_event_action(
+    updates: dict[str, Any],
+    original: dict[str, Any],
+    ACTION: str = "",
+    require_lock: bool = True,
+):
     """
     Generic validation for event actions that can be called outside normal resource/service model
     Based off validate() from old event_base_service
@@ -272,15 +277,20 @@ def validate_event_action(updates: dict[str, Any], original: dict[str, Any], req
             raise SuperdeskApiError.forbiddenError(message="The event is locked by another user")
         elif str(lock_session) != str(session_id):
             raise SuperdeskApiError.forbiddenError(message="The event is locked by you in another session")
-        elif str(lock_action) != self.ACTION:
+        elif str(lock_action) != ACTION:
             raise SuperdeskApiError.forbiddenError(
-                message="The lock must be for the `{}` action".format(self.ACTION.lower().replace("_", " "))
+                message="The lock must be for the `{}` action".format(ACTION.lower().replace("_", " "))
             )
 
     event_service.validate_event(updates, EventResourceModel(**original))
 
 
-def post_update_event_actions(updates: dict[str, Any], original: dict[str, Any], update_post: bool = True):
+def post_update_event_actions(
+    updates: dict[str, Any],
+    original: dict[str, Any],
+    ACTION: str = "",
+    update_post: bool = True,
+):
     """
     Generic post update function for event actions that can be called outside normal resource/service model
     Based off on_updated() from old event_base_service
@@ -297,7 +307,7 @@ def post_update_event_actions(updates: dict[str, Any], original: dict[str, Any],
             type=original.get("type"),
         )
 
-    push_event_notification("", updates, original)
+    push_event_notification(ACTION, updates, original)
 
     if update_post:
         update_post_item(updates, original)
