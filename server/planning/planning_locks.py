@@ -7,8 +7,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from superdesk.core import json
 from superdesk import get_resource_service
-from superdesk.core.web import EndpointGroup
-from superdesk.core.types import Response, SearchRequest, SearchArgs, ESQuery
+from superdesk.core.web import endpoint
+from superdesk.core.types import Response, SearchRequest, ESQuery, ESBoolQuery
 
 from planning.events import EventsAsyncService
 from planning.planning import PlanningAsyncService
@@ -16,9 +16,6 @@ from planning.assignments import AssignmentsAsyncService
 from planning.core.service import BasePlanningAsyncService
 from planning.utils import get_first_related_event_id_for_planning
 from planning.search.queries.elastic import ElasticQuery, field_exists
-
-
-planning_locks_endpoints = EndpointGroup("/planning_locks", __name__, url_prefix="api")
 
 
 @unique
@@ -47,7 +44,7 @@ PROJECTED_FIELDS = [
 
 
 class PlanningLocksParams(BaseModel):
-    repos: Annotated[list[PlanningLockRepos], Field(default=DEFAULT_REPOS)]
+    repos: Annotated[list[PlanningLockRepos], Field(default_factory=lambda: DEFAULT_REPOS)]
 
     @field_validator("repos", mode="before")
     def parse_repos(cls, value: list[PlanningLockRepos] | str) -> list[PlanningLockRepos]:
@@ -57,8 +54,10 @@ class PlanningLocksParams(BaseModel):
         return value
 
 
-@planning_locks_endpoints.endpoint("/planning_locks", methods=["GET"])
+@endpoint("planning_locks", methods=["GET"])
 async def get_planning_locks(_: None, params: PlanningLocksParams, _r: None):
+    print("*" * 100)
+    print(params.repos)
     resp = await _get_planning_module_locks(params.repos)
     return Response(resp)
 
@@ -130,16 +129,15 @@ def _prepare_query() -> SearchRequest:
             - Projection fields from PROJECTED_FIELDS
             - Page 1 with 1000 results per page
     """
-    elastic_query = ESQuery()
-    elastic_query.query.must.append(field_exists("lock_session"))
-
     return SearchRequest(
-        args=SearchArgs(
-            source=elastic_query.generate_query_dict(),
-            projections=json.dumps(PROJECTED_FIELDS),
-        ),
         page=1,
         max_results=1000,
+        elastic=ESQuery(
+            query=ESBoolQuery(
+                must=[field_exists("lock_session")],
+            )
+        ),
+        projections=PROJECTED_FIELDS,
     )
 
 
