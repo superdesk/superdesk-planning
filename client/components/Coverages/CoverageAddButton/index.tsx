@@ -1,11 +1,8 @@
 import React from 'react';
-import {isEqual} from 'lodash';
-
 import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
-import {superdeskApi} from '../../../superdeskApi';
-
 import {AddCoveragesWrapper} from './AddCoveragesWrapper';
+import {Button} from 'superdesk-ui-framework';
 
 interface IProps {
     field: string;
@@ -41,30 +38,21 @@ export class CoverageAddButton extends React.Component<IProps> {
     }
 
     render() {
-        const {gettext} = superdeskApi.localization;
-        const {
-            className = 'dropdown dropdown--align-right dropdown--dropup pull-right',
-            buttonClass = 'dropdown__toggle sd-create-btn',
-            ...props
-        } = this.props;
-
         return (
             <AddCoveragesWrapper
-                {...props}
+                {...this.props}
                 onChange={this.onChange}
                 target="icon-plus-large"
                 button={({toggleMenu}) => (
-                    <div className={className}>
-                        <button
-                            className={buttonClass}
-                            onClick={toggleMenu}
-                            title={gettext('Create new coverage')}
-                            style={{border: 0}}
-                        >
-                            <i className="icon-plus-large" />
-                            <span className="circle" />
-                        </button>
-                    </div>
+                    <Button
+                        type="primary"
+                        icon="plus-large"
+                        text="plus-large"
+                        shape="round"
+                        size="small"
+                        iconOnly={true}
+                        onClick={toggleMenu}
+                    />
                 )}
             />
         );

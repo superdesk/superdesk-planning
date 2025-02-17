@@ -227,7 +227,6 @@ class CoverageArrayInputComponent extends React.Component<IProps, IState> {
                 addOnly={addOnly}
                 originalCount={originalCount}
                 message={message}
-                row={false}
                 buttonWithLabel
                 popupContainer={popupContainer}
                 onPopupOpen={onPopupOpen}

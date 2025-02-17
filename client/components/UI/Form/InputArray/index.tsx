@@ -1,4 +1,3 @@
-/* eslint-disable react/no-multi-comp */
 import React from 'react';
 import classNames from 'classnames';
 import {get, noop} from 'lodash';
@@ -14,6 +13,7 @@ import {
     IPlanningNewsCoverageStatus,
 } from 'interfaces';
 import {IDesk} from 'superdesk-api';
+import {Spacer} from 'superdesk-ui-framework/react';
 
 interface IProps {
     field: string;
@@ -30,7 +30,6 @@ interface IProps {
     readOnly: boolean;
     message: any;
     invalid: boolean;
-    row: boolean;
     buttonWithLabel: boolean;
     label: string;
     labelClassName: string;
@@ -107,10 +106,7 @@ export class InputArray extends React.PureComponent<IProps> {
             );
         }
 
-        const props = this.props.row ? {
-            onAdd: this.onAdd,
-            text: this.props.addButtonText,
-        } : {
+        const props = {
             onAdd: this.onAdd,
             text: this.props.addButtonText,
             tabIndex: 0,
@@ -136,7 +132,6 @@ export class InputArray extends React.PureComponent<IProps> {
             readOnly,
             message,
             invalid,
-            row = true,
             buttonWithLabel,
             label,
             labelClassName,
@@ -152,10 +147,12 @@ export class InputArray extends React.PureComponent<IProps> {
         const hasLabel = (label ?? '').length > 0;
         const addButtonElement = showAddButton && addButton;
         const labelElement = !hasLabel ? null : (
-            <div>
+            <Spacer h gap="0" justifyContent="space-between" alignItems="center" noWrap style={{paddingBlockStart: 8}}>
                 <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
-                {buttonWithLabel && addButtonElement}
-            </div>
+                <div>
+                    {buttonWithLabel && addButtonElement}
+                </div>
+            </Spacer>
         );
         const itemsElement = (value || []).map((val, index) => (
             <Component
@@ -204,7 +201,7 @@ export class InputArray extends React.PureComponent<IProps> {
             return (
                 <>
                     <Row
-                        noPadding={!!message}
+                        noPadding={Object.keys(message ?? {}).length < 1}
                         testId={testId}
                     >
                         {labelElement}
