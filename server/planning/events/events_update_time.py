@@ -88,7 +88,7 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
         if event.get(ID_FIELD) != original.get(ID_FIELD):
             new_updates["skip_on_update"] = True
             await events_service.update(event[ID_FIELD], new_updates)
-            await signals.event_time_updated(new_updates, {"_id": event[ID_FIELD]})
+            await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD]})
 
 
 async def process_update_time(
