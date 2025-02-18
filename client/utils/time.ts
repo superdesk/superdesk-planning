@@ -107,7 +107,7 @@ function isEventInDifferentTimeZone(event: Partial<IEventItem>): boolean {
     const dateInEventTimeZone = getDateInRemoteTimeZone(event?.dates?.start, event?.dates?.tz);
     const dateInLocalTimeZone = getDateInRemoteTimeZone(event?.dates?.start);
 
-    return dateInEventTimeZone.format('Z') !== dateInLocalTimeZone.format('Z');
+    return dateInEventTimeZone.format('Z') !== dateInLocalTimeZone.format('Z') && !event?.dates?.all_day;
 }
 
 function localTimeZone(): string {

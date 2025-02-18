@@ -497,6 +497,10 @@ class EventsService(superdesk.Service):
             del updates["skip_on_update"]
             return
 
+        if updates.get("dates") and original.get("dates"):
+            for field in original.get("dates"):  # we need to preserve non updated values
+                updates["dates"].setdefault(field, original["dates"][field])
+
         update_method = updates.pop("update_method", UPDATE_SINGLE)
 
         user = get_user()

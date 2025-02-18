@@ -753,10 +753,13 @@ export const convertPlanningToEvent = (plan, getState) => {
         ...eventUtils.defaultEventValues(occurStatuses, defaultCalendar, defaultPlace),
         dates: {
             start: moment(plan.planning_date).clone(),
-            end: moment(plan.planning_date)
-                .clone()
-                .add(defaultDurationOnChange, 'h'),
+            end: plan.all_day ?
+                    moment(plan.planning_date).clone() :
+                    moment(plan.planning_date)
+                        .clone()
+                        .add(defaultDurationOnChange, 'h'),
             tz: moment.tz.guess(),
+            all_day: plan.all_day,
         },
         subject: plan.subject,
         anpa_category: plan.anpa_category,
