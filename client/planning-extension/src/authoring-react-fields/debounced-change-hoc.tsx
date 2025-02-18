@@ -1,8 +1,8 @@
 import {PureComponent} from 'react';
-import {DebouncedFunc, debounce} from 'lodash';
+import {DebouncedFunc, debounce, difference} from 'lodash';
 import {IPlanningCoverageItem} from '../../../interfaces';
 
-interface IDebouncedChangeHOCProps {
+interface IProps {
     children: (
         changedValue: Array<IPlanningCoverageItem>,
         onChange: (fieldPath: string, value: any) => void,
@@ -12,15 +12,15 @@ interface IDebouncedChangeHOCProps {
     processChangeQueue: (changeQueue: Array<{fieldPath: string; value: any;}>, value: any) => any;
 }
 
-interface IDebouncedChangeHOCState {
+interface IState {
     renderedValue: Array<IPlanningCoverageItem>;
 }
 
-export class DebouncedChangeHOC extends PureComponent<IDebouncedChangeHOCProps, IDebouncedChangeHOCState> {
+export class DebouncedChangeHOC extends PureComponent<IProps, IState> {
     debouncedFn: DebouncedFunc<() => void>;
     changeQueue: Array<{fieldPath: string; value: any;}>;
 
-    constructor(props: IDebouncedChangeHOCProps) {
+    constructor(props: IProps) {
         super(props);
 
         this.state = {
@@ -29,11 +29,24 @@ export class DebouncedChangeHOC extends PureComponent<IDebouncedChangeHOCProps, 
 
         this.changeQueue = [];
         this.debouncedFn = debounce(() => {
-            const valueUpdated = this.props.processChangeQueue(this.changeQueue, this.state.renderedValue);
+            const valueUpdated = this.props.processChangeQueue(this.changeQueue, this.props.value);
 
             this.props.onChange(valueUpdated);
             this.changeQueue = [];
-        }, 1500);
+        }, 1000, {leading: true});
+    }
+
+    static getDerivedStateFromProps(props: IProps, state: IState) {
+        debugger
+        console.log(difference(props.value, state.renderedValue));
+        // Fired when setState is triggered. So changes just happened, but then this reverts the changes to ones from props
+        // then debounced function fires, props update and state gets set to actual value.
+        if (difference(props.value, state.renderedValue).length > 0) {
+            return {
+                renderedValue: props.value,
+            };
+        }
+        return null;
     }
 
     componentWillUnmount(): void {

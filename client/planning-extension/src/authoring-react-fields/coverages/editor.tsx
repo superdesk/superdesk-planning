@@ -13,20 +13,14 @@ import {cloneDeep, set} from 'lodash';
 
 type IProps = IEditorComponentProps<ICoveragesValueOperational, IUrlsFieldConfig, IUrlsFieldUserPreferences>;
 
-export class Editor extends React.PureComponent<IProps> {
+class EditorInternal extends React.PureComponent<IProps> {
     render() {
         const Container = this.props.container;
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
-        const itemSaved = (this.props.item._id != null) && (this.props.item._id ?? '').startsWith('temp-') === false;
+        const itemSaved = extensionBridge.ui.utils.isTemporaryId(this.props.item._id) === false;
 
         return (
             <DebouncedChangeHOC
-
-                /**
-                 * Update component when value from props changes. Otherwise the component won't
-                 * re-render if changes from outside occur.
-                 */
-                key={(this.props.value ?? []).map((x) => x.coverage_id).join('')}
                 processChangeQueue={(changeQueue, value) => {
                     const itemCopy = cloneDeep({coverages: value});
 
@@ -85,7 +79,7 @@ export class Editor extends React.PureComponent<IProps> {
 
                             return (
                                 <Container miniToolbar={miniToolbar}>
-                                    {(this.props.value ?? []).length < 1 ? (
+                                    {(changedValue ?? []).length < 1 ? (
                                         emptyValueElement
                                     ) : (
                                         <>
@@ -100,5 +94,13 @@ export class Editor extends React.PureComponent<IProps> {
                 )}
             </DebouncedChangeHOC>
         );
+    }
+}
+
+export class Editor extends React.PureComponent<IProps> {
+    render() {
+        return (
+            <EditorInternal {...this.props} />
+        )
     }
 }

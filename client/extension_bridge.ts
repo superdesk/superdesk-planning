@@ -25,6 +25,7 @@ import {IEditorFieldLocationProps} from 'components/fields/editor/Location.inter
 
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
+import {isTemporaryId} from './utils';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -54,6 +55,7 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
+            isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated<T>(
                 item: {
@@ -114,6 +116,7 @@ export const extensionBridge: IExtensionBridge = {
     },
     ui: {
         utils: {
+            isTemporaryId,
             getUserInterfaceLanguageFromCV,
             getVocabularyItemFieldTranslated,
             isContentLinkToCoverageAllowed,
