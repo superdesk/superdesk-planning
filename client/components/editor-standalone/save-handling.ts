@@ -3,6 +3,7 @@ import {IExposedFromAuthoring} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
+import {notNullOrUndefined} from 'core/helpers/typescript-helpers';
 
 type IRelatedItemRefs = {[id: string]: RelatedPlanningItem | AssociatedEventItem};
 type ItemType = 'event' | 'planning';
@@ -19,7 +20,7 @@ const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE, itemType: ItemType) =
 const getEmbeddedItemsExposed = (
     editorType: EDITOR_TYPE,
     itemType: 'event' | 'planning',
-): Array<IExposedFromAuthoring<void>> => {
+): Array<IExposedFromAuthoring<any>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
 
     // Use Object.values instead of Object.keys because when refs are removed value becomes null and keys stay
@@ -30,9 +31,11 @@ const getEmbeddedItemsExposed = (
         return [];
     }
 
-    const exposedAuthoringArray = Object.values(relatedItemRefs).map((x) =>
-        x?.authoringRef?.current?.getExposed?.() as unknown as IExposedFromAuthoring<void>
-    );
+    const exposedAuthoringArray = Object.values(relatedItemRefs)
+        .map((x) =>
+            x?.authoringRef?.current?.getExposed?.()
+        )
+        .filter(notNullOrUndefined);
 
     return exposedAuthoringArray;
 };
