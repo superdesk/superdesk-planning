@@ -754,10 +754,10 @@ export const convertPlanningToEvent = (plan, getState) => {
         dates: {
             start: moment(plan.planning_date).clone(),
             end: plan.all_day ?
-                    moment(plan.planning_date).clone() :
-                    moment(plan.planning_date)
-                        .clone()
-                        .add(defaultDurationOnChange, 'h'),
+                moment(plan.planning_date).clone() :
+                moment(plan.planning_date)
+                    .clone()
+                    .add(defaultDurationOnChange, 'h'),
             tz: moment.tz.guess(),
             all_day: plan.all_day,
         },
