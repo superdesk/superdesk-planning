@@ -651,11 +651,6 @@ const save = (original, updates) => (
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
             const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
-            if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
-                !isTemporaryId(originalItem._id)
-            ) {
-                delete eventUpdates.dates;
-            }
             eventUpdates.update_method = eventUpdates.update_method == null ?
                 EVENTS.UPDATE_METHODS[0].value :
                 eventUpdates.update_method?.value ?? eventUpdates.update_method;

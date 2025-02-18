@@ -727,6 +727,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         scheduled: string | Date;
     }>;
     planning_date: IDateTime;
+    all_day?: boolean;
     flags?: {
         marked_for_not_publication?: boolean;
         overide_auto_assign_to_workflow?: boolean;

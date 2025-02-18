@@ -173,23 +173,20 @@ describe('actions.autosave', () => {
             }))
                 .then((updatedItem) => {
                     let expectedItem = {
-                        ...data.event_autosave[0],
                         slugline: 'Newest Event Slugline',
                         name: 'Test Name',
                         lock_action: 'edit',
                         lock_user: store.initialState.session.identity._id,
                         lock_session: store.initialState.session.sessionId,
-                        dates: {
-                            ...data.event_autosave[0].dates,
-                            tz: moment.tz.guess(),
-                        },
+                        files: [],
                     };
-
-                    delete expectedItem._etag;
 
                     const autosaveItem = jasmine.objectContaining(expectedItem);
 
                     expect(updatedItem).toEqual(autosaveItem);
+                    expect(updatedItem.dates.tz).toEqual(moment.tz.guess());
+                    expect(updatedItem.dates.start.toDate()).toEqual(data.event_autosave[0].dates.start.toDate());
+                    expect(updatedItem.dates.end.toDate()).toEqual(data.event_autosave[0].dates.end.toDate());
 
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'AUTOSAVE_RECEIVE',

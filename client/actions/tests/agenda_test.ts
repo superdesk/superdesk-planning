@@ -340,6 +340,7 @@ describe('agenda', () => {
                                     _id: events[0]._id,
                                 }],
                                 planning_date: events[0].dates.start,
+                                all_day: false,
                                 slugline: events[0].slugline,
                                 name: events[0].name,
                                 subject: events[0].subject,
