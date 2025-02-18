@@ -37,7 +37,7 @@ interface IProps {
     onToBeConfirmed?(field: string): void;
     toBeConfirmed?: boolean;
     testId?: string;
-    dateOnly?: boolean;
+    allDay?: boolean;
 }
 
 /**
@@ -77,7 +77,7 @@ export const DateTimeInput = ({
 }: IProps) => {
     let timeValue = timeField ? diff?.timeField : value;
 
-    if (props.dateOnly) {
+    if (props.allDay) {
         timeValue = null;
     }
 
@@ -112,10 +112,9 @@ export const DateTimeInput = ({
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
                 remoteTimeZone={remoteTimeZone}
-                isLocalTimeZoneDifferent={isLocalTimeZoneDifferent && !props.dateOnly}
+                isLocalTimeZoneDifferent={isLocalTimeZoneDifferent && !props.allDay}
                 refNode={refNode}
                 halfWidth={!hideTime}
-                dateOnly={props.dateOnly}
             />
 
             {!hideTime && (
@@ -123,7 +122,7 @@ export const DateTimeInput = ({
                     row={false}
                     component={TimeInput}
                     field={timeField ? timeField : `${field}.time`}
-                    value={timeValue}
+                    value={props.allDay ? null : timeValue}
                     item={item}
                     diff={diff}
                     readOnly={readOnly}

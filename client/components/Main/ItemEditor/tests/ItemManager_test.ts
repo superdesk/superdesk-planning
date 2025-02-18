@@ -44,6 +44,7 @@ describe('components.Main.ItemManager', () => {
             type: 'planning',
             state: 'draft',
             planning_date: jasmine.any(moment),
+            all_day: false,
             agendas: [],
             flags: {
                 marked_for_not_publication: false,

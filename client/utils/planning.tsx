@@ -1012,7 +1012,8 @@ function createNewPlanningFromNewsItem(
         type: 'planning',
         slugline: addNewsItemToPlanning.slugline,
         headline: get(addNewsItemToPlanning, 'headline'),
-        planning_date: moment(),
+        planning_date: getDefaultPlanningDate(),
+        all_day: appConfig.planning?.all_day || false,
         ednote: get(addNewsItemToPlanning, 'ednote'),
         subject: get(addNewsItemToPlanning, 'subject'),
         anpa_category: get(addNewsItemToPlanning, 'anpa_category'),
@@ -1500,6 +1501,10 @@ function shouldLockPlanningForEdit(item: IPlanningItem, privileges: IPrivileges)
     );
 }
 
+function getDefaultPlanningDate(): moment.Moment {
+    return appConfig.planning?.all_day ? moment.utc(moment().format('YYYY-MM-DD')) : moment();
+}
+
 function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array<IPlace>): Partial<IPlanningItem> {
     const {contentProfiles} = planningApi;
     const planningProfile = contentProfiles.get('planning');
@@ -1508,7 +1513,8 @@ function defaultPlanningValues(currentAgenda?: IAgenda, defaultPlaceList?: Array
     const newPlanning: Partial<IPlanningItem> = Object.assign(
         {
             type: 'planning',
-            planning_date: moment(),
+            planning_date: getDefaultPlanningDate(),
+            all_day: appConfig.planning?.all_day || false,
             agendas: get(currentAgenda, 'is_enabled') ?
                 [getItemId(currentAgenda)] : [],
             state: 'draft',
@@ -1723,18 +1729,24 @@ function getDateStringForPlanning(planning: IPlanningItem): string {
         planning.planning_date :
         moment(planning.planning_date);
 
-    return planning._time_to_be_confirmed ? (
-        planning_date.format(appConfig.planning.dateformat) +
-        ' @ ' +
-        gettext('TBC')
-    ) :
-        getDateTimeString(
-            planning_date,
-            appConfig.planning.dateformat,
-            appConfig.planning.timeformat,
-            ' @ ',
-            false
+    if (planning._time_to_be_confirmed) {
+        return (
+            planning_date.format(appConfig.planning.dateformat) +
+            ' @ ' + gettext('TBC')
         );
+    }
+
+    if (planning.all_day) {
+        return moment.utc(planning_date).format(appConfig.planning.dateformat);
+    }
+
+    return getDateTimeString(
+        planning_date,
+        appConfig.planning.dateformat,
+        appConfig.planning.timeformat,
+        ' @ ',
+        false
+    );
 }
 
 function getCoverageDateText(coverage: IPlanningCoverageItem): string {
