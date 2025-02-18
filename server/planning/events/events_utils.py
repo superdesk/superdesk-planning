@@ -19,9 +19,11 @@ from superdesk.metadata.utils import generate_guid
 
 from planning.common import (
     TEMP_ID_PREFIX,
+    UPDATE_SINGLE,
     WORKFLOW_STATE,
     get_max_recurrent_events,
     is_valid_event_planning_reason,
+    set_ingested_event_state,
     update_post_item,
 )
 from planning.types import EventResourceModel, UpdateMethods
@@ -240,6 +242,28 @@ async def get_recurring_timeline(
             future.append(event.to_dict())
 
     return historic, past, future
+
+
+def pre_update_event_actions(updates: dict[str, Any], original: dict[str, Any], ACTION: str = ""):
+    # Set version_creator and update ingested state
+    user_id = get_user_id()
+    if user_id:
+        updates["version_creator"] = user_id
+        set_ingested_event_state(updates, original)
+
+    # Perform additional validation for event action
+    validate_event_action(updates, original, ACTION)
+
+
+def get_update_method(updates: dict[str, Any], original: dict[str, Any]) -> str:
+    """
+    Get update method for event actions that can be called outside normal resource/service model
+    Based off get_update_method() from old event_base_service
+    """
+    update_method = updates.pop("update_method", UPDATE_SINGLE)
+    if not original.get("dates", {}).get("recurring_rule"):
+        return UPDATE_SINGLE
+    return update_method
 
 
 def validate_event_action(

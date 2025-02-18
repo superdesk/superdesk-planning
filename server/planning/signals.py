@@ -48,3 +48,6 @@ event_time_updated = AsyncSignal[dict, dict]("events:time_updated")
 
 #: Signal for when an Event is spiked
 event_spiked = AsyncSignal[dict, dict]("events:spiked")
+
+#: Signal for when an Event is unspiked
+event_unspiked = AsyncSignal[dict, dict]("events:unspiked")

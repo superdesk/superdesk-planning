@@ -1,19 +1,24 @@
 from typing import Any
 
-from apps.auth import get_auth, get_user, get_user_id
+from apps.auth import get_auth, get_user
 
 from planning import signals
 from planning.common import (
+    ITEM_EXPIRY,
     ITEM_STATE,
     UPDATE_FUTURE,
     UPDATE_SINGLE,
     WORKFLOW_STATE,
     remove_autosave_on_spike,
     remove_lock_information,
-    set_ingested_event_state,
     set_item_expiry,
 )
-from planning.events.events_utils import get_recurring_timeline, post_update_event_actions, validate_event_action
+from planning.events.events_utils import (
+    get_recurring_timeline,
+    get_update_method,
+    post_update_event_actions,
+    pre_update_event_actions,
+)
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from planning.types.assignment import AssignmentResourceModel
 from planning.types.event import EventResourceModel
@@ -69,6 +74,12 @@ async def post_spike_event_actions(original: dict[str, Any]) -> None:
 
 def can_spike_event(event: dict[str, Any], events_with_plans: list) -> bool:
     return "pubstatus" not in event and event[ID_FIELD] not in events_with_plans and "reschedule_from" not in event
+
+
+def unspike_event(updates: dict[str, Any], original: dict[str, Any]) -> None:
+    updates[ITEM_STATE] = original.get("revert_state", WORKFLOW_STATE.DRAFT)
+    updates["revert_state"] = None
+    updates[ITEM_EXPIRY] = None
 
 
 def spike_event(updates: dict[str, Any], original: dict[str, Any]) -> None:
@@ -135,13 +146,18 @@ async def validate_recurring_event(original: dict[str, Any], recurrence_id: str)
     return events_with_plans
 
 
-async def update_single_event(updates: dict[str, Any], original: dict[str, Any]) -> None:
+async def spike_single_event(updates: dict[str, Any], original: dict[str, Any]) -> None:
     validate_spike_event(original)
     remove_lock_information(updates)
     spike_event(updates, original)
 
 
-async def update_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str) -> None:
+async def unspike_single_event(updates: dict[str, Any], original: dict[str, Any]) -> None:
+    remove_lock_information(updates)
+    unspike_event(updates, original)
+
+
+async def spike_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str) -> None:
     events_service = EventResourceModel.get_service()
 
     # Ensure that no other Event or Planning item is currently locked
@@ -186,6 +202,45 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
     updates["_spiked_items"] = notifications
 
 
+async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str) -> None:
+    events_service = EventResourceModel.get_service()
+
+    historic, past, future = await get_recurring_timeline(original, spiked=True)
+    remove_lock_information(updates)
+    unspike_event(updates, original)
+
+    # Determine if the selected event is the first one, if so then
+    # act as if we're changing future events
+    if len(historic) == 0 and len(past) == 0:
+        update_method = UPDATE_FUTURE
+
+    if update_method == UPDATE_FUTURE:
+        unspiked_events = future
+    else:
+        unspiked_events = past + future
+
+    notifications = []
+    for event in unspiked_events:
+        if event.get(ITEM_STATE) != WORKFLOW_STATE.SPIKED:
+            continue
+
+        new_updates = {"skip_on_update": True}
+        unspike_event(new_updates, event)
+        await events_service.update(event[ID_FIELD], new_updates)
+        item = await events_service.find_by_id_raw(event[ID_FIELD])
+        await signals.event_unspiked.send(new_updates, event)
+
+        notifications.append(
+            {
+                "id": event[ID_FIELD],
+                "etag": item["_etag"],
+                "state": event.get("revert_state", WORKFLOW_STATE.DRAFT),
+            }
+        )
+
+    updates["_unspiked_items"] = notifications
+
+
 async def process_spike_event(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any] | None:
     """
     Processes the event spike update, handling both single and recurring events.
@@ -197,24 +252,16 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     events_service = EventResourceModel.get_service()
     ACTION = "spiked"
 
-    # Set version_creator and update ingested state
-    user_id = get_user_id()
-    if user_id:
-        updates["version_creator"] = user_id
-        set_ingested_event_state(updates, original)
+    # Perform pre update event actions
+    pre_update_event_actions(updates, original, ACTION)
 
-    # Perform additional validation for event action
-    validate_event_action(updates, original, ACTION)
-
-    # Determine update method, ensuring non-recurring events use UPDATE_SINGLE
-    update_method = updates.pop("update_method", UPDATE_SINGLE)
-    if not original.get("dates", {}).get("recurring_rule"):
-        update_method = UPDATE_SINGLE
+    # Determine update method
+    update_method = get_update_method(updates, original)
 
     if update_method == UPDATE_SINGLE:
-        await update_single_event(updates, original)
+        await spike_single_event(updates, original)
     else:
-        await update_recurring_events(updates, original, update_method)
+        await spike_recurring_events(updates, original, update_method)
 
     # Clean updates before persisting change
     spiked_items = updates.pop("_spiked_items", [])
@@ -241,3 +288,48 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     await post_spike_event_actions(original)
 
     return spiked_event
+
+
+async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any] | None:
+    """
+    Processes the event unspike update, handling both single and recurring events.
+
+    :param updates: The update payload from the client.
+    :param original: The original event document.
+    :return: The updated event document.
+    """
+    events_service = EventResourceModel.get_service()
+    ACTION = "unspiked"
+
+    # Perform pre update event actions
+    pre_update_event_actions(updates, original, ACTION)
+
+    # Determine update method
+    update_method = get_update_method(updates, original)
+
+    if update_method == UPDATE_SINGLE:
+        await unspike_single_event(updates, original)
+    else:
+        await spike_recurring_events(updates, original, update_method)
+
+    # Clean updates before persisting change
+    unspiked_items = updates.pop("_unspiked_items", [])
+
+    # Update the original event in the database
+    await events_service.update(original[ID_FIELD], updates)
+    unspiked_event = await events_service.find_by_id_raw(original[ID_FIELD])
+
+    user_id = get_user().get(ID_FIELD, "")
+    if not user_id:
+        unspiked_items.append({"id": id, "etag": unspiked_event["_etag"], "state": unspiked_event[ITEM_STATE]})
+        push_notification(
+            "events:spiked",
+            item=str(original[ID_FIELD]),
+            user=str(user_id),
+            unspiked_items=unspiked_items,
+        )
+
+    # Perform post update actions
+    post_update_event_actions(updates, original, ACTION)
+
+    return unspiked_event
