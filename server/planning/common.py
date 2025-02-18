@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import NamedTuple, Dict, Any, Set, Optional
+from typing import NamedTuple, Dict, Any, Set, Optional, Union
 
 import re
 import time
@@ -30,7 +30,7 @@ from superdesk.etree import parse_html
 import json
 from bson import ObjectId
 
-from planning.types import Planning, Coverage
+from planning.types import Planning, Coverage, Event
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -379,6 +379,8 @@ def update_post_item(updates, original):
     # Save&Post or Save&Unpost
     if updates.get("pubstatus"):
         pub_status = updates["pubstatus"]
+    elif updates.get("ingest_pubstatus"):
+        pub_status = updates["ingest_pubstatus"]
     elif original.get("pubstatus") == POST_STATE.USABLE:
         # From item actions
         pub_status = POST_STATE.USABLE
@@ -854,7 +856,7 @@ def update_ingest_on_patch(updates: Dict[str, Any], original: Dict[str, Any]):
         # The local version has not been published yet
         # So remove the provided ``pubstatus``
         updates.pop("pubstatus", None)
-    elif original.get("pubstatus") == updates.get("pubstatus"):
+    elif original.get("pubstatus") == updates.get("ingest_pubstatus"):
         # The local version has been published
         # and no change to ``pubstatus`` on ingested item
         updates.pop("state")
@@ -865,3 +867,8 @@ def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Opt
         (coverage for coverage in planning_item.get("coverages") or [] if coverage.get("coverage_id") == coverage_id),
         None,
     )
+
+
+def prepare_ingested_item_for_storage(doc: Union[Event, Planning]) -> None:
+    doc.setdefault("state", "ingested")
+    doc["ingest_pubstatus"] = doc.pop("pubstatus", "usable")  # pubstatus is set when posted
