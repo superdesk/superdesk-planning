@@ -23,9 +23,10 @@ import {IContactPropsNoRedux} from './components/Contacts/ContactField.interface
 import {EditorFieldLocation} from './components/fields/editor/Location';
 import {IEditorFieldLocationProps} from 'components/fields/editor/Location.interface';
 
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState} from 'interfaces';
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningCoverageItem} from 'interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {isTemporaryId} from './utils';
+import {modifyCoverageForClient} from './utils/planning';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -55,6 +56,7 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
+            modifyCoverageForClient: (coverage: IPlanningCoverageItem) => IPlanningCoverageItem;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated<T>(
@@ -116,6 +118,7 @@ export const extensionBridge: IExtensionBridge = {
     },
     ui: {
         utils: {
+            modifyCoverageForClient,
             isTemporaryId,
             getUserInterfaceLanguageFromCV,
             getVocabularyItemFieldTranslated,

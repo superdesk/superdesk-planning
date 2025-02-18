@@ -379,7 +379,6 @@ function canCancelCoverage(
 
 function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: Partial<IPlanningItem>): boolean {
     return (
-        isExistingItem(coverage, 'coverage_id') &&
         isCoverageDraft(coverage) &&
         isCoverageAssigned(coverage) &&
         !appConfig.planning_auto_assign_to_workflow &&
@@ -957,7 +956,7 @@ function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlann
  * @param {object} coverage - The coverage to modify
  * @return {object} coverage item provided
  */
-function modifyCoverageForClient(coverage: IPlanningCoverageItem): IPlanningCoverageItem {
+export function modifyCoverageForClient(coverage: IPlanningCoverageItem): IPlanningCoverageItem {
     const modifyGenre = (coverage) => {
         // Convert genre from an Array to an Object
         if (get(coverage, 'planning.genre[0]')) {

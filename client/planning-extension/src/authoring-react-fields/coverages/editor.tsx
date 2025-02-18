@@ -13,10 +13,11 @@ import {cloneDeep, set} from 'lodash';
 
 type IProps = IEditorComponentProps<ICoveragesValueOperational, IUrlsFieldConfig, IUrlsFieldUserPreferences>;
 
-class EditorInternal extends React.PureComponent<IProps> {
+export class Editor extends React.PureComponent<IProps> {
     render() {
         const Container = this.props.container;
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
+        const {modifyCoverageForClient} = extensionBridge.ui.utils;
         const itemSaved = extensionBridge.ui.utils.isTemporaryId(this.props.item._id) === false;
 
         return (
@@ -39,7 +40,7 @@ class EditorInternal extends React.PureComponent<IProps> {
                         field="coverages"
                         item={{
                             // coverages are the main value
-                            coverages: changedValue,
+                            coverages: changedValue.map(modifyCoverageForClient),
 
                             // related_events are used if available to prefill coverage fields
                             // when adding a new coverage
@@ -97,10 +98,3 @@ class EditorInternal extends React.PureComponent<IProps> {
     }
 }
 
-export class Editor extends React.PureComponent<IProps> {
-    render() {
-        return (
-            <EditorInternal {...this.props} />
-        )
-    }
-}

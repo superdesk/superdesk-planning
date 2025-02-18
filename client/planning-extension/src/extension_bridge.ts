@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {IArticle, IVocabularyItem} from 'superdesk-api';
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningItem} from '../../interfaces';
+import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningCoverageItem, IPlanningItem} from '../../interfaces';
 import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
 import {IContactPropsNoRedux} from '../../components/Contacts/ContactField.interface';
 import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface';
@@ -44,6 +44,7 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
+            modifyCoverageForClient: (coverage: IPlanningCoverageItem) => IPlanningCoverageItem;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated(
