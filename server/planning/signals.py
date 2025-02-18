@@ -42,3 +42,6 @@ events_created = AsyncSignal[list[EventResourceModel]]("events:created")
 #: param updates: Planning item updates
 #: param planning_item: `PlanningResourceModel` instance of the event to be updated
 planning_updated = AsyncSignal[dict[str, Any], PlanningResourceModel]("planning:update")
+
+#: Signal for when an Event time is updated
+event_time_updated = AsyncSignal[dict, dict]("events:time_updated")

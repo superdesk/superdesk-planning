@@ -1,20 +1,32 @@
+import arrow
 import re
 import pytz
 
 from datetime import date, datetime
+from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 from typing import AsyncGenerator, Any, Generator, Tuple, Literal, cast
 
-from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
+from apps.archive.common import get_auth
+from apps.auth import get_user_id
 
+from superdesk.core.types import SortParam, SortListParam
+from superdesk.errors import SuperdeskApiError
+from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.metadata.utils import generate_guid
-from superdesk.core.types import SortParam, SortListParam
 
+from planning.common import (
+    TEMP_ID_PREFIX,
+    WORKFLOW_STATE,
+    get_max_recurrent_events,
+    is_valid_event_planning_reason,
+    update_post_item,
+)
 from planning.types import EventResourceModel, UpdateMethods
 from planning.types.event import EmbeddedPlanning, EmbeddedPlanningCoverage
-from planning.common import TEMP_ID_PREFIX, WORKFLOW_STATE, get_max_recurrent_events
+from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 
 FrequencyType = Literal["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]
@@ -203,7 +215,15 @@ async def get_recurring_timeline(
 
     # Make sure we are working with a datetime instance
     if not isinstance(selected_start, datetime):
-        selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
+        try:
+            selected_start = arrow.get(selected_start)
+        except arrow.parser.ParserError:
+            raise ValueError("Invalid date format for selected_start")
+        tz_str = selected.get("dates", {}).get("tz")
+        if tz_str:
+            selected_start = selected_start.to(tz_str).datetime
+        else:
+            selected_start = selected_start.to("UTC").datetime
 
     historic = []
     past = []
@@ -220,3 +240,94 @@ async def get_recurring_timeline(
             future.append(event.to_dict())
 
     return historic, past, future
+
+
+def validate_event_action(
+    updates: dict[str, Any],
+    original: dict[str, Any],
+    ACTION: str = "",
+    require_lock: bool = True,
+):
+    """
+    Generic validation for event actions that can be called outside normal resource/service model
+    Based off validate() from old event_base_service
+    """
+    event_service = EventResourceModel.get_service()
+
+    if not original:
+        raise SuperdeskApiError.notFoundError()
+
+    if not is_valid_event_planning_reason(updates, original):
+        raise SuperdeskApiError.badRequestError(message="Reason is required field.")
+
+    if original.get("state") == WORKFLOW_STATE.CANCELLED:
+        raise SuperdeskApiError.forbiddenError(message="Aborted. Event is already cancelled")
+
+    if require_lock:
+        user_id = get_user_id()
+        session_id = get_auth().get(ID_FIELD, None)
+
+        lock_user = original.get(LOCK_USER, None)
+        lock_session = original.get(LOCK_SESSION, None)
+        lock_action = original.get(LOCK_ACTION, None)
+
+        if not lock_user:
+            raise SuperdeskApiError.forbiddenError(message="The event must be locked")
+        elif str(lock_user) != str(user_id):
+            raise SuperdeskApiError.forbiddenError(message="The event is locked by another user")
+        elif str(lock_session) != str(session_id):
+            raise SuperdeskApiError.forbiddenError(message="The event is locked by you in another session")
+        elif str(lock_action) != ACTION:
+            raise SuperdeskApiError.forbiddenError(
+                message="The lock must be for the `{}` action".format(ACTION.lower().replace("_", " "))
+            )
+
+    event_service.validate_event(updates, EventResourceModel(**original))
+
+
+def post_update_event_actions(
+    updates: dict[str, Any],
+    original: dict[str, Any],
+    ACTION: str = "",
+    update_post: bool = True,
+):
+    """
+    Generic post update function for event actions that can be called outside normal resource/service model
+    Based off on_updated() from old event_base_service
+    """
+    # Send a notification if the LOCK has been removed as a result of the update
+    if original.get("lock_user") and "lock_user" in updates and updates.get("lock_user") is None:
+        push_notification(
+            "events:unlock",
+            item=str(original.get(ID_FIELD)),
+            user=str(get_user_id()),
+            lock_session=str(get_auth().get("_id")),
+            etag=updates.get("_etag"),
+            recurrence_id=original.get("recurrence_id") or None,
+            type=original.get("type"),
+        )
+
+    push_event_notification(ACTION, updates, original)
+
+    if update_post:
+        update_post_item(updates, original)
+
+
+def push_event_notification(name: str, updates: dict[str, Any], original: dict[str, Any]):
+    """
+    Generic push event notification function
+    Based off push_notification() from old event_base_service
+    """
+    session = get_auth().get(ID_FIELD, "")
+
+    data = {
+        "item": str(original.get(ID_FIELD)),
+        "user": str(updates.get("version_creator", "")),
+        "session": str(session),
+    }
+
+    if original.get("dates", {}).get("recurring_rule", None):
+        data["recurrence_id"] = str(updates.get("recurrence_id", original.get("recurrence_id", "")))
+        name += ":recurring"
+
+    push_notification("events:" + name, **data)

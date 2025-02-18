@@ -28,8 +28,9 @@ from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
-from planning.events import EventsAsyncService
+from planning.events.events_service import EventsAsyncService
 from planning.events.events_utils import get_recurring_timeline
+from planning.events.events_update_time import process_update_time
 
 
 class EventsBaseTestCase(TestCase):
@@ -355,14 +356,8 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
         schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
 
-        update_time = get_resource_service("events_update_time")
-        update_time.REQUIRE_LOCK = False
-        # mocking function
-        is_original_event_func = update_time.is_original_event
-        update_time.is_original_event = Mock(return_value=False)
-
-        res = update_time.patch(events[0].get("_id"), {"dates": schedule, "update_method": "all"})
-        self.assertEqual(res.get("dates").get("start"), schedule["start"])
+        res = await process_update_time({"dates": schedule, "update_method": "all"}, events[0], False)
+        self.assertEqual(res["dates"]["start"], schedule["start"].isoformat())
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
@@ -371,15 +366,11 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["start"] = datetime(2099, 11, 21, 20, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
         schedule["end"] = datetime(2099, 11, 21, 21, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
 
-        res = update_time.patch(events[0].get("_id"), {"dates": schedule, "update_method": "single"})
-        self.assertEqual(res.get("dates").get("start"), schedule["start"])
+        res = await process_update_time({"dates": schedule, "update_method": "single"}, events[0], False)
+        self.assertEqual(res["dates"]["start"], schedule["start"].isoformat())
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
-
-        # reset mocked function
-        update_time.is_original_event = is_original_event_func
-        update_time.REQUIRE_LOCK = True
 
     async def test_planning_schedule_update_repetitions(self):
         event = {
