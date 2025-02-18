@@ -50,7 +50,7 @@ export class PlanningEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get addCoverageButton() {
-        return this.coveragesContainer.find('.sd-create-btn');
+        return this.coveragesContainer.find('[data-test-id="create-button"]');
     }
 
     /**

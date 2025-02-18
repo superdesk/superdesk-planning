@@ -1,5 +1,5 @@
 import {Editor} from '../../common/editor';
-import {Input, SelectInput, ActionMenu} from '../../common';
+import {Input, SelectInput, ActionMenu, ToggleInput} from '../../common';
 import {PlanningEditor} from './planningEditor';
 
 /**
@@ -25,6 +25,7 @@ export class CoverageEditor extends Editor {
         const getParent = () => this.element;
 
         this.fields = {
+            add_coverage_to_workflow: new ToggleInput(getParent, '[data-test-id="field-add_coverage_to_workflow"]'),
             content_type: new SelectInput(getParent, '[data-test-id="field-g2_content_type"] select'),
             genre: new SelectInput(getParent, '[data-test-id="field-genre"] select'),
             slugline: new Input(getParent, '[data-test-id="field-slugline"] input'),

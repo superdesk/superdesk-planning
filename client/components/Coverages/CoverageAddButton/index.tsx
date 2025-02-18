@@ -45,6 +45,7 @@ export class CoverageAddButton extends React.Component<IProps> {
                 target="icon-plus-large"
                 button={({toggleMenu}) => (
                     <Button
+                        data-test-id="create-button"
                         type="primary"
                         icon="plus-large"
                         text="plus-large"
