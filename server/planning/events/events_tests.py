@@ -388,7 +388,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
             },
         }
 
-        ids = await self.events_service.create([event])
+        await self.events_service.create([event])
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
@@ -489,7 +489,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "name": "Demo ",
             "update_method": "single",
         }
-        event_id = await self.events_service.create([event])
+        new_events = await self.events_service.create([event])
         planning = {
             "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
             "name": "Demo 1",
@@ -500,7 +500,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "agendas": [],
             "languages": ["en"],
             "user": "12234553",
-            "related_events": [PlanningRelatedEventLink(_id=event_id[0], link_type="primary")],
+            "related_events": [PlanningRelatedEventLink(_id=new_events[0].id, link_type="primary")],
             "coverages": [
                 {
                     "coverage_id": "urn:newsml:localhost:5000:2023-09-08T17:40:56.290922:e264a179-5b1a-4b52-b73b-332660848cae",
@@ -520,7 +520,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ],
         }
-        planning_id = await planning_service.create([planning])
+        new_plannings = await planning_service.create([planning])
         schema = {
             "language": {
                 "languages": ["en", "de"],
@@ -549,14 +549,14 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
         )
         now = utcnow()
         get_resource_service("events_post").post(
-            [{"event": event_id[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 
-        event_item = await self.events_service.find_by_id_raw(event_id[0])
+        event_item = await self.events_service.find_by_id_raw(new_events[0].id)
         self.assertEqual(len([event_item]), 1)
         self.assertEqual(event_item.get("state"), "scheduled")
 
-        planning_item = await planning_service.find_by_id_raw(planning_id[0])
+        planning_item = await planning_service.find_by_id_raw(new_plannings[0].id)
         self.assertEqual(len([planning_item]), 1)
         self.assertEqual(planning_item.get("state"), "scheduled")
         assert now <= arrow.get(planning_item.get("versionposted")).datetime < now + timedelta(seconds=5)
@@ -575,7 +575,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ],
         )
-        event_id = await self.events_service.create(
+        new_events = await self.events_service.create(
             [
                 {
                     "type": "event",
@@ -595,24 +595,24 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             ]
         )
         get_resource_service("events_post").post(
-            [{"event": event_id[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
-        planning_id = await planning_service.create(
+        new_plannings = await planning_service.create(
             [
                 {
                     "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                     "name": "Demo 1",
                     "type": "planning",
-                    "related_events": [RelatedEvent(id=event_id[0], link_type="primary")],
+                    "related_events": [RelatedEvent(id=new_events[0].id, link_type="primary")],
                 }
             ]
         )
 
-        event_item = await self.events_service.find_by_id_raw(event_id)
+        event_item = await self.events_service.find_by_id_raw(new_events.id)
         self.assertIsNotNone(event_item)
         self.assertEqual(event_item["pubstatus"], POST_STATE.USABLE)
 
-        planning_item = await planning_service.find_by_id_raw(planning_id[0])
+        planning_item = await planning_service.find_by_id_raw(new_plannings[0].id)
         self.assertIsNotNone(planning_item)
 
         # TODO-ASYNC: fix once `events_post` is migrated
@@ -644,7 +644,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "name": "Demo ",
             "update_method": "single",
         }
-        event_id = await self.events_service.create([event])
+        new_events = await self.events_service.create([event])
         planning = {
             "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
             "name": "Demo 1",
@@ -654,7 +654,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "slugline": "slug",
             "agendas": [],
             "languages": ["en"],
-            "event_item": event_id[0],
+            "event_item": new_events[0].id,
             "coverages": [
                 {
                     "coverage_id": "urn:newsmle264a179-5b1a-4b52-b73b-332660848cae",
@@ -674,7 +674,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ],
         }
-        planning_id = await planning_service.create([planning])
+        new_plannings = await planning_service.create([planning])
         self.app.data.insert(
             "planning_types",
             [
@@ -697,13 +697,13 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             ],
         )
         get_resource_service("events_post").post(
-            [{"event": event_id[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 
-        event_item = await self.events_service.find_by_id_raw(event_id[0])
+        event_item = await self.events_service.find_by_id_raw(new_events[0].id)
         self.assertEqual(len([event_item]), 1)
         self.assertEqual(event_item.get("state"), "scheduled")
 
-        planning_item = await planning_service.find_by_id_raw(planning_id[0])
+        planning_item = await planning_service.find_by_id_raw(new_plannings[0].id)
         self.assertEqual(len([planning_item]), 1)
         self.assertEqual(planning_item.get("state"), "scheduled")

@@ -170,7 +170,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 },
             )
 
-    async def create(self, _docs: list[PlanningResourceModel | dict[str, Any]]) -> list[str]:
+    async def create(self, _docs: list[PlanningResourceModel | dict[str, Any]]) -> list[PlanningResourceModel]:
         docs = await self._convert_dicts_to_model(_docs)
         await self.prepare_planning_data(docs)
         return await super().create(docs)
