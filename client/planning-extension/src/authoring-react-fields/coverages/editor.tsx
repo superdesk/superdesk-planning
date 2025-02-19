@@ -66,12 +66,6 @@ export class Editor extends React.PureComponent<IProps> {
                         const item = cloneDeep({coverages: this.props.value});
                         const nextValue = set(item, fieldPath, value);
 
-                        for (const coverage of nextValue.coverages) {
-                            if (coverage.planning != null) {
-                                delete coverage.planning['_scheduledTime'];
-                            }
-                        }
-
                         this.props.onChange(nextValue.coverages);
                     });
                 }}

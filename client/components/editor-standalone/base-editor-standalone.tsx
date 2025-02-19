@@ -8,6 +8,7 @@ import {
     IAuthoringValidationErrors,
     IStorageAdapter,
     IAuthoringReact,
+    IPropsAuthoring,
 } from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import * as selectors from '../../selectors';
@@ -25,6 +26,8 @@ interface IOwnProps<T extends IPlanningItem | IEventItem> {
     editorRef: RefObject<IAuthoringReact<T>>;
     authoringStorage: IAuthoringStorage<T>;
     storageAdapter: IStorageAdapter<T>;
+
+    makeVisible: IPropsAuthoring<T>['makeVisible'];
 }
 
 interface IReduxProps {
@@ -129,6 +132,7 @@ export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends R
                 getSidePanel={() => null}
                 getSideWidgetIdAtIndex={(_item) => 'no-id-available'}
                 fieldTemplate={FieldTemplate}
+                makeVisible={this.props.makeVisible}
             />
         );
     }

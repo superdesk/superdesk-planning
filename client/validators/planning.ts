@@ -6,6 +6,9 @@ import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
 import {validateField, validators} from './index';
+import {coverages} from '../api/coverages';
+import {IPlanningCoverageItem} from 'interfaces';
+import {planningApi} from '../superdeskApi';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -26,10 +29,35 @@ const validatePlanningScheduleDate = ({getState, field, value, errors, messages,
     }
 };
 
+/**
+ * The purpose of v2 is to have a interface cleaner
+ * and reduce the number of arguments that have to be passed.
+ */
+export function validateCoveragesV2(value: Array<IPlanningCoverageItem>) {
+    let errors = {};
+    let messages = [];
+
+    const store = planningApi.redux.store;
+
+    validateCoverages({
+        dispatch: store.dispatch,
+        getState: store.getState,
+        profile: coverages.getEditorProfile(),
+        value: value,
+        diff: {
+            coverages: value,
+        },
+        item: {},
+        errors: errors,
+        messages: messages,
+    });
+
+    return {errors, messages};
+}
+
 export const validateCoverages = ({
     dispatch,
     getState,
-    field,
     value,
     profile,
     errors,
@@ -190,11 +218,11 @@ const validateScheduledUpdatesDate = ({
         delete errors.scheduled_updates;
     } else {
         if (scheduleConflict) {
-            messages.push(gettext('Scheduled Upates have to be after the previous updates.'));
+            messages.push(gettext('Scheduled updates have to be after the previous updates.'));
         }
 
         if (requiredMissing) {
-            messages.push(gettext('Scheduled Upates should have a date/time.'));
+            messages.push(gettext('Scheduled updates should have a date/time.'));
         }
     }
 };

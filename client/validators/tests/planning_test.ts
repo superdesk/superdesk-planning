@@ -101,7 +101,7 @@ describe('planningValidators', () => {
             messages: errorMessages,
             diff: planningDiff,
         });
-        expect(errorMessages).toEqual(['Scheduled Upates have to be after the previous updates.']);
+        expect(errorMessages).toEqual(['Scheduled updates have to be after the previous updates.']);
         expect(errors).toEqual({
             scheduled_updates: {
                 1: {
@@ -128,7 +128,7 @@ describe('planningValidators', () => {
             messages: errorMessages,
             diff: planningDiff,
         });
-        expect(errorMessages).toEqual(['Scheduled Upates have to be after the previous updates.']);
+        expect(errorMessages).toEqual(['Scheduled updates have to be after the previous updates.']);
         expect(errors).toEqual({
             scheduled_updates: {
                 0: {

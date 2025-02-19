@@ -661,101 +661,104 @@ export class ItemManager {
                 });
         }
 
-        const promise = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType).then(() =>
-            !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false}),
-        );
+        const promise: Promise<any> = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
+            .then(() =>
+                !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false}),
+            );
 
-        if (this.props.addNewsItemToPlanning) {
-            return promise.then(() => this._saveFromAuthoring({post, unpost}));
-        }
-
-        // Only remove the autosave if item is temp or we're in AUTHORING
-        const isTemporary = isTemporaryId(this.props.itemId);
-
-        // If we are posting or unposting, we are setting 'pubstatus' to 'usable' from client side
-        const updates = cloneDeep(this.state.diff);
-
-        if (post) {
-            if (updates.pubstatus !== POST_STATE.USABLE) {
-                updates.state = WORKFLOW_STATE.SCHEDULED;
+        return promise.then(() => {
+            if (this.props.addNewsItemToPlanning) {
+                return this._saveFromAuthoring({post, unpost});
             }
 
-            updates.pubstatus = POST_STATE.USABLE;
-            updates._post = true;
-        } else if (unpost) {
-            updates.state = WORKFLOW_STATE.KILLED;
-            updates.pubstatus = POST_STATE.CANCELLED;
-        }
+            // Only remove the autosave if item is temp or we're in AUTHORING
+            const isTemporary = isTemporaryId(this.props.itemId);
 
-        if (updates.type === 'event') {
-            updates.update_method = updateMethod;
+            // If we are posting or unposting, we are setting 'pubstatus' to 'usable' from client side
+            const updates = cloneDeep(this.state.diff);
 
-            if (Object.keys(planningUpdateMethods).length > 0) {
-                updates.associated_plannings?.forEach((planningItem) => {
-                    if (planningUpdateMethods[planningItem._id] != null) {
-                        planningItem.update_method = planningUpdateMethods[planningItem._id];
-                    }
-                });
+            if (post) {
+                if (updates.pubstatus !== POST_STATE.USABLE) {
+                    updates.state = WORKFLOW_STATE.SCHEDULED;
+                }
+
+                updates.pubstatus = POST_STATE.USABLE;
+                updates._post = true;
+            } else if (unpost) {
+                updates.state = WORKFLOW_STATE.KILLED;
+                updates.pubstatus = POST_STATE.CANCELLED;
             }
-        }
 
-        return promise.then(() => this.autoSave.flushAutosave())
-            .then(() => (
-                this.dispatch<any>(actions.main.save(
-                    isTemporary ? {} : this.state.initialValues,
-                    updates,
-                    withConfirmation
+            if (updates.type === 'event') {
+                updates.update_method = updateMethod;
+
+                if (Object.keys(planningUpdateMethods).length > 0) {
+                    updates.associated_plannings?.forEach((planningItem) => {
+                        if (planningUpdateMethods[planningItem._id] != null) {
+                            planningItem.update_method = planningUpdateMethods[planningItem._id];
+                        }
+                    });
+                }
+            }
+
+            return this.autoSave.flushAutosave()
+                .then(() => (
+                    this.dispatch<any>(actions.main.save(
+                        isTemporary ? {} : this.state.initialValues,
+                        updates,
+                        withConfirmation
+                    ))
                 ))
-            ))
-            .then((updatedItem) => {
-                if (!updatedItem) {
-                    // This occurs during an 'Ignore/Cancel/Save' from ModalEditor
-                    // And the user clicks on 'Cancel'
-                    return this.setState({submitting: false});
-                } else if (isTemporary) {
-                    this.autoSave.remove();
+                .then((updatedItem) => {
+                    if (!updatedItem) {
+                        // This occurs during an 'Ignore/Cancel/Save' from ModalEditor
+                        // And the user clicks on 'Cancel'
+                        return this.setState({submitting: false});
+                    } else if (isTemporary) {
+                        this.autoSave.remove();
 
-                    // If event was created by a planning item, unlock the planning item
-                    if (updates.type === 'event' && updates._planning_item != null) {
-                        planningApi.locks.unlockItemById(updates._planning_item, 'planning');
-                    }
+                        // If event was created by a planning item, unlock the planning item
+                        if (updates.type === 'event' && updates._planning_item != null) {
+                            planningApi.locks.unlockItemById(updates._planning_item, 'planning');
+                        }
 
-                    if (closeAfter) {
+                        if (closeAfter) {
+                            return this.editor.onCancel(updateStates);
+                        } else {
+                            return this.changeAction('edit', updatedItem);
+                        }
+                    } else if (closeAfter) {
                         return this.editor.onCancel(updateStates);
                     } else {
-                        return this.changeAction('edit', updatedItem);
+                        const newState: Partial<IEditorState> = {
+                            initialValues: updatedItem,
+                            diff: cloneDeep(updatedItem),
+                            dirty: false,
+                            submitting: false,
+                            submitFailed: false,
+                            errors: {},
+                            errorMessages: [],
+                            itemReady: true,
+                            loading: false,
+                        };
+
+                        this.editorApi.events.onItemUpdated(newState);
+
+                        return this.setState(newState, null, true);
                     }
-                } else if (closeAfter) {
-                    return this.editor.onCancel(updateStates);
-                } else {
-                    const newState: Partial<IEditorState> = {
-                        initialValues: updatedItem,
-                        diff: cloneDeep(updatedItem),
-                        dirty: false,
-                        submitting: false,
-                        submitFailed: false,
-                        errors: {},
-                        errorMessages: [],
-                        itemReady: true,
-                        loading: false,
-                    };
+                }, (error) => {
+                    if (get(error, 'status') === 412) {
+                        // If etag error, then notify user and change editor to read-only
+                        this.dispatch<any>(
+                            actions.main.notifyPreconditionFailed(this.props.inModalView)
+                        );
+                    }
 
-                    this.editorApi.events.onItemUpdated(newState);
-
-                    return this.setState(newState, null, true);
-                }
-            }, (error) => {
-                if (get(error, 'status') === 412) {
-                    // If etag error, then notify user and change editor to read-only
-                    this.dispatch<any>(
-                        actions.main.notifyPreconditionFailed(this.props.inModalView)
-                    );
-                }
-
-                if (updateStates) {
-                    this.setState({submitting: false});
-                }
-            });
+                    if (updateStates) {
+                        this.setState({submitting: false});
+                    }
+                });
+        });
     }
 
     startPartialSave(updates) {

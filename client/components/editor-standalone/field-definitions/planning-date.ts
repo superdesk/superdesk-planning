@@ -16,7 +16,7 @@ export const getPlanningDate = (): IFieldDefinition => {
             const field: IAuthoringFieldV2 = {
                 id: id,
                 name: gettext('Planning Date'),
-                fieldType: 'datetime',
+                fieldType: 'datetime-v2',
                 fieldConfig: {
                     ...config,
                     required: required,
