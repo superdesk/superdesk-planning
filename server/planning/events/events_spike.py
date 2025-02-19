@@ -44,6 +44,7 @@ class EventsSpikeResource(EventsResource):
     resource_methods = []
     item_methods = ["PATCH"]
     privileges = {"PATCH": "planning_event_spike"}
+    internal_resource = True
 
 
 class EventsSpikeService(EventsBaseService):
@@ -242,6 +243,7 @@ class EventsUnspikeResource(EventsResource):
     resource_methods = []
     item_methods = ["PATCH"]
     privileges = {"PATCH": "planning_event_unspike"}
+    internal_resource = True
 
 
 class EventsUnspikeService(EventsBaseService):
