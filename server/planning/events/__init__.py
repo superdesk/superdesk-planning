@@ -13,12 +13,6 @@ from quart_babel import lazy_gettext
 
 from planning import signals
 from .events import EventsResource, EventsService
-from .events_spike import (
-    EventsSpikeResource,
-    EventsSpikeService,
-    EventsUnspikeResource,
-    EventsUnspikeService,
-)
 from .events_files import EventsFilesResource, EventsFilesService
 from .events_history import EventsHistoryResource, EventsHistoryService
 from .events_lock import (
@@ -72,12 +66,6 @@ def init_app(app):
 
     events_search_service = EventsService(EventsResource.endpoint_name, backend=superdesk.get_backend())
     EventsResource(EventsResource.endpoint_name, app=app, service=events_search_service)
-
-    events_spike_service = EventsSpikeService("events_spike", backend=superdesk.get_backend())
-    EventsSpikeResource("events_spike", app=app, service=events_spike_service)
-
-    events_unspike_service = EventsUnspikeService("events_unspike", backend=superdesk.get_backend())
-    EventsUnspikeResource("events_unspike", app=app, service=events_unspike_service)
 
     events_post_service = EventsPostService("events_post", backend=superdesk.get_backend())
     EventsPostResource("events_post", app=app, service=events_post_service)
