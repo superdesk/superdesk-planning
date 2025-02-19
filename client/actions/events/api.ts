@@ -566,11 +566,7 @@ function updateLinkedPlanningsForEvent(
             associatedPlannings.filter(({_id}) => currentLinkedIds.has(_id) !== true);
 
         const toUnlink: Array<IPlanningItem> = currentlyLinked
-            .filter((item) => {
-                const needToUnlink = associatedPlannings.find(({_id}) => _id === item._id) == null;
-
-                return needToUnlink;
-            });
+            .filter((item) => associatedPlannings.find(({_id}) => _id === item._id) == null);
 
         return Promise.all(
             [
