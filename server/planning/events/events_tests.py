@@ -608,7 +608,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             ]
         )
 
-        event_item = await self.events_service.find_by_id_raw(new_events.id)
+        event_item = await self.events_service.find_by_id_raw(new_events[0].id)
         self.assertIsNotNone(event_item)
         self.assertEqual(event_item["pubstatus"], POST_STATE.USABLE)
 
