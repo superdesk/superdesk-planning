@@ -3,7 +3,6 @@ import {IExposedFromAuthoring} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
-import {notNullOrUndefined} from 'core/helpers/typescript-helpers';
 
 type IRelatedItemRefs = {[id: string]: RelatedPlanningItem | AssociatedEventItem};
 type ItemType = 'event' | 'planning';
@@ -22,6 +21,7 @@ const getEmbeddedItemsExposed = (
     itemType: 'event' | 'planning',
 ): Array<IExposedFromAuthoring<any>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
+    const {notNullOrUndefined} = superdeskApi.helpers;
 
     // Use Object.values instead of Object.keys because when refs are removed value becomes null and keys stay
     if (
