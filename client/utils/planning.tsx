@@ -1788,8 +1788,10 @@ function addToWorkflowCommon<T extends IPlanningCoverageItem | ICoverageSchedule
     next.news_coverage_status = newsCoverageStatus.find((s) => s.qcode === 'ncostat:int');
     next.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
 
+    const {nameof} = superdeskApi.helpers;
+
     // Scheduled update does not have `add_coverage_to_workflow`
-    if (!('scheduled_update_id' in item)) {
+    if (!(nameof<ICoverageScheduledUpdate>('scheduled_update_id') in item)) {
         next.add_coverage_to_workflow = !(item.add_coverage_to_workflow ?? false);
     }
 
