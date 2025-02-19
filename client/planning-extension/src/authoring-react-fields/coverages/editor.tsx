@@ -40,7 +40,7 @@ export class Editor extends React.PureComponent<IProps> {
                         field="coverages"
                         item={{
                             // coverages are the main value
-                            coverages: changedValue.map(modifyCoverageForClient),
+                            coverages: (changedValue ?? []).map(modifyCoverageForClient),
 
                             // related_events are used if available to prefill coverage fields
                             // when adding a new coverage
