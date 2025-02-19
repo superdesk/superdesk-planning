@@ -47,28 +47,13 @@ describe('Planning.Events: editor bookmarks', () => {
             .should('be.visible')
             .should('be.focused');
 
-        editor.element
-            .find('[data-test-id="editor--bookmarks__planning-0"]')
-            .should('not.exist');
-        editor.clickBookmark('add_planning');
-        editor.element
-            .find('[data-test-id="editor--bookmarks__planning-0"]')
-            .should('exist');
-        editor.element
-            .find('[data-test-id="editor--planning-item__0"]')
-            .should('exist')
+        editor.clickBookmark('related_plannings');
+
+        editor.getFormGroup('related_plannings')
             .should('be.visible');
 
         editor.element
-            .find('[data-test-id="editor--bookmarks__planning-1"]')
+            .find('[data-test-id="editor--bookmarks__planning-0"]')
             .should('not.exist');
-        editor.clickBookmark('add_planning');
-        editor.element
-            .find('[data-test-id="editor--bookmarks__planning-1"]')
-            .should('exist');
-        editor.element
-            .find('[data-test-id="editor--planning-item__1"]')
-            .should('exist')
-            .should('be.visible');
     });
 });
