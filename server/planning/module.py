@@ -17,6 +17,8 @@ from planning.assignments import assignments_resource_config, delivery_resource_
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
 
+from .planning_locks import planning_locks as planning_locks_endpoint
+
 
 async def cleanup_on_session_end(user_id: ObjectId, session_id: ObjectId, is_last_session: bool) -> None:
     lookup = {LOCK_USER: user_id} if is_last_session else {LOCK_SESSION: session_id}
@@ -34,6 +36,9 @@ def init_planning(app: SuperdeskAsyncApp):
 module = Module(
     "planning",
     init=init_planning,
+    endpoints=[
+        planning_locks_endpoint,
+    ],
     resources=[
         events_resource_config,
         planning_resource_config,
