@@ -15,7 +15,7 @@
     "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
     "test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
     "karma": "karma start karma.conf.js",
-    "debug_unit_test": "karma start karma.conf.js --browsers=Chrome"
+    "debug_unit_tests": "karma start karma.conf.js --browsers=Chrome"
   },
   "author": "Edouard Richard",
   "dependencies": {
