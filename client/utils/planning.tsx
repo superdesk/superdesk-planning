@@ -1789,7 +1789,7 @@ function addToWorkflowCommon<T extends IPlanningCoverageItem | ICoverageSchedule
     next.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
 
     // Scheduled update does not have `add_coverage_to_workflow`
-    if ('original_coverage_id' in (item as IPlanningCoverageItem)) {
+    if (!('scheduled_update_id' in item)) {
         next.add_coverage_to_workflow = !(item.add_coverage_to_workflow ?? false);
     }
 

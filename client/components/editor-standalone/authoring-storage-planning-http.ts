@@ -45,7 +45,7 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
             headers: {
                 'If-Match': original._etag,
             },
-        });
+        }).then(planningUtils.modifyForClient);
     },
     getContentProfile: () => {
         return Promise.resolve(getProfile('planning'));

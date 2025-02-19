@@ -56,7 +56,6 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
-            modifyCoverageForClient: (coverage: IPlanningCoverageItem) => IPlanningCoverageItem;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated<T>(
@@ -118,7 +117,6 @@ export const extensionBridge: IExtensionBridge = {
     },
     ui: {
         utils: {
-            modifyCoverageForClient,
             isTemporaryId,
             getUserInterfaceLanguageFromCV,
             getVocabularyItemFieldTranslated,

@@ -4,7 +4,6 @@ import {
     IAssignmentItem,
     IEditorFieldProps,
     IPlanningAppState,
-    IPlanningCoverageItem,
     IPlanningItem,
 } from '../../interfaces';
 import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
@@ -50,7 +49,6 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
-            modifyCoverageForClient: (coverage: IPlanningCoverageItem) => IPlanningCoverageItem;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated(

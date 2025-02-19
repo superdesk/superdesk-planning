@@ -12,7 +12,7 @@ export class EditorFieldAddCoverageToWorkflow extends React.PureComponent<IEdito
         return (
             <Tooltip
                 disabled={this.props.disabled === false}
-                content={superdeskApi.localization.gettext('You haven\'t saved the coverage or assigned it')}
+                content={superdeskApi.localization.gettext('You haven\'t assigned the coverage')}
             >
                 <EditorFieldToggle
                     {...this.props}

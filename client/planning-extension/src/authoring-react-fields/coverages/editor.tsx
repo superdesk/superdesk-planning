@@ -17,7 +17,6 @@ export class Editor extends React.PureComponent<IProps> {
     render() {
         const Container = this.props.container;
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
-        const {modifyCoverageForClient} = extensionBridge.ui.utils;
         const itemSaved = extensionBridge.ui.utils.isTemporaryId(this.props.item._id) === false;
 
         return (
@@ -40,7 +39,7 @@ export class Editor extends React.PureComponent<IProps> {
                         field="coverages"
                         item={{
                             // coverages are the main value
-                            coverages: (changedValue ?? []).map(modifyCoverageForClient),
+                            coverages: changedValue ?? [],
 
                             // related_events are used if available to prefill coverage fields
                             // when adding a new coverage
