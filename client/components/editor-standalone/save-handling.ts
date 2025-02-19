@@ -1,6 +1,7 @@
+import {notNullOrUndefined} from '@sourcefabric/common';
 import {EDITOR_TYPE} from '../../interfaces';
 import {IExposedFromAuthoring} from 'superdesk-api';
-import {planningApi, superdeskApi} from '../../superdeskApi';
+import {planningApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
 import {AssociatedEventItem} from 'components/fields/editor/AssociatedEventItem';
 
@@ -21,7 +22,6 @@ const getEmbeddedItemsExposed = (
     itemType: 'event' | 'planning',
 ): Array<IExposedFromAuthoring<any>> => {
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
-    const {notNullOrUndefined} = superdeskApi.helpers;
 
     const exposedAuthoringArray = Object.values(relatedItemRefs ?? {})
         .map((x) =>
