@@ -105,7 +105,7 @@ async def process_update_time(
     ACTION = "update_time"
 
     # Perform pre update event actions
-    pre_update_event_actions(updates, original, ACTION)
+    pre_update_event_actions(updates, original, ACTION, require_lock)
 
     # Determine update method
     update_method = get_update_method(updates, original)

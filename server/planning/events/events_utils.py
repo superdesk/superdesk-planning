@@ -244,7 +244,9 @@ async def get_recurring_timeline(
     return historic, past, future
 
 
-def pre_update_event_actions(updates: dict[str, Any], original: dict[str, Any], ACTION: str = ""):
+def pre_update_event_actions(
+    updates: dict[str, Any], original: dict[str, Any], ACTION: str = "", require_lock: bool = True
+):
     # Set version_creator and update ingested state
     user_id = get_user_id()
     if user_id:
@@ -252,7 +254,7 @@ def pre_update_event_actions(updates: dict[str, Any], original: dict[str, Any], 
         set_ingested_event_state(updates, original)
 
     # Perform additional validation for event action
-    validate_event_action(updates, original, ACTION)
+    validate_event_action(updates, original, ACTION, require_lock)
 
 
 def get_update_method(updates: dict[str, Any], original: dict[str, Any]) -> str:
