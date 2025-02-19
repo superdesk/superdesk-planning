@@ -310,7 +310,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     if update_method == UPDATE_SINGLE:
         await unspike_single_event(updates, original)
     else:
-        await spike_recurring_events(updates, original, update_method)
+        await unspike_recurring_events(updates, original, update_method)
 
     # Clean updates before persisting change
     unspiked_items = updates.pop("_unspiked_items", [])
@@ -323,7 +323,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     if not user_id:
         unspiked_items.append({"id": id, "etag": unspiked_event["_etag"], "state": unspiked_event[ITEM_STATE]})
         push_notification(
-            "events:spiked",
+            "events:unspiked",
             item=str(original[ID_FIELD]),
             user=str(user_id),
             unspiked_items=unspiked_items,

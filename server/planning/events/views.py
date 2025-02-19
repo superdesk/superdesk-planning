@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from planning.events.events_service import EventsAsyncService
 from planning.events.events_update_time import process_update_time
-from planning.events.events_spike_new import process_spike_event, process_unspike_event
+from planning.events.events_spike_async import process_spike_event, process_unspike_event
 from planning.utils import get_json_or_400_async
 
 from superdesk.core.auth.privilege_rules import required_privilege_rule

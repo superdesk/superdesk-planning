@@ -133,7 +133,9 @@ def init_app(app):
 
     # listen to async signals
     signals.events_created.connect(events_history_service.on_item_created)
-    signals.event_time_updated.connect(events_history_service.on_item_created)
+    signals.event_time_updated.connect(events_history_service.on_update_time)
+    signals.event_spiked.connect(events_history_service.on_spike)
+    signals.event_unspiked.connect(events_history_service.on_unspike)
 
     app.on_updated_events += events_history_service.on_item_updated
 
@@ -142,8 +144,6 @@ def init_app(app):
 
     app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
-    app.on_updated_events_spike += events_history_service.on_spike
-    app.on_updated_events_unspike += events_history_service.on_unspike
     app.on_updated_events_cancel += events_history_service.on_cancel
     app.on_updated_events_reschedule += events_history_service.on_reschedule
     app.on_updated_events_postpone += events_history_service.on_postpone
