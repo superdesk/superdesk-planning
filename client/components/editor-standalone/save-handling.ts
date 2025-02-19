@@ -23,15 +23,7 @@ const getEmbeddedItemsExposed = (
     const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
     const {notNullOrUndefined} = superdeskApi.helpers;
 
-    // Use Object.values instead of Object.keys because when refs are removed value becomes null and keys stay
-    if (
-        relatedItemRefs == null
-        || Object.values(relatedItemRefs).filter(superdeskApi.helpers.notNullOrUndefined).length < 1
-    ) {
-        return [];
-    }
-
-    const exposedAuthoringArray = Object.values(relatedItemRefs)
+    const exposedAuthoringArray = Object.values(relatedItemRefs ?? {})
         .map((x) =>
             x?.authoringRef?.current?.getExposed?.()
         )
