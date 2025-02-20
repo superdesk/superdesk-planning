@@ -142,7 +142,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         for event, embedded_planning in embedded_planning_list:
             sync_event_metadata_with_planning_items(None, event.to_dict(), embedded_planning)
 
-    async def create(self, docs: list[EventResourceModel]):
+    async def create(self, docs: list[EventResourceModel]) -> list[EventResourceModel]:
         """
         Extracts out the ``embedded_planning`` before saving the Event(s)
         And then uses them to synchronise/process the associated Planning item(s)
@@ -152,11 +152,11 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         embedded_planning_list = self._extract_embedded_planning(docs)
         await self.prepare_events_data(docs)
-        ids = await super().create(docs)
+        new_events = await super().create(docs)
 
         self._synchronise_associated_plannings(embedded_planning_list)
 
-        return ids
+        return new_events
 
     async def prepare_events_data(self, docs: list[EventResourceModel]) -> None:
         """

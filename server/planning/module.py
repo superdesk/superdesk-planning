@@ -1,8 +1,14 @@
 from asyncio import gather
 from bson import ObjectId
+from quart_babel import gettext
 
-from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 from superdesk.core.module import Module, SuperdeskAsyncApp
+
+from superdesk.types import FilterConditionFieldParam, FilterConditionOperator
+from superdesk.publish_async.signals import on_get_available_filter_params
+from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
+
+from planning.types import AgendasResourceModel
 from planning.agendas_async import agendas_resource_config
 from planning.events import events_resource_config, events_history_resource_config, events_autosave_resource_config
 from planning.events.events_autosave_async_service import EventsAutosaveAsyncService
@@ -28,9 +34,25 @@ async def cleanup_on_session_end(user_id: ObjectId, session_id: ObjectId, is_las
     )
 
 
+async def add_agenda_to_filter_params(fields: list[FilterConditionFieldParam]) -> None:
+    """Add agendas filter to the available list of filter params."""
+
+    enabled_agendas = await AgendasResourceModel.get_service().get_all_list_raw({"is_enabled": True})
+    fields.append(
+        FilterConditionFieldParam(
+            field="agendas",
+            label=gettext("Agendas"),
+            operators=[FilterConditionOperator.IN, FilterConditionOperator.NOT_IN],
+            values=enabled_agendas,
+            value_field="_id",
+        )
+    )
+
+
 def init_planning(app: SuperdeskAsyncApp):
     wsgi_app = app.wsgi.as_any()
     wsgi_app.on_session_end += cleanup_on_session_end
+    on_get_available_filter_params.connect(add_agenda_to_filter_params)
 
 
 module = Module(
