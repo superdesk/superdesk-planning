@@ -88,3 +88,19 @@ class PlanningTypesResource(superdesk.Resource):
         "POST": "planning_manage_content_profiles",
         "PATCH": "planning_manage_content_profiles",
     }
+
+
+class ContentProfilesResource(superdesk.Resource):
+    endpoint_name = "coverage_profiles"
+    schema = planning_types_schema.copy()
+    schema.pop("_id")
+    schema.update(
+        {
+            "name": {"type": "string", "required": False, "nullable": True},
+            "coverage_type": {"type": "string", "required": True},
+        }
+    )
+    merge_nested_documents = True
+    resource_methods = PlanningTypesResource.resource_methods.copy()
+    item_methods = PlanningTypesResource.item_methods.copy()
+    privileges = PlanningTypesResource.privileges.copy()

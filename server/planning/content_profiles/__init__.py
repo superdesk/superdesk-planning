@@ -13,8 +13,8 @@ from flask_babel import lazy_gettext
 
 import superdesk
 
-from .resource import PlanningTypesResource
-from .service import PlanningTypesService
+from .resource import PlanningTypesResource, ContentProfilesResource
+from .service import PlanningTypesService, ContentProfilesService
 from planning.common import get_config_event_related_item_search_provider_name
 
 
@@ -27,6 +27,11 @@ def init_app(app: Eve):
 
     planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name, backend=superdesk.get_backend())
     PlanningTypesResource(PlanningTypesResource.endpoint_name, app=app, service=planning_type_service)
+
+    content_profiles_service = ContentProfilesService(
+        ContentProfilesResource.endpoint_name, backend=superdesk.get_backend()
+    )
+    ContentProfilesResource(ContentProfilesResource.endpoint_name, app=app, service=content_profiles_service)
 
     event_related_item_search_provider_name = get_config_event_related_item_search_provider_name(app)
     if event_related_item_search_provider_name:
