@@ -269,7 +269,7 @@ Feature: Coverage Content Profiles
         When we post to "coverage_profiles"
         """
         {
-            "coverage_type": "text",
+            "content_type": "text",
             "editor": {
                 "language": {
                     "enabled": true,

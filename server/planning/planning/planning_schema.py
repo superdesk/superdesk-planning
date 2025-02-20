@@ -49,6 +49,7 @@ coverage_schema = {
     "version_creator": metadata_schema["version_creator"],
     "firstcreated": metadata_schema["firstcreated"],
     "versioncreated": metadata_schema["versioncreated"],
+    "profile": Resource.rel("coverage_profiles", nullable=True),
     # News Coverage Details
     # See IPTC-G2-Implementation_Guide 16.4
     "planning": {

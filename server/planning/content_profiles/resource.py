@@ -97,7 +97,7 @@ class ContentProfilesResource(superdesk.Resource):
     schema.update(
         {
             "name": {"type": "string", "required": False, "nullable": True},
-            "coverage_type": {"type": "string", "required": True},
+            "content_type": {"type": "string", "required": True},
         }
     )
     merge_nested_documents = True
