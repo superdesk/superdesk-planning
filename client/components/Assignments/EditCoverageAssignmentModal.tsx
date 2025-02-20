@@ -19,7 +19,7 @@ interface IProps {
     modalProps: {
         field?: string;
         value?: any;
-        onChange?: (...args: any) => any;
+        onChange: (...args: any) => any;
         priorityPrefix?: string;
         disableDeskSelection?: boolean;
         disableUserSelection?: boolean;

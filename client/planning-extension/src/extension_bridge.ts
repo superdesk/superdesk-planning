@@ -53,6 +53,7 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
+            isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated(
                 item: null | {

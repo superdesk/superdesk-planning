@@ -1,11 +1,8 @@
 import React from 'react';
-import {isEqual} from 'lodash';
-
 import {IG2ContentType, IPlanningCoverageItem} from '../../../interfaces';
 import {IDesk} from 'superdesk-api';
-import {superdeskApi, planningApi} from '../../../superdeskApi';
-
 import {AddCoveragesWrapper} from './AddCoveragesWrapper';
+import {Button} from 'superdesk-ui-framework';
 
 interface IProps {
     field: string;
@@ -33,52 +30,30 @@ export class CoverageAddButton extends React.Component<IProps> {
         this.onChange = this.onChange.bind(this);
     }
 
-    shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<{}>, nextContext: any): boolean {
-        // For some reason this component get's re-rendered (which causes problems with e2e tests)
-        // Make sure to only re-render if Coverage ID's change
-        const prevIds = (this.props.value ?? []).map((coverage) => coverage.coverage_id);
-        const nextIds = (nextProps.value ?? []).map((coverage) => coverage.coverage_id);
-
-        return this.props.field !== nextProps.field ||
-            !isEqual(prevIds, nextIds) ||
-            this.props.language !== nextProps.language;
-    }
-
     onChange(field: string, coverages: Array<DeepPartial<IPlanningCoverageItem>>) {
         this.props.onChange(
             field,
-            [
-                ...(this.props.value ?? []),
-                ...coverages,
-            ],
+            coverages,
         );
     }
 
     render() {
-        const {gettext} = superdeskApi.localization;
-        const {
-            className = 'dropdown dropdown--align-right dropdown--dropup pull-right',
-            buttonClass = 'dropdown__toggle sd-create-btn',
-            ...props
-        } = this.props;
-
         return (
             <AddCoveragesWrapper
-                {...props}
+                {...this.props}
                 onChange={this.onChange}
                 target="icon-plus-large"
                 button={({toggleMenu}) => (
-                    <div className={className}>
-                        <button
-                            className={buttonClass}
-                            onClick={toggleMenu}
-                            title={gettext('Create new coverage')}
-                            style={{border: 0}}
-                        >
-                            <i className="icon-plus-large" />
-                            <span className="circle" />
-                        </button>
-                    </div>
+                    <Button
+                        data-test-id="create-button"
+                        type="primary"
+                        icon="plus-large"
+                        text="plus-large"
+                        shape="round"
+                        size="small"
+                        iconOnly={true}
+                        onClick={toggleMenu}
+                    />
                 )}
             />
         );

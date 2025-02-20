@@ -13,7 +13,32 @@ import {
 import {InternalNoteLabel} from '../../';
 import {ContactField} from '../../Contacts/ContactField';
 
-export class ScheduledUpdateForm extends React.Component {
+interface IProps {
+    field: string;
+    value: any;
+    onChange: (field: string, value: any) => void;
+    newsCoverageStatus: Array<any>;
+    readOnly: boolean;
+    item?: any;
+    diff: any;
+    formProfile?: any;
+    errors?: any;
+    showErrors?: boolean;
+    addNewsItemToPlanning: any;
+    popupContainer?: () => HTMLElement;
+    onFieldFocus: (field: string) => void;
+    index: number;
+    onPopupOpen: () => void;
+    onPopupClose: () => void;
+    coverageIndex: number;
+    hasAssignment: boolean;
+    onScheduleChanged: (field: string, value: any, currentValue: any) => void;
+    genres: Array<any>;
+}
+
+export class ScheduledUpdateForm extends React.Component<IProps> {
+    dom: {internalNote: any; popupContainer: any;};
+
     constructor(props) {
         super(props);
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
@@ -152,26 +177,3 @@ export class ScheduledUpdateForm extends React.Component {
         );
     }
 }
-
-ScheduledUpdateForm.propTypes = {
-    field: PropTypes.string,
-    value: PropTypes.object,
-    onChange: PropTypes.func,
-    newsCoverageStatus: PropTypes.array,
-    readOnly: PropTypes.bool,
-    item: PropTypes.object,
-    diff: PropTypes.object,
-    formProfile: PropTypes.object,
-    errors: PropTypes.object,
-    showErrors: PropTypes.bool,
-    addNewsItemToPlanning: PropTypes.object,
-    popupContainer: PropTypes.func,
-    onFieldFocus: PropTypes.func,
-    index: PropTypes.number,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    coverageIndex: PropTypes.number,
-    hasAssignment: PropTypes.bool,
-    onScheduleChanged: PropTypes.func,
-    genres: PropTypes.array,
-};

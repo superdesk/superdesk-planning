@@ -38,7 +38,8 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             delete groups['related_plannings'];
         }
 
-        const canCreatePlanningItems = hasPrivilege('planning_planning_management');
+        const canCreatePlanningItems = hasPrivilege('planning_planning_management')
+            && isTemporaryId(_item._id) === false;
         const isRelatedPlanningReadOnly = (profile.schema.related_plannings as IProfileSchemaTypeList)?.read_only;
         const bookmarks = getBookmarksFromFormGroups(groups);
         let index = bookmarks.length;

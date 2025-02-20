@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten, noop} from 'lodash';
+import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten, noop, isEqual} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
@@ -379,7 +379,6 @@ function canCancelCoverage(
 
 function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: Partial<IPlanningItem>): boolean {
     return (
-        isExistingItem(coverage, 'coverage_id') &&
         isCoverageDraft(coverage) &&
         isCoverageAssigned(coverage) &&
         !appConfig.planning_auto_assign_to_workflow &&
@@ -925,7 +924,9 @@ export function modifyForClient<T extends IPlanningItem | Partial<IPlanningItem>
     return plan;
 }
 
-function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
+function modifyForServer(plan: Partial<IPlanningItem>, original?: Partial<IPlanningItem>): Partial<IPlanningItem> {
+    delete plan?.event;
+
     const modifyGenre = (coverage) => {
         if (!get(coverage, 'planning.genre', null)) {
             coverage.planning.genre = null;
@@ -936,8 +937,7 @@ function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
 
     delete plan._agendas;
 
-    get(plan, 'coverages', []).forEach((coverage) => {
-        coverage.planning = coverage.planning || {};
+    get(plan, 'coverages', []).forEach((coverage, i) => {
         modifyGenre(coverage);
 
         delete coverage.planning._scheduledTime;
@@ -956,7 +956,7 @@ function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
  * @param {object} coverage - The coverage to modify
  * @return {object} coverage item provided
  */
-function modifyCoverageForClient(coverage: IPlanningCoverageItem): IPlanningCoverageItem {
+export function modifyCoverageForClient(coverage: IPlanningCoverageItem): IPlanningCoverageItem {
     const modifyGenre = (coverage) => {
         // Convert genre from an Array to an Object
         if (get(coverage, 'planning.genre[0]')) {
@@ -1788,8 +1788,10 @@ function addToWorkflowCommon<T extends IPlanningCoverageItem | ICoverageSchedule
     next.news_coverage_status = newsCoverageStatus.find((s) => s.qcode === 'ncostat:int');
     next.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
 
+    const {nameof} = superdeskApi.helpers;
+
     // Scheduled update does not have `add_coverage_to_workflow`
-    if ('original_coverage_id' in (item as IPlanningCoverageItem)) {
+    if (!(nameof<ICoverageScheduledUpdate>('scheduled_update_id') in item)) {
         next.add_coverage_to_workflow = !(item.add_coverage_to_workflow ?? false);
     }
 

@@ -21,7 +21,7 @@ import {
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 
 import * as selectors from '../../selectors';
-import {PLANNING, WORKSPACE, MODALS, MAIN, COVERAGES} from '../../constants';
+import {PLANNING, WORKSPACE, MODALS, MAIN} from '../../constants';
 import * as actions from '../index';
 
 /**
@@ -465,12 +465,12 @@ const onAddCoverageClick = (item) => (
     }
 );
 
-const saveFromAuthoring = (original, updates) => (
+const saveFromAuthoring = (original, updates?: Partial<IPlanningItem>) => (
     (dispatch, getState, {notify}) => {
         dispatch(actions.actionInProgress(true));
         let resolved = true;
 
-        return dispatch(planningApis.save(original, updates))
+        return dispatch(planningApis.save(original, planningUtils.modifyForServer(updates ?? {})))
             .then((newPlan) => {
                 const newsItem = get(selectors.general.modalProps(getState()), 'newsItem') ||
                     get(selectors.general.previousModalProps(getState()), 'newsItem');
@@ -483,14 +483,17 @@ const saveFromAuthoring = (original, updates) => (
                         notify.success('Content linked to the planning item.');
 
                         return Promise.resolve(newPlan);
-                    }, (error) => {
+                    })
+                    .catch((error) => {
                         notify.error(
                             getErrorMessage(error, 'Failed to link to the Planning item!')
                         );
                         resolved = false;
+
                         return Promise.reject(error);
                     });
-            }, (error) => {
+            })
+            .catch((error) => {
                 resolved = false;
                 notify.error(
                     getErrorMessage(error, 'Failed to save the Planning item!')

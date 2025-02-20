@@ -44,13 +44,10 @@ interface IOwnProps {
     desks: Array<IDesk>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
-    genres: Array<IGenre>;
     coverageProviders: Array<ICoverageProvider>;
     priorities: Array<IAssignmentPriority>;
-    keywords: Array<string>;
     readOnly: boolean;
     message: any;
-    item: any;
     diff: any; // planning item
     formProfile: any;
     errors: {[key: string]: any};
@@ -59,7 +56,6 @@ interface IOwnProps {
     addNewsItemToPlanning?: IArticle;
     navigation?: any;
     index: number;
-    openCoverageIndex: number;
     openCoverageIds: Array<IPlanningCoverageItem['coverage_id']>;
     includeScheduledUpdates?: boolean;
     editorType: EDITOR_TYPE;
@@ -77,17 +73,15 @@ interface IReduxStateProps {
 
 type IProps = IOwnProps & IReduxStateProps;
 
-function duplicateCoverage(
-    {
-        planning,
-        coverage,
-        duplicateAs,
-    } : {
-        planning: IPlanningItem;
-        coverage: IPlanningCoverageItem;
-        duplicateAs?: IG2ContentType['qcode'];
-    }
-): Array<DeepPartial<IPlanningCoverageItem>> {
+function duplicateCoverage({
+    planning,
+    coverage,
+    duplicateAs,
+}: {
+    planning: IPlanningItem;
+    coverage: IPlanningCoverageItem;
+    duplicateAs?: IG2ContentType['qcode'];
+}): Array<DeepPartial<IPlanningCoverageItem>> {
     const state: IPlanningAppState = planningApi.redux.store.getState();
 
     // TAG: MULTIPLE_PRIMARY_EVENTS
@@ -111,8 +105,6 @@ function assignCoverageToDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem
     if (!Object.keys(coverage.assigned_to ?? {}).length) {
         coverage.assigned_to = {desk: defaultDesk._id};
     } else {
-        // TODO: Fix IDesk['members'] type in client-core
-        // @ts-ignore
         const deskMembers = (defaultDesk?.members ?? []).map((m) => m.user);
 
         coverage.assigned_to.desk = defaultDesk._id;
@@ -186,11 +178,8 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
             desks,
             remove,
             contentTypes,
-            genres,
             newsCoverageStatus,
             coverageProviders,
-            priorities,
-            keywords,
             readOnly,
             message,
             invalid,
@@ -293,17 +282,15 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
             openCoverageIds.includes(value.coverage_id);
         const onFocus = editorMenuUtils.onItemFocus(navigation, value.coverage_id);
 
-        const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
-            (
-                <div className="side-panel__top-tools-right">
-                    <ItemActionsMenu
-                        field={field}
-                        actions={itemActions}
-                        onOpen={onFocus}
-                    />
-                </div>
-            ) :
-            null;
+        const itemActionComponent = (itemActions ?? []).length > 0 && (
+            <div className="side-panel__top-tools-right">
+                <ItemActionsMenu
+                    field={field}
+                    actions={itemActions}
+                    onOpen={onFocus}
+                />
+            </div>
+        );
 
         const coverageItem = (
             <CoverageItem
@@ -311,7 +298,6 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
                 index={index}
                 coverage={value}
                 itemActionComponent={itemActionComponent}
-                readOnly={readOnly}
             />
         );
 
@@ -335,22 +321,13 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
                 diff={diff}
                 index={index}
                 onChange={onChange}
-                newsCoverageStatus={newsCoverageStatus}
-                contentTypes={contentTypes}
-                genres={genres}
-                keywords={keywords}
                 readOnly={readOnly}
                 message={message}
-                invalid={invalid}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 onFieldFocus={onFocus}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
-                users={users}
-                desks={desks}
-                coverageProviders={coverageProviders}
-                priorities={priorities}
                 includeScheduledUpdates={includeScheduledUpdates}
                 {...props}
             />

@@ -22,15 +22,11 @@ import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
-import {showModal} from '@sourcefabric/common';
-import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 import {getCoverageFields} from '../../../api/editor/item_planning';
 
 import '../style.scss';
-import {gettextPlural} from 'core/utils';
 
-interface IProps {
-    // Values
+interface IOwnProps {
     field: string;
     value: IPlanningCoverageItem;
     readOnly: boolean;
@@ -52,16 +48,16 @@ interface IProps {
 
     // Functions
     onChange(field: string, value: any): void;
-    popupContainer(): HTMLElement;
     onFieldFocus(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
     uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
-    createUploadLink(file: IFile): void;
+    createUploadLink?(file: IFile): void;
     removeFile(file: IFile): Promise<void>;
-    notifyValidationErrors(errors: Array<string>): void;
+    notifyValidationErrors?(errors: Array<string>): void;
+}
 
-    // Redux States
+interface IReduxStateProps {
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
     languages: Array<string>;
@@ -86,6 +82,8 @@ const mapStateToProps = (state) => ({
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     formProfile: selectors.forms.coverageProfile(state),
 });
+
+type IProps = IOwnProps & IReduxStateProps;
 
 export class CoverageFormComponent extends React.Component<IProps, IState> {
     fullFilePath: string;
@@ -191,7 +189,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     onAddScheduledUpdate() {
-        let defaultScheduledUpdate = {
+        const defaultScheduledUpdate: any = {
             coverage_id: get(this.props, 'value.coverage_id'),
             scheduled_update_id: generateTempId(),
             planning: {
@@ -248,7 +246,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
 
         if (get(fileList, 'length', 0) > 1) {
-            this.props.notifyValidationErrors([gettext('You can associate only one XMP file')]);
+            this.props.notifyValidationErrors?.([gettext('You can associate only one XMP file')]);
             return;
         }
 
@@ -262,7 +260,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         });
 
         if (error) {
-            this.props.notifyValidationErrors([gettext('Only one XMP files are accepted')]);
+            this.props.notifyValidationErrors?.([gettext('Only one XMP files are accepted')]);
             return;
         }
 
@@ -278,7 +276,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath;
 
         this.setState({uploading: true});
-        return this.props.uploadFiles(files)
+        return this.props.uploadFiles?.(files)
             .then((newFiles) => {
                 const value = xmpFile ? get(newFiles, '[0]._id') :
                     [
@@ -392,7 +390,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 onChange: this.toggleAddToWorkflow,
                 disabled: this.props.value.add_coverage_to_workflow
                     ? false
-                    : planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff) !== true
+                    : !planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff),
             },
             g2_content_type: {
                 readOnly: this.props.readOnly || readOnlyFields.g2_content_type,
@@ -513,4 +511,4 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 }
 
-export const CoverageForm = connect(mapStateToProps)(CoverageFormComponent);
+export const CoverageForm = connect<IReduxStateProps, IOwnProps>(mapStateToProps)(CoverageFormComponent);

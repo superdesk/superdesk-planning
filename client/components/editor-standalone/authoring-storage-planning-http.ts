@@ -39,18 +39,18 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
             payload: omitFields(
                 generatePatch(
                     planningUtils.modifyForServer(original),
-                    planningUtils.modifyForServer(current),
+                    planningUtils.modifyForServer(current, original),
                 ),
             ),
             headers: {
                 'If-Match': original._etag,
             },
-        });
+        }).then(planningUtils.modifyForClient);
     },
     getContentProfile: () => {
         return Promise.resolve(getProfile('planning'));
     },
-    closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
+    closeAuthoring: (_current, _original, _hasUnsavedChanges, _cancelAutosave, _doClose) => {
         return Promise.resolve();
     },
     getUserPreferences: () => ng.get('preferencesService').get()

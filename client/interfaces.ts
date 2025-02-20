@@ -119,6 +119,9 @@ export enum JUMP_INTERVAL {
     MONTH = 'MONTH'
 }
 
+/**
+ * @spiked is only used in the front-end, to remove items from AdvancedCoverage modal
+ */
 export type IPlanningWorkflowStatus = 'draft'
     | 'assigned'
     | 'in_progress'
@@ -126,8 +129,7 @@ export type IPlanningWorkflowStatus = 'draft'
     | 'submitted'
     | 'cancelled'
     | 'reverted'
-    // `spiked` is only used in the front-end,
-    // to remove items from AdvancedCoverage modal
+    | 'active'
     | 'spiked';
 
 export type IPlanningPubstatus = 'usable' | 'cancelled';
@@ -744,6 +746,9 @@ export interface IPlanningItem extends IBaseRestApiResponse {
 
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;
+
+    // added by client - should be dropped before sending to server
+    event?: IEventItem;
 
     /**
      * This is for storing UI related data that is not a part of the planning item entity itself,

@@ -80,7 +80,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         })();
 
         return (
-            <Spacer v gap="16">
+            <Spacer v gap="16" noWrap>
                 <Spacer h gap="4" justifyContent="space-between" noWrap>
                     <label className="side-panel__heading side-panel__heading--big">
                         {gettext('Related Events')}
@@ -97,20 +97,22 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                         />
                     )}
                 </Spacer>
-                <Spacer gap="8" v>
-                    {events.map((event, i) => (
-                        <AssociatedEventItem
-                            index={i}
-                            key={event._id}
-                            event={event}
-                            removeEventItem={this.props.removeEventItem}
-                            disabled={this.props.disabled}
-                            ref={(ref) => {
-                                this.relatedItemRefs[i] = ref;
-                            }}
-                        />
-                    ))}
-                </Spacer>
+                {events.length > 0 && (
+                    <Spacer gap="8" v>
+                        {events.map((event, i) => (
+                            <AssociatedEventItem
+                                index={i}
+                                key={event._id}
+                                event={event}
+                                removeEventItem={this.props.removeEventItem}
+                                disabled={this.props.disabled}
+                                ref={(ref) => {
+                                    this.relatedItemRefs[i] = ref;
+                                }}
+                            />
+                        ))}
+                    </Spacer>
+                )}
                 {!disabled && (
                     <DropZone
                         canDrop={

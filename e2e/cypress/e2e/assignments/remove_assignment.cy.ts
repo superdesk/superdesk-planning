@@ -80,6 +80,6 @@ describe('Planning.Assignment: remove assignment', () => {
             .should('contain.text', 'Unassigned');
         coverageEditor.element
             .find('.label')
-            .should('contain.text', 'Draft');
+            .should('contain.text', 'draft');
     });
 });

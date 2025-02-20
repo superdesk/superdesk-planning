@@ -5,7 +5,7 @@ interface IProps {
     label?: string,
     value?: string | number | React.ReactNode,
     className?: string,
-    children: React.ReactNode,
+    children?: React.ReactNode,
     noPadding?: boolean,
     enabled?: boolean,
     flex?: boolean,
