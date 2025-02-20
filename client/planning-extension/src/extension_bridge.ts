@@ -4,6 +4,7 @@ import {
     IAssignmentItem,
     IEditorFieldProps,
     IPlanningAppState,
+    IPlanningCoverageItem,
     IPlanningItem,
 } from '../../interfaces';
 import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInputStandalone.interface';
@@ -40,6 +41,9 @@ interface IExtensionBridge {
     planning: {
         getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
     },
+    coverages: {
+        validateCoverages(coverages: Array<IPlanningCoverageItem>): {errors: {}; messages: Array<string>};
+    };
     editor: {
         fields: {
             EditorFieldLocation: React.ComponentType<IEditorFieldLocationProps>;

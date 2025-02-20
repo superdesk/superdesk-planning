@@ -25,8 +25,8 @@ import {IEditorFieldLocationProps} from 'components/fields/editor/Location.inter
 
 import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningCoverageItem} from 'interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
+import {validateCoveragesV2} from './validators/planning';
 import {isTemporaryId} from './utils';
-import {modifyCoverageForClient} from './utils/planning';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -47,6 +47,9 @@ interface IExtensionBridge {
     planning: {
         getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
     },
+    coverages: {
+        validateCoverages(coverages: Array<IPlanningCoverageItem>): {errors: {}; messages: Array<string>};
+    };
     editor: {
         fields: {
             EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
@@ -107,6 +110,9 @@ export const extensionBridge: IExtensionBridge = {
     },
     planning: {
         getItemPlanningInfo,
+    },
+    coverages: {
+        validateCoverages: validateCoveragesV2,
     },
     editor: {
         fields: {

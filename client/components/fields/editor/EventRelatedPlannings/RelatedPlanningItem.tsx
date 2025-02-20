@@ -18,6 +18,7 @@ import {
     getAuthoringStorageInMemory
 } from '../../../editor-standalone/authoring-storage-in-memory';
 import {IAuthoringReact} from 'superdesk-api';
+import {CustomHeaderToggleBox} from 'superdesk-ui-framework/react/components/ToggleBox/CustomHeaderToggleBox';
 
 interface IProps {
     event: IEventItem;
@@ -40,7 +41,7 @@ interface IProps {
 export class RelatedPlanningItem extends React.PureComponent<IProps> {
     containerNode: React.RefObject<HTMLDivElement>;
     public authoringRef: React.RefObject<IAuthoringReact<IPlanningItem>>;;
-    public toggleBoxRef: React.RefObject<any>;
+    public toggleBoxRef: React.RefObject<CustomHeaderToggleBox>;
 
     constructor(props) {
         super(props);
@@ -139,6 +140,20 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                 )
                                 : authoringStoragePlanningItemHttp
                         }
+                        makeVisible={() => {
+                            if (this.toggleBoxRef.current.isOpen()) {
+                                return Promise.resolve();
+                            } else {
+                                return new Promise((resolve) => {
+                                    this.toggleBoxRef.current.toggle();
+
+                                    // PR-TODO: improve toggleBox so `toggle` method returns a promise
+                                    setTimeout(() => {
+                                        resolve();
+                                    }, 500);
+                                });
+                            }
+                        }}
                     />
                 </ToggleBox>
             </div>

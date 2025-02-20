@@ -60,6 +60,20 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                         editorRef={this.authoringRef}
                         itemId={event._id}
                         authoringStorage={authoringStorageEventItemHttp}
+                        makeVisible={() => {
+                            if (this.toggleBoxRef.current.isOpen()) {
+                                return Promise.resolve();
+                            } else {
+                                return new Promise((resolve) => {
+                                    this.toggleBoxRef.current.toggle();
+
+                                    // PR-TODO: improve toggleBox so `toggle` method returns a promise
+                                    setTimeout(() => {
+                                        resolve();
+                                    }, 500);
+                                });
+                            }
+                        }}
                     />
                 </ToggleBox>
             </div>
