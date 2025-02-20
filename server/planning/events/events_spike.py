@@ -241,7 +241,7 @@ async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, 
     updates["_unspiked_items"] = notifications
 
 
-async def process_spike_event(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any] | None:
+async def process_spike_event(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
     """
     Processes the event spike update, handling both single and recurring events.
 
@@ -272,6 +272,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     # Update the original event in the database
     await events_service.update(original[ID_FIELD], updates)
     spiked_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    assert spiked_event is not None, "Expected spiked_event to be a dict, got None"
 
     user_id = get_user().get(ID_FIELD, "")
     if not user_id:
@@ -290,7 +291,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     return spiked_event
 
 
-async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any] | None:
+async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
     """
     Processes the event unspike update, handling both single and recurring events.
 
@@ -318,6 +319,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     # Update the original event in the database
     await events_service.update(original[ID_FIELD], updates)
     unspiked_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    assert unspiked_event is not None, "Expected unspiked_event to be a dict, got None"
 
     user_id = get_user().get(ID_FIELD, "")
     if not user_id:

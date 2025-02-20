@@ -92,7 +92,7 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
 
 async def process_update_time(
     updates: dict[str, Any], original: dict[str, Any], require_lock: bool = True
-) -> dict[str, Any] | None:
+) -> dict[str, Any]:
     """
     Processes the event time update, handling both single and recurring events.
 
@@ -126,4 +126,6 @@ async def process_update_time(
     post_update_event_actions(updates, original, ACTION)
 
     updated_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    assert updated_event is not None, "Expected updated_event to be a dict, got None"
+
     return updated_event

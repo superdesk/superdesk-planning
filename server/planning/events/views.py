@@ -18,7 +18,10 @@ class EventsArgs(BaseModel):
 
 
 @blueprint.endpoint(
-    "/update_time/<string:event_id>", methods=["PATCH"], auth=[required_privilege_rule("planning_event_management")]
+    "events/update_time/<string:event_id>",
+    name="events_update_time",
+    methods=["PATCH"],
+    auth=[required_privilege_rule("planning_event_management")],
 )
 async def update_time(args: EventsArgs, params: None, request: Request) -> Response:
     original = await EventsAsyncService().find_by_id_raw(args.event_id)
@@ -41,7 +44,10 @@ async def update_time(args: EventsArgs, params: None, request: Request) -> Respo
 
 
 @blueprint.endpoint(
-    "/spike/<string:event_id>", methods=["PATCH"], auth=[required_privilege_rule("planning_event_spike")]
+    "events/spike/<string:event_id>",
+    name="events_spike",
+    methods=["PATCH"],
+    auth=[required_privilege_rule("planning_event_spike")],
 )
 async def spike_event(args: EventsArgs, params: None, request: Request) -> Response:
     original = await EventsAsyncService().find_by_id_raw(args.event_id)
@@ -55,7 +61,10 @@ async def spike_event(args: EventsArgs, params: None, request: Request) -> Respo
 
 
 @blueprint.endpoint(
-    "/unspike/<string:event_id>", methods=["PATCH"], auth=[required_privilege_rule("planning_event_unspike")]
+    "events/unspike/<string:event_id>",
+    name="events_unspike",
+    methods=["PATCH"],
+    auth=[required_privilege_rule("planning_event_unspike")],
 )
 async def unspike_event(args: EventsArgs, params: None, request: Request) -> Response:
     original = await EventsAsyncService().find_by_id_raw(args.event_id)
