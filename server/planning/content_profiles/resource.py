@@ -104,3 +104,7 @@ class ContentProfilesResource(superdesk.Resource):
     resource_methods = PlanningTypesResource.resource_methods.copy()
     item_methods = PlanningTypesResource.item_methods.copy()
     privileges = PlanningTypesResource.privileges.copy()
+
+    mongo_indexes = {
+        "content_type_1_name_1": ([("content_type", 1), ("name", 1)], {"unique": True}),
+    }

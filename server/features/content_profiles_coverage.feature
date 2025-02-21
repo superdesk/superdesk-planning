@@ -295,3 +295,11 @@ Feature: Coverage Content Profiles
         Then we get new resource
         When we get "coverage_profiles"
         Then we get list with 1 item
+
+        When we post to "coverage_profiles"
+        """
+        {
+            "content_type": "text"
+        }
+        """
+        Then we get error 409
