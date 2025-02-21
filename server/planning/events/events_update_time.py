@@ -2,7 +2,6 @@ from copy import deepcopy
 from typing import Any
 from datetime import date, datetime
 
-from apps.auth import get_user_id
 from superdesk.utc import local_to_utc, utc_to_local
 from superdesk.resource_fields import ID_FIELD
 
@@ -12,12 +11,12 @@ from planning.common import (
     UPDATE_FUTURE,
     UPDATE_SINGLE,
     remove_lock_information,
-    set_ingested_event_state,
 )
 from planning.events.events_utils import (
     get_recurring_timeline,
+    get_update_method,
     post_update_event_actions,
-    validate_event_action,
+    pre_update_event_actions,
 )
 from planning.types import PlanningSchedule, EventResourceModel
 
@@ -88,12 +87,12 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
         if event.get(ID_FIELD) != original.get(ID_FIELD):
             new_updates["skip_on_update"] = True
             await events_service.update(event[ID_FIELD], new_updates)
-            await signals.event_time_updated(new_updates, {"_id": event[ID_FIELD]})
+            await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD]})
 
 
 async def process_update_time(
     updates: dict[str, Any], original: dict[str, Any], require_lock: bool = True
-) -> dict[str, Any] | None:
+) -> dict[str, Any]:
     """
     Processes the event time update, handling both single and recurring events.
 
@@ -105,19 +104,11 @@ async def process_update_time(
     events_service = EventResourceModel.get_service()
     ACTION = "update_time"
 
-    # Set version_creator and update ingested state
-    user_id = get_user_id()
-    if user_id:
-        updates["version_creator"] = user_id
-        set_ingested_event_state(updates, original)
+    # Perform pre update event actions
+    pre_update_event_actions(updates, original, ACTION, require_lock)
 
-    # Perform additional validation for event action
-    validate_event_action(updates, original, ACTION, require_lock)
-
-    # Determine update method, ensuring non-recurring events use UPDATE_SINGLE
-    update_method = updates.pop("update_method", UPDATE_SINGLE)
-    if not original.get("dates", {}).get("recurring_rule"):
-        update_method = UPDATE_SINGLE
+    # Determine update method
+    update_method = get_update_method(updates, original)
 
     if update_method == UPDATE_SINGLE:
         await update_single_event(updates)
@@ -135,4 +126,6 @@ async def process_update_time(
     post_update_event_actions(updates, original, ACTION)
 
     updated_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    assert updated_event is not None, "Expected updated_event to be a dict, got None"
+
     return updated_event
