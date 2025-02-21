@@ -75,6 +75,8 @@ export class FieldTemplate extends React.PureComponent<IPropsAuthoringFieldTempl
                 <div>
                     {labelJsx}
 
+                    <div id="deployment-test" />
+
                     {validationError != null && (
                         <>
                             <SpacerBlock v gap="4" />
