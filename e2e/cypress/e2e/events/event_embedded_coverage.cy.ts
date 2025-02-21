@@ -185,7 +185,7 @@ describe('Planning.Events: embedded coverage', () => {
             .should('exist');
     });
 
-    // PR-TODO: drop this test?
+    // TODO: consider re-enabling in the future when event syncing is reimplemented
     it.skip('SDESK-6071: update new Planning when event dates changes', () => {
         subnav.createEvent();
         editor.waitTillOpen();
