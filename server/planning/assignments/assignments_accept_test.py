@@ -59,7 +59,7 @@ class AssignmentAcceptTestCase(TestCase):
     def test_external(self):
         assignment_id = "5b20652a1d41c812e24aa49e"
 
-        users = [{"_id": ObjectId()}]
+        users = [{"_id": ObjectId(), "username": "username_000"}]
 
         contact = [{"_id": ObjectId(), "first_name": "Name", "last_name": "McName Face"}]
 

@@ -22,7 +22,7 @@ two_days_ago = now - timedelta(hours=96)
 
 
 class DeleteMarkedAssignmentsTest(TestCase):
-    users = [{"_id": ObjectId()}, {"_id": ObjectId()}]
+    users = [{"_id": ObjectId(), "username": "username_99"}, {"_id": ObjectId(), "username": "username_100"}]
 
     auth = [
         {"_id": ObjectId(), "user": users[0]["_id"]},
