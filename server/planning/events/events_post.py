@@ -260,6 +260,7 @@ class EventsPostService(EventsBaseService):
                 WORKFLOW_STATE.POSTPONED,
                 WORKFLOW_STATE.CANCELLED,
             ]:
+                # TODO-ASNYC: Convert this to `async process_spike_planning_item` pure function when class is changed to async
                 planning_spike_service.patch(planning.get(ID_FIELD), planning)
             elif planning.get("pubstatus") != POST_STATE.CANCELLED:
                 docs.append(

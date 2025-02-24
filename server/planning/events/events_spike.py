@@ -20,6 +20,7 @@ from planning.events.events_utils import (
     pre_update_event_actions,
 )
 from planning.item_lock import LOCK_USER, LOCK_SESSION
+from planning.planning.planning_spike_async import process_spike_planning_item
 from planning.types.assignment import AssignmentResourceModel
 from planning.types.event import EventResourceModel
 from planning.types.planning import PlanningResourceModel
@@ -28,7 +29,6 @@ from planning.utils import (
     get_first_related_event_id_for_planning,
     get_related_planning_for_events,
 )
-from superdesk import get_resource_service
 from superdesk.core.types import SearchRequest
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
@@ -39,12 +39,11 @@ async def post_spike_event_actions(original: dict[str, Any]) -> None:
     assignments_service = AssignmentResourceModel.get_service()
 
     # Spike associated planning
-    planning_spike_service = get_resource_service("planning_spike")
     spiked_items = []
 
     for planning in get_related_planning_for_events([original[ID_FIELD]], "primary"):
         if planning["state"] == WORKFLOW_STATE.DRAFT:
-            planning_spike_service.patch(planning[ID_FIELD], {"state": "spiked"})
+            await process_spike_planning_item({"state": "spiked"}, planning)
             spiked_items.append(str(planning[ID_FIELD]))
 
     # When a planning item associated with this event is spiked
