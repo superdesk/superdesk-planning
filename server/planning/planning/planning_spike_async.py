@@ -25,7 +25,7 @@ from planning.planning_notifications import PlanningNotifications
 from planning.item_lock import LOCK_USER
 
 
-def post_update_planning_actions(updates: dict[str, Any], original: dict[str, Any]):
+def post_update_planning_item_actions(updates: dict[str, Any], original: dict[str, Any]):
     if original.get(LOCK_USER) and LOCK_USER in updates and updates[LOCK_USER] is None:
         push_notification(
             "planning:unlock",
@@ -39,8 +39,8 @@ def post_update_planning_actions(updates: dict[str, Any], original: dict[str, An
         )
 
 
-async def post_planning_spike_actions(updates: dict[str, Any], original: dict[str, Any]):
-    post_update_planning_actions(updates, original)
+async def post_planning_item_spike_actions(updates: dict[str, Any], original: dict[str, Any]):
+    post_update_planning_item_actions(updates, original)
     events_service = EventResourceModel.get_service()
 
     # Delete assignments in workflow
@@ -89,9 +89,9 @@ async def notify_draft_coverage_on_spike(coverage: dict[str, Any]):
             )
 
 
-async def process_spike_planning(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
+async def process_spike_planning_item(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
     """
-    Processes the planning spike event.
+    Function to spike planning item.
 
     :param updates: The update payload from the client.
     :param original: The original planning document.
@@ -129,15 +129,15 @@ async def process_spike_planning(updates: dict[str, Any], original: dict[str, An
 
     id = original[ID_FIELD]
     await planning_service.update(id, updates)
-    spiked_planning = await planning_service.find_by_id_raw(id)
-    assert spiked_planning is not None, "Expected spiked_planning to be a dict, got None"
+    spiked_planning_item = await planning_service.find_by_id_raw(id)
+    assert spiked_planning_item is not None, "Expected spiked_planning to be a dict, got None"
 
     push_notification(
         "planning:spiked",
         item=str(id),
         user=str(user.get(ID_FIELD, "")),
-        etag=spiked_planning["_etag"],
-        revert_state=spiked_planning["revert_state"],
+        etag=spiked_planning_item["_etag"],
+        revert_state=spiked_planning_item["revert_state"],
     )
 
     for coverage in coverages:
@@ -146,14 +146,14 @@ async def process_spike_planning(updates: dict[str, Any], original: dict[str, An
             await notify_draft_coverage_on_spike(coverage)
 
     # Perform post planning spike actions
-    await post_planning_spike_actions(updates, original)
+    await post_planning_item_spike_actions(updates, original)
 
-    return spiked_planning
+    return spiked_planning_item
 
 
-async def process_unspike_planning(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
+async def process_unspike_planning_item(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
     """
-    Processes the planning unspike event.
+    Function to unspike planning item.
 
     :param updates: The update payload from the client.
     :param original: The original planning document.
@@ -175,18 +175,18 @@ async def process_unspike_planning(updates: dict[str, Any], original: dict[str, 
 
     id = original[ID_FIELD]
     await planning_service.update(id, updates)
-    unspiked_planning = await planning_service.find_by_id_raw(id)
-    assert unspiked_planning is not None, "Expected unspiked_planning to be a dict, got None"
+    unspiked_planning_item = await planning_service.find_by_id_raw(id)
+    assert unspiked_planning_item is not None, "Expected unspiked_planning to be a dict, got None"
 
     push_notification(
         "planning:unspiked",
         item=str(id),
         user=str(get_user_id()),
-        etag=unspiked_planning.get("_etag"),
-        state=unspiked_planning[ITEM_STATE],
+        etag=unspiked_planning_item.get("_etag"),
+        state=unspiked_planning_item[ITEM_STATE],
     )
 
     # Perform post update actions
-    post_update_planning_actions(updates, original)
+    post_update_planning_item_actions(updates, original)
 
-    return unspiked_planning
+    return unspiked_planning_item
