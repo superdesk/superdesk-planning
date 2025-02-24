@@ -41,6 +41,7 @@ class PlanningSpikeResource(PlanningResource):
     resource_methods = []
     item_methods = ["PATCH"]
     privileges = {"PATCH": "planning_planning_spike"}
+    internal_resource = True
 
 
 class PlanningSpikeServiceBase(BaseService):
@@ -116,9 +117,9 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
             PlanningNotifications().notify_assignment(
                 coverage_status=coverage.get("workflow_status"),
                 target_user=assignment.get("assigned_to").get("user"),
-                target_desk=assignment.get("assigned_to").get("desk")
-                if not assignment.get("assigned_to").get("user")
-                else None,
+                target_desk=(
+                    assignment.get("assigned_to").get("desk") if not assignment.get("assigned_to").get("user") else None
+                ),
                 message="assignment_spiked_msg",
                 slugline=slugline,
                 coverage_type=get_coverage_type_name(coverage_type),
@@ -156,6 +157,7 @@ class PlanningUnspikeResource(PlanningResource):
     resource_methods = []
     item_methods = ["PATCH"]
     privileges = {"PATCH": "planning_planning_unspike"}
+    internal_resource = True
 
 
 class PlanningUnspikeService(PlanningSpikeServiceBase):
