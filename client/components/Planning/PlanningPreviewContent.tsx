@@ -5,6 +5,8 @@ import {get} from 'lodash';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
+    ICoverageContentProfile,
+    ICoverageFormProfile,
     IEventItem,
     IFile,
     IFormProfiles,
@@ -34,6 +36,9 @@ import {EventMetadata} from '../Events';
 import {FeatureLabel} from './FeaturedPlanning';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../fields';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {coverageProfiles} from '../../selectors/coverageProfiles';
+import {getCoverageFields} from '../../api/editor/item_planning';
+import {appConfig} from 'appConfig';
 
 interface IOwnProps {
     inner?: boolean;
@@ -54,7 +59,7 @@ interface IReduxProps {
     formProfile: IFormProfiles;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     files: Array<IFile>;
-    planningAllowScheduledUpdates: boolean;
+    coverageProfiles: Array<ICoverageContentProfile>;
 }
 
 interface IDispatchProps {
@@ -78,7 +83,7 @@ const mapStateToProps = (state, ownProps): IReduxProps => ({
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
     files: selectors.general.files(state),
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
+    coverageProfiles: coverageProfiles(state),
 });
 
 const mapDispatchToProps = (dispatch): IDispatchProps => ({
@@ -113,7 +118,6 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             hideRelatedItems,
             hideEditIcon,
             files,
-            planningAllowScheduledUpdates,
         } = this.props;
 
         const createdBy = getCreator(item, 'original_creator', users);
@@ -130,23 +134,29 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
             item.coverages ?? [] :
             (item.coverages ?? []).filter((coverage) => coverage.coverage_id !== this.props.currentCoverageId);
 
-        const renderCoverage = (coverage, index) => (
-            <CoveragePreview
-                item={item}
-                key={coverage.coverage_id}
-                index={index}
-                coverage={coverage}
-                users= {users}
-                desks= {desks}
-                newsCoverageStatus={newsCoverageStatus}
-                formProfile={formProfile.coverage}
-                inner={inner}
-                files={files}
-                createLink={getFileDownloadURL}
-                planningAllowScheduledUpdates={planningAllowScheduledUpdates}
-                scrollInView={true}
-            />
-        );
+        const CoveragesPreview = ({coverage, index}) => {
+            const {profile} = getCoverageFields(coverage.planning.g2_content_type);
+
+            return (
+                <CoveragePreview
+                    item={item}
+                    key={coverage.coverage_id}
+                    index={index}
+                    coverage={coverage}
+                    users= {users}
+                    desks= {desks}
+                    newsCoverageStatus={newsCoverageStatus}
+                    formProfile={profile}
+                    inner={inner}
+                    files={files}
+                    createLink={getFileDownloadURL}
+                    canScheduleUpdates={
+                        profile.editor.flags && appConfig.planning_allow_scheduled_updates
+                    }
+                    scrollInView={true}
+                />
+            );
+        };
 
         const primaryEventId = getRelatedEventIdsForPlanning(this.props.item, 'primary')[0];
         const primaryRelatedEvent = (relatedEvents ?? []).find((relatedEvent) => relatedEvent._id === primaryEventId);
@@ -235,27 +245,31 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                         ))}
                     </>
                 )}
-                {!hasCoverage ? null : (
-                    <React.Fragment>
+                {hasCoverage && (
+                    <>
                         {currentCoverage == null ? (
-                            <React.Fragment>
+                            <>
                                 <h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>
-                                {otherCoverages.map(renderCoverage)}
-                            </React.Fragment>
+                                {otherCoverages.map((coverage, i) => (
+                                    <CoveragesPreview key={i} coverage={coverage} index={i} />
+                                ))}
+                            </>
                         ) : (
-                            <React.Fragment>
+                            <>
                                 <h3 className="side-panel__heading--big">{gettext('This Coverage')}</h3>
-                                {renderCoverage(currentCoverage, 0)}
+                                <CoveragesPreview coverage={currentCoverage} index={0} />
 
-                                {!otherCoverages.length ? null : (
-                                    <React.Fragment>
+                                {(otherCoverages ?? []).length > 0 && (
+                                    <>
                                         <h3 className="side-panel__heading--big">{gettext('Other Coverages')}</h3>
-                                        {otherCoverages.map(renderCoverage)}
-                                    </React.Fragment>
+                                        {otherCoverages.map((coverage, i) => (
+                                            <CoveragesPreview key={i} coverage={coverage} index={i} />
+                                        ))}
+                                    </>
                                 )}
-                            </React.Fragment>
+                            </>
                         )}
-                    </React.Fragment>
+                    </>
                 )}
             </ContentBlock>
         );

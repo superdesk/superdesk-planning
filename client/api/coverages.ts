@@ -1,10 +1,10 @@
+import {coverageProfiles} from '../selectors/coverageProfiles';
 import {PLANNING, WORKFLOW_STATE} from '../constants';
-import {ICoverageScheduledUpdate, IPlanningAPI, IPlanningCoverageItem} from '../interfaces';
-import {coverageProfile} from '../selectors/forms';
+import {ICoverageScheduledUpdate, ICoverageType, IPlanningAPI, IPlanningCoverageItem} from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
-function getCoverageEditorProfile() {
-    return coverageProfile(planningApi.redux.store.getState());
+function getCoverageEditorProfile(type: ICoverageType) {
+    return coverageProfiles(planningApi.redux.store.getState()).find((x) => x.content_type === type);
 }
 
 function cancelCoverageOrScheduledUpdate<T extends IPlanningCoverageItem | ICoverageScheduledUpdate>(

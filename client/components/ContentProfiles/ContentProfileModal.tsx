@@ -14,15 +14,12 @@ import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import {KEYBOARD_CODES} from '../../constants';
 import {getLanguages} from '../../selectors/vocabs';
-
-import {getFieldNameTranslated, isProfileFieldEnabled} from '../../utils/contentProfiles';
 import {getErrorMessage} from '../../utils';
-
 import {Button, ButtonGroup, Tabs, TabLabel, TabContent, TabPanel} from 'superdesk-ui-framework/react';
 import {Modal} from '../index';
-
 import {GroupTab, GroupTabComponent} from './GroupTab';
 import {FieldTab} from './FieldTab';
+import {validateRequiredFields} from './utils';
 
 import './style.scss';
 
@@ -186,39 +183,6 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
         });
     }
 
-    validateRequiredFields(
-        profile: IPlanningContentProfile,
-        requiredFields: Array<Array<string>>,
-        includeGroupCheck: boolean
-    ): boolean {
-        const {notify} = superdeskApi.ui;
-        const {gettext} = superdeskApi.localization;
-        let valid = true;
-
-        requiredFields.forEach((fields) => {
-            const result = fields.some(
-                (field) => isProfileFieldEnabled(profile, field, includeGroupCheck)
-            );
-
-            if (!result) {
-                valid = false;
-                if (fields.length === 1) {
-                    notify.error(gettext('"{{field}}" field is required by the system', {
-                        field: getFieldNameTranslated(fields[0]).toUpperCase()
-                    }));
-                } else {
-                    notify.error(gettext('At least one "{{fields}}" fields are required by the system', {
-                        fields: fields
-                            .map((field) => getFieldNameTranslated(field).toUpperCase())
-                            .join('", "')
-                    }));
-                }
-            }
-        });
-
-        return valid;
-    }
-
     save() {
         this.setState({saving: true});
         this.closeCurrentEditor().then((response) => {
@@ -227,12 +191,12 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                 return;
             }
 
-            if (!this.validateRequiredFields(
+            if (!validateRequiredFields(
                 this.state.profile,
                 this.props.mainProfile.systemRequiredFields,
                 true
             ) ||
-                !this.validateRequiredFields(
+                !validateRequiredFields(
                     this.state.embeddedProfile,
                     this.props.embeddedProfile?.systemRequiredFields ?? [],
                     false
@@ -377,8 +341,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                 {
                     profile: profile,
                     dirty: true,
-                } :
-                {
+                } : {
                     embeddedProfile: profile,
                     dirty: true,
                 };

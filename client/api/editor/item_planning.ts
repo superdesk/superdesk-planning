@@ -4,6 +4,8 @@ import {cloneDeep} from 'lodash';
 import {
     BOOKMARK_TYPE,
     EDITOR_TYPE,
+    ICoverageContentProfile,
+    ICoverageType,
     IEditorAPI,
     IEditorBookmark,
     IEditorFormGroup,
@@ -21,22 +23,184 @@ import {
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
+import {coverageProfiles} from '../../selectors/coverageProfiles';
 
-export function getCoverageFields(): ISearchProfile {
-    const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
-        .filter((item) => item.field.enabled);
-    const profile: ISearchProfile = {};
+const covDefaultProfile = {
+    _id: 'coverage',
+    name: 'coverage',
+    init_version: 1,
+    schema: {
+        add_coverage_to_workflow: {
+            type: 'boolean',
+            required: false
+        },
+        contact_info: {
+            type: 'string',
+            required: false
+        },
+        ednote: {
+            type: 'string',
+            required: false,
+            field_type: 'multi_line'
+        },
+        files: {
+            type: 'list',
+            required: false,
+            mandatory_in_list: null,
+            schema: null
+        },
+        g2_content_type: {
+            type: 'list',
+            required: true,
+            mandatory_in_list: null,
+            schema: null
+        },
+        genre: {
+            type: 'list',
+            required: false,
+            mandatory_in_list: null,
+            schema: null
+        },
+        headline: {
+            type: 'string',
+            required: false
+        },
+        internal_note: {
+            type: 'string',
+            required: false,
+            field_type: 'multi_line',
+            expandable: true
+        },
+        keyword: {
+            type: 'list',
+            required: false,
+            mandatory_in_list: null,
+            schema: null
+        },
+        language: {
+            type: 'string',
+            required: true
+        },
+        news_coverage_status: {
+            type: 'list',
+            required: false,
+            mandatory_in_list: null,
+            schema: null
+        },
+        priority: {
+            type: 'integer',
+            required: false
+        },
+        scheduled: {
+            type: 'datetime',
+            required: true
+        },
+        scheduled_updates: {
+            type: 'list',
+            required: false,
+            mandatory_in_list: null,
+            schema: null
+        },
+        slugline: {
+            type: 'string',
+            required: false
+        },
+        xmp_file: {
+            type: 'dict',
+            required: false
+        }
+    },
+    editor: {
+        add_coverage_to_workflow: {
+            enabled: true,
+            index: 1
+        },
+        g2_content_type: {
+            enabled: true,
+            index: 2
+        },
+        genre: {
+            enabled: true,
+            index: 3
+        },
+        slugline: {
+            enabled: true,
+            index: 4
+        },
+        ednote: {
+            enabled: true,
+            index: 5
+        },
+        internal_note: {
+            enabled: true,
+            index: 6
+        },
+        news_coverage_status: {
+            enabled: true,
+            index: 7
+        },
+        scheduled: {
+            enabled: true,
+            index: 8
+        },
+        scheduled_updates: {
+            enabled: true,
+            index: 9
+        },
+        contact_info: {
+            enabled: false
+        },
+        language: {
+            enabled: true
+        },
+        xmp_file: {
+            enabled: false
+        },
+        headline: {
+            enabled: false
+        },
+        keyword: {
+            enabled: false
+        },
+        files: {
+            enabled: false
+        },
+        priority: {
+            enabled: false
+        }
+    },
+    _etag: 'init',
+    _created: '2025-02-20T05:54:27+0000',
+    _updated: '2025-02-20T05:54:27+0000',
+    groups: {},
+    _links: {
+        self: {
+            title: 'Planning_type',
+            href: 'planning_types/coverage'
+        }
+    }
+};
+
+export function getCoverageFields(
+    type: ICoverageType,
+): {searchProfile: ISearchProfile; profile: ICoverageContentProfile} {
+    const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+    // TODO: fallback to default profile
+    const profile = allProfiles.find((x) => x.content_type === type)
+        ?? covDefaultProfile;
+    const fields = getGroupFieldsSorted(profile).filter((item) => item.field.enabled);
+    const searchProfile: ISearchProfile = {};
 
     fields.forEach(
         (field, index) => {
-            profile[field.name] = {
+            searchProfile[field.name] = {
                 enabled: true,
                 index: index,
             };
         },
     );
 
-    return profile;
+    return {searchProfile, profile};
 }
 
 export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['planning'] {

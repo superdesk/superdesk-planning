@@ -121,7 +121,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
         );
 
         return (
-            <div className="side-panel side-panel--right" data-test-id="content-field--editor">
+            <div style={{height: 'auto'}} className="side-panel side-panel--right" data-test-id="content-field--editor">
                 <div className="side-panel__header">
                     <div className="side-panel__heading">
                         {gettext('Details')}

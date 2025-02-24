@@ -9,7 +9,9 @@ import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 import {PRIVILEGES} from '../../constants';
 import {showModal} from '../../actions/modal';
+import {showModal as showModalSf} from '@sourcefabric/common';
 import {MODALS} from '../../constants/modals';
+import {CoverageProfilesModal} from '../../components/ContentProfiles/CoverageProfileModal';
 
 const ActionsSubnavDropdownComponent = (props) => {
     let items = [];
@@ -26,6 +28,14 @@ const ActionsSubnavDropdownComponent = (props) => {
             label: gettext('Manage planning profiles'),
             action: planningApi.contentProfiles.showManagePlanningProfileModal,
         });
+
+        items.push({
+            label: gettext('Manage coverage profiles'),
+            action: () => showModalSf(({closeModal}) => (
+                <CoverageProfilesModal closeModal={closeModal} />
+            )),
+        });
+
         items.push({
             label: gettext('Manage event profiles'),
             action: planningApi.contentProfiles.showManageEventProfileModal,

@@ -33,7 +33,6 @@ interface IOwnProps {
     message: string | {[key: string]: any};
     item: IPlanningItem;
     diff: Partial<IPlanningItem>;
-    formProfile: ICoverageFormProfile;
     errors: {[key: string]: any}
     showErrors: boolean;
     hasAssignment: boolean;
@@ -64,7 +63,6 @@ interface IReduxStateProps {
     genres: Array<IGenre>;
     keywords: Array<IKeyword>;
     preferredCoverageDesks: {[key: string]: string};
-    planningAllowScheduledUpdates: boolean;
 }
 
 interface IState {
@@ -79,8 +77,6 @@ const mapStateToProps = (state) => ({
     genres: state.genres,
     keywords: selectors.general.keywords(state),
     preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
-    formProfile: selectors.forms.coverageProfile(state),
 });
 
 type IProps = IOwnProps & IReduxStateProps;
@@ -113,10 +109,12 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             contentType: React.createRef(),
             popupContainer: null,
         };
+
         this.state = {
             openScheduledUpdates: [],
             uploading: false,
         };
+
         this.fullFilePath = 'planning.files';
         this.xmpFullFilePath = 'planning.xmp_file';
     }
@@ -302,11 +300,27 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         promise.then(() => this.onChange(changeFullFilePath, value));
     }
 
-    onContentTypeChange(field: string, value: IG2ContentType['qcode']) {
-        if (this.props.value.planning?.g2_content_type !== value) {
-            this.onChange(field, value);
-            this.onChange('planning.genre', null);
+    onContentTypeChange(_field: string, value: IG2ContentType['qcode']) {
+        if (this.props.value.planning?.g2_content_type == value) {
+            return;
         }
+
+        const withoutUpdated = this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+
+        this.props.onChange(
+            'coverages',
+            [
+                ...withoutUpdated,
+                {
+                    ...this.props.value,
+                    planning: {
+                        ...this.props.value.planning,
+                        g2_content_type: value,
+                        genre: null,
+                    }
+                }
+            ],
+        );
     }
 
     toggleAddToWorkflow() {
@@ -360,10 +374,11 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     render() {
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
+        const {searchProfile, profile} = getCoverageFields(contentTypeQcode);
+
         const defaultGenre = (appConfig.default_genre || [{}])[0];
         const showXmpFileInput = planningUtils.showXMPFileUIControl(this.props.value);
         const hideXmpFileInput = this.props.value.planning?.xmp_file != null;
-
         const readOnlyFields = planningUtils.getCoverageReadOnlyFields(
             this.props.value,
             this.props.readOnly,
@@ -377,7 +392,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             errors: this.props.errors,
             readOnly: this.props.readOnly,
             disabled: this.props.readOnly,
-            profile: this.props.formProfile,
+            profile: profile,
             editorType: this.props.editorType,
         };
         const fieldProps = {
@@ -485,8 +500,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             priority: {field: 'planning.priority'},
         };
 
-        const profile = getCoverageFields();
-
         /**
          * `editor.dom.fields` aren't being passed anymore because we no longer have access to it
          * after decoupling this component from `IEditorAPI`.
@@ -497,18 +510,18 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             <div className="coverage-editor">
                 {renderFieldsForPanel(
                     'editor',
-                    profile,
+                    searchProfile,
                     globalProps,
                     fieldProps,
                     null,
                     null,
                     'enabled',
                     editorDomFields,
-                    this.props.formProfile.schema,
+                    profile.schema,
                 )}
             </div>
         );
     }
 }
 
-export const CoverageForm = connect<IReduxStateProps, IOwnProps>(mapStateToProps)(CoverageFormComponent);
+export const CoverageForm = connect<IReduxStateProps, {}, IOwnProps>(mapStateToProps)(CoverageFormComponent);
