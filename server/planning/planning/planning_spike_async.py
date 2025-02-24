@@ -1,0 +1,150 @@
+from copy import deepcopy
+from typing import Any
+
+from planning.types.assignment import AssignmentResourceModel
+from planning.types.event import EventResourceModel
+from planning.types.planning import PlanningResourceModel
+from superdesk.resource_fields import ID_FIELD
+from superdesk import get_resource_service
+from superdesk.notification import push_notification
+from superdesk.errors import SuperdeskApiError
+from apps.auth import get_user, get_user_id
+from apps.archive.common import get_auth
+
+from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
+from planning.common import (
+    ITEM_EXPIRY,
+    ITEM_STATE,
+    set_item_expiry,
+    WORKFLOW_STATE,
+    get_coverage_type_name,
+    remove_autosave_on_spike,
+    remove_lock_information,
+)
+from planning.planning_notifications import PlanningNotifications
+from planning.item_lock import LOCK_USER
+
+
+def post_update_planning_actions(updates: dict[str, Any], original: dict[str, Any]):
+    if original.get(LOCK_USER) and LOCK_USER in updates and updates[LOCK_USER] is None:
+        push_notification(
+            "planning:unlock",
+            item=str(original.get(ID_FIELD)),
+            user=str(get_user_id()),
+            lock_session=str(get_auth().get(ID_FIELD)),
+            etag=updates.get("_etag"),
+            event_ids=get_related_event_ids_for_planning(original),
+            recurrence_id=original.get("recurrence_id") or None,
+            type=original.get("type"),
+        )
+
+
+async def post_planning_spike_actions(updates: dict[str, Any], original: dict[str, Any]):
+    post_update_planning_actions(updates, original)
+    events_service = EventResourceModel.get_service()
+
+    # Delete assignments in workflow
+    assignments_to_delete = []
+    coverages = original.get("coverages") or []
+    for coverage in coverages:
+        if coverage.get("workflow_status") == WORKFLOW_STATE.ACTIVE:
+            assignments_to_delete.append(coverage)
+
+    notify_user_on_failed_assignment_deletes = True
+    first_event_id = get_first_related_event_id_for_planning(original, "primary")
+
+    if first_event_id:
+        event = await events_service.find_by_id_raw(first_event_id)
+        notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
+
+    # TODO-ASNYC: Confirm on similar function in PlanningAsyncService
+    get_resource_service("planning").delete_assignments_for_coverages(
+        assignments_to_delete, notify_user_on_failed_assignment_deletes
+    )
+
+
+async def notify_draft_coverage_on_spike(coverage: dict[str, Any]):
+    assignment_service = AssignmentResourceModel.get_service()
+
+    assigned_to = coverage.get("assigned_to")
+    if assigned_to and assigned_to.get("assignment_id"):
+        user = get_user()
+        assignment = await assignment_service.find_by_id_raw(assigned_to["assignment_id"])
+        if assignment:
+            slugline = assignment.get("planning", {}).get("slugline", "")
+            coverage_type = assignment.get("planning", {}).get("g2_content_type", "")
+            PlanningNotifications().notify_assignment(
+                coverage_status=coverage.get("workflow_status"),
+                target_user=assignment.get("assigned_to", {}).get("user"),
+                target_desk=(
+                    assignment.get("assigned_to", {}).get("desk")
+                    if not assignment.get("assigned_to", {}).get("user")
+                    else None
+                ),
+                message="assignment_spiked_msg",
+                slugline=slugline,
+                coverage_type=get_coverage_type_name(coverage_type),
+                actioning_user=user.get("display_name", user.get("username", "Unknown")),
+                omit_user=True,
+            )
+
+
+async def process_spike_planning(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
+    """
+    Processes the planning spike event.
+
+    :param updates: The update payload from the client.
+    :param original: The original planning document.
+    :return: The updated planning document.
+    """
+    planning_service = PlanningResourceModel.get_service()
+
+    if original.get("pubstatus") or original.get("state") not in [
+        WORKFLOW_STATE.INGESTED,
+        WORKFLOW_STATE.DRAFT,
+        WORKFLOW_STATE.POSTPONED,
+        WORKFLOW_STATE.CANCELLED,
+    ]:
+        raise SuperdeskApiError.badRequestError(message="Spike failed. Planning item in invalid state for spiking.")
+
+    user = get_user()
+
+    updates["revert_state"] = original[ITEM_STATE]
+    updates[ITEM_STATE] = WORKFLOW_STATE.SPIKED
+    set_item_expiry(updates)
+
+    coverages = deepcopy(original.get("coverages") or [])
+    for coverage in coverages:
+        if coverage.get("workflow_status") == WORKFLOW_STATE.ACTIVE:
+            coverage["workflow_status"] = WORKFLOW_STATE.DRAFT
+            coverage["assigned_to"] = {}
+
+    updates["coverages"] = coverages
+
+    # Mark item as unlocked directly in order to avoid more queries and notifications
+    # coming from lockservice.
+    remove_lock_information(updates)
+
+    remove_autosave_on_spike(original)
+
+    await planning_service.update(original[ID_FIELD], updates)
+    spiked_planning = await planning_service.find_by_id_raw(original[ID_FIELD])
+    assert spiked_planning is not None, "Expected spiked_planning to be a dict, got None"
+
+    push_notification(
+        "planning:spiked",
+        item=str(id),
+        user=str(user.get(ID_FIELD, "")),
+        etag=spiked_planning["_etag"],
+        revert_state=spiked_planning["revert_state"],
+    )
+
+    for coverage in coverages:
+        workflow_status = coverage.get("workflow_status")
+        if workflow_status == WORKFLOW_STATE.DRAFT:
+            await notify_draft_coverage_on_spike(coverage)
+
+    # Perform post planning spike actions
+    await post_planning_spike_actions(updates, original)
+
+    return spiked_planning
