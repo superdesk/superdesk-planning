@@ -57,7 +57,7 @@ async def post_planning_spike_actions(updates: dict[str, Any], original: dict[st
         event = await events_service.find_by_id_raw(first_event_id)
         notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
 
-    # TODO-ASNYC: Confirm on similar function in PlanningAsyncService
+    # TODO-ASNYC: Convert this to async call when function is added to PlanningAsyncService
     get_resource_service("planning").delete_assignments_for_coverages(
         assignments_to_delete, notify_user_on_failed_assignment_deletes
     )
@@ -127,8 +127,9 @@ async def process_spike_planning(updates: dict[str, Any], original: dict[str, An
 
     remove_autosave_on_spike(original)
 
-    await planning_service.update(original[ID_FIELD], updates)
-    spiked_planning = await planning_service.find_by_id_raw(original[ID_FIELD])
+    id = original[ID_FIELD]
+    await planning_service.update(id, updates)
+    spiked_planning = await planning_service.find_by_id_raw(id)
     assert spiked_planning is not None, "Expected spiked_planning to be a dict, got None"
 
     push_notification(
@@ -148,3 +149,44 @@ async def process_spike_planning(updates: dict[str, Any], original: dict[str, An
     await post_planning_spike_actions(updates, original)
 
     return spiked_planning
+
+
+async def process_unspike_planning(updates: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
+    """
+    Processes the planning unspike event.
+
+    :param updates: The update payload from the client.
+    :param original: The original planning document.
+    :return: The updated planning document.
+    """
+    planning_service = PlanningResourceModel.get_service()
+    events_service = EventResourceModel.get_service()
+
+    first_event_id = get_first_related_event_id_for_planning(original, "primary")
+    if first_event_id:
+        event = await events_service.find_by_id_raw(first_event_id)
+        if event and event.get("state") == WORKFLOW_STATE.SPIKED:
+            raise SuperdeskApiError.badRequestError(message="Unspike failed. Associated event is spiked.")
+
+    updates[ITEM_STATE] = original.get("revert_state", WORKFLOW_STATE.DRAFT)
+    updates["revert_state"] = None
+    updates[ITEM_EXPIRY] = None
+    remove_lock_information(updates)
+
+    id = original[ID_FIELD]
+    await planning_service.update(id, updates)
+    unspiked_planning = await planning_service.find_by_id_raw(id)
+    assert unspiked_planning is not None, "Expected unspiked_planning to be a dict, got None"
+
+    push_notification(
+        "planning:unspiked",
+        item=str(id),
+        user=str(get_user_id()),
+        etag=unspiked_planning.get("_etag"),
+        state=unspiked_planning[ITEM_STATE],
+    )
+
+    # Perform post update actions
+    post_update_planning_actions(updates, original)
+
+    return unspiked_planning
