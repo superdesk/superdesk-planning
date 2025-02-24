@@ -157,6 +157,10 @@ coverage_schema = {
 event_type = deepcopy(Resource.rel("events", type="string"))
 event_type["mapping"] = not_analyzed
 
+# we need to same schema for ingest_pubstatus but without the default value
+pubstatus_without_default = deepcopy(metadata_schema["pubstatus"])
+del pubstatus_without_default["default"]
+
 planning_schema = {
     # Identifiers
     config.ID_FIELD: metadata_schema[config.ID_FIELD],
@@ -173,7 +177,7 @@ planning_schema = {
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
     "ingest_firstcreated": metadata_schema["versioncreated"],
     "ingest_versioncreated": metadata_schema["versioncreated"],
-    "ingest_pubstatus": metadata_schema["pubstatus"],
+    "ingest_pubstatus": pubstatus_without_default,
     # Agenda Item details
     "agendas": {
         "type": "list",
