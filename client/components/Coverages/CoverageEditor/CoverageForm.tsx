@@ -128,8 +128,10 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
     }
 
     onChange(field: string, value: any) {
-        this.props.onChange(
-            `${this.props.field}.${field}`,
+        const {onChange, index} = this.props;
+
+        onChange(
+            `coverages.${index}.${field}`,
             value
         );
     }
@@ -144,47 +146,23 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
 
     onScheduleChanged(field: string, newValue: moment.Moment) {
         const {value, onChange, index} = this.props;
-        const hasSchedule = value?.planning?.scheduled != null;
-        let finalValue = newValue;
-        let fieldStr: string;
-        let relatedFieldStr: string;
 
-        // We will be updating scheduled and _scheduledTime together
-        // relatedFieldStr will be '_scheduledTime' if date gets changed and vice versa
-        // Update time only if date is already set
-        if (field.endsWith('.date')) {
-            fieldStr = field.slice(0, -5);
-            relatedFieldStr = field.replace('scheduled.date', '_scheduledTime');
-            // If there is no current scheduled date, then set the time value to end of the day
-            if (!get(value, 'planning.scheduled')) {
-                finalValue = newValue.add(1, 'hour').startOf('hour');
-                relatedFieldStr = null;
-            }
-        } else if (field.endsWith('._scheduledTime')) {
-            // If there is no current scheduled date, then set the date to today
-            relatedFieldStr = field.replace('_scheduledTime', 'scheduled');
-            fieldStr = field;
+        if (field.includes('scheduled_updates')) {
+            // Handles scheduled updates `field` might look like `scheduled_updates[0].schedule.time`,
+            // we now support date and time in a single field
+            const preparedField = `coverages.${0}.${field.replace('.time', '').replace('.date', '')}`;
 
-            this.onChange('_time_to_be_confirmed', false);
-
-            if (!get(value, 'planning.scheduled')) {
-                finalValue = moment().hour(newValue.hour())
-                    .minute(newValue.minute());
-            } else {
-                // Set the date from the original date
-                finalValue = moment(value.planning.scheduled)
-                    .clone()
-                    .hour(newValue.hour())
-                    .minute(newValue.minute());
-            }
+            onChange(preparedField, newValue);
         } else {
-            this.onChange(field, newValue);
-            return;
-        }
-
-        this.onChange(fieldStr, finalValue);
-        if (relatedFieldStr) {
-            this.onChange(relatedFieldStr, finalValue);
+            onChange(`coverages.${index}`,
+                {
+                    ...value,
+                    planning: {
+                        ...value.planning,
+                        scheduled: newValue,
+                    },
+                } satisfies IPlanningCoverageItem,
+            );
         }
     }
 
@@ -454,7 +432,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             scheduled: {
                 readOnly: this.props.readOnly || readOnlyFields.scheduled,
                 field: 'planning.scheduled',
-                timeField: 'planning._scheduledTime',
+                timeField: 'planning.scheduled',
                 toBeConfirmed: this.props.value?._time_to_be_confirmed,
                 onToBeConfirmed: this.onTimeToBeConfirmed,
                 onChange: this.onScheduleChanged,

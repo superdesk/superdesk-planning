@@ -5,6 +5,7 @@ import {Row, DateInput, TimeInput, Field} from '..';
 import './style.scss';
 import Button from '../../Button';
 import {gettext} from '../../utils';
+import {get} from 'lodash';
 
 interface IProps {
     field: string;
@@ -75,7 +76,7 @@ export const DateTimeInput = ({
     testId,
     ...props
 }: IProps) => {
-    let timeValue = timeField ? diff?.timeField : value;
+    let timeValue = timeField ? get(diff, timeField, null) : value;
 
     if (props.allDay) {
         timeValue = null;
