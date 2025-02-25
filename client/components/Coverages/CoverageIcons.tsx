@@ -1,8 +1,8 @@
 import * as React from 'react';
 import moment from 'moment-timezone';
 import {getCustomAvatarContent, getUserInitials} from './../../components/UserAvatar';
-import * as config from 'appConfig';
-import {IPlanningCoverageItem, IG2ContentType, IContactItem, IPlanningConfig} from '../../interfaces';
+import {appConfig} from 'appConfig';
+import {IPlanningCoverageItem, IG2ContentType, IContactItem} from '../../interfaces';
 import {IUser, IDesk} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
@@ -33,8 +33,6 @@ interface IProps {
     tooltipDirection?: 'top' | 'right' | 'bottom' | 'left'; // defaults to 'right'
     iconWrapper?(children: React.ReactNode): React.ReactNode;
 }
-
-const appConfig = config.appConfig as IPlanningConfig;
 
 export function isAvatarPlaceholder(
     item: Omit<IPropsAvatar, 'size'> | Omit<IPropsAvatarPlaceholder, 'size'>
@@ -97,7 +95,6 @@ export class CoverageIcons extends React.PureComponent<IProps> {
         return (
             <WithPopover
                 placement="auto-end"
-                zIndex={1051}
                 component={() => (
                     <div className="coverages-popup">
                         <Spacer v gap="16">

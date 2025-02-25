@@ -21,6 +21,10 @@ import './style.scss';
  * @description Component to pick time in hours and minutes
  */
 export class TimeInput extends React.Component {
+    dom: {
+        inputField: HTMLInputElement;
+    };
+
     constructor(props) {
         super(props);
         this.state = {
@@ -90,7 +94,7 @@ export class TimeInput extends React.Component {
     }
 
     isValidInput(val) {
-        return moment(val, appConfig.planning.timeformat, true)
+        return val == null || moment(val, appConfig.planning.timeformat, true)
             .isValid();
     }
 
@@ -274,6 +278,7 @@ export class TimeInput extends React.Component {
                     onFocus={onFocus}
                     onClick={!readOnly ? this.toggleOpenTimePicker : null}
                     aria-label={gettext('Time picker')}
+                    testId="time-popup-toggle"
                 />
                 <Input
                     field={field}

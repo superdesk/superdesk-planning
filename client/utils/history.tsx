@@ -61,7 +61,7 @@ const getHistoryRowElement = (text, historyItem, users) => {
     if (text) {
         return (
             <div>
-                <span><strong>{text}</strong>{gettext(' by ')}</span>
+                <span><strong>{text}</strong>{historyItem.user_id != null ? gettext(' by ') : null}</span>
                 <span className="user-name">{self.getDisplayUser(historyItem.user_id, users)}</span>
                 <em> <AbsoluteDate date={historyItem._created} /> </em>
             </div>
@@ -74,50 +74,20 @@ const getPostedHistoryElement = (index, historyItems, users) => {
     const historyItem = historyItems[index];
     const itemType = 'event_id' in historyItem ? gettext('Event ') : gettext('Planning ');
 
-    for (let i = index - 1; i >= 0; i--) {
-        const item = historyItems[i];
-
-        if (item.operation !== HISTORY_OPERATIONS.POST ||
-            [HISTORY_OPERATIONS.SPIKED, HISTORY_OPERATIONS.UNSPIKED].includes(historyItem.operation)) {
-            continue;
-        }
-
-        if (get(item, 'update.pubstatus') === POST_STATE.USABLE) {
-            // Current history item happened when the item was in posted state
-
-            if (get(historyItem, 'update.pubstatus') === POST_STATE.USABLE &&
-                historyItem.operation !== HISTORY_OPERATIONS.EDITED) {
-                // If it is an edit and update operation don't show as a separate item
-                return;
-            }
-
-            if (get(historyItem, 'update.pubstatus') !== POST_STATE.CANCELLED) {
-                text = gettext('Updated');
-                break;
-            }
-
-            if (get(historyItem, 'update.pubstatus') === POST_STATE.CANCELLED) {
-                text = itemType + gettext('unposted');
-                break;
-            }
-        } else if (get(historyItem, 'update.pubstatus') === POST_STATE.USABLE) {
-            // Posted when the item was in unposted state
-            text = itemType + gettext('re-posted');
-            break;
-        }
+    if (historyItem.operation !== HISTORY_OPERATIONS.POST &&
+        historyItem.operation !== HISTORY_OPERATIONS.EVENTS_CANCEL &&
+        historyItem.operation !== HISTORY_OPERATIONS.PLANNING_CANCEL
+    ) {
+        return; // not post operation
     }
 
-    // Item posted for the first time
-    if (!text && historyItem.operation === HISTORY_OPERATIONS.POST) {
-        text = itemType + gettext('posted');
+    text = itemType + gettext('posted');
+
+    if (get(historyItem, 'update.pubstatus') === POST_STATE.CANCELLED) {
+        text = itemType + gettext('unposted');
     }
 
-    return text && text.includes('unposted') ? (
-        <div>
-            {self.getHistoryRowElement(gettext('Updated'), historyItem, users)}
-            {self.getHistoryRowElement(text, historyItem, users)}
-        </div>
-    ) : self.getHistoryRowElement(text, historyItem, users);
+    return self.getHistoryRowElement(text, historyItem, users);
 };
 
 // eslint-disable-next-line consistent-this

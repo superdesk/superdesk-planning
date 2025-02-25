@@ -69,6 +69,7 @@ from planning.common import (
     update_assignment_on_link_unlink,
     get_notify_self_on_assignment,
     planning_auto_assign_to_workflow,
+    get_config_assignment_manual_reassignment_only,
 )
 
 from planning.types import EventResourceModel
@@ -889,10 +890,12 @@ class AssignmentsService(superdesk.Service):
 
     def _set_user_for_assignment(self, assignment, assignee, assignor=None):
         updates = self._get_empty_updates_for_assignment(assignment)
-        updates["assigned_to"]["user"] = assignee
 
-        if assignor:
-            updates["assigned_to"]["assignor_user"] = assignor
+        if not get_config_assignment_manual_reassignment_only():
+            updates["assigned_to"]["user"] = assignee
+
+            if assignor:
+                updates["assigned_to"]["assignor_user"] = assignor
 
         return updates
 

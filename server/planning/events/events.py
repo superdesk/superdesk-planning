@@ -17,8 +17,9 @@ import logging
 import itertools
 
 from copy import deepcopy
-from datetime import timedelta
 from typing import Dict, Any, Optional, List, Tuple
+from datetime import timedelta, datetime, timedelta
+
 from eve.methods.common import resolve_document_etag
 from eve.utils import date_to_str
 from dateutil.rrule import (
@@ -58,6 +59,7 @@ from planning.common import (
     get_max_recurrent_events,
     WORKFLOW_STATE,
     ITEM_STATE,
+    prepare_ingested_item_for_storage,
     remove_lock_information,
     format_address,
     update_post_item,
@@ -94,6 +96,19 @@ organizer_roles = {
     "eorol:venue": "Venue organiser",
 }
 
+# based on onclusive provided content fields for now
+CONTENT_FIELDS = {
+    "name",
+    "definition_short",
+    "definition_long",
+    "links",
+    "ednote",
+    "subject",
+    "anpa_category",
+    "location",
+    "event_contact_info",
+}
+
 
 # TODO-ASYNC: this method was migrated to events_utils and it uses pydantic models instead
 def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
@@ -128,7 +143,25 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
         return True
     new_subject = set([get_subject_str(subject) for subject in new_item.get("subject", [])])
     old_subject = set([get_subject_str(subject) for subject in old_item.get("subject", [])])
-    return new_subject != old_subject
+    if new_subject != old_subject:
+        return True
+    old_location = old_item.get("location", [])
+    new_location = new_item.get("location", [])
+    if new_location != old_location:
+        return True
+    return False
+
+
+def get_user_updated_keys(event_id: str) -> set[str]:
+    history_service = get_resource_service("events_history")
+    updates = history_service.get_by_id(event_id)
+    updated_keys = set()
+    for update in updates:
+        if not update.get("user_id"):
+            continue
+        if update.get("update"):
+            updated_keys.update(update["update"].keys())
+    return updated_keys
 
 
 class EventsService(superdesk.Service):
@@ -138,6 +171,7 @@ class EventsService(superdesk.Service):
         """Post an ingested item(s)"""
 
         for doc in docs:
+            prepare_ingested_item_for_storage(doc)
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
 
@@ -147,12 +181,21 @@ class EventsService(superdesk.Service):
         self.on_created(docs)
         return ids
 
-    def patch_in_mongo(self, id, document, original) -> Optional[Dict[str, Any]]:
+    def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
         """Patch an ingested item onto an existing item locally"""
+        prepare_ingested_item_for_storage(document)
+        events_history = get_resource_service("events_history")
+        events_history.on_item_updated(document, original, "ingested")
+
+        content_fields = app.config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
+        updated_keys = get_user_updated_keys(_id)
+        for key in updated_keys:
+            if key in document and key in content_fields and original.get(key):
+                document[key] = original[key]
 
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
-        response = self.backend.update_in_mongo(self.datasource, id, document, original)
+        response = self.backend.update_in_mongo(self.datasource, _id, document, original)
         self.on_updated(document, original, from_ingest=True)
         return response
 
@@ -356,13 +399,19 @@ class EventsService(superdesk.Service):
         @:param dict event:
         """
         event = updates if updates.get("dates") or not original else original
-        start_date = event.get("dates", {}).get("start")
-        end_date = event.get("dates", {}).get("end")
+        dates = event.get("dates", {})
+        start_date = dates.get("start")
+        end_date = dates.get("end")
 
         if not start_date or not end_date:
             raise SuperdeskApiError(message="Event START DATE and END DATE are mandatory.")
 
-        if end_date < start_date:
+        if (
+            dates.get("no_end_time") is True
+            and end_date.date() < get_local_date(dates.get("start"), dates.get("tz")).date()
+        ):
+            raise SuperdeskApiError(message="END TIME should be after START TIME")
+        elif dates.get("no_end_time") is not True and end_date < start_date:
             raise SuperdeskApiError(message="END TIME should be after START TIME")
 
         if (
@@ -483,6 +532,10 @@ class EventsService(superdesk.Service):
             # this is a recursive update (see below)
             del updates["skip_on_update"]
             return
+
+        if updates.get("dates") and original.get("dates"):
+            for field in original.get("dates"):  # we need to preserve non updated values
+                updates["dates"].setdefault(field, original["dates"][field])
 
         update_method = updates.pop("update_method", UPDATE_SINGLE)
 
@@ -804,7 +857,7 @@ class EventsService(superdesk.Service):
         total_received = 0
         total_events = -1
 
-        while True:
+        while total_received + get_max_recurrent_events() < 10000:  # 10k is max elastic limit
             query["from"] = total_received
 
             results = self.search(query)
@@ -838,7 +891,6 @@ class EventsService(superdesk.Service):
     def should_update(self, old_item, new_item, provider):
         return old_item is None or not any(
             [
-                old_item.get("version_creator"),
                 old_item.get("pubstatus") == "cancelled",
                 old_item.get("state") == "killed",
             ]
@@ -1035,3 +1087,10 @@ def generate_recurring_events(event, recurrence_id=None):
 def set_planning_schedule(event):
     if event and event.get("dates") and event["dates"].get("start"):
         event["_planning_schedule"] = [{"scheduled": event["dates"]["start"]}]
+
+
+def get_local_date(date: datetime, tz: str) -> datetime:
+    try:
+        return date.astimezone(pytz.timezone(tz))
+    except pytz.exceptions.UnknownTimeZoneError:
+        return date

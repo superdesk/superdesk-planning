@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+import {get, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 
 import {IVocabularyItem} from 'superdesk-api';
@@ -12,15 +12,15 @@ import {
     IPlanningItem,
     IPrivileges,
     IItemAction,
-    IPlanningConfig,
     IItemSubActions,
     IEventOccurStatus,
-    IEmbeddedPlanningItem, IPlanningCoverageItem, IEmbeddedCoverageItem,
+    IPlanningCoverageItem,
+    IEmbeddedCoverageItem,
+    EDITOR_TYPE,
+    IPlanningRelatedEventLink,
 } from '../interfaces';
-import {planningApi} from '../superdeskApi';
-import {appConfig as config} from 'appConfig';
-
-const appConfig = config as IPlanningConfig;
+import {planningApi, superdeskApi} from '../superdeskApi';
+import {appConfig} from 'appConfig';
 
 import {
     PRIVILEGES,
@@ -57,6 +57,9 @@ import {
     sanitizeItemFields,
 } from './index';
 import {toUIFrameworkInterface, getRelatedEventIdsForPlanning} from './planning';
+import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
+import {isSameDay} from './../helpers';
+import {getOpenEditorType} from './editor';
 
 
 /**
@@ -76,8 +79,11 @@ function isEventAllDay(startingDate: IDateTime, endingDate: IDateTime, checkMult
         end.isSame(end.clone().endOf('day'), 'minute');
 }
 
-function isEventSameDay(startingDate: IDateTime, endingDate: IDateTime): boolean {
-    return moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY');
+function showEventStartDate(eventDate: IDateTime, multiDay: boolean, planningDate?: IDateTime): boolean {
+    if (planningDate == null) {
+        return true;
+    }
+    return (!moment(eventDate).isSame(planningDate, 'day') || multiDay);
 }
 
 function eventHasPlanning(event: IEventItem): boolean {
@@ -461,6 +467,199 @@ function canMarkEventAsComplete(
     }
 }
 
+/**
+ * This is a pure function. It has no side-effects and is also meant to be used for validation.
+ */
+function addRelatedEvents(
+    current: Array<IPlanningRelatedEventLink>,
+    _toAdd: Array<IEventItem>
+): {
+    itemsAdded: number;
+    warnings: Array<string>;
+    next: Array<IPlanningRelatedEventLink>;
+} {
+    const {assertNever} = superdeskApi.helpers;
+    const {gettext} = superdeskApi.localization;
+    const currentIds = new Set(current.map(({_id}) => _id));
+    const eventAlreadyAddedWarnings: Array<string> = [];
+    const toAdd = [];
+
+    for (const eventToAdd of _toAdd) {
+        if (currentIds.has(eventToAdd._id)) {
+            eventAlreadyAddedWarnings.push(
+                gettext('Event "{{name}}" is already added as related', {name: eventToAdd.name}),
+            );
+        } else {
+            toAdd.push(eventToAdd);
+        }
+    }
+
+    if (toAdd.length < 1) {
+        return {
+            next: current,
+            itemsAdded: 0,
+            warnings: eventAlreadyAddedWarnings,
+        };
+    }
+
+    switch (appConfig.planning_event_link_method) {
+    case 'one_primary': {
+        if (current.length > 0) {
+            return {
+                next: current,
+                itemsAdded: 0,
+                warnings: [
+                    gettext('Planning item already has one related event. Can not add more.'),
+                ],
+            };
+        } else {
+            const warnings = [];
+            const [first, ...rest] = toAdd;
+
+            if (rest.length > 0) {
+                warnings.push(
+                    gettext(
+                        'You are trying to add multiple related events when only one is allowed.'
+                        + ' '
+                        + 'Only the first event({{name}}) will be added.',
+                        {
+                            name: first.name,
+                        },
+                    )
+                );
+            }
+
+            return {
+                next: [
+                    ...current,
+                    {
+                        _id: first._id,
+                        link_type: 'primary',
+                    },
+                ],
+                itemsAdded: 1,
+                warnings: warnings,
+            };
+        }
+    }
+
+    case 'many_secondary': {
+        return {
+            next: [
+                ...current,
+                ...toAdd.map(({_id}): IPlanningRelatedEventLink => ({
+                    _id: _id,
+                    link_type: 'secondary',
+                }))
+            ],
+            itemsAdded: toAdd.length,
+            warnings: [],
+        };
+    }
+
+    case 'one_primary_many_secondary': {
+        const alreadyHasPrimary = current.some(({link_type}) => link_type === 'primary');
+
+        return {
+            next: [
+                ...current,
+                ...toAdd.map((evt, i): IPlanningRelatedEventLink => {
+                    return {
+                        _id: evt._id,
+                        link_type: !alreadyHasPrimary && i === 0 ? 'primary' : 'secondary',
+                    };
+                })
+            ],
+            itemsAdded: toAdd.length,
+            warnings: [],
+        };
+    }
+
+    default: {
+        return assertNever(appConfig.planning_event_link_method);
+    }
+    }
+}
+
+/**
+ * Will return true if there is at least one event that can be added
+ *
+ * Note: this function is interactive and might show UI confirmation prompt
+ */
+export function canAddSomeEventsAsRelatedToPlanningEditor(eventsToAdd: Array<IEventItem>): boolean {
+    const openEditorType = getOpenEditorType();
+
+    if (openEditorType == null) {
+        return false;
+    }
+
+    const editor = planningApi.editor(openEditorType);
+
+    if (editor.manager == null) {
+        return false;
+    }
+
+    const contentProfileHasRelatedEventsField = editor.dom.fields['associated_event'] != null;
+    const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
+    const currentRelatedEvents: Array<IPlanningRelatedEventLink> = (planningItem?.related_events ?? []);
+
+    return editor.item.getItemType() === 'planning'
+        && (editor.item.getItemAction() === 'edit' || editor.item.getItemAction() === 'create')
+        && contentProfileHasRelatedEventsField
+        && addRelatedEvents(currentRelatedEvents, eventsToAdd).itemsAdded > 0;
+}
+
+/**
+ * Events that are already added will be ignored
+ */
+export function addSomeEventsAsRelatedToPlanningEditor(
+    eventsToAdd: Array<IEventItem>,
+
+    /**
+     * Optional - has a default.
+     * In most cases default will be fine.
+     * Custom handler is added to support dynamic field names when used from an editor field.
+     */
+    onSave?: (nextItems: Array<IPlanningRelatedEventLink>) => Promise<void>,
+): Promise<void> {
+    const editor = planningApi.editor(getOpenEditorType());
+
+    const defaultSuccessCallback: (
+        nextItems: Array<IPlanningRelatedEventLink>,
+    ) => void = (nextItems): Promise<void> => {
+        return editor.form.changeField(
+            'related_events',
+            nextItems,
+            true,
+            true,
+        ).then(() => {
+            editor.form.scrollToBookmarkGroup('associated_event', {focus: false});
+        });
+    };
+
+    const onSuccessCallback = onSave ?? defaultSuccessCallback;
+
+    const planningItem = editor.form.getDiff<IPlanningItem>() as IPlanningItem;
+
+    const currentRelatedEvents: Array<IPlanningRelatedEventLink> = planningItem?.related_events ?? [];
+
+    const result = addRelatedEvents(currentRelatedEvents, eventsToAdd);
+
+    let promise = Promise.resolve();
+
+    if (result.warnings.length > 0) {
+        promise = promise.then(
+            () => confirmAddingRelatedItems(result.warnings, eventsToAdd.length, result.itemsAdded),
+        );
+    }
+
+    promise = promise.then(() => {
+        return onSuccessCallback(result.next);
+    });
+
+    return promise;
+}
+
 function getEventItemActions(
     event: IEventItem,
     session: ISession,
@@ -468,7 +667,11 @@ function getEventItemActions(
     actions: Array<IItemAction>,
     locks: ILockedItems
 ): Array<IItemAction> {
-    let itemActions = [];
+    if (event == null) {
+        return [];
+    }
+
+    let itemActions: Array<IItemAction> = [];
     let key = 1;
 
     const actionsValidator = {
@@ -519,6 +722,16 @@ function getEventItemActions(
 
         key++;
     });
+
+    if (canAddSomeEventsAsRelatedToPlanningEditor([event])) {
+        itemActions.push({
+            label: gettext('Add as related event'),
+            icon: 'icon-link',
+            callback: () => {
+                addSomeEventsAsRelatedToPlanningEditor([event]);
+            },
+        });
+    }
 
     if (isEmptyActions(itemActions)) {
         return [];
@@ -836,7 +1049,7 @@ function getEventActions(
         const CREATE_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName];
         const CREATE_AND_OPEN_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName];
 
-        (!withMultiPlanningDate || self.isEventSameDay(item)) ?
+        (!withMultiPlanningDate || isSameDay(item)) ?
             self.getSingleDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING) :
             self.getMultiDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING);
     }
@@ -949,14 +1162,16 @@ function modifyForClient(event: Partial<IEventItem>): Partial<IEventItem> {
         delete event._status;
     }
 
-    if (get(event, 'dates.start')) {
+    if (event.dates?.start != null) {
         event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
-        event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
+        event._startTime = event.dates.all_day ? null
+            : timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
     }
 
-    if (get(event, 'dates.end')) {
+    if (event.dates?.end != null) {
         event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
-        event._endTime = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
+        event._endTime = event.dates.all_day || event.dates.no_end_time ? null
+            : timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
     }
 
     if (get(event, 'dates.recurring_rule.until')) {
@@ -1045,6 +1260,14 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
                 event.dates.recurring_rule.until,
                 event.dates.tz
             );
+        }
+    } else {
+        if (event.dates?.start != null && moment.isMoment(event.dates.start)) {
+            event.dates.start = event.dates.start.toISOString();
+        }
+
+        if (event.dates?.end != null && moment.isMoment(event.dates.end)) {
+            event.dates.end = event.dates.end.toISOString();
         }
     }
 
@@ -1300,18 +1523,18 @@ function getEventDiff(original: IEventItem, updates: Partial<IEventItem>): Parti
     const originalItem = modifyForServer(cloneDeep(original), true);
 
     // clone the updates as we're going to modify it
-    let eventUpdates = modifyForServer(cloneDeep(updates), true);
+    const eventUpdates = modifyForServer(cloneDeep(updates), true);
 
     originalItem.location = originalItem.location ? [originalItem.location] : null;
 
     // remove all properties starting with `_`
     // and updates that are the same as original
-    eventUpdates = pickBy(eventUpdates, (value, key) => (
+    const diff = pickBy(eventUpdates, (value, key) => (
         (key === TO_BE_CONFIRMED_FIELD || key === '_planning_item' || !key.startsWith('_')) &&
         !isEqual(eventUpdates[key] ?? '', originalItem[key] ?? '')
     ));
 
-    return eventUpdates;
+    return diff;
 }
 
 function convertCoverageToEventEmbedded(coverage: IPlanningCoverageItem): IEmbeddedCoverageItem {
@@ -1354,7 +1577,7 @@ const self = {
     canUpdateEventTime,
     canConvertToRecurringEvent,
     canUpdateEventRepetitions,
-    isEventSameDay,
+    showEventStartDate,
     isEventRecurring,
     getDateStringForEvent,
     getEventActions,
@@ -1380,6 +1603,7 @@ const self = {
     getEndDate,
     getEventDiff,
     convertCoverageToEventEmbedded,
+    addSomeEventsAsRelatedToPlanningEditor,
 };
 
 export default self;

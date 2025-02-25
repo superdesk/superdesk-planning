@@ -8,7 +8,6 @@ import {
     IPlanningCoverageItem,
     IPlanningItem,
     IPlanningNewsCoverageStatus,
-    IPlanningConfig,
     IPlanningContentProfile,
     ISearchProfile
 } from '../../../../interfaces';
@@ -20,8 +19,7 @@ import {planningUtils, generateTempId} from '../../../../utils';
 import {ButtonGroup, Button, IconLabel} from 'superdesk-ui-framework/react';
 import {ICoverageDetails, CoverageRowForm} from './CoverageRowForm';
 import {Group} from '../../../UI/List';
-import * as config from 'appConfig';
-const appConfig = config.appConfig as IPlanningConfig;
+import {appConfig} from 'appConfig';
 
 interface IProps {
     event: IEventItem;
@@ -33,6 +31,7 @@ interface IProps {
     desks: Array<IDesk>;
     users: Array<IUser>;
     updatePlanningItem(updates: DeepPartial<IPlanningItem>): void;
+    initiallyExpanded?: boolean;
 }
 
 interface IState {
@@ -57,10 +56,13 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
-        this.state = {
-            ...this.getInitialState(),
-            inEditMode: !this.props.item.coverages?.length,
-        };
+        const initialState = this.getInitialState();
+
+        if (this.props.initiallyExpanded) {
+            initialState.inEditMode = true;
+        }
+
+        this.state = initialState;
 
         this.editForm = React.createRef();
 

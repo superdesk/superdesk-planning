@@ -21,6 +21,7 @@ from superdesk.core.types import Request
 from werkzeug.exceptions import BadRequest
 from typing import Type, Union, List, Dict, Any, TypedDict, Optional
 
+from . import settings, types
 from superdesk import get_resource_service
 from superdesk.json_utils import cast_item
 from superdesk.core.utils import str_to_date
@@ -240,7 +241,7 @@ def get_first_event_item_for_planning_id(
 
 
 def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
-    return get_app_config("PLANNING_EVENT_LINK_METHOD", "one_primary")
+    return get_app_config(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
 
 
 def update_event_item_with_translations_value(event_item: Dict[str, Any], language: str) -> Dict[str, Any]:

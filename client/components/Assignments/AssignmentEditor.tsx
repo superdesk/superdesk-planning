@@ -1,9 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, isEqual} from 'lodash';
 
-import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../utils';
+import {getUsersForDesk, getDesksForUser, gettext} from '../../utils';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
@@ -17,33 +16,71 @@ import {
 } from '../UI/Form';
 import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
 import {superdeskApi} from '../../superdeskApi';
+import {IDesk, IUser} from 'superdesk-api';
+import {IAssignmentPriority} from 'interfaces';
 
-export class AssignmentEditorComponent extends React.Component {
+interface IProps {
+    value: any;
+    onChange?: (...args: any) => any;
+    users: Array<IUser>;
+    desks?: Array<IDesk>;
+    coverageProviders?: Array<any>;
+    priorities?: Array<IAssignmentPriority>;
+    priorityPrefix?: string;
+    disableDeskSelection?: boolean;
+    disableUserSelection?: boolean;
+    popupContainer?: () => HTMLElement;
+    showDesk?: boolean;
+    showPriority?: boolean;
+    className?: string;
+    onValidate?: (diff: any, errors: any) => void;
+    setValid?: (valid: boolean) => void;
+    contactTypes?: Array<any>;
+}
+
+interface IState {
+    userId: string;
+    user: IUser;
+    deskId: string;
+    desk: IDesk;
+    filteredUsers: Array<IUser>;
+    filteredDesks: Array<IDesk>;
+    priorityQcode: string;
+    priority: any;
+    errors: any;
+    providerQcode: string | null;
+    contactType: {qcode?: string; assignable?: string; name?: string} | null;
+    contactId: string;
+    contact?: any | null;
+}
+
+export class AssignmentEditorComponent extends React.Component<IProps, IState> {
+    FIELDS: {[key: string]: string};
+
     constructor(props) {
         super(props);
 
         this.FIELDS = {
             USER: 'assigned_to.user',
             DESK: 'assigned_to.desk',
-            PRIORITY: `${props.priorityPrefix}priority`,
+            PRIORITY: `${props.priorityPrefix ?? ''}priority`,
             PROVIDER: 'assigned_to.coverage_provider',
             CONTACT: 'assigned_to.contact',
         };
 
         const userId = get(props.value, this.FIELDS.USER);
-        const user = getItemInArrayById(props.users, userId);
+        const user = props.users.find((x) => x._id === userId);
 
         const deskId = get(props.value, this.FIELDS.DESK);
-        const desk = getItemInArrayById(props.desks, deskId);
+        const desk = props.desks.find((x) => x._id === deskId);
 
         const filteredUsers = getUsersForDesk(desk, props.users);
         const filteredDesks = getDesksForUser(user, props.desks);
 
         const priorityQcode = get(props.value, this.FIELDS.PRIORITY);
-        const priority = getItemInArrayById(props.priorities, priorityQcode, 'qcode');
+        const priority = props.priorities.find((x) => x.qcode === priorityQcode);
 
         const contactId = get(props.value, this.FIELDS.CONTACT);
-
         const errors = {};
 
         this.state = {
@@ -75,15 +112,13 @@ export class AssignmentEditorComponent extends React.Component {
         this.onChange(null, null);
         if (!this.state.priorityQcode) {
             this.onPriorityChange(
-                this.FIELDS.PRIORITY,
-                getItemInArrayById(this.props.priorities, ASSIGNMENTS.DEFAULT_PRIORITY, 'qcode')
+                this.props.priorities.find((x) => x.qcode === ASSIGNMENTS.DEFAULT_PRIORITY),
             );
         }
 
-        if (get(this.props.value, this.FIELDS.PROVIDER)) {
-            this.setContactTypeAndId(get(
-                this.props.value,
-                `${this.FIELDS.PROVIDER}.contact_type`)
+        if (this.props.value[this.FIELDS.PROVIDER]) {
+            this.setContactTypeAndId(
+                this.props.value[`${this.FIELDS.PROVIDER}.contact_type`],
             );
         }
     }
@@ -94,21 +129,21 @@ export class AssignmentEditorComponent extends React.Component {
         const priorityQcode = get(nextProps.value, this.FIELDS.PRIORITY);
 
         if (userId !== this.state.userId) {
-            this.onUserChange(null, getItemInArrayById(nextProps.users, userId));
+            this.onUserChange(nextProps.users.find((x) => x._id === userId));
         }
 
         if (deskId !== this.state.deskId) {
-            this.onDeskChange(null, getItemInArrayById(nextProps.desks, deskId));
+            this.onDeskChange(nextProps.desks.find((x) => x._id === deskId));
         }
 
         if (priorityQcode && priorityQcode !== this.state.priorityQcode) {
-            this.onPriorityChange(null, getItemInArrayById(nextProps.priorities, priorityQcode, 'qcode'));
+            this.onPriorityChange(nextProps.priorities.find((x) => x.qcode === priorityQcode));
         }
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        const currentContactType = get(this.state, 'contactType') || {};
-        const prevContactType = get(prevState, 'contactType') || {};
+    componentDidUpdate(_prevProps, prevState) {
+        const currentContactType = this.state.contactType ?? {};
+        const prevContactType = prevState.contactType ?? {};
 
         if (currentContactType.qcode !== prevContactType.qcode) {
             if (currentContactType.assignable) {
@@ -119,13 +154,14 @@ export class AssignmentEditorComponent extends React.Component {
         }
     }
 
-    onChange(field, value, state = {}) {
+    onChange(field, value, state: Partial<IState> = {}) {
         const errors = cloneDeep(this.state.errors);
         const combinedState = {
             ...this.state,
             ...state,
         };
-        const newState = cloneDeep(state);
+
+        const newState = cloneDeep<IState>(state as IState);
 
         this.props.onValidate(combinedState, errors);
         newState.errors = errors;
@@ -142,11 +178,11 @@ export class AssignmentEditorComponent extends React.Component {
         this.props.setValid(isEqual(errors, {}));
     }
 
-    onUserChange(field, value) {
-        const userId = get(value, '_id');
+    onUserChange(value) {
+        const userId = value?._id;
 
         if (userId !== this.state.userId) {
-            this.onChange(this.FIELDS.USER, get(value, '_id'), {
+            this.onChange(this.FIELDS.USER, userId, {
                 userId: userId,
                 user: value,
                 filteredDesks: getDesksForUser(value, this.props.desks),
@@ -155,7 +191,7 @@ export class AssignmentEditorComponent extends React.Component {
     }
 
     onContactChange(contact) {
-        const contactId = get(contact, '_id');
+        const contactId = contact?._id;
 
         if (contactId !== this.state.contactId) {
             this.onChange(
@@ -173,11 +209,11 @@ export class AssignmentEditorComponent extends React.Component {
         });
     }
 
-    onDeskChange(field, value) {
-        const deskId = get(value, '_id');
+    onDeskChange(value) {
+        const deskId = value?._id;
 
         if (deskId !== this.state.deskId) {
-            this.onChange(this.FIELDS.DESK, get(value, '_id'), {
+            this.onChange(this.FIELDS.DESK, deskId, {
                 deskId: deskId,
                 desk: value,
                 filteredUsers: getUsersForDesk(value, this.props.users),
@@ -185,11 +221,11 @@ export class AssignmentEditorComponent extends React.Component {
         }
     }
 
-    onPriorityChange(field, value) {
-        const priorityQcode = get(value, 'qcode');
+    onPriorityChange(value) {
+        const priorityQcode = value?.qcode;
 
         if (priorityQcode !== this.state.priorityQcode) {
-            this.onChange(this.FIELDS.PRIORITY, get(value, 'qcode'), {
+            this.onChange(this.FIELDS.PRIORITY, priorityQcode, {
                 priorityQcode: priorityQcode,
                 priority: value,
             });
@@ -206,11 +242,7 @@ export class AssignmentEditorComponent extends React.Component {
         }
 
         let contactId = this.state.contactId;
-        let contactType = getItemInArrayById(
-            this.props.contactTypes,
-            contactTypeQcode,
-            'qcode'
-        ) || null;
+        const contactType = this.props.contactTypes.find((x) => x.qcode === contactTypeQcode) ?? null;
 
         if (this.state.contactType && contactTypeQcode !== this.state.contactType.qcode) {
             contactId = null;
@@ -222,11 +254,11 @@ export class AssignmentEditorComponent extends React.Component {
         });
     }
 
-    onProviderChange(field, value) {
-        const providerQcode = get(value, 'qcode');
+    onProviderChange(value) {
+        const providerQcode = value.qcode;
 
         if (providerQcode !== this.state.providerQcode) {
-            this.setContactTypeAndId(get(value, 'contact_type'));
+            this.setContactTypeAndId(value.contact_type);
             this.onChange(this.FIELDS.PROVIDER, value);
         }
     }
@@ -239,8 +271,8 @@ export class AssignmentEditorComponent extends React.Component {
             popupContainer,
             disableDeskSelection,
             disableUserSelection,
-            showDesk,
-            showPriority,
+            showDesk = true,
+            showPriority = true,
             className,
         } = this.props;
         const {SelectUser} = superdeskApi.components;
@@ -253,7 +285,9 @@ export class AssignmentEditorComponent extends React.Component {
                             field={this.FIELDS.DESK}
                             label={gettext('Desk')}
                             value={this.state.desk}
-                            onChange={this.onDeskChange}
+                            onChange={(_field, val) => {
+                                this.onDeskChange(val);
+                            }}
                             options={this.state.filteredDesks}
                             labelField="name"
                             keyField="_id"
@@ -270,8 +304,10 @@ export class AssignmentEditorComponent extends React.Component {
                     <SelectInput
                         field={this.FIELDS.PROVIDER}
                         label={gettext('Coverage Provider')}
-                        value={get(value, this.FIELDS.PROVIDER, null)}
-                        onChange={this.onProviderChange}
+                        value={get(value, this.FIELDS.PROVIDER) ?? null}
+                        onChange={(_field, val) => {
+                            this.onProviderChange(val);
+                        }}
                         options={coverageProviders}
                         labelField="name"
                         keyField="qcode"
@@ -289,7 +325,6 @@ export class AssignmentEditorComponent extends React.Component {
                             />
                         )}
                         <SelectSearchContactsField
-                            field={this.FIELDS.CONTACT}
                             value={this.state.contactId ? [this.state.contactId] : []}
                             onChange={this.onContactChange}
                             contactType={this.state.contactType.qcode}
@@ -301,10 +336,11 @@ export class AssignmentEditorComponent extends React.Component {
                     <Row style={{padding: '2rem 0', margin: '0 0 1.8em 0'}}>
                         <div data-test-id={this.FIELDS.USER}>
                             <SelectUser
+                                disabled={disableUserSelection}
                                 deskId={this.props.value.assigned_to?.desk ?? null}
-                                selectedUserId = {this.state.userId}
+                                selectedUserId={this.state.userId}
                                 onSelect={(user) => {
-                                    this.onUserChange(null, user);
+                                    this.onUserChange(user);
                                 }}
                                 autoFocus={false}
                                 horizontalSpacing={true}
@@ -320,7 +356,9 @@ export class AssignmentEditorComponent extends React.Component {
                             field={this.FIELDS.PRIORITY}
                             label={gettext('Assignment Priority')}
                             value={this.state.priority}
-                            onChange={this.onPriorityChange}
+                            onChange={(_field, val) => {
+                                this.onPriorityChange(val);
+                            }}
                             options={priorities}
                             iconName="priority-label"
                             noMargin={true}
@@ -334,38 +372,6 @@ export class AssignmentEditorComponent extends React.Component {
         );
     }
 }
-
-AssignmentEditorComponent.propTypes = {
-    value: PropTypes.object,
-    onChange: PropTypes.func,
-    onClose: PropTypes.func,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    coverageProviders: PropTypes.array,
-    priorities: PropTypes.array,
-    priorityPrefix: PropTypes.string,
-    fromCoverage: PropTypes.bool,
-    disableDeskSelection: PropTypes.bool,
-    disableUserSelection: PropTypes.bool,
-    popupContainer: PropTypes.func,
-    showDesk: PropTypes.bool,
-    showPriority: PropTypes.bool,
-    className: PropTypes.string,
-    onValidate: PropTypes.func,
-    setValid: PropTypes.func,
-    contactTypes: PropTypes.arrayOf(PropTypes.shape({
-        qcode: PropTypes.string,
-        name: PropTypes.string,
-        assignable: PropTypes.bool,
-    })),
-};
-
-AssignmentEditorComponent.defaultProps = {
-    priorityPrefix: '',
-    fromCoverage: false,
-    showDesk: true,
-    showPriority: true,
-};
 
 const mapStateToProps = (state) => ({
     contactTypes: getContactTypes(state),

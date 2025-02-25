@@ -21,6 +21,7 @@ describe('Planning.Events: duplicate event', () => {
             definition_short: 'Desc.',
             'dates.start.date': now.format(CLIENT_FORMAT),
             'dates.start.time': '00:00',
+            'dates.end.time': '01:00',
             occur_status: 'Planned, occurs certainly',
             calendars: ['Sport'],
             anpa_category: ['Finance'],

@@ -1,18 +1,21 @@
 import React from 'react';
 
 import {superdeskApi} from '../../superdeskApi';
-import {IEventItem} from '../../interfaces';
+import {IEventItem, IPlanningListItemProps} from '../../interfaces';
 
 import {eventUtils, timeUtils} from '../../utils';
 
 import {DateTime} from '../UI';
 
 import './style.scss';
+import {Spacer} from 'superdesk-ui-framework/react';
+import {isSameDay} from './../../helpers';
 
 interface IProps {
   item: IEventItem;
   ignoreAllDay?: boolean;
   displayLocalTimezone?: boolean;
+  planningProps?: IPlanningListItemProps;
 }
 
 export class EventDateTime extends React.PureComponent<IProps> {
@@ -22,7 +25,9 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const start = eventUtils.getStartDate(item);
         const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(start, end);
-        const multiDay = !eventUtils.isEventSameDay(start, end);
+        const multiDay = !isSameDay(start, end);
+        const isEventAndPlanningSameDate = isSameDay(start, this.props.planningProps?.date);
+        const showEventStartDate = eventUtils.showEventStartDate(start, multiDay, this.props.planningProps?.date);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
         const withYear = multiDay && start.year() !== end.year();
         const localStart = timeUtils.getLocalDate(start, item.dates.tz);
@@ -69,7 +74,19 @@ export class EventDateTime extends React.PureComponent<IProps> {
 
         return isAllDay && !ignoreAllDay ? (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
-                {gettext('All day')}
+                <Spacer h gap={'4'}>
+                    {(!isEventAndPlanningSameDate || multiDay) && (
+                        <DateTime
+                            withDate={showEventStartDate}
+                            withYear={false}
+                            date={start}
+                            {...commonProps}
+                            withTime={false}
+                            testId="event-start-date"
+                        />
+                    )}
+                    {gettext('All day')}
+                </Spacer>
             </span>
         ) : (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
@@ -79,9 +96,11 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     </span>
                 )}
                 <DateTime
-                    withDate={multiDay}
+                    withTime={!isFullDay}
+                    withDate={showEventStartDate}
                     withYear={withYear}
                     date={start}
+                    testId="event-start-date"
                     {...commonProps}
                 />
                 {showDash && <>&ndash;</>}
@@ -90,6 +109,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     withYear={withYear}
                     isEndEventDateTime={true}
                     date={end}
+                    testId="event-end-date"
                     {...commonProps}
                 />
                 {isRemoteTimeZone && (

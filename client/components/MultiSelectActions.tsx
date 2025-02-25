@@ -6,8 +6,11 @@ import {every} from 'lodash';
 import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
-import {Button} from './UI';
 import {IEventItem, ILockedItems, IPlanningItem, IPrivileges, ISession} from 'interfaces';
+import {addSomeEventsAsRelatedToPlanningEditor, canAddSomeEventsAsRelatedToPlanningEditor} from '../utils/events';
+import {superdeskApi} from '../superdeskApi';
+import {addSomeRelatedPlanningsToEventEditor, canAddSomeRelatedPlanningsToEventEditor} from '../utils/planning';
+import {IconButton} from 'superdesk-ui-framework';
 
 interface IReduxState {
     selectedEvents: Array<any>;
@@ -92,6 +95,7 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
     }
 
     getPlanningTools() {
+        const {gettextPlural} = superdeskApi.localization;
         const {
             selectedPlannings,
             privileges,
@@ -119,48 +123,66 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
 
         if (selectedPlannings.every((planning) => planning.lock_action == null)) {
             tools.push(
-                <Button
+                <IconButton
                     key={0}
-                    hollow={true}
+                    icon="assign"
+                    ariaValue={gettext('Add to workflow')}
                     onClick={() => {
                         this.props.addToWorkflow(this.getItemList());
                     }}
-                    text={gettext('Add to workflow')}
                 />
             );
         }
+
         if (showExport) {
             tools.push(
-                <Button
+                <IconButton
                     key={1}
-                    hollow={true}
+                    icon="upload"
+                    ariaValue={gettext('Export')}
                     onClick={this.exportArticle}
-                    text={gettext('Export')}
                 />
             );
         }
 
         if (showSpike) {
             tools.push(
-                <Button
+                <IconButton
                     key={2}
+                    icon="trash"
+                    ariaValue={gettext('Spike')}
                     onClick={this.itemSpike}
-                    color="alert"
-                    hollow={true}
-                    text={gettext('Spike')}
-                    icon="icon-trash"
                 />
             );
         }
 
         if (showUnspike) {
             tools.push(
-                <Button
+                <IconButton
                     key={3}
+                    icon="unspike"
+                    ariaValue={gettext('Unspike')}
                     onClick={this.itemUnSpike}
-                    color="warning"
-                    icon="icon-unspike"
-                    text={gettext('Unspike')}
+                />
+            );
+        }
+
+        if (canAddSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)) {
+            tools.push(
+                <IconButton
+                    key={4}
+                    onClick={() => {
+                        addSomeRelatedPlanningsToEventEditor(selectedPlannings, lockedItems)
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
+                    }}
+                    icon="link"
+                    ariaValue={gettextPlural(
+                        selectedPlannings.length,
+                        'Add as related planning',
+                        'Add as related plannings',
+                    )}
                 />
             );
         }
@@ -191,54 +213,69 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
         );
 
+        const {gettextPlural} = superdeskApi.localization;
+
         let tools = [(
-            <Button
+            <IconButton
                 key={0}
+                icon="upload"
+                ariaValue={gettext('Export')}
                 onClick={this.exportArticle}
-                hollow
-                text={gettext('Export')}
             />
         ), (
-            <Button
+            <IconButton
                 key={1}
+                icon="download"
+                ariaValue={gettext('Download')}
                 onClick={this.exportArticle.bind(null, true)}
-                color="primary"
-                text={gettext('Download')}
             />
         )];
 
         if (showCreatePlan) {
             tools.push(
-                <Button
+                <IconButton
                     key={2}
+                    icon="calendar"
+                    ariaValue={gettext('Create planning')}
                     onClick={this.createPlanning}
-                    color="primary"
-                    text={gettext('Create planning')}
                 />
             );
         }
 
         if (showSpike) {
             tools.push(
-                <Button
+                <IconButton
                     key={3}
+                    icon="trash"
+                    ariaValue={gettext('Spike')}
                     onClick={this.itemSpike}
-                    color="alert"
-                    hollow={true}
-                    text={gettext('Spike')}
-                    icon="icon-trash"
                 />
             );
         }
 
         if (showUnspike) {
             tools.push(
-                <Button
+                <IconButton
                     key={4}
+                    icon="unspike"
+                    ariaValue={gettext('Unspike')}
                     onClick={this.itemUnSpike}
-                    color="warning"
-                    text={gettext('Unspike')}
-                    icon="icon-unspike"
+                />
+            );
+        }
+
+        if (canAddSomeEventsAsRelatedToPlanningEditor(selectedEvents)) {
+            tools.push(
+                <IconButton
+                    key={5}
+                    onClick={() => {
+                        addSomeEventsAsRelatedToPlanningEditor(selectedEvents)
+                            .then(() => {
+                                this.handleDeSelectAll();
+                            });
+                    }}
+                    icon="link"
+                    ariaValue={gettextPlural(selectedEvents.length, 'Add as related event', 'Add as related events')}
                 />
             );
         }
@@ -274,10 +311,19 @@ export class MultiSelectActionsComponent extends React.PureComponent<IProps> {
             selectedEventIds,
         } = this.props;
 
-        const hideSlidingToolBar = (activeFilter === MAIN.FILTERS.PLANNING &&
-            selectedPlanningIds.length === 0) ||
-            (activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0) ||
-            activeFilter === MAIN.FILTERS.COMBINED;
+        const hideSlidingToolBar =
+            (
+                activeFilter === MAIN.FILTERS.PLANNING &&
+                selectedPlanningIds.length === 0
+            )
+            || (
+                activeFilter === MAIN.FILTERS.EVENTS && selectedEventIds.length === 0
+            )
+            || activeFilter === MAIN.FILTERS.COMBINED;
+
+        if (hideSlidingToolBar) {
+            return null;
+        }
 
         let innerTools = [(<a key={1} onClick={this.handleDeSelectAll.bind(this)}>{gettext('Deselect All')}</a>)];
 

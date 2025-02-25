@@ -720,7 +720,8 @@ Feature: Events
         """
 
     @auth
-    Scenario: Link new Event as secondary to a Planning item
+    @notification
+    Scenario: Link and unlink event as secondary to a Planning item
         Given config update
         """
         {"PLANNING_EVENT_LINK_METHOD": "one_primary_many_secondary"}
@@ -736,6 +737,12 @@ Feature: Events
             "lock_session": "#SESSION_ID#",
             "lock_action": "add_as_event",
             "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
+        },
+        {
+            "_id": "plan2",
+            "guid": "plan2",
+            "state": "draft",
             "planning_date": "2016-01-02"
         }]
         """
@@ -781,6 +788,46 @@ Feature: Events
             {"_id": "event_1", "link_type": "primary"},
             {"_id": "event_2", "link_type": "secondary"}
         ]}
+        """
+        When we reset notifications
+        When we patch "/planning/plan1"
+        """
+        {"related_events": [
+            {"_id": "event_2", "link_type": "secondary"}
+        ]}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [
+            {"event": "planning:updated", "extra": {"item": "plan1", "related_events_changed": true}},
+            {"event": "event:link_updated", "extra": {"event": "event_1", "planning": "plan1", "action": "delete", "links": []}}
+        ]
+        """
+        When we reset notifications
+        When we patch "/planning/plan1"
+        """
+        {"name": "Test"}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{"event": "planning:updated", "extra": {"related_events_changed": false}}]
+        """
+        When we reset notifications
+        When we patch "/planning/plan2"
+        """
+        {"related_events": [
+            {"_id": "event_2", "link_type": "secondary"}
+        ]}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [
+            {"event": "planning:updated", "extra": {"item": "plan2", "related_events_changed": true}},
+            {"event": "event:link_updated", "extra": {"event": "event_2", "planning": "plan2", "action": "create", "links": ["plan1", "plan2"]}}
+        ]
         """
 
     @auth

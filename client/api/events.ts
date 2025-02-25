@@ -5,10 +5,11 @@ import {
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    IPlanningConfig,
     IEventUpdateMethod,
+    IGetRequestParams,
+    IPlanningItem,
 } from '../interfaces';
-import {appConfig as config} from 'appConfig';
+import {appConfig} from 'appConfig';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
 import {EVENTS, TEMP_ID_PREFIX} from '../constants';
@@ -17,8 +18,7 @@ import {arrayToString, convertCommonParams, cvsToString, searchRaw, searchRawGet
 import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
 import planningApis from '../actions/planning/api';
-
-const appConfig = config as IPlanningConfig;
+import {searchPlanning} from './planning';
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -70,9 +70,13 @@ export function searchEventsGetAll(params: ISearchParams): Promise<Array<IEventI
     });
 }
 
-export function getEventById(eventId: IEventItem['_id']): Promise<IEventItem> {
+export function getEventById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem> {
     return superdeskApi.dataApi
-        .findOne<IEventItem>('events', eventId)
+        .findOne<IEventItem>(
+            'events',
+            eventId + (params?.cache === false ? `?time=${Math.floor(Date.now() / 1000)}` : ''),
+            params?.cache,
+        )
         .then(modifyItemForClient);
 }
 
@@ -146,6 +150,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
                 headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method
@@ -192,12 +197,16 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 slugline: coverage.planning.slugline,
                 ednote: coverage.planning.ednote,
                 internal_note: coverage.planning.internal_note,
+                headline: coverage.planning.headline,
+                coverage_provider: coverage.assigned_to.coverage_provider
             })),
         })),
         update_method: updates.update_method?.value ?? updates.update_method ?? original.update_method
     })
         .then((response) => {
             const events = modifySaveResponseForClient(response);
+
+            events[0].associated_plannings = updates.associated_plannings;
 
             return planningApi.planning.searchGetAll({
                 recurrence_id: events[0].recurrence_id,
@@ -214,6 +223,10 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
         });
 }
 
+function getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>> {
+    return searchPlanning({only_future: false, event_item: [eventId]}).then(({_items}) => _items);
+}
+
 export const events: IPlanningAPI['events'] = {
     search: searchEvents,
     searchGetAll: searchEventsGetAll,
@@ -223,4 +236,5 @@ export const events: IPlanningAPI['events'] = {
     getSearchProfile: getEventSearchProfile,
     create: create,
     update: update,
+    getLinkedPlanningItems: getLinkedPlanningItems,
 };

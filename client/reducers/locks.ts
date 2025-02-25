@@ -1,7 +1,8 @@
 import {ILockedItems, ILock, IWebsocketMessageData} from '../interfaces';
 import {createReducer} from './createReducer';
 import {RESET_STORE, INIT_STORE, LOCKS} from '../constants';
-import {cloneDeep, get} from 'lodash';
+import {cloneDeep} from 'lodash';
+import {getRelatedEventIdsForPlanning} from '../utils/planning';
 
 const initialLockState: ILockedItems = {
     event: {},
@@ -40,6 +41,8 @@ function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']
     if (data.recurrence_id != null) {
         state.recurring[data.recurrence_id] = lockData;
     } else if ((data.event_ids?.length ?? 0) > 0) {
+        state[data.type][data.item] = lockData;
+
         // For now, only support 1 primary event link for locks
         state.event[data.event_ids[0]] = lockData;
     } else {
@@ -70,4 +73,31 @@ export default createReducer(initialLockState, {
     [LOCKS.ACTIONS.SET_ITEM_AS_UNLOCKED]: (state: ILockedItems, payload: IWebsocketMessageData['ITEM_UNLOCKED']) => (
         removeLock(cloneDeep(state), payload)
     ),
+
+    [LOCKS.ACTIONS.RELOAD_SOFT_LOCKS_FOR_RELATED_EVENTS]: (state: ILockedItems, payload: {planning: IPlanningItem}) => {
+        const nextEventLocks = {...state.event};
+        const {planning} = payload;
+
+        for (const [eventId, lockObject] of Object.entries(nextEventLocks)) {
+            if (lockObject.item_id === planning._id) {
+                delete nextEventLocks[eventId];
+            }
+        }
+
+        for (const relatedEventId of getRelatedEventIdsForPlanning(planning, 'primary')) {
+            nextEventLocks[relatedEventId] = {
+                action: planning.lock_action,
+                item_id: planning._id,
+                item_type: 'planning',
+                session: planning.lock_session,
+                time: planning.lock_time,
+                user: planning.lock_user,
+            };
+        }
+
+        return {
+            ...state,
+            event: nextEventLocks,
+        };
+    },
 });

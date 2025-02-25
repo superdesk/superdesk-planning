@@ -65,7 +65,9 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
                     style="hollow"
                     type="primary"
                     expand={true}
-                    onClick={editor.item.events.addPlanningItem}
+                    onClick={() => {
+                        editor.item.events.addPlanningItem();
+                    }}
                 />
             </div>
         );

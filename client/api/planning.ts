@@ -9,9 +9,9 @@ import {
     ISearchAPIParams,
     ISearchParams,
     ISearchSpikeState,
-    IPlanningConfig, IPlanningRelatedEventLink,
+    IPlanningRelatedEventLink,
 } from '../interfaces';
-import {appConfig as config} from 'appConfig';
+import {appConfig} from 'appConfig';
 
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll, cvsToString} from './search';
 import {planningApi, superdeskApi} from '../superdeskApi';
@@ -22,8 +22,6 @@ import {featured} from './featured';
 import {PLANNING} from '../constants';
 import * as selectors from '../selectors';
 import planningApis from '../actions/planning/api';
-
-const appConfig = config as IPlanningConfig;
 
 export function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {

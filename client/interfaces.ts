@@ -1,5 +1,4 @@
 import {
-    ISuperdeskGlobalConfig,
     IBaseRestApiResponse,
     ISubject,
     IUser,
@@ -269,40 +268,6 @@ export type IPlace = {
     location: string;
     rel: string;
 };
-
-export interface IPlanningConfig extends ISuperdeskGlobalConfig {
-    event_templates_enabled?: boolean;
-    long_event_duration_threshold?: number;
-    max_multi_day_event_duration?: number;
-    max_recurrent_events?: number;
-    planning_allow_freetext_location: boolean;
-    planning_allow_scheduled_updates?: boolean;
-    planning_auto_assign_to_workflow?: boolean;
-    planning_check_for_assignment_on_publish?: boolean;
-    planning_check_for_assignment_on_send?: boolean;
-    planning_fulfil_on_publish_for_desks: Array<string>;
-    planning_link_updates_to_coverage?: boolean;
-    planning_use_xmp_for_pic_assignments?: boolean;
-    planning_use_xmp_for_pic_slugline?: boolean;
-    planning_xmp_assignment_mapping?: string;
-    street_map_url?: string;
-    planning_auto_close_popup_editor?: boolean;
-    start_of_week?: number;
-    planning_default_view: PLANNING_VIEW;
-
-    planning?: {
-        dateformat?: string;
-        timeformat?: string;
-        allowed_coverage_link_types?: Array<string>;
-        autosave_timeout?: number;
-        default_create_planning_series_with_event_series?: boolean;
-        event_related_item_search_provider_name?: string;
-    };
-
-    coverage?: {
-        getDueDateStrategy?(planningItem: IPlanningItem, eventItem?: IEventItem): moment.Moment | null;
-    };
-}
 
 export interface ISession {
     sessionId: string;
@@ -760,6 +725,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         scheduled: string | Date;
     }>;
     planning_date: IDateTime;
+    all_day?: boolean;
     flags?: {
         marked_for_not_publication?: boolean;
         overide_auto_assign_to_workflow?: boolean;
@@ -778,6 +744,16 @@ export interface IPlanningItem extends IBaseRestApiResponse {
 
     // Used when showing Associated Planning item for Events
     _agendas: Array<IAgenda>;
+
+    /**
+     * This is for storing UI related data that is not a part of the planning item entity itself,
+     * but is required to be persisted to complete a multi-step workflow.
+     * It will be persisted in /planning_autosave, but not in /planning endpoint
+     */
+    _temporary?: {
+        // is used when linking planning items to an event
+        link_type?: IPlanningRelatedEventLinkType;
+    }
 
     // Attributes added by API (removed via modifyForClient)
     // The `_status` field is available when the item comes from a POST/PATCH request
@@ -906,6 +882,7 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
 
 export interface IBaseListItemProps<T> {
     item: T;
+    planningProps?: IPlanningListItemProps;
     lockedItems: ILockedItems;
     session: ISession;
     privileges: {[key: string]: number};
@@ -924,10 +901,13 @@ export interface IBaseListItemProps<T> {
 }
 
 export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
-    relatedPlanningText?: string;
     calendars: Array<ICalendar>;
     filterLanguage?: string;
-    toggleRelatedPlanning?(event: React.MouseEvent): void;
+    relatedPlanningsCount: number;
+    relatedEventsUI?: {
+        visible: boolean;
+        setVisibility(value: boolean): void;
+    };
 }
 
 export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem> {
@@ -1602,7 +1582,9 @@ export interface IEditorFieldProps {
     editorType?: EDITOR_TYPE;
     profile?: IPlanningContentProfile;
 
-    onChange(field: string | {[key: string]: any}, value: any): void;
+    onChange(field: string, value: any): void;
+    onChange(values: {[key: string]: any}): void;
+
     popupContainer?(): HTMLElement;
 }
 
@@ -2056,7 +2038,7 @@ export interface IEditorFormGroup {
 }
 
 export abstract class IEditorRefComponent {
-    abstract scrollIntoView(): void;
+    abstract scrollIntoView(options?: {focus?: boolean}): void;
     abstract getBoundingClientRect(): DOMRect | undefined;
     abstract focus(): void;
 }
@@ -2101,7 +2083,15 @@ export interface IWebsocketMessageData {
         removed_agendas: Array<IAgenda['_id']>;
         session: ISession['sessionId'];
         event_ids: Array<IEventItem['_id']>;
+        related_events_changed?: boolean;
     };
+    EVENT_LINK_UPDATED: {
+        action: string;
+        event: IEventItem['_id'];
+        planning: IPlanningItem['_id'];
+        links: Array<IPlanningItem['_id']>;
+        _created: string; // ISO 8601 datetime
+    }
 }
 
 export interface IEditorAPI {
@@ -2143,7 +2133,7 @@ export interface IEditorAPI {
         ): Promise<void>;
 
         scrollToTop(): void;
-        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id']): void;
+        scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id'], options?: {focus?: boolean}): void;
         waitForScroll(): Promise<void>;
 
         getAction(): IEditorAction;
@@ -2160,6 +2150,7 @@ export interface IEditorAPI {
     item: {
         getItemType(): string;
         getItemId(): IEventOrPlanningItem['_id'];
+        getItemAction(): IEditorProps['itemAction'];
         getAssociatedPlannings(): Array<IPlanningItem>;
         events: {
             getGroupsForItem(item: Partial<IEventItem>): {
@@ -2167,7 +2158,12 @@ export interface IEditorAPI {
                 groups: Array<IEditorFormGroup>;
             };
             getRelatedPlanningDomRef(planId: IPlanningItem['_id']): React.RefObject<any>;
-            addPlanningItem(): void;
+            addPlanningItem(
+                item?: IPlanningItem,
+                options?: {
+                    scrollIntoViewAndFocus?: boolean;
+                },
+            ): Promise<Partial<IPlanningItem>>;
             removePlanningItem(item: DeepPartial<IPlanningItem>): void;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,
@@ -2189,6 +2185,10 @@ export interface IEditorAPI {
     };
 }
 
+export interface IGetRequestParams {
+    cache?: boolean;
+}
+
 export interface IPlanningAPI {
     redux: {
         store: Store;
@@ -2196,12 +2196,13 @@ export interface IPlanningAPI {
     events: {
         search(params: ISearchParams): Promise<IRestApiResponse<IEventItem>>;
         searchGetAll(params: ISearchParams): Promise<Array<IEventItem>>;
-        getById(eventId: IEventItem['_id']): Promise<IEventItem>;
+        getById(eventId: IEventItem['_id'], params?: IGetRequestParams): Promise<IEventItem>;
         getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
         getEditorProfile(): IEventFormProfile;
         getSearchProfile(): IEventSearchProfile;
         create(updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
         update(original: IEventItem, updates: Partial<IEventItem>): Promise<Array<IEventItem>>;
+        getLinkedPlanningItems(eventId: string): Promise<Array<IPlanningItem>>;
     };
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
@@ -2324,6 +2325,7 @@ export interface IPlanningAPI {
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
         setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
         setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
+        reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void;
         lockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
         lockItemById<T extends IAssignmentOrPlanningItem>(
             itemId: T['_id'],

@@ -8,8 +8,9 @@
 
 """Superdesk Files"""
 
-from copy import deepcopy
 import logging
+from copy import deepcopy
+from typing import Any, TypedDict
 
 from planning.types.event import EventResourceModel
 
@@ -26,6 +27,7 @@ class EventsHistoryResource(Resource):
     endpoint_name = "events_history"
     resource_methods = ["GET"]
     item_methods = ["GET"]
+
     schema = {
         "event_id": {"type": "string"},
         "user_id": Resource.rel("users", True),
@@ -33,6 +35,17 @@ class EventsHistoryResource(Resource):
         "update": {"type": "dict", "nullable": True},
     }
     internal_resource = True
+
+    mongo_indexes = {
+        "event_id_1": ([("event_id", 1)], {"background": True}),
+    }
+
+
+class EventHistoryRecord(TypedDict):
+    event_id: str
+    user_id: str
+    operation: str
+    update: dict[str, Any]
 
 
 class EventsHistoryService(HistoryService):
@@ -93,3 +106,15 @@ class EventsHistoryService(HistoryService):
 
     def on_update_time(self, updates, original):
         self.on_item_updated(updates, original, "update_time")
+
+    def get_by_id(self, _id: str) -> list[EventHistoryRecord]:
+        records = self.find(where={"event_id": _id})
+        return [
+            {
+                "event_id": record.get("event_id"),
+                "user_id": record.get("user_id"),
+                "operation": record.get("operation"),
+                "update": record.get("update"),
+            }
+            for record in records
+        ]

@@ -5,6 +5,7 @@ import {assignPlanningConstantTranslations} from './planning';
 import {assignAssignmentConstantTranslations} from './assignments';
 import {assignTooltipConstantTranslations} from './tooltips';
 import {assignCoverageConstantTranslations} from './coverages';
+import {IPlanningPubstatus, IWorkflowState} from 'interfaces';
 
 export {PRIVILEGES} from './privileges';
 export {PLANNING} from './planning';
@@ -40,7 +41,7 @@ export const DATE_FORMATS = {
     DISPLAY_CDATE_TBC_FORMAT: 'D. MMMM @ TBC',
 };
 
-export const WORKFLOW_STATE = {
+export const WORKFLOW_STATE: {[key: string]: IWorkflowState} = {
     DRAFT: 'draft',
     INGESTED: 'ingested',
     SCHEDULED: 'scheduled',
@@ -51,7 +52,7 @@ export const WORKFLOW_STATE = {
     SPIKED: 'spiked',
 };
 
-export const POST_STATE = {
+export const POST_STATE: {[key: string]: IPlanningPubstatus} = {
     USABLE: 'usable',
     CANCELLED: 'cancelled',
 };

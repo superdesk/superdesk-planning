@@ -11,6 +11,8 @@ import {
     IPlanningCoverageItem,
     IIngestProvider,
     IFeaturedPlanningItem,
+    IEventItem,
+    IPlanningItem,
     ICommonSearchParams,
     JUMP_INTERVAL,
     ICoverageScheduledUpdate,
