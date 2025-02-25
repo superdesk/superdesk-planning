@@ -71,7 +71,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         const planningItemCreated = !isTemporaryId(this.props.item._id);
         const dropZoneText = (() => {
             if (planningItemCreated === false) {
-                return gettext('Event has to be created before adding related plannings');
+                return gettext('Planning item has to be created before adding related events');
             } else if (events.length < 1) {
                 return gettext('No events yet, drop some here, or click the plus button');
             } else {
