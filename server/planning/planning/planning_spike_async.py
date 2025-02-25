@@ -1,11 +1,9 @@
 from copy import deepcopy
 from typing import Any
 
-from planning.types.assignment import AssignmentResourceModel
-from planning.types.event import EventResourceModel
-from planning.types.planning import PlanningResourceModel
+from planning.planning.planning_utils import delete_assignments_for_coverages
+from planning.types import AssignmentResourceModel, EventResourceModel, PlanningResourceModel
 from superdesk.resource_fields import ID_FIELD
-from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.auth import get_user, get_user_id
@@ -57,10 +55,7 @@ async def post_planning_item_spike_actions(updates: dict[str, Any], original: di
         event = await events_service.find_by_id_raw(first_event_id)
         notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
 
-    # TODO-ASNYC: Convert this to async call when function is added to PlanningAsyncService
-    get_resource_service("planning").delete_assignments_for_coverages(
-        assignments_to_delete, notify_user_on_failed_assignment_deletes
-    )
+    await delete_assignments_for_coverages(assignments_to_delete, notify_user_on_failed_assignment_deletes)
 
 
 async def notify_draft_coverage_on_spike(coverage: dict[str, Any]):
