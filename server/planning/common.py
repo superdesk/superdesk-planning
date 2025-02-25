@@ -388,8 +388,12 @@ def get_coverage_type_name(qcode):
     return coverage_type.get("name", qcode)
 
 
-# TODO-ASYNC: Change this when planning_spike and event_spike are changed to async then make use of Autosave async services
 def remove_autosave_on_spike(item):
+    """
+    TODO-ASYNC: Change this when planning_spike and event_spike are changed to async then make use of Autosave async services - Done
+    Remains as is for now since it is used in PlanningSpikeService which is used by EventsPostService that is yet to be converted.
+    Can be safely refactored once that is changed to async
+    """
     if item.get("lock_action") == "edit":
         autosave_service = get_resource_service("planning_autosave")
         if item.get("type") == "event":
