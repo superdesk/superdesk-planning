@@ -51,3 +51,9 @@ event_spiked = AsyncSignal[dict, dict]("events:spiked")
 
 #: Signal for when an Event is unspiked
 event_unspiked = AsyncSignal[dict, dict]("events:unspiked")
+
+#: Signal for when an Planning Item is spiked
+planning_spiked = AsyncSignal[dict, dict]("planning:spiked")
+
+#: Signal for when an Planning Item is unspiked
+planning_unspiked = AsyncSignal[dict, dict]("planning:unspiked")

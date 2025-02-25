@@ -140,10 +140,10 @@ def init_app(app):
 
     # listen to async signals
     signals.planning_updated.connect(planning_history_service.on_item_updated)
+    signals.planning_spiked.connect(planning_history_service.on_spike)
+    signals.planning_unspiked.connect(planning_history_service.on_unspike)
 
     app.on_inserted_planning += planning_history_service.on_item_created
-    app.on_updated_planning_spike += planning_history_service.on_spike
-    app.on_updated_planning_unspike += planning_history_service.on_unspike
     app.on_updated_planning_cancel += planning_history_service.on_cancel
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
     app.on_updated_planning_postpone += planning_history_service.on_postpone
