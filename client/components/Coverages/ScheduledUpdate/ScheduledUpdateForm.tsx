@@ -168,7 +168,6 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
                     profileName="scheduled"
                     label={gettext('Due')}
                     defaultValue={null}
-                    row={false}
                     {...fieldProps}
                     onChange={this.onScheduleChanged}
                     readOnly={roFields.scheduled}
