@@ -9,7 +9,10 @@ type IRelatedItemRefs = {[id: string]: RelatedPlanningItem | AssociatedEventItem
 type ItemType = 'event' | 'planning';
 export type IEmbeddedPlanningsActionType = 'SAVE' | 'HANDLE_UNSAVED_CHANGES' | 'DISCARD';
 
-const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE, itemType: ItemType) => {
+const getEmbeddedAuthoringRefs = <T extends IEventItem | IPlanningItem | void>(
+    editorType: EDITOR_TYPE,
+    itemType: ItemType,
+) => {
     const fieldId = itemType === 'event' ? 'related_plannings' : 'associated_event';
     const embeddedEditorRef = planningApi.editor(editorType).dom.fields[fieldId]?.current;
     const relatedItemRefs: IRelatedItemRefs = embeddedEditorRef?.relatedItemRefs;
@@ -17,15 +20,15 @@ const getEmbeddedAuthoringRefs = (editorType: EDITOR_TYPE, itemType: ItemType) =
     return relatedItemRefs;
 };
 
-const getEmbeddedItemsExposed = (
+const getEmbeddedItemsExposed = <T extends IPlanningItem | IEventItem | void>(
     editorType: EDITOR_TYPE,
     itemType: 'event' | 'planning',
-): Array<IExposedFromAuthoring<any>> => {
-    const relatedItemRefs = getEmbeddedAuthoringRefs(editorType, itemType);
+): Array<IExposedFromAuthoring<T>> => {
+    const relatedItemRefs = getEmbeddedAuthoringRefs<T>(editorType, itemType);
 
     const exposedAuthoringArray = Object.values(relatedItemRefs ?? {})
         .map((x) =>
-            x?.authoringRef?.current?.getExposed?.()
+            x?.authoringRef?.current?.getExposed?.() as IExposedFromAuthoring<T>
         )
         .filter(notNullOrUndefined);
 
@@ -37,24 +40,28 @@ const getEmbeddedItemsExposed = (
  * Will stop on first error.
  * User will be prompted about the issue in the UI and is expected to try again.
  */
-export const handleEmbeddedItems = async(
+export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem | void>(
     editorType: EDITOR_TYPE,
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
-): Promise<void> => {
-    for (const exposed of getEmbeddedItemsExposed(editorType, itemType)) {
+): Promise<Array<T> | void> => {
+    const updatedItems: Array<T> = [];
+
+    for (const exposed of getEmbeddedItemsExposed<T>(editorType, itemType)) {
         if (!exposed.hasUnsavedChanges()) {
             continue;
         }
 
         if (action === 'SAVE') {
-            await exposed.save();
+            updatedItems.push(await exposed.save());
         } else if (action === 'DISCARD') {
             await exposed.discardUnsavedChanges();
         } else {
-            await exposed.handleUnsavedChanges();
+            updatedItems.push(await exposed.handleUnsavedChanges());
         }
     }
+
+    return updatedItems;
 };
 
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {

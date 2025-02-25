@@ -8,7 +8,8 @@ import {
     IEditorAPI,
     IEditorProps,
     IEditorState,
-    IEventOrPlanningItem
+    IEventOrPlanningItem,
+    IPlanningRelatedEventLink
 } from '../../../interfaces';
 import {planningApi} from '../../../superdeskApi';
 import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
@@ -32,6 +33,8 @@ import {
     handleEmbeddedItems,
     IEmbeddedPlanningsActionType,
 } from '../../../components/editor-standalone/save-handling';
+import eventsApi from '../../../actions/events/api';
+import {initialValues} from 'selectors/forms';
 
 export class ItemManager {
     editor: EditorComponent;
@@ -661,12 +664,18 @@ export class ItemManager {
                 });
         }
 
-        const promise: Promise<any> = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
-            .then(() =>
-                !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false}),
-            );
+        const promise: Promise<{embeddedItems: void | Array<void | IPlanningItem | IEventItem>; stateUpdates: any}> =
+            handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
+                .then((res) =>
+                    !updateStates
+                        ? Promise.resolve({embeddedItems: res, stateUpdates: {} as any})
+                        : {
+                            embeddedItems: res,
+                            stateUpdates: this.setState({submitting: true, submitFailed: false}) as any
+                        },
+                );
 
-        return promise.then(() => {
+        return promise.then((res) => {
             if (this.props.addNewsItemToPlanning) {
                 return this._saveFromAuthoring({post, unpost});
             }
@@ -699,6 +708,21 @@ export class ItemManager {
                         }
                     });
                 }
+            }
+
+            if (updates.type === 'planning' && (updates.related_events ?? []).length > 0) {
+                const relatedEventLinksWithoutTemp =
+                    cloneDeep(updates.related_events).filter((x) => !isTemporaryId(x._id));
+
+                updates.related_events = [
+                    ...relatedEventLinksWithoutTemp,
+                    ...((res.embeddedItems[0] as unknown as Array<IEventItem>)
+                        .map((z) => ({
+                            _id: z._id,
+                            link_type: 'secondary', // FIXME: Handle links the right way
+                        })) as DeepPartial<Array<IPlanningRelatedEventLink>>
+                    ),
+                ];
             }
 
             return this.autoSave.flushAutosave()

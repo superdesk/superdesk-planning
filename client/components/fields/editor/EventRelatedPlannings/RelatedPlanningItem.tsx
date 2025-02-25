@@ -19,6 +19,7 @@ import {
 } from '../../../editor-standalone/authoring-storage-in-memory';
 import {IAuthoringReact} from 'superdesk-api';
 import {CustomHeaderToggleBox} from 'superdesk-ui-framework/react/components/ToggleBox/CustomHeaderToggleBox';
+import {isTemporaryId} from '../../../../utils';
 
 interface IProps {
     event: IEventItem;
@@ -110,7 +111,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                     alwaysRenderChildren
                     header={
-                        item._id.startsWith(TEMP_ID_PREFIX)
+                        isTemporaryId(item._id)
                             ? renderPlanning(item)
                             : (
                                 <WithLiveResources resources={[{ids: [item._id], resource: 'planning'}]}>
@@ -128,7 +129,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         editorRef={this.authoringRef}
                         itemId={item._id}
                         authoringStorage={
-                            item._id.startsWith(TEMP_ID_PREFIX)
+                            isTemporaryId(item._id)
                                 ? getAuthoringStorageInMemory(
                                     'planning',
                                     item as IPlanningItem,

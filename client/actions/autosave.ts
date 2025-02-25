@@ -111,6 +111,12 @@ const save = (original, updates) => (
             updateFields.lock_time = moment();
         }
 
+        // Remove related events that aren't yet saved themselves,
+        // since the backend needs them to be in the events resource
+        if (updateFields.related_events) {
+            updateFields.related_events = cloneDeep(updateFields.related_events).filter((x) => !isTemporaryId(x._id));
+        }
+
         return api(`${itemType}_autosave`).save(
             original || {},
             updateFields
