@@ -127,14 +127,14 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
 
     remove_autosave_on_spike(original)
 
-    id = original[ID_FIELD]
-    await planning_service.update(id, updates)
-    spiked_planning_item = await planning_service.find_by_id_raw(id)
+    planning_item_id = original[ID_FIELD]
+    await planning_service.system_update(planning_item_id, updates)
+    spiked_planning_item = await planning_service.find_by_id_raw(planning_item_id)
     assert spiked_planning_item is not None, "Expected spiked_planning to be a dict, got None"
 
     push_notification(
         "planning:spiked",
-        item=str(id),
+        item=str(planning_item_id),
         user=str(user.get(ID_FIELD, "")),
         etag=spiked_planning_item["_etag"],
         revert_state=spiked_planning_item["revert_state"],
@@ -173,14 +173,14 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
     updates[ITEM_EXPIRY] = None
     remove_lock_information(updates)
 
-    id = original[ID_FIELD]
-    await planning_service.update(id, updates)
-    unspiked_planning_item = await planning_service.find_by_id_raw(id)
+    planning_item_id = original[ID_FIELD]
+    await planning_service.system_update(planning_item_id, updates)
+    unspiked_planning_item = await planning_service.find_by_id_raw(planning_item_id)
     assert unspiked_planning_item is not None, "Expected unspiked_planning to be a dict, got None"
 
     push_notification(
         "planning:unspiked",
-        item=str(id),
+        item=str(planning_item_id),
         user=str(get_user_id()),
         etag=unspiked_planning_item.get("_etag"),
         state=unspiked_planning_item[ITEM_STATE],
