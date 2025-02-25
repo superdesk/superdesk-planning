@@ -107,8 +107,10 @@ def get_validator_schema(schema) -> dict:
 
 
 def get_filtered_validator_schema(validator, validate_on_post: bool) -> dict:
-    """Get schema for a given validator, excluding fields with None values,
-    and only include fields that are in enabled_fields."""
+    """
+    Get schema for a given validator, excluding fields with None values,
+    and only include fields that are in enabled_fields.
+    """
 
     enabled_fields = get_enabled_fields(validator)
     return {

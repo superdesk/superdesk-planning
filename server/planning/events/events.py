@@ -187,7 +187,7 @@ class EventsService(superdesk.Service):
         events_history = get_resource_service("events_history")
         events_history.on_item_updated(document, original, "ingested")
 
-        content_fields = app.config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
+        content_fields = get_current_app().config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
         updated_keys = get_user_updated_keys(_id)
         for key in updated_keys:
             if key in document and key in content_fields and original.get(key):

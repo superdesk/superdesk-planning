@@ -71,8 +71,11 @@ class PlanningPostService(BaseService):
                 # self.validate_related_item(plan)
 
             self.validate_post_state(doc["pubstatus"])
-            if event and doc["pubstatus"] == POST_STATE.USABLE:
-                self.post_associated_event(event)
+
+            # TODO-ASYNC: verify if this has to be ported to async
+            # if event and doc["pubstatus"] == POST_STATE.USABLE:
+            #     self.post_associated_event(event)
+
             self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
 

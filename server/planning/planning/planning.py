@@ -495,7 +495,7 @@ class PlanningService(Service):
             push_notification(
                 "event:link_updated",
                 event=str(_id),
-                planning=str(original.get(config.ID_FIELD)),
+                planning=str(original.get(ID_FIELD)),
                 action="delete" if _id in removed_ids else "create",
                 links=self._get_event_links(_id),
             )
