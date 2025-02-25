@@ -229,7 +229,7 @@ def init_app(app):
     app.client_config["planning"]["allowed_coverage_link_types"] = get_planning_allowed_coverage_link_types()
     app.client_config["planning"][
         "default_create_planning_series_with_event_series"
-    ] = get_config_default_create_planning_series_with_event_series(app)
+    ] = get_config_default_create_planning_series_with_event_series()
     app.client_config["planning"]["all_day"] = bool(app.config.get("PLANNING_PLANNING_ALL_DAY", False))
 
     app.client_config["planning_event_link_method"] = app.config.get(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")

@@ -428,7 +428,7 @@ class JsonPlanningTestCase(TestCase):
             ),
         ]
         self.assertEqual((await self.format(item))["event_item"], "event_prim_1")
-        events = self.format(item)["events"]
+        events = (await self.format(item))["events"]
         self.assertEqual(2, len(events))
         self.assertIn(
             {"literal": "event_prim_1", "rel": "primary", "uri": "urn:event:event_prim_1", "name": "Event 1"},
