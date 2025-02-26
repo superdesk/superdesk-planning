@@ -664,14 +664,16 @@ export class ItemManager {
                 });
         }
 
-        const promise =
-            handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
-                .then((res) =>
-                    Promise.all([
-                        res,
-                        !updateStates ? {} : this.setState({submitting: true, submitFailed: false})
-                    ])
-                );
+        /**
+         * Calls internal save of each embedded item - the one of the storage adapter, then returns the saved items.
+         */
+        const promise = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
+            .then((res) =>
+                Promise.all([
+                    res,
+                    !updateStates ? {} : this.setState({submitting: true, submitFailed: false})
+                ])
+            );
 
         return promise.then(([embeddedItems]) => {
             if (this.props.addNewsItemToPlanning) {
