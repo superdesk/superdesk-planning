@@ -186,7 +186,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                             editor.item.events.getRelatedPlanningDomRef(value._id)
                         ),
                         addPlanningItem: editor.item.events.addPlanningItem,
-                        removePlanningItem: editor.item.events.removePlanningItem,
+                        unlinkPlanning: editor.item.events.unlinkPlanning,
                         updatePlanningItem: editor.item.events.updatePlanningItem,
                     },
                 }}

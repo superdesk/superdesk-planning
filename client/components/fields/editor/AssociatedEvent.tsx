@@ -24,6 +24,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         this.addNewRelatedEvent = this.addNewRelatedEvent.bind(this);
     }
 
+
     private getCurrentValue(): Array<IPlanningRelatedEventLink> {
         const {field, item} = this.props;
         const relatedEvents = item[field] ?? [];
@@ -113,7 +114,8 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                                 index={i}
                                 key={event._id}
                                 event={event}
-                                removeEventItem={this.props.removeEventItem}
+                                updateEventItem={this.props.updateEventItem}
+                                unlinkEvent={this.props.unlinkEvent}
                                 disabled={this.props.disabled}
                                 ref={(ref) => {
                                     this.relatedItemRefs[i] = ref;

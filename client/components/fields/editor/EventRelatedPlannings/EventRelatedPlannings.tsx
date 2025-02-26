@@ -105,7 +105,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                                     index={index}
                                     event={this.props.item}
                                     item={plan}
-                                    removePlan={this.props.removePlanningItem}
+                                    unlinkPlanning={this.props.unlinkPlanning}
                                     updatePlanningItem={this.props.updatePlanningItem}
                                     disabled={false}
                                     editorType={this.props.editorType}

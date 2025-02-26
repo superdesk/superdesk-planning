@@ -664,18 +664,16 @@ export class ItemManager {
                 });
         }
 
-        const promise: Promise<{embeddedItems: void | Array<void | IPlanningItem | IEventItem>; stateUpdates: any}> =
+        const promise =
             handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
                 .then((res) =>
-                    !updateStates
-                        ? Promise.resolve({embeddedItems: res, stateUpdates: {} as any})
-                        : {
-                            embeddedItems: res,
-                            stateUpdates: this.setState({submitting: true, submitFailed: false}) as any
-                        },
+                    Promise.all([
+                        res,
+                        !updateStates ? {} : this.setState({submitting: true, submitFailed: false})
+                    ])
                 );
 
-        return promise.then((res) => {
+        return promise.then(([embeddedItems]) => {
             if (this.props.addNewsItemToPlanning) {
                 return this._saveFromAuthoring({post, unpost});
             }
@@ -702,27 +700,21 @@ export class ItemManager {
                 updates.update_method = updateMethod;
 
                 if (Object.keys(planningUpdateMethods).length > 0) {
-                    updates.associated_plannings?.forEach((planningItem) => {
-                        if (planningUpdateMethods[planningItem._id] != null) {
-                            planningItem.update_method = planningUpdateMethods[planningItem._id];
-                        }
-                    });
+                        updates.associated_plannings?.forEach((planningItem) => {
+                            if (planningUpdateMethods[planningItem._id] != null) {
+                                planningItem.update_method = planningUpdateMethods[planningItem._id];
+                            }
+                        });
                 }
             }
 
             if (updates.type === 'planning' && (updates.related_events ?? []).length > 0) {
-                const relatedEventLinksWithoutTemp =
-                    cloneDeep(updates.related_events).filter((x) => !isTemporaryId(x._id));
+                const updatedLinks = eventUtils.addRelatedEvents(
+                    updates.related_events.filter((x) => !isTemporaryId(x._id)) as Array<IPlanningRelatedEventLink>,
+                    embeddedItems as Array<IEventItem>,
+                );
 
-                updates.related_events = [
-                    ...relatedEventLinksWithoutTemp,
-                    ...((res.embeddedItems[0] as unknown as Array<IEventItem>)
-                        .map((z) => ({
-                            _id: z._id,
-                            link_type: 'secondary', // FIXME: Handle links the right way
-                        })) as DeepPartial<Array<IPlanningRelatedEventLink>>
-                    ),
-                ];
+                updates.related_events = updatedLinks.next;
             }
 
             return this.autoSave.flushAutosave()

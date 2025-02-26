@@ -5,12 +5,14 @@ import {RelatedEventListItem} from '../../../components/Events/EventMetadata/Rel
 import React, {createRef} from 'react';
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {IAuthoringReact} from 'superdesk-api';
-import {isTemporaryId} from '../../../utils';
+import {eventUtils, isTemporaryId} from '../../../utils';
 import {getAuthoringStorageInMemory} from '../../../components/editor-standalone/authoring-storage-in-memory';
-import eventsApi from '../../../actions/events/api';
+import * as eventsApi from '../../../api/events';
+import {omit} from 'lodash';
 
 interface IProps{
-    removeEventItem(item: DeepPartial<IEventItem>): void;
+    unlinkEvent(item: DeepPartial<IEventItem>): void;
+    updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): void;
     event: IEventItem;
     index: number;
     disabled?: boolean;
@@ -19,12 +21,22 @@ interface IProps{
 export class AssociatedEventItem extends React.PureComponent<IProps> {
     public toggleBoxRef: React.RefObject<any>;
     public authoringRef: React.RefObject<IAuthoringReact<IEventItem>>;
+    containerNode: React.RefObject<HTMLDivElement>;
 
     constructor(props) {
         super(props);
 
+        this.containerNode = React.createRef();
         this.toggleBoxRef = createRef();
         this.authoringRef = createRef();
+    }
+
+    scrollIntoView() {
+        this.containerNode.current?.scrollIntoView({behavior: 'smooth'});
+    }
+
+    update(updates: IEventItem, scrollOnChange: boolean = true) {
+        this.props.updateEventItem(this.props.event, updates, scrollOnChange);
     }
 
     render() {
@@ -38,12 +50,12 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                 showBorder
                 eventActions={this.props.disabled ? null : (
                     <IconButton
-                        ariaValue={gettext('Remove related event')}
+                        ariaValue={gettext('Unlink related event')}
                         toolTipFlow="left"
                         onClick={() => {
-                            this.props.removeEventItem(event);
+                            this.props.unlinkEvent(event);
                         }}
-                        icon="trash"
+                        icon="close-small"
                     />
                 )}
             />
@@ -76,22 +88,16 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                                 'event',
                                 event,
                                 (item) => {
-                                    // TODO: Update planning item link after saving
-                                    // event._planning_item; // the planning id this event is linked to
-                                    // how is this linked properly?
+                                    return eventsApi.events.create(
+                                        omit(
+                                            eventUtils.modifyForServer(item),
+                                            ['_endTime', '_startTime']
+                                        )
+                                    ).then(([createdEvent]) => {
+                                        this.update(createdEvent);
 
-                                    return planningApi.redux.store.dispatch<any>(eventsApi.save(undefined, item))
-                                        .then(([updatedEvent]) => {
-                                            return planningApi.planning.getById(event._planning_item).then((x) => {
-                                                return planningApi.planning.update(x, {
-                                                    ...x,
-                                                    related_events: [
-                                                        ...x.related_events.filter((x) => x._id != item._id),
-                                                        {_id: updatedEvent._id, link_type: 'secondary'},
-                                                    ],
-                                                });
-                                            });
-                                        });
+                                        return createdEvent;
+                                    });
                                 },
                             )
                             : authoringStorageEventItemHttp

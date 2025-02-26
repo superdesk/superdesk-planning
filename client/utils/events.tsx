@@ -1604,6 +1604,7 @@ const self = {
     getEventDiff,
     convertCoverageToEventEmbedded,
     addSomeEventsAsRelatedToPlanningEditor,
+    addRelatedEvents,
 };
 
 export default self;

@@ -81,6 +81,36 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         return editor.dom.fields[field];
     }
 
+    function updateEventItem(
+        original: DeepPartial<IEventItem>,
+        updates: DeepPartial<IEventItem>,
+        scrollOnChange: boolean
+    ) {
+        const editor = planningApi.editor(type);
+        const planning = editor.form.getDiff<IPlanningItem>();
+        const events = cloneDeep(planning.related_events || []);
+        const index = events.findIndex(
+            (event) => event._id === original._id
+        );
+
+        if (index < 0) {
+            return;
+        }
+
+        events[index] = {
+            ...original,
+            ...updates,
+        };
+
+
+        editor.form.changeField('related_events', events)
+            .then(() => {
+                if (scrollOnChange) {
+                    getRelatedEventsDomRef(original._id).current?.scrollIntoView();
+                }
+            });
+    }
+
     function getRelatedEventsDomRef(eventId: IEventItem['_id']): RefObject<AssociatedEventItem> {
         const editor = planningApi.editor(type);
         const field = `planning-item--${eventId}`;
@@ -92,7 +122,7 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         return editor.dom.fields[field];
     }
 
-    function removeEventItem(item: DeepPartial<IEventItem>): void {
+    function unlinkEvent(item: DeepPartial<IEventItem>): void {
         const editor = planningApi.editor(type);
         const planning = editor.form.getDiff<IPlanningItem>();
         const events = (planning.related_events || []).filter(
@@ -142,8 +172,9 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         getGroupsForItem,
         getCoverageFields,
         getRelatedEventsDomRef,
-        removeEventItem,
+        unlinkEvent,
         getCoverageFieldDomRef,
         addCoverages,
+        updateEventItem,
     };
 }

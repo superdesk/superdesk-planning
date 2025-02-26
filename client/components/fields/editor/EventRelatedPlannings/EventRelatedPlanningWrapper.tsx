@@ -9,7 +9,7 @@ interface IOwnProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeList;
     coverageProfile?: ISearchProfile;
     addPlanningItem(item?: IPlanningItem): Promise<Partial<IPlanningItem>>;
-    removePlanningItem(item: DeepPartial<IPlanningItem>): void;
+    unlinkPlanning(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
 }
 

@@ -2163,7 +2163,7 @@ export interface IEditorAPI {
                     scrollIntoViewAndFocus?: boolean;
                 },
             ): Promise<Partial<IPlanningItem>>;
-            removePlanningItem(item: DeepPartial<IPlanningItem>): void;
+            unlinkPlanning(item: DeepPartial<IPlanningItem>): void;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,
                 updates: DeepPartial<IPlanningItem>,
@@ -2176,7 +2176,8 @@ export interface IEditorAPI {
                 bookmarks: Array<IEditorBookmark>;
                 groups: Array<IEditorFormGroup>;
             };
-            removeEventItem(item: DeepPartial<IEventItem>): void;
+            updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): void;
+            unlinkEvent(item: DeepPartial<IEventItem>): void;
             getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(): ISearchProfile;
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;

@@ -12,7 +12,6 @@ import {superdeskApi} from '../../../../superdeskApi';
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
 import {PlanningEditorStandalone} from '../../../editor-standalone/planning-editor-standalone';
-import {TEMP_ID_PREFIX} from '../../../../constants';
 import {authoringStoragePlanningItemHttp} from '../../../editor-standalone/authoring-storage-planning-http';
 import {
     getAuthoringStorageInMemory
@@ -29,7 +28,7 @@ interface IProps {
     editorType: EDITOR_TYPE;
     profile: IPlanningContentProfile;
     coverageProfile?: ISearchProfile;
-    removePlan(item: DeepPartial<IPlanningItem>): void;
+    unlinkPlanning(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
         original: DeepPartial<IPlanningItem>,
         updates: DeepPartial<IPlanningItem>,
@@ -51,7 +50,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         this.authoringRef = React.createRef();
         this.toggleBoxRef = React.createRef();
 
-        this.remove = this.remove.bind(this);
+        this.unlink = this.unlink.bind(this);
         this.update = this.update.bind(this);
     }
 
@@ -59,8 +58,8 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         this.containerNode.current?.scrollIntoView({behavior: 'smooth'});
     }
 
-    remove() {
-        this.props.removePlan(this.props.item);
+    unlink() {
+        this.props.unlinkPlanning(this.props.item);
     }
 
     update(updates: DeepPartial<IPlanningItem>, scrollOnChange: boolean = true) {
@@ -88,9 +87,9 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                 showBorder
                 editPlanningComponent={hideRemoveIcon ? null : (
                     <IconButton
-                        icon="trash"
-                        ariaValue={gettext('Remove planning')}
-                        onClick={this.remove}
+                        icon="close-small"
+                        ariaValue={gettext('Unlink related planning')}
+                        onClick={this.unlink}
                         toolTipFlow="left"
                     />
                 )}
