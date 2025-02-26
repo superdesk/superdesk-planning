@@ -77,6 +77,7 @@ class EmbeddedCoverageItem(TypedDict, total=False):
     ednote: str
     internal_note: str
     priority: int
+    coverage_provider: Dict[str, Any]
 
 
 class EmbeddedPlanningDict(TypedDict, total=False):

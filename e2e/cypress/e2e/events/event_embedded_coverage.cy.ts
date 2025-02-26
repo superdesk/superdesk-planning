@@ -24,7 +24,6 @@ describe('Planning.Events: embedded coverage', () => {
         // Enter required fields (so we can create the Event & Planning)
         editor.type({
             'dates.start.date': moment().format(CLIENT_FORMAT),
-            'dates.allDay': true,
             slugline: 'slugline of the event',
             name: 'name of the event',
         });
@@ -335,7 +334,6 @@ describe('Planning.Events: embedded coverage', () => {
         // Fill in the dates (which should also update the Planning/Coverage dates)
         editor.type({
             'dates.start.date': now.format(CLIENT_FORMAT),
-            'dates.allDay': true,
         });
 
         // Make sure the date has been updated for the Coverage

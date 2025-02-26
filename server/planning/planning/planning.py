@@ -48,6 +48,7 @@ from planning.common import (
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
     ASSIGNMENT_WORKFLOW_STATE,
+    prepare_ingested_item_for_storage,
     update_post_item,
     get_coverage_type_name,
     set_original_creator,
@@ -95,8 +96,8 @@ class PlanningService(Service):
         """Post an ingested item(s)"""
 
         for doc in docs:
+            prepare_ingested_item_for_storage(doc)
             self._resolve_defaults(doc)
-            doc.pop("pubstatus", None)
             set_ingest_version_datetime(doc)
 
         self.on_create(docs)
@@ -109,7 +110,7 @@ class PlanningService(Service):
 
     def patch_in_mongo(self, id, document, original):
         """Patch an ingested item onto an existing item locally"""
-
+        prepare_ingested_item_for_storage(document)
         update_ingest_on_patch(document, original)
         response = self.backend.update_in_mongo(self.datasource, id, document, original)
         self.on_updated(document, original, from_ingest=True)
@@ -473,6 +474,34 @@ class PlanningService(Service):
         added_agendas = list(set(updated_agendas) - set(existing_agendas))
         return added_agendas, removed_agendas
 
+    def _get_event_links(self, event_id) -> List[str]:
+        return [str(link["_id"]) for link in get_related_planning_for_events([event_id])]
+
+    def _notify_related_events_changed(self, updates, original) -> bool:
+        if "related_events" not in updates:
+            return False
+
+        def get_ids(links):
+            return set([str(link["_id"]) for link in links])
+
+        updates_ids = get_ids(updates.get("related_events") or [])
+        original_ids = get_ids(original.get("related_events") or [])
+
+        removed_ids = original_ids - updates_ids
+        added_ids = updates_ids - original_ids
+        changed_ids = removed_ids.union(added_ids)
+
+        for _id in changed_ids:
+            push_notification(
+                "event:link_updated",
+                event=str(_id),
+                planning=str(original.get(ID_FIELD)),
+                action="delete" if _id in removed_ids else "create",
+                links=self._get_event_links(_id),
+            )
+
+        return len(changed_ids) > 0
+
     def on_updated(self, updates, original, from_ingest=False):
         added, removed = self._get_added_removed_agendas(updates, original)
         item_id = str(original[ID_FIELD])
@@ -480,6 +509,7 @@ class PlanningService(Service):
         user_id = str(updates.get("version_creator", ""))
         doc = deepcopy(original)
         doc.update(updates)
+        related_events_changed = self._notify_related_events_changed(updates, original)
 
         push_notification(
             "planning:updated",
@@ -489,6 +519,7 @@ class PlanningService(Service):
             removed_agendas=removed,
             session=session_id,
             event_ids=get_related_event_ids_for_planning(doc, "primary"),
+            related_events_changed=related_events_changed,
         )
 
         self.generate_related_assignments([doc])
@@ -1046,6 +1077,13 @@ class PlanningService(Service):
             # If the Planning name has been changed
             if planning_original.get("name") != planning_updates.get("name"):
                 assignment["name"] = planning["name"] if not translated_value and translated_name else translated_name
+
+            # If the coverage assignee has been changed and workflow status is active
+            if original.get("workflow_status") != WORKFLOW_STATE.DRAFT and self.is_coverage_assignment_modified(
+                updates, original_assignment
+            ):
+                assigned_to["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                assignment["assigned_to"] = assigned_to
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(

@@ -4,6 +4,7 @@ import logging
 import superdesk
 from quart_babel import lazy_gettext
 
+from . import settings
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import (
     PlanningExportTemplatesResource,
@@ -229,6 +230,9 @@ def init_app(app):
     app.client_config["planning"][
         "default_create_planning_series_with_event_series"
     ] = get_config_default_create_planning_series_with_event_series()
+    app.client_config["planning"]["all_day"] = bool(app.config.get("PLANNING_PLANNING_ALL_DAY", False))
+
+    app.client_config["planning_event_link_method"] = app.config.get(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
 
     # Set up Celery task options
     if not app.config.get("CELERY_TASK_ROUTES"):

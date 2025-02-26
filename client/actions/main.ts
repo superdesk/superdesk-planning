@@ -1,9 +1,7 @@
 import {get, isEmpty, isEqual, isNil, omit} from 'lodash';
 import moment from 'moment';
 
-import {appConfig as config} from 'appConfig';
-
-const appConfig = config as IPlanningConfig;
+import {appConfig} from 'appConfig';
 
 import {IUser} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../superdeskApi';
@@ -21,7 +19,6 @@ import {
     ITEM_TYPE,
     IEventTemplate,
     IEventItem,
-    IPlanningConfig,
 } from '../interfaces';
 
 import {

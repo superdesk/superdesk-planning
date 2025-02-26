@@ -250,9 +250,11 @@ export class EditorHeader extends React.Component<IProps> {
         states.isEvent = itemType === ITEM_TYPE.EVENT;
         states.isPublic = isItemPublic(initialValues);
 
-        states.isEvent ?
-            this.getEventStates(states) :
+        if (states.isEvent) {
+            this.getEventStates(states);
+        } else {
             this.getPlanningStates(states);
+        }
 
         states.showUpdate = states.isPublic && states.canUpdate;
         states.showSave = !states.isPublic && states.canEdit;

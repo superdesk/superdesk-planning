@@ -4,12 +4,10 @@ import moment from 'moment-timezone';
 import {IEditorFieldProps, IEventFormProfile, IEventItem} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {Switch} from 'superdesk-ui-framework/react';
-
 import {EditorFieldEndDateTime} from './EndDateTime';
 import {EditorFieldStartDateTime} from './StartDateTime';
 import {Row, TimeZoneInput} from '../../UI/Form';
-import {eventUtils, timeUtils} from '../../../utils';
+import {timeUtils} from '../../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 interface IProps extends IEditorFieldProps {
@@ -25,11 +23,10 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         super(props);
 
         this.changeSchedule = this.changeSchedule.bind(this);
-        this.onAllDayChange = this.onAllDayChange.bind(this);
         this.changeTimezone = this.changeTimezone.bind(this);
     }
 
-    changeSchedule(field: string, value: moment.Moment) {
+    changeSchedule(field: string | {[key: string]: any}, value?: moment.Moment) {
         if (field === 'dates.start.date') {
             this.changeStartDate(value);
         } else if (field === '_startTime') {
@@ -41,7 +38,9 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         }
     }
 
-    changeStartDate(value: moment.Moment) {
+    changeStartDate(newValue: moment.Moment) {
+        let value = newValue.clone();
+
         const startDate = this.props.item?.dates?.start != null ?
             moment(this.props.item.dates.start) :
             null;
@@ -50,139 +49,122 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             null;
         const changes = {'dates.start': value};
 
-        if (!startDate) {
-            value
-                .hour(0)
-                .minute(0);
-        } else {
+        if (this.props.item.dates?.all_day == null && this.props.item.dates?.no_end_time == null) {
+            changes['dates.all_day'] = true;
+        }
+
+        if (startDate != null) {
             value
                 .hour(startDate.hour())
-                .minute(startDate.minute());
+                .minute(startDate.minute())
+                .second(startDate.second());
+        } else {
+            value.hour(0)
+                .minute(0)
+                .second(0);
         }
 
-        if (endDate == null || endDate.isBefore(value)) {
-            // If we have an end date set, and the end date is before the new start date
-            // then set the end date to be the same as this new start date
-            changes['dates.end'] = (endDate || value).clone().add(value.diff(startDate));
+        if (this.props.item.dates?.all_day === true || changes['dates.all_day'] === true) {
+            value = localDateToUtc(value, this.props.item.dates?.tz);
+            changes['dates.start'] = value;
         }
 
-        this.props.onChange(changes, null);
+        if (endDate == null) {
+            changes['dates.end'] = value.clone();
+        }
+
+        this.props.onChange(changes);
     }
 
     changeStartTime(value?: moment.Moment) {
+        const startDate = this.props.item?.dates?.start;
+        const endDate = this.props.item?.dates?.end;
+
         if (!value) {
-            this.props.onChange('_startTime', null);
+            const changes = {
+                _startTime: null,
+                _endTime: null,
+                'dates.start': startDate ? localDateToUtc(startDate, this.props.item?.dates?.tz) : null,
+                'dates.end': endDate ? localDateToUtc(endDate, this.props.item?.dates?.tz) : null,
+                'dates.all_day': true,
+                'dates.no_end_time': false,
+                [TO_BE_CONFIRMED_FIELD]: false,
+            };
+
+            this.props.onChange(changes);
             return;
         }
 
-        const startDate = this.props.item?.dates?.start;
-        const endDate = this.props.item?.dates?.end;
-        const _startTime = this.props.item?._startTime;
-        const defaultDurationOnChange = this.props.profile?.editor?.dates?.default_duration_on_change ?? 1;
-        const isAllDay = eventUtils.isEventAllDay(startDate, endDate, true);
-        const isMultiDay = !eventUtils.isEventSameDay(startDate, endDate);
-        const newStartDate = !startDate ?
-            value :
-            moment(startDate)
-                .hour(value.hour())
-                .minute(value.minute())
-                .second(value.second());
+        const newStartDate = !startDate ? value : combineDateTime(startDate, value, this.props.item.dates?.tz);
+        const changes = {
+            'dates.start': newStartDate,
+            'dates.all_day': false,
+            'dates.no_end_time': this.props.item.dates.no_end_time ?? true,
+            [TO_BE_CONFIRMED_FIELD]: false,
+        };
 
-        const changes = {'dates.start': newStartDate};
-
-        if (((_startTime && isAllDay) || !_startTime) &&
-            defaultDurationOnChange > 0 &&
-            !isMultiDay
-        ) {
-            changes['dates.end'] = newStartDate.clone().add(defaultDurationOnChange, 'h');
-            changes['_endTime'] = changes['dates.end'].clone();
-        }
         changes['_startTime'] = newStartDate;
-        this.setToBeConfirmed(changes);
-        this.props.onChange(changes, null);
+        this.props.onChange(changes);
     }
 
     changeEndDate(value: moment.Moment) {
         const startDate = this.props.item?.dates?.start;
         const changes = {'dates.end': value};
 
+        if (this.props.item.dates?.all_day == null && this.props.item.dates?.no_end_time == null) {
+            changes['dates.all_day'] = true;
+        }
+
+        if (this.props.item.dates?.all_day === true || changes['dates.all_day'] === true ||
+            this.props.item.dates?.no_end_time === true || changes['dates.no_end_time'] === true) {
+            changes['dates.end'] = localDateToUtc(value, this.props.item.dates?.tz);
+        }
+
         if (!startDate) {
             // If we have a new end date with no start date set
             // then set the start date as well
-            changes['dates.start'] = value.clone().startOf('day');
+            changes['dates.start'] = value.clone();
         }
-        this.props.onChange(changes, null);
+
+        if (this.props.item.dates?.all_day === true || changes['dates.all_day'] === true ||
+            this.props.item.dates?.no_end_time === true || changes['dates.no_end_time'] === true) {
+            changes['dates.end'] = localDateToUtc(value, this.props.item.dates?.tz);
+        }
+
+        this.props.onChange(changes);
     }
 
     changeEndTime(value?: moment.Moment) {
         if (!value) {
-            this.props.onChange('_endTime', null);
+            const hasStartTime = this.props.item._startTime != null;
+            const changes = {
+                _endTime: null,
+                'dates.end': this.props.item.dates?.end ?
+                    localDateToUtc(this.props.item.dates.end, this.props.item.dates.tz)
+                    : null,
+                'dates.all_day': !hasStartTime,
+                'dates.no_end_time': hasStartTime,
+                [TO_BE_CONFIRMED_FIELD]: false,
+            };
+
+            this.props.onChange(changes);
             return;
         }
 
-        const startDate = this.props.item?.dates?.start;
         const endDate = this.props.item?.dates?.end != null ?
             moment(this.props.item.dates.end) :
             null;
-        const _endTime = this.props.item?._endTime;
-        const defaultDurationOnChange = this.props.profile?.editor?.dates?.default_duration_on_change ?? 1;
-        const newEndDate = endDate ?
-            endDate.hour(value.hour()).minute(value.minute()) :
-            value;
-        const isAllDay = eventUtils.isEventAllDay(startDate, endDate, true);
-        const isMultiDay = !eventUtils.isEventSameDay(startDate, endDate);
-        const changes = {'dates.end': newEndDate};
+        const newEndDate = endDate ? combineDateTime(endDate, value, this.props.item.dates?.tz) : value;
 
-        if (((_endTime && isAllDay) || !_endTime) &&
-            defaultDurationOnChange > 0 &&
-            !isMultiDay
-        ) {
-            changes['dates.start'] = newEndDate.clone().subtract(defaultDurationOnChange, 'h');
-            changes['_startTime'] = changes['dates.start'].clone();
-        }
-        changes['_endTime'] = newEndDate;
-        this.setToBeConfirmed(changes);
-        this.props.onChange(changes, null);
-    }
+        const changes = {
+            _endTime: newEndDate,
+            'dates.end': newEndDate,
+            'dates.all_day': false,
+            'dates.no_end_time': false,
+            [TO_BE_CONFIRMED_FIELD]: false,
+        };
 
-    setToBeConfirmed(changes) {
-        if ((changes['_startTime'] || this.props.item._startTime) &&
-            (changes['_endTime'] || this.props.item._endTime)) {
-            changes[TO_BE_CONFIRMED_FIELD] = false;
-        }
-    }
-
-    onAllDayChange(isAllDay: boolean) {
-        const dates = this.props.item?.dates ?? this.props.defaultValue ?? {};
-        const nowTz = dates.tz ?
-            moment.tz(dates.tz) :
-            moment();
-        const newStart = moment(dates.start || nowTz)
-            .startOf('day');
-        let newEnd: moment.Moment;
-        let startTime: moment.Moment;
-        let endTime: moment.Moment;
-
-        if (isAllDay) {
-            // If allDay is enabled, then set the event to all day
-            newEnd = moment(dates.end || nowTz).endOf('day');
-            startTime = newStart.clone();
-            endTime = newEnd.clone();
-        } else {
-            // If allDay is disabled, then set the new dates to the initial values
-            // since last save and time to empty
-            newEnd = moment(dates.end || newStart)
-                .hour(0)
-                .minute(1);
-        }
-
-        this.props.onChange({
-            'dates.start': newStart,
-            'dates.end': newEnd,
-            _startTime: startTime,
-            _endTime: endTime,
-            _time_to_be_confirmed: false,
-        }, null);
+        this.props.onChange(changes);
     }
 
     changeTimezone(_: string, timezone?: string) {
@@ -207,7 +189,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         addChange('dates.end', dates.end);
         addChange('_endTime', _endTime);
 
-        this.props.onChange(changes, null);
+        this.props.onChange(changes);
     }
 
     render() {
@@ -215,11 +197,6 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         const field = this.props.field ?? 'dates';
         const value = this.props.item?.dates ?? this.props.defaultValue ?? {};
         const eventRepeats = value?.recurring_rule != null;
-        const isAllDay = eventUtils.isEventAllDay(
-            this.props.item.dates?.start,
-            this.props.item.dates?.end,
-            true
-        );
         const isLocalTimeZoneDifferent = timeUtils.isEventInDifferentTimeZone(this.props.item);
         const {
             refNode,
@@ -241,11 +218,12 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     onChange={this.changeSchedule}
                     showToBeConfirmed
                     onToBeConfirmed={() => {
-                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
+                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true});
                     }}
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     remoteTimeZone={this.props.item.dates?.tz}
+                    allDay={this.props.item.dates?.all_day}
                 />
                 <EditorFieldEndDateTime
                     {...props}
@@ -259,27 +237,18 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     onChange={this.changeSchedule}
                     showToBeConfirmed
                     onToBeConfirmed={() => {
-                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true}, null);
+                        this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true});
                     }}
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     remoteTimeZone={this.props.item.dates?.tz}
+                    allDay={this.props.item.dates?.no_end_time || this.props.item.dates?.all_day}
                 />
                 <Row
                     flex={true}
                     noPadding={true}
                 >
-                    {!this.props.showAllDay ? null : (
-                        <div data-test-id={`${this.props.testId}_all_day`}>
-                            <Switch
-                                label={{content: gettext('All Day')}}
-                                value={isAllDay}
-                                onChange={this.onAllDayChange}
-                            />
-                        </div>
-                    )}
-
-                    {!this.props.showTimeZone ? null : (
+                    {this.props.showTimeZone && this.props.item._startTime && (
                         <TimeZoneInput
                             testId={`${this.props.testId}_timezone`}
                             field="dates.tz"
@@ -295,4 +264,25 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             </React.Fragment>
         );
     }
+}
+
+/**
+ * Combines date from the first argument with time from the second argument
+ */
+function combineDateTime(date: moment.MomentInput, time: moment.Moment, tz?: string): moment.Moment {
+    return moment.tz(moment(date).format('YYYY-MM-DD'), tz) // we only want the date part
+        .hour(time.hour())
+        .minute(time.minute())
+        .second(time.second());
+}
+
+/**
+ * Converts datetime in given timezone to date only in utc
+ * eg. 2024-12-10T23:00:00-05:00 -> 2024-12-11T00:00:00Z
+ */
+function localDateToUtc(date: moment.MomentInput, tz?: string): moment.Moment {
+    return moment.utc(tz ?
+        moment.tz(date, tz).format('YYYY-MM-DD') :
+        moment(date).format('YYYY-MM-DD')
+    );
 }

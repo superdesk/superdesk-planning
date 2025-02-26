@@ -62,6 +62,7 @@ events_schema = {
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
     "ingest_firstcreated": metadata_schema["versioncreated"],
     "ingest_versioncreated": metadata_schema["versioncreated"],
+    "ingest_pubstatus": {"type": "string", "mapping": not_analyzed},
     "event_created": {"type": "datetime"},
     "event_lastmodified": {"type": "datetime"},
     # Event Details
@@ -76,7 +77,20 @@ events_schema = {
     "accreditation_deadline": {"type": "datetime"},
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
-    "anpa_category": metadata_schema["anpa_category"],
+    "anpa_category": {
+        "type": "list",
+        "nullable": True,
+        "mapping": {
+            "type": "object",
+            "dynamic": False,
+            "properties": {
+                "qcode": not_analyzed,
+                "name": not_analyzed,
+                "scheme": not_analyzed,
+                "translations": {"enabled": False},  # explicitly disable
+            },
+        },
+    },
     "files": {
         "type": "list",
         "nullable": True,
@@ -207,6 +221,7 @@ events_schema = {
                 "address": {"type": "object", "dynamic": True},
                 "geo": {"type": "string"},
                 "location": {"type": "geo_point"},
+                "translations": {"enabled": False},  # explicitly disable
             },
         },
         "nullable": True,
@@ -266,6 +281,7 @@ events_schema = {
             "properties": {
                 "qcode": not_analyzed,
                 "name": not_analyzed,
+                "translations": {"enabled": False},  # explicitly disable
             },
         },
     },
@@ -403,6 +419,15 @@ events_schema = {
                             "ednote": {"type": "string", "nullable": True},
                             "internal_note": {"type": "string", "nullable": True},
                             "priority": {"type": "integer", "nullable": True},
+                            "coverage_provider": {
+                                "type": "dict",
+                                "nullable": True,
+                                "schema": {
+                                    "qcode": {"type": "string"},
+                                    "name": {"type": "string"},
+                                    "contact_type": {"type": "string"},
+                                },
+                            },
                         },
                     },
                 },

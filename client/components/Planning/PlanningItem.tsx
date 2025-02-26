@@ -144,7 +144,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
 
         return (
             <div>
-                <Menu zIndex={1050} items={itemActions}>
+                <Menu items={itemActions}>
                     {
                         (toggle) => (
                             <div
@@ -223,6 +223,14 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
                 refNode={refNode}
+                draggable={!isItemLocked}
+                onDragstart={(dragEvent) => {
+                    dragEvent.dataTransfer.setData(
+                        'application/superdesk.planning.planning_item',
+                        JSON.stringify(item),
+                    );
+                    dragEvent.dataTransfer.effectAllowed = 'link';
+                }}
             >
                 <Border state={borderState} />
                 <ItemType

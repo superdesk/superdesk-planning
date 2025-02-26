@@ -45,12 +45,12 @@ export const validateItem = ({
     profileName,
     diff,
     item = {},
-    formProfiles,
+    formProfiles = null,
     errors,
     messages = [],
     fields = null,
     ignoreDateValidation = false,
-    fieldsToValidate,
+    fieldsToValidate = null,
 }) => (
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
@@ -58,8 +58,8 @@ export const validateItem = ({
         const getValue = (key) => (
             key !== 'dates' ? get(diff, key) : {
                 ...get(diff, key),
-                _startTime: get(diff, '_startTime'),
-                _endTime: get(diff, '_endTime'),
+                _startTime: diff._startTime,
+                _endTime: diff._endTime,
             }
         );
 

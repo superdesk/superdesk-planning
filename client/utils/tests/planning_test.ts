@@ -664,7 +664,7 @@ describe('PlanningUtils', () => {
 
             const itemActions = planningUtils.getPlanningActions({
                 item: planning,
-                events: [event],
+                events: [],
                 session: session,
                 privileges: privileges,
                 lockedItems: locks,
@@ -683,7 +683,7 @@ describe('PlanningUtils', () => {
 
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
-                events: [event],
+                events: [],
                 session: session,
                 privileges: privileges,
                 lockedItems: locks,
@@ -694,13 +694,14 @@ describe('PlanningUtils', () => {
             expectActions(itemActions, ['Duplicate', 'Edit']);
 
             planning.related_events = [{
-                _id: '1',
+                _id: 'event1',
                 link_type: 'primary',
             }];
 
             event = {
+                _id: 'event1',
                 state: 'cancelled',
-                planning_ids: ['1'],
+                planning_ids: ['plan1'],
             };
 
             itemActions = planningUtils.getPlanningActions({
@@ -721,7 +722,7 @@ describe('PlanningUtils', () => {
 
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
-                events: [event],
+                events: [],
                 session: session,
                 privileges: privileges,
                 lockedItems: locks,
@@ -734,13 +735,14 @@ describe('PlanningUtils', () => {
             ]);
 
             planning.related_events = [{
-                _id: '1',
+                _id: 'event1',
                 link_type: 'primary',
             }];
 
             event = {
+                _id: 'event1',
                 state: 'rescheduled',
-                planning_ids: ['1'],
+                planning_ids: ['plan1'],
             };
 
             itemActions = planningUtils.getPlanningActions({
@@ -762,13 +764,14 @@ describe('PlanningUtils', () => {
             planning.state = 'killed';
 
             planning.related_events = [{
-                _id: '1',
+                _id: 'event1',
                 link_type: 'primary',
             }];
 
             event = {
+                _id: 'event1',
                 state: 'killed',
-                planning_ids: ['1'],
+                planning_ids: ['plan1'],
             };
 
             let itemActions = planningUtils.getPlanningActions({
@@ -790,13 +793,14 @@ describe('PlanningUtils', () => {
             planning.state = 'killed';
 
             planning.related_events = [{
-                _id: '1',
+                _id: 'event1',
                 link_type: 'primary',
             }];
 
             event = {
+                _id: 'event1',
                 state: 'scheduled',
-                planning_ids: ['1'],
+                planning_ids: ['plan1'],
             };
 
             let itemActions = planningUtils.getPlanningActions({
@@ -830,7 +834,7 @@ describe('PlanningUtils', () => {
 
             let itemActions = planningUtils.getPlanningActions({
                 item: planning,
-                events: [event],
+                events: [],
                 session: session,
                 privileges: privileges,
                 lockedItems: locks,

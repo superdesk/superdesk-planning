@@ -9,6 +9,7 @@ import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 import {Row, DateTimeInput, LineInput, ToggleInput, Field, TimeZoneInput} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
+import {isSameDay} from './../../../helpers';
 
 interface IProps {
     item: IEventItem;
@@ -42,7 +43,7 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
 
         this.state = {
             isAllDay: eventUtils.isEventAllDay(dates.start, dates.end, true),
-            isMultiDay: !eventUtils.isEventSameDay(dates.start, dates.end),
+            isMultiDay: !isSameDay(dates.start, dates.end),
         };
 
         this.onChange = this.onChange.bind(this);
@@ -197,7 +198,7 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
     componentWillReceiveProps(nextProps: Readonly<IProps>) {
         const nextDates = nextProps.diff?.dates ?? {};
         const isAllDay = eventUtils.isEventAllDay(nextDates.start, nextDates.end, true);
-        const isMultiDay = !eventUtils.isEventSameDay(nextDates.start, nextDates.end);
+        const isMultiDay = !isSameDay(nextDates.start, nextDates.end);
 
         const newState: Partial<IState> = {};
 

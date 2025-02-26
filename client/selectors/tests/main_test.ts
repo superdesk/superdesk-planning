@@ -1,7 +1,7 @@
 import * as selectors from '../index';
 import moment from 'moment';
 import {MAIN, SPIKED_STATE} from '../../constants';
-import {planningConfig} from '../../config';
+import {appConfig} from 'appConfig';
 import {PLANNING_VIEW} from '../../interfaces';
 
 describe('main selectors', () => {
@@ -104,14 +104,14 @@ describe('main selectors', () => {
 
     describe('activeFilter', () => {
         afterEach(() => {
-            planningConfig.planning_default_view = PLANNING_VIEW.COMBINED;
+            appConfig.planning_default_view = PLANNING_VIEW.COMBINED;
         });
 
         it('reads default from app config', () => {
-            planningConfig.planning_default_view = PLANNING_VIEW.PLANNING;
+            appConfig.planning_default_view = PLANNING_VIEW.PLANNING;
             expect(selectors.main.activeFilter(state)).toBe(PLANNING_VIEW.PLANNING);
 
-            planningConfig.planning_default_view = PLANNING_VIEW.EVENTS;
+            appConfig.planning_default_view = PLANNING_VIEW.EVENTS;
             expect(selectors.main.activeFilter(state)).toBe(PLANNING_VIEW.EVENTS);
         });
     });

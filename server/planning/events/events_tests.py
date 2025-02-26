@@ -1,12 +1,4 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-# Copyright 2014 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
+import pytz
 
 from typing import Any
 
@@ -31,6 +23,8 @@ from planning.types import PlanningRelatedEventLink
 from planning.events.events_service import EventsAsyncService
 from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_update_time import process_update_time
+
+from .events import is_event_updated
 
 
 class EventsBaseTestCase(TestCase):
