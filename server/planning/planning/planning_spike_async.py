@@ -1,15 +1,13 @@
 from copy import deepcopy
 from typing import Any
 
-from planning.planning.planning_utils import delete_assignments_for_coverages
-from planning.types import AssignmentResourceModel, EventResourceModel, PlanningResourceModel
 from superdesk.resource_fields import ID_FIELD
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth
 
-from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
+from planning.assignments import AssignmentsAsyncService
 from planning.common import (
     ITEM_EXPIRY,
     ITEM_STATE,
@@ -19,8 +17,12 @@ from planning.common import (
     remove_autosave_on_spike,
     remove_lock_information,
 )
-from planning.planning_notifications import PlanningNotifications
+from planning.events import EventsAsyncService
 from planning.item_lock import LOCK_USER
+from planning.planning import PlanningAsyncService
+from planning.planning.planning_utils import delete_assignments_for_coverages
+from planning.planning_notifications import PlanningNotifications
+from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
 
 
 def post_update_planning_item_actions(updates: dict[str, Any], original: dict[str, Any]):
@@ -39,7 +41,7 @@ def post_update_planning_item_actions(updates: dict[str, Any], original: dict[st
 
 async def post_planning_item_spike_actions(updates: dict[str, Any], original: dict[str, Any]):
     post_update_planning_item_actions(updates, original)
-    events_service = EventResourceModel.get_service()
+    events_service = EventsAsyncService()
 
     # Delete assignments in workflow
     assignments_to_delete = []
@@ -59,7 +61,7 @@ async def post_planning_item_spike_actions(updates: dict[str, Any], original: di
 
 
 async def notify_draft_coverage_on_spike(coverage: dict[str, Any]):
-    assignment_service = AssignmentResourceModel.get_service()
+    assignment_service = AssignmentsAsyncService()
 
     assigned_to = coverage.get("assigned_to")
     if assigned_to and assigned_to.get("assignment_id"):
@@ -92,7 +94,7 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     :param original: The original planning document.
     :return: The updated planning document.
     """
-    planning_service = PlanningResourceModel.get_service()
+    planning_service = PlanningAsyncService()
 
     if original.get("pubstatus") or original.get("state") not in [
         WORKFLOW_STATE.INGESTED,
@@ -154,8 +156,8 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
     :param original: The original planning document.
     :return: The updated planning document.
     """
-    planning_service = PlanningResourceModel.get_service()
-    events_service = EventResourceModel.get_service()
+    planning_service = PlanningAsyncService()
+    events_service = EventsAsyncService()
 
     first_event_id = get_first_related_event_id_for_planning(original, "primary")
     if first_event_id:
