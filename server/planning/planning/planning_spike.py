@@ -21,7 +21,6 @@ from apps.archive.common import get_auth
 from .planning import PlanningResource
 from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
 from planning.common import (
-    ITEM_EXPIRY,
     ITEM_STATE,
     set_item_expiry,
     WORKFLOW_STATE,
@@ -41,6 +40,7 @@ class PlanningSpikeResource(PlanningResource):
     resource_methods = []
     item_methods = ["PATCH"]
     privileges = {"PATCH": "planning_planning_spike"}
+    internal_resource = True
 
 
 class PlanningSpikeServiceBase(BaseService):
@@ -116,9 +116,9 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
             PlanningNotifications().notify_assignment(
                 coverage_status=coverage.get("workflow_status"),
                 target_user=assignment.get("assigned_to").get("user"),
-                target_desk=assignment.get("assigned_to").get("desk")
-                if not assignment.get("assigned_to").get("user")
-                else None,
+                target_desk=(
+                    assignment.get("assigned_to").get("desk") if not assignment.get("assigned_to").get("user") else None
+                ),
                 message="assignment_spiked_msg",
                 slugline=slugline,
                 coverage_type=get_coverage_type_name(coverage_type),
@@ -145,40 +145,4 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
 
         get_resource_service("planning").delete_assignments_for_coverages(
             assignments_to_delete, notify_user_on_failed_assignment_deletes
-        )
-
-
-class PlanningUnspikeResource(PlanningResource):
-    url = "planning/unspike"
-    resource_title = endpoint_name = "planning_unspike"
-
-    datasource = {"source": "planning"}
-    resource_methods = []
-    item_methods = ["PATCH"]
-    privileges = {"PATCH": "planning_planning_unspike"}
-
-
-class PlanningUnspikeService(PlanningSpikeServiceBase):
-    def update(self, id, updates, original):
-        first_event_id = get_first_related_event_id_for_planning(original, "primary")
-        if first_event_id:
-            event = get_resource_service("events").find_one(req=None, _id=first_event_id)
-            if event.get("state") == WORKFLOW_STATE.SPIKED:
-                raise SuperdeskApiError.badRequestError(message="Unspike failed. Associated event is spiked.")
-
-        updates[ITEM_STATE] = original.get("revert_state", WORKFLOW_STATE.DRAFT)
-        updates["revert_state"] = None
-        updates[ITEM_EXPIRY] = None
-        remove_lock_information(updates)
-
-        return super().update(id, updates, original)
-
-    def on_updated(self, updates, original):
-        super().on_updated(updates, original)
-        push_notification(
-            "planning:unspiked",
-            item=str(original.get(ID_FIELD)),
-            user=str(get_user_id()),
-            etag=updates.get("_etag") or original.get("_etag"),
-            state=updates[ITEM_STATE],
         )
