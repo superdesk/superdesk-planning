@@ -20,8 +20,8 @@ class AssignmentAcceptTestCase(TestCase):
         assignment_id = "5b20652a1d41c812e24aa49e"
 
         users = [
-            {"_id": ObjectId(), "display_name": "Name McName Face"},
-            {"_id": ObjectId()},
+            {"_id": ObjectId(), "display_name": "Name McName Face", "username": "user1"},
+            {"_id": ObjectId(), "username": "user2"},
         ]
 
         assignment = {
