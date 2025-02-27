@@ -5,25 +5,25 @@ import {
     IG2ContentType,
     ICoverageContentProfile,
     ICoverageType,
+    IEditorProfile,
 } from '../../interfaces';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 import {getErrorMessage} from '../../utils';
-import {Button, Loader, Modal, Spacer} from 'superdesk-ui-framework/react';
+import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 import {FieldTab} from './FieldTab';
 import './style.scss';
 import {getLanguages} from '../../selectors/vocabs';
 import {validateRequiredFields} from './utils';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {updateCoverageProfiles} from '../../actions/coverages';
-import {coverageProfiles} from '../../selectors/coverageProfiles';
+import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
 
 interface IState {
     saving: boolean;
     dirty: boolean;
     languages: Array<IG2ContentType>;
-    isLoading: boolean;
-    originalProfile: ICoverageContentProfile;
-    profile: ICoverageContentProfile;
+    originalProfile: Partial<ICoverageContentProfile>;
+    profile: Partial<ICoverageContentProfile> & IEditorProfile;
     selectedType: ICoverageType;
     allProfiles: Array<ICoverageContentProfile>;
 }
@@ -36,15 +36,19 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
+        const state = planningApi.redux.store.getState();
+        const allProfiles = coverageProfiles(state);
+        const newlyCreatedProfile = allProfiles.find((x) => x.content_type === 'text');
+        const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(oldProfile(state), '_id');
+
         this.state = {
-            isLoading: true,
             saving: false,
             dirty: false,
-            profile: null,
-            originalProfile: null,
-            languages: [],
+            profile: defaultProfile,
+            originalProfile: defaultProfile,
+            languages: getLanguages(state),
             selectedType: 'text',
-            allProfiles: [],
+            allProfiles: allProfiles,
         };
 
         this.closeModal = this.closeModal.bind(this);
@@ -52,20 +56,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
         this.save = this.save.bind(this);
         this.updateField = this.updateField.bind(this);
         this.updateFields = this.updateFields.bind(this);
-    }
-
-    componentDidMount(): void {
-        const state = planningApi.redux.store.getState();
-        const allProfiles = coverageProfiles(state);
-        const defaultProfile = allProfiles.find((x) => x.content_type === this.state.selectedType);
-
-        this.setState({
-            allProfiles: allProfiles,
-            originalProfile: defaultProfile,
-            profile: defaultProfile,
-            languages: getLanguages(state),
-            isLoading: false,
-        });
     }
 
     closeModal() {
@@ -111,14 +101,18 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             this.state.originalProfile,
             {
                 ...this.state.profile,
-                content_type: this.state.selectedType, // FIXME:
+                content_type: this.state.selectedType,
             },
         )
             .then((updatedProfile) => {
-                const allProfiles = coverageProfiles(planningApi.redux.store.getState())
-                    .map((x) => x._id === updatedProfile._id ? x : updatedProfile);
+                const profilesWithoutUpdated = cloneDeep(this.state.allProfiles)
+                    .filter((x) => x._id !== updatedProfile._id);
 
-                planningApi.redux.store.dispatch(updateCoverageProfiles(allProfiles));
+                planningApi.redux.store.dispatch(updateCoverageProfiles([
+                    ...profilesWithoutUpdated,
+                    updatedProfile,
+                ]));
+
                 this.setState({saving: false});
                 this.props.closeModal();
             })
@@ -164,15 +158,17 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
     }
 
     switchProfileType(type: ICoverageType) {
-        // fallback to default if there's not a match, remove _id so logic for patch/create follows through
         const getByType = (type: ICoverageType) => {
-            const byType = this.state.allProfiles.find((x) => x.content_type === type);
+            const profileForType = this.state.allProfiles.find((x) => x.content_type === type);
 
-            if (byType != null) {
-                return byType;
+            if (profileForType != null) {
+                return profileForType;
             }
 
-            return omit(this.state.allProfiles.find((x) => x.content_type === 'text'), '_id');
+            const state = planningApi.redux.store.getState();
+
+            // fallback to old profile if there's not a match, remove _id so logic for patch/create follows through
+            return omit(oldProfile(state), '_id');
         };
 
         const newProfile = getByType(type);
@@ -253,42 +249,38 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 )}
                 className="planning-profile-form"
             >
-                {this.state.isLoading ? (
-                    <Loader />
-                ) : (
-                    <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap style={{height: '500px'}}>
-                        <Spacer gap="4" v style={{height: 'auto', width: '30%', padding: 12}} noWrap>
-                            {coverageType.map((type) => (
-                                <Button
-                                    key={type}
-                                    onClick={() => {
-                                        this.switchProfileType(type);
-                                    }}
-                                    expand
-                                    icon={propsMap[type].icon}
-                                    text={propsMap[type].label}
-                                    type={selectedType === type ? 'primary' : 'default'}
-                                    style={selectedType === type ? 'filled' : 'hollow'}
-                                />
-                            ))}
-                        </Spacer>
-                        <FieldTab
-                            profile={this.state.profile}
-                            groupFields={false}
-                            systemRequiredFields={COVERAGE_SYSTEM_REQUIRED_FIELDS}
-                            disableMinMaxFields={[
-                                'g2_content_type',
-                                'language',
-                                'genre',
-                                'news_coverage_status',
-                                'no_content_linking',
-                            ]}
-                            disableRequiredFields={['no_content_linking']}
-                            updateField={this.updateField}
-                            updateFields={this.updateFields}
-                        />
+                <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap style={{height: '500px'}}>
+                    <Spacer gap="4" v style={{height: 'auto', width: '30%', padding: 12}} noWrap>
+                        {coverageType.map((type) => (
+                            <Button
+                                key={type}
+                                onClick={() => {
+                                    this.switchProfileType(type);
+                                }}
+                                expand
+                                icon={propsMap[type].icon}
+                                text={propsMap[type].label}
+                                type={selectedType === type ? 'primary' : 'default'}
+                                style={selectedType === type ? 'filled' : 'hollow'}
+                            />
+                        ))}
                     </Spacer>
-                )}
+                    <FieldTab
+                        profile={this.state.profile}
+                        groupFields={false}
+                        systemRequiredFields={COVERAGE_SYSTEM_REQUIRED_FIELDS}
+                        disableMinMaxFields={[
+                            'g2_content_type',
+                            'language',
+                            'genre',
+                            'news_coverage_status',
+                            'no_content_linking',
+                        ]}
+                        disableRequiredFields={['no_content_linking']}
+                        updateField={this.updateField}
+                        updateFields={this.updateFields}
+                    />
+                </Spacer>
             </Modal>
         );
     }

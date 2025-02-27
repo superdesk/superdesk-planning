@@ -649,6 +649,7 @@ export interface IPlanningCoverageItem {
     firstcreated: string;
     versioncreated: string;
     add_coverage_to_workflow: boolean;
+    profile?: string; // coverage profile id
 
     planning: ICoveragePlanningDetails;
 
@@ -2346,8 +2347,8 @@ export interface IPlanningAPI {
         ): Promise<IPlanningContentProfile>;
         coverages: {
             patch(
-                original: ICoverageContentProfile,
-                updates: ICoverageContentProfile,
+                original: Partial<ICoverageContentProfile>,
+                updates: Partial<ICoverageContentProfile>,
             ): Promise<ICoverageContentProfile>;
             getAll(): Promise<Array<ICoverageContentProfile>>;
         }

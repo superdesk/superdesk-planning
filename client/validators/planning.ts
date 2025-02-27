@@ -8,7 +8,7 @@ import {gettext, getItemInArrayById} from '../utils';
 import {validateField, validators} from './index';
 import {IPlanningCoverageItem} from 'interfaces';
 import {planningApi} from '../superdeskApi';
-import {coverageProfiles} from '../selectors/coverageProfiles';
+import {coverageProfiles, oldProfile} from '../selectors/coverageProfiles';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -73,8 +73,10 @@ export const validateCoverages = ({
                 'coverage_id'
             );
 
-            const coverageProfile = coverageProfiles(planningApi.redux.store.getState())
+            const storeState = planningApi.redux.store.getState();
+            const newProfile = coverageProfiles(storeState)
                 .find((x) => x.content_type === coverage.content_type);
+            const coverageProfile = newProfile ? newProfile : oldProfile(storeState);
 
             Object.entries(validators.coverage).forEach(([key, val]) => {
                 const coverageErrors = {};

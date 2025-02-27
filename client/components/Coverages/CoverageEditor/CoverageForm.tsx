@@ -3,11 +3,10 @@ import {connect} from 'react-redux';
 import {get, forEach} from 'lodash';
 import moment from 'moment';
 import {appConfig} from 'appConfig';
-import {superdeskApi} from '../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {IArticle, IDesk, IVocabularyItem} from 'superdesk-api';
 import {
     EDITOR_TYPE,
-    ICoverageFormProfile,
     ICoverageScheduledUpdate,
     IPlanningCoverageItem,
     IPlanningItem,
@@ -16,6 +15,7 @@ import {
     IGenre,
     IKeyword,
     IFile,
+    ICoverageType,
 } from '../../../interfaces';
 import * as selectors from '../../../selectors';
 import {planningUtils, generateTempId, assignmentUtils} from '../../../utils';
@@ -23,6 +23,7 @@ import {WORKFLOW_STATE} from '../../../constants';
 import {EditorFieldSelect} from '../../fields/editor/base/select';
 import {renderFieldsForPanel} from '../../fields';
 import {getCoverageFields} from '../../../api/editor/item_planning';
+import {coverageProfiles} from '../../../selectors/coverageProfiles';
 
 import '../style.scss';
 
@@ -300,12 +301,14 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         promise.then(() => this.onChange(changeFullFilePath, value));
     }
 
-    onContentTypeChange(_field: string, value: IG2ContentType['qcode']) {
+    onContentTypeChange(_field: string, value: ICoverageType) {
         if (this.props.value.planning?.g2_content_type == value) {
             return;
         }
 
         const withoutUpdated = this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+        const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+        const profile = allProfiles.find((x) => x.content_type === value);
 
         this.props.onChange(
             'coverages',
@@ -317,8 +320,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                         ...this.props.value.planning,
                         g2_content_type: value,
                         genre: null,
-                    }
-                }
+                    },
+                    profile: profile._id,
+                },
             ],
         );
     }

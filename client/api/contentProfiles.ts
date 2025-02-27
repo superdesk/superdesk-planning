@@ -152,9 +152,9 @@ function patchCoverageProfile(
 
     if (updates._id != null) {
         return superdeskApi.dataApi.patch<ICoverageContentProfile>(COVERAGE_PROFILES_RESOURCE, original, updates);
-    } else {
-        return superdeskApi.dataApi.create<ICoverageContentProfile>(COVERAGE_PROFILES_RESOURCE, updates);
     }
+
+    return superdeskApi.dataApi.create<ICoverageContentProfile>(COVERAGE_PROFILES_RESOURCE, updates);
 }
 
 function getAllCoverageProfiles(): Promise<Array<ICoverageContentProfile>> {
