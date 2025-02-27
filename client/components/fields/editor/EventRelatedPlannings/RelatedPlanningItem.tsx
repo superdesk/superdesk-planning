@@ -141,11 +141,11 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                 : authoringStoragePlanningItemHttp
                         }
                         makeVisible={() => {
-                            if (this.toggleBoxRef.current.isOpen() === false) {
-                                return this.toggleBoxRef.current.toggle() as unknown as Promise<void>;
+                            if (this.toggleBoxRef.current.isOpen()) {
+                                return Promise.resolve();
                             }
 
-                            return Promise.resolve();
+                            return this.toggleBoxRef.current.toggle() as unknown as Promise<void>;
                         }}
                     />
                 </ToggleBox>

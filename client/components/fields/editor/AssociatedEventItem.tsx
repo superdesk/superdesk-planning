@@ -1,10 +1,11 @@
+import React, {createRef} from 'react';
+import {IAuthoringReact} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {authoringStorageEventItemHttp} from '../../../components/editor-standalone/authoring-storage-event-http';
 import {EventEditorStandalone} from '../../../components/editor-standalone/event-editor-standalone';
 import {RelatedEventListItem} from '../../../components/Events/EventMetadata/RelatedEventListItem';
-import React, {createRef} from 'react';
+import {CustomHeaderToggleBox} from 'superdesk-ui-framework/react/components/ToggleBox/CustomHeaderToggleBox';
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
-import {IAuthoringReact} from 'superdesk-api';
 
 interface IProps{
     removeEventItem(item: DeepPartial<IEventItem>): void;
@@ -14,7 +15,7 @@ interface IProps{
 }
 
 export class AssociatedEventItem extends React.PureComponent<IProps> {
-    public toggleBoxRef: React.RefObject<any>;
+    public toggleBoxRef: React.RefObject<CustomHeaderToggleBox>;
     public authoringRef: React.RefObject<IAuthoringReact<IEventItem>>;
 
     constructor(props) {
@@ -61,11 +62,11 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                         itemId={event._id}
                         authoringStorage={authoringStorageEventItemHttp}
                         makeVisible={() => {
-                            if (this.toggleBoxRef.current.isOpen() === false) {
-                                return this.toggleBoxRef.current.toggle() as unknown as Promise<void>;
+                            if (this.toggleBoxRef.current.isOpen()) {
+                                return Promise.resolve();
                             }
 
-                            return Promise.resolve();
+                            return this.toggleBoxRef.current.toggle() as unknown as Promise<void>;
                         }}
                     />
                 </ToggleBox>
