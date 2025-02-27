@@ -353,6 +353,7 @@ describe('PlanningUtils', () => {
                     user: 'ident2',
                     priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                 },
+                profile: undefined,
             });
         });
 
@@ -384,6 +385,7 @@ describe('PlanningUtils', () => {
                     internal_note: undefined,
                     language: undefined,
                 },
+                profile: undefined,
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
                 assigned_to: {
@@ -422,6 +424,7 @@ describe('PlanningUtils', () => {
                     internal_note: undefined,
                     language: undefined,
                 },
+                profile: undefined,
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
                 assigned_to: {
@@ -461,6 +464,7 @@ describe('PlanningUtils', () => {
                     internal_note: undefined,
                     language: undefined,
                 },
+                profile: undefined,
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
                 assigned_to: {
