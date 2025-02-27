@@ -1712,7 +1712,7 @@ export interface IEditorFormState {
 }
 
 export interface ICoverageProfilesState {
-    profiles: {[key: string]: IPlanningContentProfile};
+    profiles: Array<ICoverageContentProfile>;
 }
 
 export interface IFormState {

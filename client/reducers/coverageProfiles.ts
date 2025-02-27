@@ -3,11 +3,11 @@ import {COVERAGES} from '../constants';
 import {createReducer} from './createReducer';
 
 const initialState: ICoverageProfilesState = {
-    profiles: {},
+    profiles: [],
 };
 
 const coveragesReducer = createReducer(initialState, {
-    [COVERAGES.UPDATE_PROFILES]: (state, payload: {[key: string]: ICoverageContentProfile}) => ({
+    [COVERAGES.UPDATE_PROFILES]: (state, payload: Array<ICoverageContentProfile>) => ({
         ...state,
         profiles: payload,
     })
