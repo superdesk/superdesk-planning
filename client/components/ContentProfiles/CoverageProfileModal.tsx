@@ -32,6 +32,10 @@ interface IProps {
     closeModal(): void;
 }
 
+const coverageType: Array<ICoverageType> = [
+    'text', 'picture', 'video', 'audio', 'infographics', 'liveBlog', 'liveVideo'
+];
+
 export class CoverageProfilesModal extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
@@ -183,9 +187,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
     render() {
         const {gettext} = superdeskApi.localization;
         const {selectedType} = this.state;
-        const coverageType: ICoverageType[] = [
-            'text', 'picture', 'video', 'audio', 'infographics', 'liveBlog', 'liveVideo'
-        ];
         const propsMap: Record<ICoverageType, {label: string; icon: string;}> = {
             text: {
                 label: gettext('Text'),

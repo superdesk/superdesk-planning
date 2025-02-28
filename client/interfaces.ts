@@ -2257,7 +2257,6 @@ export interface IPlanningAPI {
         getById(assignmentId: IAssignmentItem['_id']): Promise<IAssignmentItem>;
     };
     coverages: {
-        getEditorProfile(type: ICoverageType): ICoverageFormProfile;
         cancelCoverage(
             items: Array<IPlanningCoverageItem | ICoverageScheduledUpdate>,
             itemToCancel: IPlanningCoverageItem | ICoverageScheduledUpdate,
