@@ -21,6 +21,7 @@ import {getContactsField} from './contacts';
 import {getOccurStatusField} from './occurence-status';
 import {getLanguageField} from './lanugage';
 import {getCalendarsField} from './calendars';
+import {getAllDayDatesField} from './all-day';
 
 export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
@@ -94,6 +95,7 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
             getField: ({required, id}) =>
                 getTextFieldConfig({id: id, label: gettext('Registration Details'), required: required}),
         },
+        getAllDayDatesField(),
         getCalendarsField(),
         getLanguageField(),
         getOccurStatusField(),
