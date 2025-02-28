@@ -18,9 +18,13 @@ import {getPriorityField} from './priority-field';
 import {getLocationsField} from './locations-field';
 import {getLinksField} from './link-field';
 import {getContactsField} from './contacts';
+import {getOccurStatusField} from './occurence-status';
+import {getLanguageField} from './lanugage';
+import {getCalendarsField} from './calendars';
 
 export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
+
     const result: Array<IFieldDefinition> = [
         {
             fieldId: 'ednote',
@@ -65,6 +69,34 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
                 return field;
             },
         },
+        {
+            fieldId: 'references',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('External Reference'), required: required}),
+        },
+        {
+            fieldId: 'definition_short',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Description'), required: required}),
+        },
+        {
+            fieldId: 'invitation_details',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Invitation Details'), required: required}),
+        },
+        {
+            fieldId: 'accreditation_info',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Accreditation Info'), required: required}),
+        },
+        {
+            fieldId: 'registration_details',
+            getField: ({required, id}) =>
+                getTextFieldConfig({id: id, label: gettext('Registration Details'), required: required}),
+        },
+        getCalendarsField(),
+        getLanguageField(),
+        getOccurStatusField(),
         getPlanningDate(),
         getPlaceField(),
         getAgendasField(),
