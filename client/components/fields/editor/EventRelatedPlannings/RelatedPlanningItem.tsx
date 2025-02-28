@@ -145,7 +145,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                 return Promise.resolve();
                             }
 
-                            return this.toggleBoxRef.current.toggle() as unknown as Promise<void>;
+                            return this.toggleBoxRef.current.toggle().then(() => null);
                         }}
                     />
                 </ToggleBox>
