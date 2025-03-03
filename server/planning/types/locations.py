@@ -6,7 +6,6 @@ from planning.types.base import BasePlanningModel
 
 from superdesk.utc import utcnow
 from superdesk.core.resources import fields, dataclass
-from superdesk.core.utils import generate_guid, GUID_NEWSML
 from superdesk.core.resources.validators import validate_data_relation_async, validate_unique_value_async
 
 
@@ -35,7 +34,7 @@ class Address:
 
 
 class LocationResourceModel(BasePlanningModel):
-    guid: fields.Keyword = Field(default_factory=lambda: generate_guid(type=GUID_NEWSML))
+    guid: fields.Keyword | None = None
     unique_id: Annotated[int, validate_unique_value_async("locations", "unique_id")] | None = None
     unique_name: Annotated[str, validate_unique_value_async("locations", "unique_name")] | None = None
     version: int | None = None
