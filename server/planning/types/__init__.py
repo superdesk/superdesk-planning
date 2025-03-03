@@ -26,6 +26,7 @@ from .agendas import AgendasResourceModel
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
 from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
+from .locations import LocationResourceModel
 
 
 __all__ = [
@@ -49,6 +50,7 @@ __all__ = [
     "PlanningFeaturedResourceModel",
     "EventAutosaveResourceModel",
     "PlanningAutosaveResourceModel",
+    "LocationResourceModel",
 ]
 
 
