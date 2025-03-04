@@ -34,7 +34,7 @@ class Address:
 
 
 class LocationResourceModel(BasePlanningModel):
-    guid: fields.Keyword | None = None
+    guid: str | None = None
     unique_id: Annotated[int, validate_unique_value_async("locations", "unique_id")] | None = None
     unique_name: Annotated[str, validate_unique_value_async("locations", "unique_name")] | None = None
     version: int | None = None

@@ -19,10 +19,10 @@ class LocationsAsyncService(BasePlanningAsyncService[LocationResourceModel]):
 
     async def delete_many(self, lookup: dict[str, Any]) -> list[str]:
         """
-        If the document to be deleted is reference in an event then flag it as inactive otherwise just delete it.
+        If the document to be deleted is referenced in an event, flag it as inactive otherwise just delete it.
         """
         if lookup:
-            location = await self.find_by_id(lookup.get(ID_FIELD, ""))
+            location = await self.find_by_id(lookup[ID_FIELD])
             if location:
                 search_request = SearchRequest(where={"location.qcode": str(location.guid)})
                 events = await EventsAsyncService().find(search_request)
