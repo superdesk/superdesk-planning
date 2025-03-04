@@ -6,11 +6,16 @@ from superdesk.core.resources import (
 
 from planning.types import LocationResourceModel
 from .locations_service_async import LocationsAsyncService
+from .rest_api import LocationsRestEndpoints
 
 locations_resource_config: ResourceConfig = ResourceConfig(
     name="locations",
     data_class=LocationResourceModel,
     service=LocationsAsyncService,
     elastic=ElasticResourceConfig(),
-    rest_endpoints=RestEndpointConfig(item_methods=["GET", "PATCH", "PUT", "DELETE"], resource_methods=["GET", "POST"]),
+    rest_endpoints=RestEndpointConfig(
+        item_methods=["GET", "PATCH", "PUT", "DELETE"],
+        resource_methods=["GET", "POST"],
+        endpoints_class=LocationsRestEndpoints,
+    ),
 )
