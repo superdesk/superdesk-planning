@@ -218,6 +218,7 @@ planning_schema = {
         "mapping": not_analyzed,
         "nullable": True,
     },
+    "_unsaved_related_events": {"type": "list", "nullable": True},
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
     # Planning Item Metadata - See IPTC-G2-Implementation_Guide 16.1

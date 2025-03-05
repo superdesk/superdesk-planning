@@ -24,7 +24,7 @@ export function getRecurringRulesField(): ICustomFieldType<
         editorComponent: Editor,
         previewComponent: Preview,
 
-        hasValue: (valueOperational) => Object.keys(valueOperational).length > 0,
+        hasValue: (valueOperational) => Object.keys(valueOperational ?? {}).length > 0,
         getEmptyValue: () => {
             return {} as IRecurringRulesValueOperational;
         },

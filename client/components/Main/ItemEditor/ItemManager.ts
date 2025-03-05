@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Dispatch} from 'redux';
-import {cloneDeep, get, isEqual, set} from 'lodash';
+import {cloneDeep, get, isEqual, partition, set} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {
@@ -404,6 +404,7 @@ export class ItemManager {
                     ...removeAutosaveFields(
                         autosaveItem,
                         true,
+                        true,
                         true
                     ),
                 };
@@ -710,13 +711,24 @@ export class ItemManager {
                 }
             }
 
-            if (updates.type === 'planning' && (updates.related_events ?? []).length > 0) {
+            if (
+                updates.type === 'planning'
+                && (
+                    (updates.related_events ?? []).length > 0
+                    || ((updates as IPlanningItem)._unsaved_related_events ?? []).length > 0
+                )
+            ) {
+                const [_withNewEvents, withExistingEvents] = partition(
+                    ((updates as IPlanningItem).related_events ?? []) as Array<IPlanningRelatedEventLink>,
+                    (x) => !isTemporaryId(x._id),
+                );
+
                 const updatedLinks = eventUtils.addRelatedEvents(
-                    updates.related_events.filter((x) => !isTemporaryId(x._id)) as Array<IPlanningRelatedEventLink>,
+                    withExistingEvents,
                     embeddedItems as Array<IEventItem>,
                 );
 
-                updates.related_events = updatedLinks.next;
+                (updates as IPlanningItem).related_events = updatedLinks.next;
             }
 
             return this.autoSave.flushAutosave()

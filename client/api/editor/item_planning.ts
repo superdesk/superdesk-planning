@@ -21,6 +21,7 @@ import {
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
+import {isTemporaryId} from '../../utils';
 
 export function getCoverageFields(): ISearchProfile {
     const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
@@ -102,13 +103,26 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
             ...updates,
         };
 
+        const updateMainField = () => {
+            editor.form.changeField('related_events', events)
+                .then(() => {
+                    if (scrollOnChange) {
+                        getRelatedEventsDomRef(original._id).current?.scrollIntoView();
+                    }
+                });
+        };
 
-        editor.form.changeField('related_events', events)
-            .then(() => {
-                if (scrollOnChange) {
-                    getRelatedEventsDomRef(original._id).current?.scrollIntoView();
-                }
-            });
+        // On saving of a temporary event from the embedded form itself,
+        // we must also remove it from _unsaved_related_events
+        // otherwise trying to save the same item twice would happen
+        if (isTemporaryId(original._id) && !isTemporaryId(updates._id)) {
+            editor.form.changeField(
+                '_unsaved_related_events',
+                planning._unsaved_related_events.filter((x) => x._id != original._id)
+            ).then(updateMainField);
+        } else {
+            updateMainField();
+        }
     }
 
     function getRelatedEventsDomRef(eventId: IEventItem['_id']): RefObject<AssociatedEventItem> {
@@ -128,6 +142,12 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         const events = (planning.related_events || []).filter(
             (event) => event._id !== item._id
         );
+
+        const unsavedEvents = (planning._unsaved_related_events || []).filter(
+            (event) => event._id !== item._id
+        );
+
+        editor.form.changeField('_unsaved_related_events', unsavedEvents);
 
         editor.form.changeField('related_events', events)
             .then(() => {

@@ -88,12 +88,12 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                                 'event',
                                 event,
                                 (item) => {
-                                    return eventsApi.events.create(
-                                        omit(
-                                            eventUtils.modifyForServer(item),
-                                            ['_endTime', '_startTime']
-                                        )
-                                    ).then(([createdEvent]) => {
+                                    const itemClean = omit(
+                                        eventUtils.modifyForServer(item),
+                                        ['_endTime', '_startTime', '_created', '_etag', '_links', '_updated']
+                                    );
+
+                                    return eventsApi.events.create(itemClean).then(([createdEvent]) => {
                                         this.update(createdEvent);
 
                                         return createdEvent;

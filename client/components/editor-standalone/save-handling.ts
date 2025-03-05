@@ -50,7 +50,7 @@ export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
 
     for (const exposed of getEmbeddedItemsExposed<T>(editorType, itemType)) {
         if (!exposed.hasUnsavedChanges()) {
-            continue;
+            updatedItems.push(exposed.getLatestItem());
         }
 
         if (action === 'SAVE') {

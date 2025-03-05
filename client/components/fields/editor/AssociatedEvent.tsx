@@ -7,7 +7,6 @@ import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
 import {Spacer, Button} from 'superdesk-ui-framework/react';
 import {generateTempId, isTemporaryId} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
-import eventsApi from '../../../actions/events/api';
 import {autosave} from '../../../api/autosave';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
@@ -39,6 +38,11 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                 nextItems,
             );
 
+            this.props.onChange(
+                '_unsaved_related_events',
+                nextItems.filter((x) => isTemporaryId(x._id)),
+            );
+
             return Promise.resolve();
         });
     }
@@ -63,12 +67,12 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
             ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
         };
 
-        // Make available for authoring react to get when it executes getEntity internally
         autosave.save(undefined, newEvent);
 
-        // Item has to be available for PlanningEditor. Event objects are taken from the event store,
-        // since on the planning item itself we only store link information
-        planningApi.redux.store.dispatch<any>(eventsApi.receiveEvents([newEvent]));
+        // Item has to be available for PlanningEditor to load the related_events field.
+        // Event objects are taken from the event store, since on the planning item
+        // itself we only store link information.
+        // planningApi.redux.store.dispatch<any>(eventsApi.receiveEvents([newEvent]));
 
         this.addRelatedEvent(newEvent as IEventItem);
     }

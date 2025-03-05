@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {cloneDeep, get, isEqual} from 'lodash';
+import {cloneDeep, get, isEqual, uniqBy} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {
@@ -21,7 +21,7 @@ import {planningApi} from '../../../superdeskApi';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {planningUtils, eventUtils, lockUtils} from '../../../utils';
+import {planningUtils, eventUtils, lockUtils, isTemporaryId} from '../../../utils';
 
 import {EditorForm} from '../../Editor/EditorForm';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
@@ -296,6 +296,21 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                 (this.props.item?.coverages?.length ?? 0) + 1;
         }
 
+        const allRelatedEvents = uniqBy([
+            ...(this.props.diff._unsaved_related_events ?? []),
+            ...(this.props.diff.related_events ?? []),
+        ], (x) => x._id);
+
+        const fullEvents = allRelatedEvents.map((x) => {
+            const fromEventsResource = this.props.events[x._id];
+
+            if (fromEventsResource != null) {
+                return fromEventsResource;
+            }
+
+            return x;
+        });
+
         return (
             <EditorForm
                 itemManager={this.props.itemManager}
@@ -346,8 +361,7 @@ class PlanningEditorComponent extends React.Component<IProps, IState> {
                         updateEventItem: editor.item.planning.updateEventItem,
                         unlinkEvent: editor.item.planning.unlinkEvent,
                         field: 'related_events',
-                        events: (this.props.diff.related_events ?? [])
-                            .map((relatedEvent) => this.props.events[relatedEvent._id]),
+                        events: fullEvents,
                     },
                     coverages: {
                         onChange: this.onCoverageChange,

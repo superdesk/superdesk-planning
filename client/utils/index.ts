@@ -803,12 +803,16 @@ export function generateTempId(): string {
  * @param {boolean} stripLockFields - Strip lock fields from the item
  * @return {object} Autosave item with fields stripped
  */
-export const removeAutosaveFields = (item, stripLockFields = false, keepTime = false) => {
+export const removeAutosaveFields = (item, stripLockFields = false, keepTime = false, keepRelatedEvents = false) => {
     let fieldsToKeep = ['_id', '_planning_item', TO_BE_CONFIRMED_FIELD];
     let fieldsToIgnore = [...AUTOSAVE.IGNORE_FIELDS];
 
     if (keepTime) {
         fieldsToKeep = [...fieldsToKeep, '_startTime', '_endTime'];
+    }
+
+    if (keepRelatedEvents) {
+        fieldsToKeep.push('_unsaved_related_events');
     }
 
     if (stripLockFields) {

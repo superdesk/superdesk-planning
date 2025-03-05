@@ -750,6 +750,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     // added by client - should be dropped before sending to server
     event?: IEventItem;
 
+    _unsaved_related_events?: Array<IPlanningRelatedEventLink>;
     /**
      * This is for storing UI related data that is not a part of the planning item entity itself,
      * but is required to be persisted to complete a multi-step workflow.

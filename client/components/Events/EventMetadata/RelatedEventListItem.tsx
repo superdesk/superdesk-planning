@@ -2,7 +2,6 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import {IEventItem, ILockedItems} from '../../../interfaces';
-import {superdeskApi} from '../../../superdeskApi';
 import {ICON_COLORS} from '../../../constants';
 
 import {eventUtils, lockUtils} from '../../../utils';

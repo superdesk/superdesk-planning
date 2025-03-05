@@ -1,17 +1,31 @@
 import ng from 'superdesk-core/scripts/core/services/ng';
 import {IAuthoringAutoSave, IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
+import {autosave} from '../../api/autosave';
 
-export function getAuthoringStorageInMemory<T>(
+export function getAuthoringStorageInMemory<T extends {_id: string}>(
     profile: 'event' | 'planning',
     item: T,
     onSave: (current: T, original: T) => Promise<T>,
 ): IAuthoringStorage<T> {
+    /**
+     * Timeout for 500 seconds to let newly added embedded events finish autosaving.
+     */
     class NoAutoSave implements IAuthoringAutoSave<T> {
         get(id: string) {
-            // return a different reference so authoring-react sees it as having unsaved changes.
-            // otherwise, it will consider all saved and won't attempt to save - which won't trigger validation.
-            return Promise.resolve({...item});
+            return new Promise<T>((resolve) => {
+                setTimeout(() => {
+                    autosave
+                        .getById(profile === 'event' ? 'event' : 'planning', id)
+                        .then((x) => {
+                            if (x == null) {
+                                resolve(item);
+                            } else {
+                                resolve(x as unknown as T);
+                            }
+                        });
+                }, 500);
+            });
         }
 
         delete() {
@@ -39,7 +53,19 @@ export function getAuthoringStorageInMemory<T>(
         autosave: new NoAutoSave(),
 
         getEntity: () => {
-            return Promise.resolve(item);
+            return new Promise<T>((resolve) => {
+                setTimeout(() => {
+                    autosave
+                        .getById(profile === 'event' ? 'event' : 'planning', item._id)
+                        .then((x) => {
+                            if (x == null) {
+                                resolve(item);
+                            } else {
+                                resolve(x as unknown as T);
+                            }
+                        });
+                }, 500);
+            });
         },
 
         isLockedInCurrentSession: () => true,

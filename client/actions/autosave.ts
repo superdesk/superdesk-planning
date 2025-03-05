@@ -1,5 +1,5 @@
 import {AUTOSAVE, ITEM_TYPE} from '../constants';
-import {get, cloneDeep} from 'lodash';
+import {get, cloneDeep, partition} from 'lodash';
 import moment from 'moment';
 
 import * as selectors from '../selectors';
@@ -111,10 +111,14 @@ const save = (original, updates) => (
             updateFields.lock_time = moment();
         }
 
-        // Remove related events that aren't yet saved themselves,
-        // since the backend needs them to be in the events resource
-        if (updateFields.related_events) {
-            updateFields.related_events = cloneDeep(updateFields.related_events).filter((x) => !isTemporaryId(x._id));
+        if (updateFields.related_events && itemType === 'planning') {
+            const [
+                newEvents,
+                existingEvents,
+            ] = partition(cloneDeep(updateFields.related_events), (x) => isTemporaryId(x._id));
+
+            updateFields.related_events = existingEvents;
+            updateFields._unsaved_related_events = newEvents;
         }
 
         return api(`${itemType}_autosave`).save(
