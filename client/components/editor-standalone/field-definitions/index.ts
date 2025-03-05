@@ -22,6 +22,8 @@ import {getOccurStatusField} from './occurence-status';
 import {getLanguageField} from './lanugage';
 import {getCalendarsField} from './calendars';
 import {getAllDayDatesField} from './all-day';
+import {getRecurringRulesField} from './recurring-rules';
+import {getAccreditationDeadline} from './accreditation-deadline';
 
 export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
@@ -99,6 +101,8 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
         getCalendarsField(),
         getLanguageField(),
         getOccurStatusField(),
+        getRecurringRulesField(),
+        getAccreditationDeadline(),
         getPlanningDate(),
         getPlaceField(),
         getAgendasField(),

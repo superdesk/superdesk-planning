@@ -27,6 +27,8 @@ import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningCoverage
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {validateCoveragesV2} from './validators/planning';
 import {isTemporaryId} from './utils';
+import {IEditorFieldEventRecurringRulesProps} from './components/fields/editor/EventRecurringRules.interface';
+import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRecurringRules';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -55,6 +57,7 @@ interface IExtensionBridge {
             EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
             EditorFieldLocation: React.ComponentType<IEditorFieldLocationProps>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
+            EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
         },
     }
     ui: {
@@ -119,6 +122,7 @@ export const extensionBridge: IExtensionBridge = {
             EditorFieldContact: ContactField,
             EditorFieldLocation: EditorFieldLocation,
             EditorFieldCoverages: EditorFieldCoverages,
+            EditorFieldEventRecurringRules: EditorFieldEventRecurringRules,
         },
     },
     ui: {

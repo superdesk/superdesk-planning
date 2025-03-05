@@ -2,19 +2,13 @@ import * as React from 'react';
 import {get} from 'lodash';
 
 import {superdeskApi} from '../../../superdeskApi';
-import {IEditorFieldProps, IEventItem} from '../../../interfaces';
+import {IEventItem} from '../../../interfaces';
 
 import {EditorFieldToggle} from './base/toggle';
 import {RecurringRulesInput} from '../../Events/RecurringRulesInput';
+import {IEditorFieldEventRecurringRulesProps} from './EventRecurringRules.interface';
 
-interface IProps extends IEditorFieldProps {
-    onlyUpdateRepetitions?: boolean;
-    popupContainer(): HTMLElement;
-    onPopupOpen?(): void;
-    onPopupClose?(): void;
-}
-
-export class EditorFieldEventRecurringRules extends React.PureComponent<IProps> {
+export class EditorFieldEventRecurringRules extends React.PureComponent<IEditorFieldEventRecurringRulesProps> {
     constructor(props) {
         super(props);
 

@@ -11,6 +11,7 @@ import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInp
 import {IContactPropsNoRedux} from '../../components/Contacts/ContactField.interface';
 import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface';
 import {IEditorFieldLocationProps} from '../../components/fields/editor/Location.interface';
+import {IEditorFieldEventRecurringRulesProps} from '../../components/fields/editor/EventRecurringRules.interface';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -49,6 +50,7 @@ interface IExtensionBridge {
             EditorFieldLocation: React.ComponentType<IEditorFieldLocationProps>;
             EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
+            EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
         },
     }
     ui: {
