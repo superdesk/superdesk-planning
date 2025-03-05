@@ -45,6 +45,10 @@ function validate<T extends IPlanningItem | IEventItem>(
     const errors = {};
     const messages = [];
 
+    // PR-TODO: dates.recurring_rule needs to be handled, fieldId is only 'recurring_rule' which causes the
+    // value to be always empty when doing latestItem[fieldId] (actual value is in `latestItem.dates.recurring_rule`)
+    // Also changing fieldId from adapter to `dates.recurring_rule` the storage
+    // adapter can't be found from authoring internals and causes a crash
     for (const {fieldId} of getPlanningProfileFields({profile: entityType, embeddedOnly: true})) {
         formProfile({
             field: fieldId,
