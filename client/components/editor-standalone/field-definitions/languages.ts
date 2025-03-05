@@ -3,7 +3,7 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {getLanguages} from '../../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 
-export const getLanguageField = () => {
+export const getLanguagesField = () => {
     const vocabularyFromStore = getLanguages(planningApi.redux.store.getState());
 
     return {

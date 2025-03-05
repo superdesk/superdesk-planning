@@ -19,7 +19,7 @@ import {getLocationsField} from './locations-field';
 import {getLinksField} from './link-field';
 import {getContactsField} from './contacts';
 import {getOccurStatusField} from './occurence-status';
-import {getLanguageField} from './lanugage';
+import {getLanguagesField} from './languages';
 import {getCalendarsField} from './calendars';
 import {getAllDayDatesField} from './all-day';
 import {getRecurringRulesField} from './recurring-rules';
@@ -99,7 +99,7 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
         },
         getAllDayDatesField(),
         getCalendarsField(),
-        getLanguageField(),
+        getLanguagesField(),
         getOccurStatusField(),
         getRecurringRulesField(),
         getAccreditationDeadline(),

@@ -33,8 +33,6 @@ import {
     handleEmbeddedItems,
     IEmbeddedPlanningsActionType,
 } from '../../../components/editor-standalone/save-handling';
-import eventsApi from '../../../actions/events/api';
-import {initialValues} from 'selectors/forms';
 
 export class ItemManager {
     editor: EditorComponent;
@@ -671,7 +669,7 @@ export class ItemManager {
         const promise = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
             .then((res) =>
                 Promise.all([
-                    res,
+                    Promise.resolve(res),
                     !updateStates ? {} : this.setState({submitting: true, submitFailed: false})
                 ])
             );
