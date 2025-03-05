@@ -18,8 +18,8 @@ import {getPriorityField} from './priority-field';
 import {getLocationsField} from './locations-field';
 import {getLinksField} from './link-field';
 import {getContactsField} from './contacts';
-import {getOccurStatusField} from './occurence-status';
-import {getLanguagesField} from './languages';
+import {getOccurrenceStatusField} from './occurrence-status';
+import {getLanguageField} from './language';
 import {getCalendarsField} from './calendars';
 import {getAllDayDatesField} from './all-day';
 import {getRecurringRulesField} from './recurring-rules';
@@ -99,8 +99,8 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
         },
         getAllDayDatesField(),
         getCalendarsField(),
-        getLanguagesField(),
-        getOccurStatusField(),
+        getLanguageField(),
+        getOccurrenceStatusField(),
         getRecurringRulesField(),
         getAccreditationDeadline(),
         getPlanningDate(),

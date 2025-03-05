@@ -3,13 +3,13 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {getLanguages} from '../../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 
-export const getLanguagesField = () => {
-    const vocabularyFromStore = getLanguages(planningApi.redux.store.getState());
+export const getLanguageField = () => {
+    const languages = getLanguages(planningApi.redux.store.getState());
 
     return {
         fieldId: 'language',
         getField: ({required, id}) => {
-            const options = vocabularyFromStore.map(
+            const options = languages.map(
                 (option) => ({
                     id: option.qcode,
                     label: getVocabularyItemFieldTranslated(

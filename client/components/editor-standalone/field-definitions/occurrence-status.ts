@@ -3,7 +3,7 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {eventOccurStatuses} from '../../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 
-export const getOccurStatusField = () => ({
+export const getOccurrenceStatusField = () => ({
     fieldId: 'occur_status',
     getField: ({required, id}) => {
         const vocabularyFromStore = eventOccurStatuses(planningApi.redux.store.getState());

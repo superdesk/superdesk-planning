@@ -1,10 +1,12 @@
+import {ICalendar} from 'interfaces';
 import {IAuthoringFieldV2, IDropdownConfigManualSource} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {calendars} from '../../../selectors/events';
+import {nameof} from 'core/helpers/typescript-helpers';
 
 export const getCalendarsField = () => {
-    const vocabularyFromStore = calendars(planningApi.redux.store.getState());
+    const vocabularyFromStore: Array<ICalendar> = calendars(planningApi.redux.store.getState());
 
     return {
         fieldId: 'calendars',
@@ -16,7 +18,7 @@ export const getCalendarsField = () => {
                         option,
                         'label',
                         'en',
-                        'name'
+                        nameof<ICalendar>('name')
                     ),
                 })
             );

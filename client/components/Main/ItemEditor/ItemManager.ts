@@ -670,7 +670,7 @@ export class ItemManager {
             .then((res) =>
                 Promise.all([
                     Promise.resolve(res),
-                    !updateStates ? {} : this.setState({submitting: true, submitFailed: false})
+                    !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false})
                 ])
             );
 
