@@ -6,7 +6,7 @@ from planning.types.base import BasePlanningModel
 
 from superdesk.utc import utcnow
 from superdesk.core.resources import fields, dataclass
-from superdesk.core.resources.validators import validate_data_relation_async, validate_unique_value_async
+from superdesk.core.resources.validators import validate_data_relation_async, validate_iunique_value_async
 from superdesk.core.utils import generate_guid, GUID_NEWSML
 
 
@@ -35,11 +35,11 @@ class Address:
 
 
 class LocationResourceModel(BasePlanningModel):
-    guid: Annotated[str, Field(default_factory=lambda: generate_guid(type=GUID_NEWSML))]
-    unique_id: Annotated[int, validate_unique_value_async("locations", "unique_id")] | None = None
-    unique_name: Annotated[str, validate_unique_value_async("locations", "unique_name")] | None = None
+    guid: Annotated[fields.Keyword, Field(default_factory=lambda: generate_guid(type=GUID_NEWSML))]
+    unique_id: Annotated[int, validate_iunique_value_async("locations", "unique_id")] | None = None
+    unique_name: Annotated[fields.Keyword, validate_iunique_value_async("locations", "unique_name")] | None = None
     version: int | None = None
-    ingest_id: str | None = None
+    ingest_id: fields.Keyword | None = None
 
     # Audit Information
     firstcreated: datetime = Field(default_factory=utcnow)
@@ -47,9 +47,9 @@ class LocationResourceModel(BasePlanningModel):
 
     # Ingest Details
     ingest_provider: Annotated[fields.ObjectId, validate_data_relation_async("ingest_providers")] | None = None
-    source: str | None = None
-    original_source: str | None = None
-    ingest_provider_sequence: str | None = None
+    source: fields.Keyword | None = None
+    original_source: fields.Keyword | None = None
+    ingest_provider_sequence: fields.Keyword | None = None
 
     # Location Details
     # NewsML-G2 Event properties See:
