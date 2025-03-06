@@ -100,7 +100,7 @@ def duplicate_planning_item(original: dict[str, Any]) -> PlanningResourceModel:
     return PlanningResourceModel(**new_plan)
 
 
-async def process_planning_item_duplicate(original: dict[str, Any]) -> list[str]:
+async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> list[str]:
     """
     Function to duplicate planning item.
 
@@ -110,9 +110,7 @@ async def process_planning_item_duplicate(original: dict[str, Any]) -> list[str]
     planning_service = PlanningAsyncService()
     history_service = PlanningHistoryAsyncService()
 
-    parent_id = original[ID_FIELD]
-    parent_plan = await planning_service.find_by_id_raw(parent_id)
-    assert parent_plan is not None, "Expected parent_plan to be a dict, got None"
+    parent_id = parent_plan[ID_FIELD]
     new_plan = duplicate_planning_item(parent_plan)
 
     await planning_service.on_create([new_plan])
