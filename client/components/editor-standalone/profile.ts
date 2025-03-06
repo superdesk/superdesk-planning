@@ -4,7 +4,7 @@ import {IContentProfileV2} from 'superdesk-api';
 import {getPlanningProfileFields} from './profile-fields';
 import {getFieldDefinitions} from './field-definitions/index';
 
-export function getProfile(profileType: 'event' | 'planning') {
+export function getProfile(profileType: 'event' | 'planning', language: string) {
     const planningFieldIds = getPlanningProfileFields({embeddedOnly: true, profile: profileType});
     const skipped = new Set<string>();
     const fieldDefinitions = getFieldDefinitions(profileType);
@@ -19,7 +19,7 @@ export function getProfile(profileType: 'event' | 'planning') {
         if (fieldDefinitions[fieldId] != null) {
             profileV2.header = profileV2.header.set(
                 fieldId,
-                fieldDefinitions[fieldId].getField({id: fieldId, required: required}),
+                fieldDefinitions[fieldId].getField({id: fieldId, required: required, language: language}),
             );
         } else {
             skipped.add(fieldId);

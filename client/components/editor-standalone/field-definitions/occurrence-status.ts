@@ -2,10 +2,11 @@ import {IAuthoringFieldV2, IDropdownConfigManualSource} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {eventOccurStatuses} from '../../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
+import {IFieldDefinition} from './interfaces';
 
-export const getOccurrenceStatusField = () => ({
+export const getOccurrenceStatusField = (): IFieldDefinition => ({
     fieldId: 'occur_status',
-    getField: ({required, id}) => {
+    getField: ({required, id, language}) => {
         const vocabularyFromStore = eventOccurStatuses(planningApi.redux.store.getState());
         const options = vocabularyFromStore.map(
             (option) => ({
@@ -13,7 +14,7 @@ export const getOccurrenceStatusField = () => ({
                 label: getVocabularyItemFieldTranslated(
                     option,
                     'label',
-                    'en',
+                    language,
                     'name'
                 ),
             })

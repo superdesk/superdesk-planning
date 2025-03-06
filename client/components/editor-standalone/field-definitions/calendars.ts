@@ -4,20 +4,21 @@ import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {calendars} from '../../../selectors/events';
 import {nameof} from 'core/helpers/typescript-helpers';
+import {IFieldDefinition} from './interfaces';
 
-export const getCalendarsField = () => {
+export const getCalendarsField = (): IFieldDefinition => {
     const vocabularyFromStore: Array<ICalendar> = calendars(planningApi.redux.store.getState());
 
     return {
         fieldId: 'calendars',
-        getField: ({required, id}) => {
+        getField: ({required, id, language}) => {
             const options = vocabularyFromStore.map(
                 (option) => ({
                     id: option.qcode,
                     label: getVocabularyItemFieldTranslated(
                         option,
                         'label',
-                        'en',
+                        language,
                         nameof<ICalendar>('name')
                     ),
                 })

@@ -2,20 +2,21 @@ import {IAuthoringFieldV2, IDropdownConfigManualSource} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {getLanguages} from '../../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
+import {IFieldDefinition} from './interfaces';
 
-export const getLanguageField = () => {
+export const getLanguageField = (): IFieldDefinition => {
     const languages = getLanguages(planningApi.redux.store.getState());
 
     return {
         fieldId: 'language',
-        getField: ({required, id}) => {
+        getField: ({required, id, language}) => {
             const options = languages.map(
                 (option) => ({
                     id: option.qcode,
                     label: getVocabularyItemFieldTranslated(
                         option,
                         'label',
-                        'en',
+                        language,
                         'name'
                     ),
                 })
