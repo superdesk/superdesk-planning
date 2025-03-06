@@ -35,7 +35,11 @@ class Address:
 
 
 class LocationResourceModel(BasePlanningModel):
-    guid: Annotated[fields.Keyword, Field(default_factory=lambda: generate_guid(type=GUID_NEWSML))]
+    guid: Annotated[
+        fields.Keyword,
+        validate_iunique_value_async("locations", "guid"),
+        Field(default_factory=lambda: generate_guid(type=GUID_NEWSML)),
+    ]
     unique_id: Annotated[int, validate_iunique_value_async("locations", "unique_id")] | None = None
     unique_name: Annotated[fields.Keyword, validate_iunique_value_async("locations", "unique_name")] | None = None
     version: int | None = None
