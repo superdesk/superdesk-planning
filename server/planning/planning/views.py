@@ -1,3 +1,4 @@
+from planning.planning.planning_duplicate import process_planning_item_duplicate
 from pydantic import BaseModel
 
 from planning.planning import PlanningAsyncService
@@ -48,3 +49,19 @@ async def unspike_planning_item(args: PlanningArgs, params: None, request: Reque
     unspiked_planning_item = await process_unspike_planning_item(updates, original)
 
     return Response(unspiked_planning_item)
+
+
+@blueprint.endpoint(
+    "planning/<string:planning_id>/duplicate",
+    name="planning_duplicate",
+    methods=["POST"],
+    auth=[required_privilege_rule("planning_planning_management")],
+)
+async def duplicate_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
+    original = await PlanningAsyncService().find_by_id_raw(args.planning_id)
+    if not original:
+        await request.abort(404, "Planning Item not found")
+
+    duplicated_planning_item = await process_planning_item_duplicate(original)
+
+    return Response(duplicated_planning_item)
