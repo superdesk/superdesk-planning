@@ -2,10 +2,6 @@ import {ICoverageContentProfile, IPlanningContentProfile} from '../../interfaces
 import {superdeskApi} from '../../superdeskApi';
 import {isProfileFieldEnabled, getFieldNameTranslated} from '../../utils/contentProfiles';
 
-/**
- * Used on submit in ContentProfileModal.tsx, thus why we need the notifications.
- * Also used when you try deleting a required frield.
- */
 export function validateAndNofityForRequiredFields(
     profile: IPlanningContentProfile | Partial<ICoverageContentProfile>,
     requiredFields: Array<string>,

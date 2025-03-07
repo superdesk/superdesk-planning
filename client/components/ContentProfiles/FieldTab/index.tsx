@@ -234,10 +234,12 @@ export class FieldTab extends React.Component<IProps, IState> {
                         ) : (
                             getProfileGroupsSorted(this.props.profile).map((group) => (
                                 <FieldList
+                                    // systemRequiredFields aren't passed because we want to allow users to
+                                    // move fields from one group to another,
+                                    // validation for systemRequiredFields runs on save
                                     key={group._id}
                                     profile={this.props.profile}
                                     group={group}
-                                    systemRequiredFields={this.props.systemRequiredFields}
                                     fields={getGroupFieldsSorted(this.props.profile, group._id)}
                                     unusedFields={unusedFields}
                                     onSortChange={this.updateFieldOrder}
