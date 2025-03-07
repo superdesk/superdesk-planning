@@ -33,7 +33,7 @@ export class AttachmentsInputStandalone extends React.PureComponent<IProps, ISta
             <Spacer v gap="16" noWrap>
                 <WithLiveResources
                     resources={[
-                        {resource: 'planning_files', ids: this.props.value},
+                        {resource: 'planning_files', ids: this.props.value ?? []},
                     ]}
                 >
                     {(res) => {
