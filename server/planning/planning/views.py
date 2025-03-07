@@ -10,14 +10,14 @@ from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 
 
-blueprint = EndpointGroup("planning", __name__)
+planning_blueprint: EndpointGroup = EndpointGroup("planning", __name__)
 
 
 class PlanningArgs(BaseModel):
     planning_id: str
 
 
-@blueprint.endpoint(
+@planning_blueprint.endpoint(
     "planning/spike/<string:planning_id>",
     name="planning_spike",
     methods=["PATCH"],
@@ -34,7 +34,7 @@ async def spike_planning_item(args: PlanningArgs, params: None, request: Request
     return Response(spiked_planning_item)
 
 
-@blueprint.endpoint(
+@planning_blueprint.endpoint(
     "planning/unspike/<string:planning_id>",
     name="planning_unspike",
     methods=["PATCH"],
@@ -51,13 +51,13 @@ async def unspike_planning_item(args: PlanningArgs, params: None, request: Reque
     return Response(unspiked_planning_item)
 
 
-@blueprint.endpoint(
+@planning_blueprint.endpoint(
     "planning/<string:planning_id>/duplicate",
     name="planning_duplicate",
     methods=["POST"],
     auth=[required_privilege_rule("planning_planning_management")],
 )
-async def duplicate_planning_item_endpoint(args: PlanningArgs, params: None, request: Request) -> Response:
+async def duplicate_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
     original = await PlanningAsyncService().find_by_id_raw(args.planning_id)
     if not original:
         await request.abort(404, "Planning Item not found")
