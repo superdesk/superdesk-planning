@@ -1,7 +1,8 @@
 import {IAuthoringFieldV2} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
+import {IFieldDefinition} from './interfaces';
 
-export const getLocationsField = () => ({
+export const getLocationsField = (): IFieldDefinition => ({
     fieldId: 'location',
     getField: ({id, required}) => {
         const field: IAuthoringFieldV2 = {
