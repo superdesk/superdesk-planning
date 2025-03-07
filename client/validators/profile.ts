@@ -41,12 +41,12 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
     })();
 
     if (field == 'recurring_rules') {
-        if ((value.endRepeatMode === 'count' && value.count == null)) {
+        if ((value?.endRepeatMode === 'count' && value?.count == null)) {
             errors[field] = gettext('Repeat must be set');
             messages.push(gettext('Repeat must be set'));
         }
 
-        if (value.endRepeatMode === 'until' && value.until == null) {
+        if (value?.endRepeatMode === 'until' && value?.until == null) {
             errors[field] = gettext('End date must be set');
             messages.push(gettext('End date must be set'));
         }

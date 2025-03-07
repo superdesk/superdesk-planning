@@ -1,0 +1,49 @@
+import * as React from 'react';
+import {IEditorComponentProps} from 'superdesk-api';
+import {
+    IEventDateFieldConfig,
+    IEventDateFieldUserPreferences,
+    IEventDateValueOperational,
+} from './interfaces';
+import {extensionBridge} from '../../extension_bridge';
+import {cloneDeep, set} from 'lodash';
+import {IEventFormProfile} from '../../../../interfaces';
+
+type IProps = IEditorComponentProps<
+    IEventDateValueOperational,
+    IEventDateFieldConfig,
+    IEventDateFieldUserPreferences
+>;
+
+export class Editor extends React.PureComponent<IProps> {
+    render() {
+        const Container = this.props.container;
+        const {EditorFieldEventSchedule} = extensionBridge.editor.fields;
+        const profile = extensionBridge.ui.utils.getItemProfile(this.props.item.type);
+
+        return (
+            <Container>
+                <EditorFieldEventSchedule
+                    required={true}
+                    profile={profile}
+                    onChange={(changes: {[fieldPath: string]: any}) => {
+                        const valueCopy = {dates: cloneDeep(this.props.value)};
+
+                        Object.entries(changes).forEach(([key, value]) => {
+                            set(valueCopy, key, value);
+                        });
+
+                        this.props.onChange(valueCopy.dates);
+                    }}
+                    showAllDay={(profile as unknown as IEventFormProfile).editor.dates.all_day.enabled}
+                    showTimeZone={true}
+                    item={{
+                        ...this.props.item,
+                        dates: this.props.value,
+                    }}
+                    field='dates'
+                />
+            </Container>
+        );
+    }
+}

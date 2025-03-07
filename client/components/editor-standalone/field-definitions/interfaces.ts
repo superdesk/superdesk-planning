@@ -7,7 +7,7 @@ export interface IFieldStorageAdapter<T> {
 
 export interface IFieldDefinition {
     fieldId: string;
-    getField: (options: {required: boolean, id: string}) => IAuthoringFieldV2;
+    getField: (options: {required: boolean, id: string, language: string}) => IAuthoringFieldV2;
     storageAdapterPlanning?: IFieldStorageAdapter<IPlanningItem>;
     storageAdapterEvent?: IFieldStorageAdapter<IEventItem>;
 }

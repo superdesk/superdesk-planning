@@ -21,7 +21,7 @@ import {getContactsField} from './contacts';
 import {getOccurrenceStatusField} from './occurrence-status';
 import {getLanguageField} from './language';
 import {getCalendarsField} from './calendars';
-import {getAllDayDatesField} from './all-day';
+import {getEventDateField} from './event-date';
 import {getRecurringRulesField} from './recurring-rules';
 import {getAccreditationDeadline} from './accreditation-deadline';
 
@@ -97,7 +97,7 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
             getField: ({required, id}) =>
                 getTextFieldConfig({id: id, label: gettext('Registration Details'), required: required}),
         },
-        getAllDayDatesField(),
+        getEventDateField(),
         getCalendarsField(),
         getLanguageField(),
         getOccurrenceStatusField(),

@@ -92,7 +92,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
 
         return (
             <div
-                style={{display: 'flex', flexDirection: 'column', gap: 8}}
+                style={{paddingBlockEnd: '2rem', display: 'flex', flexDirection: 'column', gap: 8}}
                 data-test-id={this.props.testId}
             >
                 <Spacer h gap="4" justifyContent="space-between">
@@ -127,6 +127,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                             </Select>
                         </Spacer>
                     )}
+                    <div />
                     <Spacer h gap="4" justifyContent="center">
                         <Select
                             onChange={this.onEndRepeatModeChange}

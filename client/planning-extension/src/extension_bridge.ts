@@ -4,6 +4,7 @@ import {
     IAssignmentItem,
     IEditorFieldProps,
     IPlanningAppState,
+    IPlanningContentProfile,
     IPlanningCoverageItem,
     IPlanningItem,
 } from '../../interfaces';
@@ -12,6 +13,7 @@ import {IContactPropsNoRedux} from '../../components/Contacts/ContactField.inter
 import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface';
 import {IEditorFieldLocationProps} from '../../components/fields/editor/Location.interface';
 import {IEditorFieldEventRecurringRulesProps} from '../../components/fields/editor/EventRecurringRules.interface';
+import {IEventScheduleFieldProps} from '../../components/fields/editor/EventSchedule.interface';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -51,10 +53,12 @@ interface IExtensionBridge {
             EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
+            EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
         },
     }
     ui: {
         utils: {
+            getItemProfile: (type: 'planning' | 'event') => IPlanningContentProfile;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated(

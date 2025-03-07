@@ -23,12 +23,22 @@ import {IContactPropsNoRedux} from './components/Contacts/ContactField.interface
 import {EditorFieldLocation} from './components/fields/editor/Location';
 import {IEditorFieldLocationProps} from 'components/fields/editor/Location.interface';
 
-import {IAssignmentItem, IEditorFieldProps, IPlanningAppState, IPlanningCoverageItem} from 'interfaces';
+import {planningApi} from './superdeskApi';
+
+import {
+    IAssignmentItem,
+    IEditorFieldProps,
+    IPlanningAppState,
+    IPlanningContentProfile,
+    IPlanningCoverageItem,
+} from './interfaces';
 import {registerEditorField} from './components/fields/resources/registerEditorFields';
 import {validateCoveragesV2} from './validators/planning';
 import {isTemporaryId} from './utils';
 import {IEditorFieldEventRecurringRulesProps} from './components/fields/editor/EventRecurringRules.interface';
 import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRecurringRules';
+import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
+import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -58,10 +68,12 @@ interface IExtensionBridge {
             EditorFieldLocation: React.ComponentType<IEditorFieldLocationProps>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
+            EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
         },
     }
     ui: {
         utils: {
+            getItemProfile: (type: 'planning' | 'event') => IPlanningContentProfile;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated<T>(
@@ -123,14 +135,16 @@ export const extensionBridge: IExtensionBridge = {
             EditorFieldLocation: EditorFieldLocation,
             EditorFieldCoverages: EditorFieldCoverages,
             EditorFieldEventRecurringRules: EditorFieldEventRecurringRules,
+            EditorFieldEventSchedule: EditorFieldEventSchedule,
         },
     },
     ui: {
         utils: {
-            isTemporaryId,
-            getUserInterfaceLanguageFromCV,
-            getVocabularyItemFieldTranslated,
-            isContentLinkToCoverageAllowed,
+            getItemProfile: (type) => planningApi.contentProfiles.get(type),
+            isTemporaryId: isTemporaryId,
+            getUserInterfaceLanguageFromCV: getUserInterfaceLanguageFromCV,
+            getVocabularyItemFieldTranslated: getVocabularyItemFieldTranslated,
+            isContentLinkToCoverageAllowed: isContentLinkToCoverageAllowed,
         },
         components: {
             EditorFieldVocabulary,
