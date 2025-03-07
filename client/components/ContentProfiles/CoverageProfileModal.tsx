@@ -13,7 +13,7 @@ import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 import {FieldTab} from './FieldTab';
 import './style.scss';
 import {getLanguages} from '../../selectors/vocabs';
-import {validateRequiredFields} from './utils';
+import {validateAndNofityForRequiredFields} from './utils';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {updateCoverageProfiles} from '../../actions/coverages';
 import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
@@ -32,9 +32,17 @@ interface IProps {
     closeModal(): void;
 }
 
-const coverageType: Array<ICoverageType> = [
-    'text', 'picture', 'video', 'audio', 'infographics', 'liveBlog', 'liveVideo'
-];
+const allCoverageTypesObject: {[key in ICoverageType]: 1} = {
+    text: 1,
+    picture: 1,
+    video: 1,
+    audio: 1,
+    infographics: 1,
+    liveBlog: 1,
+    liveVideo: 1,
+};
+
+const allCoverageTypes: Array<ICoverageType> = Object.keys(allCoverageTypesObject) as Array<ICoverageType>;
 
 export class CoverageProfilesModal extends React.Component<IProps, IState> {
     constructor(props) {
@@ -92,7 +100,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
     save() {
         this.setState({saving: true});
 
-        if (!validateRequiredFields(
+        if (!validateAndNofityForRequiredFields(
             this.state.profile,
             COVERAGE_SYSTEM_REQUIRED_FIELDS,
             false
@@ -136,13 +144,20 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
     }
 
     updateField(item: IProfileFieldEntry) {
-        const profileCloned = cloneDeep(this.state.profile);
-
-        profileCloned.editor[item.name] = {...item.field};
-        profileCloned.schema[item.name] = {...item.schema};
+        const profileUpdated = {
+            ...this.state.profile,
+            editor: {
+                ...this.state.profile.editor,
+                [item.name]: item.field,
+            },
+            schema: {
+                ...this.state.profile.schema,
+                [item.name]: item.schema,
+            },
+        };
 
         this.setState({
-            profile: profileCloned,
+            profile: profileUpdated,
             dirty: true,
         });
     }
@@ -252,7 +267,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             >
                 <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap style={{height: '500px'}}>
                     <Spacer gap="4" v style={{height: 'auto', width: '30%', padding: 12}} noWrap>
-                        {coverageType.map((type) => (
+                        {allCoverageTypes.map((type) => (
                             <Button
                                 key={type}
                                 onClick={() => {

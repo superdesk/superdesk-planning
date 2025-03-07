@@ -2191,7 +2191,7 @@ export interface IEditorAPI {
             getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(
                 type: ICoverageType,
-            ): Promise<{searchProfile: ISearchProfile; profile: ICoverageContentProfile}>;
+            ): {searchProfile: ISearchProfile; profile: ICoverageContentProfile};
             getCoverageFieldDomRef(coverageId: IPlanningCoverageItem['coverage_id']): React.RefObject<any>;
             addCoverages(coverages: Array<DeepPartial<IPlanningCoverageItem>>): void;
         };

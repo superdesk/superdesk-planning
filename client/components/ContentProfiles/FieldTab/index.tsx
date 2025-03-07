@@ -24,7 +24,7 @@ import {FieldEditor} from './FieldEditor';
 interface IProps {
     profile: IEditorProfile;
     groupFields: boolean;
-    systemRequiredFields: Array<Array<string>>;
+    systemRequiredFields: Array<string>;
     disableMinMaxFields?: Array<string>;
     disableRequiredFields?: Array<string>;
     updateField(field: IProfileFieldEntry): void;
@@ -211,19 +211,8 @@ export class FieldTab extends React.Component<IProps, IState> {
         });
     }
 
-    getSystemRequiredFields() {
-        if (this.props.systemRequiredFields.length) {
-            return this.props.systemRequiredFields
-                .filter((fields) => fields.length === 1)
-                .map((fields) => fields[0]);
-        }
-
-        return [];
-    }
-
     render() {
         const unusedFields = getUnusedProfileFields(this.props.profile, this.props.groupFields);
-        const systemRequiredFields = this.getSystemRequiredFields();
 
         return (
             <div className="sd-column-box--2">
@@ -235,7 +224,7 @@ export class FieldTab extends React.Component<IProps, IState> {
                                 group={undefined}
                                 fields={getGroupFieldsSorted(this.props.profile)}
                                 unusedFields={unusedFields}
-                                systemRequiredFields={systemRequiredFields}
+                                systemRequiredFields={this.props.systemRequiredFields}
                                 onSortChange={this.updateFieldOrder}
                                 insertField={this.insertField}
                                 removeField={this.removeField}
@@ -248,6 +237,7 @@ export class FieldTab extends React.Component<IProps, IState> {
                                     key={group._id}
                                     profile={this.props.profile}
                                     group={group}
+                                    systemRequiredFields={this.props.systemRequiredFields}
                                     fields={getGroupFieldsSorted(this.props.profile, group._id)}
                                     unusedFields={unusedFields}
                                     onSortChange={this.updateFieldOrder}
@@ -276,7 +266,7 @@ export class FieldTab extends React.Component<IProps, IState> {
                         isDirty={this.isEditorDirty()}
                         disableMinMax={this.props.disableMinMaxFields?.includes(this.state.selectedField.name)}
                         disableRequired={this.props.disableRequiredFields?.includes(this.state.selectedField.name)}
-                        systemRequired={systemRequiredFields.includes(this.state.selectedField.name)}
+                        systemRequired={this.props.systemRequiredFields.includes(this.state.selectedField.name)}
                         closeEditor={this.closeEditor}
                         saveField={this.saveField}
                         updateField={this.updateField}

@@ -19,7 +19,7 @@ import {sortProfileGroups} from '../utils/contentProfiles';
 import {showModalConnectedToStore} from '../utils/ui';
 import {ContentProfileModal} from '../components/ContentProfiles/ContentProfileModal';
 import {getUsersDefaultLanguage} from '../utils/users';
-import {PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from './utils/constants';
+import {EVENT_ITEM_SYSTEM_REQUIRED_FIELDS, PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from './utils/constants';
 
 const RESOURCE = 'planning_types';
 const COVERAGE_PROFILES_RESOURCE = 'coverage_profiles';
@@ -207,10 +207,7 @@ function showManageEventProfileModal(): Promise<void> {
             mainProfile: {
                 label: gettext('Event Fields'),
                 profile: getProfile('event'),
-                systemRequiredFields: [
-                    ['dates'],
-                    ['slugline', 'name'],
-                ],
+                systemRequiredFields: EVENT_ITEM_SYSTEM_REQUIRED_FIELDS,
                 disableMinMaxFields: [
                     'language',
                     'location',
