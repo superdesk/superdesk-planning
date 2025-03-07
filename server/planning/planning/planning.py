@@ -47,6 +47,7 @@ from planning.common import (
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
     ASSIGNMENT_WORKFLOW_STATE,
+    prepare_ingested_item_for_storage,
     update_post_item,
     get_coverage_type_name,
     set_original_creator,
@@ -102,8 +103,8 @@ class PlanningService(Service):
         """Post an ingested item(s)"""
 
         for doc in docs:
+            prepare_ingested_item_for_storage(doc)
             self._resolve_defaults(doc)
-            doc.pop("pubstatus", None)
             set_ingest_version_datetime(doc)
 
         self.on_create(docs)
@@ -116,7 +117,7 @@ class PlanningService(Service):
 
     def patch_in_mongo(self, id, document, original):
         """Patch an ingested item onto an existing item locally"""
-
+        prepare_ingested_item_for_storage(document)
         update_ingest_on_patch(document, original)
         response = self.backend.update_in_mongo(self.datasource, id, document, original)
         self.on_updated(document, original, from_ingest=True)

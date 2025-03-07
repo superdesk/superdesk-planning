@@ -74,15 +74,18 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         if updates is not None:
             ingest_item.update(updates)
-
-        if attributes.get("autopost", False):
+        elif attributes.get("autopost", False):
             self.process_autopost(ingest_item)
 
     def _is_original_posted(self, ingest_item: Dict[str, Any]):
         service = get_resource_service("events" if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT else "planning")
         original = service.find_one(req=None, _id=ingest_item.get(config.ID_FIELD))
 
-        return original is not None and original.get("pubstatus") in [POST_STATE.USABLE, POST_STATE.CANCELLED]
+        return (
+            original is not None
+            and original.get("pubstatus") in [POST_STATE.USABLE, POST_STATE.CANCELLED]
+            and original["pubstatus"] == ingest_item.get("ingest_pubstatus")
+        )
 
     def add_event_calendars(self, ingest_item: Dict[str, Any], attributes: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Add Event Calendars from Routing Rule Action onto the ingested item"""
@@ -164,7 +167,6 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
     def process_autopost(self, ingest_item: Dict[str, Any]):
         """Automatically post this item"""
-
         if self._is_original_posted(ingest_item):
             # No need to autopost this item
             # As the original is already posted
@@ -174,7 +176,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         item_id = ingest_item.get(config.ID_FIELD)
         update_post_item(
             {
-                "pubstatus": ingest_item.get("pubstatus") or POST_STATE.USABLE,
+                "pubstatus": ingest_item.get("ingest_pubstatus") or POST_STATE.USABLE,
                 "_etag": ingest_item.get("_etag"),
             },
             ingest_item,
