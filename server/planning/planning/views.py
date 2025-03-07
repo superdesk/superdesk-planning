@@ -10,14 +10,14 @@ from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 
 
-planning_blueprint: EndpointGroup = EndpointGroup("planning", __name__)
+planning_endpoint_group: EndpointGroup = EndpointGroup("planning", __name__)
 
 
 class PlanningArgs(BaseModel):
     planning_id: str
 
 
-@planning_blueprint.endpoint(
+@planning_endpoint_group.endpoint(
     "planning/spike/<string:planning_id>",
     name="planning_spike",
     methods=["PATCH"],
@@ -34,7 +34,7 @@ async def spike_planning_item(args: PlanningArgs, params: None, request: Request
     return Response(spiked_planning_item)
 
 
-@planning_blueprint.endpoint(
+@planning_endpoint_group.endpoint(
     "planning/unspike/<string:planning_id>",
     name="planning_unspike",
     methods=["PATCH"],
@@ -51,7 +51,7 @@ async def unspike_planning_item(args: PlanningArgs, params: None, request: Reque
     return Response(unspiked_planning_item)
 
 
-@planning_blueprint.endpoint(
+@planning_endpoint_group.endpoint(
     "planning/<string:planning_id>/duplicate",
     name="planning_duplicate",
     methods=["POST"],
