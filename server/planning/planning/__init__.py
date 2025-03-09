@@ -48,7 +48,11 @@ from .module import (
     planning_autosave_resource_config,
 )
 from .planning_service import PlanningAsyncService
-from .planning_history_async_service import PlanningHistoryAsyncService
+from .planning_history_async_service import (
+    PlanningHistoryAsyncService,
+    on_item_created_handler,
+    on_item_updated_handler,
+)
 from .planning_featured_async_service import PlanningFeaturedAsyncService
 from .planning_autosave_async_service import PlanningAutosaveAsyncService
 
@@ -139,11 +143,15 @@ def init_app(app):
     PlanningAutosaveResource("planning_autosave", app=app, service=planning_autosave_service)
 
     # listen to async signals
-    signals.planning_updated.connect(planning_history_service.on_item_updated)
+
+    # NOTE: using a separate handler function as bound methods are added
+    # more than once as signal listeners
+    signals.planning_created.connect(on_item_created_handler)
+    signals.planning_updated.connect(on_item_updated_handler)
+
     signals.planning_spiked.connect(planning_history_service.on_spike)
     signals.planning_unspiked.connect(planning_history_service.on_unspike)
 
-    app.on_inserted_planning += planning_history_service.on_item_created
     app.on_updated_planning_cancel += planning_history_service.on_cancel
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
     app.on_updated_planning_postpone += planning_history_service.on_postpone

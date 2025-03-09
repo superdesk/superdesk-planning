@@ -52,9 +52,9 @@ def get_local_end_of_day(context, day=None, timezone=None):
 @then("we get a list with {total_count} items")
 @async_run_until_complete
 async def step_impl_list(context, total_count):
-    step_impl_then_get_existing(context)
+    await step_impl_then_get_existing(context)
     data = await get_json_data(context.response)
-    assert len(data["_items"]) == int(total_count), len(data["_items"])
+    assert len(data["_items"]) == int(total_count), f"Expected: {total_count}. Found: {len(data['_items'])}"
 
 
 @then("we get field {field} exactly")
@@ -97,14 +97,14 @@ async def step_imp_store_last_rescheduled_item(context, tag):
 @then("we get an event file reference")
 @async_run_until_complete
 async def step_impl_then_get_event_file(context):
-    assert_200(context.response)
+    await assert_200(context.response)
     data = await get_json_data(context.response)
     url = "/upload-raw/%s" % data["filemeta"]["media_id"]
     headers = [("Accept", "application/json")]
     headers = unique_headers(headers, context.headers)
     response = await context.client.get(get_prefixed_url(context.app, url), headers=headers)
-    assert_200(response)
-    assert len(response.get_data()), response
+    await assert_200(response)
+    assert len((await response.get_data())), response
     fetched_data = await get_json_data(context.response)
     context.fetched_data = fetched_data
 
@@ -116,7 +116,7 @@ async def step_impl_we_delete_event_file(context):
     context.headers.append(("Accept", "application/json"))
     headers = if_match(context, context.fetched_data.get("_etag"))
     response = context.client.delete(get_prefixed_url(context.app, url), headers=headers)
-    assert_200(response)
+    await assert_200(response)
     response = await context.client.get(get_prefixed_url(context.app, url), headers=headers)
     assert_404(response)
 
@@ -482,22 +482,23 @@ def then_set_use_xmp_for_pic_slugline(context):
 @then("we have string {check_string} in media stream")
 @async_run_until_complete
 async def step_impl_then_get_media_stream(context, check_string):
-    assert_200(context.response)
+    await assert_200(context.response)
     data = await get_json_data(context.response)
     url = "/upload-raw/%s" % data["filemeta"]["media_id"]
-    headers = [("Content - Type", "application / octet - stream")]
+    headers = [("Content-Type", "application/octet-stream")]
     headers = unique_headers(headers, context.headers)
     response = await context.client.get(get_prefixed_url(context.app, url), headers=headers)
-    assert_200(response)
-    assert len(response.get_data()), response
+    await assert_200(response)
+    response_data = await response.get_data()
+    assert len(response_data), response
     check_string = apply_placeholders(context, check_string)
-    assert check_string in str(response.stream.response.data)
+    assert check_string.encode() in response_data
 
 
 @then("we get the following order")
 @async_run_until_complete
 async def step_impl_then_get_response_order(context):
-    assert_200(context.response)
+    await assert_200(context.response)
     response_data = (await get_json_data(context.response) or {}).get("_items")
     ids = [item["_id"] for item in response_data]
     expected_order = json.loads(context.text)

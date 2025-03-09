@@ -17,6 +17,7 @@ import logging
 from bson import ObjectId
 from icalendar import Calendar, Event
 from eve.utils import ParsedRequest
+from planning.planning.planning_service import PlanningAsyncService
 
 import superdesk
 from superdesk.core import json, get_current_app, get_app_config
@@ -184,7 +185,7 @@ class AssignmentsService(superdesk.Service):
             self.notify("assignments:created", doc, {})
 
             if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                get_resource_service("planning").set_xmp_file_info(doc)
+                PlanningAsyncService().set_xmp_file_info(doc)
                 self.send_assignment_notification(doc, {})
 
     def set_assignment(self, updates, original=None):

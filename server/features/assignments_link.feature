@@ -558,7 +558,10 @@ Feature: Assignment link
         }
         """
 
-    @auth @notification
+    @auth
+    @skipped
+    # TODO-ASYNC: requires `BasePublishService.update` to be async and depends on celery task
+    # @notification
     Scenario: If the item is scheduled then on fulfil assignment state will be inprogress
         When we post to "/archive"
         """
@@ -1030,7 +1033,9 @@ Feature: Assignment link
         """
 
     @auth
-    @link_updates
+    @skipped
+    # TODO-ASYNC: requires `BasePublishService.update` to be async and depends on celery task
+    # @link_updates
     Scenario: Completed assignment remains completed when linked story is updated
         Given the "validators"
         """

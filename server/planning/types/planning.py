@@ -48,7 +48,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
     ingest_versioncreated: datetime = Field(default_factory=utcnow)
 
     # Agenda Item details
-    agendas: list[Annotated[fields.ObjectId, validate_data_relation_async("agenda")]] = Field(default_factory=list)
+    agendas: list[Annotated[str, validate_data_relation_async("agenda")]] = Field(default_factory=list)
     related_events: list[RelatedEvent] = Field(default_factory=list)
     recurrence_id: fields.Keyword | None = None
     planning_recurrence_id: fields.Keyword | None = None
@@ -89,7 +89,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
     featured: bool = False
 
     coverages: Annotated[
-        list[PlanningCoverage],
+        list[PlanningCoverage] | None,
         fields.elastic_mapping(
             {
                 "type": "nested",
@@ -111,7 +111,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
                 },
             }
         ),
-    ] = Field(default_factory=list)
+    ] = None
 
     # field to sync coverage scheduled information
     # to be used for sorting/filtering on scheduled
@@ -143,9 +143,6 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
 
     versionposted: datetime | None = None
     update_method: UpdateMethods | None = None
-
-    # TODO-ASYNC: check why do we have `type` and `_type`
-    _type: str | None = None
 
     @model_validator(mode="before")
     @classmethod

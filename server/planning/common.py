@@ -354,7 +354,7 @@ def post_required(updates, original):
 def update_post_item(updates, original):
     """Method to update(re-post) a posted item after the item is updated"""
     # TODO-ASYNC: update once `events_post` & `planning_post` are async
-    # also ot use pydantic models intead of dicts
+    # also to use pydantic models intead of dicts
 
     pub_status = None
     # Save&Post or Save&Unpost
@@ -776,8 +776,10 @@ def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
         if not assignment:
             continue
 
+        assignment["assigned_to"].get("state")
+
         assignment.setdefault("assigned_to", {})
-        coverage["assigned_to"]["assignment_id"] = assignment[ID_FIELD]
+        coverage["assigned_to"]["assignment_id"] = str(assignment[ID_FIELD])
         coverage["assigned_to"]["desk"] = assignment["assigned_to"].get("desk")
         coverage["assigned_to"]["user"] = assignment["assigned_to"].get("user")
         coverage["assigned_to"]["contact"] = assignment["assigned_to"].get("contact")

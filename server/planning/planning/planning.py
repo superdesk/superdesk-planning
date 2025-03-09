@@ -74,7 +74,7 @@ from planning.common import (
 
 from planning.planning_notifications import PlanningNotifications
 from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
-from planning.signals import planning_created, planning_ingested
+from planning.signals import planning_created_sync, planning_ingested
 from .planning_schema import planning_schema
 from planning.utils import (
     get_planning_event_link_method,
@@ -206,7 +206,7 @@ class PlanningService(Service):
                 event_ids=get_related_event_ids_for_planning(doc, "primary"),  # Event IDs for primary events
             )
             self._update_event_history(doc)
-            planning_created.send(self, item=doc)
+            planning_created_sync.send(self, item=doc)
 
             first_primary_event_id = get_first_related_event_id_for_planning(doc, "primary")
             if first_primary_event_id and post_planning_with_event:

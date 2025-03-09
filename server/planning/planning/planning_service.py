@@ -15,19 +15,20 @@ from superdesk.utc import utcnow, utc_to_local
 from superdesk.errors import SuperdeskApiError
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.item import GUID_NEWSML
+from superdesk.core.types import ProjectedFieldArg
 from superdesk.notification import push_notification
 from superdesk import get_resource_service, get_app_config
 from superdesk.core.utils import date_to_str, generate_guid
 
-from planning import PlanningNotifications
-from planning.content_profiles.utils import is_field_enabled
+from planning import PlanningNotifications, signals
+from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from planning.events.events_utils import get_recurring_timeline
-from planning.types.enums import AssignmentWorkflowState, LinkType
-from planning.types.common import ScheduledUpdate, PlanningCoverage, RelatedEvent
+from planning.types.enums import AssignmentWorkflowState, LinkType, WorkflowState
+from planning.types.common import CoverageAssignedTo, ScheduledUpdate, PlanningCoverage, RelatedEvent
 from planning.common import (
+    POST_STATE,
     WORKFLOW_STATE,
     unique_items_in_order,
-    WorkflowStates,
     DEFAULT_ASSIGNMENT_PRIORITY,
     TO_BE_CONFIRMED_FIELD,
     get_coverage_status_from_cv,
@@ -49,6 +50,7 @@ from planning.types import (
     EventResourceModel,
 )
 from planning.utils import (
+    get_related_event_items_for_planning,
     get_related_event_links_for_planning,
     get_related_planning_for_events,
     get_planning_event_link_method,
@@ -175,6 +177,92 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         await self.prepare_planning_data(docs)
         return await super().create(docs)
 
+    async def on_created(self, docs: list[PlanningResourceModel]):
+        session_id = get_auth().get("_id")
+        post_planning_with_event = is_post_planning_with_event_enabled()
+        for doc in docs:
+            doc_dict = doc.to_dict()
+            plan_id = str(doc.id)
+            push_notification(
+                "planning:created",
+                item=plan_id,
+                user=str(doc.original_creator or ""),
+                added_agendas=doc.agendas or [],
+                removed_agendas=[],
+                session=session_id,
+                event_ids=get_related_event_ids_for_planning(doc_dict, "primary"),  # Event IDs for primary events
+            )
+
+            self._update_event_history(doc_dict)
+            await signals.planning_created.send([doc_dict])
+
+            first_primary_event_id = get_first_related_event_id_for_planning(doc_dict, "primary")
+            if first_primary_event_id and post_planning_with_event:
+                event = get_resource_service("events").find_one(req=None, _id=first_primary_event_id)
+                if not event:
+                    logger.warning(
+                        "Failed to find linked event for planning",
+                        extra=dict(
+                            event_id=first_primary_event_id,
+                            plan_id=plan_id,
+                        ),
+                    )
+                elif event.get("pubstatus") == POST_STATE.USABLE:
+                    updates = deepcopy(doc_dict)
+                    updates["pubstatus"] = POST_STATE.USABLE
+                    update_post_item(updates, doc_dict)
+
+        # self.generate_related_assignments(docs)
+
+    def _update_event_history(self, doc: dict[str, Any]):
+        events_service = get_resource_service("events")
+        events_history_service = get_resource_service("events_history")
+
+        for original_event in get_related_event_items_for_planning(doc, "primary"):
+            events_service.system_update(
+                original_event[ID_FIELD],
+                {
+                    "expiry": None,
+                    # Event hasn't actually been updated
+                    # So we leave these version dates alone
+                    "_updated": original_event["_updated"],
+                    "versioncreated": original_event["versioncreated"],
+                },
+                original_event,
+            )
+            events_history_service.on_item_updated({"planning_id": doc[ID_FIELD]}, original_event, "planning_created")
+
+    def _generate_planning_instance(
+        self, updates: dict[str, Any], original: PlanningResourceModel
+    ) -> PlanningResourceModel:
+        """
+        Generates a new empty PlanningResourceModel instance with the same id as the original.
+        Also makes sure that planning_date is added if not provided as it is required
+        """
+        updates["_id"] = updates["guid"] = original.id
+
+        if "planning_date" not in updates:
+            updates["planning_date"] = original.planning_date
+
+        return PlanningResourceModel.from_dict(updates)
+
+    async def update(
+        self,
+        item_id: str | ObjectId,
+        updates: dict[str, Any],
+        etag: str | None = None,
+        original: PlanningResourceModel | None = None,
+    ) -> PlanningResourceModel:
+        """
+        This method overrides the parent class implementation to ensure that
+        the updates are properly conciliated with the original planning item.
+        """
+        await super().update(item_id, updates, etag, original)
+
+        # we need to conciliate the updates with original as this service
+        # do in-place updates in methods like `on_update` and `on_updated`
+        return original.clone_with(updates)
+
     async def on_update(self, updates: dict[str, Any], original: PlanningResourceModel) -> None:
         await super().on_update(updates, original)
 
@@ -183,15 +271,14 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         user = get_user()
         self.validate_on_update(updates, original, user)
+        updated_planning = self._generate_planning_instance(updates, original)
 
-        updated_planning = PlanningResourceModel.from_dict(updates)
         self._handle_coverages(updated_planning, original)
         self.set_planning_schedule(updated_planning, original)
 
-        # set the updates dictionary with the values from the pydantic model
-        # in case the object was edited in-place.
-        # TODO-ASYNC: unify everything to use only pydantic models
-        updates = updated_planning.to_dict()
+        # sync updates dict as is passed by reference to subsequent methods like on_updated
+        # skips `_id` as it is an inmutable from mongodb
+        updates.update({k: v for k, v in updated_planning.to_dict().items() if k != "_id"})
 
         if update_method and update_method != UpdateMethods.SINGLE:
             await self._update_recurring_planning_items(updates, original, update_method)
@@ -199,6 +286,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
     async def on_updated(self, updates: dict[str, Any], original_obj: PlanningResourceModel):
         # TODO-ASYNC: figure out what to do with the `from_ingest` param here
         original = original_obj.to_dict()
+
         added, removed = self._get_added_removed_agendas(updates, original)
         item_id = str(original[ID_FIELD])
         session_id = get_auth().get(ID_FIELD)
@@ -206,6 +294,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         doc = deepcopy(original)
         doc.update(updates)
 
+        related_events_changed = self._notify_related_events_changed(updates, original)
         push_notification(
             "planning:updated",
             item=item_id,
@@ -214,7 +303,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             removed_agendas=removed,
             session=session_id,
             event_ids=get_related_event_ids_for_planning(doc, "primary"),
+            related_events_changed=related_events_changed,
         )
+        await signals.planning_updated.send(updates, original)
 
         self.generate_related_assignments([doc])
         updates["coverages"] = doc.get("coverages") or []
@@ -235,8 +326,25 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         posted = update_post_item(updates, original)
         if posted:
-            new_planning = self.find_one(req=None, _id=original.get(ID_FIELD))
-            updates["_etag"] = new_planning["_etag"]
+            new_planning = await self.find_one(req=None, _id=original.get(ID_FIELD))
+            assert new_planning is not None
+            updates["_etag"] = new_planning.etag
+
+    async def find_by_id_raw(
+        self,
+        item_id: str | ObjectId,
+        version: int | None = None,
+        projection: ProjectedFieldArg | None = None,
+    ) -> dict[str, Any]:
+        """
+        This method overrides the parent class implementation to ensure that
+        related assignments are properly generated for the planning item before
+        it is returned to the client.
+        """
+        item = await super().find_by_id_raw(item_id, version, projection)
+        if item:
+            self.generate_related_assignments([item])
+        return item
 
     @staticmethod
     def _get_added_removed_agendas(updates, original):
@@ -247,7 +355,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         return added_agendas, removed_agendas
 
     @staticmethod
-    def generate_related_assignments(docs):
+    def generate_related_assignments(docs: list[dict[str, Any]]):
         for doc in docs:
             doc.pop("_planning_schedule", None)
             doc.pop("_updates_schedule", None)
@@ -442,12 +550,13 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             doc.firstcreated = utcnow()
             doc.versioncreated = utcnow()
 
-            is_ingested = doc.state == WorkflowStates.INGESTED
+            is_ingested = doc.state == WorkflowState.INGESTED
             if is_ingested:
                 history_service.on_item_created([doc.to_dict()])
 
             update_method = doc.update_method
             doc.update_method = None
+
             if first_event and update_method is not None:
                 new_plans = await self._add_planning_to_event_series(doc, first_event, update_method)
                 if len(new_plans):
@@ -458,12 +567,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         if len(generated_planning_items):
             docs.extend(generated_planning_items)
 
-    def validate_planning(self, updated_planning: dict[str, Any], original=None):
-        if (not original and not updated_planning.get("planning_date")) or (
-            "planning_date" in updated_planning and updated_planning["planning_date"] is None
-        ):
-            raise SuperdeskApiError(message="Planning item should have a date")
-
+    def validate_planning(self, updated_planning: dict[str, Any], original: PlanningResourceModel | None = None):
         # TODO-ASYNC: Move this sanitize logic to the pydantic model instead
         # sanitize_input_data(updated_planning)
 
@@ -477,7 +581,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda_id))
 
             if not agenda.get("is_enabled", False) and (
-                original is None or agenda_id not in original.get("agendas", [])
+                original is None or (original and agenda_id not in original.agendas or [])
             ):
                 raise SuperdeskApiError.forbiddenError("Agenda '{}' is not enabled".format(agenda.get("name")))
 
@@ -506,11 +610,11 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                     raise SuperdeskApiError(message="Scheduled updates of a coverage must be after the previous update")
 
     def _handle_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel | None = None):
-        if not updated_planning.coverages:
+        if updated_planning.coverages is None:
             return
 
         if not original:
-            original = PlanningResourceModel(planning_date=utcnow())
+            original = self._generate_planning_instance({}, updated_planning)
 
         self.remove_deleted_coverages(updated_planning, original)
         self.add_coverages(updated_planning, original)
@@ -540,7 +644,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         schedule = []
         updates_schedule = []
-        for coverage in updated_planning.coverages:
+        for coverage in updated_planning.coverages or []:
             if coverage.planning.scheduled:
                 add_default_schedule = False
 
@@ -579,25 +683,25 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         This method compares the coverages in the `updated_planning` against the `original_planning`. For any coverage
         in `original_planning` that is missing in `updated_planning`, all associated scheduled updates and the coverage
-        itself are removed using the `validate_and_remove_coverage_entity` method.
+        itself are removed using the `remove_coverage_entity` method.
         """
 
-        if not updated_planning.coverages:
+        if updated_planning.coverages is None:
             return
 
-        for orig_coverage in original_planning.coverages:
+        for orig_coverage in original_planning.coverages or []:
             updated_coverage = next(
-                (cov for cov in updated_planning.coverages if cov.coverage_id == orig_coverage.coverage_id),
+                (cov for cov in (updated_planning.coverages or []) if cov.coverage_id == orig_coverage.coverage_id),
                 None,
             )
 
             if not updated_coverage:
                 for scheduled_update in orig_coverage.scheduled_updates:
-                    self.validate_and_remove_coverage_entity(scheduled_update, original_planning)
+                    self.remove_coverage_entity(scheduled_update, original_planning)
 
-                self.validate_and_remove_coverage_entity(orig_coverage, original_planning)
+                self.remove_coverage_entity(orig_coverage, original_planning)
 
-    def validate_and_remove_coverage_entity(
+    def remove_coverage_entity(
         self,
         coverage_entity: ScheduledUpdate | PlanningCoverage,
         original_planning: PlanningResourceModel,
@@ -610,39 +714,41 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         - Raises an error if the coverage entity has an assignment in a state that prevents deletion (draft or cancelled).
         - Proceeds to create or update an assignment
         """
-        if original_planning.state == WorkflowStates.CANCELLED:
-            raise SuperdeskApiError.badRequestError(f"Cannot remove `{entity_type}` of a cancelled planning item")
+        if original_planning.state == WorkflowState.CANCELLED:
+            raise SuperdeskApiError.badRequestError(f"Cannot remove {entity_type} of a cancelled planning item")
 
         assignment = coverage_entity.assigned_to
         if assignment and assignment.state not in [
-            WorkflowStates.DRAFT,
-            WorkflowStates.CANCELLED,
+            WORKFLOW_STATE.DRAFT,
+            WORKFLOW_STATE.CANCELLED,
             None,
         ]:
             raise SuperdeskApiError.badRequestError(
-                f"Assignment already exists. `{entity_type.capitalize()}` cannot be deleted."
+                f"Assignment already exists. {entity_type.capitalize()} cannot be deleted."
             )
 
-        coverage_entity_dict = coverage_entity.to_dict()
-        updated_coverage_entity = deepcopy(coverage_entity_dict)
-        updated_coverage_entity.pop("assigned_to", None)
+        updated_coverage_entity = coverage_entity.clone_with({})
+        updated_coverage_entity.assigned_to = None
 
-        self._create_or_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity_dict)
+        empty_updates = self._generate_planning_instance({}, original_planning)
+        self._create_or_update_assignment(original_planning, empty_updates, updated_coverage_entity, coverage_entity)
 
     def add_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel):
-        if not updated_planning.coverages:
+        if updated_planning.coverages is None:
             return
 
         planning_date = original.planning_date or updated_planning.planning_date
-        original_coverage_ids = [coverage.coverage_id for coverage in original.coverages if coverage.coverage_id]
+        original_coverage_ids = [
+            coverage.coverage_id for coverage in (original.coverages or []) if coverage.coverage_id
+        ]
 
         for coverage in updated_planning.coverages:
             coverage_id = coverage.coverage_id or ""
             is_temporal_coverage = TEMP_ID_PREFIX in coverage_id
 
             if not coverage_id or is_temporal_coverage or coverage_id not in original_coverage_ids:
-                if "duplicate" in coverage_id or coverage.original_coverage_id:
-                    coverage.planning.xmp_file = self.duplicate_xmp_file(coverage.to_dict())
+                # if "duplicate" in coverage_id or coverage.original_coverage_id:
+                #     coverage.planning.xmp_file = self.duplicate_xmp_file(coverage.to_dict())
 
                 # coverage to be created
                 if not coverage_id or is_temporal_coverage:
@@ -662,17 +768,17 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
                 self.set_coverage_active(coverage, updated_planning)
                 self.set_slugline_from_xmp(coverage, None)
-                self._create_or_update_assignment(original, updated_planning.to_dict(), coverage.to_dict())
+                self._create_or_update_assignment(original, updated_planning, coverage)
                 self.add_scheduled_updates(updated_planning, original, coverage)
 
     def update_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel):
-        if not updated_planning.coverages:
+        if updated_planning.coverages is None:
             return
 
         for coverage in updated_planning.coverages:
             coverage_id = coverage.coverage_id
             original_coverage = next(
-                (cov for cov in original.coverages if cov.coverage_id == coverage_id),
+                (cov for cov in (original.coverages or []) if cov.coverage_id == coverage_id),
                 None,
             )
             if not original_coverage:
@@ -743,10 +849,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             self.add_scheduled_updates(updated_planning, original, coverage)
             self.update_scheduled_updates(updated_planning, original, coverage, original_coverage)
             self.remove_scheduled_updates(original, coverage, original_coverage)
-
-            self._create_or_update_assignment(
-                original, updated_planning.to_dict(), coverage.to_dict(), original_coverage.to_dict()
-            )
+            self._create_or_update_assignment(original, updated_planning, coverage, original_coverage)
 
     def set_coverage_active(
         self,
@@ -760,20 +863,22 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             get_app_config("PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False)
             and (coverage.assigned_to.desk or coverage.assigned_to.user)
             and not planning.flags.overide_auto_assign_to_workflow
-            and coverage.workflow_status == WorkflowStates.DRAFT
+            and coverage.workflow_status == WorkflowState.DRAFT.value
         ):
-            coverage.workflow_status = WorkflowStates.ACTIVE
+            coverage.workflow_status = WorkflowState.ACTIVE.value
 
             # set all scheduled_updates to be activated
             for s in coverage.scheduled_updates:
-                if s.assigned_to and s.workflow_status == WorkflowStates.DRAFT:
-                    s.workflow_status = WorkflowStates.ACTIVE
+                if s.assigned_to and s.workflow_status == WorkflowState.DRAFT.value:
+                    s.workflow_status = WorkflowState.ACTIVE.value
             return
 
         assigned_to = coverage.assigned_to
-        is_parent_coverage_status_active = (parent_coverage or {}).get("workflow_status") == WorkflowStates.ACTIVE
-        if (assigned_to.state == AssignmentWorkflowState.ASSIGNED) or is_parent_coverage_status_active:
-            coverage.workflow_status = WorkflowStates.ACTIVE
+        is_parent_coverage_status_active = (parent_coverage or {}).get("workflow_status") == WorkflowState.ACTIVE.value
+        if (
+            assigned_to and assigned_to.state == AssignmentWorkflowState.ASSIGNED.value
+        ) or is_parent_coverage_status_active:
+            coverage.workflow_status = WorkflowState.ACTIVE.value
             return
 
     def add_scheduled_updates(
@@ -787,7 +892,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 s.coverage_id = coverage.coverage_id
                 s.scheduled_update_id = generate_guid(type=GUID_NEWSML)
                 self.set_scheduled_update_active(s, updates, coverage)
-                self._create_or_update_assignment(original, updates.to_dict(), s.to_dict(), None, coverage.to_dict())
+                self._create_or_update_assignment(original, updates, s, None, coverage.to_dict())
 
     def update_scheduled_updates(
         self,
@@ -813,9 +918,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 ):
                     self.set_scheduled_update_active(s, updates, coverage)
 
-                self._create_or_update_assignment(
-                    original, updates.to_dict(), s.to_dict(), original_scheduled_update.to_dict(), coverage.to_dict()
-                )
+                self._create_or_update_assignment(original, updates, s, original_scheduled_update, coverage)
 
     def remove_scheduled_updates(
         self, original: PlanningResourceModel, coverage: PlanningCoverage, original_coverage: PlanningCoverage
@@ -831,7 +934,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             )
 
             if not updated_s:
-                self.validate_and_remove_coverage_entity(s, original)
+                self.remove_coverage_entity(s, original)
 
     def set_scheduled_update_active(
         self, scheduled_update: ScheduledUpdate, planning: PlanningResourceModel, coverage: PlanningCoverage
@@ -906,9 +1009,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
     def _create_or_update_assignment(
         self,
         original_planning: PlanningResourceModel,
-        planning_updates: dict[str, Any],
-        coverage_updates: dict[str, Any],
-        original_coverage: dict[str, Any] | None = None,
+        planning_updates: PlanningResourceModel,
+        coverage_updates: PlanningCoverage,
+        original_coverage: PlanningCoverage | None = None,
         parent_coverage: dict[str, Any] | None = None,
     ):
         """Creates or updates an assignment based on coverage and planning updates.
@@ -919,14 +1022,17 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         - Notifies users if required updates are made
         """
         if not original_coverage:
-            original_coverage = {}
+            original_coverage = PlanningCoverage()
 
         if not parent_coverage:
             parent_coverage = {}
 
-        planning = original_planning.clone_with(planning_updates)
+        updates = planning_updates.to_dict()
+        updates["_id"] = updates["guid"] = original_planning.id
+        planning = original_planning.clone_with(updates)
+
         coverage_doc = self._merge_coverage_updates(original_coverage, coverage_updates)
-        assigned_to = coverage_updates.get("assigned_to") or original_coverage.get("assigned_to")
+        assigned_to = coverage_updates.assigned_to or original_coverage.assigned_to
 
         if not assigned_to:
             return
@@ -935,14 +1041,14 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             raise SuperdeskApiError.badRequestError("Planning item is required to create assignments.")
 
         # Coverage is draft if original was draft and updates is still maintaining that state
-        coverage_status = coverage_updates.get("workflow_status", original_coverage.get("workflow_status"))
+        coverage_status = coverage_updates.workflow_status or original_coverage.workflow_status
         is_coverage_draft = coverage_status == WORKFLOW_STATE.DRAFT
 
         assignment_service = get_resource_service("assignments")
         translated_name, translated_value = self._apply_translations(planning, coverage_doc)
 
-        assignment_id = assigned_to.get("assignment_id", None)
-        if assignment_id is None and (assigned_to.get("user") or assigned_to.get("desk")):
+        assignment_id = assigned_to.assignment_id
+        if assignment_id is None and (assigned_to.user or assigned_to.desk):
             new_assignment_id, new_assigned_state = self._create_new_assignment(
                 planning,
                 coverage_doc,
@@ -952,19 +1058,21 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 translated_value,
                 parent_coverage,
             )
-            coverage_updates["assigned_to"]["assignment_id"] = new_assignment_id
-            coverage_updates["assigned_to"]["state"] = new_assigned_state
+            coverage_updates.assigned_to.assignment_id = new_assignment_id
+            coverage_updates.assigned_to.state = new_assigned_state
         elif assignment_id is not None:
-            self.set_xmp_file_info(coverage_updates, original_coverage)
+            coverage_updates_dict = coverage_updates.to_dict()
+            original_coverage_dict = original_coverage.to_dict()
+            self.set_xmp_file_info(coverage_updates_dict, original_coverage_dict)
 
-            if not coverage_updates.get("assigned_to"):
-                if original_planning.state == WorkflowStates.CANCELLED or coverage_status not in [
-                    WorkflowStates.CANCELLED,
-                    WorkflowStates.DRAFT,
+            if not coverage_updates.assigned_to:
+                if original_planning.state == WorkflowState.CANCELLED or coverage_status not in [
+                    WorkflowState.CANCELLED,
+                    WorkflowState.DRAFT,
                 ]:
                     raise SuperdeskApiError.badRequestError("Coverage not in correct state to remove assignment.")
 
-                return self._remove_assignment(coverage_doc, original_planning, assignment_id)
+                return self._remove_assignment(coverage_doc.to_dict(), original_planning, assignment_id)
 
             # update the assignment using the coverage details
             original_assignment = assignment_service.find_one(req=None, _id=assignment_id)
@@ -973,7 +1081,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
             # check if coverage was cancelled
             is_coverage_cancelled = self._cancel_coverage_if_needed(
-                original_coverage, coverage_updates, original_assignment
+                original_coverage_dict, coverage_updates_dict, original_assignment
             )
             if is_coverage_cancelled:
                 return
@@ -999,17 +1107,15 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             if {"planning", "assigned_to", "description_text", "name"} & assignment_updates.keys():
                 assignment_service.system_update(ObjectId(assignment_id), assignment_updates, original_assignment)
 
-            if self.is_xmp_updated(coverage_updates, original_coverage):
+            if self.is_xmp_updated(coverage_updates_dict, original_coverage_dict):
                 PlanningNotifications().notify_assignment(
-                    coverage_status=coverage_updates.get("workflow_status"),
-                    target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
-                    target_user=assigned_to.get("user"),
-                    contact_id=assigned_to.get("contact"),
+                    coverage_status=coverage_updates.workflow_status,
+                    target_desk=assigned_to.desk if assigned_to.user is None else None,
+                    target_user=assigned_to.user,
+                    contact_id=assigned_to.contact,
                     message="assignment_planning_xmp_file_msg",
                     meta_message="assignment_details_email",
-                    coverage_type=get_coverage_type_name(
-                        coverage_updates.get("planning", {}).get("g2_content_type", "")
-                    ),
+                    coverage_type=get_coverage_type_name(coverage_updates.planning.g2_content_type or ""),
                     slugline=planning.slugline,
                     assignment=assignment_updates,
                 )
@@ -1039,6 +1145,34 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 ), "Missing events link type"
             else:
                 assert_never(event_link_method)
+
+    def _get_event_links(self, event_id) -> list[str]:
+        return [str(link["_id"]) for link in get_related_planning_for_events([event_id])]
+
+    def _notify_related_events_changed(self, updates: dict[str, Any], original: dict[str, Any]) -> bool:
+        if "related_events" not in updates:
+            return False
+
+        def get_ids(links):
+            return set([str(link["_id"]) for link in links])
+
+        updates_ids = get_ids(updates.get("related_events") or [])
+        original_ids = get_ids(original.get("related_events") or [])
+
+        removed_ids = original_ids - updates_ids
+        added_ids = updates_ids - original_ids
+        changed_ids = removed_ids.union(added_ids)
+
+        for _id in changed_ids:
+            push_notification(
+                "event:link_updated",
+                event=str(_id),
+                planning=str(original.get(ID_FIELD)),
+                action="delete" if _id in removed_ids else "create",
+                links=self._get_event_links(_id),
+            )
+
+        return len(changed_ids) > 0
 
     @staticmethod
     async def _populate_planning_from_event(
@@ -1084,49 +1218,50 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
     @staticmethod
     def _create_new_assignment(
         planning: PlanningResourceModel,
-        coverage_doc: dict[str, Any],
+        coverage_doc: PlanningCoverage,
         is_draft: bool,
-        assigned_to: dict[str, Any],
+        assigned_to: CoverageAssignedTo,
         translated_name: str,
         translated_value: dict[str, Any],
         parent_coverage: dict[str, Any],
     ) -> tuple[str, Any | None]:
         # Creating a new assignment
-        assign_state = AssignmentWorkflowState.DRAFT if is_draft else AssignmentWorkflowState.ASSIGNED
+        assign_state = AssignmentWorkflowState.DRAFT.value if is_draft else AssignmentWorkflowState.ASSIGNED.value
         if not is_draft:
             # In case of article_rewrites, this will be 'in_progress' directly
-            if assigned_to.get("state") and assigned_to["state"] != AssignmentWorkflowState.DRAFT:
-                assign_state = cast(AssignmentWorkflowState, assigned_to.get("state"))
+            if assigned_to.state and assigned_to.state != AssignmentWorkflowState.DRAFT.value:
+                assign_state = cast(AssignmentWorkflowState, assigned_to.state)
 
-        if translated_value and translated_name and "headline" not in coverage_doc["planning"]:
-            coverage_doc["planning"]["headline"] = translated_name
+        if translated_value and translated_name and coverage_doc.planning.headline is None:
+            coverage_doc.planning.headline = translated_name
 
         assignment = {
             "assigned_to": {
-                "user": assigned_to.get("user"),
-                "desk": assigned_to.get("desk"),
-                "contact": assigned_to.get("contact"),
+                "user": assigned_to.user,
+                "desk": assigned_to.desk,
+                "contact": assigned_to.contact,
                 "state": assign_state,
             },
             "planning_item": planning.id,
-            "coverage_item": coverage_doc.get("coverage_id"),
-            "planning": deepcopy(coverage_doc.get("planning")),
-            "priority": assigned_to.get("priority", DEFAULT_ASSIGNMENT_PRIORITY),
+            "coverage_item": coverage_doc.coverage_id,
+            "planning": deepcopy(coverage_doc.planning.to_dict()),
+            "priority": assigned_to.priority or DEFAULT_ASSIGNMENT_PRIORITY,
             "description_text": planning.description_text,
         }
+
         if translated_value and translated_name and assignment.get("name") != translated_value.get("name"):
             assignment["name"] = translated_name
 
-        if coverage_doc.get("scheduled_update_id"):
-            assignment["scheduled_update_id"] = coverage_doc["scheduled_update_id"]
+        if coverage_doc.scheduled_update_id:
+            assignment["scheduled_update_id"] = coverage_doc.scheduled_update_id
             assignment["planning"] = deepcopy(parent_coverage.get("planning"))
-            assignment["planning"].update(coverage_doc.get("planning"))
+            assignment["planning"].update(coverage_doc.planning.to_dict())
 
-        if "coverage_provider" in assigned_to:
-            assignment["assigned_to"]["coverage_provider"] = assigned_to.get("coverage_provider")
+        if assigned_to.coverage_provider is not None:
+            assignment["assigned_to"]["coverage_provider"] = assigned_to.coverage_provider.to_dict()
 
-        if TO_BE_CONFIRMED_FIELD in coverage_doc:
-            assignment["planning"][TO_BE_CONFIRMED_FIELD] = coverage_doc[TO_BE_CONFIRMED_FIELD]
+        if coverage_doc.time_to_be_confirmed is not None:
+            assignment["planning"][TO_BE_CONFIRMED_FIELD] = coverage_doc.time_to_be_confirmed
 
         new_assignment_id = str(get_resource_service("assignments").post([assignment])[0])
         return new_assignment_id, assign_state
@@ -1156,14 +1291,15 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         """
         coverage_cancel_state = get_coverage_status_from_cv("ncostat:notint")
         coverage_cancel_state.pop("is_active", None)
-        workflow_status_changed = original_coverage.get("workflow_status") != coverage_updates.get("workflow_status")
-        is_cancelled_the_new_status = coverage_updates.get("workflow_status") == WorkflowStates.CANCELLED
+        original_status = original_coverage.get("workflow_status")
+        workflow_status_changed = original_status != coverage_updates.get("workflow_status")
+        is_cancelled_the_new_status = coverage_updates.get("workflow_status") == WorkflowState.CANCELLED.value
 
         if workflow_status_changed and is_cancelled_the_new_status:
             self.cancel_coverage(
                 coverage_updates,
                 coverage_cancel_state,
-                original_coverage.get("workflow_status"),
+                cast(str, original_status),
                 original_assignment,
                 coverage_updates.get("planning", {}).get("workflow_status_reason"),
             )
@@ -1175,24 +1311,22 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
     def _notify_desk_users_if_needed(
         planning: PlanningResourceModel,
         original_planning: PlanningResourceModel,
-        planning_updates: dict[str, Any],
-        coverage_updates: dict[str, Any],
-        assigned_to: dict[str, Any],
+        planning_updates: PlanningResourceModel,
+        coverage_updates: PlanningCoverage,
+        assigned_to: CoverageAssignedTo,
     ):
         """
         It notifies the assigned users/desk if there has been a change in the planning internal note
         """
 
-        if planning_updates.get("internal_note") and original_planning.internal_note != planning_updates.get(
-            "internal_note"
-        ):
+        if planning_updates.internal_note and original_planning.internal_note != planning_updates.internal_note:
             PlanningNotifications().notify_assignment(
-                coverage_status=coverage_updates.get("workflow_status"),
-                target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
-                target_user=assigned_to.get("user"),
-                contact_id=assigned_to.get("contact"),
+                coverage_status=coverage_updates.workflow_status,
+                target_desk=assigned_to.desk if assigned_to.user is None else None,
+                target_user=assigned_to.user,
+                contact_id=assigned_to.contact,
                 message="assignment_planning_internal_note_msg",
-                coverage_type=get_coverage_type_name(coverage_updates.get("planning", {}).get("g2_content_type", "")),
+                coverage_type=get_coverage_type_name(coverage_updates.planning.g2_content_type),
                 slugline=planning.slugline,
                 internal_note=planning.internal_note or "",
                 no_email=True,
@@ -1201,59 +1335,64 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
     def _set_updates_from_coverage(
         self,
         assignment: dict[str, Any],
-        original_coverage: dict[str, Any],
-        coverage_doc: dict[str, Any],
-        coverage_updates: dict[str, Any],
+        original_coverage: PlanningCoverage,
+        coverage_doc: PlanningCoverage,
+        coverage_updates: PlanningCoverage,
         original_assignment: dict[str, Any],
-        assigned_to: dict[str, Any],
+        assigned_to: CoverageAssignedTo,
         is_coverage_draft: bool,
     ):
-        if self.is_coverage_planning_modified(coverage_updates, original_coverage):
-            assignment["planning"] = deepcopy(coverage_doc.get("planning"))
+        if self.is_coverage_planning_modified(coverage_updates.to_dict(), original_coverage.to_dict()):
+            assignment["planning"] = coverage_doc.planning.to_dict()
 
-            if TO_BE_CONFIRMED_FIELD in coverage_doc:
-                assignment["planning"][TO_BE_CONFIRMED_FIELD] = coverage_doc[TO_BE_CONFIRMED_FIELD]
+            if coverage_doc.time_to_be_confirmed is not None:
+                assignment["planning"][TO_BE_CONFIRMED_FIELD] = coverage_doc.time_to_be_confirmed
 
-        if original_assignment.get("assigned_to", {}).get("state") == AssignmentWorkflowState.DRAFT:
-            if self.is_coverage_assignment_modified(coverage_updates, original_assignment):
+        if original_assignment.get("assigned_to", {}).get("state") == AssignmentWorkflowState.DRAFT.value:
+            if self.is_coverage_assignment_modified(coverage_updates.to_dict(), original_assignment):
                 user = get_user()
-                assignment["priority"] = assigned_to.pop("priority", original_assignment.get("priority"))
-                assignment["assigned_to"] = assigned_to
+                assignment["priority"] = assigned_to.priority or original_assignment.get("priority")
+                assignment["assigned_to"] = assigned_to.to_dict()
 
-                if original_assignment.get("assigned_to", {}).get("desk") != assigned_to.get("desk"):
-                    assigned_to["assigned_date_desk"] = utcnow()
-                    assigned_to["assignor_desk"] = user.get(ID_FIELD)
+                if original_assignment.get("assigned_to", {}).get("desk") != assigned_to.desk:
+                    assigned_to.assigned_date_desk = utcnow()
+                    assigned_to.assignor_desk = user.get(ID_FIELD)
 
-                if assigned_to.get("user") and original_coverage.get("assigned_to", {}).get("user") != assigned_to.get(
-                    "user"
-                ):
-                    assigned_to["assigned_date_user"] = utcnow()
-                    assigned_to["assignor_user"] = user.get(ID_FIELD)
+                if assigned_to.user and original_coverage.assigned_to.user != assigned_to.user:
+                    assigned_to.assigned_date_user = utcnow()
+                    assigned_to.assignor_user = user.get(ID_FIELD)
 
         # If we made a coverage 'active' - change assignment status to active
-        if original_coverage.get("workflow_status") == WorkflowStates.DRAFT and not is_coverage_draft:
-            assigned_to["state"] = AssignmentWorkflowState.ASSIGNED
-            assignment["assigned_to"] = assigned_to
+        if original_coverage.workflow_status == WorkflowState.DRAFT.value and not is_coverage_draft:
+            assigned_to.state = AssignmentWorkflowState.ASSIGNED.value
+            assignment["assigned_to"] = assigned_to.to_dict()
+
+        # If the coverage assignee has been changed and workflow status is active
+        if original_coverage.workflow_status != WorkflowState.DRAFT.value and self.is_coverage_assignment_modified(
+            coverage_updates.to_dict(), original_assignment
+        ):
+            assigned_to.state = AssignmentWorkflowState.ASSIGNED.value
+            assignment["assigned_to"] = assigned_to.to_dict()
 
     @staticmethod
     def _set_updates_from_planning(
         assignment: dict[str, Any],
         planning: PlanningResourceModel,
         original_planning: PlanningResourceModel,
-        planning_updates: dict[str, Any],
+        planning_updates: PlanningResourceModel,
         translated_name: str,
         translated_value: dict[str, Any],
     ):
         # If the Planning description has been changed
-        if original_planning.description_text != planning_updates.get("description_text"):
+        if original_planning.description_text != planning_updates.description_text:
             assignment["description_text"] = planning.description_text
 
         # If the Planning name has been changed
-        if original_planning.name != planning_updates.get("name"):
+        if original_planning.name != planning_updates.name:
             assignment["name"] = planning.name if not translated_value and translated_name else translated_name
 
     @staticmethod
-    def _apply_translations(planning: PlanningResourceModel, coverage_doc: dict[str, Any]) -> tuple[str, dict]:
+    def _apply_translations(planning: PlanningResourceModel, coverage_doc: PlanningCoverage) -> tuple[str, dict]:
         """
         Applies translations to the planning document if available.
 
@@ -1263,46 +1402,45 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         translated_value: dict[str, Any] = {}
         translated_name = planning.name or planning.headline or ""
-        coverage_doc.setdefault("planning", {})
 
-        if planning.translations is not None and coverage_doc["planning"].get("language") is not None:
+        if planning.translations is not None and coverage_doc.planning.language is not None:
             translated_value.update(
                 {
                     cast(str, entry.field): entry.value
                     for entry in planning.translations
-                    if entry.language == coverage_doc["planning"]["language"]
+                    if entry.language == coverage_doc.planning.language
                 }
             )
             translated_name = translated_value.get("name", translated_value.get("headline"))
-            coverage_doc["planning"].update(
-                {
-                    key: val
-                    for key, val in translated_value.items()
-                    if key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
-                    and coverage_doc["planning"].get(key) is None
-                }
-            )
+            for key, val in translated_value.items():
+                if (
+                    key in ("ednote", "description_text", "headline", "slugline", "authors", "internal_note")
+                    and getattr(coverage_doc.planning, key) is None
+                ):
+                    setattr(coverage_doc.planning, key, val)
 
         return translated_name, translated_value
 
     @staticmethod
-    def _merge_coverage_updates(original_coverage: dict[str, Any], coverage_updates: dict[str, Any]) -> dict[str, Any]:
+    def _merge_coverage_updates(
+        original_coverage: PlanningCoverage, coverage_updates: PlanningCoverage
+    ) -> PlanningCoverage:
         """
         Merges the original and updated coverage dictionaries.
         """
-        doc = deepcopy(original_coverage)
-        doc.update(deepcopy(coverage_updates))
+        cloned_updates = coverage_updates.to_dict()
+        doc = original_coverage.clone_with(cloned_updates)
         return doc
 
     def cancel_coverage(
         self,
-        coverage,
-        coverage_cancel_state,
-        original_workflow_status,
-        assignment=None,
-        reason=None,
-        event_cancellation=False,
-        event_reschedule=False,
+        coverage: dict[str, Any],
+        coverage_cancel_state: dict[str, Any],
+        original_workflow_status: str,
+        assignment: dict[str, Any] | None = None,
+        reason: str | None = None,
+        event_cancellation: bool = False,
+        event_reschedule: bool = False,
     ):
         self._perform_coverage_cancel(
             coverage,
@@ -1355,9 +1493,11 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 assignment_service.cancel_assignment(assignment, coverage, event_cancellation, event_reschedule)
 
     @staticmethod
-    def is_coverage_planning_modified(updates, original) -> bool:
-        for key in updates.get("planning").keys():
-            if not key.startswith("_") and updates.get("planning")[key] != (original.get("planning") or {}).get(key):
+    def is_coverage_planning_modified(updates: dict[str, Any], original: dict[str, Any]) -> bool:
+        for key in updates.get("planning", {}).keys():
+            if not key.startswith("_") and updates.get("planning", {})[key] != (original.get("planning") or {}).get(
+                key
+            ):
                 return True
 
         if (
@@ -1394,7 +1534,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             != updates_coverage["planning"]["xmp_file"]
         )
 
-    def set_xmp_file_info(self, updates_coverage: dict[str, Any], original_coverage: dict[str, Any]):
+    def set_xmp_file_info(self, updates_coverage: dict[str, Any], original_coverage: dict[str, Any] | None = None):
         xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage)
         if not xmp_file:
             return
@@ -1408,6 +1548,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 xmp_assignment_mapping["xpath"],
                 namespaces=xmp_assignment_mapping["namespaces"],
             )
+
             if tags:
                 tags[0].attrib[xmp_assignment_mapping["atribute_key"]] = assignment_id
                 mapped = True
@@ -1433,12 +1574,13 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             media_id = app.media.put(
                 buf,
                 resource="planning_files",
-                filename=xmp_file.filename,
+                filename=xmp_file.name,
                 content_type="application/octet-stream",
             )
+
+            file_id = ObjectId(updates_coverage["planning"]["xmp_file"])
             get_resource_service("planning_files").patch(
-                updates_coverage["planning"]["xmp_file"],
-                {"filemeta": {"media_id": media_id}, "media": media_id},
+                file_id, {"filemeta": {"media_id": media_id}, "media": media_id}
             )
             push_notification("planning_files:updated", item=updates_coverage["planning"]["xmp_file"])
         except Exception:
@@ -1485,7 +1627,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         coverage_id = updates_coverage.get("coverage_id") or (original_coverage or {}).get("coverage_id")
         xmp_file = get_resource_service("planning_files").find_one(
-            req=None, _id=updates_coverage["planning"]["xmp_file"]
+            req=None, _id=ObjectId(updates_coverage["planning"]["xmp_file"])
         )
         if not xmp_file:
             logger.error(
@@ -1529,8 +1671,8 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         ):
             return None
 
-        file_id = coverage["planning"]["xmp_file"]
-        xmp_file = get_resource_service("planning_files").find_one(req=None, _id=file_id)
+        file_id = cov_plan["xmp_file"]
+        xmp_file = get_resource_service("planning_files").find_one(req=None, _id=ObjectId(file_id))
         coverage_msg = "Duplicating Coverage: {}".format(coverage["coverage_id"])
         if not xmp_file:
             logger.error("XMP File {} attached to coverage not found. {}".format(file_id, coverage_msg))

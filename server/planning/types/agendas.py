@@ -6,5 +6,5 @@ from superdesk.core.resources.validators import validate_iunique_value_async
 
 
 class AgendasResourceModel(BasePlanningModel):
-    name: Annotated[fields.Keyword, validate_iunique_value_async("agendas", "name")]
+    name: Annotated[fields.Keyword, validate_iunique_value_async("agenda", "name")]
     is_enabled: bool = True

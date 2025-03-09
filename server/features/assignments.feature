@@ -27,6 +27,7 @@ Feature: Assignments
         """
 
     @auth
+    @wip
     Scenario: Empty planning list
         Given empty "assignments"
         When we get "/assignments"
@@ -1350,6 +1351,8 @@ Feature: Assignments
             }
         }
         """
+
+        # TODO-ASYNC: need to figure out issue with published_items saved with different _id and guid
         When we publish "#archive._id#" with "publish" type and "published" state
         Then we get OK response
         And we get existing resource

@@ -114,7 +114,7 @@ class PlanningHistoryAsyncService(HistoryAsyncService[PlanningHistoryResourceMod
         deleted = [coverage for cid, coverage in original_coverages.items() if cid not in updates_coverages]
 
         for cov in added:
-            if cov.get("assigned_to", {}).get("state") == AssignmentWorkflowState.ASSIGNED.value:
+            if (cov.get("assigned_to") or {}).get("state") == AssignmentWorkflowState.ASSIGNED.value:
                 diff = {"coverage_id": cov.get("coverage_id")}
                 diff.update(cov)
                 await self._save_history(
@@ -184,3 +184,13 @@ class PlanningHistoryAsyncService(HistoryAsyncService[PlanningHistoryResourceMod
         new_plan = deepcopy(item)
         new_plan["duplicate_id"] = duplicate_id
         await self._save_history({ID_FIELD: str(item[ID_FIELD])}, new_plan, "duplicate_from")
+
+
+def on_item_created_handler(items: list[dict[str, Any]], operation: str | None = None):
+    """Handler for the `planning_created` signal."""
+    return PlanningHistoryAsyncService().on_item_created(items, operation)
+
+
+def on_item_updated_handler(updates: dict[str, Any], original: dict[str, Any], operation: str | None = None):
+    """Handler for the `planning_updated` signal."""
+    return PlanningHistoryAsyncService().on_item_updated(updates, original, operation)

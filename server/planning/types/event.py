@@ -102,7 +102,7 @@ class EmbeddedPlanningCoverage:
 
 @dataclass
 class EmbeddedPlanning(Dataclass):
-    planning_id: Annotated[str, validate_data_relation_async("planning")]
+    planning_id: Annotated[str | None, validate_data_relation_async("planning")] = None
     update_method: Annotated[UpdateMethods, fields.keyword_mapping()] | None = None
     coverages: list[EmbeddedPlanningCoverage] = Field(default_factory=list)
 

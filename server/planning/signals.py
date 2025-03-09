@@ -12,17 +12,24 @@ import blinker
 from typing import Any
 
 from superdesk.core import AsyncSignal
-from planning.types import EventResourceModel, PlanningResourceModel
+from planning.types import EventResourceModel
 
 __all__ = [
     "planning_created",
+    "planning_updated",
     "planning_ingested",
     "events_update",
+    "events_created",
+    "event_time_updated",
+    "event_spiked",
+    "event_unspiked",
+    "planning_spiked",
+    "planning_unspiked",
 ]
 
 signals = blinker.Namespace()
 
-planning_created = signals.signal("planning:created")
+planning_created_sync = signals.signal("planning:created")
 planning_ingested = signals.signal("planning:ingested")
 assignment_content_create = signals.signal("planning:assignment_content_create")
 
@@ -37,11 +44,16 @@ events_update = AsyncSignal[dict[str, Any], EventResourceModel]("events:update")
 #: param events: List of events registered in DB
 events_created = AsyncSignal[list[EventResourceModel]]("events:created")
 
+#: Signal for when a Planning item has been created in the DB
+#: param updates: Planning item updates
+#: param planning_item: `dict` instance of the event to be updated
+# TODO-ASYNC: use `PlanningResourceModel` instead of `dict`
+planning_created = AsyncSignal[list[dict[str, Any]]]("planning:created")
 
 #: Signal for when a Planning item has been updated in the DB
 #: param updates: Planning item updates
 #: param planning_item: `PlanningResourceModel` instance of the event to be updated
-planning_updated = AsyncSignal[dict[str, Any], PlanningResourceModel]("planning:update")
+planning_updated = AsyncSignal[dict[str, Any], dict[str, Any]]("planning:updated")
 
 #: Signal for when an Event time is updated
 event_time_updated = AsyncSignal[dict, dict]("events:time_updated")

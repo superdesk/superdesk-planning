@@ -5,6 +5,7 @@ from typing import Any, Annotated, Literal, TypeAlias
 from superdesk.utc import utcnow
 from superdesk.core.resources import dataclass, fields, Dataclass
 from superdesk.core.elastic.mapping import json_schema_to_elastic_mapping
+from superdesk.core.resources import ResourceModel
 from superdesk.core.resources.validators import validate_data_relation_async
 
 from .enums import LinkType
@@ -127,14 +128,20 @@ class Place:
     rel: fields.Keyword | None = None
 
 
-class RelatedEvent(Dataclass):
-    id: Annotated[fields.Keyword, validate_data_relation_async("events")] = Field(alias="_id")
+class RelatedEvent(ResourceModel):
+    """
+    Inherit from `ResourceModel` otherwise `get_model_annotations` won't pick it up
+    to run the async validators
+    """
+
+    id: Annotated[fields.Keyword | None, validate_data_relation_async("events")] = Field(alias="_id")
     recurrence_id: fields.Keyword | None = None
     link_type: LinkType | None = None
 
+    model_resource_name = "events"
 
-@dataclass
-class CoverageInternalPlanning:
+
+class CoverageInternalPlanning(Dataclass):
     ednote: fields.HTML | None = None
     g2_content_type: fields.Keyword | None = None
     coverage_provider: fields.Keyword | None = None
@@ -191,14 +198,23 @@ class NewsCoverageStatus:
     label: str | None = None
 
 
-@dataclass
-class CoverageAssignedTo:
+class CoverageProvider(Dataclass):
+    qcode: fields.Keyword | None = None
+    name: fields.Keyword | None = None
+
+
+class CoverageAssignedTo(Dataclass):
     assignment_id: fields.Keyword | None = None
     state: fields.Keyword | None = None
     contact: fields.Keyword | None = None
+    priority: int | None = None
+    coverage_provider: CoverageProvider | None = None
 
     desk: Annotated[fields.Keyword | None, validate_data_relation_async("desks")] = None
     user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
+
+    assigned_date_user: datetime | None = None
+    assignor_user: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
 
     @classmethod
     def to_elastic_properties(cls) -> dict[Literal["properties"], Any]:
@@ -221,6 +237,7 @@ class ScheduledUpdatePlanning:
     scheduled: datetime | None = None
     genre: list[KeywordQCodeName] = Field(default_factory=list)
     workflow_status_reason: str | None = None
+    language: fields.Keyword | None = None
 
 
 class ScheduledUpdate(Dataclass):
@@ -229,13 +246,14 @@ class ScheduledUpdate(Dataclass):
     workflow_status: fields.Keyword | None = None
     previous_status: fields.Keyword | None = None
 
-    assigned_to: CoverageAssignedTo = Field(default_factory=CoverageAssignedTo)
+    assigned_to: CoverageAssignedTo | None = None
     news_coverage_status: NewsCoverageStatus = Field(default_factory=NewsCoverageStatus)
     planning: ScheduledUpdatePlanning = Field(default_factory=ScheduledUpdatePlanning)
 
 
 class PlanningCoverage(Dataclass):
     # Identifiers
+    scheduled_update_id: fields.Keyword | None = None
     coverage_id: fields.Keyword | None = None
     original_coverage_id: fields.Keyword | None = None
     guid: fields.Keyword | None = None
@@ -253,7 +271,7 @@ class PlanningCoverage(Dataclass):
 
     workflow_status: str | None = None
     previous_status: str | None = None
-    assigned_to: CoverageAssignedTo = Field(default_factory=CoverageAssignedTo)
+    assigned_to: CoverageAssignedTo | None = None
     flags: CoverageFlags = Field(default_factory=CoverageFlags)
     time_to_be_confirmed: TimeToBeConfirmedType = False
     scheduled_updates: list[ScheduledUpdate] = Field(default_factory=list)

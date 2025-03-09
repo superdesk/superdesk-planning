@@ -6,6 +6,8 @@ from superdesk.core.resources import (
     RestEndpointConfig,
 )
 
+from superdesk.core.auth.privilege_rules import http_method_privilege_based_rules
+
 from planning.types import (
     PlanningResourceModel,
     PlanningHistoryResourceModel,
@@ -31,6 +33,17 @@ planning_resource_config: ResourceConfig = ResourceConfig(
         ],
     ),
     elastic=ElasticResourceConfig(),
+    rest_endpoints=RestEndpointConfig(
+        resource_methods=["GET", "POST"],
+        item_methods=["GET", "PATCH", "PUT", "DELETE"],
+        auth=http_method_privilege_based_rules(
+            {
+                "POST": "planning_planning_management",
+                "PATCH": "planning_planning_management",
+                "DELETE": "planning",
+            }
+        ),
+    ),
 )
 
 planning_history_resource_config: ResourceConfig = ResourceConfig(
