@@ -27,7 +27,6 @@ Feature: Assignments
         """
 
     @auth
-    @wip
     Scenario: Empty planning list
         Given empty "assignments"
         When we get "/assignments"
