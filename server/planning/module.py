@@ -1,7 +1,5 @@
 from asyncio import gather
 from bson import ObjectId
-from planning import signals
-from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from quart_babel import gettext
 
 from superdesk.core.module import Module, SuperdeskAsyncApp

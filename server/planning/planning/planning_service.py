@@ -21,9 +21,9 @@ from superdesk import get_resource_service, get_app_config
 from superdesk.core.utils import date_to_str, generate_guid
 
 from planning import PlanningNotifications, signals
-from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from planning.events.events_utils import get_recurring_timeline
 from planning.types.enums import AssignmentWorkflowState, LinkType, WorkflowState
+from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from planning.types.common import CoverageAssignedTo, ScheduledUpdate, PlanningCoverage, RelatedEvent
 from planning.common import (
     POST_STATE,
