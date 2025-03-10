@@ -100,7 +100,7 @@ def duplicate_planning_item(original: dict[str, Any]) -> PlanningResourceModel:
     return PlanningResourceModel(**new_plan)
 
 
-async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> list[str]:
+async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> dict[str, Any]:
     """
     Function to duplicate planning item.
 
@@ -112,12 +112,13 @@ async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> list[s
 
     parent_id = parent_plan[ID_FIELD]
     new_plan = duplicate_planning_item(parent_plan)
+    new_plan_dict = new_plan.to_dict()
 
     await planning_service.on_create([new_plan])
     await planning_service.create([new_plan])
 
-    await history_service.on_duplicate(parent_plan, new_plan.to_dict())
-    await history_service.on_duplicate_from(new_plan.to_dict(), parent_id)
-    await planning_service.on_duplicated(new_plan.to_dict(), parent_id)
+    await history_service.on_duplicate(parent_plan, new_plan_dict)
+    await history_service.on_duplicate_from(new_plan_dict, parent_id)
+    await planning_service.on_duplicated(new_plan_dict, parent_id)
 
-    return [new_plan.guid]
+    return new_plan_dict
