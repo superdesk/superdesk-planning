@@ -1,5 +1,5 @@
 import {PureComponent} from 'react';
-import {DebouncedFunc, debounce} from 'lodash';
+import {debounce} from 'lodash';
 import {IPlanningCoverageItem} from '../../../interfaces';
 
 interface IProps {
@@ -18,7 +18,7 @@ interface IState {
 }
 
 export class DebouncedChangeHOC extends PureComponent<IProps, IState> {
-    debouncedFn: DebouncedFunc<() => void>;
+    private debouncedFn: ReturnType<typeof debounce>;
 
     constructor(props: IProps) {
         super(props);

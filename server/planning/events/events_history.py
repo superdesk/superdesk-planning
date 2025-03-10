@@ -8,12 +8,13 @@
 
 """Superdesk Files"""
 
-from copy import deepcopy
 import logging
 
 from eve.utils import config
+from copy import deepcopy
+from typing import Any, TypedDict
 
-from superdesk import Resource, get_resource_service
+from superdesk import Resource
 from planning.utils import get_related_planning_for_events
 from planning.history import HistoryService
 from planning.item_lock import LOCK_ACTION
@@ -25,12 +26,24 @@ class EventsHistoryResource(Resource):
     endpoint_name = "events_history"
     resource_methods = ["GET"]
     item_methods = ["GET"]
+
     schema = {
         "event_id": {"type": "string"},
         "user_id": Resource.rel("users", True),
         "operation": {"type": "string"},
         "update": {"type": "dict", "nullable": True},
     }
+
+    mongo_indexes = {
+        "event_id_1": ([("event_id", 1)], {"background": True}),
+    }
+
+
+class EventHistoryRecord(TypedDict):
+    event_id: str
+    user_id: str
+    operation: str
+    update: dict[str, Any]
 
 
 class EventsHistoryService(HistoryService):
@@ -88,3 +101,15 @@ class EventsHistoryService(HistoryService):
 
     def on_update_time(self, updates, original):
         self.on_item_updated(updates, original, "update_time")
+
+    def get_by_id(self, _id: str) -> list[EventHistoryRecord]:
+        records = self.find(where={"event_id": _id})
+        return [
+            {
+                "event_id": record.get("event_id"),
+                "user_id": record.get("user_id"),
+                "operation": record.get("operation"),
+                "update": record.get("update"),
+            }
+            for record in records
+        ]
