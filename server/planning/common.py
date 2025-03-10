@@ -776,8 +776,6 @@ def _sync_coverage_assigned_to(coverages, lookup_field, id_field):
         if not assignment:
             continue
 
-        assignment["assigned_to"].get("state")
-
         assignment.setdefault("assigned_to", {})
         coverage["assigned_to"]["assignment_id"] = str(assignment[ID_FIELD])
         coverage["assigned_to"]["desk"] = assignment["assigned_to"].get("desk")
