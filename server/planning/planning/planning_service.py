@@ -194,7 +194,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 event_ids=get_related_event_ids_for_planning(doc_dict, "primary"),  # Event IDs for primary events
             )
 
-            self._update_event_history(doc_dict)
+            await self._update_event_history(doc_dict)
             await signals.planning_created.send([doc_dict])
 
             first_primary_event_id = get_first_related_event_id_for_planning(doc_dict, "primary")
