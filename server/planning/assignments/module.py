@@ -10,9 +10,7 @@ from .service import AssignmentsAsyncService
 from .delivery_service import DeliveryAsyncService
 
 assignments_resource_config = ResourceConfig(
-    # TODO-ASYNC: rename to `assignments` once the `AssignmentsAsyncService` is fully migrated
-    # and remove old service or add `internal_resource=True`
-    name="assignments_async",
+    name="assignments",
     data_class=AssignmentResourceModel,
     service=AssignmentsAsyncService,
     etag_ignore_fields=["planning", "published_state", "published_at"],

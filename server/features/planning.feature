@@ -1380,7 +1380,8 @@ Feature: Planning
           ]
         }
         """
-        Then we get error 403
+        # TODO-ASYNC: change to 403 when we move to async service
+        Then we get error 400
         """
         {"_issues": { "validator exception": "403: Agenda 'Disabled Agenda' is not enabled" }}
         """
@@ -1658,7 +1659,7 @@ Feature: Planning
         """
         {
             "name": "test name",
-            "headline": null,
+            "headline": "__no_value__",
             "slugline": "test slugline"
         }
         """
@@ -1728,7 +1729,7 @@ Feature: Planning
         """
         {
             "name": "test name",
-            "headline": null,
+            "headline": "__no_value__",
             "slugline": "test slugline"
         }
         """
@@ -2005,11 +2006,7 @@ Feature: Planning
         """
         Then we get error 400
         """
-        {
-            "_issues": {
-                "planning_date": {"required": "Field is required"}
-            }
-        }
+        {"_message": "Planning item should have a date"}
         """
 
     @auth
