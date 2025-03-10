@@ -19,7 +19,7 @@ import {Button, ButtonGroup, Tabs, TabLabel, TabContent, TabPanel} from 'superde
 import {Modal} from '../index';
 import {GroupTab, GroupTabComponent} from './GroupTab';
 import {FieldTab} from './FieldTab';
-import {validateAndNofityForRequiredFields} from './utils';
+import {validateAndNotifyForRequiredFields} from './utils';
 
 import './style.scss';
 
@@ -175,7 +175,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
                 return;
             }
 
-            if (!validateAndNofityForRequiredFields(
+            if (!validateAndNotifyForRequiredFields(
                 this.state.profile,
                 this.props.mainProfile.systemRequiredFields,
                 true

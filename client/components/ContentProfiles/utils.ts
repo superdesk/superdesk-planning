@@ -2,7 +2,7 @@ import {ICoverageContentProfile, IPlanningContentProfile} from '../../interfaces
 import {superdeskApi} from '../../superdeskApi';
 import {isProfileFieldEnabled, getFieldNameTranslated} from '../../utils/contentProfiles';
 
-export function validateAndNofityForRequiredFields(
+export function validateAndNotifyForRequiredFields(
     profile: IPlanningContentProfile | Partial<ICoverageContentProfile>,
     requiredFields: Array<string>,
     includeGroupCheck: boolean

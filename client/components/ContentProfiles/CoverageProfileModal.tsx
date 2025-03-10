@@ -13,7 +13,7 @@ import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
 import {FieldTab} from './FieldTab';
 import './style.scss';
 import {getLanguages} from '../../selectors/vocabs';
-import {validateAndNofityForRequiredFields} from './utils';
+import {validateAndNotifyForRequiredFields} from './utils';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {updateCoverageProfiles} from '../../actions/coverages';
 import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
@@ -100,7 +100,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
     save() {
         this.setState({saving: true});
 
-        if (!validateAndNofityForRequiredFields(
+        if (!validateAndNotifyForRequiredFields(
             this.state.profile,
             COVERAGE_SYSTEM_REQUIRED_FIELDS,
             false
