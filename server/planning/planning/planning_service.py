@@ -215,24 +215,6 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         # self.generate_related_assignments(docs)
 
-    def _update_event_history(self, doc: dict[str, Any]):
-        events_service = get_resource_service("events")
-        events_history_service = get_resource_service("events_history")
-
-        for original_event in get_related_event_items_for_planning(doc, "primary"):
-            events_service.system_update(
-                original_event[ID_FIELD],
-                {
-                    "expiry": None,
-                    # Event hasn't actually been updated
-                    # So we leave these version dates alone
-                    "_updated": original_event["_updated"],
-                    "versioncreated": original_event["versioncreated"],
-                },
-                original_event,
-            )
-            events_history_service.on_item_updated({"planning_id": doc[ID_FIELD]}, original_event, "planning_created")
-
     def _generate_planning_instance(
         self, updates: dict[str, Any], original: PlanningResourceModel
     ) -> PlanningResourceModel:
