@@ -27,7 +27,6 @@ from .planning_lock import (
     PlanningUnlockService,
 )
 from .planning_post import PlanningPostService, PlanningPostResource
-from .planning_duplicate import PlanningDuplicateService, PlanningDuplicateResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
 from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
@@ -88,9 +87,6 @@ def init_app(app):
 
     planning_post_service = PlanningPostService("planning_post", backend=superdesk.get_backend())
     PlanningPostResource("planning_post", app=app, service=planning_post_service)
-
-    planning_duplicate_service = PlanningDuplicateService("planning_duplicate", backend=superdesk.get_backend())
-    PlanningDuplicateResource("planning_duplicate", app=app, service=planning_duplicate_service)
 
     files_service = PlanningFilesService("planning_files", backend=superdesk.get_backend())
     PlanningFilesResource("planning_files", app=app, service=files_service)

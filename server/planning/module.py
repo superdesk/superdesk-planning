@@ -24,7 +24,7 @@ from planning.planning.planning_autosave_async_service import PlanningAutosaveAs
 from planning.assignments import assignments_resource_config, delivery_resource_config
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
-
+from planning.locations import locations_resource_config
 from .planning_locks import planning_locks as planning_locks_endpoint
 from .planning.views import planning_views_endpoints
 
@@ -78,5 +78,6 @@ module = Module(
         events_autosave_resource_config,
         planning_featured_resource_config,
         planning_autosave_resource_config,
+        locations_resource_config,
     ],
 )

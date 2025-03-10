@@ -56,6 +56,7 @@ from planning.utils import (
     get_planning_event_link_method,
     get_first_related_event_id_for_planning,
     get_related_event_ids_for_planning,
+    get_related_event_items_for_planning,
 )
 
 from .planning_utils import get_coverage_by_id
@@ -1708,3 +1709,37 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             logger.exception("Error creating media file. {}. Exception: {}".format(coverage_msg, e))
 
         return None
+
+    async def on_duplicated(self, doc: dict[str, Any], parent_id: str):
+        await self._update_event_history(doc)
+        session_id = get_auth().get("_id")
+        push_notification(
+            "planning:duplicated",
+            item=str(doc.get(ID_FIELD)),
+            original=str(parent_id),
+            user=str(doc.get("original_creator", "")),
+            added_agendas=doc.get("agendas") or [],
+            removed_agendas=[],
+            session=session_id,
+        )
+
+    async def _update_event_history(self, doc: dict[str, Any]):
+        from planning.events import EventsAsyncService, EventsHistoryAsyncService
+
+        events_service = EventsAsyncService()
+        events_history_service = EventsHistoryAsyncService()
+
+        for original_event in get_related_event_items_for_planning(doc, "primary"):
+            await events_service.system_update(
+                original_event[ID_FIELD],
+                {
+                    "expiry": None,
+                    # Event hasn't actually been updated
+                    # So we leave these version dates alone
+                    "_updated": original_event["_updated"],
+                    "versioncreated": original_event["versioncreated"],
+                },
+            )
+            await events_history_service.on_item_updated(
+                {"planning_id": doc[ID_FIELD]}, original_event, "planning_created"
+            )
