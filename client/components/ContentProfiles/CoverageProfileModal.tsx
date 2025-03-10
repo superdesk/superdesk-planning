@@ -266,7 +266,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 className="planning-profile-form"
             >
                 <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap style={{height: '500px'}}>
-                    <Spacer gap="4" v style={{height: 'auto', width: '30%', padding: 12}} noWrap>
+                    <Spacer gap="4" v style={{height: 'auto', width: '200px', padding: 12}} noWrap>
                         {allCoverageTypes.map((type) => (
                             <Button
                                 key={type}
