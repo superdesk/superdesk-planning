@@ -133,6 +133,7 @@ export class BaseEditorComponent<T extends IPlanningItem | IEventItem> extends R
                 getSideWidgetIdAtIndex={(_item) => 'no-id-available'}
                 fieldTemplate={FieldTemplate}
                 makeVisible={this.props.makeVisible}
+                autoFocus={false}
             />
         );
     }
