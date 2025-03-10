@@ -261,6 +261,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         # we need to conciliate the updates with original as this service
         # do in-place updates in methods like `on_update` and `on_updated`
+        assert original is not None
         return original.clone_with(updates)
 
     async def on_update(self, updates: dict[str, Any], original: PlanningResourceModel) -> None:
@@ -804,17 +805,21 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 if user:
                     # ``version_creator`` cannot be null
                     coverage.version_creator = user.get(ID_FIELD)
+
+                assert original_coverage.assigned_to is not None
+
                 coverage.versioncreated = utcnow()
                 contact_id = coverage.contact or original_coverage.assigned_to.contact
+                assigned_to = coverage.assigned_to or original_coverage.assigned_to
+
+                target_user = assigned_to.user
+                target_desk = assigned_to.desk
 
                 # If the internal note has changed send a notification, except if it's been cancelled
                 if (
                     coverage.planning.internal_note != original_coverage.planning.internal_note
                     and coverage.news_coverage_status.qcode != "ncostat:notint"
                 ):
-                    target_user = coverage.assigned_to.user or original_coverage.assigned_to.user
-                    target_desk = coverage.assigned_to.desk or original_coverage.assigned_to.desk
-
                     PlanningNotifications().notify_assignment(
                         coverage_status=coverage.workflow_status,
                         target_desk=target_desk if target_user is None else None,
@@ -830,9 +835,6 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 if (coverage.planning.scheduled or datetime.min).strftime("%c") != (
                     original_coverage.planning.scheduled or datetime.min
                 ).strftime("%c"):
-                    target_user = coverage.assigned_to.user or original_coverage.assigned_to.user
-                    target_desk = coverage.assigned_to.desk or original_coverage.assigned_to.desk
-
                     PlanningNotifications().notify_assignment(
                         coverage_status=coverage.workflow_status,
                         target_desk=target_desk if target_user is None else None,
@@ -861,7 +863,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         # True the coverage will be created in workflow unless the override flag is set.
         if (
             get_app_config("PLANNING_AUTO_ASSIGN_TO_WORKFLOW", False)
-            and (coverage.assigned_to.desk or coverage.assigned_to.user)
+            and (coverage.assigned_to and (coverage.assigned_to.desk or coverage.assigned_to.user))
             and not planning.flags.overide_auto_assign_to_workflow
             and coverage.workflow_status == WorkflowState.DRAFT.value
         ):
@@ -1058,6 +1060,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 translated_value,
                 parent_coverage,
             )
+            assert coverage_updates.assigned_to is not None
             coverage_updates.assigned_to.assignment_id = new_assignment_id
             coverage_updates.assigned_to.state = new_assigned_state
         elif assignment_id is not None:
@@ -1358,7 +1361,11 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                     assigned_to.assigned_date_desk = utcnow()
                     assigned_to.assignor_desk = user.get(ID_FIELD)
 
-                if assigned_to.user and original_coverage.assigned_to.user != assigned_to.user:
+                if (
+                    assigned_to.user
+                    and original_coverage.assigned_to
+                    and original_coverage.assigned_to.user != assigned_to.user
+                ):
                     assigned_to.assigned_date_user = utcnow()
                     assigned_to.assignor_user = user.get(ID_FIELD)
 
@@ -1535,7 +1542,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         )
 
     def set_xmp_file_info(self, updates_coverage: dict[str, Any], original_coverage: dict[str, Any] | None = None):
-        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage)
+        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage or {})
         if not xmp_file:
             return
 

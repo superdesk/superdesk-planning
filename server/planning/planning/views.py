@@ -9,7 +9,7 @@ from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 
 
-planning_views_endpoints = EndpointGroup("planning_views", __name__)
+planning_views_endpoints: EndpointGroup = EndpointGroup("planning_views", __name__)
 
 
 class PlanningArgs(BaseModel):
