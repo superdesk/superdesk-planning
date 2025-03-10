@@ -80,7 +80,7 @@ module.exports = {
     plugins: [
         new webpack.DefinePlugin({
             gettext: 'function gettext(msg) { return msg; }',
-            __SUPERDESK_CONFIG__: JSON.stringify({}),
+            __SUPERDESK_CONFIG__: JSON.stringify({view: {}}),
         }),
     ],
 };
