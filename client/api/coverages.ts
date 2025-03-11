@@ -1,11 +1,6 @@
 import {PLANNING, WORKFLOW_STATE} from '../constants';
 import {ICoverageScheduledUpdate, IPlanningAPI, IPlanningCoverageItem} from '../interfaces';
-import {coverageProfile} from '../selectors/forms';
-import {planningApi, superdeskApi} from '../superdeskApi';
-
-function getCoverageEditorProfile() {
-    return coverageProfile(planningApi.redux.store.getState());
-}
+import {superdeskApi} from '../superdeskApi';
 
 function cancelCoverageOrScheduledUpdate<T extends IPlanningCoverageItem | ICoverageScheduledUpdate>(
     item: T,
@@ -67,7 +62,6 @@ function cancelScheduledUpdate(
 }
 
 export const coverages: IPlanningAPI['coverages'] = {
-    getEditorProfile: getCoverageEditorProfile,
     cancelCoverage: cancelCoverage,
     cancelScheduledUpdate: cancelScheduledUpdate,
 };

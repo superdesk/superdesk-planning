@@ -7,6 +7,7 @@ import {
     IPlanningCoverageItem,
     IProfileMultilingualDetails,
     IProfileSchemaTypeString,
+    ICoverageContentProfile,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
@@ -18,9 +19,10 @@ import {sortProfileGroups} from '../utils/contentProfiles';
 import {showModalConnectedToStore} from '../utils/ui';
 import {ContentProfileModal} from '../components/ContentProfiles/ContentProfileModal';
 import {getUsersDefaultLanguage} from '../utils/users';
-import {PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from './utils/constants';
+import {EVENT_ITEM_SYSTEM_REQUIRED_FIELDS, PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from './utils/constants';
 
 const RESOURCE = 'planning_types';
+const COVERAGE_PROFILES_RESOURCE = 'coverage_profiles';
 
 function getAll(): Promise<Array<IPlanningContentProfile>> {
     return superdeskApi.dataApi.query<IPlanningContentProfile>(
@@ -139,6 +141,35 @@ function patch(original: IPlanningContentProfile, updates: IPlanningContentProfi
     }
 }
 
+function patchCoverageProfile(
+    original: ICoverageContentProfile,
+    updates: ICoverageContentProfile,
+): Promise<ICoverageContentProfile> {
+    delete updates._created;
+    delete updates._updated;
+    delete updates._etag;
+    delete updates._links;
+
+    if (updates._id != null) {
+        return superdeskApi.dataApi.patch<ICoverageContentProfile>(COVERAGE_PROFILES_RESOURCE, original, updates);
+    }
+
+    return superdeskApi.dataApi.create<ICoverageContentProfile>(COVERAGE_PROFILES_RESOURCE, updates);
+}
+
+function getAllCoverageProfiles(): Promise<Array<ICoverageContentProfile>> {
+    return superdeskApi.dataApi.query<ICoverageContentProfile>(
+        COVERAGE_PROFILES_RESOURCE,
+        1,
+        {field: 'name', direction: 'ascending'},
+        {},
+        200
+    )
+        .then((response) => {
+            return response._items;
+        });
+}
+
 function showManagePlanningProfileModal(): Promise<void> {
     const {gettext} = superdeskApi.localization;
 
@@ -162,25 +193,6 @@ function showManagePlanningProfileModal(): Promise<void> {
                     'associated_event',
                 ],
             },
-            embeddedProfile: {
-                label: gettext('Coverage Fields'),
-                profile: getProfile('coverage'),
-                systemRequiredFields: [
-                    ['g2_content_type'],
-                    ['scheduled'],
-                    ['add_coverage_to_workflow']
-                ],
-                disableMinMaxFields: [
-                    'g2_content_type',
-                    'language',
-                    'genre',
-                    'news_coverage_status',
-                    'no_content_linking',
-                ],
-                disableRequiredFields: [
-                    'no_content_linking',
-                ],
-            },
         }
     );
 }
@@ -195,10 +207,7 @@ function showManageEventProfileModal(): Promise<void> {
             mainProfile: {
                 label: gettext('Event Fields'),
                 profile: getProfile('event'),
-                systemRequiredFields: [
-                    ['dates'],
-                    ['slugline', 'name'],
-                ],
+                systemRequiredFields: EVENT_ITEM_SYSTEM_REQUIRED_FIELDS,
                 disableMinMaxFields: [
                     'language',
                     'location',
@@ -243,6 +252,10 @@ export const contentProfiles: IPlanningAPI['contentProfiles'] = {
     get: getProfile,
     getDefaultValues: getDefaultValues,
     patch: patch,
+    coverages: {
+        patch: patchCoverageProfile,
+        getAll: getAllCoverageProfiles,
+    },
     showManagePlanningProfileModal: showManagePlanningProfileModal,
     showManageEventProfileModal: showManageEventProfileModal,
     updateProfilesInStore: updateProfilesInStore,

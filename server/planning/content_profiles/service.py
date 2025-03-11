@@ -112,3 +112,7 @@ class PlanningTypesService(superdesk.Service):
         if planning_type.get("name") == "coverage" and not planning_link_updates_to_coverage():
             planning_type["editor"].pop("no_content_linking", None)
             planning_type["schema"].pop("no_content_linking", None)
+
+
+class ContentProfilesService(superdesk.Service):
+    pass

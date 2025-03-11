@@ -1,9 +1,11 @@
 import {createRef, RefObject} from 'react';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, omit} from 'lodash';
 
 import {
     BOOKMARK_TYPE,
     EDITOR_TYPE,
+    ICoverageContentProfile,
+    ICoverageType,
     IEditorAPI,
     IEditorBookmark,
     IEditorFormGroup,
@@ -21,22 +23,29 @@ import {
 
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
+import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
 
-export function getCoverageFields(): ISearchProfile {
-    const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
-        .filter((item) => item.field.enabled);
-    const profile: ISearchProfile = {};
+export function getCoverageFields(
+    type: ICoverageType,
+): {searchProfile: ISearchProfile; profile: ICoverageContentProfile} {
+    const storeState = planningApi.redux.store.getState();
+    const allProfiles = coverageProfiles(storeState);
+    const newProfile = allProfiles.find((x) => x.content_type === type);
+    const profile = newProfile ? newProfile : omit(oldProfile(storeState), '_id');
+
+    const fields = getGroupFieldsSorted(profile).filter((item) => item.field.enabled);
+    const searchProfile: ISearchProfile = {};
 
     fields.forEach(
         (field, index) => {
-            profile[field.name] = {
+            searchProfile[field.name] = {
                 enabled: true,
                 index: index,
             };
         },
     );
 
-    return profile;
+    return {searchProfile, profile};
 }
 
 export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['planning'] {

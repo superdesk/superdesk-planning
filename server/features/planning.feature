@@ -256,6 +256,13 @@ Feature: Planning
     @notification
     Scenario: Create and update coverages for planning with assignments.
         Given empty "planning"
+        When we post to "coverage_profiles"
+        """
+        [
+            {"content_type": "text"}
+        ]
+        """
+        Then we get OK response
         When we post to "planning"
         """
         [{
@@ -272,6 +279,7 @@ Feature: Planning
         {
             "coverages": [
                 {
+                    "profile": "#coverage_profiles._id#",
                     "workflow_status": "draft",
                     "news_coverage_status": {
                       "qcode": "ncostat:int"

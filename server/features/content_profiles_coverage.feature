@@ -262,3 +262,44 @@ Feature: Coverage Content Profiles
             }
         }]}
         """
+
+    @auth
+    Scenario: Coverage profiles per type
+        Given empty "coverage_profiles"
+        When we post to "coverage_profiles"
+        """
+        {
+            "content_type": "text",
+            "editor": {
+                "language": {
+                    "enabled": true,
+                    "index": 1
+                },
+                "slugline": {"enabled": false},
+                "headline": {
+                    "enabled": true,
+                    "index": 3
+                },
+                "no_content_linking": {"enabled": true}
+            },
+            "schema": {
+                "language": {"required": true},
+                "headline": {"required": true},
+                "no_content_linking": {
+                    "required": false,
+                    "type": "boolean"
+                }
+            }
+        }
+        """
+        Then we get new resource
+        When we get "coverage_profiles"
+        Then we get list with 1 item
+
+        When we post to "coverage_profiles"
+        """
+        {
+            "content_type": "text"
+        }
+        """
+        Then we get error 409

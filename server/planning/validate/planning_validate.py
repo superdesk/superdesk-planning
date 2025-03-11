@@ -138,6 +138,10 @@ class PlanningValidateService(Service):
 
     def _get_validator(self, doc):
         """Get validators."""
+        if doc[ITEM_TYPE] == "coverage" and doc["validate"].get("profile"):
+            profile = get_resource_service("coverage_profiles").find_one(req=None, _id=doc["validate"]["profile"])
+            if profile:
+                return profile
         return get_resource_service("planning_types").find_one(req=None, name=doc[ITEM_TYPE])
 
     def _get_validator_schema(self, validator, validate_on_post):
