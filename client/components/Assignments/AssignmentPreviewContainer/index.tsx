@@ -21,7 +21,7 @@ import planningActions from '../../../actions/planning/api';
 import {assignmentUtils, eventUtils, planningUtils, getFileDownloadURL} from '../../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
 
-import {Button} from 'superdesk-ui-framework/react';
+import {Button, Spacer} from 'superdesk-ui-framework/react';
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
 import {AssignmentPreview} from './AssignmentPreview';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
@@ -42,7 +42,7 @@ interface IStateProps {
     users: Array<IUser>;
     desks: Array<IDesk>;
     planningItem?: IPlanningItem;
-    eventItem?: IEventItem;
+    relatedEvents: Array<IEventItem>;
 
     priorities: Array<IAssignmentPriority>;
     privileges: {[key: string]: number};
@@ -70,9 +70,11 @@ type IProps = IOwnProps & IStateProps & IDispatchProps;
 
 class AssignmentPreviewContainerComponent extends React.Component<IProps> {
     componentDidMount() {
-        if (eventUtils.shouldFetchFilesForEvent(this.props.eventItem)) {
-            this.props.fetchEventFiles(this.props.eventItem);
-        }
+        this.props.relatedEvents
+            .filter((event) => eventUtils.shouldFetchFilesForEvent(event))
+            .forEach((event) => {
+                this.props.fetchEventFiles(event);
+            });
 
         if (planningUtils.shouldFetchFilesForPlanning(this.props.planningItem)) {
             this.props.fetchPlanningFiles(this.props.planningItem);
@@ -127,7 +129,6 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
             users,
             desks,
             planningItem,
-            eventItem,
             priorities,
             formProfile,
             hideAvatar,
@@ -192,26 +193,34 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                     />
                 </ContentBlock>
 
-                {eventItem && (
-                    <div className="sd-padding--2 sd-padding-b--0">
-                        <PreviewFieldRelatedArticles
-                            item={eventItem}
-                            languageFilter={assignment.planning.language}
-                        />
-                    </div>
-                )}
-
-                {eventItem && (
+                {this.props.relatedEvents.length > 0 && (
                     <ContentBlock className="AssignmentPreview__event" padSmall={true}>
                         <h3 className="side-panel__heading side-panel__heading--big">
-                            {gettext('Associated Event')}
+                            {gettext('Associated Events')}
                         </h3>
-                        <EventMetadata
-                            event={eventItem}
-                            createUploadLink={getFileDownloadURL}
-                            files={files}
-                            hideEditIcon={true}
-                        />
+
+                        <Spacer v gap="16">
+                            {
+                                this.props.relatedEvents.map((event) => (
+                                    <div key={event._id}>
+                                        <EventMetadata
+                                            key={event._id}
+                                            event={event}
+                                            createUploadLink={getFileDownloadURL}
+                                            files={files}
+                                            hideEditIcon={true}
+                                        />
+
+                                        <div className="sd-padding--2 sd-padding-b--0">
+                                            <PreviewFieldRelatedArticles
+                                                item={event}
+                                                languageFilter={assignment.planning.language}
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </Spacer>
                     </ContentBlock>
                 )}
 
@@ -219,8 +228,8 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                     <h3 className="side-panel__heading side-panel__heading--big">
                         {gettext('Planning')}
                     </h3>
+
                     <RelatedPlannings
-                        className="related-plannings"
                         plannings={[planningItem]}
                         openPlanningItem={true}
                         expandable={true}
@@ -241,9 +250,10 @@ const mapStateToProps = (state) => ({
     session: selectors.general.session(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
-
     planningItem: selectors.getCurrentAssignmentPlanningItem(state),
-    eventItem: selectors.getCurrentAssignmentEventItem(state),
+
+    // coverages do not have related events; it holds related events of a planning item
+    relatedEvents: selectors.getRelatedEventsForCurrentAssignment(state),
 
     priorities: get(state, 'vocabularies.assignment_priority'),
     privileges: selectors.general.privileges(state),
