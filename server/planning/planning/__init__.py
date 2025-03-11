@@ -29,7 +29,6 @@ from .planning_lock import (
 from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
-from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
 from .planning_autosave import PlanningAutosaveResource, PlanningAutosaveService
 from .planning_featured_lock import (
     PlanningFeaturedLockResource,
@@ -99,15 +98,6 @@ def init_app(app):
         PlanningRescheduleResource.endpoint_name,
         app=app,
         service=planning_reschedule_service,
-    )
-
-    planning_postpone_service = PlanningPostponeService(
-        PlanningPostponeResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    PlanningPostponeResource(
-        PlanningPostponeResource.endpoint_name,
-        app=app,
-        service=planning_postpone_service,
     )
 
     planning_history_service = PlanningHistoryService("planning_history", backend=superdesk.get_backend())
