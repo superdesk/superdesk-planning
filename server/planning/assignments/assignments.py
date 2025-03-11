@@ -386,7 +386,7 @@ class AssignmentsService(superdesk.Service):
 
         coverage_type = updates.get("planning", original.get("planning", {})).get("g2_content_type", "")
         slugline = updates.get("planning", original.get("planning", {})).get("slugline", "with no slugline")
-        coverage_status = updates.get("planning", original.get("planning", {})).get("news_coverage_status", {})
+        coverage_status = updates.get("planning", original.get("planning", {})).get("news_coverage_status", {}) or {}
 
         client_url = app.config["CLIENT_URL"]
 
