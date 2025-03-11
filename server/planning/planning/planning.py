@@ -875,6 +875,12 @@ class PlanningService(superdesk.Service):
         translated_value = {}
         translated_name = planning.get("name", planning.get("headline", ""))
         doc.setdefault("planning", {})
+
+        # SDBELGA-937
+        doc["planning"]["news_coverage_status"] = updates.get("news_coverage_status") or original.get(
+            "news_coverage_status"
+        )
+
         if translations is not None and doc["planning"].get("language") is not None:
             translated_value.update(
                 {
