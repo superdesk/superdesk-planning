@@ -20,6 +20,7 @@ module.exports = {
         extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
         alias: {
             images: path.resolve(__dirname, 'node_modules/superdesk-core/images'),
+            'draft-js': '@sourcefabric/draft-js',
         }
     },
     module: {
@@ -80,7 +81,7 @@ module.exports = {
     plugins: [
         new webpack.DefinePlugin({
             gettext: 'function gettext(msg) { return msg; }',
-            __SUPERDESK_CONFIG__: JSON.stringify({}),
+            __SUPERDESK_CONFIG__: JSON.stringify({view: {}}),
         }),
     ],
 };

@@ -26,6 +26,6 @@ beforeEach(() => {
     moment.tz.setDefault('Australia/Sydney');
 });
 
-var testsContext = require.context('.', true, /_test.[j|t]sx?$/);
+var testsContext = require.context('client', true, /_test.[j|t]sx?$/);
 
 testsContext.keys().forEach(testsContext);
