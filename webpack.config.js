@@ -61,10 +61,6 @@ module.exports = {
                 ]
             },
             {
-                test: /\.json$/,
-                use: ['json-loader']
-            },
-            {
                 test: /\.(png|gif|jpeg|jpg|woff|woff2|eot|ttf|svg)(\?.*$|$)/,
                 loader: 'file-loader'
             }
