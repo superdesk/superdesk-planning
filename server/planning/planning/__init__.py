@@ -29,7 +29,6 @@ from .planning_lock import (
 from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
-from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
 from .planning_autosave import PlanningAutosaveResource, PlanningAutosaveService
 from .planning_featured_lock import (
     PlanningFeaturedLockResource,
@@ -101,15 +100,6 @@ def init_app(app):
         service=planning_reschedule_service,
     )
 
-    planning_postpone_service = PlanningPostponeService(
-        PlanningPostponeResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    PlanningPostponeResource(
-        PlanningPostponeResource.endpoint_name,
-        app=app,
-        service=planning_postpone_service,
-    )
-
     planning_history_service = PlanningHistoryService("planning_history", backend=superdesk.get_backend())
     PlanningHistoryResource("planning_history", app=app, service=planning_history_service)
 
@@ -138,11 +128,11 @@ def init_app(app):
     signals.planning_updated.connect(planning_history_service.on_item_updated)
     signals.planning_spiked.connect(planning_history_service.on_spike)
     signals.planning_unspiked.connect(planning_history_service.on_unspike)
+    signals.planning_postponed.connect(planning_history_service.on_postpone)
 
     app.on_inserted_planning += planning_history_service.on_item_created
     app.on_updated_planning_cancel += planning_history_service.on_cancel
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
-    app.on_updated_planning_postpone += planning_history_service.on_postpone
 
     app.on_locked_planning += planning_service.on_locked_planning
 

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from planning.planning import PlanningAsyncService
 from planning.planning.planning_spike_async import process_spike_planning_item, process_unspike_planning_item
 from planning.planning.planning_duplicate import process_planning_item_duplicate
+from planning.planning.planning_postpone import process_postpone_planning_item
 from planning.utils import get_json_or_400_async
 
 from superdesk.core.auth.privilege_rules import required_privilege_rule
@@ -65,3 +66,20 @@ async def duplicate_planning_item(args: PlanningArgs, params: None, request: Req
     duplicated_planning_item = await process_planning_item_duplicate(original)
 
     return Response(duplicated_planning_item)
+
+
+@planning_endpoint_group.endpoint(
+    "planning/postpone/<string:planning_id>",
+    name="planning_postpone",
+    methods=["PATCH"],
+    auth=[required_privilege_rule("planning_planning_management")],
+)
+async def postpone_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
+    original = await PlanningAsyncService().find_by_id_raw(args.planning_id)
+    if not original:
+        await request.abort(404, "Planning Item not found")
+
+    updates = await get_json_or_400_async(request)
+    postponed_planning_item = await process_postpone_planning_item(updates, original)
+
+    return Response(postponed_planning_item)
