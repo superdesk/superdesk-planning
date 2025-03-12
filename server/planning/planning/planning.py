@@ -1710,6 +1710,15 @@ coverage_schema = {
             "contact_info": Resource.rel("contacts", type="string", nullable=True),
             "item_class": {"type": "string", "mapping": not_analyzed},
             "item_count": {"type": "string", "mapping": not_analyzed},
+            "news_coverage_status": {
+                "type": "dict",
+                "allow_unknown": True,
+                "schema": {
+                    "qcode": {"type": "string"},
+                    "name": {"type": "string"},
+                    "label": {"type": "string"},
+                },
+            },
             "scheduled": {"type": "datetime"},
             "files": {
                 "type": "list",
