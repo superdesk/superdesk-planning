@@ -50,7 +50,7 @@ Feature: Planning
         """
             {"_items": [{
                 "guid": "__any_value__",
-                "_type": "planning",
+                "type": "planning",
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
                 "headline": "test headline",
@@ -143,7 +143,7 @@ Feature: Planning
         """
             {"_items": [{
                 "guid": "__any_value__",
-                "_type": "planning",
+                "type": "planning",
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
                 "headline": "test headline",
@@ -3775,7 +3775,7 @@ Feature: Planning
         {
             "slugline": "file test",
             "planning_date": "2016-01-02",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -3829,7 +3829,7 @@ Feature: Planning
         """
         {
             "slugline": "file test",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -3869,7 +3869,7 @@ Feature: Planning
         {
             "slugline": "file test",
             "planning_date": "2016-01-02",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -3923,7 +3923,7 @@ Feature: Planning
         """
         {
             "slugline": "file test",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -3965,7 +3965,7 @@ Feature: Planning
         {
             "slugline": "file test",
             "planning_date": "2016-01-02",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4019,7 +4019,7 @@ Feature: Planning
         """
         {
             "slugline": "file test",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4060,7 +4060,7 @@ Feature: Planning
         {
             "slugline": "file test",
             "planning_date": "2016-01-02",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4114,7 +4114,7 @@ Feature: Planning
         """
         {
             "slugline": "file test",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4152,7 +4152,7 @@ Feature: Planning
         {
             "slugline": "file test",
             "planning_date": "2016-01-02",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4206,7 +4206,7 @@ Feature: Planning
         """
         {
             "slugline": "file test",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4245,7 +4245,7 @@ Feature: Planning
         {
             "slugline": "file test",
             "planning_date": "2016-01-02",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "draft",
@@ -4274,7 +4274,7 @@ Feature: Planning
         """
         {
             "slugline": "file test",
-            "_type": "planning",
+            "type": "planning",
             "coverages": [
                 {
                     "workflow_status": "active",

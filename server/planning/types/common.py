@@ -138,7 +138,7 @@ class RelatedEvent(ResourceModel):
     recurrence_id: fields.Keyword | None = None
     link_type: LinkType | None = None
 
-    model_resource_name = "events"
+    model_resource_name = "related_event"
 
 
 class CoverageInternalPlanning(Dataclass):

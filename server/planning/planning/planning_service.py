@@ -5,6 +5,7 @@ from lxml import etree
 from copy import deepcopy
 from bson import ObjectId
 from datetime import datetime
+from planning.events.events_service import EventsAsyncService
 from typing_extensions import assert_never
 from typing import AsyncGenerator, Any, cast
 
@@ -199,7 +200,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
             first_primary_event_id = get_first_related_event_id_for_planning(doc_dict, "primary")
             if first_primary_event_id and post_planning_with_event:
-                event = get_resource_service("events").find_one(req=None, _id=first_primary_event_id)
+                event = await EventsAsyncService().find_by_id_raw(first_primary_event_id)
                 if not event:
                     logger.warning(
                         "Failed to find linked event for planning",
@@ -731,8 +732,8 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             is_temporal_coverage = TEMP_ID_PREFIX in coverage_id
 
             if not coverage_id or is_temporal_coverage or coverage_id not in original_coverage_ids:
-                # if "duplicate" in coverage_id or coverage.original_coverage_id:
-                #     coverage.planning.xmp_file = self.duplicate_xmp_file(coverage.to_dict())
+                if "duplicate" in coverage_id or coverage.original_coverage_id:
+                    coverage.planning.xmp_file = self.duplicate_xmp_file(coverage.to_dict())
 
                 # coverage to be created
                 if not coverage_id or is_temporal_coverage:
