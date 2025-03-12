@@ -7,49 +7,35 @@ export function confirmAddingRelatedItems(
     attemptedToAdd: number,
     canBeAdded: number,
 ): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const {gettextPlural, gettext} = superdeskApi.localization;
+    if (canBeAdded < 1) {
+        for (const warning of warnings) {
+            superdeskApi.ui.notify.error(warning);
+        }
 
-        superdeskApi.ui.showModal((options) => {
-            const closeAndReject = () => {
-                options.closeModal();
+        return Promise.resolve();
+    } else {
+        return new Promise((resolve, reject) => {
+            const {gettextPlural, gettext} = superdeskApi.localization;
 
-                reject();
-            };
+            superdeskApi.ui.showModal((options) => {
+                const closeAndReject = () => {
+                    options.closeModal();
 
-            const issuesJSX = (
-                <Spacer v gap="16">
-                    <h3>{gettext('Issues detected:')}</h3>
+                    reject();
+                };
 
-                    <ul>
-                        {warnings.map((warning, i) => (
-                            <li key={i}>{warning}</li>
-                        ))}
-                    </ul>
-                </Spacer>
-            );
+                const issuesJSX = (
+                    <Spacer v gap="16">
+                        <h3>{gettext('Issues detected:')}</h3>
 
-            if (canBeAdded < 1) {
-                return (
-                    <Modal
-                        visible
-                        onHide={closeAndReject}
-                        headerTemplate={
-                            gettextPlural(
-                                attemptedToAdd,
-                                'Item can not be added as related',
-                                'Items can not be added as related',
-                            )
-                        }
-                        footerTemplate={(
-                            <Button text={gettext('Close')} onClick={() => closeAndReject()} />
-                        )}
-                        zIndex={1050}
-                    >
-                        {issuesJSX}
-                    </Modal>
+                        <ul>
+                            {warnings.map((warning, i) => (
+                                <li key={i}>{warning}</li>
+                            ))}
+                        </ul>
+                    </Spacer>
                 );
-            } else {
+
                 return (
                     <Modal
                         visible
@@ -77,12 +63,11 @@ export function confirmAddingRelatedItems(
                                 />
                             </Spacer>
                         )}
-                        zIndex={1050}
                     >
                         {issuesJSX}
                     </Modal>
                 );
-            }
+            });
         });
-    });
+    }
 }
