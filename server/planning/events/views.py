@@ -82,7 +82,7 @@ async def unspike_event(args: EventsArgs, params: None, request: Request) -> Res
     "events/postpone/<string:event_id>",
     name="events_postpone",
     methods=["PATCH"],
-    auth=[required_privilege_rule("planning_event_unspike")],
+    auth=[required_privilege_rule("planning_event_management")],
 )
 async def postpone_event(args: EventsArgs, params: None, request: Request) -> Response:
     original = await EventsAsyncService().find_by_id_raw(args.event_id)
