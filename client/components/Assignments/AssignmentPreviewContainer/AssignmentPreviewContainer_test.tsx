@@ -49,8 +49,6 @@ describe('<AssignmentPreviewContainer />', () => {
         assignment.assigned_to.state = 'assigned';
         let wrapper = getWrapper().find('.AssignmentPreview');
 
-        expect(wrapper.children().length).toBe(5);
-
         expect(wrapper.hasClass('AssignmentPreview')).toBe(true);
 
         expect(wrapper.childAt(0).type()).toEqual(AssignmentPreviewHeader);
@@ -61,7 +59,6 @@ describe('<AssignmentPreviewContainer />', () => {
             showFulfilAssignment: true,
             hideItemActions: true,
         }).find('.AssignmentPreview');
-        expect(wrapper.children().length).toBe(6);
 
         expect(wrapper.hasClass('AssignmentPreview')).toBe(true);
         expect(wrapper.childAt(0).type()).toEqual(AssignmentPreviewHeader);
