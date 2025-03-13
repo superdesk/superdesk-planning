@@ -3,8 +3,7 @@ from typing import Any
 from apps.auth import get_user_id
 from superdesk.notification import push_notification
 from planning.core import BasePlanningAsyncService
-
-from .eventsplanning_model import EventPlanningFilter
+from planning.types import EventPlanningFilter
 
 
 def connect_signals_listeners() -> None:
@@ -35,7 +34,7 @@ def connect_signals_listeners() -> None:
 class EventsPlanningFiltersAsyncService(BasePlanningAsyncService[EventPlanningFilter]):
     resource_name = "events_planning_filters"
 
-    async def create(self, docs: list[dict[str, Any]]) -> None:
+    async def create(self, docs: list[dict[str, Any]]) -> list[EventPlanningFilter]:
         """
         Set the schedules values before creating the filter and pydantic model
         """

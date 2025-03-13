@@ -13,14 +13,13 @@ from quart_babel import lazy_gettext
 from superdesk.core.resources import ResourceConfig, RestEndpointConfig
 from superdesk.core.auth.privilege_rules import http_method_privilege_based_rules
 
+from planning.types import EventPlanningFilter
 from .planning_search import PlanningSearchResource, PlanningSearchService
 from .eventsplanning_search import EventsPlanningResource, EventsPlanningService
 from .eventsplanning_filters import (
     EventPlanningFiltersResource,
     EventPlanningFiltersService,
 )
-
-from .eventsplanning_model import EventPlanningFilter
 from .eventsplanning_filters_service import EventsPlanningFiltersAsyncService, connect_signals_listeners
 
 __all__ = ["events_planning_filters_resource_config", "connect_signals_listeners"]

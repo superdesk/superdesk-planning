@@ -1,61 +1,12 @@
 from pydantic import Field
 from typing import Annotated
 from datetime import datetime
-from enum import Enum, unique
 
 from superdesk.core.resources import fields, Dataclass
 from superdesk.core.resources.validators import validate_data_relation_async, validate_iunique_value_async
 
-from planning.types import BasePlanningModel
-
-
-@unique
-class ItemType(str, Enum):
-    EVENT = "events"
-    PLANNING = "planning"
-    COMBINED = "combined"
-
-
-@unique
-class ScheduleFrequency(str, Enum):
-    HOURLY = "hourly"
-    DAILY = "daily"
-    WEEKLY = "weekly"
-    MONTHLY = "monthly"
-
-
-@unique
-class WeekDay(str, Enum):
-    SUNDAY = "Sunday"
-    MONDAY = "Monday"
-    TUESDAY = "Tuesday"
-    WEDNESDAY = "Wednesday"
-    THURSDAY = "Thursday"
-    FRIDAY = "Friday"
-    SATURDAY = "Saturday"
-
-
-@unique
-class LockState(str, Enum):
-    LOCKED = "locked"
-    UNLOCKED = "unlocked"
-
-
-@unique
-class SpikedState(str, Enum):
-    BOTH = "both"
-    NOT_SPIKED = "draft"
-    SPIKED = "spiked"
-
-
-@unique
-class DateRange(str, Enum):
-    TODAY = "today"
-    TOMORROW = "tomorrow"
-    THIS_WEEK = "this_week"
-    NEXT_WEEK = "next_week"
-    LAST_24 = "last24"
-    FOR_DATE = "for_date"
+from .base import BasePlanningModel
+from .enums import LockState, SpikedState, SearchItemType, SearchScheduleFrequency, SearchWeekDay, SearchDateRange
 
 
 class CVItem(Dataclass):
@@ -78,14 +29,14 @@ class SourceItem(Dataclass):
 
 
 class Schedule(Dataclass):
-    frequency: ScheduleFrequency
+    frequency: SearchScheduleFrequency
     desk: Annotated[fields.ObjectId, validate_data_relation_async("desks")]
-    article_template: Annotated[fields.ObjectId, validate_data_relation_async("content_templates")] | None = None
+    article_template: Annotated[fields.ObjectId | None, validate_data_relation_async("content_templates")] = None
     template: str | None = None
     _last_sent: datetime | None = None
     hour: int = -1
     day: int = -1
-    week_days: list[WeekDay] = Field(default_factory=list)
+    week_days: list[SearchWeekDay] = Field(default_factory=list)
 
 
 class FilterParams(Dataclass):
@@ -103,7 +54,7 @@ class FilterParams(Dataclass):
     state: list[CVItem] = Field(default_factory=list)
     spike_state: SpikedState | None = None
     include_killed: bool | None = None
-    date_filter: DateRange | None = None
+    date_filter: SearchDateRange | None = None
     start_date: datetime | None = None
     end_date: datetime | None = None
     only_future: bool | None = None
@@ -121,7 +72,7 @@ class FilterParams(Dataclass):
     no_calendar_assigned: bool | None = None
 
     # Planning Specific Fields
-    agendas: Annotated[list[str], validate_data_relation_async("agenda")] = Field(default_factory=list)
+    agendas: Annotated[list[fields.ObjectId], validate_data_relation_async("agenda")] = Field(default_factory=list)
     no_agenda_assigned: bool | None = None
     ad_hoc_planning: bool | None = None
     exclude_rescheduled_and_cancelled: bool | None = None
@@ -136,6 +87,6 @@ class FilterParams(Dataclass):
 
 class EventPlanningFilter(BasePlanningModel):
     name: Annotated[str, validate_iunique_value_async("events_planning_filters", "name")]
-    item_type: ItemType = Field(default=ItemType.COMBINED)
+    item_type: SearchItemType = Field(default=SearchItemType.COMBINED)
     params: FilterParams = Field(default_factory=FilterParams)
     schedules: list[Schedule] = Field(default_factory=list)
