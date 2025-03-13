@@ -11,14 +11,14 @@ from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 
 
-blueprint = EndpointGroup("events", __name__)
+events_endpoints_group: EndpointGroup = EndpointGroup("events", __name__)
 
 
 class EventsArgs(BaseModel):
     event_id: str
 
 
-@blueprint.endpoint(
+@events_endpoints_group.endpoint(
     "events/update_time/<string:event_id>",
     name="events_update_time",
     methods=["PATCH"],
@@ -44,7 +44,7 @@ async def update_time(args: EventsArgs, params: None, request: Request) -> Respo
     return Response(updated_event)
 
 
-@blueprint.endpoint(
+@events_endpoints_group.endpoint(
     "events/spike/<string:event_id>",
     name="events_spike",
     methods=["PATCH"],
@@ -61,7 +61,7 @@ async def spike_event(args: EventsArgs, params: None, request: Request) -> Respo
     return Response(spiked_event)
 
 
-@blueprint.endpoint(
+@events_endpoints_group.endpoint(
     "events/unspike/<string:event_id>",
     name="events_unspike",
     methods=["PATCH"],
@@ -78,7 +78,7 @@ async def unspike_event(args: EventsArgs, params: None, request: Request) -> Res
     return Response(unspiked_event)
 
 
-@blueprint.endpoint(
+@events_endpoints_group.endpoint(
     "events/postpone/<string:event_id>",
     name="events_postpone",
     methods=["PATCH"],
