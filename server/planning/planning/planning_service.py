@@ -5,7 +5,6 @@ from lxml import etree
 from copy import deepcopy
 from bson import ObjectId
 from datetime import datetime
-from planning.events.events_service import EventsAsyncService
 from typing_extensions import assert_never
 from typing import AsyncGenerator, Any, cast
 
@@ -200,7 +199,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
             first_primary_event_id = get_first_related_event_id_for_planning(doc_dict, "primary")
             if first_primary_event_id and post_planning_with_event:
-                event = await EventsAsyncService().find_by_id_raw(first_primary_event_id)
+                event = await EventResourceModel.get_service().find_by_id_raw(first_primary_event_id)
                 if not event:
                     logger.warning(
                         "Failed to find linked event for planning",
@@ -1173,13 +1172,12 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         :param dict planning: planning document
         :param dict planning_type: planning type
         """
-        from planning.events import EventsAsyncService
 
         event_id = get_first_related_event_id_for_planning(planning.to_dict(), "primary")
         if not event_id:
             return None
 
-        event = await EventsAsyncService().find_by_id(event_id)
+        event = await EventResourceModel.get_service().find_by_id(event_id)
         if not event:
             logger.warning(
                 "Failed to find linked event for planning",
@@ -1707,9 +1705,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         )
 
     async def _update_event_history(self, doc: dict[str, Any]):
-        from planning.events import EventsAsyncService, EventsHistoryAsyncService
+        from planning.events import EventsHistoryAsyncService
 
-        events_service = EventsAsyncService()
+        events_service = EventResourceModel.get_service()
         events_history_service = EventsHistoryAsyncService()
 
         for original_event in get_related_event_items_for_planning(doc, "primary"):
