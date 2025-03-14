@@ -21,12 +21,23 @@ from .history import HistoryResourceModel, EventsHistoryResourceModel, PlanningH
 from .planning import PlanningResourceModel
 from .assignment import AssignmentResourceModel
 from .published import PublishedPlanningModel
-from .enums import PostStates, UpdateMethods, WorkflowState
+from .enums import (
+    PostStates,
+    UpdateMethods,
+    WorkflowState,
+    LockState,
+    SpikedState,
+    SearchItemType,
+    SearchScheduleFrequency,
+    SearchWeekDay,
+    SearchDateRange,
+)
 from .agendas import AgendasResourceModel
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
 from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from .locations import LocationResourceModel
+from .filters import EventPlanningFilter
 
 
 __all__ = [
@@ -44,6 +55,12 @@ __all__ = [
     "PostStates",
     "UpdateMethods",
     "WorkflowState",
+    "LockState",
+    "SpikedState",
+    "SearchItemType",
+    "SearchScheduleFrequency",
+    "SearchWeekDay",
+    "SearchDateRange",
     "ContentProfile",
     "PlanningRelatedEventLink",
     "AgendasResourceModel",
@@ -51,6 +68,7 @@ __all__ = [
     "EventAutosaveResourceModel",
     "PlanningAutosaveResourceModel",
     "LocationResourceModel",
+    "EventPlanningFilter",
 ]
 
 
