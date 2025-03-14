@@ -69,3 +69,6 @@ planning_spiked = AsyncSignal[dict, dict]("planning:spiked")
 
 #: Signal for when an Planning Item is unspiked
 planning_unspiked = AsyncSignal[dict, dict]("planning:unspiked")
+
+#: Signal for when an Planning Item is postponed
+planning_postponed = AsyncSignal[dict, dict]("planning:postponed")
