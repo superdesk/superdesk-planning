@@ -100,3 +100,52 @@ class ItemActions(str, Enum):
     PLANNING_CANCEL = "planning_cancel"
     CANCEL_ALL_COVERAGE = "cancel_all_coverage"
     EDIT = "edit"
+
+
+@unique
+class LockState(str, Enum):
+    LOCKED = "locked"
+    UNLOCKED = "unlocked"
+
+
+@unique
+class SpikedState(str, Enum):
+    BOTH = "both"
+    NOT_SPIKED = "draft"
+    SPIKED = "spiked"
+
+
+@unique
+class SearchItemType(str, Enum):
+    EVENT = "events"
+    PLANNING = "planning"
+    COMBINED = "combined"
+
+
+@unique
+class SearchScheduleFrequency(str, Enum):
+    HOURLY = "hourly"
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+
+
+@unique
+class SearchWeekDay(str, Enum):
+    SUNDAY = "Sunday"
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+
+
+@unique
+class SearchDateRange(str, Enum):
+    TODAY = "today"
+    TOMORROW = "tomorrow"
+    THIS_WEEK = "this_week"
+    NEXT_WEEK = "next_week"
+    LAST_24 = "last24"
+    FOR_DATE = "for_date"

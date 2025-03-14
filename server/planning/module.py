@@ -22,9 +22,13 @@ from planning.events.views import events_endpoints_group
 from planning.planning.planning_autosave_async_service import PlanningAutosaveAsyncService
 from planning.planning.views import planning_endpoint_group
 from planning.assignments import assignments_resource_config, delivery_resource_config
+from planning.locations import locations_resource_config
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
-from planning.locations import locations_resource_config
+from planning.assignments import assignments_resource_config, delivery_resource_config
+from planning.planning.planning_autosave_async_service import PlanningAutosaveAsyncService
+from planning.search import connect_signals_listeners, events_planning_filters_resource_config
+
 from .planning_locks import planning_locks as planning_locks_endpoint
 
 
@@ -56,6 +60,9 @@ def init_planning(app: SuperdeskAsyncApp):
     wsgi_app.on_session_end += cleanup_on_session_end
     on_get_available_filter_params.connect(add_agenda_to_filter_params)
 
+    # register listeners for events planning filters signals
+    connect_signals_listeners()
+
 
 module = Module(
     "planning",
@@ -75,5 +82,6 @@ module = Module(
         planning_featured_resource_config,
         planning_autosave_resource_config,
         locations_resource_config,
+        events_planning_filters_resource_config,
     ],
 )

@@ -224,6 +224,7 @@ class EventPlanningFiltersResource(Resource):
         "PATCH": "planning_eventsplanning_filters_management",
         "DELETE": "planning_eventsplanning_filters_management",
     }
+    internal_resource = True
 
 
 class EventPlanningFiltersService(Service):
