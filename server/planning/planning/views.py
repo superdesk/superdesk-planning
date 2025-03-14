@@ -68,7 +68,7 @@ async def duplicate_planning_item(args: PlanningArgs, params: None, request: Req
     return Response(duplicated_planning_item)
 
 
-@planning_endpoint_group.endpoint(
+@planning_views_endpoints.endpoint(
     "planning/postpone/<string:planning_id>",
     name="planning_postpone",
     methods=["PATCH"],
