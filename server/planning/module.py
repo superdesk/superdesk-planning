@@ -18,6 +18,10 @@ from planning.planning import (
     planning_featured_resource_config,
     planning_autosave_resource_config,
 )
+from planning.events.views import events_endpoints_group
+from planning.planning.planning_autosave_async_service import PlanningAutosaveAsyncService
+from planning.planning.views import planning_endpoint_group
+from planning.assignments import assignments_resource_config, delivery_resource_config
 from planning.locations import locations_resource_config
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
@@ -26,7 +30,6 @@ from planning.planning.planning_autosave_async_service import PlanningAutosaveAs
 from planning.search import connect_signals_listeners, events_planning_filters_resource_config
 
 from .planning_locks import planning_locks as planning_locks_endpoint
-from .planning.views import planning_endpoint_group
 
 
 async def cleanup_on_session_end(user_id: ObjectId, session_id: ObjectId, is_last_session: bool) -> None:
@@ -64,7 +67,7 @@ def init_planning(app: SuperdeskAsyncApp):
 module = Module(
     "planning",
     init=init_planning,
-    endpoints=[planning_locks_endpoint, planning_endpoint_group],
+    endpoints=[planning_locks_endpoint, planning_endpoint_group, events_endpoints_group],
     resources=[
         events_resource_config,
         planning_resource_config,
