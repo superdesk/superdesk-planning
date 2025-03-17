@@ -62,6 +62,7 @@ events_schema = {
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
     "ingest_firstcreated": metadata_schema["versioncreated"],
     "ingest_versioncreated": metadata_schema["versioncreated"],
+    "ingest_pubstatus": {"type": "string", "mapping": not_analyzed},
     "event_created": {"type": "datetime"},
     "event_lastmodified": {"type": "datetime"},
     # Event Details

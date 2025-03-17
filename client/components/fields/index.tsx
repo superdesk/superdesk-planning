@@ -1,7 +1,13 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
-import {IEventOrPlanningItem, IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
+import {
+    IEventOrPlanningItem,
+    IProfileSchemaType,
+    IRenderPanelType,
+    ISearchProfile,
+    PREVIEW_PANEL,
+} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
 import {name} from './name';
@@ -116,7 +122,7 @@ export function renderFieldsForPanel(
     groupName?: string,
     enabledField: string = 'enabled',
     refs: {[key: string]: React.RefObject<any>} = {},
-    schema?: IProfileSchema,
+    schema?: {[key: string]: IProfileSchemaType},
     coverageProfile?: ISearchProfile,
 ) {
     const fieldComponents = getFieldsForPanel(panelType);

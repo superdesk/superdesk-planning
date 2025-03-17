@@ -20,7 +20,6 @@ export const validateField = ({
     errors,
     messages,
     diff,
-    item,
 }) => {
     if (get(profile, `schema.${field}.validate_on_post`)) {
         return;
@@ -37,7 +36,6 @@ export const validateField = ({
         errors,
         messages,
         diff,
-        item,
     }));
 };
 
@@ -115,7 +113,6 @@ export const validateItem = ({
                 errors: errors,
                 messages: messages,
                 diff: diff,
-                item: item,
             })
         ));
     }

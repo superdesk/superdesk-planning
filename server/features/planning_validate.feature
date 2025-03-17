@@ -279,3 +279,46 @@ Feature: Planning Validate
         """
         Then we get OK response
 
+    @wip
+    @auth
+    Scenario: Validate coverages
+        Given "coverage_profiles"
+        """
+        [
+            {
+                "content_type": "text",
+                "editor": {
+                    "headline": {
+                        "enabled": true
+                    }
+                },
+                "schema": {
+                    "headline": {
+                        "required": true,
+                        "validate_on_post": true
+                    }
+                }
+            }
+        ]
+        """
+        When we post to "planning"
+        """
+        {"planning_date": "2016-01-02", "coverages": [
+            {"profile": "#coverage_profiles._id#"}
+        ], "place": [{"qcode": "NSW"}]}
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {"planning": "#planning._id#", "etag": "#planning._etag#", "pubstatus": "usable"}
+        """
+        Then we get error 400
+        """
+        {
+            "_status": "ERR",
+            "_error": {
+                "message": ["HEADLINE is a required field"],
+                "code": 400
+            }
+        }
+        """

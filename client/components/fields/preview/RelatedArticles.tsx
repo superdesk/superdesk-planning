@@ -24,7 +24,7 @@ export function PreviewFieldRelatedArticles({item, languageFilter}: IProps) {
             </h3>
             {relatedItems.length === 0 ? (
                 <span className="sd-text__info">
-                    {gettext('No related articles')}
+                    {gettext('There are no articles related to this event')}
                 </span>
             ) : (
                 relatedItems.map((relatedItem) => (

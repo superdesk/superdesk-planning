@@ -49,6 +49,7 @@ coverage_schema = {
     "version_creator": metadata_schema["version_creator"],
     "firstcreated": metadata_schema["firstcreated"],
     "versioncreated": metadata_schema["versioncreated"],
+    "profile": Resource.rel("coverage_profiles", nullable=True),
     # News Coverage Details
     # See IPTC-G2-Implementation_Guide 16.4
     "planning": {
@@ -174,6 +175,7 @@ planning_schema = {
     "ingest_provider_sequence": metadata_schema["ingest_provider_sequence"],
     "ingest_firstcreated": metadata_schema["versioncreated"],
     "ingest_versioncreated": metadata_schema["versioncreated"],
+    "ingest_pubstatus": {"type": "string", "mapping": not_analyzed},
     # Agenda Item details
     "agendas": {
         "type": "list",

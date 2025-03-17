@@ -115,19 +115,19 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                 )}
                 {!disabled && (
                     <DropZone
-                        canDrop={
-                            (event) => event.dataTransfer.getData(
-                                'application/superdesk.planning.event',
-                            ) != null
-                        }
+                        canDrop={() => true}
                         onDrop={(event) => {
                             event.preventDefault();
 
-                            const eventItem: IEventItem = JSON.parse(
-                                event.dataTransfer.getData('application/superdesk.planning.event'),
-                            );
+                            const data = event.dataTransfer.getData('application/superdesk.planning.event');
 
-                            this.addRelatedEvent(eventItem);
+                            if (data.length < 1) {
+                                superdeskApi.ui.notify.error(gettext('Dropped item is not an event'));
+                            } else {
+                                const eventItem: IEventItem = JSON.parse(data);
+
+                                this.addRelatedEvent(eventItem);
+                            }
                         }}
                         multiple={true}
                     >

@@ -31,7 +31,6 @@ interface IProps {
     onPopupOpen?(): void;
     onPopupClose?(): void;
     remoteTimeZone?: string;
-    allowInvalidTime?: boolean;
     isLocalTimeZoneDifferent?: boolean;
     refNode?(node: HTMLElement): void;
     showToBeConfirmed?: boolean;
@@ -67,7 +66,6 @@ export const DateTimeInput = ({
     onPopupOpen,
     onPopupClose,
     remoteTimeZone,
-    allowInvalidTime,
     isLocalTimeZoneDifferent,
     refNode,
     showToBeConfirmed,
@@ -137,7 +135,7 @@ export const DateTimeInput = ({
                     onPopupClose={onPopupClose}
                     remoteTimeZone={remoteTimeZone}
                     canClear={canClear}
-                    allowInvalidText={allowInvalidTime}
+                    allowInvalidText
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     halfWidth={!hideTime}
                     showToBeConfirmed={showToBeConfirmed}
@@ -189,7 +187,6 @@ DateTimeInput.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     remoteTimeZone: PropTypes.string,
-    allowInvalidTime: PropTypes.bool,
     isLocalTimeZoneDifferent: PropTypes.bool,
     refNode: PropTypes.func,
     showToBeConfirmed: PropTypes.bool,

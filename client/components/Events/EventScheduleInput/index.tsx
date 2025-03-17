@@ -367,7 +367,6 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
                     onPopupClose={onPopupClose}
                     timeField="_startTime"
                     remoteTimeZone={diff?.dates?.tz}
-                    allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                     refNode={refNode}
                     showToBeConfirmed
@@ -389,7 +388,6 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
                     onPopupClose={onPopupClose}
                     timeField="_endTime"
                     remoteTimeZone={diff?.dates?.tz}
-                    allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                     showToBeConfirmed
                     onToBeConfirmed={this.handleToBeConfirmed}

@@ -1,4 +1,4 @@
-import {isSystemRequiredField} from '../../api/utils/constants';
+import {PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {planningApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 
@@ -48,7 +48,7 @@ export const getPlanningProfileFields = (
          * or is not a system required field we must not show it in the embedded editor
          */
         if (
-            !isSystemRequiredField(fieldId)
+            !PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS.includes(fieldId)
             && options.embeddedOnly
             && shouldBeShown != true
         ) {

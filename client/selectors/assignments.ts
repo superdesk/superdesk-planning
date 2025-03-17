@@ -6,7 +6,6 @@ import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {currentDeskId, currentUserId, currentWorkspace} from './general';
 import {getItemsById} from '../utils';
-import {getRelatedEventIdsForPlanning} from '../utils/planning';
 import {ASSIGNMENTS, SORT_DIRECTION} from '../constants';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
@@ -202,21 +201,15 @@ export const getCurrentAssignmentPlanningItem = createSelector(
     )
 );
 
-export const getCurrentAssignmentEventItem = createSelector<
+export const getRelatedEventsForCurrentAssignment = createSelector<
     IPlanningAppState,
     IPlanningItem | null,
     {[eventId: string]: IEventItem},
-    IEventItem | null
+    Array<IEventItem>
 >(
     [getCurrentAssignmentPlanningItem, storedEvents],
     (planning, events) => {
-        if (planning == null) {
-            return null;
-        }
-
-        const relatedEventIds = getRelatedEventIdsForPlanning(planning, 'primary');
-
-        return relatedEventIds.length > 0 ? events[relatedEventIds[0]] : null;
+        return (planning?.related_events ?? []).map(({_id}) => events[_id]).filter((event) => event != null);
     }
 );
 
