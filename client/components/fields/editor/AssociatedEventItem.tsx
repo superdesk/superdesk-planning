@@ -1,10 +1,11 @@
+import React, {createRef} from 'react';
+import {IAuthoringReact} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {authoringStorageEventItemHttp} from '../../../components/editor-standalone/authoring-storage-event-http';
 import {EventEditorStandalone} from '../../../components/editor-standalone/event-editor-standalone';
 import {RelatedEventListItem} from '../../../components/Events/EventMetadata/RelatedEventListItem';
-import React, {createRef} from 'react';
+import {CustomHeaderToggleBox} from 'superdesk-ui-framework/react/components/ToggleBox/CustomHeaderToggleBox';
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
-import {IAuthoringReact} from 'superdesk-api';
 
 interface IProps{
     removeEventItem(item: DeepPartial<IEventItem>): void;
@@ -14,7 +15,7 @@ interface IProps{
 }
 
 export class AssociatedEventItem extends React.PureComponent<IProps> {
-    public toggleBoxRef: React.RefObject<any>;
+    public toggleBoxRef: React.RefObject<CustomHeaderToggleBox>;
     public authoringRef: React.RefObject<IAuthoringReact<IEventItem>>;
 
     constructor(props) {
@@ -63,16 +64,9 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                         makeVisible={() => {
                             if (this.toggleBoxRef.current.isOpen()) {
                                 return Promise.resolve();
-                            } else {
-                                return new Promise((resolve) => {
-                                    this.toggleBoxRef.current.toggle();
-
-                                    // PR-TODO: improve toggleBox so `toggle` method returns a promise
-                                    setTimeout(() => {
-                                        resolve();
-                                    }, 500);
-                                });
                             }
+
+                            return this.toggleBoxRef.current.toggle().then(() => null);
                         }}
                     />
                 </ToggleBox>

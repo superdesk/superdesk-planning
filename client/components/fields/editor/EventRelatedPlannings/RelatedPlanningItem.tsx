@@ -143,16 +143,9 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                         makeVisible={() => {
                             if (this.toggleBoxRef.current.isOpen()) {
                                 return Promise.resolve();
-                            } else {
-                                return new Promise((resolve) => {
-                                    this.toggleBoxRef.current.toggle();
-
-                                    // PR-TODO: improve toggleBox so `toggle` method returns a promise
-                                    setTimeout(() => {
-                                        resolve();
-                                    }, 500);
-                                });
                             }
+
+                            return this.toggleBoxRef.current.toggle().then(() => null);
                         }}
                     />
                 </ToggleBox>

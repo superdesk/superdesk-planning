@@ -24,7 +24,8 @@ export class EditorFieldPlanningDateTime extends React.PureComponent<IProps> {
 
     onChange(fieldOrValues: string | { [key: string]: any }, value?: any) {
         if (typeof fieldOrValues === 'string') {
-            const updateValue = value?.isValid() ? this.formatValue(value) : null;
+            const momentValue = moment(value);
+            const updateValue = momentValue.isValid() ? this.formatValue(momentValue) : null;
 
             this.props.onChange({
                 [fieldOrValues]: updateValue,

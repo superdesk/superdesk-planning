@@ -30,9 +30,5 @@ export function getProfile(profileType: 'event' | 'planning') {
         item.fieldConfig.width = 100;
     });
 
-    // PR-TODO: remove comment
-    // eslint-disable-next-line no-console
-    console.log('skipped -------------------------------- ', skipped);
-
     return profileV2;
 }

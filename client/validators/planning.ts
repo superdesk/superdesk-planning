@@ -126,14 +126,9 @@ const validateCoverageScheduleDate = ({
     errors,
     messages,
 }) => {
-    if (get(profile, 'schema.scheduled.required') && !value) {
-        if (!field.endsWith('_scheduledTime')) {
-            set(errors, `${field}.date`, gettext('Required'));
-            messages.push(gettext('COVERAGE SCHEDULED DATE is required'));
-        } else {
-            set(errors, field, gettext('Required'));
-            messages.push(gettext('COVERAGE SCHEDULED TIME is required'));
-        }
+    if (get(profile, 'schema.scheduled.required') && (value as moment.Moment).isValid() === false) {
+        set(errors, 'planning.scheduled.date', gettext('Required'));
+        messages.push(gettext('COVERAGE SCHEDULE is required'));
 
         return;
     }
