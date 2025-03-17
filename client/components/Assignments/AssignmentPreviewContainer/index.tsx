@@ -199,7 +199,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                             {gettext('Associated Events')}
                         </h3>
 
-                        <Spacer v gap="16">
+                        <Spacer v gap="8">
                             {
                                 this.props.relatedEvents.map((event) => (
                                     <div key={event._id}>
@@ -211,12 +211,17 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                                             hideEditIcon={true}
                                         />
 
-                                        <div className="sd-padding--2 sd-padding-b--0">
-                                            <PreviewFieldRelatedArticles
-                                                item={event}
-                                                languageFilter={assignment.planning.language}
-                                            />
-                                        </div>
+                                        <PreviewFieldRelatedArticles
+                                            item={event}
+                                            languageFilter={assignment.planning.language}
+                                            wrapper={({children}) => (
+                                                <div
+                                                    className="sd-padding--2 sd-padding-b--0 sd-padding-t--0"
+                                                >
+                                                    {children}
+                                                </div>
+                                            )}
+                                        />
                                     </div>
                                 ))
                             }
