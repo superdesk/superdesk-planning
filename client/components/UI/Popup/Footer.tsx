@@ -1,13 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-/**
- * @ngdoc react
- * @name Footer
- * @description Footer Component of a popup
- */
-const Footer = ({children, className, noBorder, noPadding}) => (
+interface IProps {
+    children: React.ReactNode;
+    className?: string;
+    noBorder?: boolean;
+    noPadding?: boolean;
+}
+
+const Footer = ({children, className, noBorder, noPadding}: IProps) => (
     <div
         className={classNames(
             'popup__menu-footer',
@@ -21,12 +22,5 @@ const Footer = ({children, className, noBorder, noPadding}) => (
         {children}
     </div>
 );
-
-Footer.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    noBorder: PropTypes.bool,
-    noPadding: PropTypes.bool,
-};
 
 export default Footer;
