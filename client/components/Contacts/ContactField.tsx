@@ -106,7 +106,7 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
         }
 
         return (
-            <Row testId={'contacts-preview-list'}>
+            <Row testId={this.props.testId}>
                 <SelectSearchContactsField
                     field={field}
                     label={label}
