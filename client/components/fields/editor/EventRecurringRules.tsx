@@ -15,13 +15,11 @@ export class EditorFieldEventRecurringRules extends React.PureComponent<IEditorF
         this.onRecurringEnableChanged = this.onRecurringEnableChanged.bind(this);
     }
 
-    onRecurringEnableChanged(field: string, value) {
-        const fullField = (this.props.field ?? 'dates') + '.recurring_rule';
-
+    onRecurringEnableChanged(value) {
         if (!value) {
-            this.props.onChange(fullField, null);
+            this.props.onChange(this.props.field, null);
         } else {
-            this.props.onChange(fullField, {
+            this.props.onChange(this.props.field, {
                 frequency: 'DAILY',
                 interval: 1,
                 endRepeatMode: 'until',
@@ -33,30 +31,36 @@ export class EditorFieldEventRecurringRules extends React.PureComponent<IEditorF
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'dates';
-        const value = get(this.props.item, field, this.props.defaultValue) as Partial<IEventItem['dates']>;
+        const value = get(
+            this.props.item,
+            field,
+            this.props.defaultValue,
+        ) as NonNullable<IEventItem['dates']>['recurring_rule'];
         const errors = get(this.props.errors ?? {}, field);
-        const eventRepeats = value?.recurring_rule != null;
+        const eventRepeats = Object.keys(value ?? {}).length > 0;
         const recurring = {enabled: eventRepeats};
 
         return (
-            <React.Fragment>
+            <>
                 <EditorFieldToggle
                     testId={`${this.props.testId}_toggle`}
                     item={recurring}
                     field="enabled"
                     label={gettext('Repeats')}
-                    onChange={this.onRecurringEnableChanged}
+                    onChange={(_field, value) => {
+                        this.onRecurringEnableChanged(value);
+                    }}
                     defaultValue={false}
                 />
                 {!eventRepeats ? null : (
                     <RecurringRulesInput
                         {...this.props}
-                        schedule={value}
+                        recurring_rule={value}
                         errors={errors}
                         testId={`${this.props.testId}_rules`}
                     />
                 )}
-            </React.Fragment>
+            </>
         );
     }
 }

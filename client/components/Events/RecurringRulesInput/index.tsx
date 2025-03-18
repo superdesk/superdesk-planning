@@ -10,15 +10,12 @@ import {Spacer, Select, Option, DatePicker, Input} from 'superdesk-ui-framework/
 import {appConfig} from 'appConfig';
 
 interface IProps {
-    schedule: Partial<IEventItem['dates']>;
+    recurring_rule: NonNullable<IEventItem['dates']>['recurring_rule'];
     readOnly?: boolean;
     errors?: {[key: string]: any};
     onlyUpdateRepetitions?: boolean;
     testId?: string;
     onChange(field: string, value: any): void;
-    popupContainer(): HTMLElement;
-    onPopupOpen?(): void;
-    onPopupClose?(): void;
 }
 
 export class RecurringRulesInput extends React.PureComponent<IProps> {
@@ -52,7 +49,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
 
     onEndRepeatModeChange(value) {
         this.props.onChange('dates.recurring_rule', {
-            ...this.props.schedule.recurring_rule,
+            ...this.props.recurring_rule,
             count: null,
             until: null,
             endRepeatMode: value,
@@ -60,7 +57,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
     }
 
     onFrequencyChange(value) {
-        const recurringRule = get(this.props, 'schedule.recurring_rule') || {};
+        const recurringRule = this.props.recurring_rule ?? {};
 
         this.props.onChange('dates.recurring_rule', {
             ...recurringRule,
@@ -75,10 +72,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
             onChange,
             readOnly,
             errors,
-            popupContainer,
             onlyUpdateRepetitions,
-            onPopupOpen,
-            onPopupClose,
         } = this.props;
 
         const {
@@ -88,19 +82,19 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
             count,
             byday,
             interval,
-        } = this.props.schedule?.recurring_rule ?? {};
+        } = this.props.recurring_rule ?? {};
 
         return (
             <div
                 style={{paddingBlockEnd: '2rem', display: 'flex', flexDirection: 'column', gap: 8}}
                 data-test-id={this.props.testId}
             >
-                <Spacer h gap="4" justifyContent="space-between">
+                <Spacer h gap="32" justifyContent="center">
                     {onlyUpdateRepetitions ? null : (
                         <Spacer h gap="4">
                             <Select
                                 disabled={readOnly}
-                                value={interval.toString()}
+                                value={interval?.toString()}
                                 onChange={(newValue) => {
                                     this.onIntervalChange('dates.recurring_rule.interval', parseInt(newValue, 10));
                                 }}
@@ -127,7 +121,6 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                             </Select>
                         </Spacer>
                     )}
-                    <div />
                     <Spacer h gap="4" justifyContent="center">
                         <Select
                             onChange={this.onEndRepeatModeChange}

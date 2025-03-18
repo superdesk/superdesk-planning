@@ -11,14 +11,6 @@ type IProps = IEditorComponentProps<
 >;
 
 export class Editor extends React.PureComponent<IProps> {
-    private popupContainer: React.RefObject<HTMLDivElement>;
-
-    constructor(props: IProps) {
-        super(props);
-
-        this.popupContainer = React.createRef();
-    }
-
     render() {
         const Container = this.props.container;
         const {EditorFieldEventRecurringRules} = extensionBridge.editor.fields;
@@ -33,7 +25,7 @@ export class Editor extends React.PureComponent<IProps> {
 
                         this.props.onChange(valueCopy.dates.recurring_rule);
                     }}
-                    field='dates'
+                    field='dates.recurring_rule'
                     item={{
                         ...this.props.item,
                         dates: {
@@ -41,9 +33,7 @@ export class Editor extends React.PureComponent<IProps> {
                             recurring_rule: this.props.value,
                         }
                     }}
-                    popupContainer={() => this.popupContainer.current as HTMLDivElement}
                 />
-                <div ref={this.popupContainer} />
             </Container>
         );
     }

@@ -1,7 +1,6 @@
 import {IAuthoringFieldV2, ICommonFieldConfig} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {cloneDeep} from 'lodash';
-import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 export const getEventDateField = () => {
     return {
@@ -24,13 +23,14 @@ export const getEventDateField = () => {
             storeValue: (item: IEventItem, operationalValue: IEventItem['dates']) => {
                 const clonedValue = cloneDeep(operationalValue);
 
-                delete clonedValue[TO_BE_CONFIRMED_FIELD];
+                delete clonedValue.recurring_rule;
 
-                // PR-TODO: Convert all date type fields in dates to iso string,
-                // respectively back to moment in retrieval
                 return {
                     ...item,
-                    dates: clonedValue,
+                    dates: {
+                        ...clonedValue,
+                        recurring_rule: item.dates.recurring_rule,
+                    },
                 };
             },
             retrieveStoredValue: (item: IEventItem) => item.dates,

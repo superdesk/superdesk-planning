@@ -24,7 +24,7 @@ import {AssignmentsCountTracker} from './assignments-overview/hiddenAssignmentsL
 import {getCoveragesField} from './authoring-react-fields/coverages';
 import {getContactField} from './authoring-react-fields/contact';
 import {getLocationField} from './authoring-react-fields/location';
-import {getRecurringRulesField} from './authoring-react-fields/recurrning-rules/index';
+import {getRecurringRulesField} from './authoring-react-fields/recurring-rules/index';
 import {getEventDateField} from './authoring-react-fields/event-date';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {

@@ -53,7 +53,7 @@ function validate<T extends IPlanningItem | IEventItem>(
         if (fieldId === 'recurring_rules') {
             formProfile({
                 field: fieldId,
-                value: latestItem?.dates?.recurring_rule,
+                value: (latestItem as IEventItem)?.dates,
                 profile: planningProfile,
                 errors: errors,
                 messages: messages,

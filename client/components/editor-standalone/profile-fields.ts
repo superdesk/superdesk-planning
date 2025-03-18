@@ -1,6 +1,8 @@
 import {isSystemRequiredField} from '../../api/utils/constants';
 import {planningApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
+import {IProfileSchemaTypeString} from 'interfaces';
+import {RICH_FORMATTING_OPTION} from 'superdesk-api';
 
 interface IBaseField<T> {
     type: T;
@@ -12,7 +14,13 @@ interface ICustomVocabularyField extends IBaseField<'custom_vocabulary'> {
     vocabularyId: string;
 }
 
-type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField;
+export interface IEditor3Field extends IBaseField<'editor3'> {
+    format_options?: Array<RICH_FORMATTING_OPTION>;
+    maxlength?: number;
+    minlength?: number;
+}
+
+export type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField | IEditor3Field;
 
 /**
  * Fields that might exist in the planning profile (database)
@@ -20,6 +28,17 @@ type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField;
  */
 const unimplementedFields = new Set<string>([
     'associated_event',
+]);
+
+export const TEXT_FIELDS_MULTIPLE_TYPES = new Set<string>([
+    'name',
+    'internal_note',
+    'ednote',
+    'description_short',
+    'description_text',
+    'invitation_details',
+    'accreditation_info',
+    'registration_details',
 ]);
 
 /**
@@ -37,7 +56,7 @@ export const getPlanningProfileFields = (
     const planningFieldIds = Object.values(planningGroups)
         .flatMap((x) => x.fields)
         .filter((x) => !unimplementedFields.has(x));
-    const convertedFieldIds: Array<IFieldConverted> = [];
+    const convertedFields: Array<IFieldConverted> = [];
 
     for (const fieldId of planningFieldIds) {
         const fieldSchema = planningProfile.schema[fieldId];
@@ -57,15 +76,29 @@ export const getPlanningProfileFields = (
 
         if (fieldSchema?.type === 'list' && ((fieldSchema.vocabularies ?? []).length > 0)) {
             for (const vocabId of fieldSchema.vocabularies) {
-                convertedFieldIds.push({
+                convertedFields.push({
                     type: 'custom_vocabulary',
                     fieldId: vocabId,
                     required: fieldSchema.required ?? false,
                     vocabularyId: vocabId,
                 });
             }
+        } else if (
+            TEXT_FIELDS_MULTIPLE_TYPES.has(fieldId)
+            && (fieldSchema as IProfileSchemaTypeString).field_type === 'editor_3'
+        ) {
+            const castedSchema = fieldSchema as IProfileSchemaTypeString;
+
+            convertedFields.push({
+                type: 'editor3',
+                fieldId: fieldId,
+                required: fieldSchema.required ?? false,
+                format_options: castedSchema.format_options,
+                maxlength: castedSchema.maxlength,
+                minlength: castedSchema.minlength,
+            });
         } else {
-            convertedFieldIds.push({
+            convertedFields.push({
                 type: 'normal',
                 fieldId: fieldId,
                 required: fieldSchema.required ?? false,
@@ -73,14 +106,5 @@ export const getPlanningProfileFields = (
         }
     }
 
-    // PR-TODO: merge Konstantin's PR where this is fixed
-    if (options.profile === 'event') {
-        convertedFieldIds.push({
-            fieldId: 'contact',
-            required: true,
-            type: 'normal',
-        });
-    }
-
-    return convertedFieldIds;
+    return convertedFields;
 };

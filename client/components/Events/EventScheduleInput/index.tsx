@@ -336,20 +336,15 @@ export class EventScheduleInput extends React.Component<IProps, IState> {
                         label={gettext('Repeats')}
                         value={doesRepeat}
                         {...toggleProps}
-                        onPopupOpen={onPopupOpen}
-                        onPopupClose={onPopupClose}
                     />
                 </Row>
 
                 {showRepeat && doesRepeat && (
                     <RecurringRulesInput
                         onChange={this.onChange}
-                        schedule={diff.dates || {}}
+                        recurring_rule={diff.dates.recurring_rule || {}}
                         readOnly={readOnly}
                         errors={errors?.dates?.recurring_rule}
-                        popupContainer={popupContainer}
-                        onPopupOpen={onPopupOpen}
-                        onPopupClose={onPopupClose}
                     />
                 )}
 

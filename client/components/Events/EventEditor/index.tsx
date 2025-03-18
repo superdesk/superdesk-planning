@@ -149,7 +149,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                 schema={this.props.formProfile.schema}
                 fieldProps={{
                     recurring_rules: {
-                        field: 'dates',
+                        field: 'dates.recurring_rule',
                         defaultValue: {},
                         enabled: !this.props.itemExists,
                     },

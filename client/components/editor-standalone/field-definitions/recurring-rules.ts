@@ -1,8 +1,6 @@
 import {IAuthoringFieldV2, ICommonFieldConfig} from 'superdesk-api';
-import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from './interfaces';
-import {cloneDeep, set} from 'lodash';
-import {nameof} from 'core/helpers/typescript-helpers';
+import {cloneDeep} from 'lodash';
 import moment, {Moment} from 'moment';
 
 export const getRecurringRulesField = (): IFieldDefinition => {
@@ -15,7 +13,7 @@ export const getRecurringRulesField = (): IFieldDefinition => {
 
             const field: IAuthoringFieldV2 = {
                 id: id,
-                name: superdeskApi.localization.gettext('Recurring Rules'),
+                name: '', // Put an empty label to follow design, since label on the toggle is used
                 fieldType: 'recurring_rules-react',
                 fieldConfig: fieldConfig,
             };
@@ -27,7 +25,7 @@ export const getRecurringRulesField = (): IFieldDefinition => {
                 const clonedValue = cloneDeep(item.dates.recurring_rule);
 
                 if (clonedValue?.until != null) {
-                    set(clonedValue, nameof<typeof clonedValue>('until'), moment(clonedValue.until));
+                    clonedValue.until = moment(clonedValue.until);
                 }
 
                 return clonedValue;
@@ -36,7 +34,7 @@ export const getRecurringRulesField = (): IFieldDefinition => {
                 const clonedValue = cloneDeep(operationalValue);
 
                 if (clonedValue?.until != null) {
-                    set(clonedValue, nameof<typeof clonedValue>('until'), (clonedValue.until as Moment).toISOString());
+                    clonedValue.until = (clonedValue.until as Moment).toISOString();
                 }
 
                 return {

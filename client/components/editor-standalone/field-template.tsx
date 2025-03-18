@@ -1,6 +1,6 @@
 import React from 'react';
 import {Spacer, SpacerBlock} from 'superdesk-ui-framework/react';
-import {IPropsAuthoringFieldTemplate} from 'superdesk-api';
+import {IEditor3Config, IPropsAuthoringFieldTemplate} from 'superdesk-api';
 
 const requiredIndicator = (
     <span style={{color: 'var(--sd-colour-alert)', fontSize: '1.1rem'}}>*</span>
@@ -9,8 +9,7 @@ const requiredIndicator = (
 export class FieldTemplate extends React.PureComponent<IPropsAuthoringFieldTemplate> {
     render() {
         const {field, input, validationError, miniToolbar} = this.props;
-
-        const compactMode = miniToolbar == null;
+        const compactMode = miniToolbar == null || (field.fieldConfig as IEditor3Config).compact;
 
         const labelJsx = compactMode
             ? (
