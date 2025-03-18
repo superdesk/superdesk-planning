@@ -22,6 +22,7 @@ import {
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
 import {isTemporaryId} from '../../utils';
+import {nameof} from 'core/helpers/typescript-helpers';
 
 export function getCoverageFields(): ISearchProfile {
     const fields = getGroupFieldsSorted(planningApi.contentProfiles.get('coverage'))
@@ -117,7 +118,7 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         // otherwise trying to save the same item twice would happen
         if (isTemporaryId(original._id) && !isTemporaryId(updates._id)) {
             editor.form.changeField(
-                '_unsaved_related_events',
+                nameof<IPlanningItem>('_unsaved_related_events'),
                 planning._unsaved_related_events.filter((x) => x._id != original._id)
             ).then(updateMainField);
         } else {

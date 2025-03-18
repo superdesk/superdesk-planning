@@ -67,14 +67,9 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
             ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
         };
 
-        autosave.save(undefined, newEvent);
-
-        // Item has to be available for PlanningEditor to load the related_events field.
-        // Event objects are taken from the event store, since on the planning item
-        // itself we only store link information.
-        // planningApi.redux.store.dispatch<any>(eventsApi.receiveEvents([newEvent]));
-
-        this.addRelatedEvent(newEvent as IEventItem);
+        return autosave.save(undefined, newEvent).then(() => {
+            this.addRelatedEvent(newEvent as IEventItem);
+        });
     }
 
     render() {

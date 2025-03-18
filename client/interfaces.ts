@@ -750,6 +750,9 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     // added by client - should be dropped before sending to server
     event?: IEventItem;
 
+    // Used for storing and autosaving changes of newly created events with temporary id.
+    // Only sent to the autosave resource, and not to the planning resource since it doesn't
+    // accept related events with temporary id.
     _unsaved_related_events?: Array<IPlanningRelatedEventLink>;
     /**
      * This is for storing UI related data that is not a part of the planning item entity itself,

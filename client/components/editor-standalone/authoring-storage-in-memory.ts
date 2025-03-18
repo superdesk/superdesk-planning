@@ -2,30 +2,39 @@ import ng from 'superdesk-core/scripts/core/services/ng';
 import {IAuthoringAutoSave, IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
 import {autosave} from '../../api/autosave';
+import {superdeskApi} from '../../superdeskApi';
+import {IEventOrPlanningItem} from 'interfaces';
 
-export function getAuthoringStorageInMemory<T extends {_id: string}>(
+export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
     profile: 'event' | 'planning',
     item: T,
     onSave: (current: T, original: T) => Promise<T>,
 ): IAuthoringStorage<T> {
+    const {assertNever} = superdeskApi.helpers;
+    const getProfileType = (profile: 'event' | 'planning') => {
+        if (profile === 'event') {
+            return 'event';
+        } else if (profile === 'planning') {
+            return 'planning';
+        }
+
+        return assertNever(profile);
+    };
+
     /**
      * Timeout for 500 seconds to let newly added embedded events finish autosaving.
      */
     class NoAutoSave implements IAuthoringAutoSave<T> {
         get(id: string) {
-            return new Promise<T>((resolve) => {
-                setTimeout(() => {
-                    autosave
-                        .getById(profile === 'event' ? 'event' : 'planning', id)
-                        .then((x) => {
-                            if (x == null) {
-                                resolve(item);
-                            } else {
-                                resolve(x as unknown as T);
-                            }
-                        });
-                }, 500);
-            });
+            return autosave
+                .getById(getProfileType(profile), id)
+                .then((x) => {
+                    if (x == null) {
+                        item;
+                    } else {
+                        return {...x} as unknown as T;
+                    }
+                });
         }
 
         delete() {
@@ -53,19 +62,15 @@ export function getAuthoringStorageInMemory<T extends {_id: string}>(
         autosave: new NoAutoSave(),
 
         getEntity: () => {
-            return new Promise<T>((resolve) => {
-                setTimeout(() => {
-                    autosave
-                        .getById(profile === 'event' ? 'event' : 'planning', item._id)
-                        .then((x) => {
-                            if (x == null) {
-                                resolve(item);
-                            } else {
-                                resolve(x as unknown as T);
-                            }
-                        });
-                }, 500);
-            });
+            return autosave
+                .getById(getProfileType(profile), item._id)
+                .then((x) => {
+                    if (x == null) {
+                        return item;
+                    } else {
+                        return {...x} as unknown as T;
+                    }
+                });
         },
 
         isLockedInCurrentSession: () => true,
@@ -78,7 +83,7 @@ export function getAuthoringStorageInMemory<T extends {_id: string}>(
             return onSave(current, original);
         },
         getContentProfile: () => {
-            return Promise.resolve(getProfile(profile));
+            return Promise.resolve(getProfile(profile, item.language ?? 'en'));
         },
         closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
             return Promise.resolve();
