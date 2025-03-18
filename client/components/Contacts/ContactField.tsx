@@ -9,6 +9,7 @@ import {ContactsPreviewList} from './ContactsPreviewList';
 import {IContact, Omit} from 'superdesk-api';
 import {showModal} from '@sourcefabric/common';
 import {IContactFieldProps, IContactReduxStateProps, IContactReduxDispatchProps} from './ContactField.interface';
+import {Row} from './../../components/UI/Form';
 
 const mapStateToProps = (state) => ({
     contacts: selectors.general.contacts(state),
@@ -89,8 +90,6 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
             field,
             privileges,
             onFocus,
-            refNode,
-            paddingTop,
             onPopupOpen,
             onPopupClose,
             readOnly,
@@ -107,11 +106,7 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
         }
 
         return (
-            <div
-                ref={refNode}
-                className={paddingTop ? 'contact-field--padding-top' : null}
-                data-test-id={this.props.testId}
-            >
+            <Row testId={'contacts-preview-list'}>
                 <SelectSearchContactsField
                     field={field}
                     label={label}
@@ -129,7 +124,7 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
                     onEditContact={privileges.contacts ? this.showEditModal : null}
                     onRemoveContact={privileges.contacts ? this.removeContact : null}
                 />
-            </div>
+            </Row>
         );
     }
 }
