@@ -19,8 +19,8 @@ from superdesk.eve_async.service import AsyncBaseService
 from superdesk.resource_fields import ITEMS
 from superdesk.metadata.utils import item_url
 
-from planning.planning.planning import planning_schema
 from planning.events.events_schema import events_schema
+from planning.planning.planning import planning_schema
 from typing import Any, Dict
 
 logger = logging.getLogger(__name__)

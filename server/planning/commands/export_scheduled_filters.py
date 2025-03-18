@@ -139,6 +139,7 @@ class ExportScheduledFilters(Command):
     def _export_filter(self, search_filter, schedule):
         start_of_week = get_app_config("START_OF_WEEK") or 0
 
+        # TODO-ASYNC[EventsPlanningSearch] - Convert `search_by_filter_id` to async when upgrading command
         items = get_resource_service("events_planning_search").search_by_filter_id(
             search_filter["_id"], projections=["_id"], args={"start_of_week": start_of_week}
         )

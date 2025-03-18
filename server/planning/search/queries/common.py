@@ -224,6 +224,7 @@ def search_locked(params: Dict[str, Any], query: elastic.ElasticQuery):
         ids = set()
         event_items = set()
         recurrence_ids = set()
+        # TODO-ASYNC[EventsPlanningSearch] - Convert `get_locked_items` to async when upgrading this function
         locked_items = search_service.get_locked_items(projections=["_id", "type", "recurrence_id", "related_events"])
 
         if not locked_items.count():

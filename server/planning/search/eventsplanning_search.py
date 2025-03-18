@@ -20,8 +20,8 @@ from eve.utils import ParsedRequest
 
 from superdesk import Resource, get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
-from superdesk.resource_fields import ITEMS
 from superdesk.resource import build_custom_hateoas
+from superdesk.resource_fields import ITEMS
 from superdesk.errors import SuperdeskApiError
 
 from planning.events.events_schema import events_schema

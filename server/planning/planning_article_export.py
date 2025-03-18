@@ -61,6 +61,7 @@ class PlanningArticleExportResource(Resource):
 
 def get_items(ids, resource_type):
     ids_string = [str(item_id) for item_id in ids]
+    # TODO-ASYNC[EventsPlanningSearch] - Convert `search_repos` to async when upgrading module
     items = get_resource_service("events_planning_search").search_repos(
         resource_type, {"item_ids": ",".join(ids_string), "only_future": False}
     )
