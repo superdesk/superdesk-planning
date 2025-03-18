@@ -455,6 +455,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 toBeConfirmed: this.props.value?._time_to_be_confirmed,
                 onToBeConfirmed: this.onTimeToBeConfirmed,
                 onChange: this.onScheduleChanged,
+                canClear: false,
             },
             no_content_linking: {
                 readOnly: this.props.readOnly || readOnlyFields.flags,
@@ -478,6 +479,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     this.props.value.planning?.g2_content_type === 'text'
                 ),
                 scheduledUpdates: this.props.value.scheduled_updates ?? [],
+                canClear: false,
             },
             priority: {field: 'planning.priority'},
         };

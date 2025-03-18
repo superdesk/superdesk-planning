@@ -309,6 +309,7 @@ export class TimeInput extends React.Component {
                         showToBeConfirmed={showToBeConfirmed}
                         onToBeConfirmed={onToBeConfirmed ? onToBeConfirmed.bind(null, field) : null}
                         toBeConfirmedText={gettext('To Be Confirmed')}
+                        canClear={this.props.canClear}
                     />
                 )}
             </LineInput>
