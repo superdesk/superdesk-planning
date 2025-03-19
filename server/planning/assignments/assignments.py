@@ -480,6 +480,12 @@ class AssignmentsService(superdesk.Service):
             else None
         )
 
+        if event_item and event_item.get("related_items"):
+            coverage_language = assignment.get("planning", {}).get("language")
+            event_item["related_items"] = [
+                article for article in event_item["related_items"] if article.get("language") == coverage_language
+            ]
+
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):
             # If it is a reassignment
