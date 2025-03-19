@@ -118,18 +118,17 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                     </>
                 )}
                 <DropZone
-                    canDrop={
-                        (event) => event.dataTransfer.getData(
-                            'application/superdesk.planning.planning_item',
-                        ) != null
-                    }
+                    canDrop={() => canAddItems.allowed}
                     onDrop={(event) => {
-                        event.preventDefault();
-                        const planningItem: IPlanningItem = JSON.parse(
-                            event.dataTransfer.getData('application/superdesk.planning.planning_item'),
-                        );
+                        const data = event.dataTransfer.getData('application/superdesk.planning.planning_item');
 
-                        addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
+                        if (data.length < 1) {
+                            superdeskApi.ui.notify.error(gettext('Dropped item is not a planning item'));
+                        } else {
+                            const planningItem: IPlanningItem = JSON.parse(data);
+
+                            addSomeRelatedPlanningsToEventEditor([planningItem], this.props.lockedItems);
+                        }
                     }}
                     multiple={true}
                     disabled={!canAddItems.allowed}

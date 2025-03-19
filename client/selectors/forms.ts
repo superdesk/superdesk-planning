@@ -1,8 +1,6 @@
 import {createSelector} from 'reselect';
 import {get, filter} from 'lodash';
 
-import {appConfig} from 'appConfig';
-
 import {ITEM_TYPE, MAIN} from '../constants';
 import {sessionId as getSessionId} from './general';
 import {isExistingItem} from '../utils';
@@ -26,7 +24,6 @@ const getcurrentItem = (itemId, itemType, events, plannings, values, modal = fal
 /** Profiles **/
 export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
 export const profiles = (state) => get(state, 'forms.profiles', {});
-export const coverageProfile = createSelector([profiles], (p) => get(p, 'coverage', {}));
 export const eventProfile = createSelector([profiles], (p) => get(p, 'event', {}));
 export const planningProfile = createSelector([profiles], (p) => get(p, 'planning', {}));
 export const eventPostponeProfile = createSelector([profiles], (p) => get(p, 'event_postpone', {}));
@@ -159,10 +156,4 @@ export const currentAutosaveModal = createSelector(
     (autosaveItems, itemId) => (
         autosaveItems.event[itemId] ?? autosaveItems.planning[itemId]
     )
-);
-
-export const getPlanningAllowScheduledUpdates = createSelector(
-    [coverageProfile],
-    (cp) => get(cp, 'editor.flags') &&
-        appConfig.planning_allow_scheduled_updates
 );

@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten, noop, isEqual} from 'lodash';
+import {get, set, uniq, sortBy, isEmpty, cloneDeep, isArray, flatten} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
@@ -22,7 +22,7 @@ import {
     IPlanningRelatedEventLink,
     IPlanningRelatedEventLinkType,
     IItemAction,
-    EDITOR_TYPE,
+    ICoverageType,
 } from '../interfaces';
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
@@ -31,7 +31,6 @@ import {
     WORKFLOW_STATE,
     GENERIC_ITEM_ACTIONS,
     PRIVILEGES,
-    EVENTS,
     PLANNING,
     ASSIGNMENTS,
     POST_STATE,
@@ -45,7 +44,6 @@ import {
     isItemKilled,
     isItemSpiked,
     isItemRescheduled,
-    eventUtils,
     isItemCancelled,
     getPostedState,
     isEmptyActions,
@@ -69,6 +67,7 @@ import {IMenuItem} from 'superdesk-ui-framework/react/components/Menu';
 import {isItemAction, isMenuDivider} from '../helpers';
 import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {getOpenEditorType} from './editor';
+import {coverageProfiles} from '../selectors/coverageProfiles';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -1540,13 +1539,18 @@ function defaultCoverageValues(
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
     planningItem?: DeepPartial<IPlanningItem>,
     eventItem?: IEventItem, // TAG: MULTIPLE_PRIMARY_EVENTS
-    g2contentType?: IG2ContentType['qcode'],
+    g2contentType?: ICoverageType,
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
     const coverageProfile = contentProfiles.get('coverage');
     const defaultValues = (contentProfiles.getDefaultValues(coverageProfile)) as DeepPartial<IPlanningCoverageItem>;
+    const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+
+    // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
+    const profileId = allProfiles.find((x) => x.content_type === g2contentType)?._id ?? undefined;
+
     let newCoverage: DeepPartial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),
         planning: Object.assign(
@@ -1578,6 +1582,7 @@ function defaultCoverageValues(
             },
             defaultValues
         ),
+        profile: profileId,
         news_coverage_status: getDefaultCoverageStatus(newsCoverageStatus),
         workflow_status: 'draft',
     };

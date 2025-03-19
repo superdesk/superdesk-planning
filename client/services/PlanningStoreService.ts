@@ -174,26 +174,39 @@ export class PlanningStoreService {
     }
 
     fetchData() {
-        return this.$q.all({
-            voc: this.vocabularies.getAllActiveVocabularies(),
-            ingest: this.api('ingest_providers').getAll(),
-            privileges: this.privileges.loaded,
-            metadata: this.metadata.initialize(),
-            users: this.userList.getAll(),
-            desks: this.desks.initialize(),
-            all_templates: this.templates.fetchAllTemplates(1, 200, 'create'),
-            formsProfile: planningApi.contentProfiles.getAll(),
-            userDesks: this.desks.fetchCurrentUserDesks(),
-            exportTemplates: this.api('planning_export_templates').query({
+        return Promise.all([
+            this.vocabularies.getAllActiveVocabularies(),
+            this.api('ingest_providers').getAll(),
+            this.privileges.loaded,
+            this.metadata.initialize(),
+            this.userList.getAll(),
+            this.desks.initialize(),
+            this.templates.fetchAllTemplates(1, 200, 'create'),
+            planningApi.contentProfiles.getAll(),
+            planningApi.contentProfiles.coverages.getAll(),
+            this.desks.fetchCurrentUserDesks(),
+            this.api('planning_export_templates').query({
                 max_results: 200,
                 page: 1,
             }),
-        });
+        ]);
     }
 
     getInitialState() {
         return this.fetchData()
-            .then((data) => {
+            .then(([
+                voc = [],
+                ingest = [],
+                privileges = [],
+                _metadata,
+                users = [],
+                _desks,
+                all_templates = [],
+                formsProfile = [],
+                coverageProfiles = [],
+                userDesks = [],
+                exportTemplates = [],
+            ]) => {
                 const genres = this.metadata.values.genre_custom ?
                     this.metadata.values.genre_custom.map(
                         (item) => Object.assign({scheme: 'genre_custom'}, item)
@@ -202,11 +215,11 @@ export class PlanningStoreService {
 
                 const initialState = {
                     vocabularies: zipObject(
-                        get(data, 'voc', []).map((cv) => cv._id),
-                        get(data, 'voc', []).map((cv) => cv.items)
+                        voc.map((cv) => cv._id),
+                        voc.map((cv) => cv.items)
                     ),
                     ingest: {
-                        providers: get(data, 'ingest', [])
+                        providers: ingest
                             .filter((p) => (
                                 get(p, 'content_types', []).indexOf(ITEM_TYPE.EVENT) !== -1 ||
                                 get(p, 'content_types', []).indexOf(ITEM_TYPE.PLANNING) !== -1)
@@ -216,12 +229,12 @@ export class PlanningStoreService {
                                 id: provider._id,
                             })),
                     },
-                    privileges: data.privileges,
+                    privileges: privileges,
                     subjects: this.metadata.values.subjectcodes,
                     genres: genres,
-                    users: data.users,
+                    users: users,
                     desks: this.desks.desks._items,
-                    templates: data.all_templates._items,
+                    templates: all_templates._items,
                     workspace: {
                         currentDeskId: get(this.desks, 'active.desk'),
                         currentStageId: get(this.desks, 'active.stage'),
@@ -235,13 +248,16 @@ export class PlanningStoreService {
                         urgency: this.metadata.values.urgency,
                         label: this.gettextCatalog.getString('Urgency'),
                     },
+                    coverageProfiles: {
+                        profiles: coverageProfiles,
+                    },
                     forms: {profiles: {}},
                     customVocabularies: this.metadata.cvs.filter((cv) =>
                         !isEmpty(cv.service) &&
                         isEmpty(cv.field_type)
                     ),
-                    userDesks: data.userDesks,
-                    exportTemplates: get(data.exportTemplates, '_items', []),
+                    userDesks: userDesks,
+                    exportTemplates: get(exportTemplates, '_items', []),
                 };
 
                 // use custom cvs if any
@@ -249,7 +265,7 @@ export class PlanningStoreService {
                     genre: genres,
                 });
 
-                data.formsProfile.forEach((p) => {
+                formsProfile.forEach((p) => {
                     initialState.forms.profiles[p.name] = p;
                 });
 

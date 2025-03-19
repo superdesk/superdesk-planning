@@ -20,10 +20,10 @@
         ],
         "jsx": "react",
         "paths": {
-            "core/*": ["../node_modules/superdesk-core/scripts/core/*"],
-            "apps/*": ["../node_modules/superdesk-core/scripts/apps/*"],
-            "superdesk-interfaces/*": ["../node_modules/superdesk-core/scripts/superdesk-interfaces/*"],
-            "appConfig": ["../node_modules/superdesk-core/scripts/appConfig"]
+            "core/*": ["superdesk-core/scripts/core/*"],
+            "apps/*": ["superdesk-core/scripts/apps/*"],
+            "superdesk-interfaces/*": ["superdesk-core/scripts/superdesk-interfaces/*"],
+            "appConfig": ["superdesk-core/scripts/appConfig"]
         }
     }
 }

@@ -6,9 +6,9 @@ import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
 import {validateField, validators} from './index';
-import {coverages} from '../api/coverages';
 import {IPlanningCoverageItem} from 'interfaces';
 import {planningApi} from '../superdeskApi';
+import {coverageProfiles, oldProfile} from '../selectors/coverageProfiles';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -42,7 +42,6 @@ export function validateCoveragesV2(value: Array<IPlanningCoverageItem>) {
     validateCoverages({
         dispatch: store.dispatch,
         getState: store.getState,
-        profile: coverages.getEditorProfile(),
         value: value,
         diff: {
             coverages: value,
@@ -59,7 +58,6 @@ export const validateCoverages = ({
     dispatch,
     getState,
     value,
-    profile,
     errors,
     messages,
     diff,
@@ -75,7 +73,12 @@ export const validateCoverages = ({
                 'coverage_id'
             );
 
-            Object.keys(validators.coverage).forEach((key) => {
+            const storeState = planningApi.redux.store.getState();
+            const newProfile = coverageProfiles(storeState)
+                .find((x) => x.content_type === coverage.content_type);
+            const coverageProfile = newProfile ? newProfile : oldProfile(storeState);
+
+            Object.entries(validators.coverage).forEach(([key, val]) => {
                 const coverageErrors = {};
                 let keyName = ['news_coverage_status', 'scheduled_updates'].includes(key) ? key : `planning.${key}`;
                 let original = get(originalCoverage, keyName);
@@ -90,12 +93,12 @@ export const validateCoverages = ({
                 }
 
                 validateField({
+                    profileName: 'coverage',
                     dispatch: dispatch,
                     getState: getState,
-                    profileName: 'coverage',
                     field: key,
                     value: value,
-                    profile: profile,
+                    profile: coverageProfile,
                     errors: coverageErrors,
                     messages: messages,
                     diff: diff,
@@ -123,14 +126,9 @@ const validateCoverageScheduleDate = ({
     errors,
     messages,
 }) => {
-    if (get(profile, 'schema.scheduled.required') && !value) {
-        if (!field.endsWith('_scheduledTime')) {
-            set(errors, `${field}.date`, gettext('Required'));
-            messages.push(gettext('COVERAGE SCHEDULED DATE is required'));
-        } else {
-            set(errors, field, gettext('Required'));
-            messages.push(gettext('COVERAGE SCHEDULED TIME is required'));
-        }
+    if (get(profile, 'schema.scheduled.required') && (value as moment.Moment).isValid() === false) {
+        set(errors, 'planning.scheduled.date', gettext('Required'));
+        messages.push(gettext('COVERAGE SCHEDULE is required'));
 
         return;
     }

@@ -61,7 +61,7 @@ class EditorFieldScheduledUpdatesComponent extends React.PureComponent<IProps> {
 
         return (
             <Row testId={this.props.testId}>
-                <LineInput>
+                <LineInput noMargin>
                     <Label text={this.props.label ?? gettext('Scheduled Updates')} />
                 </LineInput>
                 {value.map((s: ICoverageScheduledUpdate, index: number) => (

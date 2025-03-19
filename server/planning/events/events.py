@@ -60,6 +60,7 @@ from planning.common import (
     get_max_recurrent_events,
     WORKFLOW_STATE,
     ITEM_STATE,
+    prepare_ingested_item_for_storage,
     remove_lock_information,
     format_address,
     update_post_item,
@@ -95,6 +96,19 @@ organizer_roles = {
     "eorol:tech": "Technical organiser",
     "eorol:travAgent": "Travel agent",
     "eorol:venue": "Venue organiser",
+}
+
+# based on onclusive provided content fields for now
+CONTENT_FIELDS = {
+    "name",
+    "definition_short",
+    "definition_long",
+    "links",
+    "ednote",
+    "subject",
+    "anpa_category",
+    "location",
+    "event_contact_info",
 }
 
 
@@ -139,6 +153,18 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
     return False
 
 
+def get_user_updated_keys(event_id: str) -> set[str]:
+    history_service = get_resource_service("events_history")
+    updates = history_service.get_by_id(event_id)
+    updated_keys = set()
+    for update in updates:
+        if not update.get("user_id"):
+            continue
+        if update.get("update"):
+            updated_keys.update(update["update"].keys())
+    return updated_keys
+
+
 class EventsService(superdesk.Service):
     """Service class for the events model."""
 
@@ -146,6 +172,7 @@ class EventsService(superdesk.Service):
         """Post an ingested item(s)"""
 
         for doc in docs:
+            prepare_ingested_item_for_storage(doc)
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
 
@@ -155,12 +182,21 @@ class EventsService(superdesk.Service):
         self.on_created(docs)
         return ids
 
-    def patch_in_mongo(self, id, document, original) -> Optional[Dict[str, Any]]:
+    def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
         """Patch an ingested item onto an existing item locally"""
+        prepare_ingested_item_for_storage(document)
+        events_history = get_resource_service("events_history")
+        events_history.on_item_updated(document, original, "ingested")
+
+        content_fields = app.config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
+        updated_keys = get_user_updated_keys(_id)
+        for key in updated_keys:
+            if key in document and key in content_fields and original.get(key):
+                document[key] = original[key]
 
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
-        response = self.backend.update_in_mongo(self.datasource, id, document, original)
+        response = self.backend.update_in_mongo(self.datasource, _id, document, original)
         self.on_updated(document, original, from_ingest=True)
         return response
 
@@ -817,7 +853,7 @@ class EventsService(superdesk.Service):
         total_received = 0
         total_events = -1
 
-        while True:
+        while total_received + get_max_recurrent_events() < 10000:  # 10k is max elastic limit
             query["from"] = total_received
 
             results = self.search(query)
@@ -851,7 +887,6 @@ class EventsService(superdesk.Service):
     def should_update(self, old_item, new_item, provider):
         return old_item is None or not any(
             [
-                old_item.get("version_creator"),
                 old_item.get("pubstatus") == "cancelled",
                 old_item.get("state") == "killed",
             ]

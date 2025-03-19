@@ -32,7 +32,7 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
         }
     }
 
-    onChange(field: string, value: moment.Moment) {
+    onChange(field: string, value: Date) {
         // `field` is appended with `.date` or `.time` depending on what changed
         // Not all usages of this component requires this, so use `this.props.field` instead
         if (this.props.singleValue === true) {

@@ -9,6 +9,7 @@ export const COVERAGES = {
         CREATED_CONTENT: 'coverage_created_content',
         ASSIGNED: 'coverage_assigned',
     },
+    UPDATE_PROFILES: 'update_profiles',
     DEFAULT_DESK_PREFERENCE: 'planning:default_coverage_desks',
     ADD_ADVANCED_MODE_PREFERENCE: 'planning:add_coverage_advanced_mode',
 };

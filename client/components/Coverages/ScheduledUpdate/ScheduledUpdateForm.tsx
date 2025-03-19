@@ -125,6 +125,7 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
                 />
 
                 <Field
+                    row={false}
                     component={SelectInput}
                     field={`${field}.planning.genre`}
                     profileName="genre"
@@ -137,6 +138,7 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
                 />
 
                 <Field
+                    row={false}
                     component={TextAreaInput}
                     field={`${field}.planning.internal_note`}
                     profileName="internal_note"
@@ -147,6 +149,7 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
                 />
 
                 <Field
+                    row={false}
                     component={SelectInput}
                     field={`${field}.news_coverage_status`}
                     profileName="news_coverage_status"
@@ -159,19 +162,18 @@ export class ScheduledUpdateForm extends React.Component<IProps> {
                 />
 
                 <Field
+                    row={false}
                     component={DateTimeInput}
                     field={`${field}.planning.scheduled`}
                     profileName="scheduled"
                     label={gettext('Due')}
                     defaultValue={null}
-                    row={false}
                     {...fieldProps}
                     onChange={this.onScheduleChanged}
                     readOnly={roFields.scheduled}
                     popupContainer={popupContainer}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
-                    timeField={`${field}.planning._scheduledTime`}
                 />
             </div>
         );

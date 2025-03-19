@@ -20,7 +20,6 @@ export const validateField = ({
     errors,
     messages,
     diff,
-    item,
 }) => {
     if (get(profile, `schema.${field}.validate_on_post`)) {
         return;
@@ -37,7 +36,6 @@ export const validateField = ({
         errors,
         messages,
         diff,
-        item,
     }));
 };
 
@@ -115,7 +113,6 @@ export const validateItem = ({
                 errors: errors,
                 messages: messages,
                 diff: diff,
-                item: item,
             })
         ));
     }
@@ -174,7 +171,9 @@ export const validators = {
         internal_note: [formProfile],
         keyword: [formProfile],
         scheduled: [planningValidators.validateCoverageScheduleDate],
-        // PR-TODO: re-enable validation
+
+        // FIXME: Removed validation, because now we validate both date and time through `scheduled` field
+        // In the future we will drop _scheduledTime from the whole codebase
         // _scheduledTime: [planningValidators.validateCoverageScheduleDate],
         slugline: [formProfile],
         scheduled_updates: [planningValidators.validateScheduledUpdatesDate],

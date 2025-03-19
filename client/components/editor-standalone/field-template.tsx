@@ -54,8 +54,6 @@ export class FieldTemplate extends React.PureComponent<IPropsAuthoringFieldTempl
                 <div>
                     {labelJsx}
 
-                    {miniToolbar != null && <SpacerBlock v gap="16" />}
-
                     {input != null && input}
 
                     {validationError != null && (
@@ -73,9 +71,7 @@ export class FieldTemplate extends React.PureComponent<IPropsAuthoringFieldTempl
             return (
                 <div>
                     {labelJsx}
-
-                    <div id="deployment-test" />
-
+                    {miniToolbar != null && <SpacerBlock v gap="16" />}
                     {validationError != null && (
                         <>
                             <SpacerBlock v gap="4" />

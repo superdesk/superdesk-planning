@@ -5,7 +5,6 @@ import {isEmpty} from 'lodash';
 import {
     EDITOR_TYPE,
     IAssignmentPriority,
-    ICoverageFormProfile,
     ICoverageProvider, IEventItem, IFile,
     IG2ContentType,
     IGenre,
@@ -62,8 +61,6 @@ interface IReduxStateProps {
     priorities: Array<IAssignmentPriority>;
     contentTypes: Array<IG2ContentType>;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    formProfile: ICoverageFormProfile;
-    planningAllowScheduledUpdates: boolean;
     coverageAddAdvancedMode: boolean;
     defaultDesk: IDesk;
 }
@@ -86,8 +83,6 @@ const mapStateToProps = (state): IReduxStateProps => ({
     priorities: selectors.getAssignmentPriorities(state),
     contentTypes: selectors.general.contentTypes(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
-    formProfile: selectors.forms.coverageProfile(state),
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
     defaultDesk: selectors.general.defaultDesk(state),
 });
