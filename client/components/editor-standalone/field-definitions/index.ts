@@ -31,7 +31,7 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
     const result: Array<IFieldDefinition> = [
         {
             fieldId: 'ednote',
-            getField: (props) => getTextFieldConfig({...props, label: gettext('Ed Note'),}),
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Ed Note')}),
         },
         {
             fieldId: 'internal_note',

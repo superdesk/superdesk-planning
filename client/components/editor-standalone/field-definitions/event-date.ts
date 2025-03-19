@@ -1,8 +1,11 @@
 import {IAuthoringFieldV2, ICommonFieldConfig} from 'superdesk-api';
+import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {superdeskApi} from '../../../superdeskApi';
 import {cloneDeep} from 'lodash';
+import moment, {isMoment, Moment} from 'moment';
+import {IFieldDefinition} from './interfaces';
 
-export const getEventDateField = () => {
+export const getEventDateField = (): IFieldDefinition => {
     return {
         fieldId: 'dates',
         getField: ({required, id}) => {
@@ -20,20 +23,44 @@ export const getEventDateField = () => {
             return field;
         },
         storageAdapterEvent: {
-            storeValue: (item: IEventItem, operationalValue: IEventItem['dates']) => {
+            storeValue: (
+                item: IEventItem,
+                operationalValue: {
+                    dates: IEventItem['dates'];
+                    [TO_BE_CONFIRMED_FIELD]?: boolean;
+                },
+            ) => {
                 const clonedValue = cloneDeep(operationalValue);
-
-                delete clonedValue.recurring_rule;
 
                 return {
                     ...item,
+                    ...clonedValue,
                     dates: {
-                        ...clonedValue,
+                        ...clonedValue.dates,
+                        start: isMoment(clonedValue.dates.start)
+                            ? (clonedValue.dates.start as unknown as Moment).toISOString()
+                            : clonedValue.dates.start,
+                        end: isMoment(clonedValue.dates.end)
+                            ? (clonedValue.dates.end as unknown as Moment).toISOString()
+                            : clonedValue.dates.end,
                         recurring_rule: item.dates.recurring_rule,
                     },
                 };
             },
-            retrieveStoredValue: (item: IEventItem) => item.dates,
+            retrieveStoredValue: (item: IEventItem) => {
+                return {
+                    dates: {
+                        ...item.dates,
+                        start: isMoment(item.dates.start)
+                            ? item.dates.start
+                            : moment(item.dates.start),
+                        end: isMoment(item.dates.end)
+                            ? item.dates.end
+                            : moment(item.dates.end),
+                    },
+                    [TO_BE_CONFIRMED_FIELD]: item[TO_BE_CONFIRMED_FIELD],
+                };
+            },
         }
     };
 };

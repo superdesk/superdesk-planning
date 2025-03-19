@@ -58,6 +58,7 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
+            planning_event_link_method: 'one_primary' | 'many_secondary' | 'one_primary_many_secondary';
             getItemProfile: (type: 'planning' | 'event') => IPlanningContentProfile;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;

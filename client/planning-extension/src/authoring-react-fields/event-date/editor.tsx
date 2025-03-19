@@ -26,20 +26,25 @@ export class Editor extends React.PureComponent<IProps> {
                 <EditorFieldEventSchedule
                     required={true}
                     profile={profile}
+                    disabled={
+                        extensionBridge.ui.utils.planning_event_link_method === 'many_secondary'
+                            ? true
+                            : !extensionBridge.ui.utils.isTemporaryId(this.props.item.id)
+                    }
                     onChange={(changes: {[fieldPath: string]: any}) => {
-                        const valueCopy = {dates: cloneDeep(this.props.value)};
+                        const valueCopy = cloneDeep(this.props.value);
 
-                        Object.entries(changes).forEach(([key, value]) => {
-                            set(valueCopy, key, value);
+                        Object.entries(changes).forEach(([path, value]) => {
+                            set(valueCopy, path, value);
                         });
 
-                        this.props.onChange(valueCopy.dates);
+                        this.props.onChange(valueCopy);
                     }}
                     showAllDay={(profile as unknown as IEventFormProfile).editor.dates.all_day.enabled}
                     showTimeZone={true}
                     item={{
                         ...this.props.item,
-                        dates: this.props.value,
+                        ...this.props.value,
                     }}
                     field='dates'
                 />

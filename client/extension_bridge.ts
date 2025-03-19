@@ -39,6 +39,7 @@ import {IEditorFieldEventRecurringRulesProps} from './components/fields/editor/E
 import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRecurringRules';
 import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
 import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
+import {appConfig} from 'appConfig';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
 interface IExtensionBridge {
@@ -73,6 +74,7 @@ interface IExtensionBridge {
     }
     ui: {
         utils: {
+            planning_event_link_method: 'one_primary' | 'many_secondary' | 'one_primary_many_secondary';
             getItemProfile: (type: 'planning' | 'event') => IPlanningContentProfile;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
@@ -140,6 +142,7 @@ export const extensionBridge: IExtensionBridge = {
     },
     ui: {
         utils: {
+            planning_event_link_method: appConfig.planning_event_link_method,
             getItemProfile: (type) => planningApi.contentProfiles.get(type),
             isTemporaryId: isTemporaryId,
             getUserInterfaceLanguageFromCV: getUserInterfaceLanguageFromCV,
