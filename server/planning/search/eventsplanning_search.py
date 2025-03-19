@@ -301,7 +301,8 @@ class EventsPlanningService(AsyncBaseService):
 
         return await self.search_repos(search_filter["item_type"], args, page, page_size, projections)
 
-    async def get_locked_items(self, repo=None, page=None, page_size=None, projections=None):
+    # TODO-ASYNC[EventsPlanningSearch] - Convert `get_locked_items` to async when adding support for search param async callbacks
+    def get_locked_items(self, repo=None, page=None, page_size=None, projections=None):
         """Return the list of locked items in the provided ``repo``
 
         :param repo: Comma separated list of repos to search, defaults to ``events,planning``
@@ -314,7 +315,7 @@ class EventsPlanningService(AsyncBaseService):
 
         query = ElasticQuery()
         query.must.append(field_exists("lock_session"))
-        return await self.search_raw(
+        return self.search_raw(
             repo=repo,
             query=query.build(),
             page=page or 1,
