@@ -10,6 +10,7 @@ import {IContact, Omit} from 'superdesk-api';
 import {showModal} from '@sourcefabric/common';
 import {IContactFieldProps, IContactReduxStateProps, IContactReduxDispatchProps} from './ContactField.interface';
 import {Row} from './../../components/UI/Form';
+import {Spacer} from 'superdesk-ui-framework/react';
 
 const mapStateToProps = (state) => ({
     contacts: selectors.general.contacts(state),
@@ -90,6 +91,8 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
             field,
             privileges,
             onFocus,
+            refNode,
+            paddingTop,
             onPopupOpen,
             onPopupClose,
             readOnly,
@@ -106,24 +109,36 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
         }
 
         return (
-            <Row testId={this.props.testId}>
-                <SelectSearchContactsField
-                    field={field}
-                    label={label}
-                    onChange={this.onChange}
-                    value={value}
-                    onAdd={privileges.contacts ? this.showEditModal : undefined}
-                    onAddText={privileges.contacts ? gettext('Add Contact') : null}
-                    onFocus={onFocus}
-                    readOnly={readOnly}
-                    onPopupOpen={onPopupOpen}
-                    onPopupClose={onPopupClose}
-                />
-                <ContactsPreviewList
-                    contactIds={value}
-                    onEditContact={privileges.contacts ? this.showEditModal : null}
-                    onRemoveContact={privileges.contacts ? this.removeContact : null}
-                />
+            <Row>
+                <div
+                    ref={refNode}
+                    className={paddingTop ? 'contact-field--padding-top' : null}
+                    data-test-id={this.props.testId}
+                >
+                    <Spacer v gap="8">
+                        <SelectSearchContactsField
+                            field={field}
+                            label={label}
+                            onChange={this.onChange}
+                            value={value}
+                            onAdd={privileges.contacts ? this.showEditModal : undefined}
+                            onAddText={privileges.contacts ? gettext('Add Contact') : null}
+                            onFocus={onFocus}
+                            readOnly={readOnly}
+                            onPopupOpen={onPopupOpen}
+                            onPopupClose={onPopupClose}
+                            noMargin
+                        />
+
+                        {value.length > 0 && (
+                            <ContactsPreviewList
+                                contactIds={value}
+                                onEditContact={privileges.contacts ? this.showEditModal : null}
+                                onRemoveContact={privileges.contacts ? this.removeContact : null}
+                            />
+                        )}
+                    </Spacer>
+                </div>
             </Row>
         );
     }
