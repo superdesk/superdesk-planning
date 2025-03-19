@@ -480,8 +480,8 @@ class AssignmentsService(superdesk.Service):
             else None
         )
 
-        coverage_language = assignment.get("planning", {}).get("language")
         if event_item and event_item.get("related_items"):
+            coverage_language = assignment.get("planning", {}).get("language")
             event_item["related_items"] = [
                 article for article in event_item["related_items"] if article.get("language") == coverage_language
             ]
