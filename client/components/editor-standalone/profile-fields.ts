@@ -1,4 +1,5 @@
-import {PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
+import {assertNever} from 'superdesk-core/scripts/core/helpers/typescript-helpers';
+import {EVENT_ITEM_SYSTEM_REQUIRED_FIELDS, PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
 import {planningApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 import {IProfileSchemaTypeString} from 'interfaces';
@@ -57,6 +58,15 @@ export const getPlanningProfileFields = (
         .flatMap((x) => x.fields)
         .filter((x) => !unimplementedFields.has(x));
     const convertedFields: Array<IFieldConverted> = [];
+    const isFieldSystemRequired = (fieldId: string) => {
+        if (options.profile === 'event') {
+            return EVENT_ITEM_SYSTEM_REQUIRED_FIELDS.includes(fieldId);
+        } else if (options.profile === 'planning') {
+            return PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS.includes(fieldId);
+        } else {
+            return assertNever(options.profile);
+        }
+    };
 
     for (const fieldId of planningFieldIds) {
         const fieldSchema = planningProfile.schema[fieldId];
@@ -67,7 +77,7 @@ export const getPlanningProfileFields = (
          * or is not a system required field we must not show it in the embedded editor
          */
         if (
-            !PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS.includes(fieldId)
+            !isFieldSystemRequired(fieldId)
             && options.embeddedOnly
             && shouldBeShown != true
         ) {
