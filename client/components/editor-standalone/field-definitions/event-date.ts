@@ -48,16 +48,21 @@ export const getEventDateField = (): IFieldDefinition => {
                 };
             },
             retrieveStoredValue: (item: IEventItem) => {
+                const start = isMoment(item.dates.start)
+                    ? item.dates.start
+                    : moment(item.dates.start);
+                const end = isMoment(item.dates.end)
+                    ? item.dates.end
+                    : moment(item.dates.end);
+
                 return {
                     dates: {
                         ...item.dates,
-                        start: isMoment(item.dates.start)
-                            ? item.dates.start
-                            : moment(item.dates.start),
-                        end: isMoment(item.dates.end)
-                            ? item.dates.end
-                            : moment(item.dates.end),
+                        start: start,
+                        end: end,
                     },
+                    _startTime: start,
+                    _endTime: end,
                     [TO_BE_CONFIRMED_FIELD]: item[TO_BE_CONFIRMED_FIELD],
                 };
             },

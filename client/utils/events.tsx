@@ -1246,6 +1246,9 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
     // clean up angular artifacts
     removeFieldsStartingWith(event, '$$');
 
+    delete event._startTime;
+    delete event._endTime;
+
     if (timeUtils.isEventInDifferentTimeZone(event)) {
         if (get(event, 'dates.start') && moment.isMoment(event.dates.start)) {
             event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, event.dates.tz);
