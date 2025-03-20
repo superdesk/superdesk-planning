@@ -11,15 +11,13 @@
 from copy import deepcopy
 from typing import Any
 
-from planning.events.events_history_async_service import EventsHistoryAsyncService
-from planning.events.events_service import EventsAsyncService
 from planning.events.events_utils import (
     get_recurring_timeline,
     get_update_method,
     post_update_event_actions,
     pre_update_event_actions,
 )
-from planning.types.event import EventResourceModel
+from planning.types import EventResourceModel, EventsHistoryResourceModel
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
 from superdesk import get_resource_service
@@ -40,8 +38,8 @@ from planning.utils import get_related_planning_for_events
 async def patch_related_event_as_cancelled(
     updates: dict[str, Any], original: dict[str, Any], notifications: list[dict[str, Any]]
 ):
-    events_service = EventsAsyncService()
-    events_history_service = EventsHistoryAsyncService()
+    events_service = EventResourceModel.get_service()
+    events_history_service = EventsHistoryResourceModel.get_service()
 
     if not validate_states(original):
         # Don't raise exception for related events in series - simply ignore

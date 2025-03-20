@@ -22,7 +22,6 @@ from .events_lock import (
     EventsUnlockService,
 )
 from .events_post import EventsPostService, EventsPostResource
-from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
 from .events_update_repetitions import (
     EventsUpdateRepetitionsService,
     EventsUpdateRepetitionsResource,
@@ -74,15 +73,6 @@ def init_app(app):
     events_history_service = EventsHistoryService("events_history", backend=superdesk.get_backend())
     EventsHistoryResource("events_history", app=app, service=events_history_service)
 
-    events_reschedule_service = EventsRescheduleService(
-        EventsRescheduleResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    EventsRescheduleResource(
-        EventsRescheduleResource.endpoint_name,
-        app=app,
-        service=events_reschedule_service,
-    )
-
     events_update_repetitions_service = EventsUpdateRepetitionsService(
         EventsUpdateRepetitionsResource.endpoint_name, backend=superdesk.get_backend()
     )
@@ -116,6 +106,7 @@ def init_app(app):
     signals.event_unspiked.connect(events_history_service.on_unspike)
     signals.event_postponed.connect(events_history_service.on_postpone)
     signals.event_cancel.connect(events_history_service.on_cancel)
+    signals.event_reschedule.connect(events_history_service.on_reschedule)
 
     app.on_updated_events += events_history_service.on_item_updated
 

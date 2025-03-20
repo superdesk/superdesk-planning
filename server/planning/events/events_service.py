@@ -40,6 +40,7 @@ from planning.common import (
     update_post_item,
 )
 from planning.events.events_history_async_service import EventsHistoryAsyncService
+from planning.events.events_reschedule import reschedule_single_event
 from planning.planning import PlanningAsyncService
 from planning.core.service import BasePlanningAsyncService
 from planning.utils import (
@@ -665,8 +666,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             updates["dates"] = updated_event.dates
             updates["_planning_schedule"] = [x.to_dict() for x in self._create_planning_schedule(updated_event)]
 
-            event_reschedule_service = get_resource_service("events_reschedule")
-            event_reschedule_service.update_single_event(updates, original)
+            await reschedule_single_event(updates, original.to_dict())
 
             if updates.get("state") == WorkflowState.RESCHEDULED:
                 history_service = EventsHistoryAsyncService()
