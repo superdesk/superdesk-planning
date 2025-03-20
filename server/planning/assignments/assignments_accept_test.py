@@ -48,7 +48,7 @@ class AssignmentAcceptTestCase(TestCase):
                 activity.get("data"),
                 {
                     "coverage_type": "picture",
-                    'news_coverage_status': '',
+                    "news_coverage_status": "",
                     "user": "Name McName Face",
                     "omit_user": True,
                     "slugline": "Accept Test",
