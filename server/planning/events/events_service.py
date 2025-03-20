@@ -494,9 +494,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         if post_required(updates, original.to_dict()):
             merged: EventResourceModel = original.clone_with(updates)
-
-            # TODO-ASYNC: replace when `event_post` is async and validate_item is available for use
-            # get_resource_service("events_post").validate_item(merged.to_dict())
+            await get_resource_service("events_post").validate_item(merged.to_dict())
 
         # Determine if we're to convert this single event to a recurring of events
         if original.lock_action == "convert_recurring" and updates.get("dates", {}).get("recurring_rule") is not None:
@@ -511,8 +509,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                     "pubstatus": original.pubstatus,
                 }
 
-                # TODO-ASYNC: replace when `event_post` is async
-                get_resource_service("events_post").post([post])
+                await get_resource_service("events_post").post([post])
 
             push_notification(
                 "events:updated:recurring",
@@ -559,7 +556,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             if post_required(updates, e):
                 merged = deepcopy(e)
                 merged.update(updates)
-                events_post_service.validate_item(merged)
+                await events_post_service.validate_item(merged)
 
         # If this update is from assignToCalendar action
         # Then we only want to update the calendars of each Event
