@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+from planning.events.events_cancel import process_cancel_event
 from planning.events.events_service import EventsAsyncService
 from planning.events.events_update_time import process_update_time
 from planning.events.events_spike import process_spike_event, process_unspike_event
@@ -93,3 +94,20 @@ async def postpone_event(args: EventsArgs, params: None, request: Request) -> Re
     postponed_event = await process_postpone_event(updates, original)
 
     return Response(postponed_event)
+
+
+@events_endpoints_group.endpoint(
+    "events/cancel/<string:event_id>",
+    name="events_cancel",
+    methods=["PATCH"],
+    auth=[required_privilege_rule("planning_event_management")],
+)
+async def cancel_event(args: EventsArgs, params: None, request: Request) -> Response:
+    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    if not original:
+        await request.abort(404, "Event not found")
+
+    updates = await get_json_or_400_async(request)
+    cancelled_event = await process_cancel_event(updates, original)
+
+    return Response(cancelled_event)

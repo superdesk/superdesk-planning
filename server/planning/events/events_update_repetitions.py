@@ -190,6 +190,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
             app.on_deleted_item_events(event)
 
     def _cancel_event(self, event, updated_rule):
+        # TODO-ASYNC - Change this to use process_cancel_event
         cancel_service = get_resource_service("events_cancel")
 
         # If the Event is not in a valid state to Cancel, then we simply ignore this Event
