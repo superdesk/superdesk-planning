@@ -21,7 +21,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from datetime import timedelta, datetime, timedelta
 
 from eve.methods.common import resolve_document_etag
-from eve.utils import date_to_str
+from eve.utils import date_to_str, ParsedRequest
 from dateutil.rrule import (
     rrule,
     YEARLY,
@@ -79,7 +79,6 @@ from planning.utils import (
     get_related_planning_for_events,
     get_related_event_ids_for_planning,
 )
-from .events_base_service import EventsBaseService
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
 
@@ -797,9 +796,73 @@ class EventsService(superdesk.Service):
         app.on_inserted_events(generated_events)
         return generated_events
 
-    def get_recurring_timeline(self, selected, spiked=False):
-        events_base_service = EventsBaseService("events", backend=superdesk.get_backend())
-        return events_base_service.get_recurring_timeline(selected, postponed=True, spiked=spiked)
+    def get_recurring_timeline(self, selected, spiked=False, postponed=True):
+        excluded_states = []
+
+        if not spiked:
+            excluded_states.append(WORKFLOW_STATE.SPIKED)
+        if not postponed:
+            excluded_states.append(WORKFLOW_STATE.POSTPONED)
+
+        query = {
+            "$and": [
+                {"recurrence_id": selected["recurrence_id"]},
+                {"_id": {"$ne": selected[ID_FIELD]}},
+            ]
+        }
+
+        if excluded_states:
+            query["$and"].append({"state": {"$nin": excluded_states}})
+
+        sort = '[("dates.start", 1)]'
+        max_results = get_max_recurrent_events()
+        selected_start = selected.get("dates", {}).get("start", utcnow())
+
+        # Make sure we are working with a datetime instance
+        if not isinstance(selected_start, datetime):
+            selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
+
+        historic = []
+        past = []
+        future = []
+
+        for event in self.get_series(query, sort, max_results):
+            event["dates"]["end"] = event["dates"]["end"]
+            event["dates"]["start"] = event["dates"]["start"]
+            for sched in event.get("_planning_schedule", []):
+                sched["scheduled"] = sched["scheduled"]
+            end = event["dates"]["end"]
+            start = event["dates"]["start"]
+            if end < utcnow():
+                historic.append(event)
+            elif start < selected_start:
+                past.append(event)
+            elif start > selected_start:
+                future.append(event)
+
+        return historic, past, future
+
+    def get_series(self, query, sort, max_results):
+        page = 1
+
+        while True:
+            # Get the results from mongo
+            req = ParsedRequest()
+            req.sort = sort
+            req.where = json.dumps(query)
+            req.max_results = max_results
+            req.page = page
+            results = self.get_from_mongo(req=req, lookup=None)
+
+            docs = list(results)
+            if not docs:
+                break
+
+            page += 1
+
+            # Yield the results for iteration by the callee
+            for doc in docs:
+                yield doc
 
     @staticmethod
     def _link_to_planning(event: Event):
