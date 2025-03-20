@@ -282,6 +282,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                         ))}
                     </Spacer>
                     <FieldTab
+                        isProfileCoverage={true}
                         profile={this.state.profile}
                         groupFields={false}
                         systemRequiredFields={COVERAGE_SYSTEM_REQUIRED_FIELDS}

@@ -4,20 +4,18 @@ import {
     IProfileFieldEntry,
     IPlanningContentProfile,
     IProfileSchemaTypeString,
-    ICoverageContentProfile,
 } from '../../../interfaces';
-import {superdeskApi, planningApi} from '../../../superdeskApi';
 
+import {superdeskApi, planningApi} from '../../../superdeskApi';
 import {getFieldNameTranslated} from '../../../utils/contentProfiles';
 
 import {Button, ButtonGroup, Checkbox, Alert} from 'superdesk-ui-framework/react';
 import {renderFieldsForPanel} from '../../fields';
-import {coverageProfiles} from '../../../selectors/coverageProfiles';
-import {ALL_COVERAGE_TYPES} from '../CoverageProfileModal';
 
 interface IProps {
     item: IProfileFieldEntry;
     profile: IPlanningContentProfile;
+    isProfileCoverage?: boolean;
     isDirty: boolean;
     disableMinMax: boolean;
     disableRequired: boolean;
@@ -96,9 +94,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                 /**
                  * Coverage fields don't need this field config option, only planning and event
                  */
-                enabled: !this.props.systemRequired &&
-                    !ALL_COVERAGE_TYPES.includes((this.props.profile as ICoverageContentProfile).content_type)
-                    && this.props.profile.name !== 'coverage', // handle old profile
+                enabled: !this.props.systemRequired && this.props.isProfileCoverage != true
             },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
             'schema.read_only': {enabled: this.props.item.name === 'related_plannings'},
