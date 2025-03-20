@@ -22,10 +22,6 @@ from .events_lock import (
     EventsUnlockService,
 )
 from .events_post import EventsPostService, EventsPostResource
-from .events_update_repetitions import (
-    EventsUpdateRepetitionsService,
-    EventsUpdateRepetitionsResource,
-)
 from .event_autosave import EventAutosaveResource
 from .events_template import (
     EventsTemplateResource,
@@ -72,15 +68,6 @@ def init_app(app):
 
     events_history_service = EventsHistoryService("events_history", backend=superdesk.get_backend())
     EventsHistoryResource("events_history", app=app, service=events_history_service)
-
-    events_update_repetitions_service = EventsUpdateRepetitionsService(
-        EventsUpdateRepetitionsResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    EventsUpdateRepetitionsResource(
-        EventsUpdateRepetitionsResource.endpoint_name,
-        app=app,
-        service=events_update_repetitions_service,
-    )
 
     event_autosave_service = AutosaveService("event_autosave", superdesk.get_backend())
     EventAutosaveResource("event_autosave", app=app, service=event_autosave_service)

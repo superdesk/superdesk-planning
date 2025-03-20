@@ -24,6 +24,7 @@ from planning.events.events_service import EventsAsyncService
 from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_update_time import process_update_time
+from planning.events.events_update_repetitions import process_update_repetitions
 
 from .events import is_event_updated
 
@@ -380,19 +381,10 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule = deepcopy(event["dates"])
         schedule["recurring_rule"]["count"] = 5
 
-        update_repetitions = get_resource_service("events_update_repetitions")
-        update_repetitions.REQUIRE_LOCK = False
-        # mocking function
-        is_original_event_func = update_repetitions.is_original_event
-        update_repetitions.is_original_event = Mock(return_value=False)
-        update_repetitions.patch(events[0].get("_id"), {"dates": schedule})
+        await process_update_repetitions({"dates": schedule}, events[0])
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 5)
-
-        # reset mocked function
-        update_repetitions.is_original_event = is_original_event_func
-        update_repetitions.REQUIRE_LOCK = True
 
     @patch("planning.events.events.get_user")
     async def test_planning_schedule_convert_to_recurring(self, get_user_mock):

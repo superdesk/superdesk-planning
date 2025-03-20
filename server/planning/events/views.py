@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from planning.events.events_cancel import process_cancel_event
 from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_service import EventsAsyncService
+from planning.events.events_update_repetitions import process_update_repetitions
 from planning.events.events_update_time import process_update_time
 from planning.events.events_spike import process_spike_event, process_unspike_event
 from planning.events.events_postpone import process_postpone_event
@@ -129,3 +130,27 @@ async def reschedule_event(args: EventsArgs, params: None, request: Request) -> 
     rescheduled_event = await process_reschedule_event(updates, original)
 
     return Response(rescheduled_event)
+
+
+@events_endpoints_group.endpoint(
+    "events/update_repetitions/<string:event_id>",
+    name="events_update_repetitions",
+    methods=["PATCH"],
+    auth=[required_privilege_rule("planning_event_management")],
+)
+async def update_repetitions(args: EventsArgs, params: None, request: Request) -> Response:
+    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    if not original:
+        await request.abort(404, "Event not found")
+
+    updates = await get_json_or_400_async(request)
+
+    # Validate the data from the request
+    if not updates.get("dates", {}).get("recurring_rule"):
+        await request.abort(400, "New recurring rules not provided")
+    elif not original.get("recurrence_id"):
+        await request.abort(400, "Not a series of recurring events")
+
+    updated_repetitions_event = await process_update_repetitions(updates, original)
+
+    return Response(updated_repetitions_event)
