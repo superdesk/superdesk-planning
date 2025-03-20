@@ -21,7 +21,7 @@ import {getContactsField} from './contacts';
 import {getOccurrenceStatusField} from './occurrence-status';
 import {getLanguageField} from './language';
 import {getCalendarsField} from './calendars';
-import {getEventDateField} from './event-date';
+import {getEventDateField} from './event-dates';
 import {getRecurringRulesField} from './recurring-rules';
 import {getAccreditationDeadline} from './accreditation-deadline';
 

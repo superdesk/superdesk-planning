@@ -11,6 +11,7 @@ import {
     IEditorFormGroup,
     IPlanningCoverageItem,
     IPlanningItem,
+    IPlanningRelatedEventLink,
     ISearchProfile,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
@@ -92,7 +93,7 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
     }
 
     function updateEventItem(
-        original: DeepPartial<IEventItem>,
+        original: DeepPartial<IPlanningRelatedEventLink>,
         updates: DeepPartial<IEventItem>,
         scrollOnChange: boolean
     ) {
@@ -108,8 +109,9 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         }
 
         events[index] = {
-            ...original,
-            ...updates,
+            _id: updates._id,
+            link_type: original.link_type,
+            recurrence_id: original.recurrence_id
         };
 
         const updateMainField = () => {

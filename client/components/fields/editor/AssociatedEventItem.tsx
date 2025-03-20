@@ -10,14 +10,27 @@ import {eventUtils, isTemporaryId} from '../../../utils';
 import {getAuthoringStorageInMemory} from '../../../components/editor-standalone/authoring-storage-in-memory';
 import * as eventsApi from '../../../api/events';
 import {omit} from 'lodash';
+import {IPlanningRelatedEventLink} from 'interfaces';
 
-interface IProps{
+interface IPropsSavedEvent {
+    isTemporary: false;
     unlinkEvent(item: DeepPartial<IEventItem>): void;
-    updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): void;
+    updateEventItem(item: IPlanningRelatedEventLink, updates: IEventItem, scrollOnChange: boolean): void;
     event: IEventItem;
     index: number;
     disabled?: boolean;
 }
+
+interface IPropsTemporaryEvent {
+    isTemporary: true;
+    unlinkEvent(item: DeepPartial<IPlanningRelatedEventLink>): void;
+    updateEventItem(item: IPlanningRelatedEventLink, updates: IEventItem, scrollOnChange: boolean): void;
+    event: IPlanningRelatedEventLink;
+    index: number;
+    disabled?: boolean;
+}
+
+type IProps = IPropsSavedEvent | IPropsTemporaryEvent;
 
 export class AssociatedEventItem extends React.PureComponent<IProps> {
     public toggleBoxRef: React.RefObject<CustomHeaderToggleBox>;
@@ -73,8 +86,8 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                     alwaysRenderChildren
                     header={(
-                        isTemporaryId(event._id) ?
-                            renderRelatedEvent(event) : (
+                        this.props.isTemporary ?
+                            renderRelatedEvent(event as IEventItem) : (
                                 <WithLiveResources resources={[{ids: [event._id], resource: 'events'}]}>
                                     {(res) => renderRelatedEvent(res[0]._items[0] as IEventItem)}
                                 </WithLiveResources>
@@ -84,10 +97,10 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                     <EventEditorStandalone
                         editorRef={this.authoringRef}
                         itemId={event._id}
-                        authoringStorage={isTemporaryId(event._id)
+                        authoringStorage={this.props.isTemporary
                             ? getAuthoringStorageInMemory(
                                 'event',
-                                event,
+                                event as IEventItem,
                                 (item) => {
                                     const itemClean = omit(
                                         eventUtils.modifyForServer(item),

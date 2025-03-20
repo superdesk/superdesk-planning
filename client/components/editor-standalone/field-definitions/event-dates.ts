@@ -25,10 +25,7 @@ export const getEventDateField = (): IFieldDefinition => {
         storageAdapterEvent: {
             storeValue: (
                 item: IEventItem,
-                operationalValue: {
-                    dates: IEventItem['dates'];
-                    [TO_BE_CONFIRMED_FIELD]?: boolean;
-                },
+                operationalValue: Pick<IEventItem, 'dates' | '_time_to_be_confirmed' | '_startTime' | '_endTime'>,
             ) => {
                 const clonedValue = cloneDeep(operationalValue);
 

@@ -110,6 +110,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     <Spacer gap="8" v>
                         {events.map((event, i) => (
                             <AssociatedEventItem
+                                isTemporary={isTemporaryId(event._id)}
                                 index={i}
                                 key={event._id}
                                 event={event}

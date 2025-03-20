@@ -21,9 +21,6 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
         return assertNever(profile);
     };
 
-    /**
-     * Timeout for 500 seconds to let newly added embedded events finish autosaving.
-     */
     class NoAutoSave implements IAuthoringAutoSave<T> {
         get(id: string) {
             return autosave
