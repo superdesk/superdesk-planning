@@ -9,7 +9,7 @@ import {
 } from '../../interfaces';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 import {getErrorMessage} from '../../utils';
-import {Button, Modal, Spacer} from 'superdesk-ui-framework/react';
+import {Button, Modal, RadioButtonGroup, Spacer} from 'superdesk-ui-framework/react';
 import {FieldTab} from './FieldTab';
 import './style.scss';
 import {getLanguages} from '../../selectors/vocabs';
@@ -266,21 +266,19 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 className="planning-profile-form"
             >
                 <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap style={{height: '500px'}}>
-                    <Spacer gap="4" v style={{height: 'auto', width: '200px', padding: 12}} noWrap>
-                        {allCoverageTypes.map((type) => (
-                            <Button
-                                key={type}
-                                onClick={() => {
-                                    this.switchProfileType(type);
-                                }}
-                                expand
-                                icon={propsMap[type].icon}
-                                text={propsMap[type].label}
-                                type={selectedType === type ? 'primary' : 'default'}
-                                style={selectedType === type ? 'filled' : 'hollow'}
-                            />
-                        ))}
-                    </Spacer>
+                    <RadioButtonGroup
+                        onChange={(nextType: ICoverageType) => {
+                            this.switchProfileType(nextType);
+                        }}
+                        options={allCoverageTypes.map((type) => ({
+                            label: propsMap[type].label,
+                            icon: propsMap[type].icon,
+                            value: type,
+                        }))}
+                        group={{
+                            orientation: 'vertical',
+                        }}
+                    />
                     <FieldTab
                         profile={this.state.profile}
                         groupFields={false}
