@@ -369,7 +369,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         for file in files:
             events_using_file = await self.find({"files": file})
             if (await events_using_file.count()) == 0:
-                files_service.delete_action(lookup={"_id": file})
+                await files_service.delete_action_async(lookup={"_id": file})
 
     async def on_deleted(self, doc: EventResourceModel):
         push_notification(

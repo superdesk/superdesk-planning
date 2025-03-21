@@ -337,6 +337,7 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
     attachments = []
     if data.get("event") and data.get("event", {}).get("files"):
         for file_id in data.get("event", {}).get("files"):
+            # TODO-ASYNC[EventsFilesService] - Convert to async when module is updated to async
             event_file = superdesk.get_resource_service("events_files").find_one(req=None, _id=file_id)
             media = app.media.get(event_file["media"], resource="events_files")
             fp = media.read()
