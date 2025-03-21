@@ -8,7 +8,7 @@ import {gettext, getItemInArrayById} from '../utils';
 import {validateField, validators} from './index';
 import {IPlanningCoverageItem} from 'interfaces';
 import {planningApi} from '../superdeskApi';
-import {coverageProfiles, oldProfile} from '../selectors/coverageProfiles';
+import {getCoverageFields} from '../api/editor/item_planning';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -54,6 +54,16 @@ export function validateCoveragesV2(value: Array<IPlanningCoverageItem>) {
     return {errors, messages};
 }
 
+interface IValidateCoverages {
+    dispatch: any;
+    getState: any;
+    value: Array<IPlanningCoverageItem>;
+    errors: any;
+    messages: any;
+    diff: Partial<IPlanningItem>;
+    item: Partial<IPlanningItem>;
+}
+
 export const validateCoverages = ({
     dispatch,
     getState,
@@ -62,60 +72,63 @@ export const validateCoverages = ({
     messages,
     diff,
     item,
-}) => {
+}: IValidateCoverages) => {
     const error = {};
+    const handleErrors = () => {
+        if (!isEqual(error, {})) {
+            errors.coverages = error;
+        } else if (errors.coverages) {
+            delete errors.coverages;
+        }
+    };
 
-    if (Array.isArray(value)) {
-        value.forEach((coverage, index) => {
-            const originalCoverage = getItemInArrayById(
-                get(item, 'coverages') || [],
-                get(coverage, 'coverage_id'),
-                'coverage_id'
-            );
+    if (Array.isArray(value) === false) {
+        handleErrors();
+        return;
+    }
 
-            const storeState = planningApi.redux.store.getState();
-            const newProfile = coverageProfiles(storeState)
-                .find((x) => x.content_type === coverage.content_type);
-            const coverageProfile = newProfile ? newProfile : oldProfile(storeState);
+    value.forEach((coverage, index) => {
+        const originalCoverage = getItemInArrayById(
+            get(item, 'coverages') || [],
+            get(coverage, 'coverage_id'),
+            'coverage_id'
+        );
 
-            Object.entries(validators.coverage).forEach(([key, val]) => {
-                const coverageErrors = {};
-                let keyName = ['news_coverage_status', 'scheduled_updates'].includes(key) ? key : `planning.${key}`;
-                let original = get(originalCoverage, keyName);
-                let value = get(coverage, keyName);
+        const coverageProfile = getCoverageFields(coverage.planning.g2_content_type).profile;
 
-                if (key === 'scheduled' && original !== undefined && isEqual(original, value)) {
-                    // Only validate scheduled date if it has changed
-                    return;
-                } else if (get(coverage, 'planning.g2_content_type') !== 'text' && key === 'genre') {
-                    // Only validate Genre if the content type is Text
-                    return;
-                }
+        Object.entries(validators.coverage).forEach(([key, val]) => {
+            const coverageErrors = {};
+            const keyName = ['news_coverage_status', 'scheduled_updates'].includes(key) ? key : `planning.${key}`;
+            const original = get(originalCoverage, keyName);
+            const value = get(coverage, keyName);
 
-                validateField({
-                    profileName: 'coverage',
-                    dispatch: dispatch,
-                    getState: getState,
-                    field: key,
-                    value: value,
-                    profile: coverageProfile,
-                    errors: coverageErrors,
-                    messages: messages,
-                    diff: diff,
-                });
+            if (key === 'scheduled' && original !== undefined && isEqual(original, value)) {
+                // Only validate scheduled date if it has changed
+                return;
+            } else if (get(coverage, 'planning.g2_content_type') !== 'text' && key === 'genre') {
+                // Only validate Genre if the content type is Text
+                return;
+            }
 
-                if (get(coverageErrors, key)) {
-                    set(error, `${index}.${keyName}`, coverageErrors[key]);
-                }
+            validateField({
+                profileName: 'coverage',
+                dispatch: dispatch,
+                getState: getState,
+                field: key,
+                value: value,
+                profile: coverageProfile,
+                errors: coverageErrors,
+                messages: messages,
+                diff: diff,
             });
-        });
-    }
 
-    if (!isEqual(error, {})) {
-        errors.coverages = error;
-    } else if (errors.coverages) {
-        delete errors.coverages;
-    }
+            if (get(coverageErrors, key)) {
+                set(error, `${index}.${keyName}`, coverageErrors[key]);
+            }
+        });
+    });
+
+    handleErrors();
 };
 
 const validateCoverageScheduleDate = ({

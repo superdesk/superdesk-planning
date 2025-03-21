@@ -31,8 +31,7 @@ export function getCoverageFields(
     const storeState = planningApi.redux.store.getState();
     const allProfiles = coverageProfiles(storeState);
     const newProfile = allProfiles.find((x) => x.content_type === type);
-    const profile = newProfile ? newProfile : omit(oldProfile(storeState), '_id');
-
+    const profile = newProfile ? newProfile : omit(oldProfile(storeState), '_id') as ICoverageContentProfile;
     const fields = getGroupFieldsSorted(profile).filter((item) => item.field.enabled);
     const searchProfile: ISearchProfile = {};
 
