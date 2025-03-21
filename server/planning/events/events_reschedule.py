@@ -49,7 +49,7 @@ def set_next_occurrence(updates: dict[str, Any]):
         for date in islice(
             generate_recurring_dates(
                 start=updates["dates"]["start"],
-                tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or None),
+                tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
                 **updates["dates"]["recurring_rule"],
             ),
             0,
@@ -192,7 +192,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
         for date in islice(
             generate_recurring_dates(
                 start=new_start_date,
-                tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or None),
+                tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
                 date_only=True,
                 **updated_rule,
             ),
@@ -207,7 +207,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
         for date in islice(
             generate_recurring_dates(
                 start=original_start_date,
-                tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or None),
+                tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or ""),
                 date_only=True,
                 **original_rule,
             ),

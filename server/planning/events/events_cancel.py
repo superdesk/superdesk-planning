@@ -130,7 +130,7 @@ async def cancel_recurring_event(updates: dict[str, Any], original: dict[str, An
 
     set_event_cancelled(updates, original, occur_cancel_state)
 
-    notifications = []
+    notifications: list = []
 
     for event in cancelled_events:
         new_updates = deepcopy(updates)
