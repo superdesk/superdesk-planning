@@ -278,6 +278,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                         group={{
                             orientation: 'vertical',
                         }}
+                        value={this.state.selectedType}
                     />
                     <FieldTab
                         profile={this.state.profile}
