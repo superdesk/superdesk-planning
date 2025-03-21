@@ -134,7 +134,7 @@ class PlanningPostService(BaseService):
             update_method = UPDATE_ALL if event.get("recurrence_id") else UPDATE_SINGLE
             if event and event.get("pubstatus") is None:
                 # TODO-ASYNC: Uncomment method when service is changed to async to allow `events_post` async usage
-                # get_resource_service("events_post").post(
+                # get_resource_service("events_post").post_async(
                 #     [
                 #         {
                 #             "event": event[config.ID_FIELD],

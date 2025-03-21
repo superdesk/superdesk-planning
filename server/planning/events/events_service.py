@@ -509,7 +509,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                     "pubstatus": original.pubstatus,
                 }
 
-                await get_resource_service("events_post").post([post])
+                await get_resource_service("events_post").post_async([post])
 
             push_notification(
                 "events:updated:recurring",

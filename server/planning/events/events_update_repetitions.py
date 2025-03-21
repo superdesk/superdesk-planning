@@ -70,7 +70,7 @@ async def cancel_event(event: dict[str, Any], updated_rule: dict[str, Any]):
             "update_method": "single",
             "pubstatus": event.get("pubstatus"),
         }
-        await get_resource_service("events_post").post([post])
+        await get_resource_service("events_post").post_async([post])
 
 
 async def delete_event(event: dict[str, Any], updated_rule: dict[str, Any]):
@@ -209,7 +209,7 @@ async def update_event_repetitions(updates: dict[str, Any], original: dict[str, 
             "pubstatus": original.get("pubstatus"),
             "repost_on_update": True,
         }
-        await get_resource_service("events_post").post([post])
+        await get_resource_service("events_post").post_async([post])
 
 
 async def process_update_repetitions(

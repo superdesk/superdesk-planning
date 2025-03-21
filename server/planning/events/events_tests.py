@@ -294,7 +294,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         self.assertPlanningSchedule(events, 3)
 
         # post recurring events
-        await get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [
                 {
                     "event": events[0].get("_id"),
@@ -525,7 +525,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             ],
         )
         now = utcnow()
-        await get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 
@@ -571,7 +571,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ]
         )
-        await get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
         new_plannings = await planning_service.create(
@@ -673,7 +673,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 },
             ],
         )
-        await get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 
