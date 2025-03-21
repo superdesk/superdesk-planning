@@ -2,7 +2,7 @@ import {IAuthoringFieldV2, ICommonFieldConfig} from 'superdesk-api';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {superdeskApi} from '../../../superdeskApi';
 import {cloneDeep} from 'lodash';
-import moment, {isMoment, Moment} from 'moment';
+import moment, {isMoment} from 'moment';
 import {IFieldDefinition} from './interfaces';
 
 export const getEventDateField = (): IFieldDefinition => {
@@ -35,10 +35,10 @@ export const getEventDateField = (): IFieldDefinition => {
                     dates: {
                         ...clonedValue.dates,
                         start: isMoment(clonedValue.dates.start)
-                            ? (clonedValue.dates.start as unknown as Moment).toISOString()
+                            ? clonedValue.dates.start.toISOString()
                             : clonedValue.dates.start,
                         end: isMoment(clonedValue.dates.end)
-                            ? (clonedValue.dates.end as unknown as Moment).toISOString()
+                            ? clonedValue.dates.end.toISOString()
                             : clonedValue.dates.end,
                         recurring_rule: item.dates.recurring_rule,
                     },

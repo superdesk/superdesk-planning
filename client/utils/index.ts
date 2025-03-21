@@ -1,5 +1,5 @@
 import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy, isNil} from 'lodash';
-import moment from 'moment-timezone';
+import moment, {isMoment} from 'moment-timezone';
 import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
@@ -950,12 +950,36 @@ export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => 
     const dateFormat = appConfig.planning.dateformat;
     const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
 
-    if (get(event.dates, 'start', moment()).isSame(get(event.dates, 'end', moment()), 'day')) {
-        return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+    const startConverted = (() => {
+        const start = event.dates.start;
+
+        if (start != null && isMoment(start)) {
+            return start;
+        } else if (start != null && isMoment(start) === false) {
+            return moment(start);
+        }
+
+        return moment();
+    })();
+
+    const endConverted = (() => {
+        const end = event.dates.end;
+
+        if (end != null && isMoment(end)) {
+            return end;
+        } else if (end != null && isMoment(end) === false) {
+            return moment(end);
+        }
+
+        return moment();
+    })();
+
+    if (startConverted.isSame(endConverted, 'day')) {
+        return (startConverted.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
     }
 
-    return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT) + ' - ' +
-        (get(event.dates, 'end').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+    return (startConverted.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT) + ' - ' +
+        (endConverted.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
 };
 
 
