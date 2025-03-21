@@ -42,7 +42,7 @@ const allCoverageTypesObject: {[key in ICoverageType]: 1} = {
     liveVideo: 1,
 };
 
-const allCoverageTypes: Array<ICoverageType> = Object.keys(allCoverageTypesObject) as Array<ICoverageType>;
+export const ALL_COVERAGE_TYPES: Array<ICoverageType> = Object.keys(allCoverageTypesObject) as Array<ICoverageType>;
 
 export class CoverageProfilesModal extends React.Component<IProps, IState> {
     constructor(props) {
@@ -267,7 +267,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             >
                 <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap style={{height: '500px'}}>
                     <Spacer gap="4" v style={{height: 'auto', width: '200px', padding: 12}} noWrap>
-                        {allCoverageTypes.map((type) => (
+                        {ALL_COVERAGE_TYPES.map((type) => (
                             <Button
                                 key={type}
                                 onClick={() => {
@@ -282,6 +282,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                         ))}
                     </Spacer>
                     <FieldTab
+                        isProfileCoverage={true}
                         profile={this.state.profile}
                         groupFields={false}
                         systemRequiredFields={COVERAGE_SYSTEM_REQUIRED_FIELDS}
