@@ -265,21 +265,23 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 )}
                 className="planning-profile-form"
             >
-                <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap style={{height: '500px'}}>
-                    <RadioButtonGroup
-                        onChange={(nextType: ICoverageType) => {
-                            this.switchProfileType(nextType);
-                        }}
-                        options={allCoverageTypes.map((type) => ({
-                            label: propsMap[type].label,
-                            icon: propsMap[type].icon,
-                            value: type,
-                        }))}
-                        group={{
-                            orientation: 'vertical',
-                        }}
-                        value={this.state.selectedType}
-                    />
+                <Spacer gap="0" h justifyContent="center" alignItems="start" noWrap>
+                    <div style={{padding: '1rem', width: 200}}>
+                        <RadioButtonGroup
+                            onChange={(nextType: ICoverageType) => {
+                                this.switchProfileType(nextType);
+                            }}
+                            options={allCoverageTypes.map((type) => ({
+                                label: propsMap[type].label,
+                                icon: propsMap[type].icon,
+                                value: type,
+                            }))}
+                            group={{
+                                orientation: 'vertical',
+                            }}
+                            value={this.state.selectedType}
+                        />
+                    </div>
                     <FieldTab
                         profile={this.state.profile}
                         groupFields={false}
