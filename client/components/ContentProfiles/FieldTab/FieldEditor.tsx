@@ -1,17 +1,21 @@
 import * as React from 'react';
 
-import {IProfileFieldEntry, IPlanningContentProfile, IProfileSchemaTypeString} from '../../../interfaces';
-import {superdeskApi, planningApi} from '../../../superdeskApi';
+import {
+    IProfileFieldEntry,
+    IPlanningContentProfile,
+    IProfileSchemaTypeString,
+} from '../../../interfaces';
 
+import {superdeskApi, planningApi} from '../../../superdeskApi';
 import {getFieldNameTranslated} from '../../../utils/contentProfiles';
 
 import {Button, ButtonGroup, Checkbox, Alert} from 'superdesk-ui-framework/react';
 import {renderFieldsForPanel} from '../../fields';
-import {coverageProfiles} from '../../../selectors/coverageProfiles';
 
 interface IProps {
     item: IProfileFieldEntry;
     profile: IPlanningContentProfile;
+    isProfileCoverage?: boolean;
     isDirty: boolean;
     disableMinMax: boolean;
     disableRequired: boolean;
@@ -84,17 +88,13 @@ export class FieldEditor extends React.Component<IProps, IState> {
         const isMultilingual = this.props.item.name === 'language' ?
             (this.props.item.schema as IProfileSchemaTypeString).multilingual === true :
             multilingual.isEnabled(this.props.profile);
-        const storeState = planningApi.redux.store.getState();
-        const allCoverageProfileIds = coverageProfiles(storeState).map((x) => x._id);
 
         const fieldProps = {
             'schema.show_in_embedded_editor': {
                 /**
                  * Coverage fields don't need this field config option, only planning and event
                  */
-                enabled: !this.props.systemRequired
-                    && this.props.profile._id !== 'coverage'
-                    && allCoverageProfileIds.includes(this.props.profile._id) === false,
+                enabled: !this.props.systemRequired && this.props.isProfileCoverage != true
             },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
             'schema.read_only': {enabled: this.props.item.name === 'related_plannings'},

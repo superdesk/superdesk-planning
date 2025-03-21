@@ -42,7 +42,7 @@ const allCoverageTypesObject: {[key in ICoverageType]: 1} = {
     liveVideo: 1,
 };
 
-const allCoverageTypes: Array<ICoverageType> = Object.keys(allCoverageTypesObject) as Array<ICoverageType>;
+export const ALL_COVERAGE_TYPES: Array<ICoverageType> = Object.keys(allCoverageTypesObject) as Array<ICoverageType>;
 
 export class CoverageProfilesModal extends React.Component<IProps, IState> {
     constructor(props) {
@@ -271,7 +271,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                             onChange={(nextType: ICoverageType) => {
                                 this.switchProfileType(nextType);
                             }}
-                            options={allCoverageTypes.map((type) => ({
+                            options={ALL_COVERAGE_TYPES.map((type) => ({
                                 label: propsMap[type].label,
                                 icon: propsMap[type].icon,
                                 value: type,
@@ -283,6 +283,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                         />
                     </div>
                     <FieldTab
+                        isProfileCoverage={true}
                         profile={this.state.profile}
                         groupFields={false}
                         systemRequiredFields={COVERAGE_SYSTEM_REQUIRED_FIELDS}
