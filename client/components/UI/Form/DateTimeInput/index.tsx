@@ -19,7 +19,8 @@ interface IProps {
     readOnly?: boolean;
     boxed?: boolean;
     noMargin?: boolean;
-    canClear?: boolean;
+    canClear?: boolean; // refers to both date and time
+    canClearTime?: boolean;
     item?: {[key: string]: any};
     diff?: {[key: string]: any};
     errors?: {[key: string]: any};
@@ -55,6 +56,7 @@ export const DateTimeInput = ({
     invalid,
     readOnly,
     canClear,
+    canClearTime,
     item,
     diff,
     errors,
@@ -134,7 +136,7 @@ export const DateTimeInput = ({
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     remoteTimeZone={remoteTimeZone}
-                    canClear={canClear}
+                    canClear={canClearTime}
                     allowInvalidText
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     halfWidth={!hideTime}
@@ -202,5 +204,6 @@ DateTimeInput.defaultProps = {
     boxed: false,
     noMargin: false,
     canClear: false,
+    canClearTime: true,
     showErrors: false,
 };
