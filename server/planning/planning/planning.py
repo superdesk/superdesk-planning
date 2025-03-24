@@ -210,6 +210,7 @@ class PlanningService(Service):
 
             first_primary_event_id = get_first_related_event_id_for_planning(doc, "primary")
             if first_primary_event_id and post_planning_with_event:
+                # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
                 event = get_resource_service("events").find_one(req=None, _id=first_primary_event_id)
                 if not event:
                     logger.warning(
@@ -227,6 +228,7 @@ class PlanningService(Service):
         self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc: Planning):
+        # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
         events_service = get_resource_service("events")
         events_history_service = get_resource_service("events_history")
 
@@ -391,6 +393,7 @@ class PlanningService(Service):
         if not event_id:
             return None
 
+        # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
         event = get_resource_service("events").find_one(req=None, _id=event_id)
 
         if not event:
@@ -430,6 +433,7 @@ class PlanningService(Service):
         planning_date_relative = plan["planning_date"] - event["dates"]["start"]
         items = []
 
+        # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
         events_service = get_resource_service("events")
         historic, past, future = events_service.get_recurring_timeline(event)
         event_series = future if update_method == UPDATE_FUTURE else historic + past + future
@@ -567,6 +571,7 @@ class PlanningService(Service):
         if not event_id:
             return []
 
+        # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
         events_service = get_resource_service("events")
         if item.get("recurrence_id"):
             # One call wil get all items in the recurring series from event service

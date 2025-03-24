@@ -396,6 +396,7 @@ async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
 @when('we duplicate event "{event_id}"')
 def step_impl_when_we_duplicate_event(context, event_id):
     with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         events_service = get_resource_service("events")
         original_event = events_service.find_one(req=None, _id=event_id)
         duplicate_event = deepcopy(original_event)

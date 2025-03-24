@@ -114,6 +114,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         updates = {"calendars": ingest_item["calendars"] + calendars_to_add}
+        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         updated_item = get_resource_service("events").patch(ingest_item.get(ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
 

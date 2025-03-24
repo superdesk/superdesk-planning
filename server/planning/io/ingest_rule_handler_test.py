@@ -178,6 +178,7 @@ class IngestRuleHandlerTestCase(TestCase):
     @pytest.mark.skip(reason="Convert to async and understand the logic so they pass properly")
     def test_autopost(self):
         event = self.event_items[0].copy()
+        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         events_service = get_resource_service("events")
         events_service.post_in_mongo([event])
 
@@ -212,6 +213,7 @@ class IngestRuleHandlerTestCase(TestCase):
     def test_autopost_cancelled(self):
         event = self.event_items[0].copy()
         event["pubstatus"] = "cancelled"
+        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         events_service = get_resource_service("events")
         events_service.post_in_mongo([event])
 

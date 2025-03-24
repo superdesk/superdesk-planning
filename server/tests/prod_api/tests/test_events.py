@@ -12,7 +12,7 @@ def test_service_get(prodapi_app_with_data):
 
     with prodapi_app_with_data.app_context():
         items_service = get_resource_service("events")
-
+        # TODO-ASYNC[EventsService] - Convert this to async when test is updated to async
         assert len(list(items_service.get(req=None, lookup={}))) == 7
 
 

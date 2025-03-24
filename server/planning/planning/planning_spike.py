@@ -140,6 +140,7 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
         first_event_id = get_first_related_event_id_for_planning(original, "primary")
 
         if first_event_id:
+            # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
             event = get_resource_service("events").find_one(req=None, _id=first_event_id)
             notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
 

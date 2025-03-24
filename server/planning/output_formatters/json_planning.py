@@ -110,6 +110,7 @@ class JsonPlanningFormatter(Formatter):
 
         events = []
         for event_ref in get_related_event_links_for_planning(item):
+            # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
             event = get_resource_service("events").find_one(req=None, _id=event_ref["_id"])
             events.append(
                 {
