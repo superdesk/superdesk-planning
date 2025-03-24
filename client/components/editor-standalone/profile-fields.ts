@@ -35,14 +35,15 @@ const unimplementedFields = new Set<string>([
  * A function that handles planning profile field types so they can be used in authoring react.
  * @embeddedOnly defaults to false
  */
-export const getPlanningProfileFields = (
+export const getPlanningProfileFields = <T extends 'planning' | 'event'>(
     options: {
         profile: 'planning' | 'event',
         embeddedOnly?: boolean
     },
 ): Array<IFieldConverted> => {
     /**
-     * Fields that can be configured to use editor3 with formatting options or be regular text
+     * Fields that can be configured in the content profile to use editor3 with formatting options or be plain text,
+     * as opposed to fields that are just plan text and can't be configured in the content profile.
      */
     const TEXT_FIELDS_WITH_EDITOR_TYPE_CONFIG = (() => {
         if (options.profile === 'event') {

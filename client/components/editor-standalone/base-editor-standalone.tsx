@@ -50,6 +50,10 @@ function validate<T extends IPlanningItem | IEventItem>(
     });
 
     for (const {fieldId} of profileFields) {
+        /**
+         * Field id doesn't match the path to the value inside the item.
+         * `recurring_rules` is inside the dates object of an event item.
+         */
         if (fieldId === 'recurring_rules') {
             formProfile({
                 field: fieldId,
