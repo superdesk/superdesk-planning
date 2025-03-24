@@ -100,22 +100,21 @@ def set_event_cancelled(updates: dict[str, Any], original: dict[str, Any], occur
     set_actioned_date_to_event(updates, original)
 
 
-def get_cancel_state():
-    # TODO-ASYNC - Confirm if vocabularies needs to be set to async here
-    eocstat_map = get_resource_service("vocabularies").find_one(req=None, _id="eventoccurstatus")
+async def get_cancel_state():
+    eocstat_map = await get_resource_service("vocabularies").find_one_async(req=None, _id="eventoccurstatus")
     occur_cancel_state = [x for x in eocstat_map.get("items", []) if x["qcode"] == "eocstat:eos6"][0]
     occur_cancel_state.pop("is_active", None)
     return occur_cancel_state
 
 
 async def cancel_single_event(updates: dict[str, Any], original: dict[str, Any]):
-    occur_cancel_state = get_cancel_state()
+    occur_cancel_state = await get_cancel_state()
     set_event_cancelled(updates, original, occur_cancel_state)
     cancel_event_plannings(updates, original)
 
 
 async def cancel_recurring_event(updates: dict[str, Any], original: dict[str, Any], update_method: str):
-    occur_cancel_state = get_cancel_state()
+    occur_cancel_state = await get_cancel_state()
     historic, past, future = await get_recurring_timeline(original, postponed=True)
 
     # Determine if the selected event is the first one, if so then
