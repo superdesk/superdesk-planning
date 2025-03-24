@@ -1,4 +1,4 @@
-import {IAuthoringFieldV2, IDropdownConfigManualSource} from 'superdesk-api';
+import {IAuthoringFieldV2, IDropdownConfigManualSource, IVocabularyItem} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {eventOccurStatuses} from '../../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
@@ -13,9 +13,9 @@ export const getOccurrenceStatusField = (): IFieldDefinition => ({
                 id: option.qcode,
                 label: getVocabularyItemFieldTranslated(
                     option,
-                    'label',
+                    superdeskApi.helpers.nameof<IVocabularyItem>('label'),
                     language,
-                    'name'
+                    superdeskApi.helpers.nameof<IVocabularyItem>('name'),
                 ),
             })
         );

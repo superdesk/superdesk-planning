@@ -3,7 +3,6 @@ import {IAuthoringFieldV2, IDropdownConfigManualSource} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {calendars} from '../../../selectors/events';
-import {nameof} from 'core/helpers/typescript-helpers';
 import {IFieldDefinition} from './interfaces';
 
 export const getCalendarsField = (): IFieldDefinition => {
@@ -17,9 +16,8 @@ export const getCalendarsField = (): IFieldDefinition => {
                     id: option.qcode,
                     label: getVocabularyItemFieldTranslated(
                         option,
-                        'label',
+                        superdeskApi.helpers.nameof<ICalendar>('name'),
                         language,
-                        nameof<ICalendar>('name')
                     ),
                 })
             );

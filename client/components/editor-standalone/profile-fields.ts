@@ -1,6 +1,6 @@
 import {assertNever} from 'superdesk-core/scripts/core/helpers/typescript-helpers';
 import {EVENT_ITEM_SYSTEM_REQUIRED_FIELDS, PLANNING_ITEM_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 import {IProfileSchemaTypeString} from 'interfaces';
 import {RICH_FORMATTING_OPTION} from 'superdesk-api';
@@ -31,17 +31,6 @@ const unimplementedFields = new Set<string>([
     'associated_event',
 ]);
 
-export const TEXT_FIELDS_MULTIPLE_TYPES = new Set<string>([
-    'name',
-    'internal_note',
-    'ednote',
-    'description_short',
-    'description_text',
-    'invitation_details',
-    'accreditation_info',
-    'registration_details',
-]);
-
 /**
  * A function that handles planning profile field types so they can be used in authoring react.
  * @embeddedOnly defaults to false
@@ -52,9 +41,39 @@ export const getPlanningProfileFields = (
         embeddedOnly?: boolean
     },
 ): Array<IFieldConverted> => {
-    const planningProfile = planningApi.contentProfiles.get(options.profile);
-    const planningGroups = getEditorFormGroupsFromProfile(planningProfile);
-    const planningFieldIds = Object.values(planningGroups)
+    /**
+     * Fields that can be configured to use editor3 with formatting options or be regular text
+     */
+    const TEXT_FIELDS_WITH_EDITOR_TYPE_CONFIG = (() => {
+        if (options.profile === 'event') {
+            const nameof = superdeskApi.helpers.nameof<IEventItem>;
+
+            return new Set<string>([
+                nameof('definition_long'),
+                nameof('definition_short'),
+                nameof('name'),
+                nameof('internal_note'),
+                nameof('ednote'),
+                nameof('invitation_details'),
+                nameof('registration_details'),
+            ]);
+        } else if (options.profile === 'planning') {
+            const nameof = superdeskApi.helpers.nameof<IPlanningItem>;
+
+            return new Set<string>([
+                nameof('name'),
+                nameof('internal_note'),
+                nameof('ednote'),
+                nameof('description_text'),
+            ]);
+        } else {
+            return assertNever(options.profile);
+        }
+    })();
+
+    const itemProfile = planningApi.contentProfiles.get(options.profile);
+    const itemGroups = getEditorFormGroupsFromProfile(itemProfile);
+    const itemFieldIds = Object.values(itemGroups)
         .flatMap((x) => x.fields)
         .filter((x) => !unimplementedFields.has(x));
     const convertedFields: Array<IFieldConverted> = [];
@@ -68,8 +87,8 @@ export const getPlanningProfileFields = (
         }
     };
 
-    for (const fieldId of planningFieldIds) {
-        const fieldSchema = planningProfile.schema[fieldId];
+    for (const fieldId of itemFieldIds) {
+        const fieldSchema = itemProfile.schema[fieldId];
         const shouldBeShown = fieldSchema.show_in_embedded_editor || fieldSchema.required;
 
         /**
@@ -94,7 +113,7 @@ export const getPlanningProfileFields = (
                 });
             }
         } else if (
-            TEXT_FIELDS_MULTIPLE_TYPES.has(fieldId)
+            TEXT_FIELDS_WITH_EDITOR_TYPE_CONFIG.has(fieldId)
             && (fieldSchema as IProfileSchemaTypeString).field_type === 'editor_3'
         ) {
             const castedSchema = fieldSchema as IProfileSchemaTypeString;
