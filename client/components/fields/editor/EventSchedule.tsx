@@ -79,6 +79,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
     changeStartTime(value?: moment.Moment) {
         const startDate = this.props.item?.dates?.start;
         const endDate = this.props.item?.dates?.end;
+        const isAllDay = this.props.item.dates?.all_day === true;
 
         if (!value) {
             const changes = {
@@ -99,7 +100,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         const changes = {
             'dates.start': newStartDate,
             'dates.all_day': false,
-            'dates.no_end_time': this.props.item.dates.no_end_time ?? true,
+            'dates.no_end_time': isAllDay, // If event was all day there won't be any end time now
             [TO_BE_CONFIRMED_FIELD]: false,
         };
 
