@@ -12,6 +12,7 @@
 import logging
 from eve_elastic.elastic import parse_date, get_dates
 from copy import deepcopy
+from typing import Any, Dict
 
 import superdesk
 from superdesk.core import json, get_current_app, get_app_config
@@ -21,7 +22,7 @@ from superdesk.metadata.utils import item_url
 
 from planning.events.events_schema import events_schema
 from planning.planning.planning import planning_schema
-from typing import Any, Dict
+from planning.types import EventResourceModel, PlanningResourceModel
 
 logger = logging.getLogger(__name__)
 
@@ -94,21 +95,33 @@ class PlanningSearchService(AsyncBaseService):
                 if (doc["dates"].get("recurring_rule") or {}).get("until"):
                     doc["dates"]["recurring_rule"]["until"] = parse_date(doc["dates"]["recurring_rule"]["until"])
 
+    def get_indexes_for_search(self, repos: list[str]) -> list[str]:
+        indexes = []
+        if "events" in repos:
+            indexes += EventResourceModel.get_service().elastic.config.index
+        if "planning" in repos:
+            indexes += PlanningResourceModel.get_service().elastic.config.index
+        return indexes
+
+    def get_projection(self, req) -> list[str] | None:
+        fields = self._get_projected_fields(req)
+        projection = None if not fields else fields.split(",")
+
+        if projection and "type" not in projection:
+            # Make sure `type` is always included in the projection
+            projection.append("type")
+
+        return projection
+
     async def get_async(self, req, lookup):
         """Run the query against events and planning indexes"""
         query = self._get_query(req)
         types = self._get_types(req)
-        fields = self._get_projected_fields(req)
+        indexes = self.get_indexes_for_search(types)
+        projection = self.get_projection(req)
 
-        params = {}
-        if fields:
-            # If projections are provided, make sure `type` is always included
-            if "type" not in fields:
-                fields += ",type"
-
-            params["_source"] = fields
-
-        docs = await self.elastic.search_async(query, types, params)
+        elastic = EventResourceModel.get_service().elastic
+        docs = await elastic.search(query, indexes, projection)
         self._format_docs(docs)
 
         # to avoid call on_fetched_resource callback from some internal resource
