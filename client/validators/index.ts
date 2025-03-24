@@ -109,7 +109,7 @@ export const validateItem = ({
                 profileName: profileName,
                 field: key,
                 value: key === '_all' ? diff : getValue(key),
-                profile: key !== 'coverages' ? profiles[profileName] : profiles.coverage,
+                profile: key !== 'coverages' ? profiles[profileName] : undefined,
                 errors: errors,
                 messages: messages,
                 diff: diff,

@@ -23,6 +23,7 @@ import {FieldEditor} from './FieldEditor';
 
 interface IProps {
     profile: IEditorProfile;
+    isProfileCoverage?: boolean;
     groupFields: boolean;
     systemRequiredFields: Array<string>;
     disableMinMaxFields?: Array<string>;
@@ -264,6 +265,7 @@ export class FieldTab extends React.Component<IProps, IState> {
 
                             return profileRes;
                         })()}
+                        isProfileCoverage={this.props.isProfileCoverage}
                         profile={this.props.profile}
                         isDirty={this.isEditorDirty()}
                         disableMinMax={this.props.disableMinMaxFields?.includes(this.state.selectedField.name)}

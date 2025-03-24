@@ -17,6 +17,7 @@ interface IProps {
     popupContainer(): void;
     onPopupOpen(): void;
     onPopupClose(): void;
+    canClear?: boolean;
     showToBeConfirmed: boolean;
     onToBeConfirmed(): void;
     toBeConfirmedText: string;
@@ -174,14 +175,18 @@ export class TimeInputPopup extends React.Component<IProps, IState> {
                 </Content>
 
                 <Footer className="time-popup__footer">
-                    <Button
-                        text={gettext('Clear')}
-                        hollow
-                        size="small"
-                        pullRight
-                        onClick={() => this.handleClear()}
-                        testId="time-popup-clear"
-                    />
+                    {
+                        this.props.canClear !== false && (
+                            <Button
+                                text={gettext('Clear')}
+                                hollow
+                                size="small"
+                                pullRight
+                                onClick={() => this.handleClear()}
+                                testId="time-popup-clear"
+                            />
+                        )
+                    }
                     <Button
                         text={gettext('Confirm')}
                         color="primary"
