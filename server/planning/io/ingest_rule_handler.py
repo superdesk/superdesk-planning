@@ -68,7 +68,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         updates = None
         if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT:
-            updates = self.add_event_calendars(ingest_item, attributes)
+            updates = await self.add_event_calendars(ingest_item, attributes)
         elif ingest_item[ITEM_TYPE] == CONTENT_TYPE.PLANNING:
             updates = self.add_planning_agendas(ingest_item, attributes)
 
@@ -87,7 +87,9 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             and original["pubstatus"] == ingest_item.get("ingest_pubstatus")
         )
 
-    def add_event_calendars(self, ingest_item: Dict[str, Any], attributes: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def add_event_calendars(
+        self, ingest_item: Dict[str, Any], attributes: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Add Event Calendars from Routing Rule Action onto the ingested item"""
 
         ingest_item.setdefault("calendars", [])
@@ -114,8 +116,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         updates = {"calendars": ingest_item["calendars"] + calendars_to_add}
-        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
-        updated_item = get_resource_service("events").patch(ingest_item.get(ID_FIELD), updates)
+        updated_item = await get_resource_service("events").patch_async(ingest_item.get(ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
 
         return updates

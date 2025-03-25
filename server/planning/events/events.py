@@ -15,14 +15,13 @@ import re
 import pytz
 import logging
 import itertools
-import json
 
 from copy import deepcopy
 from typing import Dict, Any, Optional, List, Tuple
 from datetime import timedelta, datetime, timedelta
 
 from eve.methods.common import resolve_document_etag
-from eve.utils import date_to_str, ParsedRequest
+from eve.utils import date_to_str
 from dateutil.rrule import (
     rrule,
     YEARLY,
@@ -52,6 +51,8 @@ from superdesk.users.services import current_user_has_privilege
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 
+from planning.events.events_reschedule import reschedule_single_event
+from planning.events.events_utils import get_recurring_timeline
 from planning.types import EmbeddedCoverageItem, Event, PlanningRelatedEventLink, PLANNING_RELATED_EVENT_LINK_TYPE
 from planning.types.event import EmbeddedPlanning
 from planning.common import (
@@ -567,9 +568,9 @@ class EventsService(AsyncBaseService):
         # Run the specific methods based on if the original is a
         # single or a series of recurring events
         if not original.get("dates", {}).get("recurring_rule", None) or update_method == UPDATE_SINGLE:
-            self._update_single_event(updates, original)
+            await self._update_single_event(updates, original)
         else:
-            self._update_recurring_events(updates, original, update_method)
+            await self._update_recurring_events(updates, original, update_method)
 
     async def on_updated_async(self, updates, original, from_ingest: Optional[bool] = None):
         # If this Event was converted to a recurring series
@@ -580,7 +581,7 @@ class EventsService(AsyncBaseService):
         if not updates.get("duplicate_to"):
             posted = update_post_item(updates, original)
             if posted:
-                new_event = await get_resource_service("events").find_one(req=None, _id=original.get(ID_FIELD))
+                new_event = await get_resource_service("events").find_one_async(req=None, _id=original.get(ID_FIELD))
                 updates["_etag"] = new_event["_etag"]
                 updates["state_reason"] = new_event.get("state_reason")
 
@@ -612,7 +613,7 @@ class EventsService(AsyncBaseService):
             lock_session=str(get_auth().get("_id")),
         )
 
-    def _update_single_event(self, updates, original):
+    async def _update_single_event(self, updates, original):
         """Updates the metadata of a single event.
 
         If recurring_rule is provided, we convert this single event into
@@ -622,8 +623,7 @@ class EventsService(AsyncBaseService):
         if post_required(updates, original):
             merged = deepcopy(original)
             merged.update(updates)
-            # TODO-ASYNC: replace when `event_post` is async and validate_item is available for use
-            # get_resource_service("events_post").validate_item(merged)
+            await get_resource_service("events_post").validate_item(merged)
 
         # Determine if we're to convert this single event to a recurring
         #  of events
@@ -631,7 +631,7 @@ class EventsService(AsyncBaseService):
             original.get(LOCK_ACTION) == "convert_recurring"
             and updates.get("dates", {}).get("recurring_rule", None) is not None
         ):
-            generated_events = self._convert_to_recurring_event(updates, original)
+            generated_events = await self._convert_to_recurring_event(updates, original)
 
             # if the original event was "posted" then post all the generated events
             if original.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
@@ -641,7 +641,7 @@ class EventsService(AsyncBaseService):
                     "update_method": "all",
                     "pubstatus": original.get("pubstatus"),
                 }
-                get_resource_service("events_post").post([post])
+                await get_resource_service("events_post").post_async([post])
 
             push_notification(
                 "events:updated:recurring",
@@ -660,7 +660,7 @@ class EventsService(AsyncBaseService):
                 user=str(updates.get("version_creator", "")),
             )
 
-    def _update_recurring_events(self, updates, original, update_method):
+    async def _update_recurring_events(self, updates, original, update_method):
         """Method to update recurring events.
 
         If the recurring_rule has been removed for this event, process
@@ -672,10 +672,10 @@ class EventsService(AsyncBaseService):
         updates.pop("dates", None)
 
         if update_method == UPDATE_FUTURE:
-            historic, past, future = self.get_recurring_timeline(original)
+            historic, past, future = await get_recurring_timeline(original, spiked=False, postponed=True)
             events = future
         else:
-            historic, past, future = self.get_recurring_timeline(original)
+            historic, past, future = await get_recurring_timeline(original, spiked=False, postponed=True)
             events = historic + past + future
 
         events_post_service = get_resource_service("events_post")
@@ -685,7 +685,7 @@ class EventsService(AsyncBaseService):
             if post_required(updates, e):
                 merged = deepcopy(e)
                 merged.update(updates)
-                events_post_service.validate_item(merged)
+                await events_post_service.validate_item(merged)
 
         # If this update is from assignToCalendar action
         # Then we only want to update the calendars of each Event
@@ -757,7 +757,7 @@ class EventsService(AsyncBaseService):
                     },
                 )
 
-    def _convert_to_recurring_event(self, updates, original):
+    async def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
         self._validate_convert_to_recurring(updates, original)
         updates["recurrence_id"] = original["_id"]
@@ -776,10 +776,9 @@ class EventsService(AsyncBaseService):
         if updated_event["dates"]["start"].date() != original["dates"]["start"].date():
             # Reschedule original event
             updates["update_method"] = UPDATE_SINGLE
-            event_reschedule_service = get_resource_service("events_reschedule")
             updates["dates"] = updated_event["dates"]
             set_planning_schedule(updates)
-            event_reschedule_service.update_single_event(updates, original)
+            await reschedule_single_event(updates, original)
             if updates.get("state") == WORKFLOW_STATE.RESCHEDULED:
                 history_service = get_resource_service("events_history")
                 history_service.on_reschedule(updates, original)
@@ -797,74 +796,6 @@ class EventsService(AsyncBaseService):
         app = get_current_app().as_any()
         app.on_inserted_events(generated_events)
         return generated_events
-
-    def get_recurring_timeline(self, selected, spiked=False, postponed=True):
-        excluded_states = []
-
-        if not spiked:
-            excluded_states.append(WORKFLOW_STATE.SPIKED)
-        if not postponed:
-            excluded_states.append(WORKFLOW_STATE.POSTPONED)
-
-        query = {
-            "$and": [
-                {"recurrence_id": selected["recurrence_id"]},
-                {"_id": {"$ne": selected[ID_FIELD]}},
-            ]
-        }
-
-        if excluded_states:
-            query["$and"].append({"state": {"$nin": excluded_states}})
-
-        sort = '[("dates.start", 1)]'
-        max_results = get_max_recurrent_events()
-        selected_start = selected.get("dates", {}).get("start", utcnow())
-
-        # Make sure we are working with a datetime instance
-        if not isinstance(selected_start, datetime):
-            selected_start = datetime.strptime(selected_start, "%Y-%m-%dT%H:%M:%S%z")
-
-        historic = []
-        past = []
-        future = []
-
-        for event in self.get_series(query, sort, max_results):
-            event["dates"]["end"] = event["dates"]["end"]
-            event["dates"]["start"] = event["dates"]["start"]
-            for sched in event.get("_planning_schedule", []):
-                sched["scheduled"] = sched["scheduled"]
-            end = event["dates"]["end"]
-            start = event["dates"]["start"]
-            if end < utcnow():
-                historic.append(event)
-            elif start < selected_start:
-                past.append(event)
-            elif start > selected_start:
-                future.append(event)
-
-        return historic, past, future
-
-    def get_series(self, query, sort, max_results):
-        page = 1
-
-        while True:
-            # Get the results from mongo
-            req = ParsedRequest()
-            req.sort = sort
-            req.where = json.dumps(query)
-            req.max_results = max_results
-            req.page = page
-            results = self.get_from_mongo(req=req, lookup=None)
-
-            docs = list(results)
-            if not docs:
-                break
-
-            page += 1
-
-            # Yield the results for iteration by the callee
-            for doc in docs:
-                yield doc
 
     @staticmethod
     def _link_to_planning(event: Event):

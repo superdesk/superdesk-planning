@@ -12,7 +12,6 @@ import logging
 
 import superdesk
 from superdesk.core import get_current_app
-from superdesk.core.types import SearchRequest
 from superdesk.errors import SuperdeskApiError
 from superdesk.eve_async.service import AsyncBaseService
 
@@ -70,7 +69,5 @@ class EventsFilesService(AsyncBaseService):
 
     async def on_delete_async(self, doc):
         events_service = EventResourceModel.get_service()
-        search_request = SearchRequest(where={"files": doc.get("_id")})
-        events_using_file = await events_service.find(search_request)
-        if await events_using_file.count() > 0:
+        if await events_service.count({"files": doc.get("_id")}) > 0:
             raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other events.")
