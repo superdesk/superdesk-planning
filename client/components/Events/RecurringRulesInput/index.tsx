@@ -71,7 +71,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
         const {
             onChange,
             readOnly,
-            errors,
+            errors = {},
             onlyUpdateRepetitions,
         } = this.props;
 
@@ -89,7 +89,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                 style={{paddingBlockEnd: '2rem', display: 'flex', flexDirection: 'column', gap: 8}}
                 data-test-id={this.props.testId}
             >
-                <Spacer h gap="32" justifyContent="center">
+                <Spacer h gap="32" justifyContent="center" alignItems="start">
                     {onlyUpdateRepetitions ? null : (
                         <Spacer h gap="4">
                             <Select
@@ -99,6 +99,8 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                                     this.onIntervalChange('dates.recurring_rule.interval', parseInt(newValue, 10));
                                 }}
                                 label={superdeskApi.localization.gettext('Every')}
+                                error={errors.interval}
+                                invalid={!!errors.interval}
                             >
                                 {range(0, 30).map((n) => ({
                                     key: n + 1,
@@ -114,6 +116,8 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                                 }}
                                 value={frequency}
                                 disabled={readOnly}
+                                error={errors.frequency}
+                                invalid={!!errors.frequency}
                             >
                                 {this.repeatChoices.map((x) => (
                                     <Option key={x.key} value={x.key}>{x.label}</Option>
@@ -121,12 +125,15 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                             </Select>
                         </Spacer>
                     )}
-                    <Spacer h gap="4" justifyContent="center">
+                    <Spacer h gap="4" justifyContent="center" alignItems="start">
                         <Select
                             onChange={this.onEndRepeatModeChange}
                             value={endRepeatMode}
                             disabled={readOnly}
                             label={superdeskApi.localization.gettext('Ends')}
+                            error={errors.endRepeatMode}
+                            invalid={!!errors.endRepeatMode}
+                            data-test-id="dates.recurring_rule.endRepeatMode"
                         >
                             {this.endsChoices.map((x) => (<Option key={x.key} value={x.key}>{x.label}</Option>))}
                         </Select>
@@ -138,7 +145,8 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                                 }}
                                 dateFormat={appConfig.view.dateformat}
                                 disabled={readOnly}
-                                invalid={!!get(errors, 'until')}
+                                invalid={!!errors.until}
+                                error={errors.until}
                             />
                         ) : (
                             <Input
@@ -149,6 +157,8 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                                 type="number"
                                 disabled={readOnly}
                                 label={superdeskApi.localization.gettext('Repeats')}
+                                error={errors.count}
+                                data-test-id="dates.recurring_rule.count"
                             />
                         )}
                     </Spacer>
