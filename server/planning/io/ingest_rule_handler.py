@@ -19,7 +19,7 @@ from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
 from apps.rules.rule_handlers import RoutingRuleHandler, register_routing_rule_handler
 
-from planning.common import POST_STATE, update_post_item
+from planning.common import POST_STATE, update_post_item, WORKFLOW_STATE
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +114,8 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         updates = {"calendars": ingest_item["calendars"] + calendars_to_add}
+        if attributes.get("autopost", False):
+            updates.update({"state": WORKFLOW_STATE.SCHEDULED, "pubstatus": POST_STATE.USABLE})
         updated_item = get_resource_service("events").patch(ingest_item.get(config.ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
 
@@ -161,6 +163,8 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         # Append Agenda IDs found onto the item
         updates = {"agendas": ingest_item["agendas"] + new_agenda_ids}
+        if attributes.get("autopost", False):
+            updates.update({"state": WORKFLOW_STATE.SCHEDULED, "pubstatus": POST_STATE.USABLE})
         updated_item = get_resource_service("planning").patch(ingest_item.get(config.ID_FIELD), updates)
         updates["_etag"] = updated_item["_etag"]
         return updates
