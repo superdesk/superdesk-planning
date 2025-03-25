@@ -40,13 +40,15 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
         return isEmpty(fieldValue) === false;
     })();
 
-    if (field == 'recurring_rules') {
-        if ((value?.endRepeatMode === 'count' && value?.count == null)) {
+    if (field == 'recurring_rules' && value.recurring_rule != null) {
+        if ((value.recurring_rule?.endRepeatMode === 'count' || value.recurring_rule?.endRepeatMode == null)
+            && value.recurring_rules?.count == null
+        ) {
             errors[field] = gettext('Repeat must be set');
             messages.push(gettext('Repeat must be set'));
         }
 
-        if (value?.endRepeatMode === 'until' && value?.until == null) {
+        if (value.recurring_rule?.endRepeatMode === 'until' && value.recurring_rule?.until == null) {
             errors[field] = gettext('End date must be set');
             messages.push(gettext('End date must be set'));
         }

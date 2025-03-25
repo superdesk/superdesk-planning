@@ -52,6 +52,7 @@ export class ConvertToRecurringEventComponent extends React.Component <IProps> {
             frequency: 'DAILY',
             interval: 1,
             until: null,
+            endRepeatMode: 'count',
         };
         this.validateAndSetState(diff);
     }
