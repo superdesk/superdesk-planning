@@ -37,7 +37,7 @@ export class AttachmentsInputStandalone extends React.PureComponent<IProps, ISta
                     ]}
                 >
                     {(res) => {
-                        const files: Array<IFile> = res?.[0]?._items ?? [];
+                        const files: Array<IFile> = res[0]._items;
 
                         return (
                             <Spacer v gap="4">
