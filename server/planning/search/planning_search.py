@@ -10,22 +10,24 @@
 
 """Superdesk Planning Search."""
 import logging
-from eve_elastic.elastic import parse_date, get_dates
+from eve_elastic.elastic import parse_date, get_dates, fix_query
 from copy import deepcopy
+from typing import Any, Dict
 
 import superdesk
 from superdesk.core import json, get_current_app, get_app_config
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.resource_fields import ITEMS
 from superdesk.metadata.utils import item_url
 
-from planning.planning.planning import planning_schema
 from planning.events.events_schema import events_schema
-from typing import Any, Dict
+from planning.planning.planning import planning_schema
+from planning.types import EventResourceModel, PlanningResourceModel
 
 logger = logging.getLogger(__name__)
 
 
-class PlanningSearchService(superdesk.Service):
+class PlanningSearchService(AsyncBaseService):
     repos = ["events", "planning"]
 
     @property
@@ -35,7 +37,7 @@ class PlanningSearchService(superdesk.Service):
     def _get_query(self, req):
         """Get elastic query."""
         args = getattr(req, "args", {})
-        query = json.loads(args.get("source")) if args.get("source") else {"query": {"filtered": {}}}
+        query = json.loads(args.get("source", {})) if args.get("source") else {"query": {"filtered": {}}}
         return query
 
     def _get_types(self, req):
@@ -49,44 +51,19 @@ class PlanningSearchService(superdesk.Service):
             repos = repos.split(",")
             return [repo for repo in repos if repo in self.repos]
 
-    def get(self, req, lookup):
-        """Run the query against events and planning indexes"""
-        query = self._get_query(req)
-        types = self._get_types(req)
-        fields = self._get_projected_fields(req)
+    def _get_projected_fields(self, req):
+        """Get elastic projected fields."""
+        app = get_current_app()
+        if app.data.elastic.should_project(req):
+            return app.data.elastic.get_projected_fields(req)
 
-        params = {}
-        if fields:
-            # If projections are provided, make sure `type` is always included
-            if "type" not in fields:
-                fields += ",type"
-
-            params["_source"] = fields
-
-        docs = self.elastic.search(query, types, params)
-        self._format_docs(docs)
-
-        # to avoid call on_fetched_resource callback from some internal resource
-        on_fetched_resource = True
-        try:
-            on_fetched_resource = req.exec_on_fetched_resource
-        except AttributeError:
-            pass
-
-        if on_fetched_resource:
-            app = get_current_app().as_any()
-            for resource in types:
-                response = {
-                    ITEMS: [
-                        doc
-                        for doc in docs
-                        if doc["type"] == resource or (resource == "events" and doc["type"] == "event")
-                    ]
-                }
-                getattr(app, "on_fetched_resource")(resource, response)
-                getattr(app, "on_fetched_resource_%s" % resource)(response)
-
-        return docs
+    def _get_index(self, repos):
+        """Get index id for all repos."""
+        app = get_current_app()
+        indexes = {app.data.elastic.index}
+        for repo in repos:
+            indexes.add(app.config["ELASTICSEARCH_INDEXES"].get(repo, app.data.elastic.index))
+        return ",".join(indexes)
 
     def _get_date_fields(self, resource: str):
         datasource = self.elastic.get_datasource(resource)
@@ -118,19 +95,58 @@ class PlanningSearchService(superdesk.Service):
                 if (doc["dates"].get("recurring_rule") or {}).get("until"):
                     doc["dates"]["recurring_rule"]["until"] = parse_date(doc["dates"]["recurring_rule"]["until"])
 
-    def _get_projected_fields(self, req):
-        """Get elastic projected fields."""
-        app = get_current_app()
-        if app.data.elastic.should_project(req):
-            return app.data.elastic.get_projected_fields(req)
+    def get_indexes_for_search(self, repos: list[str]) -> list[str]:
+        indexes = []
+        if "events" in repos:
+            indexes += EventResourceModel.get_service().elastic.config.index
+        if "planning" in repos:
+            indexes += PlanningResourceModel.get_service().elastic.config.index
+        return indexes
 
-    def _get_index(self, repos):
-        """Get index id for all repos."""
-        app = get_current_app()
-        indexes = {app.data.elastic.index}
-        for repo in repos:
-            indexes.add(app.config["ELASTICSEARCH_INDEXES"].get(repo, app.data.elastic.index))
-        return ",".join(indexes)
+    def get_projection(self, req) -> list[str] | None:
+        fields = self._get_projected_fields(req)
+        projection = None if not fields else fields.split(",")
+
+        if projection and "type" not in projection:
+            # Make sure `type` is always included in the projection
+            projection.append("type")
+
+        return projection
+
+    async def get_async(self, req, lookup):
+        """Run the query against events and planning indexes"""
+        query = self._get_query(req)
+        types = self._get_types(req)
+        indexes = self.get_indexes_for_search(types)
+        projection = self.get_projection(req)
+
+        elastic = EventResourceModel.get_service().elastic
+        hits = await elastic.search(fix_query(query), indexes, projection)
+        docs = self.elastic._parse_hits(hits, types[0])
+
+        self._format_docs(docs)
+
+        # to avoid call on_fetched_resource callback from some internal resource
+        on_fetched_resource = True
+        try:
+            on_fetched_resource = req.exec_on_fetched_resource
+        except AttributeError:
+            pass
+
+        if on_fetched_resource:
+            app = get_current_app().as_any()
+            for resource in types:
+                response = {
+                    ITEMS: [
+                        doc
+                        for doc in docs
+                        if doc["type"] == resource or (resource == "events" and doc["type"] == "event")
+                    ]
+                }
+                getattr(app, "on_fetched_resource")(resource, response)
+                getattr(app, "on_fetched_resource_%s" % resource)(response)
+
+        return docs
 
 
 class PlanningSearchResource(superdesk.Resource):
