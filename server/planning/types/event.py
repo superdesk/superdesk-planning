@@ -2,11 +2,11 @@ from pydantic import Field
 from datetime import datetime
 from typing import Annotated, Any
 
-from content_api.items.model import CVItem, Place
 
 from superdesk.utc import utcnow
 from superdesk.core.resources import fields, dataclass, Dataclass
 from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.types.base import CVItem, Place
 
 from .base import BasePlanningModel
 from .event_dates import EventDates, OccurStatus
