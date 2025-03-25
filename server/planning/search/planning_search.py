@@ -10,7 +10,7 @@
 
 """Superdesk Planning Search."""
 import logging
-from eve_elastic.elastic import parse_date, get_dates
+from eve_elastic.elastic import parse_date, get_dates, fix_query
 from copy import deepcopy
 from typing import Any, Dict
 
@@ -121,7 +121,9 @@ class PlanningSearchService(AsyncBaseService):
         projection = self.get_projection(req)
 
         elastic = EventResourceModel.get_service().elastic
-        docs = await elastic.search(query, indexes, projection)
+        hits = await elastic.search(fix_query(query), indexes, projection)
+        docs = self.elastic._parse_hits(hits, types[0])
+
         self._format_docs(docs)
 
         # to avoid call on_fetched_resource callback from some internal resource
