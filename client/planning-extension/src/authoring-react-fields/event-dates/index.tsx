@@ -16,7 +16,7 @@ export function getEventDateField(): ICustomFieldType<
     IEventDateValueStorage,
     IEventDateFieldConfig,
     IEventDateFieldUserPreferences
-> {
+    > {
     const field: ReturnType<typeof getEventDateField> = {
         id: 'dates',
         generic: false,
