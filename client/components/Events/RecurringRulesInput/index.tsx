@@ -147,6 +147,7 @@ export class RecurringRulesInput extends React.PureComponent<IProps> {
                                 disabled={readOnly}
                                 invalid={!!errors.until}
                                 error={errors.until}
+                                data-test-id="dates.recurring_rule.until"
                             />
                         ) : (
                             <Input

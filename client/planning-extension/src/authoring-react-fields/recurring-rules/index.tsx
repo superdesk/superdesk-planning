@@ -16,7 +16,7 @@ export function getRecurringRulesField(): ICustomFieldType<
     IRecurringRulesValueStorage,
     IRecurringRulesFieldConfig,
     IRecurringRulesFieldUserPreferences
-> {
+    > {
     const field: ReturnType<typeof getRecurringRulesField> = {
         id: 'recurring_rules-react',
         generic: false,

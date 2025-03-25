@@ -950,7 +950,7 @@ export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => 
     const dateFormat = appConfig.planning.dateformat;
     const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
 
-    const startConverted = (() => {
+    const startConverted = event.dates?.start ? (() => {
         const start = event.dates.start;
 
         if (start != null && isMoment(start)) {
@@ -960,9 +960,9 @@ export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => 
         }
 
         return moment();
-    })();
+    })() : undefined;
 
-    const endConverted = (() => {
+    const endConverted = event.dates?.end ? (() => {
         const end = event.dates.end;
 
         if (end != null && isMoment(end)) {
@@ -972,7 +972,7 @@ export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => 
         }
 
         return moment();
-    })();
+    })() : undefined;
 
     if (startConverted.isSame(endConverted, 'day')) {
         return (startConverted.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);

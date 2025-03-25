@@ -38,7 +38,7 @@ export class EventEditor extends Editor {
                     ),
                     until: new Input(
                         getParent,
-                        '[data-test-id="field-recurring_rules_rules"] input[name="dates.recurring_rule.until"]'
+                        '[data-test-id="field-recurring_rules_rules"] [data-test-id="dates.recurring_rule.until"]'
                     ),
                 },
             },
@@ -55,6 +55,7 @@ export class EventEditor extends Editor {
             this.fields.language = new TreeSelect(getParent, '[data-test-id=field-language]', true);
 
             const firstLanguage = languages[0];
+
             multilingualFields.forEach((field) => {
                 const originalField = this.fields[field];
 
@@ -62,7 +63,7 @@ export class EventEditor extends Editor {
                     this.fields[`${field}.${languageQcode}`] = new Input(
                         getParent,
                         originalField.selector.replace(field, `${field}.${languageQcode}`)
-                    )
+                    );
                 });
                 this.fields[field] = this.fields[`${field}.${firstLanguage}`];
             });
@@ -78,6 +79,6 @@ export class EventEditor extends Editor {
     }
 
     getMainLanguageButton(languageQcode: string) {
-        return  this.element.find(`#editor--language-controls [data-test-id="main-language--${languageQcode}"]`);
+        return this.element.find(`#editor--language-controls [data-test-id="main-language--${languageQcode}"]`);
     }
 }

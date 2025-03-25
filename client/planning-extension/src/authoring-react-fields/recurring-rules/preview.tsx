@@ -1,4 +1,4 @@
-import {PureComponent, ReactNode} from 'react'
+import {PureComponent, ReactNode} from 'react';
 import {IRecurringRulesFieldConfig, IRecurringRulesValueOperational} from './interfaces';
 import {IPreviewComponentProps} from 'superdesk-api';
 

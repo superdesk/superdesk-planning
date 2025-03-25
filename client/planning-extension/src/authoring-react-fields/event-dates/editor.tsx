@@ -46,7 +46,7 @@ export class Editor extends React.PureComponent<IProps> {
                         ...this.props.item,
                         ...this.props.value,
                     }}
-                    field='dates'
+                    field="dates"
                 />
             </Container>
         );

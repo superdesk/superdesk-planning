@@ -1,6 +1,10 @@
 import * as React from 'react';
 import {IEditorComponentProps} from 'superdesk-api';
-import {IRecurringRulesFieldConfig, IRecurringRulesFieldUserPreferences, IRecurringRulesValueOperational} from './interfaces';
+import {
+    IRecurringRulesFieldConfig,
+    IRecurringRulesFieldUserPreferences,
+    IRecurringRulesValueOperational,
+} from './interfaces';
 import {extensionBridge} from '../../extension_bridge';
 import {cloneDeep, set} from 'lodash';
 
@@ -25,7 +29,7 @@ export class Editor extends React.PureComponent<IProps> {
 
                         this.props.onChange(valueCopy.dates.recurring_rule);
                     }}
-                    field='dates.recurring_rule'
+                    field="dates.recurring_rule"
                     item={{
                         ...this.props.item,
                         dates: {
