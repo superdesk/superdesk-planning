@@ -30,6 +30,7 @@ describe('Planning.Events: create planning action', () => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         addItems('events', [{
             slugline: 'Original',
+            name: 'Original',
             definition_short: 'Desc.',
             occur_status: {
                 name: 'Planned, occurs certainly',
@@ -37,8 +38,10 @@ describe('Planning.Events: create planning action', () => {
                 qcode: 'eocstat:eos5',
             },
             dates: {
-                start: start.utc().format("YYYY-MM-DDTHH:mm:ss+0000"),
-                end: start.clone().utc().add(1, 'h').format('YYYY-MM-DDTHH:mm:ss+0000'),
+                start: start.utc().format('YYYY-MM-DDTHH:mm:ss+0000'),
+                end: start.clone().utc()
+                    .add(1, 'h')
+                    .format('YYYY-MM-DDTHH:mm:ss+0000'),
                 tz: TIMEZONE,
             },
             anpa_category: [{is_active: true, name: 'Finance', qcode: 'f', subject: '04000000'}],

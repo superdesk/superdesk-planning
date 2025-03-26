@@ -47,8 +47,8 @@ export const authoringStoragePlanningItemHttp: IAuthoringStorage<IPlanningItem> 
             },
         }).then(planningUtils.modifyForClient);
     },
-    getContentProfile: () => {
-        return Promise.resolve(getProfile('planning'));
+    getContentProfile: (item) => {
+        return Promise.resolve(getProfile('planning', item.language));
     },
     closeAuthoring: (_current, _original, _hasUnsavedChanges, _cancelAutosave, _doClose) => {
         return Promise.resolve();

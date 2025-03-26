@@ -751,6 +751,10 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     // added by client - should be dropped before sending to server
     event?: IEventItem;
 
+    // Used for storing and autosaving changes of newly created events with temporary id.
+    // Only sent to the autosave resource, and not to the planning resource since it doesn't
+    // accept related events with temporary id.
+    _unsaved_related_events?: Array<IPlanningRelatedEventLink>;
     /**
      * This is for storing UI related data that is not a part of the planning item entity itself,
      * but is required to be persisted to complete a multi-step workflow.
@@ -2174,7 +2178,7 @@ export interface IEditorAPI {
                     scrollIntoViewAndFocus?: boolean;
                 },
             ): Promise<Partial<IPlanningItem>>;
-            removePlanningItem(item: DeepPartial<IPlanningItem>): void;
+            unlinkPlanning(item: DeepPartial<IPlanningItem>): void;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,
                 updates: DeepPartial<IPlanningItem>,
@@ -2187,7 +2191,8 @@ export interface IEditorAPI {
                 bookmarks: Array<IEditorBookmark>;
                 groups: Array<IEditorFormGroup>;
             };
-            removeEventItem(item: DeepPartial<IEventItem>): void;
+            updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): void;
+            unlinkEvent(item: DeepPartial<IEventItem>): void;
             getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(
                 type: ICoverageType,

@@ -51,8 +51,8 @@ export class ConvertToRecurringEventComponent extends React.Component <IProps> {
         diff.dates.recurring_rule = {
             frequency: 'DAILY',
             interval: 1,
-            endRepeatMode: 'until',
             until: null,
+            endRepeatMode: 'count',
         };
         this.validateAndSetState(diff);
     }

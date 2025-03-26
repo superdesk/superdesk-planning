@@ -5,8 +5,9 @@ import events from '../../../utils/events';
 import {AssociatedEventItem} from './AssociatedEventItem';
 import {IAssociatedEventFieldProps} from './AssociatedEventWrapper';
 import {Spacer, Button} from 'superdesk-ui-framework/react';
-import {isTemporaryId, removeAutosaveFields} from '../../../utils';
+import {generateTempId, isTemporaryId} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
+import {autosave} from '../../../api/autosave';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
@@ -22,6 +23,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         this.addNewRelatedEvent = this.addNewRelatedEvent.bind(this);
     }
 
+
     private getCurrentValue(): Array<IPlanningRelatedEventLink> {
         const {field, item} = this.props;
         const relatedEvents = item[field] ?? [];
@@ -34,6 +36,11 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
             this.props.onChange(
                 this.props.field,
                 nextItems,
+            );
+
+            this.props.onChange(
+                '_unsaved_related_events',
+                nextItems.filter((x) => isTemporaryId(x._id)),
             );
 
             return Promise.resolve();
@@ -55,12 +62,14 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
     }
 
     private addNewRelatedEvent() {
-        const newEvent = convertPlanningToEvent(this.props.item, planningApi.redux.store.getState);
+        const newEvent = {
+            _id: generateTempId(),
+            ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
+        };
 
-        planningApi.events.create(removeAutosaveFields({...newEvent, associated_plannings: []}))
-            .then(([firstResult]) => {
-                this.addRelatedEvent(firstResult);
-            });
+        return autosave.save(undefined, newEvent).then(() => {
+            this.addRelatedEvent(newEvent as IEventItem);
+        });
     }
 
     render() {
@@ -71,7 +80,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         const planningItemCreated = !isTemporaryId(this.props.item._id);
         const dropZoneText = (() => {
             if (planningItemCreated === false) {
-                return gettext('Event has to be created before adding related plannings');
+                return gettext('Planning item has to be created before adding related events');
             } else if (events.length < 1) {
                 return gettext('No events yet, drop some here, or click the plus button');
             } else {
@@ -101,10 +110,12 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     <Spacer gap="8" v>
                         {events.map((event, i) => (
                             <AssociatedEventItem
+                                isTemporary={isTemporaryId(event._id)}
                                 index={i}
                                 key={event._id}
                                 event={event}
-                                removeEventItem={this.props.removeEventItem}
+                                updateEventItem={this.props.updateEventItem}
+                                unlinkEvent={this.props.unlinkEvent}
                                 disabled={this.props.disabled}
                                 ref={(ref) => {
                                     this.relatedItemRefs[i] = ref;

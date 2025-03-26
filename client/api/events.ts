@@ -136,7 +136,7 @@ function create(updates: Partial<IEventItem>): Promise<Array<IEventItem>> {
     return superdeskApi.dataApi.create<IEventItem | IRestApiResponse<IEventItem>>('events', {
         ...updates,
         associated_plannings: undefined,
-        embedded_planning: updates.associated_plannings.map((planning) => ({
+        embedded_planning: (updates.associated_plannings ?? []).map((planning) => ({
             update_method: planning.update_method ?? planningDefaultCreateMethod,
             coverages: planning.coverages.map((coverage) => ({
                 coverage_id: coverage.coverage_id,

@@ -375,7 +375,7 @@ const save = (original, planUpdates) => (
             const originalItem = cloneDeep(originalPlan);
 
             // remove all properties starting with _ or lock_,
-            let updates = pickBy(
+            const updates: Partial<IPlanningItem> = pickBy(
                 cloneDeep(planUpdates),
                 (v, k) => ((k === TO_BE_CONFIRMED_FIELD || !k.startsWith('_')) && !k.startsWith('lock_'))
             );

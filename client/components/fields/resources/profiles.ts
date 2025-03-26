@@ -30,7 +30,7 @@ registerEditorField(
     (props) => ({
         label: superdeskApi.localization.gettext('Show in embedded form'),
         field: 'schema.show_in_embedded_editor',
-        disabled: props.item.schema.required,
+        disabled: props.item.schema?.required ?? true,
     }),
     null,
     true

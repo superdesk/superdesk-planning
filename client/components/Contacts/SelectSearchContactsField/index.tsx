@@ -16,6 +16,7 @@ interface IProps {
     contactType?: string;
     minLengthPopup?: number;
     placeholder?: string;
+    noMargin?: boolean
 }
 
 export class SelectSearchContactsField extends React.Component<IProps, {openSelectPopup: boolean}> {
@@ -47,13 +48,14 @@ export class SelectSearchContactsField extends React.Component<IProps, {openSele
             contactType,
             minLengthPopup = 1,
             placeholder,
+            noMargin,
             ...props
         } = this.props;
 
         const hasLabel = (label ?? '').trim();
 
         return (
-            <LineInput readOnly={readOnly} {...props} noLabel={!hasLabel}>
+            <LineInput readOnly={readOnly} {...props} noLabel={!hasLabel} noMargin={noMargin}>
                 {hasLabel && (
                     <Label text={label} />
                 )}

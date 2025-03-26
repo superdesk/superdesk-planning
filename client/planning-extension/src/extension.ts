@@ -24,6 +24,8 @@ import {AssignmentsCountTracker} from './assignments-overview/hiddenAssignmentsL
 import {getCoveragesField} from './authoring-react-fields/coverages';
 import {getContactField} from './authoring-react-fields/contact';
 import {getLocationField} from './authoring-react-fields/location';
+import {getRecurringRulesField} from './authoring-react-fields/recurring-rules/index';
+import {getEventDateField} from './authoring-react-fields/event-dates';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -261,6 +263,8 @@ const extension: IExtension = {
                     getCoveragesField(),
                     getContactField(),
                     getLocationField(),
+                    getRecurringRulesField(),
+                    getEventDateField(),
                 ],
             },
         };
