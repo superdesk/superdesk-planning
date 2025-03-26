@@ -40,7 +40,7 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
@@ -110,7 +110,7 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
@@ -134,7 +134,7 @@ class AssignmentLinkTestCase(TestCase):
                     }
                 ],
             )
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [
                     {
                         "assignment_id": assignment_id,
@@ -181,7 +181,7 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
@@ -246,7 +246,7 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [
                     {
                         "assignment_id": assignment_id,

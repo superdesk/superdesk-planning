@@ -182,7 +182,7 @@ class AssignmentsContentService(AsyncBaseService):
                 item["task"]["user"] = get_user_id()
 
                 # link the rewrite
-                get_resource_service("assignments_link").post(
+                await get_resource_service("assignments_link").post_async(
                     [
                         {
                             "assignment_id": assignment[ID_FIELD],

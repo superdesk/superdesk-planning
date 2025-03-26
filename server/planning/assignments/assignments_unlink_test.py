@@ -82,7 +82,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [
                     {
                         "assignment_id": "5b20652a1d41c812e24aa49e",
@@ -216,7 +216,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [
                     {
                         "assignment_id": "5b20652a1d41c812e24aa49e",
@@ -329,7 +329,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [
                     {
                         "assignment_id": "5b20652a1d41c812e24aa49e",

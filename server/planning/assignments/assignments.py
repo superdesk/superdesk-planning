@@ -1114,7 +1114,7 @@ class AssignmentsService(AsyncBaseService):
             if not assignment:
                 raise SuperdeskApiError.badRequestError("Assignment not found.")
 
-            assignment_link_service.post(
+            await assignment_link_service.post_async(
                 [
                     {
                         "assignment_id": str(assignment[ID_FIELD]),
