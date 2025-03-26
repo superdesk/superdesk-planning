@@ -4,6 +4,7 @@ import {
     IProfileFieldEntry,
     IPlanningContentProfile,
     IProfileSchemaTypeString,
+    IEventFormProfile,
 } from '../../../interfaces';
 
 import {superdeskApi, planningApi} from '../../../superdeskApi';
@@ -11,6 +12,7 @@ import {getFieldNameTranslated} from '../../../utils/contentProfiles';
 
 import {Button, ButtonGroup, Checkbox, Alert} from 'superdesk-ui-framework/react';
 import {renderFieldsForPanel} from '../../fields';
+import {coverageProfiles} from '../../../selectors/coverageProfiles';
 
 interface IProps {
     item: IProfileFieldEntry;
@@ -88,18 +90,28 @@ export class FieldEditor extends React.Component<IProps, IState> {
         const isMultilingual = this.props.item.name === 'language' ?
             (this.props.item.schema as IProfileSchemaTypeString).multilingual === true :
             multilingual.isEnabled(this.props.profile);
+        const storeState = planningApi.redux.store.getState();
+        const allCoverageProfileIds = coverageProfiles(storeState).map((x) => x._id);
+        const nameof = superdeskApi.helpers.nameof<IEventFormProfile['editor']>;
 
         const fieldProps = {
             'schema.show_in_embedded_editor': {
                 /**
                  * Coverage fields don't need this field config option, only planning and event
                  */
-                enabled: !this.props.systemRequired && this.props.isProfileCoverage != true
+                enabled: !([nameof('related_plannings'), 'associated_event'].includes(this.props.item.name))
+                    && !this.props.systemRequired
+                    && this.props.profile._id !== 'coverage'
+                    && allCoverageProfileIds.includes(this.props.profile._id) === false,
             },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
-            'schema.read_only': {enabled: this.props.item.name === 'related_plannings'},
-            'schema.planning_auto_publish': {enabled: this.props.item.name === 'related_plannings'},
-            'schema.cancel_plan_with_event': {enabled: this.props.item.name === 'related_plannings'},
+            'schema.read_only': {enabled: this.props.item.name === nameof('related_plannings')},
+            'schema.planning_auto_publish': {
+                enabled: this.props.item.name === nameof('related_plannings')
+            },
+            'schema.cancel_plan_with_event': {
+                enabled: this.props.item.name === nameof('related_plannings')
+            },
             'schema.field_type': {enabled: fieldType != null},
             'schema.minlength': {enabled: !disableMinMax},
             'schema.maxlength': {enabled: !disableMinMax},
