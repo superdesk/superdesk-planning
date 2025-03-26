@@ -54,7 +54,7 @@ class AssignmentLinkTestCase(TestCase):
             archive_item = get_resource_service("archive").find_one(req=None, _id="item1")
             self.assertEqual(archive_item.get("assignment_id"), ObjectId(assignment_id))
 
-            assignment = get_resource_service("assignments").find_one(req=None, _id=ObjectId(assignment_id))
+            assignment = await get_resource_service("assignments").find_one_async(req=None, _id=ObjectId(assignment_id))
             self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
 
     async def test_updates_creates_new_record(self):

@@ -106,7 +106,7 @@ class AssignmentUnlinkTestCase(TestCase):
             archive_item = archive_service.find_one(req=None, _id="item1")
             self.assertEqual(archive_item.get("assignment_id"), ObjectId("5b20652a1d41c812e24aa49e"))
 
-            assignment = assignment_service.find_one(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
+            assignment = await assignment_service.find_one_async(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
             self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
 
             get_resource_service("assignments_unlink").post(
@@ -121,7 +121,7 @@ class AssignmentUnlinkTestCase(TestCase):
             delivery_item = delivery_service.find_one(req=None, item_id="item1")
             self.assertEqual(delivery_item, None)
 
-            assignment = assignment_service.find_one(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
+            assignment = await assignment_service.find_one_async(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
             self.assertEqual(assignment.get("assigned_to")["state"], "assigned")
 
             archive_item = archive_service.find_one(req=None, _id="item1")

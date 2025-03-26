@@ -57,9 +57,9 @@ class AssignmentsLockService(AsyncBaseService):
         lock_service = get_component(LockService)
 
         item_id = request.view_args["item_id"]
-        item = get_resource_service("assignments").find_one(req=None, _id=item_id)
+        item = await get_resource_service("assignments").find_one_async(req=None, _id=item_id)
 
-        self.validate(item, user_id)
+        await self.validate(item, user_id)
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, "assignments")
 
         return _update_returned_document(docs[0], updated_item)
@@ -67,8 +67,8 @@ class AssignmentsLockService(AsyncBaseService):
     async def on_created_async(self, docs):
         build_custom_hateoas(CUSTOM_HATEOAS, docs[0], _id=str(docs[0][ID_FIELD]))
 
-    def validate(self, item, user_id):
-        get_resource_service("assignments").validate_assignment_action(item)
+    async def validate(self, item, user_id):
+        await get_resource_service("assignments").validate_assignment_action(item)
         # Validate workflow state
         if item.get("assigned_to").get("state") not in [
             ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
@@ -105,7 +105,7 @@ class AssignmentsUnlockService(AsyncBaseService):
         # If the event is a recurrent event, unlock all other events in this series
         item_id = request.view_args["item_id"]
         resource_service = get_resource_service("assignments")
-        item = resource_service.find_one(req=None, _id=item_id)
+        item = await resource_service.find_one_async(req=None, _id=item_id)
 
         if not self.is_assignment_locked_by_user(item, user_id):
             updated_item = lock_service.unlock(item, user_id, session_id, "assignments")
