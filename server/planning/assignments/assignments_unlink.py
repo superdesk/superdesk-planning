@@ -72,7 +72,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
             item_ids = [
                 i.get(ID_FIELD) if not i.get("_type") == "archived" else i.get("item_id") for i in related_items
             ]
-            get_resource_service("delivery").delete_action(lookup={"item_id": {"$in": item_ids}})
+            await get_resource_service("delivery").delete_action_async(lookup={"item_id": {"$in": item_ids}})
 
             # Update assignment if no other archive item is linked to it
             doc.update(actioned_item)
@@ -171,7 +171,9 @@ class AssignmentsUnlinkService(AsyncBaseService):
         if str(item.get("assignment_id")) != str(assignment.get(ID_FIELD)):
             raise SuperdeskApiError.badRequestError("Assignment and Content are not linked.")
 
-        deliveries = get_resource_service("delivery").get(req=None, lookup={"assignment_id": assignment.get(ID_FIELD)})
+        deliveries = await get_resource_service("delivery").get_async(
+            req=None, lookup={"assignment_id": assignment.get(ID_FIELD)}
+        )
         # Match the passed item_id in doc or if the item is archived the archived item_id
         delivery = [d for d in deliveries if d.get("item_id") == item.get("item_id", doc.get("item_id"))]
         if len(delivery) <= 0:

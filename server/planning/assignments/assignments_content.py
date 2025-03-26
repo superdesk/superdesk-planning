@@ -196,7 +196,7 @@ class AssignmentsContentService(AsyncBaseService):
                 item = create_item_from_template(item, FIELDS_TO_OVERRIDE, translations)
 
                 # create delivery references
-                get_resource_service("delivery").post(
+                await get_resource_service("delivery").post_async(
                     [
                         {
                             "item_id": item[ID_FIELD],
@@ -280,7 +280,9 @@ class AssignmentsContentService(AsyncBaseService):
         if assignment.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
             raise SuperdeskApiError.badRequestError("Assignment workflow started. Cannot create content.")
 
-        delivery = get_resource_service("delivery").find_one(req=None, assignment_id=assignment.get(ID_FIELD))
+        delivery = await get_resource_service("delivery").find_one_async(
+            req=None, assignment_id=assignment.get(ID_FIELD)
+        )
         if delivery:
             raise SuperdeskApiError.badRequestError(
                 "Content already exists for the assignment. " "Cannot create content."

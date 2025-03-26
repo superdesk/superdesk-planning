@@ -96,7 +96,7 @@ class AssignmentUnlinkTestCase(TestCase):
             archive_service = get_resource_service("archive")
             assignment_service = get_resource_service("assignments")
 
-            delivery_item = delivery_service.find_one(req=None, item_id="item1")
+            delivery_item = await delivery_service.find_one_async(req=None, item_id="item1")
 
             self.assertEqual(delivery_item.get("item_id"), "item1")
             self.assertEqual(delivery_item.get("assignment_id"), ObjectId("5b20652a1d41c812e24aa49e"))
@@ -118,7 +118,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ]
             )
 
-            delivery_item = delivery_service.find_one(req=None, item_id="item1")
+            delivery_item = await delivery_service.find_one_async(req=None, item_id="item1")
             self.assertEqual(delivery_item, None)
 
             assignment = await assignment_service.find_one_async(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
@@ -226,7 +226,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
             self.assertEqual(deliveries.count(), 2)
@@ -235,7 +235,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 [{"assignment_id": "5b20652a1d41c812e24aa49e", "item_id": "item1"}]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
             self.assertEqual(deliveries.count(), 0)
@@ -339,7 +339,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
             self.assertEqual(deliveries.count(), 2)
@@ -353,7 +353,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
             self.assertEqual(deliveries.count(), 0)
@@ -436,7 +436,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
             self.assertEqual(deliveries.count(), 0)

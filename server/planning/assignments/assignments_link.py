@@ -64,9 +64,9 @@ class AssignmentsLinkService(AsyncBaseService):
         for item in related_items:
             if not item.get("assignment_id") or (item["_id"] == actioned_item.get("_id") and doc.get("force")):
                 # Update the delivery for the item if one exists
-                delivery = delivery_service.find_one(req=None, item_id=item[ID_FIELD])
+                delivery = await delivery_service.find_one_async(req=None, item_id=item[ID_FIELD])
                 if delivery:
-                    delivery_service.patch(
+                    await delivery_service.patch_async(
                         delivery["_id"],
                         {
                             "assignment_id": assignment["_id"],
@@ -105,7 +105,7 @@ class AssignmentsLinkService(AsyncBaseService):
 
         # Create all deliveries
         if len(deliveries) > 0:
-            delivery_service.post(deliveries)
+            await delivery_service.post_async(deliveries)
 
         assignment_was_updated = await self.update_assignment(
             updates,
@@ -174,7 +174,9 @@ class AssignmentsLinkService(AsyncBaseService):
             raise SuperdeskApiError.badRequestError("Content not in workflow. Cannot link assignment and content.")
 
         if not item.get("rewrite_of"):
-            delivery = get_resource_service("delivery").find_one(req=None, assignment_id=doc.get("assignment_id"))
+            delivery = await get_resource_service("delivery").find_one_async(
+                req=None, assignment_id=doc.get("assignment_id")
+            )
 
             if delivery:
                 raise SuperdeskApiError.badRequestError(

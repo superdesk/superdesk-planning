@@ -44,7 +44,7 @@ class AssignmentLinkTestCase(TestCase):
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
-            delivery_item = get_resource_service("delivery").find_one(req=None, item_id="item1")
+            delivery_item = await get_resource_service("delivery").find_one_async(req=None, item_id="item1")
 
             self.assertEqual(delivery_item.get("item_id"), "item1")
             self.assertEqual(delivery_item.get("assignment_id"), ObjectId(assignment_id))
@@ -114,7 +114,7 @@ class AssignmentLinkTestCase(TestCase):
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
             self.assertEqual(deliveries.count(), 1)
@@ -144,7 +144,7 @@ class AssignmentLinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
             self.assertEqual(deliveries.count(), 2)
@@ -185,7 +185,7 @@ class AssignmentLinkTestCase(TestCase):
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
             self.assertEqual(deliveries.count(), 1)
@@ -209,7 +209,7 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
             self.assertEqual(deliveries.count(), 0)
@@ -256,7 +256,7 @@ class AssignmentLinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
             self.assertEqual(deliveries.count(), 2)

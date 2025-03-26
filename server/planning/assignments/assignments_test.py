@@ -76,6 +76,6 @@ class AssignmentsTestCase(TestCase):
             delivery_service = get_resource_service("delivery")
             assignment_service = get_resource_service("assignments")
 
-            self.assertIsNotNone(delivery_service.find_one(req=None, item_id="item1"))
+            self.assertIsNotNone(await delivery_service.find_one_async(req=None, item_id="item1"))
             await assignment_service.delete_action_async(lookup={"_id": ObjectId("5b20652a1d41c812e24aa49e")})
             self.assertIsNone(delivery_service.find_one(req=None, item_id="item1"))

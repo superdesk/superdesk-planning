@@ -967,9 +967,9 @@ class AssignmentsService(AsyncBaseService):
             if updates.get(ITEM_STATE, original.get(ITEM_STATE, "")) != CONTENT_STATE.SCHEDULED:
                 # Update delivery record here
                 delivery_service = get_resource_service("delivery")
-                delivery = delivery_service.find_one(req=None, item_id=original[ID_FIELD])
+                delivery = await delivery_service.find_one_async(req=None, item_id=original[ID_FIELD])
                 if delivery and delivery.get("item_state") != CONTENT_STATE.PUBLISHED:
-                    delivery_service.patch(
+                    await delivery_service.patch_async(
                         delivery[ID_FIELD],
                         {
                             "item_state": CONTENT_STATE.PUBLISHED,
@@ -1082,7 +1082,7 @@ class AssignmentsService(AsyncBaseService):
             if not original_item.get("assignment_id"):
                 continue
 
-            delivery = delivery_service.find_one(req=None, item_id=original_item[ID_FIELD])
+            delivery = await delivery_service.find_one_async(req=None, item_id=original_item[ID_FIELD])
             if not delivery:
                 raise SuperdeskApiError.badRequestError("Delivery record not found.")
 
@@ -1250,7 +1250,7 @@ class AssignmentsService(AsyncBaseService):
                 "Cannot delete a completed Assignment {}".format(doc.get("planning", {}).get("slugline"))
             )
 
-    def archive_delete_assignment(self, doc):
+    async def archive_delete_assignment(self, doc):
         """
         Make sure to clean up the Archive, Delivery and Planning items by:
 
@@ -1283,12 +1283,12 @@ class AssignmentsService(AsyncBaseService):
                 push_content_notification(related_items)
 
             # Now delete all deliveries for that assignment
-            delivery_service.delete_action(lookup={"assignment_id": ObjectId(assignment_id)})
+            await delivery_service.delete_action_async(lookup={"assignment_id": ObjectId(assignment_id)})
 
     async def on_deleted_async(self, doc):
         deleted_assignments = [doc.get(ID_FIELD)]
         planning_service = get_resource_service("planning")
-        self.archive_delete_assignment(doc)
+        await self.archive_delete_assignment(doc)
         marked_for_delete = False
         # Delete all assignments in that coverage
         assignments = list(
@@ -1299,7 +1299,7 @@ class AssignmentsService(AsyncBaseService):
         for a in assignments:
             if str(a["_id"]) != str(doc["_id"]):
                 await self.delete_async(lookup={"_id": a["_id"]})
-                self.archive_delete_assignment(a)
+                await self.archive_delete_assignment(a)
                 deleted_assignments.append(a.get(ID_FIELD))
                 if a.get("_to_delete"):
                     marked_for_delete = True
