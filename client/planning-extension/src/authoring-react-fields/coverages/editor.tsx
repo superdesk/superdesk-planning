@@ -17,7 +17,6 @@ export class Editor extends React.PureComponent<IProps> {
     render() {
         const Container = this.props.container;
         const {EditorFieldCoverages} = extensionBridge.editor.fields;
-        const itemSaved = extensionBridge.ui.utils.isTemporaryId(this.props.item._id) === false;
 
         return (
             <DebouncedChangeHOC
@@ -35,7 +34,7 @@ export class Editor extends React.PureComponent<IProps> {
             >
                 {(changedValue, onChange) => (
                     <EditorFieldCoverages
-                        readOnly={!itemSaved}
+                        readOnly={false}
                         field="coverages"
                         item={{
                             // coverages are the main value
