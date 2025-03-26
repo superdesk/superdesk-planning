@@ -14,8 +14,8 @@ from copy import deepcopy
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
 from superdesk import get_resource_service
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
-from superdesk.services import BaseService
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
@@ -48,8 +48,8 @@ class AssignmentsLockResource(Resource):
     privileges = {"POST": "archive", "GET": "archive"}
 
 
-class AssignmentsLockService(BaseService):
-    def create(self, docs, **kwargs):
+class AssignmentsLockService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
 
@@ -64,7 +64,7 @@ class AssignmentsLockService(BaseService):
 
         return _update_returned_document(docs[0], updated_item)
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         build_custom_hateoas(CUSTOM_HATEOAS, docs[0], _id=str(docs[0][ID_FIELD]))
 
     def validate(self, item, user_id):
@@ -96,8 +96,8 @@ class AssignmentsUnlockResource(Resource):
     resource_title = endpoint_name
 
 
-class AssignmentsUnlockService(BaseService):
-    def create(self, docs, **kwargs):
+class AssignmentsUnlockService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
         lock_service = get_component(LockService)
@@ -121,5 +121,5 @@ class AssignmentsUnlockService(BaseService):
 
         return False
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         build_custom_hateoas(CUSTOM_HATEOAS, docs[0], _id=str(docs[0][ID_FIELD]))
