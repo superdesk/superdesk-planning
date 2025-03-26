@@ -18,36 +18,78 @@ import {getPriorityField} from './priority-field';
 import {getLocationsField} from './locations-field';
 import {getLinksField} from './link-field';
 import {getContactsField} from './contacts';
+import {getOccurrenceStatusField} from './occurrence-status';
+import {getLanguageField} from './language';
+import {getCalendarsField} from './calendars';
+import {getEventDateField} from './event-dates';
+import {getRecurringRulesField} from './recurring-rules';
+import {getAccreditationDeadline} from './accreditation-deadline';
 
 export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDefinitions {
     const {gettext} = superdeskApi.localization;
+
     const result: Array<IFieldDefinition> = [
         {
             fieldId: 'ednote',
-            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Ed Note'), required: required}),
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Ed Note')}),
         },
         {
             fieldId: 'internal_note',
-            getField: ({required, id}) =>
-                getTextFieldConfig({id: id, label: gettext('Internal Note'), required: required}),
+            getField: (props) =>
+                getTextFieldConfig({...props, label: gettext('Internal Note')}),
         },
         {
             fieldId: 'name',
-            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Name'), required: required}),
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Name')}),
         },
         {
             fieldId: 'slugline',
-            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Slugline'), required: required}),
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Slugline')}),
         },
         {
             fieldId: 'description_text',
-            getField: ({required, id}) =>
-                getTextFieldConfig({id: id, label: gettext('Description'), required: required}),
+            getField: (props) =>
+                getTextFieldConfig({...props, label: gettext('Description')}),
         },
         {
             fieldId: 'headline',
-            getField: ({required, id}) => getTextFieldConfig({id: id, label: gettext('Headline'), required: required}),
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Headline')}),
         },
+        {
+            fieldId: 'references',
+            getField: (props) => getTextFieldConfig({...props, label: gettext('External Reference')}),
+        },
+        {
+            fieldId: 'definition_short',
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Description')}),
+        },
+        {
+            fieldId: 'invitation_details',
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Invitation Details')}),
+        },
+        {
+            fieldId: 'accreditation_info',
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Accreditation Info')}),
+        },
+        {
+            fieldId: 'registration_details',
+            getField: (props) => getTextFieldConfig({...props, label: gettext('Registration Details')}),
+        },
+        getEventDateField(),
+        getCalendarsField(),
+        getLanguageField(),
+        getOccurrenceStatusField(),
+        getRecurringRulesField(),
+        getAccreditationDeadline(),
+        getPlanningDate(),
+        getPlaceField(),
+        getAgendasField(),
+        getSubjectField(),
+        getCategoriesField(),
+        getContactsField(),
+        getPriorityField(),
+        getLinksField(),
+        getLocationsField(),
         {
             fieldId: 'files',
             getField: ({required, id}) => {
@@ -65,15 +107,6 @@ export function getFieldDefinitions(profileType: 'event' | 'planning'): IFieldDe
                 return field;
             },
         },
-        getPlanningDate(),
-        getPlaceField(),
-        getAgendasField(),
-        getSubjectField(),
-        getCategoriesField(),
-        getContactsField(),
-        getPriorityField(),
-        getLinksField(),
-        getLocationsField(),
         {
             fieldId: 'coverages',
             getField: ({id, required}) => {

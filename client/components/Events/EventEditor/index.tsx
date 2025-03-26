@@ -149,7 +149,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                 schema={this.props.formProfile.schema}
                 fieldProps={{
                     recurring_rules: {
-                        field: 'dates',
+                        field: 'dates.recurring_rule',
                         defaultValue: {},
                         enabled: !this.props.itemExists,
                     },
@@ -186,7 +186,7 @@ class EventEditorComponent extends React.PureComponent<IProps> {
                             editor.item.events.getRelatedPlanningDomRef(value._id)
                         ),
                         addPlanningItem: editor.item.events.addPlanningItem,
-                        removePlanningItem: editor.item.events.removePlanningItem,
+                        unlinkPlanning: editor.item.events.unlinkPlanning,
                         updatePlanningItem: editor.item.events.updatePlanningItem,
                     },
                 }}

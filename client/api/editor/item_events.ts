@@ -144,7 +144,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         });
     }
 
-    function removePlanningItem(item: DeepPartial<IPlanningItem>) {
+    function unlinkPlanning(item: DeepPartial<IPlanningItem>) {
         const editor = planningApi.editor(type);
         const event = editor.form.getDiff<IEventItem>();
         const plans = (event.associated_plannings || []).filter(
@@ -227,7 +227,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         getGroupsForItem,
         getRelatedPlanningDomRef,
         addPlanningItem,
-        removePlanningItem,
+        unlinkPlanning,
         updatePlanningItem,
         onEventDatesChanged,
     };

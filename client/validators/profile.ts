@@ -14,7 +14,7 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
     const schema = get(profile, `schema.${field}`) || {};
     const fieldValue = (typeof value === 'string') ? value.trim() : value;
 
-    if (!schema.required && get(fieldValue, length, 0) < 1) {
+    if (!schema.required && typeof value === 'string' && get(fieldValue, length, 0) < 1) {
         return;
     }
 
@@ -39,6 +39,22 @@ export const formProfile = ({field, value, profile, errors, messages, diff}) => 
 
         return isEmpty(fieldValue) === false;
     })();
+
+    if (field == 'recurring_rules' && value.recurring_rule != null) {
+        if ((value.recurring_rule?.endRepeatMode === 'count' || value.recurring_rule?.endRepeatMode == null)
+            && value.recurring_rules?.count == null
+        ) {
+            errors[field] = gettext('Repeat must be set');
+            messages.push(gettext('Repeat must be set'));
+        }
+
+        if (value.recurring_rule?.endRepeatMode === 'until' && value.recurring_rule?.until == null) {
+            errors[field] = gettext('End date must be set');
+            messages.push(gettext('End date must be set'));
+        }
+
+        return;
+    }
 
     if (get(schema, 'maxlength', 0) > 0 && get(fieldValue, 'length', 0) > schema.maxlength) {
         if (get(schema, 'type', 'string') === 'list') {

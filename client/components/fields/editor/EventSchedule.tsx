@@ -1,24 +1,14 @@
 import * as React from 'react';
 import moment from 'moment-timezone';
-
-import {IEditorFieldProps, IEventFormProfile, IEventItem} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
-
 import {EditorFieldEndDateTime} from './EndDateTime';
 import {EditorFieldStartDateTime} from './StartDateTime';
 import {Row, TimeZoneInput} from '../../UI/Form';
 import {timeUtils} from '../../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
+import {IEventScheduleFieldProps} from './EventSchedule.interface';
 
-interface IProps extends IEditorFieldProps {
-    item: IEventItem;
-    canClear?: boolean;
-    showAllDay?: boolean;
-    showTimeZone?: boolean;
-    profile: IEventFormProfile;
-}
-
-export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
+export class EditorFieldEventSchedule extends React.PureComponent<IEventScheduleFieldProps> {
     constructor(props) {
         super(props);
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Dispatch} from 'redux';
-import {cloneDeep, get, isEqual, set} from 'lodash';
+import {cloneDeep, get, isEqual, partition, set} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {
@@ -8,7 +8,8 @@ import {
     IEditorAPI,
     IEditorProps,
     IEditorState,
-    IEventOrPlanningItem
+    IEventOrPlanningItem,
+    IPlanningRelatedEventLink
 } from '../../../interfaces';
 import {planningApi} from '../../../superdeskApi';
 import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
@@ -401,6 +402,7 @@ export class ItemManager {
                     ...removeAutosaveFields(
                         autosaveItem,
                         true,
+                        true,
                         true
                     ),
                 };
@@ -661,12 +663,18 @@ export class ItemManager {
                 });
         }
 
-        const promise: Promise<any> = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
-            .then(() =>
-                !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false}),
+        /**
+         * Calls internal save of each embedded item - the one of the storage adapter, then returns the saved items.
+         */
+        const promise = handleEmbeddedItems(this.props.editorType, 'SAVE', this.props.itemType)
+            .then((res) =>
+                Promise.all([
+                    Promise.resolve(res),
+                    !updateStates ? Promise.resolve({}) : this.setState({submitting: true, submitFailed: false})
+                ])
             );
 
-        return promise.then(() => {
+        return promise.then(([embeddedItems]) => {
             if (this.props.addNewsItemToPlanning) {
                 return this._saveFromAuthoring({post, unpost});
             }
@@ -693,12 +701,32 @@ export class ItemManager {
                 updates.update_method = updateMethod;
 
                 if (Object.keys(planningUpdateMethods).length > 0) {
-                    updates.associated_plannings?.forEach((planningItem) => {
-                        if (planningUpdateMethods[planningItem._id] != null) {
-                            planningItem.update_method = planningUpdateMethods[planningItem._id];
-                        }
-                    });
+                        updates.associated_plannings?.forEach((planningItem) => {
+                            if (planningUpdateMethods[planningItem._id] != null) {
+                                planningItem.update_method = planningUpdateMethods[planningItem._id];
+                            }
+                        });
                 }
+            }
+
+            if (
+                updates.type === 'planning'
+                && (
+                    (updates.related_events ?? []).length > 0
+                    || ((updates as IPlanningItem)._unsaved_related_events ?? []).length > 0
+                )
+            ) {
+                const [_withNewEvents, withExistingEvents] = partition(
+                    ((updates as IPlanningItem).related_events ?? []) as Array<IPlanningRelatedEventLink>,
+                    (x) => !isTemporaryId(x._id),
+                );
+
+                const updatedLinks = eventUtils.addRelatedEvents(
+                    withExistingEvents,
+                    embeddedItems as Array<IEventItem>,
+                );
+
+                (updates as IPlanningItem).related_events = updatedLinks.next;
             }
 
             return this.autoSave.flushAutosave()

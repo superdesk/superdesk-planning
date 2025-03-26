@@ -110,7 +110,7 @@ export class DaysOfWeekInput extends React.Component<IProps, IState> {
                 />
                 <Row
                     flex={true}
-                    noPadding={invalid}
+                    noPadding={true}
                 >
                     {Object.keys(this.state).map((day: keyof IState) => (
                         <LineInput
