@@ -248,7 +248,7 @@ class AssignmentsLinkService(AsyncBaseService):
                 updated = True
 
         if need_complete:
-            get_resource_service("assignments_complete").update(assignment[ID_FIELD], updates, assignment)
+            await get_resource_service("assignments_complete").update_async(assignment[ID_FIELD], updates, assignment)
         if updated:
             await get_resource_service("assignments").patch_async(assignment[ID_FIELD], updates)
 
