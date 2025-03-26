@@ -8,7 +8,8 @@
 from copy import deepcopy
 
 from superdesk.resource_fields import ID_FIELD
-from superdesk import Resource, Service, get_resource_service
+from superdesk import Resource, get_resource_service
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
@@ -25,12 +26,12 @@ from superdesk.notification import push_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
 
-class AssignmentsUnlinkService(Service):
-    def on_create(self, docs):
+class AssignmentsUnlinkService(AsyncBaseService):
+    async def on_create_async(self, docs):
         for doc in docs:
-            self._validate(doc)
+            await self._validate(doc)
 
-    def create(self, docs):
+    async def create_async(self, docs, **kwargs):
         ids = []
         production = get_resource_service("archive")
         archived = get_resource_service("archived")
@@ -42,8 +43,8 @@ class AssignmentsUnlinkService(Service):
             # Boolean set to true if the unlink is as the result of spiking the content item
             spike = doc.pop("spike", False)
             cancel = doc.pop("cancel", False)
-            assignment = assignments_service.find_one(req=None, _id=doc.pop("assignment_id"))
-            assignments_service.validate_assignment_action(assignment)
+            assignment = await assignments_service.find_one_async(req=None, _id=doc.pop("assignment_id"))
+            await assignments_service.validate_assignment_action(assignment)
             actioned_item_id = doc.pop("item_id")
             actioned_item = production.find_one(req=None, _id=actioned_item_id)
             if not actioned_item:
@@ -76,15 +77,15 @@ class AssignmentsUnlinkService(Service):
             # Update assignment if no other archive item is linked to it
             doc.update(actioned_item)
 
-            assignments = self.get_all_assignments_for_coverage(assignment.get("coverage_item"))
+            assignments = await self.get_all_assignments_for_coverage(assignment.get("coverage_item"))
             for a in assignments:
                 # Update all assignments in the coverage including scheduled_updates
                 updates = {"assigned_to": deepcopy(a.get("assigned_to"))}
-                archive_items = assignments_service.get_archive_items_for_assignment(a)
+                archive_items = await assignments_service.get_archive_items_for_assignment(a)
                 other_linked_items = [a for a in archive_items if str(a.get(ID_FIELD)) != str(actioned_item[ID_FIELD])]
                 if len(other_linked_items) <= 0:
                     updates["assigned_to"]["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                    assignments_service.patch(a.get(ID_FIELD), updates)
+                    await assignments_service.patch_async(a.get(ID_FIELD), updates)
                     assignment_history_service = get_resource_service("assignments_history")
                     if spike:
                         get_resource_service("assignments_history").on_item_content_unlink(
@@ -114,12 +115,12 @@ class AssignmentsUnlinkService(Service):
 
         return ids
 
-    def get_all_assignments_for_coverage(self, coverage_id):
-        return get_resource_service("assignments").find(where={"coverage_item": coverage_id})
+    async def get_all_assignments_for_coverage(self, coverage_id):
+        return await get_resource_service("assignments").find_async(where={"coverage_item": coverage_id})
 
-    def _validate(self, doc):
+    async def _validate(self, doc):
         assignments_service = get_resource_service("assignments")
-        assignment = assignments_service.find_one(req=None, _id=doc.get("assignment_id"))
+        assignment = await assignments_service.find_one_async(req=None, _id=doc.get("assignment_id"))
 
         user = get_user(required=True)
         user_id = user.get(ID_FIELD)
@@ -178,11 +179,11 @@ class AssignmentsUnlinkService(Service):
                 "Content doesnt exist for the assignment. Cannot unlink assignment and content."
             )
 
-    def on_spike_item(self, updates, original):
+    async def on_spike_item(self, updates, original):
         """Called by the on_updated event of archive_spike endpoint"""
         assignment_id = original.get("assignment_id", updates.get("assignment_id"))
         if assignment_id:
-            self.create(
+            await self.create_async(
                 [
                     {
                         "assignment_id": assignment_id,

@@ -109,7 +109,7 @@ class AssignmentUnlinkTestCase(TestCase):
             assignment = await assignment_service.find_one_async(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
             self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
 
-            get_resource_service("assignments_unlink").post(
+            await get_resource_service("assignments_unlink").post_async(
                 [
                     {
                         "assignment_id": ObjectId("5b20652a1d41c812e24aa49e"),
@@ -231,7 +231,7 @@ class AssignmentUnlinkTestCase(TestCase):
             )
             self.assertEqual(deliveries.count(), 2)
 
-            get_resource_service("assignments_unlink").post(
+            await get_resource_service("assignments_unlink").post_async(
                 [{"assignment_id": "5b20652a1d41c812e24aa49e", "item_id": "item1"}]
             )
 
@@ -344,7 +344,7 @@ class AssignmentUnlinkTestCase(TestCase):
             )
             self.assertEqual(deliveries.count(), 2)
 
-            get_resource_service("assignments_unlink").post(
+            await get_resource_service("assignments_unlink").post_async(
                 [
                     {
                         "assignment_id": "5b20652a1d41c812e24aa49e",
@@ -427,7 +427,7 @@ class AssignmentUnlinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_unlink").post(
+            await get_resource_service("assignments_unlink").post_async(
                 [
                     {
                         "assignment_id": "5b20652a1d41c812e24aa49e",

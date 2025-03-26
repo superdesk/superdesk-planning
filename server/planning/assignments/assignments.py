@@ -846,7 +846,7 @@ class AssignmentsService(AsyncBaseService):
                     req=None, assignment_id=original_assignment.get(ID_FIELD)
                 )
                 if archive_item and archive_item.get("assignment_id"):
-                    get_resource_service("assignments_unlink").post(
+                    await get_resource_service("assignments_unlink").post_async(
                         [
                             {
                                 "item_id": archive_item.get(ID_FIELD),
@@ -1141,7 +1141,9 @@ class AssignmentsService(AsyncBaseService):
             logger.error(f"Failed to find assignment '{assignment_id}' for archive item '{item_id}'")
             return
 
-        get_resource_service("assignments_unlink").post([{"assignment_id": assignment_id, "item_id": item_id}])
+        await get_resource_service("assignments_unlink").post_async(
+            [{"assignment_id": assignment_id, "item_id": item_id}]
+        )
         self.publish_planning(assignment["planning_item"])
 
     async def _update_assignment_and_notify(self, updates, original):
