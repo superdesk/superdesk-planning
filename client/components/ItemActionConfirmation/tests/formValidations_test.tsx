@@ -61,7 +61,7 @@ describe('form validations', () => {
     it('forms with validation shows validation errors', () => {
         let wrapper = getWrapper(ConvertToRecurringEventForm);
         const endsField_convertToRecurringEventForm = wrapper
-            .find('[data-test-id="dates.recurring_rule.endRepeatMode"]');
+            .find('[data-test-id="dates.recurring_rule.endRepeatMode"]').at(1);
 
         expect(wrapper.find('.sd-input--invalid').length).toBe(1);
         endsField_convertToRecurringEventForm.simulate('change', {target: {value: 'count'}});
@@ -112,7 +112,7 @@ describe('form validations', () => {
         expect(wrapper.find('.sd-input--invalid').length).toBe(0);
 
         const endsField_updateEventRepetitionsForm = wrapper
-            .find('[data-test-id="dates.recurring_rule.endRepeatMode"]');
+            .find('[data-test-id="dates.recurring_rule.endRepeatMode"]').at(1);
 
         endsField_updateEventRepetitionsForm.simulate('change', {target: {value: 'count'}});
 
