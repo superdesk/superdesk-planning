@@ -394,6 +394,7 @@ async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
 
 
 @when('we duplicate event "{event_id}"')
+@async_run_until_complete
 async def step_impl_when_we_duplicate_event(context, event_id):
     with context.app.test_request_context(context.app.config["URL_PREFIX"]):
         events_service = get_resource_service("events")
