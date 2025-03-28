@@ -40,7 +40,7 @@ events_history_resource_config: ResourceConfig = ResourceConfig(
     mongo=MongoResourceConfig(
         indexes=[
             MongoIndexOptions(
-                name="event_id",
+                name="event_id_1",
                 keys=[("event_id", 1)],
                 unique=False,
             ),
