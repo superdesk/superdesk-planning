@@ -653,7 +653,7 @@ class PlanningService(Service):
         for coverage in updates.get("coverages") or []:
             coverage_id = coverage.get("coverage_id", "")
             if not coverage_id or TEMP_ID_PREFIX in coverage_id or coverage_id not in original_coverage_ids:
-                if "duplicate" in coverage_id or coverage.get("original_coverage_id"):
+                if "duplicate" in coverage_id or coverage.get("original_coverage_id") != coverage.get("coverage_id"):
                     self.duplicate_xmp_file(coverage)
                 # coverage to be created
                 if not coverage_id or TEMP_ID_PREFIX in coverage_id:

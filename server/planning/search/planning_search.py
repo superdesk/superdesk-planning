@@ -96,11 +96,11 @@ class PlanningSearchService(AsyncBaseService):
                     doc["dates"]["recurring_rule"]["until"] = parse_date(doc["dates"]["recurring_rule"]["until"])
 
     def get_indexes_for_search(self, repos: list[str]) -> list[str]:
-        indexes = []
+        indexes: list[str] = []
         if "events" in repos:
-            indexes += EventResourceModel.get_service().elastic.config.index
+            indexes.append(EventResourceModel.get_service().elastic.config.index)
         if "planning" in repos:
-            indexes += PlanningResourceModel.get_service().elastic.config.index
+            indexes.append(PlanningResourceModel.get_service().elastic.config.index)
         return indexes
 
     def get_projection(self, req) -> list[str] | None:

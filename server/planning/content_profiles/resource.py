@@ -88,4 +88,4 @@ class PlanningTypesResource(superdesk.Resource):
         "POST": "planning_manage_content_profiles",
         "PATCH": "planning_manage_content_profiles",
     }
-    internal_resource = True
+    internal_resource = False

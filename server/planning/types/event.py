@@ -23,11 +23,10 @@ from .common import (
 )
 
 
-@dataclass
-class EventLocation:
+class EventLocation(Dataclass):
     name: fields.TextWithKeyword
     qcode: fields.Keyword | None = None
-    address: Annotated[dict[str, None] | None, fields.dynamic_mapping()] = None
+    address: Annotated[dict[str, Any] | None, fields.dynamic_mapping()] = None
     geo: str | None = None
     location: fields.Geopoint | None = None
 
@@ -189,7 +188,7 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
     slugline: SlugLineField | None = None
 
     # Item metadata
-    location: list[EventLocation | None] = Field(default_factory=list)
+    location: list[EventLocation] | None = None
     participant: list[KeywordQCodeName | None] = Field(default_factory=list)
     participant_requirement: list[KeywordQCodeName | None] = Field(default_factory=list)
     organizer: list[KeywordQCodeName | None] = Field(default_factory=list)
@@ -271,4 +270,4 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
     associated_plannings: Annotated[list[dict[str, Any]], fields.dynamic_mapping()] = Field(default_factory=list)
 
     related_items: list[RelatedItem] = Field(default_factory=list)
-    failed_planned_ids: list[str] = Field(default_factory=list)
+    failed_planned_ids: list[str] | None = None

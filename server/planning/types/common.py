@@ -1,11 +1,14 @@
 from datetime import datetime
-from pydantic import Field, TypeAdapter
+from pydantic import Field, TypeAdapter, model_validator
 from typing import Any, Annotated, Literal, TypeAlias
+from typing_extensions import Self
 
 from superdesk.utc import utcnow
+from superdesk.core import get_config
 from superdesk.core.resources import dataclass, fields, Dataclass
 from superdesk.core.elastic.mapping import json_schema_to_elastic_mapping
 from superdesk.core.resources.validators import validate_data_relation_async
+from superdesk.core.utils import generate_guid, GUID_NEWSML
 
 from .enums import LinkType
 
@@ -101,7 +104,7 @@ class ExtProperty(KeywordQCodeName):
 class Subject:
     qcode: fields.Keyword
     name: NameAnalyzedField
-    scheme: fields.Keyword
+    scheme: fields.Keyword | None = None
     translations: Translations | None = None
 
 
@@ -157,7 +160,7 @@ class CoverageInternalPlanning:
 
     description_text: fields.HTML | None = None
     genre: list[KeywordQCodeName] = Field(default_factory=list)
-    headline: fields.HTML | None = None
+    headline: fields.HTML = ""
 
     keyword: list[str] = Field(default_factory=list)
     language: fields.Keyword | None = None
@@ -236,9 +239,9 @@ class ScheduledUpdate(Dataclass):
 
 class PlanningCoverage(Dataclass):
     # Identifiers
-    coverage_id: fields.Keyword | None = None
+    coverage_id: fields.Keyword
+    guid: fields.Keyword
     original_coverage_id: fields.Keyword | None = None
-    guid: fields.Keyword | None = None
 
     # Audit Information
     original_creator: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
@@ -257,6 +260,33 @@ class PlanningCoverage(Dataclass):
     flags: CoverageFlags = Field(default_factory=CoverageFlags)
     time_to_be_confirmed: TimeToBeConfirmedType = False
     scheduled_updates: list[ScheduledUpdate] = Field(default_factory=list)
+
+    # @model_validator(mode="before")
+    @classmethod
+    def parse_dict(cls, values: dict | Self) -> dict:
+        from planning.common import TEMP_ID_PREFIX
+
+        if isinstance(values, PlanningCoverage):
+            pass
+        else:
+            if not values.get("coverage_id") or values["coverage_id"].startswith(TEMP_ID_PREFIX):
+                values["coverage_id"] = generate_guid(type=GUID_NEWSML)
+
+            if not values.get("guid"):
+                values["guid"] = values["coverage_id"]
+
+            if not values.get("original_coverage_id"):
+                values["original_coverage_id"] = values["coverage_id"]
+
+            values.setdefault("planning", {})
+            if not values["planning"].get("genre"):
+                values["planning"]["genre"] = get_config(dict, "DEFAULT_GENRE_VALUE_FOR_MANUAL_ARTICLES")
+
+
+        return values
+
+
+class AssignmentCoverage(PlanningCoverage):
     contact: fields.Keyword | None = None
 
 

@@ -55,10 +55,10 @@ coverage_schema = {
         "schema": {
             "ednote": metadata_schema["ednote"],
             "g2_content_type": {"type": "string", "mapping": not_analyzed},
-            "coverage_provider": {"type": "string", "mapping": not_analyzed},
+            "coverage_provider": {"type": "string", "nullable": True, "mapping": not_analyzed},
             "contact_info": Resource.rel("contacts", type="string", nullable=True),
-            "item_class": {"type": "string", "mapping": not_analyzed},
-            "item_count": {"type": "string", "mapping": not_analyzed},
+            "item_class": {"type": "string", "nullable": True, "mapping": not_analyzed},
+            "item_count": {"type": "string", "nullable": True, "mapping": not_analyzed},
             "scheduled": {"type": "datetime"},
             "files": {
                 "type": "list",

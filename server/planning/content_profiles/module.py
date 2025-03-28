@@ -8,9 +8,10 @@ planning_types_resource_config = ResourceConfig(
     name="planning_types",
     data_class=PlanningTypesResourceModel,
     service=PlanningTypesAsyncService,
-    rest_endpoints=RestEndpointConfig(
-        resource_methods=["GET", "POST"],
-        item_methods=["GET", "PATCH"],
-        enable_cors=True,
-    ),
+    # TODO-ASYNC: Disable REST API endpoint for now, as it's not working (revert back to eve service)
+    # rest_endpoints=RestEndpointConfig(
+    #     resource_methods=["GET", "POST"],
+    #     item_methods=["GET", "PATCH"],
+    #     enable_cors=True,
+    # ),
 )
