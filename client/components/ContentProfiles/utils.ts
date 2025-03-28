@@ -24,13 +24,3 @@ export function validateAndNotifyForRequiredFields(
 
     return valid;
 }
-
-export function shouldNotStartDragging(event: SyntheticEvent<HTMLElement>) {
-    const target = event.target as HTMLElement;
-    const addButton = target.closest('.profile-item__add-btn');
-    const removeButton = target.closest('.sd-list-item__action-menu');
-
-    // if user is trying to click the bottom or top plus button,
-    // or the remove button don't start dragging
-    return addButton !== null || removeButton !== null;
-}

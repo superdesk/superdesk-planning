@@ -1,16 +1,12 @@
-import * as React from 'react';
-
-import {IEditorProfileGroup} from '../../../interfaces';
+import React from 'react';
+import {List} from '../../../components/UI';
 import {superdeskApi} from '../../../superdeskApi';
-
+import {Button, Icon, IconButton} from 'superdesk-ui-framework/react';
 import {getProfileGroupNameTranslated} from '../../../utils/contentProfiles';
-
-import {Icon, Button, IconButton} from 'superdesk-ui-framework/react';
-import * as List from '../../UI/List';
-import {arrayMove, WithSortable} from '@sourcefabric/common';
-import GroupElementTemplate from './GroupElementTemplate';
+import {IEditorProfileGroup} from 'interfaces';
 
 interface IProps {
+    group: IEditorProfileGroup;
     groups: Array<IEditorProfileGroup>;
     selectedGroup?: IEditorProfileGroup;
     onClick(group: IEditorProfileGroup): void;
@@ -19,17 +15,11 @@ interface IProps {
     removeGroup(group: IEditorProfileGroup): void;
 }
 
-export class GroupList extends React.PureComponent<IProps> {
-    constructor(props) {
-        super(props);
-
-        this.getListElement = this.getListElement.bind(this);
-    }
-
-    getListElement(group: IEditorProfileGroup) {
+export default class GroupElementTemplate extends React.PureComponent<IProps, any> {
+    render(): React.ReactNode {
         const {gettext} = superdeskApi.localization;
         const {querySelectorParent} = superdeskApi.utilities;
-        const {groups} = this.props;
+        const {groups, group} = this.props;
         const isLastGroup = group._id === groups[groups.length - 1]?._id;
 
         return (
@@ -43,7 +33,7 @@ export class GroupList extends React.PureComponent<IProps> {
                     // or other button inside the list item
                     if (
                         e.target instanceof HTMLElement &&
-                        querySelectorParent(e.target, 'button', {self: true})
+                                querySelectorParent(e.target, 'button', {self: true})
                     ) {
                         return;
                     }
@@ -57,8 +47,7 @@ export class GroupList extends React.PureComponent<IProps> {
                         icon="plus-large"
                         shape="round"
                         type="primary"
-                        onClick={(e) => {
-                            e.stopPropagation();
+                        onClick={() => {
                             this.props.insertGroup(group.index - 0.1);
                         }}
                     />
@@ -82,8 +71,7 @@ export class GroupList extends React.PureComponent<IProps> {
                     <IconButton
                         icon="trash"
                         ariaValue={gettext('Remove group')}
-                        onClick={(e) => {
-                            e.stopPropagation();
+                        onClick={() => {
                             this.props.removeGroup(group);
                         }}
                     />
@@ -96,62 +84,13 @@ export class GroupList extends React.PureComponent<IProps> {
                             icon="plus-large"
                             shape="round"
                             type="primary"
-                            onClick={(e) => {
-                                e.stopPropagation();
+                            onClick={() => {
                                 this.props.insertGroup(group.index + 0.1);
                             }}
                         />
                     </div>
                 )}
             </List.Item>
-        );
-    }
-
-    render() {
-        const {gettext} = superdeskApi.localization;
-
-        return !this.props.groups.length ? (
-            <div className="planning-profile__empty-list sd-padding-x--2 sd-padding-y--3">
-                <Button
-                    text={gettext('Add first group')}
-                    iconOnly={true}
-                    icon="plus-large"
-                    shape="round"
-                    type="primary"
-                    onClick={() => this.props.insertGroup(0)}
-                />
-            </div>
-        ) : (
-            <List.Group
-                spaceBetween={true}
-                className="sd-padding-x--2 sd-padding-y--3"
-            >
-                <WithSortable
-                    items={this.props.groups}
-                    getId={(item) => item._id}
-                    itemTemplate={(item) => (
-                        <GroupElementTemplate
-                            group={item.item}
-                            groups={this.props.groups}
-                            insertGroup={this.props.insertGroup}
-                            onClick={this.props.onClick}
-                            onSortChange={this.props.onSortChange}
-                            removeGroup={this.props.removeGroup}
-                        />
-                    )}
-                    options={{
-                        distance: 20,
-                        onSortEnd: ({
-                            oldIndex,
-                            newIndex
-                        }) => {
-                            const itemsSorted = arrayMove(this.props.groups, oldIndex, newIndex);
-
-                            this.props.onSortChange(itemsSorted);
-                        }
-                    }}
-                />
-            </List.Group>
         );
     }
 }
