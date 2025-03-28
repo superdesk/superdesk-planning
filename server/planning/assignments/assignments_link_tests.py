@@ -147,7 +147,7 @@ class AssignmentLinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 2)
+            self.assertEqual(await deliveries.count(), 2)
 
     async def test_captures_item_state(self):
         async with self.app.app_context():

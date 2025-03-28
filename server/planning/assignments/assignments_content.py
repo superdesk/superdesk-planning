@@ -330,9 +330,12 @@ async def merge_subject(item, planning):
     if not planning.get("subject"):
         return
     subject = item.setdefault("subject", [])
-    vocabularies = await get_resource_service("vocabularies").get_from_mongo_async(
+    vocabularies = []
+    async for vocabulary in get_resource_service("vocabularies").get_from_mongo_async(
         req=None, lookup={"selection_type": "single selection"}, projection={"_id": 1}
-    )
+    ):
+        vocabularies.append(vocabulary)
+
     single_value_vocabularies = set([v["_id"] for v in vocabularies])
     for s in planning["subject"]:
         if s.get("scheme") in single_value_vocabularies:
