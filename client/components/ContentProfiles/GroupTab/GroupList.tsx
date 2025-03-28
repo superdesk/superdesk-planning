@@ -7,7 +7,8 @@ import {getProfileGroupNameTranslated} from '../../../utils/contentProfiles';
 
 import {Icon, Button, IconButton} from 'superdesk-ui-framework/react';
 import * as List from '../../UI/List';
-import SortItems from '../../SortItems';
+import {arrayMove, WithSortable} from '@sourcefabric/common';
+import {shouldNotStartDragging} from '../utils';
 
 interface IProps {
     groups: Array<IEditorProfileGroup>;
@@ -33,6 +34,7 @@ export class GroupList extends React.PureComponent<IProps> {
 
         return (
             <List.Item
+                className="mt-1"
                 shadow={1}
                 draggable={true}
                 activated={this.props.selectedGroup?._id === group._id}
@@ -55,7 +57,10 @@ export class GroupList extends React.PureComponent<IProps> {
                         icon="plus-large"
                         shape="round"
                         type="primary"
-                        onClick={() => this.props.insertGroup(group.index - 0.1)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            this.props.insertGroup(group.index - 0.1);
+                        }}
                     />
                 </div>
                 {!group.icon.length ? null : (
@@ -77,7 +82,10 @@ export class GroupList extends React.PureComponent<IProps> {
                     <IconButton
                         icon="trash"
                         ariaValue={gettext('Remove group')}
-                        onClick={() => this.props.removeGroup(group)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            this.props.removeGroup(group);
+                        }}
                     />
                 </List.ActionMenu>
                 {!isLastGroup ? null : (
@@ -88,7 +96,10 @@ export class GroupList extends React.PureComponent<IProps> {
                             icon="plus-large"
                             shape="round"
                             type="primary"
-                            onClick={() => this.props.insertGroup(group.index + 0.1)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                this.props.insertGroup(group.index + 0.1);
+                            }}
                         />
                     </div>
                 )}
@@ -115,15 +126,21 @@ export class GroupList extends React.PureComponent<IProps> {
                 spaceBetween={true}
                 className="sd-padding-x--2 sd-padding-y--3"
             >
-                <SortItems
-                    key={this.props.selectedGroup?._id}
-                    onSortChange={this.props.onSortChange}
+                <WithSortable
                     items={this.props.groups}
-                    getListElement={this.getListElement}
-                    useCustomStyle={true}
-                    lockAxis="y"
-                    lockToContainerEdges={true}
-                    distance={10}
+                    getId={(item) => item._id}
+                    itemTemplate={(item) => <>{this.getListElement(item.item)}</>}
+                    options={{
+                        shouldCancelStart: shouldNotStartDragging,
+                        onSortEnd: ({
+                            oldIndex,
+                            newIndex
+                        }) => {
+                            const itemsSorted = arrayMove(this.props.groups, oldIndex, newIndex);
+
+                            this.props.onSortChange(itemsSorted);
+                        }
+                    }}
                 />
             </List.Group>
         );

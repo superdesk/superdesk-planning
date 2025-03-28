@@ -5,9 +5,10 @@ import {superdeskApi} from '../../../superdeskApi';
 
 import {getFieldNameTranslated, getProfileGroupNameTranslated} from '../../../utils/contentProfiles';
 
-import {Button, IconButton, ToggleBox, Menu, Label} from 'superdesk-ui-framework/react';
+import {Button, IconButton, ToggleBox, Label, TreeMenu} from 'superdesk-ui-framework/react';
 import * as List from '../../UI/List';
-import SortItems from '../../SortItems';
+import {arrayMove, WithSortable} from '@sourcefabric/common';
+import {shouldNotStartDragging} from '../utils';
 
 interface IProps {
     profile: IEditorProfile;
@@ -28,6 +29,48 @@ export class FieldList extends React.PureComponent<IProps> {
         super(props);
 
         this.getListElement = this.getListElement.bind(this);
+        this.getTreeMenu = this.getTreeMenu.bind(this);
+    }
+
+    getTreeMenu(options: Array<{value: IProfileFieldEntry; onSelect: () => void;}>, buttonLabel: string) {
+        const {gettext} = superdeskApi.localization;
+
+        return (
+            <TreeMenu
+                getId={(field) => field.name}
+                optionTemplate={(item) => item.schema?.type === 'custom_vocabulary' ? (
+                    <>
+                        {item.name}
+                        <span className="sd-text--italic sd-text--light">
+                            &nbsp;({gettext('custom vocabulary')})
+                        </span>
+                    </>
+                ) : (
+                    <>
+                        {item.name}
+                    </>
+                )}
+                getLabel={(item) => getFieldNameTranslated(item.name)}
+                getOptions={() => options}
+            >
+                {(toggle) => (
+                    <Button
+                        text={buttonLabel}
+                        iconOnly={true}
+                        icon="plus-large"
+                        shape="round"
+                        type="primary"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            toggle(e);
+                        }}
+
+                    />
+                )}
+            </TreeMenu>
+        );
     }
 
     getListElement(item: IProfileFieldEntry) {
@@ -38,8 +81,8 @@ export class FieldList extends React.PureComponent<IProps> {
         const isLastField = item.name === fields[fields.length - 1]?.name;
         const getAddFieldMenuItems = (offset) => this.props.unusedFields.map(
             (itemToAdd) => ({
-                label: getFieldNameTranslated(itemToAdd.name),
-                onClick: () => {
+                value: itemToAdd,
+                onSelect: () => {
                     this.props.insertField(itemToAdd, this.props.group?._id, item.field.index + offset);
                 },
             })
@@ -51,9 +94,9 @@ export class FieldList extends React.PureComponent<IProps> {
 
         return (
             <List.Item
+                zIndex={2000}
                 testId={`content-list--field-${item.name}`}
                 shadow={1}
-                draggable={true}
                 activated={this.props.selectedField === item.name}
                 onClick={(e) => {
                     // don't trigger editor if click went to a three dot menu
@@ -66,25 +109,11 @@ export class FieldList extends React.PureComponent<IProps> {
                     }
                     this.props.onClick(item);
                 }}
+                className="mt-1"
             >
                 {!menuItems.before.length ? null : (
                     <div className="profile-item__add-btn">
-                        <div>
-                            <Menu items={menuItems.before}>
-                                {(toggle) => (
-                                    <Button
-                                        text={gettext('Add field before')}
-                                        iconOnly={true}
-                                        icon="plus-large"
-                                        shape="round"
-                                        type="primary"
-                                        onClick={(event) => {
-                                            toggle(event);
-                                        }}
-                                    />
-                                )}
-                            </Menu>
-                        </div>
+                        {this.getTreeMenu(menuItems.after, gettext('Add field before'))}
                     </div>
                 )}
                 <List.Column
@@ -123,22 +152,7 @@ export class FieldList extends React.PureComponent<IProps> {
                 </List.ActionMenu>
                 {(!isLastField || !menuItems.after.length) ? null : (
                     <div className="profile-item__add-btn profile-item__add-btn--bottom">
-                        <div>
-                            <Menu items={menuItems.after}>
-                                {(toggle) => (
-                                    <Button
-                                        text={gettext('Add field after')}
-                                        iconOnly={true}
-                                        icon="plus-large"
-                                        shape="round"
-                                        type="primary"
-                                        onClick={(event) => {
-                                            toggle(event);
-                                        }}
-                                    />
-                                )}
-                            </Menu>
-                        </div>
+                        {this.getTreeMenu(menuItems.after, gettext('Add field after'))}
                     </div>
                 )}
             </List.Item>
@@ -150,40 +164,31 @@ export class FieldList extends React.PureComponent<IProps> {
 
         return !this.props.fields.length ? (
             <div className="planning-profile__empty-list">
-                <div>
-                    <Menu
-                        items={this.props.unusedFields.map((item) => ({
-                            label: item.name,
-                            onClick: () => {
-                                this.props.insertField(item, this.props.group?._id, 0);
-                            }
-                        }))}
-                    >
-                        {(toggle) => (
-                            <Button
-                                text={gettext('Add first field')}
-                                iconOnly={true}
-                                icon="plus-large"
-                                shape="round"
-                                type="primary"
-                                onClick={(event) => {
-                                    toggle(event);
-                                }}
-                            />
-                        )}
-                    </Menu>
-                </div>
+                {this.getTreeMenu(
+                    this.props.unusedFields.map((item) => ({
+                        value: item,
+                        onSelect: () => this.props.insertField(item, this.props.group?._id, 0),
+                    })),
+                    gettext('Add first field')
+                )}
             </div>
         ) : (
-            <List.Group spaceBetween={true}>
-                <SortItems
-                    onSortChange={this.props.onSortChange}
+            <List.Group spaceBetween>
+                <WithSortable
                     items={this.props.fields}
-                    getListElement={this.getListElement}
-                    useCustomStyle={true}
-                    lockAxis="y"
-                    lockToContainerEdges={true}
-                    distance={10}
+                    getId={(item) => item.name}
+                    itemTemplate={(item) => <>{this.getListElement(item.item)}</>}
+                    options={{
+                        shouldCancelStart: shouldNotStartDragging,
+                        onSortEnd: ({
+                            oldIndex,
+                            newIndex
+                        }) => {
+                            const itemsSorted = arrayMove(this.props.fields, oldIndex, newIndex);
+
+                            this.props.onSortChange(itemsSorted);
+                        }
+                    }}
                 />
             </List.Group>
         );

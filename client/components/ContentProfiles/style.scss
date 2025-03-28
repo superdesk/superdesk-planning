@@ -17,19 +17,6 @@
     }
 
     .sd-list-item {
-        .profile-item__add-btn {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            position: absolute;
-            top: -19px;
-
-            &--bottom {
-                top: unset;
-                bottom: -17px;
-            }
-        }
-
         .btn--icon-only-circle {
             opacity: 0.25;
             transition: opacity 0.2s ease-out;
@@ -60,13 +47,26 @@
     }
 }
 
+.profile-item__add-btn {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    position: absolute;
+    top: -17px;
+
+    &--bottom {
+        top: unset;
+        bottom: -17px;
+    }
+}
+
 .toggle-box--no-line {
     .toggle-box__line {
         background: none;
     }
 }
 
-body > .sd-list-item--draggable {
+body>.sd-list-item--draggable {
     z-index: 1060;
 
     .btn--icon-only-circle {

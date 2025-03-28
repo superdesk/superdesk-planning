@@ -13,6 +13,7 @@ interface IProps {
     tabIndex?: number;
     draggable?: boolean;
     testId?: string;
+    zIndex?: number;
 
     onClick?(event: React.MouseEvent<HTMLLIElement>): void;
     onMouseEnter?(): void;
@@ -65,6 +66,9 @@ export class Item extends React.PureComponent<IProps> {
                         'sd-list-item--draggable': draggable,
                     }
                 )}
+                style={{
+                    zIndex: this.props.zIndex,
+                }}
                 onClick={onClick}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
