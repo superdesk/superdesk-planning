@@ -282,7 +282,6 @@ class PlanningCoverage(Dataclass):
             if not values["planning"].get("genre"):
                 values["planning"]["genre"] = get_config(dict, "DEFAULT_GENRE_VALUE_FOR_MANUAL_ARTICLES")
 
-
         return values
 
 
