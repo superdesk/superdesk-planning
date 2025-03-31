@@ -158,7 +158,7 @@ Feature: Assignment content
     @auth
     @vocabularies
     Scenario: Content creation fails if there is no archive privilege
-        When we login as user "foo" with password "bar" and user type "user"
+        When we login as user "foo" with password "barword" and user type "user"
         """
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """

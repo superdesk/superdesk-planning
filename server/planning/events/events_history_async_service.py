@@ -53,7 +53,7 @@ class EventsHistoryAsyncService(HistoryAsyncService[EventsHistoryResourceModel])
     async def _save_history(self, item: dict[str, Any], update: dict[str, Any], operation: str | None = None):
         history = {
             "event_id": item[ID_FIELD],
-            "user_id": self.get_user_id(),
+            "user_id": await self.get_user_id(),
             "operation": operation,
             "update": update,
         }

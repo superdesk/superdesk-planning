@@ -69,8 +69,8 @@ class JsonPlanningFormatter(Formatter):
             return False
         return format_type == self.format_type and article.get("type") == "planning"
 
-    def format(self, item, subscriber, codes=None):
-        pub_seq_num = superdesk.get_resource_service("subscribers").generate_sequence_number(subscriber)
+    async def format(self, item, subscriber, codes=None):
+        pub_seq_num = await superdesk.get_resource_service("subscribers").generate_sequence_number_async(subscriber)
         output_item = self._format_item(item)
         return [
             (

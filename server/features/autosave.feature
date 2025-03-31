@@ -57,7 +57,7 @@ Feature: Events Autosave
         }]
         """
         Given I logout
-        When we login as user "foo" with password "bar" and user type "admin"
+        When we login as user "foo" with password "barword" and user type "admin"
         """
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """
@@ -142,7 +142,7 @@ Feature: Events Autosave
         }]
         """
         Given I logout
-        When we login as user "foo" with password "bar" and user type "admin"
+        When we login as user "foo" with password "barword" and user type "admin"
         """
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """
