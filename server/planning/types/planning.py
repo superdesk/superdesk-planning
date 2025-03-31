@@ -43,8 +43,8 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
     source: fields.Keyword | None = None
     original_source: fields.Keyword | None = None
     ingest_provider_sequence: fields.Keyword | None = None
-    ingest_firstcreated: datetime = Field(default_factory=utcnow)
-    ingest_versioncreated: datetime = Field(default_factory=utcnow)
+    ingest_firstcreated: datetime | None = None
+    ingest_versioncreated: datetime | None = None
 
     # Agenda Item details
     agendas: list[Annotated[fields.ObjectId, validate_data_relation_async("agenda")]] = Field(default_factory=list)
@@ -72,7 +72,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
     translations: Annotated[list[Translation], fields.nested_list()] = Field(default_factory=list)
 
     abstract: fields.HTML | None = None
-    headline: fields.HTML | None = None
+    headline: fields.HTML = ""
     slugline: SlugLineField | None = None
     keywords: list[fields.HTML] = Field(default_factory=list)
 
@@ -121,7 +121,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
     # field to sync scheduled_updates scheduled information
     # to be used for sorting/filtering on scheduled
     updates_schedule: Annotated[list[UpdatesSchedule], fields.nested_list()] = Field(
-        default_factory=list, alias="updates_schedule"
+        default_factory=list, alias="_updates_schedule"
     )
 
     planning_date: datetime
@@ -143,17 +143,22 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
     versionposted: datetime | None = None
     update_method: UpdateMethods | None = None
 
-    # TODO-ASYNC: check why do we have `type` and `_type`
-    _type: str | None = None
-
     @model_validator(mode="before")
     @classmethod
     def parse_dict(cls, values) -> dict[str, Any]:
+        from planning.common import TEMP_ID_PREFIX
+
+        if values.get("guid", "").startswith(TEMP_ID_PREFIX):
+            values["guid"] = generate_guid(type=GUID_NEWSML)
+
         if not values.get("guid") and values.get("_id"):
             # Make sure there is a ``guid``
             values["guid"] = values["_id"]
         elif not values.get("_id") and values.get("guid"):
             # Make sure there is a ``_id``
             values["_id"] = values["guid"]
+
+        for coverage in values.get("coverages", []):
+            PlanningCoverage.parse_dict(coverage)
 
         return values

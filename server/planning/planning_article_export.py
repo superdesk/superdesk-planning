@@ -67,6 +67,7 @@ def get_items(ids, resource_type):
     )
     items = sorted(items, key=lambda i: ids_string.index(str(i.get("_id"))))
 
+    # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
     events_service = get_resource_service("events")
     for item in items:
         item_type = item.get("type")

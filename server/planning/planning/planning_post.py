@@ -133,16 +133,18 @@ class PlanningPostService(BaseService):
         if event:
             update_method = UPDATE_ALL if event.get("recurrence_id") else UPDATE_SINGLE
             if event and event.get("pubstatus") is None:
-                get_resource_service("events_post").post(
-                    [
-                        {
-                            "event": event[config.ID_FIELD],
-                            "etag": event["_etag"],
-                            "update_method": update_method,
-                            "pubstatus": "usable",
-                        }
-                    ]
-                )
+                # TODO-ASYNC: Uncomment method when service is changed to async to allow `events_post` async usage
+                # get_resource_service("events_post").post_async(
+                #     [
+                #         {
+                #             "event": event[config.ID_FIELD],
+                #             "etag": event["_etag"],
+                #             "update_method": update_method,
+                #             "pubstatus": "usable",
+                #         }
+                #     ]
+                # )
+                pass
 
     def post_planning(self, plan, new_post_state, assignments_to_delete, **kwargs):
         """Post a Planning item"""

@@ -8,18 +8,18 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from copy import deepcopy
-
 import pytz
+from copy import deepcopy
+from typing import Any
+
 
 from superdesk.core import get_current_app
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
-from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
-from apps.auth import get_user_id
 
+from planning import signals
 from planning.common import (
     remove_lock_information,
     WORKFLOW_STATE,
@@ -27,216 +27,214 @@ from planning.common import (
     get_max_recurrent_events,
     set_original_creator,
 )
-from .events import EventsResource, generate_recurring_dates
-from .events_base_service import EventsBaseService
+from planning.events.events_utils import (
+    get_series,
+    post_update_event_actions,
+    pre_update_event_actions,
+    remove_fields,
+    set_planning_schedule,
+    generate_recurring_dates,
+)
+from planning.events.events_cancel import cancel_single_event, validate_states
+from planning.types import EventResourceModel, EventsHistoryResourceModel
 from planning.item_lock import LOCK_ACTION
 from planning.utils import event_has_planning_items
 
 
-class EventsUpdateRepetitionsResource(EventsResource):
-    url = "events/update_repetitions"
-    resource_title = endpoint_name = "events_update_repetitions"
-
-    datasource = {"source": "events"}
-
-    resource_methods = []
-    item_methods = ["PATCH"]
-    privileges = {"PATCH": "planning_event_management"}
+def update_rules(event: dict[str, Any], updated_rules: dict[str, Any]):
+    updates = {"dates": deepcopy(event["dates"])}
+    updates["dates"]["recurring_rule"] = deepcopy(updated_rules)
+    remove_lock_information(updates)
+    return updates
 
 
-class EventsUpdateRepetitionsService(EventsBaseService):
+async def cancel_event(event: dict[str, Any], updated_rule: dict[str, Any]):
+    events_service = EventResourceModel.get_service()
+
+    # If the Event is not in a valid state to Cancel, then we simply ignore this Event
+    if not validate_states(event):
+        return
+
+    updates = update_rules(event, updated_rule)
+    await cancel_single_event(updates, event)
+
+    event_id = event[ID_FIELD]
+    await events_service.system_update(event_id, updates)
+    await signals.event_cancel.send(updates, {"_id": event_id})
+
+    # If the event was posted we need to post the cancellation
+    if event.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
+        post = {
+            "event": event[ID_FIELD],
+            "etag": event["_etag"],
+            "update_method": "single",
+            "pubstatus": event.get("pubstatus"),
+        }
+        await get_resource_service("events_post").post_async([post])
+
+
+async def delete_event(event: dict[str, Any], updated_rule: dict[str, Any]):
+    events_service = EventResourceModel.get_service()
+
+    if event.get("pubstatus", None) is not None or event_has_planning_items(event[ID_FIELD], "primary"):
+        await cancel_event(event, updated_rule)
+    else:
+        await events_service.delete_many(lookup={"_id": event[ID_FIELD]})
+        app = get_current_app().as_any()
+        app.on_deleted_item_events(event)
+
+
+def create_event(date, updates: dict[str, Any], original: dict[str, Any], time_delta):
+    # Create a copy of the metadata to use for the new event
+    new_event = deepcopy(original)
+    new_event.update(deepcopy(updates))
+
+    # Remove fields not required by new events
+    remove_fields(new_event, extra_fields=["reschedule_from", "pubstatus"])
+
+    new_event["state"] = WORKFLOW_STATE.DRAFT
+    for key in list(new_event.keys()):
+        if key.startswith("_") or key.startswith("lock_"):
+            new_event.pop(key)
+
+    # Set the new start and end dates, as well as the _id and guid fields
+    new_event["dates"]["start"] = date
+    new_event["dates"]["end"] = date + time_delta
+    new_event[ID_FIELD] = new_event["guid"] = generate_guid(type=GUID_NEWSML)
+    set_original_creator(new_event)
+    set_planning_schedule(new_event)
+
+    return new_event
+
+
+async def update_event(updated_rule: dict[str, Any], original: dict[str, Any]):
+    events_service = EventResourceModel.get_service()
+    events_history_service = EventsHistoryResourceModel.get_service()
+
+    event_id = original[ID_FIELD]
+    updates = update_rules(original, updated_rule)
+    set_planning_schedule(updates)
+    await events_service.system_update(event_id, updates)
+    await events_history_service.on_update_repetitions(
+        updates,
+        event_id,
+        "update_repetitions" if original.get(LOCK_ACTION) == "update_repetitions" else "update_repetitions_update",
+    )
+
+
+async def get_internal_series(original: dict[str, Any]) -> list:
+    query = {"$and": [{"recurrence_id": original["recurrence_id"]}]}
+    sort = '[("dates.start", 1)]'
+    max_results = get_max_recurrent_events()
+
+    events = []
+    async for event in get_series(query, sort, max_results):
+        event = event.to_dict()
+        event["dates"]["start"] = event["dates"]["start"]
+        event["dates"]["end"] = event["dates"]["end"]
+        events.append(event)
+
+    return events
+
+
+async def update_event_repetitions(updates: dict[str, Any], original: dict[str, Any]):
+    events_service = EventResourceModel.get_service()
+    events_history_service = EventsHistoryResourceModel.get_service()
+    remove_lock_information(updates)
+
+    updated_rule = deepcopy(updates["dates"]["recurring_rule"])
+    original_rule = deepcopy(original["dates"]["recurring_rule"])
+
+    existing_events = await get_internal_series(original)
+
+    first_event = existing_events[0]
+    new_dates = [
+        date
+        for date in generate_recurring_dates(
+            start=first_event.get("dates", {}).get("start"),
+            tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or ""),
+            **updated_rule,
+        )
+    ]
+
+    original_dates = [
+        date
+        for date in generate_recurring_dates(
+            start=first_event.get("dates", {}).get("start"),
+            tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or ""),
+            **original_rule,
+        )
+    ]
+
+    # Compute the difference between start and end in the updated event
+    time_delta = original["dates"]["end"] - original["dates"]["start"]
+
+    deleted_events = {}
+    new_events = []
+
+    # Update the recurring rules for EVERY event in the series
+    # Also if we're decreasing the length of the series, then
+    # delete or mark the Event as cancelled.
+    for event in existing_events:
+        # if the event does not occur in the new dates, then we need to either
+        # delete or cancel this event
+        if event["dates"]["start"].replace(tzinfo=None) not in new_dates:
+            deleted_events[event[ID_FIELD]] = event
+
+        # Otherwise this Event does occur in the new dates
+        # So just update the recurring_rule to match the new series recurring_rule
+        else:
+            await update_event(updated_rule, event)
+
+    # Create new events that do not fall on the original series
+    for date in new_dates:
+        if date not in original_dates:
+            new_events.append(create_event(date, updates, original, time_delta))
+
+    # Now iterate over the new events and create them
+    if new_events:
+        await events_service.create(new_events)
+        for event in new_events:
+            await events_history_service.on_update_repetitions(event, event[ID_FIELD], "update_repetitions_create")
+
+    for event in deleted_events.values():
+        await delete_event(event, updated_rule)
+
+    # if the original event was "posted" then post the new generated events
+    if original.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
+        post = {
+            "event": original[ID_FIELD],
+            "etag": original["_etag"],
+            "update_method": "all",
+            "pubstatus": original.get("pubstatus"),
+            "repost_on_update": True,
+        }
+        await get_resource_service("events_post").post_async([post])
+
+
+async def process_update_repetitions(
+    updates: dict[str, Any], original: dict[str, Any], require_lock: bool = True
+) -> dict[str, Any]:
+    """
+    Processes updating event repetitions
+
+    :param updates: The update payload from the client.
+    :param original: The original event document.
+    :param require_lock: Whether to enforce lock removal (default True).
+    :return: The updated event document.
+    """
+    events_service = EventResourceModel.get_service()
     ACTION = "update_repetitions"
 
-    def on_update(self, updates, original):
-        user_id = get_user_id()
-        if user_id:
-            updates["version_creator"] = user_id
+    # Perform pre update event actions
+    pre_update_event_actions(updates, original, ACTION, require_lock)
 
-        # If `skip_on_update` is provided in the updates
-        # Then return here so no further processing is performed on this event.
-        if "skip_on_update" in updates:
-            return
+    await update_event_repetitions(updates, original)
 
-        # We only validate the original event,
-        # not the events that are automatically updated by the system
-        self.validate(updates, original)
+    updated_repetitions_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    assert updated_repetitions_event is not None, "Expected updated_repetitions_event to be a dict, got None"
 
-        remove_lock_information(updates)
+    # Perform post update actions
+    post_update_event_actions(updates, original, ACTION)
 
-        updated_rule = deepcopy(updates["dates"]["recurring_rule"])
-        original_rule = deepcopy(original["dates"]["recurring_rule"])
-
-        existing_events = self._get_series(original)
-
-        first_event = existing_events[0]
-        new_dates = [
-            date
-            for date in generate_recurring_dates(
-                start=first_event.get("dates", {}).get("start"),
-                tz=updates["dates"].get("tz") and pytz.timezone(updates["dates"]["tz"] or None),
-                **updated_rule,
-            )
-        ]
-
-        original_dates = [
-            date
-            for date in generate_recurring_dates(
-                start=first_event.get("dates", {}).get("start"),
-                tz=original["dates"].get("tz") and pytz.timezone(original["dates"]["tz"] or None),
-                **original_rule,
-            )
-        ]
-
-        # Compute the difference between start and end in the updated event
-        time_delta = original["dates"]["end"] - original["dates"]["start"]
-
-        events_service = get_resource_service("events")
-
-        deleted_events = {}
-        new_events = []
-
-        # Update the recurring rules for EVERY event in the series
-        # Also if we're decreasing the length of the series, then
-        # delete or mark the Event as cancelled.
-        for event in existing_events:
-            # if the event does not occur in the new dates, then we need to either
-            # delete or cancel this event
-            if event["dates"]["start"].replace(tzinfo=None) not in new_dates:
-                deleted_events[event[ID_FIELD]] = event
-
-            # Otherwise this Event does occur in the new dates
-            # So just update the recurring_rule to match the new series recurring_rule
-            else:
-                self._update_event(updated_rule, event)
-
-        # Create new events that do not fall on the original series
-        for date in new_dates:
-            if date not in original_dates:
-                new_events.append(self._create_event(date, updates, original, time_delta))
-
-        # Now iterate over the new events and create them
-        if new_events:
-            events_service.create(new_events)
-            for event in new_events:
-                get_resource_service("events_history").on_update_repetitions(
-                    event, event[ID_FIELD], "update_repetitions_create"
-                )
-
-        for event in deleted_events.values():
-            self._delete_event(event, events_service, updated_rule)
-
-        # if the original event was "posted" then post the new generated events
-        if original.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
-            post = {
-                "event": original[ID_FIELD],
-                "etag": original["_etag"],
-                "update_method": "all",
-                "pubstatus": original.get("pubstatus"),
-                "repost_on_update": True,
-            }
-            get_resource_service("events_post").post([post])
-
-    def update(self, id, updates, original):
-        """
-        Don't update the Event item here
-
-        Instead modifications are done on Event items in the following functions:
-        * _update_event
-        * _create_event
-        * _delete_event
-        * _cancel_event
-        """
-        pass
-
-    def _update_event(self, updated_rule, original):
-        updates = self._update_rules(original, updated_rule)
-        self.set_planning_schedule(updates)
-        self.backend.update(self.datasource, original[ID_FIELD], updates, original)
-        get_resource_service("events_history").on_update_repetitions(
-            updates,
-            original[ID_FIELD],
-            "update_repetitions" if original.get(LOCK_ACTION) == "update_repetitions" else "update_repetitions_update",
-        )
-
-    def _create_event(self, date, updates, original, time_delta):
-        # Create a copy of the metadata to use for the new event
-        new_event = deepcopy(original)
-        new_event.update(deepcopy(updates))
-
-        # Remove fields not required by new events
-        EventsUpdateRepetitionsService.remove_fields(new_event, extra_fields=["reschedule_from", "pubstatus"])
-
-        new_event["state"] = WORKFLOW_STATE.DRAFT
-        for key in list(new_event.keys()):
-            if key.startswith("_") or key.startswith("lock_"):
-                new_event.pop(key)
-
-        # Set the new start and end dates, as well as the _id and guid fields
-        new_event["dates"]["start"] = date
-        new_event["dates"]["end"] = date + time_delta
-        new_event[ID_FIELD] = new_event["guid"] = generate_guid(type=GUID_NEWSML)
-        set_original_creator(new_event)
-        self.set_planning_schedule(new_event)
-
-        return new_event
-
-    def _delete_event(self, event, events_service, updated_rule):
-        if event.get("pubstatus", None) is not None or event_has_planning_items(event[ID_FIELD], "primary"):
-            self._cancel_event(event, updated_rule)
-        else:
-            events_service.delete_action(lookup={"_id": event[ID_FIELD]})
-
-            app = get_current_app().as_any()
-            app.on_deleted_item_events(event)
-
-    def _cancel_event(self, event, updated_rule):
-        cancel_service = get_resource_service("events_cancel")
-
-        # If the Event is not in a valid state to Cancel, then we simply ignore this Event
-        if not cancel_service.validate_states(event):
-            return
-
-        updates = self._update_rules(event, updated_rule)
-
-        cancel_service.update_single_event(updates, event)
-        self.backend.update(self.datasource, event[ID_FIELD], updates, event)
-        app = get_current_app().as_any()
-        app.on_updated_events_cancel(updates, {"_id": event[ID_FIELD]})
-
-        # If the event was posted we need to post the cancellation
-        if event.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
-            post = {
-                "event": event[ID_FIELD],
-                "etag": event["_etag"],
-                "update_method": "single",
-                "pubstatus": event.get("pubstatus"),
-            }
-            get_resource_service("events_post").post([post])
-
-    @staticmethod
-    def _update_rules(event, updated_rules):
-        updates = {"dates": deepcopy(event["dates"])}
-        updates["dates"]["recurring_rule"] = deepcopy(updated_rules)
-        remove_lock_information(updates)
-        return updates
-
-    def _get_series(self, original):
-        query = {"$and": [{"recurrence_id": original["recurrence_id"]}]}
-        sort = '[("dates.start", 1)]'
-        max_results = get_max_recurrent_events()
-
-        events = []
-        for event in self.get_series(query, sort, max_results):
-            event["dates"]["start"] = event["dates"]["start"]
-            event["dates"]["end"] = event["dates"]["end"]
-            events.append(event)
-
-        return events
-
-    def validate(self, updates, original):
-        super().validate(updates, original)
-
-        if not updates.get("dates", {}).get("recurring_rule"):
-            raise SuperdeskApiError.badRequestError("New recurring rules not provided")
-        elif not original.get("recurrence_id"):
-            raise SuperdeskApiError.badRequestError("Not a series of recurring events")
+    return updated_repetitions_event

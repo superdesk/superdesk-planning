@@ -13,13 +13,14 @@ from eve.utils import ParsedRequest
 
 from superdesk.core import get_current_app
 from superdesk.resource_fields import ID_FIELD
-from superdesk import Resource, get_resource_service
-from superdesk.services import BaseService
+from superdesk import Resource
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.metadata.item import metadata_schema
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from superdesk.utils import ListCursor
 from planning.common import DUPLICATE_EVENT_IGNORED_FIELDS
+from planning.types import EventResourceModel
 from apps.archive.common import get_user
 from .events_schema import events_schema
 
@@ -105,16 +106,16 @@ class EventsTemplateResource(Resource):
     }
 
 
-class EventsTemplateService(BaseService):
+class EventsTemplateService(AsyncBaseService):
     """
     CRUD service for events templates
     """
 
-    def on_create(self, docs):
+    async def on_create_async(self, docs):
         for doc in docs:
-            self._fill_event_template(doc)
+            await self._fill_event_template(doc)
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         user = get_user()
         for doc in docs:
             push_notification(
@@ -123,10 +124,10 @@ class EventsTemplateService(BaseService):
                 user=str(user.get(ID_FIELD)),
             )
 
-    def on_update(self, updates, original):
+    async def on_update_async(self, updates, original):
         self._validate_based_on_event(updates, original)
 
-    def on_updated(self, updates, original):
+    async def on_updated_async(self, updates, original):
         user = get_user()
         push_notification(
             "events-template:updated",
@@ -134,10 +135,10 @@ class EventsTemplateService(BaseService):
             user=str(user.get(ID_FIELD)),
         )
 
-    def on_replace(self, doc, original):
-        self._validate_based_on_event(doc, original)
+    async def on_replace_async(self, document, original):
+        self._validate_based_on_event(document, original)
 
-    def on_replaced(self, document, original):
+    async def on_replaced_async(self, document, original):
         user = get_user()
         push_notification(
             "events-template:replaced",
@@ -145,7 +146,7 @@ class EventsTemplateService(BaseService):
             user=str(user.get(ID_FIELD)),
         )
 
-    def on_deleted(self, doc):
+    async def on_deleted_async(self, doc):
         user = get_user()
         push_notification(
             "events-template:deleted",
@@ -163,11 +164,13 @@ class EventsTemplateService(BaseService):
             )
 
     @staticmethod
-    def _get_event(_id):
-        return get_resource_service("events").find_one(None, _id=_id)
+    async def _get_event(_id):
+        event_service = EventResourceModel.get_service()
+        return await event_service.find_by_id_raw(_id)
 
-    def _fill_event_template(self, doc):
-        event = self._get_event(doc["based_on_event"])
+    async def _fill_event_template(self, doc):
+        event = await self._get_event(doc["based_on_event"])
+        assert event is not None, "Expected event to be a dict, got None"
         doc.setdefault("data", {}).update(event.copy())
         for field in DUPLICATE_EVENT_IGNORED_FIELDS:
             doc["data"].pop(field, None)
@@ -179,17 +182,17 @@ class RecentEventsTemplateResource(Resource):
     endpoint_name = "recent_events_template"
 
 
-class RecentEventsTemplateService(BaseService):
+class RecentEventsTemplateService(AsyncBaseService):
     """
     Recent event templates
     """
 
-    def on_fetched(self, doc):
+    async def on_fetched_async(self, doc):
         # remove hateoas `_links` from each item
         for item in doc["_items"]:
             del item["_links"]
 
-    def get(self, req, lookup):
+    async def get_async(self, req, lookup):
         """Return recently used event templates.
 
         `limit` query param can be used to override default limit.
@@ -218,7 +221,7 @@ class RecentEventsTemplateService(BaseService):
         app = get_current_app()
         templates_ids = [_["_id"] for _ in app.data.mongo.pymongo(resource="events").db["events"].aggregate(pipeline)]
         templates = list(
-            app.data.mongo.pymongo(resource="events_template")
+            app.data.mongo_async.pymongo(resource="events_template")
             .db["events_template"]
             .find({"_id": {"$in": templates_ids}})
         )
@@ -226,7 +229,7 @@ class RecentEventsTemplateService(BaseService):
         templates.sort(key=lambda template: templates_ids.index(template["_id"]))
         # query not used templates
         templates += (
-            app.data.mongo.pymongo(resource="events_template")
+            app.data.mongo_async.pymongo(resource="events_template")
             .db["events_template"]
             .find({"_id": {"$nin": templates_ids}})
         )

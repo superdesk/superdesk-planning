@@ -50,8 +50,8 @@ class JsonEventFormatter(Formatter):
     def can_format(self, format_type, article):
         return format_type == self.format_type and article.get("type") == "event"
 
-    def format(self, item, subscriber, codes=None):
-        pub_seq_num = superdesk.get_resource_service("subscribers").generate_sequence_number(subscriber)
+    async def format(self, item, subscriber, codes=None):
+        pub_seq_num = await superdesk.get_resource_service("subscribers").generate_sequence_number_async(subscriber)
         output_item = self._format_item(item)
         return [
             (
@@ -81,6 +81,7 @@ class JsonEventFormatter(Formatter):
 
     def _get_files_for_publish(self, item):
         def publish_file(file_id):
+            # TODO-ASYNC[EventsFilesService] - Convert to async when module is updated
             event_file = superdesk.get_resource_service("events_files").find_one(req=None, _id=file_id)
             app = get_current_app()
             media = app.media.get(event_file["media"], resource="events_files")

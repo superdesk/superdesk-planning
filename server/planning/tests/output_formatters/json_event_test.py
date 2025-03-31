@@ -9,9 +9,13 @@ from eve.methods.common import store_media_files
 from bson import ObjectId
 
 
+async def generate_sequence_number_mock(self, subscriber):
+    return 1
+
+
 @mock.patch(
-    "superdesk.publish.subscribers.SubscribersService.generate_sequence_number",
-    lambda self, subscriber: 1,
+    "superdesk.publish.subscribers.SubscribersService.generate_sequence_number_async",
+    generate_sequence_number_mock,
 )
 class JsonEventTestCase(TestCase):
     item = {
@@ -143,7 +147,7 @@ class JsonEventTestCase(TestCase):
     async def test_formatter(self):
         async with self.app.app_context():
             formatter = JsonEventFormatter()
-            output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(self.item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("name"), "Name of the event")
             self.assertEqual(output_item.get("event_contact_info")[0].get("last_name"), "Doe")
@@ -173,7 +177,7 @@ class JsonEventTestCase(TestCase):
             destination = {"delivery_type": "http_push"}
             formatter = JsonEventFormatter()
             formatter.set_destination(destination, subscriber)
-            output = formatter.format(item, subscriber)[0]
+            output = (await formatter.format(item, subscriber))[0]
 
             output_item = json.loads(output[1])
             self.assertEqual(1, len(output_item["files"]))

@@ -357,3 +357,43 @@ def push_event_notification(name: str, updates: dict[str, Any], original: dict[s
         name += ":recurring"
 
     push_notification("events:" + name, **data)
+
+
+def remove_fields(new_event: dict[str, Any], extra_fields=None):
+    """
+    Generic function to remove fields not required by new event
+    Based off remove_fields() from old event_base_service
+    """
+    for f in {
+        "_id",
+        "guid",
+        "unique_name",
+        "unique_id",
+        "lock_user",
+        "lock_time",
+        "lock_session",
+        "lock_action",
+        "_created",
+        "_updated",
+        "_etag",
+        "pubstatus",
+        "reason",
+        "duplicate_to",
+        "duplicate_from",
+        "reschedule_to",
+        "actioned_date",
+    }:
+        new_event.pop(f, None)
+
+    if extra_fields:
+        for f in extra_fields:
+            new_event.pop(f, None)
+
+
+def set_planning_schedule(event: dict[str, Any]):
+    """
+    Generic function to set planning schedule
+    Based off remove_fields() from old event_base_service
+    """
+    if event and event.get("dates") and event["dates"].get("start"):
+        event["_planning_schedule"] = [{"scheduled": event["dates"]["start"]}]

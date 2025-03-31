@@ -33,7 +33,8 @@ assignments_resource_config = ResourceConfig(
             ),
         ],
     ),
-    elastic=ElasticResourceConfig(),
+    # TODO-ASYNC: Use eve resource for elastic mapping - as this one is not working there
+    elastic=ElasticResourceConfig(auto_create_index=False),
 )
 
 delivery_resource_config = ResourceConfig(

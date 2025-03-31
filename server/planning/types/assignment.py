@@ -7,7 +7,7 @@ from superdesk.core.resources import fields, dataclass
 from superdesk.core.resources.validators import validate_data_relation_async
 
 from .base import BasePlanningModel
-from .common import LockFieldsMixin, PlanningCoverage
+from .common import LockFieldsMixin, AssignmentCoverage
 from .enums import AssignmentPublishedState, AssignmentWorkflowState
 
 
@@ -44,7 +44,7 @@ class AssignmentResourceModel(BasePlanningModel, LockFieldsMixin):
     scheduled_update_id: fields.Keyword | None = None
 
     assigned_to: AssignedTo | None = None
-    planning: PlanningCoverage | None = None
+    planning: AssignmentCoverage | None = None
 
     name: str | None = None
     description_text: fields.HTML | None = None

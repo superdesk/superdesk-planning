@@ -55,6 +55,7 @@ class LocationsService(Service):
         if lookup:
             location = get_resource_service("locations").find_one(req=None, _id=lookup.get(ID_FIELD))
             if location:
+                # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
                 events = get_resource_service("events").find(where={"location.qcode": str(location.get("guid"))})
                 if events.count():
                     # patch the unique name in case the location get recreated

@@ -63,3 +63,9 @@ planning_postponed = AsyncSignal[dict, dict]("planning:postponed")
 
 #: Signal for when an Event is postponed
 event_postponed = AsyncSignal[dict, dict]("events:postponed")
+
+#: Signal for when an Event is canceled
+event_cancel = AsyncSignal[dict, dict]("events:cancel")
+
+#: Signal for when an Event is rescheduled
+event_reschedule = AsyncSignal[dict, dict]("events:reschedule")

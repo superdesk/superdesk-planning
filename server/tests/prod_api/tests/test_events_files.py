@@ -11,6 +11,7 @@ def test_service_get(prodapi_app_with_data):
     """
 
     with prodapi_app_with_data.app_context():
+        # TODO-ASYNC[EventsFilesService] - Convert to async when module is updated
         items_service = get_resource_service("events_files")
 
         assert len(list(items_service.get(req=None, lookup={}))) == 2

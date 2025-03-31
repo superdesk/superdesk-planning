@@ -10,12 +10,12 @@
 
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import abort
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk import get_resource_service, logger
 from superdesk.resource import Resource, not_analyzed
 from superdesk.notification import push_notification
 
 from .events import EventsResource
-from .events_base_service import EventsBaseService
 from planning.common import (
     WORKFLOW_STATE,
     POST_STATE,
@@ -28,7 +28,9 @@ from planning.common import (
     get_version_item_for_post,
 )
 
-# from planning.validate import validate_docs
+from planning.validate import validate_docs
+from planning.events.events_utils import get_recurring_timeline, get_update_method
+from planning.types import EventResourceModel, EventsHistoryResourceModel
 from planning.utils import try_cast_object_id, get_related_planning_for_events
 from planning.content_profiles.utils import is_post_planning_with_event_enabled, is_cancel_planning_with_event_enabled
 
@@ -61,23 +63,24 @@ class EventsPostResource(EventsResource):
     item_methods = []
 
 
-class EventsPostService(EventsBaseService):
-    def create(self, docs):
+class EventsPostService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
+        events_service = EventResourceModel.get_service()
+
         ids = []
-        events_service = get_resource_service("events")
         for doc in docs:
-            event = events_service.find_one(req=None, _id=doc["event"])
+            event = await events_service.find_by_id_raw(doc["event"])
             doc["failed_planning_ids"] = []
 
             if not event:
                 abort(412)
 
-            update_method = self.get_update_method(event, doc)
+            update_method = get_update_method(event, doc)
 
             if update_method == UPDATE_SINGLE:
-                event_id, planning_ids = self._post_single_event(doc, event)
+                event_id, planning_ids = await self._post_single_event(doc, event)
             else:
-                event_id, planning_ids = self._post_recurring_events(doc, event, update_method)
+                event_id, planning_ids = await self._post_recurring_events(doc, event, update_method)
 
             ids.append(event_id)
             if planning_ids:
@@ -92,21 +95,20 @@ class EventsPostService(EventsBaseService):
         except AssertionError:
             abort(409)
 
-    # TODO-ASYNC: Uncomment method when service is changed to async to allow new async validate_docs function
-    # @staticmethod
-    # def validate_item(doc):
-    #     errors_list = await validate_docs([{"validate_on_post": True, "type": "event", "validate": doc}])
-    #     errors = errors_list[0]
-    #
-    #     if errors:
-    #         # We use abort here instead of raising SuperdeskApiError.badRequestError
-    #         # as eve handles error responses differently between POST and PATCH methods
-    #         abort(400, description=errors)
+    @staticmethod
+    async def validate_item(doc):
+        errors_list = await validate_docs([{"validate_on_post": True, "type": "event", "validate": doc}])
+        errors = errors_list[0]
 
-    def _post_single_event(self, doc, event):
+        if errors:
+            # We use abort here instead of raising SuperdeskApiError.badRequestError
+            # as eve handles error responses differently between POST and PATCH methods
+            abort(400, description=errors)
+
+    async def _post_single_event(self, doc, event):
         self.validate_post_state(doc["pubstatus"])
-        # self.validate_item(event)
-        updated_event, failed_planning_ids = self.post_event(event, doc["pubstatus"], doc.get("repost_on_update"))
+        await self.validate_item(event)
+        updated_event, failed_planning_ids = await self.post_event(event, doc["pubstatus"], doc.get("repost_on_update"))
 
         event_type = "events:posted" if doc["pubstatus"] == POST_STATE.USABLE else "events:unposted"
         push_notification(
@@ -119,9 +121,9 @@ class EventsPostService(EventsBaseService):
 
         return doc["event"], failed_planning_ids
 
-    def _post_recurring_events(self, doc, original, update_method):
+    async def _post_recurring_events(self, doc, original, update_method):
         post_to_state = doc["pubstatus"]
-        historic, past, future = self.get_recurring_timeline(
+        historic, past, future = await get_recurring_timeline(
             original, cancelled=True if post_to_state == POST_STATE.CANCELLED else False
         )
 
@@ -146,7 +148,9 @@ class EventsPostService(EventsBaseService):
         items = []
         failed_planning_ids = []
         for event in posted_events:
-            updated_event, failed_planning_ids = self.post_event(event, post_to_state, doc.get("repost_on_update"))
+            updated_event, failed_planning_ids = await self.post_event(
+                event, post_to_state, doc.get("repost_on_update")
+            )
             ids.append(event[ID_FIELD])
             items.append({"id": event[ID_FIELD], "etag": updated_event["_etag"]})
 
@@ -157,18 +161,22 @@ class EventsPostService(EventsBaseService):
                 "events:posted:recurring" if doc["pubstatus"] == POST_STATE.USABLE else "events:unposted:recurring"
             )
 
-            push_notification(
-                event_type,
-                item=original[ID_FIELD],
-                items=items,
-                recurrence_id=str(original.get("recurrence_id")),
-                pubstatus=updated_event["pubstatus"],
-                state=updated_event["state"],
-            )
+            if updated_event:
+                push_notification(
+                    event_type,
+                    item=original[ID_FIELD],
+                    items=items,
+                    recurrence_id=str(original.get("recurrence_id")),
+                    pubstatus=updated_event["pubstatus"],
+                    state=updated_event["state"],
+                )
 
         return ids, failed_planning_ids
 
-    def post_event(self, event, new_post_state, repost):
+    async def post_event(self, event, new_post_state, repost):
+        events_service = EventResourceModel.get_service()
+        events_history_service = EventsHistoryResourceModel.get_service()
+
         # update the event with new state
         if repost:
             # same pubstatus or scheduled (for draft events)
@@ -186,8 +194,9 @@ class EventsPostService(EventsBaseService):
             if not event.get("completed"):
                 updates["actioned_date"] = None
 
-        updated_event = get_resource_service("events").update(event["_id"], updates, event)
-        event.update(updated_event)
+        event_id = event[ID_FIELD]
+        updated_event = await events_service.update(event_id, updates)
+        event.update(updated_event.to_dict())
 
         # enqueue the event
         # these fields are set for enqueue process to work. otherwise not needed
@@ -195,22 +204,23 @@ class EventsPostService(EventsBaseService):
         # save the version into the history
         updates["version"] = version
 
-        get_resource_service("events_history")._save_history(event, updates, "post")
+        await events_history_service._save_history(event, updates, "post")
         plannings = get_related_planning_for_events([event[ID_FIELD]], "primary")
 
         event["plans"] = [p.get("_id") for p in plannings]
         self.publish_event(event, version)
 
         if len(plannings) > 0:
-            failed_planning_ids = self.post_related_plannings(plannings, new_post_state)
+            failed_planning_ids = await self.post_related_plannings(plannings, new_post_state)
 
-        return updated_event, failed_planning_ids
+        return updated_event.to_dict(), failed_planning_ids
 
     def publish_event(self, event, version):
         # check and remove private contacts while posting event, only public contact will be visible
         event["event_contact_info"] = [try_cast_object_id(contact["_id"]) for contact in get_contacts_from_item(event)]
 
         """Enqueue the items for publish"""
+        # TODO-ASNYC - Change to async when `published_planning` is converted to async
         version_id = get_resource_service("published_planning").post(
             [
                 {
@@ -227,9 +237,11 @@ class EventsPostService(EventsBaseService):
         else:
             logger.error("Failed to save planning version for event item id {}".format(event["_id"]))
 
-    def post_related_plannings(self, plannings, new_post_state):
+    async def post_related_plannings(self, plannings, new_post_state):
+        from planning.planning.planning_spike_async import process_spike_planning_item
+
+        # TODO-ASNYC - Change to async when `planning_post` is converted to async
         planning_post_service = get_resource_service("planning_post")
-        planning_spike_service = get_resource_service("planning_spike")
         docs = []
         failed_planning_ids = []
         if new_post_state != POST_STATE.CANCELLED:
@@ -261,7 +273,7 @@ class EventsPostService(EventsBaseService):
                 WORKFLOW_STATE.CANCELLED,
             ]:
                 # TODO-ASNYC: Convert this to `async process_spike_planning_item` pure function when class is changed to async
-                planning_spike_service.patch(planning.get(ID_FIELD), planning)
+                await process_spike_planning_item({"state": "spiked"}, planning)
             elif planning.get("pubstatus") != POST_STATE.CANCELLED:
                 docs.append(
                     {

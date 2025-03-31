@@ -30,7 +30,8 @@ planning_resource_config: ResourceConfig = ResourceConfig(
             ),
         ],
     ),
-    elastic=ElasticResourceConfig(),
+    # TODO-ASYNC: Use eve resource for elastic mapping - as this one is not working there
+    elastic=ElasticResourceConfig(auto_create_index=False),
 )
 
 planning_history_resource_config: ResourceConfig = ResourceConfig(

@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from superdesk.default_settings import INSTALLED_APPS, SECRET_KEY, env
+from superdesk.default_settings import INSTALLED_APPS, SECRET_KEY, env, MODULES
 
 ABS_PATH = str(Path(__file__).resolve().parent)
 
@@ -18,6 +18,8 @@ INSTALLED_APPS.extend([
     'planning_prepopulate',
     'force_unlock_item',
 ])
+
+MODULES.append("planning.module")
 
 
 WS_HOST = env('WSHOST', '0.0.0.0')

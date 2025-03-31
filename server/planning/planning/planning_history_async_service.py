@@ -114,7 +114,7 @@ class PlanningHistoryAsyncService(HistoryAsyncService[PlanningHistoryResourceMod
         deleted = [coverage for cid, coverage in original_coverages.items() if cid not in updates_coverages]
 
         for cov in added:
-            if cov.get("assigned_to", {}).get("state") == AssignmentWorkflowState.ASSIGNED.value:
+            if (cov.get("assigned_to") or {}).get("state") == AssignmentWorkflowState.ASSIGNED.value:
                 diff = {"coverage_id": cov.get("coverage_id")}
                 diff.update(cov)
                 await self._save_history(

@@ -211,6 +211,7 @@ def get_related_event_items_for_planning(
     if not len(event_ids):
         return []
 
+    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
     events = list(get_resource_service("events").find(where={"_id": {"$in": event_ids}}))
 
     if len(event_ids) != len(events):
@@ -237,6 +238,7 @@ def get_first_event_item_for_planning_id(
     if not first_event_id:
         return None
 
+    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
     return get_resource_service("events").find_one(req=None, _id=first_event_id)
 
 
