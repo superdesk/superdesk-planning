@@ -57,8 +57,7 @@ export class GroupList extends React.PureComponent<IProps> {
                         icon="plus-large"
                         shape="round"
                         type="primary"
-                        onClick={(e) => {
-                            e.stopPropagation();
+                        onClick={() => {
                             this.props.insertGroup(group.index - 0.1);
                         }}
                     />
@@ -82,8 +81,7 @@ export class GroupList extends React.PureComponent<IProps> {
                     <IconButton
                         icon="trash"
                         ariaValue={gettext('Remove group')}
-                        onClick={(e) => {
-                            e.stopPropagation();
+                        onClick={() => {
                             this.props.removeGroup(group);
                         }}
                     />
@@ -97,7 +95,6 @@ export class GroupList extends React.PureComponent<IProps> {
                             shape="round"
                             type="primary"
                             onClick={(e) => {
-                                e.stopPropagation();
                                 this.props.insertGroup(group.index + 0.1);
                             }}
                         />

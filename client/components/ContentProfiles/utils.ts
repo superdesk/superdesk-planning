@@ -1,4 +1,3 @@
-import {SyntheticEvent} from 'react';
 import {ICoverageContentProfile, IPlanningContentProfile} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {isProfileFieldEnabled, getFieldNameTranslated} from '../../utils/contentProfiles';
