@@ -81,6 +81,7 @@ class JsonEventFormatter(Formatter):
 
     def _get_files_for_publish(self, item):
         def publish_file(file_id):
+            # TODO-ASYNC[EventsFilesService] - Convert to async when module is updated
             event_file = superdesk.get_resource_service("events_files").find_one(req=None, _id=file_id)
             app = get_current_app()
             media = app.media.get(event_file["media"], resource="events_files")

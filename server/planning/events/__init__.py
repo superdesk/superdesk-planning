@@ -22,12 +22,6 @@ from .events_lock import (
     EventsUnlockService,
 )
 from .events_post import EventsPostService, EventsPostResource
-from .events_cancel import EventsCancelService, EventsCancelResource
-from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
-from .events_update_repetitions import (
-    EventsUpdateRepetitionsService,
-    EventsUpdateRepetitionsResource,
-)
 from .event_autosave import EventAutosaveResource
 from .events_template import (
     EventsTemplateResource,
@@ -75,27 +69,6 @@ def init_app(app):
     events_history_service = EventsHistoryService("events_history", backend=superdesk.get_backend())
     EventsHistoryResource("events_history", app=app, service=events_history_service)
 
-    events_cancel_service = EventsCancelService(EventsCancelResource.endpoint_name, backend=superdesk.get_backend())
-    EventsCancelResource(EventsCancelResource.endpoint_name, app=app, service=events_cancel_service)
-
-    events_reschedule_service = EventsRescheduleService(
-        EventsRescheduleResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    EventsRescheduleResource(
-        EventsRescheduleResource.endpoint_name,
-        app=app,
-        service=events_reschedule_service,
-    )
-
-    events_update_repetitions_service = EventsUpdateRepetitionsService(
-        EventsUpdateRepetitionsResource.endpoint_name, backend=superdesk.get_backend()
-    )
-    EventsUpdateRepetitionsResource(
-        EventsUpdateRepetitionsResource.endpoint_name,
-        app=app,
-        service=events_update_repetitions_service,
-    )
-
     event_autosave_service = AutosaveService("event_autosave", superdesk.get_backend())
     EventAutosaveResource("event_autosave", app=app, service=event_autosave_service)
 
@@ -119,6 +92,8 @@ def init_app(app):
     signals.event_spiked.connect(events_history_service.on_spike)
     signals.event_unspiked.connect(events_history_service.on_unspike)
     signals.event_postponed.connect(events_history_service.on_postpone)
+    signals.event_cancel.connect(events_history_service.on_cancel)
+    signals.event_reschedule.connect(events_history_service.on_reschedule)
 
     app.on_updated_events += events_history_service.on_item_updated
 
@@ -127,7 +102,6 @@ def init_app(app):
 
     app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
-    app.on_updated_events_cancel += events_history_service.on_cancel
     app.on_updated_events_reschedule += events_history_service.on_reschedule
     app.on_locked_events += events_search_service.on_locked_event
 

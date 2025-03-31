@@ -1208,6 +1208,7 @@ class AssignmentsService(superdesk.Service):
         if not first_primary_event_id:
             return False
 
+        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         event = get_resource_service("events").find_one(req=None, _id=first_primary_event_id)
         if not planning_item.get("recurrence_id"):
             return is_locked_in_this_session(event)

@@ -27,7 +27,7 @@ class AutosaveService(Service):
 
     def on_delete(self, doc):
         if doc.get(ITEM_TYPE) == "event":
-            # TODO-ASYNC: replace with equivalent in `EventsAsyncService`
+            # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
             get_resource_service("events").delete_event_files(None, doc)
 
     @staticmethod

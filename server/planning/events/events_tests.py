@@ -22,7 +22,9 @@ from planning.events.events import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
 from planning.events.events_service import EventsAsyncService
 from planning.events.events_utils import get_recurring_timeline
+from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_update_time import process_update_time
+from planning.events.events_update_repetitions import process_update_repetitions
 
 from .events import is_event_updated
 
@@ -285,20 +287,14 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
         schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
 
-        reschedule = get_resource_service("events_reschedule")
-        reschedule.REQUIRE_LOCK = False
-        # mocking function
-        is_original_event_func = reschedule.is_original_event
-        reschedule.is_original_event = Mock(return_value=False)
-
-        res = reschedule.patch(events[0].get("_id"), {"dates": schedule})
-        self.assertEqual(res.get("dates").get("start"), schedule["start"])
+        res = await process_reschedule_event({"dates": schedule}, events[0], False)
+        self.assertEqual(res["dates"]["start"], schedule["start"].isoformat())
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
         # post recurring events
-        get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [
                 {
                     "event": events[0].get("_id"),
@@ -315,16 +311,12 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
         schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
 
-        res = reschedule.patch(events[0].get("_id"), {"dates": schedule})
+        res = await process_reschedule_event({"dates": schedule}, events[0], False)
         rescheduled_event = await self.events_service.find_by_id_raw(events[0].get("_id"))
-        self.assertNotEqual(rescheduled_event.get("dates").get("start"), schedule["start"])
+        self.assertNotEqual(rescheduled_event["dates"]["start"], schedule["start"].isoformat())
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 4)
-
-        # reset mocked function
-        reschedule.is_original_event = is_original_event_func
-        reschedule.REQUIRE_LOCK = True
 
     async def test_planning_schedule_update_time(self):
         event = {
@@ -389,19 +381,10 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule = deepcopy(event["dates"])
         schedule["recurring_rule"]["count"] = 5
 
-        update_repetitions = get_resource_service("events_update_repetitions")
-        update_repetitions.REQUIRE_LOCK = False
-        # mocking function
-        is_original_event_func = update_repetitions.is_original_event
-        update_repetitions.is_original_event = Mock(return_value=False)
-        update_repetitions.patch(events[0].get("_id"), {"dates": schedule})
+        await process_update_repetitions({"dates": schedule}, events[0])
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 5)
-
-        # reset mocked function
-        update_repetitions.is_original_event = is_original_event_func
-        update_repetitions.REQUIRE_LOCK = True
 
     @patch("planning.events.events.get_user")
     async def test_planning_schedule_convert_to_recurring(self, get_user_mock):
@@ -542,7 +525,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             ],
         )
         now = utcnow()
-        get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 
@@ -588,7 +571,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ]
         )
-        get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
         new_plannings = await planning_service.create(
@@ -690,7 +673,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 },
             ],
         )
-        get_resource_service("events_post").post(
+        await get_resource_service("events_post").post_async(
             [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 

@@ -40,6 +40,7 @@ from planning.common import (
     update_post_item,
 )
 from planning.events.events_history_async_service import EventsHistoryAsyncService
+from planning.events.events_reschedule import reschedule_single_event
 from planning.planning import PlanningAsyncService
 from planning.core.service import BasePlanningAsyncService
 from planning.utils import (
@@ -368,7 +369,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         for file in files:
             events_using_file = await self.find({"files": file})
             if (await events_using_file.count()) == 0:
-                files_service.delete_action(lookup={"_id": file})
+                await files_service.delete_action_async(lookup={"_id": file})
 
     async def on_deleted(self, doc: EventResourceModel):
         push_notification(
@@ -493,9 +494,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         if post_required(updates, original.to_dict()):
             merged: EventResourceModel = original.clone_with(updates)
-
-            # TODO-ASYNC: replace when `event_post` is async and validate_item is available for use
-            # get_resource_service("events_post").validate_item(merged.to_dict())
+            await get_resource_service("events_post").validate_item(merged.to_dict())
 
         # Determine if we're to convert this single event to a recurring of events
         if original.lock_action == "convert_recurring" and updates.get("dates", {}).get("recurring_rule") is not None:
@@ -510,8 +509,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                     "pubstatus": original.pubstatus,
                 }
 
-                # TODO-ASYNC: replace when `event_post` is async
-                get_resource_service("events_post").post([post])
+                await get_resource_service("events_post").post_async([post])
 
             push_notification(
                 "events:updated:recurring",
@@ -558,7 +556,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             if post_required(updates, e):
                 merged = deepcopy(e)
                 merged.update(updates)
-                events_post_service.validate_item(merged)
+                await events_post_service.validate_item(merged)
 
         # If this update is from assignToCalendar action
         # Then we only want to update the calendars of each Event
@@ -665,8 +663,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             updates["dates"] = updated_event.dates
             updates["_planning_schedule"] = [x.to_dict() for x in self._create_planning_schedule(updated_event)]
 
-            event_reschedule_service = get_resource_service("events_reschedule")
-            event_reschedule_service.update_single_event(updates, original)
+            await reschedule_single_event(updates, original.to_dict())
 
             if updates.get("state") == WorkflowState.RESCHEDULED:
                 history_service = EventsHistoryAsyncService()
