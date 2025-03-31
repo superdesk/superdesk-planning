@@ -11,9 +11,10 @@ import {
     IEditorFormGroup,
     IPlanningCoverageItem,
     IPlanningItem,
+    IPlanningRelatedEventLink,
     ISearchProfile,
 } from '../../interfaces';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {
     getBookmarksFromFormGroups,
@@ -24,6 +25,7 @@ import {
 import {CoveragesBookmark, AddCoverageBookmark} from '../../components/Editor/bookmarks';
 import {AssociatedEventItem} from '../../components/fields/editor/AssociatedEventItem';
 import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
+import {isTemporaryId} from '../../utils';
 
 export function getCoverageFields(
     type: ICoverageType,
@@ -89,6 +91,50 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         return editor.dom.fields[field];
     }
 
+    function updateEventItem(
+        original: DeepPartial<IPlanningRelatedEventLink>,
+        updates: DeepPartial<IEventItem>,
+        scrollOnChange: boolean
+    ) {
+        const editor = planningApi.editor(type);
+        const planning = editor.form.getDiff<IPlanningItem>();
+        const events = cloneDeep(planning.related_events || []);
+        const index = events.findIndex(
+            (event) => event._id === original._id
+        );
+
+        if (index < 0) {
+            return;
+        }
+
+        events[index] = {
+            _id: updates._id,
+            link_type: original.link_type,
+            recurrence_id: original.recurrence_id
+        };
+
+        const updateMainField = () => {
+            editor.form.changeField('related_events', events)
+                .then(() => {
+                    if (scrollOnChange) {
+                        getRelatedEventsDomRef(original._id).current?.scrollIntoView();
+                    }
+                });
+        };
+
+        // On saving of a temporary event from the embedded form itself,
+        // we must also remove it from _unsaved_related_events
+        // otherwise trying to save the same item twice would happen
+        if (isTemporaryId(original._id) && !isTemporaryId(updates._id)) {
+            editor.form.changeField(
+                superdeskApi.helpers.nameof<IPlanningItem>('_unsaved_related_events'),
+                planning._unsaved_related_events.filter((x) => x._id != original._id)
+            ).then(updateMainField);
+        } else {
+            updateMainField();
+        }
+    }
+
     function getRelatedEventsDomRef(eventId: IEventItem['_id']): RefObject<AssociatedEventItem> {
         const editor = planningApi.editor(type);
         const field = `planning-item--${eventId}`;
@@ -100,12 +146,18 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         return editor.dom.fields[field];
     }
 
-    function removeEventItem(item: DeepPartial<IEventItem>): void {
+    function unlinkEvent(item: DeepPartial<IEventItem>): void {
         const editor = planningApi.editor(type);
         const planning = editor.form.getDiff<IPlanningItem>();
         const events = (planning.related_events || []).filter(
             (event) => event._id !== item._id
         );
+
+        const unsavedEvents = (planning._unsaved_related_events || []).filter(
+            (event) => event._id !== item._id
+        );
+
+        editor.form.changeField('_unsaved_related_events', unsavedEvents);
 
         editor.form.changeField('related_events', events)
             .then(() => {
@@ -150,8 +202,9 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         getGroupsForItem,
         getCoverageFields,
         getRelatedEventsDomRef,
-        removeEventItem,
+        unlinkEvent,
         getCoverageFieldDomRef,
         addCoverages,
+        updateEventItem,
     };
 }

@@ -122,10 +122,9 @@ export class UpdateEventRepetitionsComponent extends React.Component {
                 <RecurringRulesInput
                     onlyUpdateRepetitions
                     onChange={this.onChange}
-                    schedule={diff.dates || {}}
+                    recurring_rule={diff.dates.recurring_rule || {}}
                     readOnly={submitting}
                     errors={get(this.state.errors, 'dates.recurring_rule')}
-                    popupContainer={() => this.dom.popupContainer}
                 />
 
                 <div ref={(node) => this.dom.popupContainer = node} />

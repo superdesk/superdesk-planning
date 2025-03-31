@@ -1,16 +1,16 @@
 import {IAuthoringFieldV2, IDropdownConfigManualSource, IVocabularyItem} from 'superdesk-api';
-import {IFieldDefinition} from './interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
+import {getLanguages} from '../../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
+import {IFieldDefinition} from './interfaces';
 
-export const getPriorityField = (): IFieldDefinition => {
-    const {gettext} = superdeskApi.localization;
+export const getLanguageField = (): IFieldDefinition => {
+    const languages = getLanguages(planningApi.redux.store.getState());
 
     return {
-        fieldId: 'priority',
-        getField: ({id, required, language}) => {
-            const priorityVocabulary = planningApi.redux.store.getState().vocabularies.priority;
-            const options = priorityVocabulary.map(
+        fieldId: 'language',
+        getField: ({required, id, language}) => {
+            const options = languages.map(
                 (option) => ({
                     id: option.qcode,
                     label: getVocabularyItemFieldTranslated(
@@ -25,15 +25,15 @@ export const getPriorityField = (): IFieldDefinition => {
             const fieldConfig: IDropdownConfigManualSource = {
                 source: 'manual-entry',
                 options: options,
-                roundCorners: true,
                 type: 'text',
+                roundCorners: false,
                 multiple: false,
                 required: required,
             };
 
             const field: IAuthoringFieldV2 = {
                 id: id,
-                name: gettext('Priority'),
+                name: superdeskApi.localization.gettext('Language'),
                 fieldType: 'dropdown',
                 fieldConfig: fieldConfig,
             };

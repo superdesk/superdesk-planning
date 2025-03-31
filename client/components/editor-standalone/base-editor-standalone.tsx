@@ -1,6 +1,6 @@
 import React, {RefObject} from 'react';
 import {connect} from 'react-redux';
-import {noop} from 'lodash';
+import {get, noop} from 'lodash';
 import {Button} from 'superdesk-ui-framework/react';
 import {
     IAuthoringStorage,
@@ -44,16 +44,35 @@ function validate<T extends IPlanningItem | IEventItem>(
     const planningProfile = planningApi.contentProfiles.get(entityType);
     const errors = {};
     const messages = [];
+    const profileFields = getPlanningProfileFields({
+        profile: entityType,
+        embeddedOnly: true,
+    });
 
-    for (const {fieldId} of getPlanningProfileFields({profile: entityType, embeddedOnly: true})) {
-        formProfile({
-            field: fieldId,
-            value: latestItem[fieldId],
-            profile: planningProfile,
-            errors: errors,
-            messages: messages,
-            diff: latestItem,
-        });
+    for (const {fieldId} of profileFields) {
+        /**
+         * Field id doesn't match the path to the value inside the item.
+         * `recurring_rules` is inside the dates object of an event item.
+         */
+        if (fieldId === 'recurring_rules') {
+            formProfile({
+                field: fieldId,
+                value: (latestItem as IEventItem)?.dates,
+                profile: planningProfile,
+                errors: errors,
+                messages: messages,
+                diff: latestItem,
+            });
+        } else {
+            formProfile({
+                field: fieldId,
+                value: latestItem[fieldId],
+                profile: planningProfile,
+                errors: errors,
+                messages: messages,
+                diff: latestItem,
+            });
+        }
     }
 
     const filteredErrors = {};

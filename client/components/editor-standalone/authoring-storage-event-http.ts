@@ -47,8 +47,8 @@ export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
             },
         });
     },
-    getContentProfile: () => {
-        return Promise.resolve(getProfile('event'));
+    getContentProfile: (item) => {
+        return Promise.resolve(getProfile('event', item.language));
     },
     closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
         return Promise.resolve();

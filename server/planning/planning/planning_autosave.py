@@ -29,7 +29,7 @@ class PlanningAutosaveResource(Resource):
     resource_methods = ["GET", "POST"]
     item_methods = ["GET", "PUT", "PATCH", "DELETE"]
 
-    schema = planning_schema
+    schema = {**planning_schema, "_unsaved_related_events": {"type": "list", "required": False, "nullable": True}}
     datasource = {
         "source": "planning_autosave",
     }

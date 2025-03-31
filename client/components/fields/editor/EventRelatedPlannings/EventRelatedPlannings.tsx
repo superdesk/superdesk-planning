@@ -12,7 +12,6 @@ import {TEMP_ID_PREFIX} from '../../../../constants';
 import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
 import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
 import {isTemporaryId} from '../../../../utils';
-import {Tooltip} from '@sourcefabric/common';
 
 export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
     relatedItemRefs: {[id: string]: RelatedPlanningItem};
@@ -105,7 +104,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                                     index={index}
                                     event={this.props.item}
                                     item={plan}
-                                    removePlan={this.props.removePlanningItem}
+                                    unlinkPlanning={this.props.unlinkPlanning}
                                     updatePlanningItem={this.props.updatePlanningItem}
                                     disabled={false}
                                     editorType={this.props.editorType}

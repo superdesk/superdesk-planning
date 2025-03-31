@@ -1,7 +1,10 @@
 import {IAuthoringFieldV2, IEditor3Config} from 'superdesk-api';
+import {IBaseFieldDefinition, IEditor3Definition} from './interfaces';
 
-export function getTextFieldConfig(options: {id: string; label: string, required: boolean}): IAuthoringFieldV2 {
-    const editor3ConfigWithoutFormatting: IEditor3Config = {
+export function getTextFieldConfig(
+    options: (IBaseFieldDefinition<'base'> | IEditor3Definition) & {label: string},
+): IAuthoringFieldV2 {
+    const editor3ConfigWithoutFormatting: IEditor3Config = options.type === 'base' ? {
         editorFormat: [],
         minLength: undefined,
         maxLength: undefined,
@@ -9,6 +12,15 @@ export function getTextFieldConfig(options: {id: string; label: string, required
         singleLine: true,
         disallowedCharacters: [],
         showStatistics: false,
+        width: 100,
+    } : {
+        editorFormat: options.formattingOptions ?? [],
+        minLength: options.minLength ?? undefined,
+        maxLength: options.maxLength ?? undefined,
+        cleanPastedHtml: true,
+        singleLine: false,
+        disallowedCharacters: [],
+        showStatistics: true,
         width: 100,
     };
 

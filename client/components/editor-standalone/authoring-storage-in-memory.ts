@@ -1,17 +1,37 @@
 import ng from 'superdesk-core/scripts/core/services/ng';
 import {IAuthoringAutoSave, IAuthoringStorage} from 'superdesk-api';
 import {getProfile} from './profile';
+import {autosave} from '../../api/autosave';
+import {superdeskApi} from '../../superdeskApi';
+import {IEventOrPlanningItem} from 'interfaces';
 
-export function getAuthoringStorageInMemory<T>(
+export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
     profile: 'event' | 'planning',
     item: T,
     onSave: (current: T, original: T) => Promise<T>,
 ): IAuthoringStorage<T> {
+    const {assertNever} = superdeskApi.helpers;
+    const getProfileType = (profile: 'event' | 'planning') => {
+        if (profile === 'event') {
+            return 'event';
+        } else if (profile === 'planning') {
+            return 'planning';
+        }
+
+        return assertNever(profile);
+    };
+
     class NoAutoSave implements IAuthoringAutoSave<T> {
         get(id: string) {
-            // return a different reference so authoring-react sees it as having unsaved changes.
-            // otherwise, it will consider all saved and won't attempt to save - which won't trigger validation.
-            return Promise.resolve({...item});
+            return autosave
+                .getById(getProfileType(profile), id)
+                .then((x) => {
+                    if (x == null) {
+                        item;
+                    } else {
+                        return {...x} as unknown as T;
+                    }
+                });
         }
 
         delete() {
@@ -39,7 +59,15 @@ export function getAuthoringStorageInMemory<T>(
         autosave: new NoAutoSave(),
 
         getEntity: () => {
-            return Promise.resolve(item);
+            return autosave
+                .getById(getProfileType(profile), item._id)
+                .then((x) => {
+                    if (x == null) {
+                        return item;
+                    } else {
+                        return {...x} as unknown as T;
+                    }
+                });
         },
 
         isLockedInCurrentSession: () => true,
@@ -52,7 +80,7 @@ export function getAuthoringStorageInMemory<T>(
             return onSave(current, original);
         },
         getContentProfile: () => {
-            return Promise.resolve(getProfile(profile));
+            return Promise.resolve(getProfile(profile, item.language ?? 'en'));
         },
         closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
             return Promise.resolve();

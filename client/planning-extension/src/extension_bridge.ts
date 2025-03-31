@@ -4,6 +4,7 @@ import {
     IAssignmentItem,
     IEditorFieldProps,
     IPlanningAppState,
+    IPlanningContentProfile,
     IPlanningCoverageItem,
     IPlanningItem,
 } from '../../interfaces';
@@ -11,6 +12,8 @@ import {IPropsAttachmentsEditorStandalone} from '../../components/AttachmentsInp
 import {IContactPropsNoRedux} from '../../components/Contacts/ContactField.interface';
 import {IPropsEditorFieldCoverages} from '../../components/fields/editor/coverages.interface';
 import {IEditorFieldLocationProps} from '../../components/fields/editor/Location.interface';
+import {IEditorFieldEventRecurringRulesProps} from '../../components/fields/editor/EventRecurringRules.interface';
+import {IEventScheduleFieldProps} from '../../components/fields/editor/EventSchedule.interface';
 
 interface IEditorFieldVocabularyProps extends IEditorFieldProps {
     options: Array<any>;
@@ -49,10 +52,14 @@ interface IExtensionBridge {
             EditorFieldLocation: React.ComponentType<IEditorFieldLocationProps>;
             EditorFieldContact: React.ComponentType<IContactPropsNoRedux>;
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
+            EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
+            EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
         },
     }
     ui: {
         utils: {
+            planning_event_link_method: 'one_primary' | 'many_secondary' | 'one_primary_many_secondary';
+            getItemProfile: (type: 'planning' | 'event') => IPlanningContentProfile;
             isTemporaryId: (id: string) => boolean;
             getUserInterfaceLanguageFromCV(): string;
             getVocabularyItemFieldTranslated(

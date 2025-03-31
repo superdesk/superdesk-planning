@@ -10,7 +10,7 @@ import {
 } from 'superdesk-api';
 import {ASSIGNMENT_STATE, IAssignmentItem} from '../../../interfaces';
 import {superdesk} from '../superdesk';
-import {Badge} from 'superdesk-ui-framework';
+import {Badge} from 'superdesk-ui-framework/react';
 import {AssignmentsOverviewListItem} from './assignments-overview-list-item';
 
 const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
