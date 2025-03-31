@@ -19,7 +19,7 @@ INSTALLED_APPS.extend([
     'force_unlock_item',
 ])
 
-MODULES.extend("planning")
+MODULES.append("planning.module")
 
 
 WS_HOST = env('WSHOST', '0.0.0.0')

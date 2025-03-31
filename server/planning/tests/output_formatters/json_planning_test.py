@@ -20,9 +20,13 @@ from planning.types import PlanningRelatedEventLink
 from pytest import mark
 
 
+async def generate_sequence_number_mock(self, subscriber):
+    return 1
+
+
 @mock.patch(
-    "superdesk.publish.subscribers.SubscribersService.generate_sequence_number",
-    lambda self, subscriber: 1,
+    "superdesk.publish.subscribers.SubscribersService.generate_sequence_number_async",
+    generate_sequence_number_mock,
 )
 class JsonPlanningTestCase(TestCase):
     maxDiff = None
@@ -151,7 +155,7 @@ class JsonPlanningTestCase(TestCase):
     async def format(self, item=None):
         async with self.app.app_context():
             formatter = JsonPlanningFormatter()
-            output = formatter.format(item or self.item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(item or self.item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             return output_item
 
@@ -174,7 +178,7 @@ class JsonPlanningTestCase(TestCase):
             self.app.data.insert("assignments", self.assignment)
             self.app.data.insert("delivery", self.delivery)
             formatter = JsonPlanningFormatter()
-            output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(self.item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("slugline"), "SLUGLINE")
             self.assertEqual(output_item.get("agendas")[0].get("name"), "Culture")
@@ -196,7 +200,7 @@ class JsonPlanningTestCase(TestCase):
             assignment[0]["assigned_to"]["state"] = "assigned"
             self.app.data.insert("assignments", assignment)
             formatter = JsonPlanningFormatter()
-            output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(self.item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("slugline"), "SLUGLINE")
             self.assertEqual(
@@ -212,7 +216,7 @@ class JsonPlanningTestCase(TestCase):
             assignment[0]["assigned_to"]["state"] = "in_progress"
             self.app.data.insert("assignments", assignment)
             formatter = JsonPlanningFormatter()
-            output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(self.item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("slugline"), "SLUGLINE")
             self.assertEqual(
@@ -228,7 +232,7 @@ class JsonPlanningTestCase(TestCase):
             assignment[0]["assigned_to"]["state"] = "submitted"
             self.app.data.insert("assignments", assignment)
             formatter = JsonPlanningFormatter()
-            output = formatter.format(self.item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(self.item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("slugline"), "SLUGLINE")
             self.assertEqual(
@@ -253,7 +257,7 @@ class JsonPlanningTestCase(TestCase):
             item = deepcopy(self.item)
             item["coverages"][0].pop("assigned_to", None)
             item["coverages"][0]["workflow_status"] = "draft"
-            output = formatter.format(item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("slugline"), "SLUGLINE")
             self.assertEqual(
@@ -269,7 +273,7 @@ class JsonPlanningTestCase(TestCase):
             item = deepcopy(self.item)
             item["coverages"][0].pop("assigned_to", None)
             item["coverages"][0]["workflow_status"] = "cancelled"
-            output = formatter.format(item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("slugline"), "SLUGLINE")
             self.assertEqual(
@@ -334,13 +338,10 @@ class JsonPlanningTestCase(TestCase):
             )
             formatter = JsonPlanningFormatter()
             item = deepcopy(self.item)
-            output = formatter.format(item, {"name": "Test Subscriber"})[0]
+            output = (await formatter.format(item, {"name": "Test Subscriber"}))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item["products"], [{"code": "prod-type-planning", "name": "planning-only"}])
 
-    @mark.skip(
-        reason="Internal `signals.item_update.send` fails with `RuntimeError: Cannot send to a coroutine function`"
-    )
     async def test_expand_delivery_uses_ingest_id(self):
         async with self.app.app_context():
             self.app.data.insert("assignments", self.assignment)

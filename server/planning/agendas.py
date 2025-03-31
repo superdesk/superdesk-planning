@@ -30,7 +30,7 @@ class AgendasResource(Resource):
         "PATCH": "planning_agenda_management",
         "DELETE": "planning_agenda_management",
     }
-    internal_resource = True
+    internal_resource = False
 
 
 class AgendasService(Service):

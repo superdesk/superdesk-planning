@@ -75,8 +75,8 @@ class PlanningHistoryService(HistoryService):
 
         self.post([history])
 
-    def on_item_updated(self, updates: dict[str, Any], original: PlanningResourceModel, operation: str | None = None):
-        item = deepcopy(original.to_dict())
+    def on_item_updated(self, updates: dict[str, Any], original: dict, operation: str | None = None):
+        item = deepcopy(original)
         if list(item.keys()) == ["_id"]:
             diff = self._remove_unwanted_fields(updates)
         else:

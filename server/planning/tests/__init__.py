@@ -3,6 +3,7 @@ from typing import Any
 from bson import ObjectId
 from superdesk.flask import g
 from superdesk.tests import TestCase as BaseTestCase
+from superdesk.default_settings import MODULES
 
 
 class TestCase(BaseTestCase):
@@ -10,7 +11,7 @@ class TestCase(BaseTestCase):
 
     app_config: dict[str, Any] = {
         "INSTALLED_APPS": ["planning"],
-        "MODULES": ["planning.module"],
+        "MODULES": MODULES + ["planning.module"],
     }
 
     def setup_test_user(self):
