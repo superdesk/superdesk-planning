@@ -229,7 +229,7 @@ class AssignmentUnlinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
-            self.assertEqual(deliveries.count(), 2)
+            self.assertEqual(await deliveries.count(), 2)
 
             await get_resource_service("assignments_unlink").post_async(
                 [{"assignment_id": "5b20652a1d41c812e24aa49e", "item_id": "item1"}]
@@ -238,7 +238,7 @@ class AssignmentUnlinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
-            self.assertEqual(deliveries.count(), 0)
+            self.assertEqual(await deliveries.count(), 0)
 
     async def test_unlinks_properly_on_unlinking_any_update_in_chain(self):
         async with self.app.app_context():
@@ -342,7 +342,7 @@ class AssignmentUnlinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
-            self.assertEqual(deliveries.count(), 2)
+            self.assertEqual(await deliveries.count(), 2)
 
             await get_resource_service("assignments_unlink").post_async(
                 [
@@ -356,7 +356,7 @@ class AssignmentUnlinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
-            self.assertEqual(deliveries.count(), 0)
+            self.assertEqual(await deliveries.count(), 0)
 
     async def test_unlinks_archived_content(self):
         async with self.app.app_context():
@@ -439,4 +439,4 @@ class AssignmentUnlinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
             )
-            self.assertEqual(deliveries.count(), 0)
+            self.assertEqual(await deliveries.count(), 0)

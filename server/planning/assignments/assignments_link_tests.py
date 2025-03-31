@@ -117,7 +117,7 @@ class AssignmentLinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 1)
+            self.assertEqual(await deliveries.count(), 1)
 
             self.app.data.insert(
                 "archive",
@@ -188,7 +188,7 @@ class AssignmentLinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 1)
+            self.assertEqual(await deliveries.count(), 1)
             self.assertEqual(deliveries[0].get("item_state"), "in_progress")
 
     async def test_previous_unlinked_content_gets_linked_when_update_is_linked(self):
@@ -212,7 +212,7 @@ class AssignmentLinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 0)
+            self.assertEqual(await deliveries.count(), 0)
 
             self.app.data.insert(
                 "archive",
@@ -259,4 +259,4 @@ class AssignmentLinkTestCase(TestCase):
             deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 2)
+            self.assertEqual(await deliveries.count(), 2)
