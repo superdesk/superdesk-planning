@@ -69,8 +69,8 @@ def validate_states(event: dict[str, Any]):
     return True
 
 
-def cancel_event_plannings(updates: dict[str, Any], original: dict[str, Any]):
-    # TODO-ASYNC: Convert to use async services when `planning_cancel` and `planning_history` are converted
+async def cancel_event_plannings(updates: dict[str, Any], original: dict[str, Any]):
+    # TODO-ASYNC: Convert to use async services when `planning_history` is converted to async
     planning_cancel_service = get_resource_service("planning_cancel")
     planning_history_service = get_resource_service("planning_history")
     reason = updates.get("reason", None)
@@ -79,7 +79,7 @@ def cancel_event_plannings(updates: dict[str, Any], original: dict[str, Any]):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
             # TODO-ASYNC - Confirm if `request.view_args` works from new async endpoint too
             request.view_args["event_cancellation"] = True
-            cancelled_plan = planning_cancel_service.patch(plan[ID_FIELD], {"reason": reason})
+            cancelled_plan = await planning_cancel_service.patch_async(plan[ID_FIELD], {"reason": reason})
 
             # Write history records
             planning_history_service.on_cancel(cancelled_plan, plan)
@@ -110,7 +110,7 @@ async def get_cancel_state():
 async def cancel_single_event(updates: dict[str, Any], original: dict[str, Any]):
     occur_cancel_state = await get_cancel_state()
     set_event_cancelled(updates, original, occur_cancel_state)
-    cancel_event_plannings(updates, original)
+    await cancel_event_plannings(updates, original)
 
 
 async def cancel_recurring_event(updates: dict[str, Any], original: dict[str, Any], update_method: str):
@@ -133,10 +133,10 @@ async def cancel_recurring_event(updates: dict[str, Any], original: dict[str, An
 
     for event in cancelled_events:
         new_updates = deepcopy(updates)
-        cancel_event_plannings(new_updates, event)
+        await cancel_event_plannings(new_updates, event)
         await patch_related_event_as_cancelled(new_updates, event, notifications)
 
-    cancel_event_plannings(updates, original)
+    await cancel_event_plannings(updates, original)
     updates["_cancelled_events"] = notifications
 
 

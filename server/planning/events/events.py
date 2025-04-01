@@ -653,7 +653,7 @@ class EventsService(AsyncBaseService):
             )
         else:
             if original.get("lock_action") == "mark_completed" and updates.get("actioned_date"):
-                self.mark_event_complete(original, updates, original, None)
+                await self.mark_event_complete(original, updates, original, None)
 
             # This updates Event metadata only
             push_notification(
@@ -718,7 +718,7 @@ class EventsService(AsyncBaseService):
                     [calendar for calendar in updated_calendars if calendar["qcode"] not in original_qcodes]
                 )
             elif mark_completed:
-                self.mark_event_complete(original, updates, e, mark_complete_validated)
+                await self.mark_event_complete(original, updates, e, mark_complete_validated)
                 # It is validated if the previous funciton did not raise an error
                 mark_complete_validated = True
 
@@ -737,7 +737,7 @@ class EventsService(AsyncBaseService):
             user=str(updates.get("version_creator", "")),
         )
 
-    def mark_event_complete(self, original, updates, event, mark_complete_validated):
+    async def mark_event_complete(self, original, updates, event, mark_complete_validated):
         # If the entire series is in future, raise an error
         if event.get("recurrence_id"):
             if not mark_complete_validated:
@@ -751,7 +751,7 @@ class EventsService(AsyncBaseService):
 
         for plan in get_related_planning_for_events([event[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED and len(plan.get("coverages", [])) > 0:
-                get_resource_service("planning_cancel").patch(
+                await get_resource_service("planning_cancel").patch_async(
                     plan[ID_FIELD],
                     {
                         "reason": "Event Completed",
