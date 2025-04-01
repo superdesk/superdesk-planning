@@ -76,6 +76,8 @@ export class ManageContentProfiles extends Modal {
     }
 
     getHeaderButton(label: string) {
-        return this.element.find('.side-panel__header').contains(label);
+        return this.element.find('.side-panel__header')
+            .contains(label)
+            .should('exist');
     }
 }
