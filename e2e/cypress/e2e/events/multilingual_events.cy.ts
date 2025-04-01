@@ -27,7 +27,7 @@ describe('Planning.Events: multilingual functionality', () => {
 
         // Enable the standard `Language` field
         manageProfiles.openAddFieldMenu(3);
-        manageProfiles.addField('language');
+        manageProfiles.addField('Language');
 
         // Make sure the `multilingual` checkbox is not shown for text fields
         MULTILINGUAL_FIELDS.forEach((field) => {
@@ -122,7 +122,7 @@ describe('Planning.Events: multilingual functionality', () => {
         manageProfiles.selectTab(1);
 
         manageProfiles.openAddFieldMenu(3);
-        manageProfiles.addField('language');
+        manageProfiles.addField('Language');
         manageProfiles.getFooterButton('Save').click();
         manageProfiles.waitTillClosed();
 

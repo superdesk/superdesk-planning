@@ -46,6 +46,9 @@ export class FieldList extends React.PureComponent<IProps> {
                     getId={(item) => item.name}
                     itemTemplate={(item) => (
                         <ProfileFieldTemplate
+                            group={this.props.group}
+                            selectedField={this.props.selectedField}
+                            systemRequiredFields={this.props.systemRequiredFields}
                             fieldEntry={item.item}
                             fields={this.props.fields}
                             insertField={this.props.insertField}

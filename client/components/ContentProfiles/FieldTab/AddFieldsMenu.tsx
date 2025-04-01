@@ -20,14 +20,14 @@ export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
                 getId={(field) => field.name}
                 optionTemplate={(item) => item.schema?.type === 'custom_vocabulary' ? (
                     <>
-                        {item.name}
+                        {getFieldNameTranslated(item.name)}
                         <span className="sd-text--italic sd-text--light">
                             &nbsp;({gettext('custom vocabulary')})
                         </span>
                     </>
                 ) : (
                     <>
-                        {item.name}
+                        {getFieldNameTranslated(item.name)}
                     </>
                 )}
                 getLabel={(item) => getFieldNameTranslated(item.name)}

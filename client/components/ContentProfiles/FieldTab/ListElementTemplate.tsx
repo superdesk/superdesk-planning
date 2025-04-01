@@ -51,7 +51,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                     // or other button inside the list item
                     if (
                         e.target instanceof HTMLElement &&
-                                    querySelectorParent(e.target, 'button', {self: true})
+                        querySelectorParent(e.target, 'button', {self: true})
                     ) {
                         return;
                     }
