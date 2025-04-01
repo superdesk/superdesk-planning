@@ -1,4 +1,4 @@
-import {setup, login, addItems, waitForPageLoad, SubNavBar, TreeSelect} from '../../support/common';
+import {setup, login, addItems, waitForPageLoad, SubNavBar} from '../../support/common';
 import {EventEditor, ManageContentProfiles} from '../../support/planning';
 
 import {CVs} from '../../fixtures/cvs';

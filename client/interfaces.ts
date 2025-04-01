@@ -916,7 +916,7 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     users: Array<IUser>;
     desks: Array<IDesk>;
     filterLanguage?: string;
-    isAgendaEnabled?:boolean;
+    isAgendaEnabled?: boolean;
     // showUnlock?: boolean; // Is this used anymore?
     hideItemActions: boolean;
     showAddCoverage: boolean;
@@ -974,9 +974,9 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams;
     sortOrder?: SORT_ORDER;
     sortField?: SORT_FIELD;
-    source?:string;
-    coverage_user_id?:string;
-    coverage_assignment_status?:ICoverageAssigned['qcode'];
+    source?: string;
+    coverage_user_id?: string;
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
     include_associated_planning: boolean;
 }
 
@@ -999,7 +999,7 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
     featured?: boolean;
     includeScheduledUpdates?: boolean;
     noAgendaAssigned?: boolean;
-    coverage_assignment_status?:ICoverageAssigned['qcode'];
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
     advancedSearch?: ICommonAdvancedSearchParams & {
         featured?: boolean;
         g2_content_type?: IG2ContentType;
@@ -1008,7 +1008,7 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
     };
 }
 
-export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem>{
+export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         reference?: string;
     };
@@ -1048,9 +1048,11 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     cancel_plan_with_event?: boolean;
 }
 
-export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
-export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
-export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
+export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> { }
+export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> { }
+export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> { }
+export interface IProfileSchemaTypeBoolean extends IBaseProfileSchemaType<'boolean'> { }
+export interface IProfileSchemaTypeCustomVocabulary extends IBaseProfileSchemaType<'custom_vocabulary'> { }
 
 export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
     field_type: 'single_line' | 'multi_line' | 'editor_3';
@@ -1320,7 +1322,8 @@ export type IProfileSchemaType = IProfileSchemaTypeList
     | IProfileSchemaTypeInteger
     | IProfileSchemaTypeDict
     | IProfileSchemaTypeDateTime
-    | IProfileSchemaTypeString;
+    | IProfileSchemaTypeString
+    | IProfileSchemaTypeCustomVocabulary;
 
 export type IFormProfileItem = IEventFormProfile
     | IPlanningFormProfile
@@ -1421,7 +1424,7 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
-    coverage_user_id?:string;
+    coverage_user_id?: string;
     priority?: Array<number>;
 
     // Event Params
@@ -1476,7 +1479,7 @@ export interface ISearchAPIParams {
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
     source?: string;
-    coverage_user_id?:string;
+    coverage_user_id?: string;
     priority?: string;
 
     // Event Params
@@ -1497,7 +1500,7 @@ export interface ISearchAPIParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: string;
-    coverage_assignment_status?:ICoverageAssigned['qcode']
+    coverage_assignment_status?: ICoverageAssigned['qcode']
 
     // Combined Params
     include_associated_planning?: boolean;
