@@ -62,6 +62,6 @@ class PlanningFilesService(superdesk.Service):
                 {"coverages.planning.xmp_file": doc.get("_id")},
             ],
         }
-        plannings_using_file = get_resource_service("planning").find(where=find_clause)
+        plannings_using_file = await get_resource_service("planning").find_async(where=find_clause)
         if plannings_using_file.count() > 0:
             raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other planning items.")

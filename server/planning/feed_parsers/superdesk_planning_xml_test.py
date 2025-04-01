@@ -155,7 +155,7 @@ class PlanningMLFeedParserTestCase(TestCase):
             ingested, ids = await ingest_item(source, provider=provider, feeding_service={})
             self.assertTrue(ingested)
             self.assertIn(source["guid"], ids)
-            dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+            dest = list(await service.get_from_mongo_async(req=None, lookup={"guid": source["guid"]}))[0]
             self.assertEqual(
                 dest["slugline"],
                 "Miten valtiovarainministeriön ehdotuksen mukaan esimerkiksi puolustus saa lisärahoitusta?",
@@ -174,7 +174,7 @@ class PlanningMLFeedParserTestCase(TestCase):
             ingested, ids = await ingest_item(source, provider=provider, feeding_service={})
             self.assertTrue(ingested)
             self.assertIn(source["guid"], ids)
-            dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
+            dest = list(await service.get_from_mongo_async(req=None, lookup={"guid": source["guid"]}))[0]
             self.assertEqual(dest["slugline"], "Test slugline")
 
     # TODO-ASYNC: figure out
@@ -199,7 +199,7 @@ class PlanningMLFeedParserTestCase(TestCase):
             self.assertIn(source["guid"], ids)
 
             # Publish the Planning item
-            service.patch(
+            await service.patch_async(
                 source["guid"],
                 {
                     "pubstatus": POST_STATE.USABLE,

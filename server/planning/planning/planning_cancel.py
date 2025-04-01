@@ -78,7 +78,7 @@ class PlanningCancelService(BaseService):
                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
             ]:
                 ids.append(coverage.get("coverage_id"))
-                planning_service.cancel_coverage(
+                await planning_service.cancel_coverage(
                     coverage,
                     coverage_cancel_state,
                     coverage.get("workflow_status"),

@@ -144,6 +144,7 @@ class PlanningSpikeService(PlanningSpikeServiceBase):
             event = get_resource_service("events").find_one(req=None, _id=first_event_id)
             notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
 
+        # TODO-ASYNC[PlanningService] - Convert this to async when class is updated to async
         get_resource_service("planning").delete_assignments_for_coverages(
             assignments_to_delete, notify_user_on_failed_assignment_deletes
         )

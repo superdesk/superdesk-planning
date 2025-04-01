@@ -254,7 +254,7 @@ class AssignmentsService(superdesk.Service):
 
     def validate_assignment_action(self, assignment):
         if assignment.get("_to_delete"):
-            plan = get_resource_service("planning").find_one(req=None, _id=assignment.get("planning_item"))
+            plan = await get_resource_service("planning").find_one_async(req=None, _id=assignment.get("planning_item"))
             state = "unposted" if (plan or {}).get("state") == WORKFLOW_STATE.KILLED else (plan or {}).get("state")
             raise SuperdeskApiError.forbiddenError("Action failed. Related planning item is {}".format(state))
 
@@ -1093,7 +1093,7 @@ class AssignmentsService(superdesk.Service):
             if not delivery:
                 raise SuperdeskApiError.badRequestError("Delivery record not found.")
 
-            planning = planning_service.find_one(req=None, _id=delivery.get("planning_id"))
+            planning = await planning_service.find_one_async(req=None, _id=delivery.get("planning_id"))
             if not planning:
                 raise SuperdeskApiError.badRequestError("Planning does not exist")
 
@@ -1230,7 +1230,7 @@ class AssignmentsService(superdesk.Service):
 
         # Also make sure the Planning item is locked by this user and session
         planning_service = get_resource_service("planning")
-        planning_item = planning_service.find_one(req=None, _id=doc.get("planning_item"))
+        planning_item = await planning_service.find_one_async(req=None, _id=doc.get("planning_item"))
 
         # Make sure the Assignment is locked by this user and session unless when removing
         # assignments during spiking/unposting planning items
@@ -1308,7 +1308,7 @@ class AssignmentsService(superdesk.Service):
                     marked_for_delete = True
 
         # Remove assignment information from coverage
-        updated_planning = planning_service.remove_assignment(doc)
+        updated_planning = await planning_service.remove_assignment(doc)
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed
@@ -1373,7 +1373,7 @@ class AssignmentsService(superdesk.Service):
             published_service = get_resource_service("published_planning")
             lock_service = get_component(LockService)
 
-            planning_item = planning_service.find_one(req=None, _id=planning_id) if planning_id else None
+            planning_item = await planning_service.find_one_async(req=None, _id=planning_id) if planning_id else None
             published_planning_item = published_service.get_last_published_item(planning_id) if planning_id else None
 
             if not planning_item or not published_planning_item or planning_item.get("state") == WORKFLOW_STATE.KILLED:

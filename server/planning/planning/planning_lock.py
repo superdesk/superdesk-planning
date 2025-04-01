@@ -51,7 +51,7 @@ class PlanningLockService(BaseService):
         session_id = get_auth()["_id"]
         lock_action = action
         lock_service = get_component(LockService)
-        item = get_resource_service("planning").find_one(req=None, _id=item_id)
+        item = await get_resource_service("planning").find_one_async(req=None, _id=item_id)
 
         if item and len(get_related_event_links_for_planning(item, "primary")):
             lock_service.validate_relationship_locks(item, "planning")
@@ -81,7 +81,7 @@ class PlanningUnlockService(BaseService):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
         lock_service = get_component(LockService)
-        resource_service = get_resource_service("planning")
-        item = resource_service.find_one(req=None, _id=item_id)
+        item = await get_resource_service("planning").find_one_async(req=None, _id=item_id)
+
         updated_item = lock_service.unlock(item, user_id, session_id, "planning")
         return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_PLANNING)

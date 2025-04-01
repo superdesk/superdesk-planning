@@ -64,7 +64,7 @@ class DuplicateCoverageTestCase(TestCase):
 
     async def test_duplicate(self):
         async with self.app.app_context():
-            updated_plan, new_coverage = get_resource_service("planning").duplicate_coverage_for_article_rewrite(
+            updated_plan, new_coverage = await get_resource_service("planning").duplicate_coverage_for_article_rewrite(
                 "plan1",
                 "cov1",
                 {
@@ -95,7 +95,7 @@ class DuplicateCoverageTestCase(TestCase):
     async def test_duplicate_coverage_not_found(self):
         async with self.app.app_context():
             try:
-                get_resource_service("planning").duplicate_coverage_for_article_rewrite("plan1", "cov2", {})
+                await get_resource_service("planning").duplicate_coverage_for_article_rewrite("plan1", "cov2", {})
             except SuperdeskApiError as e:
                 self.assertEquals(e.status_code, 400)
                 self.assertEquals(e.message, "Coverage does not exist")
@@ -106,7 +106,7 @@ class DuplicateCoverageTestCase(TestCase):
     async def test_duplicate_planning_not_found(self):
         async with self.app.app_context():
             try:
-                get_resource_service("planning").duplicate_coverage_for_article_rewrite("plan2", "cov1", {})
+                await get_resource_service("planning").duplicate_coverage_for_article_rewrite("plan2", "cov1", {})
             except SuperdeskApiError as e:
                 self.assertEquals(e.status_code, 400)
                 self.assertEquals(e.message, "Planning does not exist")

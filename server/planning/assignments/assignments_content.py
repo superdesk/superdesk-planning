@@ -82,7 +82,7 @@ def get_item_from_assignment(assignment, template=None):
     planning = None
     # we now merge planning data if they are set
     if planning_item is not None:
-        planning = get_resource_service("planning").find_one(req=None, _id=planning_item)
+        planning = await get_resource_service("planning").find_one_async(req=None, _id=planning_item)
         if planning is not None:
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
