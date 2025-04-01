@@ -71,6 +71,7 @@ async def _get_planning_module_locks(repos: list[PlanningLockRepos]):
         locks.update({"event": {}, "planning": {}, "recurring": {}})
         tasks.append(_get_event_locks())
         tasks.append(_get_planning_locks())
+        tasks.append(_get_planning_featured_lock())
 
     if PlanningLockRepos.ASSIGNMENTS in repos:
         locks["assignment"] = {}
@@ -83,9 +84,6 @@ async def _get_planning_module_locks(repos: list[PlanningLockRepos]):
 
     if PlanningLockRepos.FEATURED_PLANNING in repos:
         locks["featured"] = None
-
-        # TODO-ASYNC: add to tasks once it is migrated to async
-        item_locks.extend(list(_get_planning_featured_lock()))
 
     for item in item_locks:
         if item.get("_type") == "planning_featured_lock":
@@ -185,6 +183,5 @@ def _get_query():
     return req
 
 
-# TODO-ASYNC: update once `planning_featured_lock` is migrated to async
-def _get_planning_featured_lock():
-    return get_resource_service("planning_featured_lock").get(req=_get_query(), lookup=None)
+async def _get_planning_featured_lock():
+    return get_resource_service("planning_featured_lock").get_async(req=_get_query(), lookup=None)
