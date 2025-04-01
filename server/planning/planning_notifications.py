@@ -345,6 +345,7 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
 
     if data.get("assignment") and (data["assignment"].get("planning", {})).get("files"):
         for file_id in data["assignment"]["planning"]["files"]:
+            # TODO-ASYNC[PlanningService] - Convert to async when module is updated to async
             assignment_file = superdesk.get_resource_service("planning_files").find_one(req=None, _id=file_id)
             if assignment_file:
                 media = app.media.get(assignment_file["media"], resource="planning_files")
@@ -357,6 +358,7 @@ def _send_user_email(user_id, contact_id, source, meta_message, data):
 
     if data.get("assignment") and (data["assignment"].get("planning", {})).get("xmp_file"):
         file_id = data["assignment"]["planning"]["xmp_file"]
+        # TODO-ASYNC[PlanningService] - Convert to async when module is updated to async
         xmp_file = superdesk.get_resource_service("planning_files").find_one(req=None, _id=file_id)
         if xmp_file:
             media = app.media.get(xmp_file["media"], resource="planning_files")

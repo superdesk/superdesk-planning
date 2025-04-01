@@ -11,6 +11,7 @@
 import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
+from superdesk.eve_async.service import AsyncBaseService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,19 +43,19 @@ class PlanningFilesResource(superdesk.Resource):
     }
 
 
-class PlanningFilesService(superdesk.Service):
-    def on_create(self, docs):
+class PlanningFilesService(AsyncBaseService):
+    async def on_create_async(self, docs):
         for doc in docs:
             # save the media id to retrieve the file later
             doc["filemeta"] = {"media_id": doc["media"]}
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         for doc in docs:
             # check if the filename contains a folder, if so just return the file name component
             if isinstance(doc.get("media"), dict) and "/" in doc.get("media", {}).get("name"):
                 doc["media"]["name"] = doc["media"]["name"].split("/")[1]
 
-    def on_delete(self, doc):
+    async def on_delete_async(self, doc):
         find_clause = {
             "$or": [
                 {"files": doc.get("_id")},

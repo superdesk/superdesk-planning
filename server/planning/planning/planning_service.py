@@ -186,7 +186,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         self.validate_on_update(updates, original, user)
 
         updated_planning = PlanningResourceModel.from_dict(updates)
-        self._handle_coverages(updated_planning, original)
+        await self._handle_coverages(updated_planning, original)
         self.set_planning_schedule(updated_planning, original)
 
         # set the updates dictionary with the values from the pydantic model
@@ -436,7 +436,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 doc.agendas = unique_items_in_order(doc.agendas)
 
             first_event = await self._populate_planning_from_event(doc, planning_type)
-            self._handle_coverages(doc)
+            await self._handle_coverages(doc)
             self.set_planning_schedule(doc)
 
             # set timestamps
@@ -506,16 +506,18 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 if next_schedule and next_schedule["planning"]["scheduled"] > scheduled_update["planning"]["scheduled"]:
                     raise SuperdeskApiError(message="Scheduled updates of a coverage must be after the previous update")
 
-    def _handle_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel | None = None):
+    async def _handle_coverages(
+        self, updated_planning: PlanningResourceModel, original: PlanningResourceModel | None = None
+    ):
         if not updated_planning.coverages:
             return
 
         if not original:
             original = PlanningResourceModel(planning_date=utcnow())
 
-        self.remove_deleted_coverages(updated_planning, original)
-        self.add_coverages(updated_planning, original)
-        self.update_coverages(updated_planning, original)
+        await self.remove_deleted_coverages(updated_planning, original)
+        await self.add_coverages(updated_planning, original)
+        await self.update_coverages(updated_planning, original)
 
     def set_planning_schedule(
         self, updated_planning: PlanningResourceModel, original_planning: PlanningResourceModel | None = None
@@ -572,7 +574,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         updated_planning.planning_schedule = schedule  # type: ignore[assignment]
         updated_planning.updates_schedule = updates_schedule  # type: ignore[assignment]
 
-    def remove_deleted_coverages(
+    async def remove_deleted_coverages(
         self, updated_planning: PlanningResourceModel, original_planning: PlanningResourceModel
     ):
         """
@@ -594,11 +596,11 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
             if not updated_coverage:
                 for scheduled_update in orig_coverage.scheduled_updates:
-                    self.validate_and_remove_coverage_entity(scheduled_update, original_planning)
+                    await self.validate_and_remove_coverage_entity(scheduled_update, original_planning)
 
-                self.validate_and_remove_coverage_entity(orig_coverage, original_planning)
+                awaitself.validate_and_remove_coverage_entity(orig_coverage, original_planning)
 
-    def validate_and_remove_coverage_entity(
+    async def validate_and_remove_coverage_entity(
         self,
         coverage_entity: ScheduledUpdate | PlanningCoverage,
         original_planning: PlanningResourceModel,
@@ -628,9 +630,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         updated_coverage_entity = deepcopy(coverage_entity_dict)
         updated_coverage_entity.pop("assigned_to", None)
 
-        self._create_or_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity_dict)
+        await self._create_or_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity_dict)
 
-    def add_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel):
+    async def add_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel):
         if not updated_planning.coverages:
             return
 
@@ -663,10 +665,10 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
                 self.set_coverage_active(coverage, updated_planning)
                 self.set_slugline_from_xmp(coverage, None)
-                self._create_or_update_assignment(original, updated_planning.to_dict(), coverage.to_dict())
-                self.add_scheduled_updates(updated_planning, original, coverage)
+                await self._create_or_update_assignment(original, updated_planning.to_dict(), coverage.to_dict())
+                await self.add_scheduled_updates(updated_planning, original, coverage)
 
-    def update_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel):
+    async def update_coverages(self, updated_planning: PlanningResourceModel, original: PlanningResourceModel):
         if not updated_planning.coverages:
             return
 
@@ -741,11 +743,10 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                         slugline=coverage.planning.slugline or "",
                     )
 
-            self.add_scheduled_updates(updated_planning, original, coverage)
-            self.update_scheduled_updates(updated_planning, original, coverage, original_coverage)
-            self.remove_scheduled_updates(original, coverage, original_coverage)
-
-            self._create_or_update_assignment(
+            await self.add_scheduled_updates(updated_planning, original, coverage)
+            await self.update_scheduled_updates(updated_planning, original, coverage, original_coverage)
+            await self.remove_scheduled_updates(original, coverage, original_coverage)
+            await self._create_or_update_assignment(
                 original, updated_planning.to_dict(), coverage.to_dict(), original_coverage.to_dict()
             )
 
@@ -777,7 +778,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             coverage.workflow_status = WorkflowStates.ACTIVE
             return
 
-    def add_scheduled_updates(
+    async def add_scheduled_updates(
         self, updates: PlanningResourceModel, original: PlanningResourceModel, coverage: PlanningCoverage
     ):
         for s in coverage.scheduled_updates:
@@ -788,9 +789,11 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 s.coverage_id = coverage.coverage_id
                 s.scheduled_update_id = generate_guid(type=GUID_NEWSML)
                 self.set_scheduled_update_active(s, updates, coverage)
-                self._create_or_update_assignment(original, updates.to_dict(), s.to_dict(), None, coverage.to_dict())
+                await self._create_or_update_assignment(
+                    original, updates.to_dict(), s.to_dict(), None, coverage.to_dict()
+                )
 
-    def update_scheduled_updates(
+    async def update_scheduled_updates(
         self,
         updates: PlanningResourceModel,
         original: PlanningResourceModel,
@@ -814,11 +817,11 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 ):
                     self.set_scheduled_update_active(s, updates, coverage)
 
-                self._create_or_update_assignment(
+                await self._create_or_update_assignment(
                     original, updates.to_dict(), s.to_dict(), original_scheduled_update.to_dict(), coverage.to_dict()
                 )
 
-    def remove_scheduled_updates(
+    async def remove_scheduled_updates(
         self, original: PlanningResourceModel, coverage: PlanningCoverage, original_coverage: PlanningCoverage
     ):
         for s in original_coverage.scheduled_updates:
@@ -832,7 +835,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             )
 
             if not updated_s:
-                self.validate_and_remove_coverage_entity(s, original)
+                await self.validate_and_remove_coverage_entity(s, original)
 
     def set_scheduled_update_active(
         self, scheduled_update: ScheduledUpdate, planning: PlanningResourceModel, coverage: PlanningCoverage
@@ -897,14 +900,14 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 coverage["planning"]["scheduled"] = series_entry["dates"]["start"] + coverage_date_relative
 
             new_plan_model = PlanningResourceModel.from_dict(new_plan)
-            self._handle_coverages(new_plan_model)
+            await self._handle_coverages(new_plan_model)
             self.set_planning_schedule(new_plan_model)
 
             items.append(new_plan_model)
 
         return items
 
-    def _create_or_update_assignment(
+    async def _create_or_update_assignment(
         self,
         original_planning: PlanningResourceModel,
         planning_updates: dict[str, Any],
@@ -956,7 +959,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             coverage_updates["assigned_to"]["assignment_id"] = new_assignment_id
             coverage_updates["assigned_to"]["state"] = new_assigned_state
         elif assignment_id is not None:
-            self.set_xmp_file_info(coverage_updates, original_coverage)
+            await self.set_xmp_file_info(coverage_updates, original_coverage)
 
             if not coverage_updates.get("assigned_to"):
                 if original_planning.state == WorkflowStates.CANCELLED or coverage_status not in [
@@ -1395,7 +1398,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             != updates_coverage["planning"]["xmp_file"]
         )
 
-    def set_xmp_file_info(self, updates_coverage: dict[str, Any], original_coverage: dict[str, Any]):
+    async def set_xmp_file_info(self, updates_coverage: dict[str, Any], original_coverage: dict[str, Any]):
         xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage)
         if not xmp_file:
             return
@@ -1437,7 +1440,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 filename=xmp_file.filename,
                 content_type="application/octet-stream",
             )
-            get_resource_service("planning_files").patch(
+            await get_resource_service("planning_files").patch_async(
                 updates_coverage["planning"]["xmp_file"],
                 {"filemeta": {"media_id": media_id}, "media": media_id},
             )
@@ -1468,7 +1471,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         if tags:
             updates_coverage.planning.slugline = tags[0].text
 
-    def get_xmp_file_for_updates(
+    async def get_xmp_file_for_updates(
         self, updates_coverage: dict[str, Any], original_coverage: dict[str, Any], for_slugline: bool = False
     ) -> Any:
         rv = False
@@ -1485,7 +1488,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             return rv
 
         coverage_id = updates_coverage.get("coverage_id") or (original_coverage or {}).get("coverage_id")
-        xmp_file = get_resource_service("planning_files").find_one(
+        xmp_file = await get_resource_service("planning_files").find_one_async(
             req=None, _id=updates_coverage["planning"]["xmp_file"]
         )
         if not xmp_file:
@@ -1522,7 +1525,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
         return xmp_file
 
-    def duplicate_xmp_file(self, coverage: dict[str, Any]) -> ObjectId | None:
+    async def duplicate_xmp_file(self, coverage: dict[str, Any]) -> ObjectId | None:
         cov_plan = coverage.get("planning") or {}
         if not (
             cov_plan.get("xmp_file")
@@ -1531,7 +1534,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             return None
 
         file_id = coverage["planning"]["xmp_file"]
-        xmp_file = get_resource_service("planning_files").find_one(req=None, _id=file_id)
+        xmp_file = await get_resource_service("planning_files").find_one_async(req=None, _id=file_id)
         coverage_msg = "Duplicating Coverage: {}".format(coverage["coverage_id"])
         if not xmp_file:
             logger.error("XMP File {} attached to coverage not found. {}".format(file_id, coverage_msg))
@@ -1553,7 +1556,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 filename=xmp_file.name,
                 content_type="application/octet-stream",
             )
-            planning_file_ids = get_resource_service("planning_files").post([{"media": media_id}])
+            planning_file_ids = await get_resource_service("planning_files").post_async([{"media": media_id}])
             if len(planning_file_ids) > 0:
                 return planning_file_ids[0]
         except Exception as e:

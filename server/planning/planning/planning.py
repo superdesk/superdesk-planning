@@ -655,7 +655,7 @@ class PlanningService(AsyncBaseService):
             coverage_id = coverage.get("coverage_id", "")
             if not coverage_id or TEMP_ID_PREFIX in coverage_id or coverage_id not in original_coverage_ids:
                 if "duplicate" in coverage_id or coverage.get("original_coverage_id") != coverage.get("coverage_id"):
-                    self.duplicate_xmp_file(coverage)
+                    await self.duplicate_xmp_file(coverage)
                 # coverage to be created
                 if not coverage_id or TEMP_ID_PREFIX in coverage_id:
                     coverage["coverage_id"] = generate_guid(type=GUID_NEWSML)
@@ -670,7 +670,7 @@ class PlanningService(AsyncBaseService):
 
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
-                self.set_slugline_from_xmp(coverage, None)
+                await self.set_slugline_from_xmp(coverage, None)
                 await self._create_update_assignment(original, updates, coverage)
                 await self.add_scheduled_updates(updates, original, coverage)
 
@@ -754,7 +754,7 @@ class PlanningService(AsyncBaseService):
             coverage.setdefault("planning", {})
             coverage["planning"].setdefault("scheduled", (original_coverage.get("planning") or {}).get("scheduled"))
             self.set_coverage_active(coverage, updates)
-            self.set_slugline_from_xmp(coverage, original_coverage)
+            await self.set_slugline_from_xmp(coverage, original_coverage)
             if self.coverage_changed(coverage, original_coverage):
                 user = get_user()
                 if user:
@@ -1002,7 +1002,7 @@ class PlanningService(AsyncBaseService):
             updates["assigned_to"]["assignment_id"] = new_assignment_id
             updates["assigned_to"]["state"] = assign_state
         elif assigned_to.get("assignment_id"):
-            self.set_xmp_file_info(updates, original)
+            await self.set_xmp_file_info(updates, original)
 
             if not updates.get("assigned_to"):
                 if planning_original.get("state") == WORKFLOW_STATE.CANCELLED or coverage_status not in [
@@ -1461,7 +1461,7 @@ class PlanningService(AsyncBaseService):
                 },
             )
 
-    def get_xmp_file_for_updates(self, updates_coverage, original_coverage, for_slugline=False):
+    async def get_xmp_file_for_updates(self, updates_coverage, original_coverage, for_slugline=False):
         rv = False
         if not (updates_coverage["planning"] or {}).get("xmp_file"):
             return rv
@@ -1476,7 +1476,7 @@ class PlanningService(AsyncBaseService):
             return rv
 
         coverage_id = updates_coverage.get("coverage_id") or (original_coverage or {}).get("coverage_id")
-        xmp_file = get_resource_service("planning_files").find_one(
+        xmp_file = await get_resource_service("planning_files").find_one_async(
             req=None, _id=updates_coverage["planning"]["xmp_file"]
         )
         if not xmp_file:
@@ -1512,8 +1512,8 @@ class PlanningService(AsyncBaseService):
 
         return xmp_file
 
-    def set_slugline_from_xmp(self, updates_coverage, original_coverage=None):
-        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage, for_slugline=True)
+    async def set_slugline_from_xmp(self, updates_coverage, original_coverage=None):
+        xmp_file = await self.get_xmp_file_for_updates(updates_coverage, original_coverage, for_slugline=True)
         if not xmp_file:
             return
 
@@ -1530,8 +1530,8 @@ class PlanningService(AsyncBaseService):
             != updates_coverage["planning"]["xmp_file"]
         )
 
-    def set_xmp_file_info(self, updates_coverage, original_coverage=None):
-        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage)
+    async def set_xmp_file_info(self, updates_coverage, original_coverage=None):
+        xmp_file = await self.get_xmp_file_for_updates(updates_coverage, original_coverage)
         if not xmp_file:
             return
 
@@ -1572,7 +1572,7 @@ class PlanningService(AsyncBaseService):
                 filename=xmp_file.filename,
                 content_type="application/octet-stream",
             )
-            get_resource_service("planning_files").patch(
+            await get_resource_service("planning_files").patch_async(
                 updates_coverage["planning"]["xmp_file"],
                 {"filemeta": {"media_id": media_id}, "media": media_id},
             )
@@ -1584,7 +1584,7 @@ class PlanningService(AsyncBaseService):
                 )
             )
 
-    def duplicate_xmp_file(self, coverage):
+    async def duplicate_xmp_file(self, coverage):
         cov_plan = coverage.get("planning") or {}
         if not (
             cov_plan.get("xmp_file")
@@ -1593,7 +1593,7 @@ class PlanningService(AsyncBaseService):
             return
 
         file_id = coverage["planning"]["xmp_file"]
-        xmp_file = get_resource_service("planning_files").find_one(req=None, _id=file_id)
+        xmp_file = await get_resource_service("planning_files").find_one_async(req=None, _id=file_id)
         coverage_msg = "Duplicating Coverage: {}".format(coverage["coverage_id"])
         if not xmp_file:
             logger.error("XMP File {} attached to coverage not found. {}".format(file_id, coverage_msg))
@@ -1617,7 +1617,7 @@ class PlanningService(AsyncBaseService):
             )
         except Exception as e:
             logger.exception("Error creating media file. {}. Exception: {}".format(coverage_msg, e))
-        planning_file_ids = get_resource_service("planning_files").post([{"media": media_id}])
+        planning_file_ids = await get_resource_service("planning_files").post_async([{"media": media_id}])
         coverage["planning"]["xmp_file"] = planning_file_ids[0]
 
     def _update_recurring_planning_items(self, updates, original, update_method):
