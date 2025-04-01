@@ -1062,6 +1062,7 @@ export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integ
 export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
 export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
 export interface IProfileSchemaTypeBoolean extends IBaseProfileSchemaType<'boolean'> {}
+export interface IProfileSchemaTypeCustomVocabulary extends IBaseProfileSchemaType<'custom_vocabulary'> {}
 
 export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
     field_type: 'single_line' | 'multi_line' | 'editor_3';
@@ -1337,7 +1338,8 @@ export type IProfileSchemaType = IProfileSchemaTypeList
     | IProfileSchemaTypeInteger
     | IProfileSchemaTypeDict
     | IProfileSchemaTypeDateTime
-    | IProfileSchemaTypeString;
+    | IProfileSchemaTypeString
+    | IProfileSchemaTypeCustomVocabulary;
 
 export type IFormProfileItem = IEventFormProfile
     | IPlanningFormProfile

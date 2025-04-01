@@ -81,7 +81,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema.type);
+        const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema?.type);
         const fieldType = this.props.item.schema?.type !== 'string' ?
             null :
             this.props.item.schema.field_type;

@@ -41,7 +41,9 @@ export class ManageContentProfiles extends Modal {
     }
 
     addField(name: string) {
-        cy.get(`[data-test-id="menu"] [role="menuitem"]:contains("${name}")`)
+        cy.get('[data-test-id="tree-menu-popover"]')
+            .find('button[role="treeItem"]')
+            .contains(name)
             .should('exist')
             .click();
     }
@@ -75,7 +77,7 @@ export class ManageContentProfiles extends Modal {
 
     getHeaderButton(label: string) {
         return this.element.find('.side-panel__header')
-            .contains(label);
-            // .should('exist')
+            .contains(label)
+            .should('exist');
     }
 }
