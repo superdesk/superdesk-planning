@@ -10,11 +10,11 @@
 
 from copy import deepcopy
 
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
-from superdesk.services import BaseService
 from superdesk import get_resource_service
 from apps.archive.common import get_user, get_auth
 from apps.common.components.utils import get_component
@@ -37,16 +37,16 @@ class PlanningLockResource(Resource):
     privileges = {"POST": "planning", "PATCH": "planning", "DELETE": "planning"}
 
 
-class PlanningLockService(BaseService):
-    def create(self, docs, **kwargs):
+class PlanningLockService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         item_id = request.view_args["item_id"]
         lock_action = docs[0].get("lock_action", "edit")
-        return self.lock_item(item_id, lock_action, docs[0])
+        return await self.lock_item(item_id, lock_action, docs[0])
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         build_custom_hateoas(CUSTOM_HATEOAS_PLANNING, docs[0], _id=str(docs[0][ID_FIELD]))
 
-    def lock_item(self, item_id, action, doc):
+    async def lock_item(self, item_id, action, doc):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
         lock_action = action
@@ -69,15 +69,15 @@ class PlanningUnlockResource(Resource):
     resource_title = endpoint_name
 
 
-class PlanningUnlockService(BaseService):
-    def create(self, docs, **kwargs):
+class PlanningUnlockService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         item_id = request.view_args["item_id"]
-        return self.unlock_item(item_id, docs[0])
+        return await self.unlock_item(item_id, docs[0])
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         build_custom_hateoas(CUSTOM_HATEOAS_PLANNING, docs[0], _id=str(docs[0][ID_FIELD]))
 
-    def unlock_item(self, item_id, doc):
+    async def unlock_item(self, item_id, doc):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
         lock_service = get_component(LockService)
