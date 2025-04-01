@@ -41,7 +41,8 @@ export class ManageContentProfiles extends Modal {
     }
 
     addField(name: string) {
-        cy.get('[data-test-id="menu"] .suggestion-item')
+        cy.get('[data-test-id="tree-menu-popover"]')
+            .find('button[role="treeItem"]')
             .contains(name)
             .should('exist')
             .click();

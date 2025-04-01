@@ -1,4 +1,4 @@
-import {setup, login, addItems, waitForPageLoad, SubNavBar, TreeSelect} from '../../support/common';
+import {setup, login, addItems, waitForPageLoad, SubNavBar} from '../../support/common';
 import {EventEditor, ManageContentProfiles} from '../../support/planning';
 
 import {CVs} from '../../fixtures/cvs';
@@ -27,7 +27,7 @@ describe('Planning.Events: multilingual functionality', () => {
 
         // Enable the standard `Language` field
         manageProfiles.openAddFieldMenu(3);
-        manageProfiles.addField('Language');
+        manageProfiles.addField('language');
 
         // Make sure the `multilingual` checkbox is not shown for text fields
         MULTILINGUAL_FIELDS.forEach((field) => {
@@ -122,7 +122,7 @@ describe('Planning.Events: multilingual functionality', () => {
         manageProfiles.selectTab(1);
 
         manageProfiles.openAddFieldMenu(3);
-        manageProfiles.addField('Language');
+        manageProfiles.addField('language');
         manageProfiles.getFooterButton('Save').click();
         manageProfiles.waitTillClosed();
 
