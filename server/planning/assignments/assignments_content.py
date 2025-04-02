@@ -12,7 +12,8 @@ from copy import deepcopy
 
 from superdesk.resource_fields import ID_FIELD, VERSION
 from superdesk.flask import request
-from superdesk import get_resource_service, Resource, Service
+from superdesk import get_resource_service, Resource
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utcnow
 from superdesk.metadata.item import get_schema
@@ -45,7 +46,7 @@ FIELDS_TO_OVERRIDE = [
 ]
 
 
-def get_item_from_assignment(assignment, template=None):
+async def get_item_from_assignment(assignment, template=None):
     """Get the item from assignment
 
     :param dict assignment: Assignment document
@@ -58,7 +59,7 @@ def get_item_from_assignment(assignment, template=None):
         return item
 
     desk_id = assignment.get("assigned_to").get("desk")
-    desk = get_resource_service("desks").find_one(req=None, _id=desk_id)
+    desk = await get_resource_service("desks").find_one_async(req=None, _id=desk_id)
     if template is not None:
         template = get_resource_service("content_templates").find_one(req=None, template_name=template)
     else:
@@ -88,7 +89,7 @@ def get_item_from_assignment(assignment, template=None):
                 if planning.get(field):
                     item[field] = deepcopy(planning[field])
 
-                merge_subject(item, planning)
+                await merge_subject(item, planning)
                 merge_list("place", item, planning)
                 merge_list("anpa_category", item, planning)
 
@@ -151,18 +152,18 @@ def get_item_from_assignment(assignment, template=None):
     return item, translations
 
 
-class AssignmentsContentService(Service):
-    def on_create(self, docs):
+class AssignmentsContentService(AsyncBaseService):
+    async def on_create_async(self, docs):
         for doc in docs:
-            self._validate(doc)
+            await self._validate(doc)
 
-    def create(self, docs, **kwargs):
+    async def create_async(self, docs, **kwargs):
         ids = []
         archive_service = get_resource_service("archive")
         assignments_service = get_resource_service("assignments")
         for doc in docs:
-            assignment = assignments_service.find_one(req=None, _id=doc.pop("assignment_id"))
-            item, translations = get_item_from_assignment(assignment, doc.pop("template_name", None))
+            assignment = await assignments_service.find_one_async(req=None, _id=doc.pop("assignment_id"))
+            item, translations = await get_item_from_assignment(assignment, doc.pop("template_name", None))
             item[VERSION] = 1
             item.setdefault("type", "text")
             item["assignment_id"] = assignment[ID_FIELD]
@@ -181,7 +182,7 @@ class AssignmentsContentService(Service):
                 item["task"]["user"] = get_user_id()
 
                 # link the rewrite
-                get_resource_service("assignments_link").post(
+                await get_resource_service("assignments_link").post_async(
                     [
                         {
                             "assignment_id": assignment[ID_FIELD],
@@ -195,7 +196,7 @@ class AssignmentsContentService(Service):
                 item = create_item_from_template(item, FIELDS_TO_OVERRIDE, translations)
 
                 # create delivery references
-                get_resource_service("delivery").post(
+                await get_resource_service("delivery").post_async(
                     [
                         {
                             "item_id": item[ID_FIELD],
@@ -215,7 +216,7 @@ class AssignmentsContentService(Service):
 
             if not assignment.get("scheduled_update_id"):
                 # set the assignment to in progress
-                assignments_service.patch(assignment[ID_FIELD], updates)
+                await assignments_service.patch_async(assignment[ID_FIELD], updates)
 
             doc.update(item)
             ids.append(doc["_id"])
@@ -228,7 +229,7 @@ class AssignmentsContentService(Service):
 
             if str(assignor) != str(item.get("task").get("user")):
                 # Determine the display name of the assignee
-                assigned_to_user = get_resource_service("users").find_one(
+                assigned_to_user = await get_resource_service("users").find_one_async(
                     req=None, _id=str(item.get("task").get("user"))
                 )
                 assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
@@ -268,18 +269,20 @@ class AssignmentsContentService(Service):
 
         return None
 
-    def _validate(self, doc):
+    async def _validate(self, doc):
         """Validate the doc for content creation"""
         assignment_service = get_resource_service("assignments")
-        assignment = assignment_service.find_one(req=None, _id=doc.get("assignment_id"))
+        assignment = await assignment_service.find_one_async(req=None, _id=doc.get("assignment_id"))
         if not assignment:
             raise SuperdeskApiError.badRequestError("Assignment not found.")
 
-        assignment_service.validate_assignment_action(assignment)
+        await assignment_service.validate_assignment_action(assignment)
         if assignment.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
             raise SuperdeskApiError.badRequestError("Assignment workflow started. Cannot create content.")
 
-        delivery = get_resource_service("delivery").find_one(req=None, assignment_id=assignment.get(ID_FIELD))
+        delivery = await get_resource_service("delivery").find_one_async(
+            req=None, assignment_id=assignment.get(ID_FIELD)
+        )
         if delivery:
             raise SuperdeskApiError.badRequestError(
                 "Content already exists for the assignment. " "Cannot create content."
@@ -323,13 +326,16 @@ class AssignmentsContentResource(Resource):
     privileges = {"POST": "archive"}
 
 
-def merge_subject(item, planning):
+async def merge_subject(item, planning):
     if not planning.get("subject"):
         return
     subject = item.setdefault("subject", [])
-    vocabularies = get_resource_service("vocabularies").get_from_mongo(
+    vocabularies = []
+    async for vocabulary in get_resource_service("vocabularies").get_from_mongo_async(
         req=None, lookup={"selection_type": "single selection"}, projection={"_id": 1}
-    )
+    ):
+        vocabularies.append(vocabulary)
+
     single_value_vocabularies = set([v["_id"] for v in vocabularies])
     for s in planning["subject"]:
         if s.get("scheme") in single_value_vocabularies:

@@ -9,7 +9,8 @@ from copy import deepcopy
 from quart_babel import gettext as _
 
 from superdesk.resource_fields import ID_FIELD
-from superdesk import Resource, Service, get_resource_service
+from superdesk import Resource, get_resource_service
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
 from planning.common import (
@@ -29,28 +30,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class AssignmentsLinkService(Service):
-    def on_create(self, docs):
+class AssignmentsLinkService(AsyncBaseService):
+    async def on_create_async(self, docs):
         for doc in docs:
-            self._validate(doc)
+            await self._validate(doc)
 
-    def create(self, docs):
+    async def create_async(self, docs, **kwargs):
         ids = []
         production = get_resource_service("archive")
 
         for doc in docs:
-            assignment = get_resource_service("assignments").find_one(req=None, _id=doc.pop("assignment_id"))
+            assignment = await get_resource_service("assignments").find_one_async(
+                req=None, _id=doc.pop("assignment_id")
+            )
             item_id = doc.pop("item_id")
             actioned_item = production.find_one(req=None, _id=item_id)
             related_items = get_related_items(actioned_item)
-            ids = self.link_archive_items_to_assignments(assignment, related_items, actioned_item, doc)
+            ids = await self.link_archive_items_to_assignments(assignment, related_items, actioned_item, doc)
 
         return ids
 
-    def link_archive_items_to_assignments(self, assignment, related_items, actioned_item, doc):
+    async def link_archive_items_to_assignments(self, assignment, related_items, actioned_item, doc):
         assignments_service = get_resource_service("assignments")
         delivery_service = get_resource_service("delivery")
-        assignments_service.validate_assignment_action(assignment)
+        await assignments_service.validate_assignment_action(assignment)
         already_completed = assignment["assigned_to"]["state"] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
         items = []
         ids = []
@@ -61,9 +64,9 @@ class AssignmentsLinkService(Service):
         for item in related_items:
             if not item.get("assignment_id") or (item["_id"] == actioned_item.get("_id") and doc.get("force")):
                 # Update the delivery for the item if one exists
-                delivery = delivery_service.find_one(req=None, item_id=item[ID_FIELD])
+                delivery = await delivery_service.find_one_async(req=None, item_id=item[ID_FIELD])
                 if delivery:
-                    delivery_service.patch(
+                    await delivery_service.patch_async(
                         delivery["_id"],
                         {
                             "assignment_id": assignment["_id"],
@@ -102,9 +105,9 @@ class AssignmentsLinkService(Service):
 
         # Create all deliveries
         if len(deliveries) > 0:
-            delivery_service.post(deliveries)
+            await delivery_service.post_async(deliveries)
 
-        assignment_was_updated = self.update_assignment(
+        assignment_was_updated = await self.update_assignment(
             updates,
             assignment,
             actioned_item,
@@ -143,8 +146,8 @@ class AssignmentsLinkService(Service):
         )
         return ids
 
-    def _validate(self, doc):
-        assignment = get_resource_service("assignments").find_one(req=None, _id=doc.get("assignment_id"))
+    async def _validate(self, doc):
+        assignment = await get_resource_service("assignments").find_one_async(req=None, _id=doc.get("assignment_id"))
 
         if not assignment:
             raise SuperdeskApiError.badRequestError("Assignment not found.")
@@ -171,7 +174,9 @@ class AssignmentsLinkService(Service):
             raise SuperdeskApiError.badRequestError("Content not in workflow. Cannot link assignment and content.")
 
         if not item.get("rewrite_of"):
-            delivery = get_resource_service("delivery").find_one(req=None, assignment_id=doc.get("assignment_id"))
+            delivery = await get_resource_service("delivery").find_one_async(
+                req=None, assignment_id=doc.get("assignment_id")
+            )
 
             if delivery:
                 raise SuperdeskApiError.badRequestError(
@@ -204,7 +209,7 @@ class AssignmentsLinkService(Service):
                 if assigned_to.get("state") not in allowed_states:
                     raise SuperdeskApiError("Previous scheduled-update pending content-linking/completion")
 
-    def update_assignment(
+    async def update_assignment(
         self,
         updates,
         assignment,
@@ -245,9 +250,9 @@ class AssignmentsLinkService(Service):
                 updated = True
 
         if need_complete:
-            get_resource_service("assignments_complete").update(assignment[ID_FIELD], updates, assignment)
+            await get_resource_service("assignments_complete").update_async(assignment[ID_FIELD], updates, assignment)
         if updated:
-            get_resource_service("assignments").patch(assignment[ID_FIELD], updates)
+            await get_resource_service("assignments").patch_async(assignment[ID_FIELD], updates)
 
         return updated
 

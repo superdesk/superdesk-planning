@@ -14,8 +14,8 @@ from copy import deepcopy
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
 from superdesk import get_resource_service
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
-from superdesk.services import BaseService
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
@@ -48,8 +48,8 @@ class AssignmentsLockResource(Resource):
     privileges = {"POST": "archive", "GET": "archive"}
 
 
-class AssignmentsLockService(BaseService):
-    def create(self, docs, **kwargs):
+class AssignmentsLockService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
 
@@ -57,18 +57,18 @@ class AssignmentsLockService(BaseService):
         lock_service = get_component(LockService)
 
         item_id = request.view_args["item_id"]
-        item = get_resource_service("assignments").find_one(req=None, _id=item_id)
+        item = await get_resource_service("assignments").find_one_async(req=None, _id=item_id)
 
-        self.validate(item, user_id)
+        await self.validate(item, user_id)
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, "assignments")
 
         return _update_returned_document(docs[0], updated_item)
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         build_custom_hateoas(CUSTOM_HATEOAS, docs[0], _id=str(docs[0][ID_FIELD]))
 
-    def validate(self, item, user_id):
-        get_resource_service("assignments").validate_assignment_action(item)
+    async def validate(self, item, user_id):
+        await get_resource_service("assignments").validate_assignment_action(item)
         # Validate workflow state
         if item.get("assigned_to").get("state") not in [
             ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
@@ -96,8 +96,8 @@ class AssignmentsUnlockResource(Resource):
     resource_title = endpoint_name
 
 
-class AssignmentsUnlockService(BaseService):
-    def create(self, docs, **kwargs):
+class AssignmentsUnlockService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
         lock_service = get_component(LockService)
@@ -105,7 +105,7 @@ class AssignmentsUnlockService(BaseService):
         # If the event is a recurrent event, unlock all other events in this series
         item_id = request.view_args["item_id"]
         resource_service = get_resource_service("assignments")
-        item = resource_service.find_one(req=None, _id=item_id)
+        item = await resource_service.find_one_async(req=None, _id=item_id)
 
         if not self.is_assignment_locked_by_user(item, user_id):
             updated_item = lock_service.unlock(item, user_id, session_id, "assignments")
@@ -121,5 +121,5 @@ class AssignmentsUnlockService(BaseService):
 
         return False
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         build_custom_hateoas(CUSTOM_HATEOAS, docs[0], _id=str(docs[0][ID_FIELD]))

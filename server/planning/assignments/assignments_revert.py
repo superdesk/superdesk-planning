@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
-from superdesk.services import BaseService
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
@@ -37,13 +37,13 @@ class AssignmentsRevertResource(AssignmentsResource):
     schema = assignments_revert_schema
 
 
-class AssignmentsRevertService(BaseService):
-    def on_update(self, updates, original):
+class AssignmentsRevertService(AsyncBaseService):
+    async def on_update_async(self, updates, original):
         assignment_state = original.get("assigned_to").get("state")
         assignments_service = get_resource_service("assignments")
-        assignments_service.validate_assignment_action(original)
+        await assignments_service.validate_assignment_action(original)
 
-        if assignments_service.is_text_assignment(original):
+        if await assignments_service.is_text_assignment(original):
             raise SuperdeskApiError.forbiddenError("Cannot revert text assignments.")
 
         if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
@@ -55,7 +55,7 @@ class AssignmentsRevertService(BaseService):
 
         remove_lock_information(updates)
 
-    def on_updated(self, updates, original):
+    async def on_updated_async(self, updates, original):
         user = get_user(required=True).get(ID_FIELD, "")
         session = get_auth().get(ID_FIELD, "")
 
@@ -79,4 +79,4 @@ class AssignmentsRevertService(BaseService):
 
         # External (slack/browser pop-up) notifications
         assignments_service = get_resource_service("assignments")
-        assignments_service.send_assignment_notification(updates, original, True)
+        await assignments_service.send_assignment_notification(updates, original, True)

@@ -40,11 +40,11 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
-            delivery_item = get_resource_service("delivery").find_one(req=None, item_id="item1")
+            delivery_item = await get_resource_service("delivery").find_one_async(req=None, item_id="item1")
 
             self.assertEqual(delivery_item.get("item_id"), "item1")
             self.assertEqual(delivery_item.get("assignment_id"), ObjectId(assignment_id))
@@ -54,7 +54,7 @@ class AssignmentLinkTestCase(TestCase):
             archive_item = get_resource_service("archive").find_one(req=None, _id="item1")
             self.assertEqual(archive_item.get("assignment_id"), ObjectId(assignment_id))
 
-            assignment = get_resource_service("assignments").find_one(req=None, _id=ObjectId(assignment_id))
+            assignment = await get_resource_service("assignments").find_one_async(req=None, _id=ObjectId(assignment_id))
             self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
 
     async def test_updates_creates_new_record(self):
@@ -110,14 +110,14 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 1)
+            self.assertEqual(await deliveries.count(), 1)
 
             self.app.data.insert(
                 "archive",
@@ -134,7 +134,7 @@ class AssignmentLinkTestCase(TestCase):
                     }
                 ],
             )
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [
                     {
                         "assignment_id": assignment_id,
@@ -144,10 +144,10 @@ class AssignmentLinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 2)
+            self.assertEqual(await deliveries.count(), 2)
 
     async def test_captures_item_state(self):
         async with self.app.app_context():
@@ -181,14 +181,14 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 1)
+            self.assertEqual(await deliveries.count(), 1)
             self.assertEqual(deliveries[0].get("item_state"), "in_progress")
 
     async def test_previous_unlinked_content_gets_linked_when_update_is_linked(self):
@@ -209,10 +209,10 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 0)
+            self.assertEqual(await deliveries.count(), 0)
 
             self.app.data.insert(
                 "archive",
@@ -246,7 +246,7 @@ class AssignmentLinkTestCase(TestCase):
                 ],
             )
 
-            get_resource_service("assignments_link").post(
+            await get_resource_service("assignments_link").post_async(
                 [
                     {
                         "assignment_id": assignment_id,
@@ -256,7 +256,7 @@ class AssignmentLinkTestCase(TestCase):
                 ]
             )
 
-            deliveries = get_resource_service("delivery").get(
+            deliveries = await get_resource_service("delivery").get_async(
                 req=None, lookup={"assignment_id": ObjectId(assignment_id)}
             )
-            self.assertEqual(deliveries.count(), 2)
+            self.assertEqual(await deliveries.count(), 2)
