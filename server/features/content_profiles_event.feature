@@ -308,3 +308,43 @@ Feature: Event Content Profiles
         }
     }]}
     """
+
+    @auth
+    Scenario: Add custom CV
+    Given "vocabularies"
+    """
+    [
+        {"_id": "custom", "field_type": null, "type": "manageable", "service": {"all": 1}}
+    ]
+    """
+
+    When we post to "planning_types"
+    """
+    [{
+        "_id": "with_custom_field",
+        "name": "event",
+        "editor": {
+            "custom": {"enabled": true}
+        },
+        "schema": {
+            "custom": {"required": true, "type": "list"}
+        }
+    }]
+    """
+    Then we get OK response
+
+    When we get "/planning_types/with_custom_field"
+    Then we get existing resource
+    """
+    {
+        "_id": "with_custom_field",
+        "name": "event",
+        "editor": {
+            "custom": {"enabled": true}
+        },
+        "schema": {
+            "custom": {"required": true, "type": "list"}
+        }
+    }
+    """
+ 

@@ -91,6 +91,10 @@ class PlanningTypesService(superdesk.Service):
                     # no need to copy any schema
                     if updated_planning_type[config_type][field]:
                         updated_planning_type[config_type][field].update(planning_type[config_type].get(field) or {})
+                for field, options in planning_type[config_type].items():
+                    if field not in updated_planning_type[config_type]:
+                        updated_planning_type[config_type][field] = options
+
         else:
             updated_planning_type["editor"].update(planning_type.get("editor", {}))
             updated_planning_type["schema"].update(planning_type.get("schema", {}))
