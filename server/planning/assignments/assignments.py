@@ -107,10 +107,8 @@ class AssignmentsService(AsyncBaseService):
     async def _enhance_archive_items(self, docs):
         ids = [str(item["assignment_id"]) for item in docs if item.get("assignment_id")]
         if len(ids):
-            assignments = {
-                str(item[ID_FIELD]): item
-                async for item in await self.get_from_mongo_async(req=None, lookup={"_id": {"$in": ids}})
-            }
+            cursor = await self.get_from_mongo_async(req=None, lookup={"_id": {"$in": ids}})
+            assignments = {str(item[ID_FIELD]): item async for item in cursor}
 
             for doc in docs:
                 if doc.get("assignment_id") in assignments:
@@ -1289,11 +1287,10 @@ class AssignmentsService(AsyncBaseService):
         await self.archive_delete_assignment(doc)
         marked_for_delete = False
         # Delete all assignments in that coverage
-        assignments = list(
-            await get_resource_service("assignments").get_from_mongo_async(
-                req=None, lookup={"coverage_item": doc["coverage_item"]}
-            )
+        cursor = await get_resource_service("assignments").get_from_mongo_async(
+            req=None, lookup={"coverage_item": doc["coverage_item"]}
         )
+        assignments = await cursor.to_list()
         for a in assignments:
             if str(a["_id"]) != str(doc["_id"]):
                 await self.delete_async(lookup={"_id": a["_id"]})
