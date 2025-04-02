@@ -549,6 +549,7 @@ class AssignmentsService(superdesk.Service):
                         PlanningNotifications().notify_assignment(
                             target_desk=assigned_to.get("desk"),
                             target_desk2=original.get("assigned_to").get("desk"),
+                            target_user=assigned_to.get("user"),
                             message="assignment_reassigned_2_msg",
                             meta_message=meta_msg,
                             coverage_type=get_coverage_type_name(coverage_type),
