@@ -10,6 +10,7 @@
 
 import superdesk
 import logging
+from superdesk.eve_async.service import AsyncBaseService
 
 logger = logging.getLogger(__name__)
 
@@ -44,3 +45,7 @@ class DeliveryResource(superdesk.Resource):
         "item_id_1": ([("item_id", 1)], {"background": True}),
     }
     query_objectid_as_string = True
+
+
+class DeliveryService(AsyncBaseService):
+    pass

@@ -880,8 +880,8 @@ class EventsService(AsyncBaseService):
         files = [f for f in original.get("files", []) if f not in (updates or {}).get("files", [])]
         files_service = get_resource_service("events_files")
         for file in files:
-            events_using_file = self.find(where={"files": file})
-            if events_using_file.count() == 0:
+            events_using_file = await self.find_async(where={"files": file})
+            if await events_using_file.count() == 0:
                 await files_service.delete_action(lookup={"_id": file})
 
     def should_update(self, old_item, new_item, provider):

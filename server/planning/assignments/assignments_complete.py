@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
-from superdesk.services import BaseService
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
@@ -48,13 +48,13 @@ class AssignmentsCompleteResource(AssignmentsResource):
     schema = assignments_complete_schema
 
 
-class AssignmentsCompleteService(BaseService):
-    def on_update(self, updates, original):
+class AssignmentsCompleteService(AsyncBaseService):
+    async def on_update_async(self, updates, original):
         assignment_state = original.get("assigned_to").get("state")
         AssignmentsService.set_type(updates, original)
         assignments_service = get_resource_service("assignments")
-        assignments_service.validate_assignment_action(original)
-        text_assignment = assignments_service.is_text_assignment(original)
+        await assignments_service.validate_assignment_action(original)
+        text_assignment = await assignments_service.is_text_assignment(original)
 
         if text_assignment:
             if original.get("scheduled_update_id"):
@@ -89,7 +89,7 @@ class AssignmentsCompleteService(BaseService):
                 "Cannot confirm availability. Assignment should be assigned, submitted or in progress."
             )
 
-    def update(self, id, updates, original):
+    async def update_async(self, id, updates, original):
         # if the completion is being done by an external application then ensure that it is not locked
         if "proxy_user" in updates:
             if original.get("lock_user"):
@@ -109,7 +109,7 @@ class AssignmentsCompleteService(BaseService):
 
         assignments_service = get_resource_service("assignments")
         # If we are confirming availability, save the revert state for revert action
-        text_assignment = assignments_service.is_text_assignment(original)
+        text_assignment = await assignments_service.is_text_assignment(original)
         if not text_assignment:
             updates["assigned_to"]["revert_state"] = updates["assigned_to"]["state"]
 
@@ -117,7 +117,7 @@ class AssignmentsCompleteService(BaseService):
 
         remove_lock_information(updates)
 
-        item = self.backend.update(self.datasource, id, updates, original)
+        item = await self.backend.update_async(self.datasource, id, updates, original)
 
         # publish the planning item
         assignments_service.publish_planning(original["planning_item"])
@@ -144,7 +144,7 @@ class AssignmentsCompleteService(BaseService):
 
         # Send notification that the work has been completed
         # Determine the display name of the assignee
-        assigned_to_user = get_resource_service("users").find_one(req=None, _id=user)
+        assigned_to_user = await get_resource_service("users").find_one_async(req=None, _id=user)
         assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
         target_user = original.get("assigned_to", {}).get("assignor_user")
         if target_user is None:

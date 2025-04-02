@@ -40,7 +40,7 @@ class AssignmentAcceptTestCase(TestCase):
         async with self.app.app_context():
             self.app.data.insert("users", users)
             self.app.data.insert("assignments", [assignment])
-            get_resource_service("assignments").accept_assignment(ObjectId(assignment_id), users[0].get("_id"))
+            await get_resource_service("assignments").accept_assignment(ObjectId(assignment_id), users[0].get("_id"))
             assignment = self.app.data.find_one("assignments", req=None, _id=ObjectId(assignment_id))
             self.assertTrue(assignment.get("accepted"))
             activity = self.app.data.find_all("activity")[0]
@@ -81,7 +81,7 @@ class AssignmentAcceptTestCase(TestCase):
             self.app.data.insert("users", users)
             self.app.data.insert("assignments", [assignment])
             self.app.data.insert("contacts", contact)
-            get_resource_service("assignments").accept_assignment(ObjectId(assignment_id), contact[0].get("_id"))
+            await get_resource_service("assignments").accept_assignment(ObjectId(assignment_id), contact[0].get("_id"))
             assignment = self.app.data.find_one("assignments", req=None, _id=ObjectId(assignment_id))
             self.assertTrue(assignment.get("accepted"))
             history = self.app.data.find("assignments_history", None, None)[0]
