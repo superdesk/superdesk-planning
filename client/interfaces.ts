@@ -1969,6 +1969,7 @@ export interface IEditorProps {
     currentWorkspace: string;
     editorType: EDITOR_TYPE;
     groups: Array<IEditorFormGroup>;
+    initialValues?: IEventOrPlanningItem;
 
     minimize(): void;
     openCancelModal(modalProps: {

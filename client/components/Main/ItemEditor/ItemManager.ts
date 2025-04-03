@@ -142,7 +142,7 @@ export class ItemManager {
         editor.events.onEditorMounted(this, this.autoSave);
 
         if (this.props.itemId && this.props.itemType && this.props.itemAction) {
-            this.onItemIDChanged(this.props);
+            this.onItemIDChanged();
         }
     }
 
@@ -155,7 +155,7 @@ export class ItemManager {
         return this.autoSave.flushAutosave()
             .then(() => (
                 this.dispatch<any>(actions.main.openEditorAction(
-                    this.state.initialValues,
+                    this.state.initialValues as IEventOrPlanningItem,
                     'edit',
                     false,
                     true
@@ -188,7 +188,7 @@ export class ItemManager {
         } else if (actionChanged) {
             this.onItemActionChanged(prevProps);
         } else if (idChanged) {
-            this.onItemIDChanged(prevProps);
+            this.onItemIDChanged();
         } else if (!this.state.loading &&
             !isTemporaryId(currentId) &&
             !itemsEqual(prevProps.item, this.props.item) &&
@@ -205,10 +205,10 @@ export class ItemManager {
             promise = this.autoSave.remove();
         }
 
-        return promise.then(() => this.onItemIDChanged(prevProps));
+        return promise.then(() => this.onItemIDChanged());
     }
 
-    onItemIDChanged(prevProps: IEditorProps) {
+    onItemIDChanged() {
         return this.setState({
             itemReady: false,
             tab: UI.EDITOR.CONTENT_TAB_INDEX,
