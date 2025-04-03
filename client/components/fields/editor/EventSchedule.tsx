@@ -79,16 +79,14 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
     changeStartTime(value?: moment.Moment) {
         const startDate = this.props.item?.dates?.start;
         const endDate = this.props.item?.dates?.end;
-        const isAllDay = this.props.item.dates?.all_day === true;
 
         if (!value) {
             const changes = {
                 _startTime: null,
                 _endTime: null,
                 'dates.start': startDate ? localDateToUtc(startDate, this.props.item?.dates?.tz) : null,
-                'dates.end': endDate ? localDateToUtc(endDate, this.props.item?.dates?.tz) : null,
                 'dates.all_day': true,
-                'dates.no_end_time': false,
+                'dates.no_end_time': true,
                 [TO_BE_CONFIRMED_FIELD]: false,
             };
 
@@ -100,9 +98,12 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         const changes = {
             'dates.start': newStartDate,
             'dates.all_day': false,
-            'dates.no_end_time': isAllDay, // If event was all day there won't be any end time now
             [TO_BE_CONFIRMED_FIELD]: false,
         };
+
+        if (this.props.item.dates?.no_end_time == null) {
+            changes['dates.no_end_time'] = true;
+        }
 
         changes['_startTime'] = newStartDate;
         this.props.onChange(changes);
@@ -137,14 +138,12 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
 
     changeEndTime(value?: moment.Moment) {
         if (!value) {
-            const hasStartTime = this.props.item._startTime != null;
             const changes = {
                 _endTime: null,
                 'dates.end': this.props.item.dates?.end ?
                     localDateToUtc(this.props.item.dates.end, this.props.item.dates.tz)
                     : null,
-                'dates.all_day': !hasStartTime,
-                'dates.no_end_time': hasStartTime,
+                'dates.no_end_time': true,
                 [TO_BE_CONFIRMED_FIELD]: false,
             };
 
@@ -160,7 +159,6 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         const changes = {
             _endTime: newEndDate,
             'dates.end': newEndDate,
-            'dates.all_day': false,
             'dates.no_end_time': false,
             [TO_BE_CONFIRMED_FIELD]: false,
         };
@@ -243,24 +241,28 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
                     toBeConfirmed={this.props.item[TO_BE_CONFIRMED_FIELD] === true}
                     isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
                     remoteTimeZone={this.props.item.dates?.tz}
-                    allDay={this.props.item.dates?.no_end_time || this.props.item.dates?.all_day}
+                    allDay={this.props.item.dates?.no_end_time ?? this.props.item.dates?.all_day}
                 />
                 <Row
                     flex={true}
                     noPadding={true}
                 >
-                    {this.props.showTimeZone && this.props.item._startTime && (
-                        <TimeZoneInput
-                            testId={`${this.props.testId}_timezone`}
-                            field="dates.tz"
-                            label={gettext('Timezone')}
-                            onChange={this.changeTimezone}
-                            halfWidth={this.props.showAllDay}
-                            value={this.props.item.dates?.tz}
-                            marginLeftAuto={this.props.showAllDay}
-                            noPadding={true}
-                        />
-                    )}
+                    {
+                        this.props.showTimeZone &&
+                        this.props.item._startTime &&
+                        this.props.item.dates?.all_day !== true && (
+                            <TimeZoneInput
+                                testId={`${this.props.testId}_timezone`}
+                                field="dates.tz"
+                                label={gettext('Timezone')}
+                                onChange={this.changeTimezone}
+                                halfWidth={this.props.showAllDay}
+                                value={this.props.item.dates?.tz}
+                                marginLeftAuto={this.props.showAllDay}
+                                noPadding={true}
+                            />
+                        )
+                    }
                 </Row>
             </React.Fragment>
         );
