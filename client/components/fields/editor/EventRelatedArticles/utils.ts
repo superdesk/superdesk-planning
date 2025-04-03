@@ -8,7 +8,6 @@ export const fakeEditor: any = {
         section: 'header',
         required: false
     },
-    keywords: null,
     language: null,
     usageterms: null,
     genre: {
@@ -148,6 +147,13 @@ export const fakeEditor: any = {
         required: false,
         order: 16
     },
+    keywords: {
+        order: 17,
+        sdWidth: 'full',
+        enabled: true,
+        section: 'header',
+        required: false,
+    },
     attachments: null,
     rundown_item_types: null,
     camera: null,
@@ -170,6 +176,7 @@ export function cleanArticlesFields(articles: Array<Partial<IArticle>>) {
         'language',
         'word_count',
         'search_provider',
+        'keywords'
     ];
 
     for (let i = 0; i < articles.length; i++) {
