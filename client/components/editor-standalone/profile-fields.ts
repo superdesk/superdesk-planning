@@ -35,7 +35,7 @@ const unimplementedFields = new Set<string>([
  * A function that handles planning profile field types so they can be used in authoring react.
  * @embeddedOnly defaults to false
  */
-export const getPlanningProfileFields = <T extends 'planning' | 'event'>(
+export const getPlanningProfileFields = (
     options: {
         profile: 'planning' | 'event',
         embeddedOnly?: boolean

@@ -562,16 +562,16 @@ function updateLinkedPlanningsForEvent(
     return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
         const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
 
-        const toLink: Array<IPlanningItem> =
-            associatedPlannings.filter(({_id}) => currentLinkedIds.has(_id) !== true);
-
+        const toLink: Array<IPlanningItem> = associatedPlannings
+            .filter(({_id}) => currentLinkedIds.has(_id) !== true);
         const toUnlink: Array<IPlanningItem> = currentlyLinked
             .filter((item) => associatedPlannings.find(({_id}) => _id === item._id) == null);
 
-        return Promise.all(
-            [
-                ...toLink.map((planningItem) => {
-                    const linkType = planningItem._temporary?.link_type;
+        return planningApi.planning.getByIds(associatedPlannings.map(({_id}) => _id), undefined)
+            .then((allPlanningItems) => Promise.all([
+                ...toLink.map((oldPlanning) => {
+                    const planningItem = allPlanningItems.find((x) => x._id === oldPlanning._id);
+                    const linkType = oldPlanning._temporary?.link_type;
 
                     if (linkType == null) {
                         superdeskApi.utilities.logger.error(
@@ -598,12 +598,11 @@ function updateLinkedPlanningsForEvent(
 
                     return planning.update(planningItem, patch);
                 }),
-            ],
-        ).then((updatedPlanningItems) => {
-            planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(updatedPlanningItems));
+            ]).then((updatedPlanningItems) => {
+                planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(updatedPlanningItems));
 
-            return null;
-        });
+                return null;
+            }));
     });
 }
 

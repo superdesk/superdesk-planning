@@ -617,19 +617,14 @@ export function addSomeRelatedPlanningsToEventEditor(
         planning._temporary.link_type = link_type;
 
         promises = promises
-            .then(() => editor.item.events.addPlanningItem(planning, {scrollIntoViewAndFocus: false}))
+            .then(() => editor.item.events.addPlanningItem(
+                planning,
+                {scrollIntoViewAndFocus: result.canBeAdded.at(-1) != null},
+            ))
             .then(() => null);
     }
 
-    return promises.then(() => {
-        const lastItem = result.canBeAdded.at(-1);
-
-        if (lastItem != null) {
-            editor.item.events.getRelatedPlanningDomRef(lastItem.planning._id).current.scrollIntoView();
-        }
-
-        return null;
-    });
+    return promises;
 }
 
 interface IGetPlanningActionArgs {

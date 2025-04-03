@@ -224,7 +224,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 onMouseEnter={this.onItemHoverOn}
                 refNode={refNode}
                 draggable={!isItemLocked}
-                onDragstart={(dragEvent) => {
+                onDragStart={(dragEvent) => {
                     dragEvent.dataTransfer.setData(
                         'application/superdesk.planning.planning_item',
                         JSON.stringify(item),
