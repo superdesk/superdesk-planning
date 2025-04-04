@@ -107,7 +107,7 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
                              <div className="tr">
                                  <div className="td sd-padding-b--0-5">
                                      <span className="form-label">
-                                         {gettext(subjectKey ? subjectSchemes[subjectKey] || 'Subjects' : 'Subjects')}
+                                         {this.getLabel(subjectKey ? subjectSchemes[subjectKey] || 'Subjects' : 'Subjects')}
                                      </span>
                                  </div>
                                  <div className="td sd-padding-b--0-5 sd-padding-l--4">
