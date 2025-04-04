@@ -39,7 +39,7 @@ export function getTextFieldConfig(
                 expandable: {
                     enabled: options.expandable,
                     defaultValue: false,
-                    numberOfRowsWhenCollapsed: 2,
+                    numberOfRowsWhenCollapsed: 4,
                 },
                 ...basicOptions,
             };
