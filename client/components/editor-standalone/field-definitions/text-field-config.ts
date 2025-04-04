@@ -1,31 +1,55 @@
 import {IAuthoringFieldV2, IEditor3Config} from 'superdesk-api';
-import {IBaseFieldDefinition, IEditor3Definition} from './interfaces';
+import {IBaseFieldDefinition, IEditor3Definition, IMultiLineDefinition} from './interfaces';
+import {superdeskApi} from '../../../superdeskApi';
 
 export function getTextFieldConfig(
-    options: (IBaseFieldDefinition<'base'> | IEditor3Definition) & {label: string},
+    options: (IBaseFieldDefinition<'base'> | IEditor3Definition | IMultiLineDefinition) & {label: string},
 ): IAuthoringFieldV2 {
-    const editor3ConfigWithoutFormatting: IEditor3Config = options.type === 'base' ? {
-        editorFormat: [],
-        minLength: undefined,
-        maxLength: undefined,
-        cleanPastedHtml: false,
-        singleLine: true,
-        disallowedCharacters: [],
-        showStatistics: false,
-        width: 100,
-    } : {
-        editorFormat: options.formattingOptions ?? [],
-        minLength: options.minLength ?? undefined,
-        maxLength: options.maxLength ?? undefined,
-        cleanPastedHtml: true,
-        singleLine: false,
-        disallowedCharacters: [],
-        showStatistics: true,
-        width: 100,
-    };
+    const editor3Config: IEditor3Config = (() => {
+        const basicOptions = {cleanPastedHtml: true,
+            singleLine: false,
+            disallowedCharacters: [],
+            showStatistics: true,
+            width: 100,
+        };
+        const fieldType = options.type;
+
+        if (fieldType === 'base') {
+            return {
+                editorFormat: [],
+                minLength: undefined,
+                maxLength: undefined,
+                cleanPastedHtml: false,
+                ...basicOptions,
+            };
+        } else if (fieldType === 'editor3') {
+            return {
+                editorFormat: options.formattingOptions ?? [],
+                minLength: options.minLength ?? undefined,
+                maxLength: options.maxLength ?? undefined,
+                cleanPastedHtml: true,
+                ...basicOptions,
+            };
+        } else if (fieldType === 'multi_line') {
+            return {
+                editorFormat: [],
+                minLength: options.minLength ?? undefined,
+                maxLength: options.maxLength ?? undefined,
+                cleanPastedHtml: false,
+                expandable: {
+                    enabled: options.expandable,
+                    defaultValue: false,
+                    numberOfRowsWhenCollapsed: 2,
+                },
+                ...basicOptions,
+            };
+        }
+
+        return superdeskApi.helpers.assertNever(fieldType);
+    })();
 
     const fieldConfig: IEditor3Config = {
-        ...editor3ConfigWithoutFormatting,
+        ...editor3Config,
         required: options.required,
         compact: true,
     };

@@ -18,9 +18,15 @@ export interface IEditor3Definition extends IBaseFieldDefinition<'editor3'> {
     minLength?: number;
 }
 
+export interface IMultiLineDefinition extends IBaseFieldDefinition<'multi_line'> {
+    expandable?: boolean;
+    maxLength?: number;
+    minLength?: number;
+}
+
 export interface IFieldDefinition {
     fieldId: string;
-    getField: (options: IBaseFieldDefinition<'base'> | IEditor3Definition) => IAuthoringFieldV2;
+    getField: (options: IBaseFieldDefinition<'base'> | IEditor3Definition | IMultiLineDefinition) => IAuthoringFieldV2;
     storageAdapterPlanning?: IFieldStorageAdapter<IPlanningItem>;
     storageAdapterEvent?: IFieldStorageAdapter<IEventItem>;
 }

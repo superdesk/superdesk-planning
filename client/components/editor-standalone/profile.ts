@@ -31,6 +31,19 @@ export function getProfile(profileType: 'event' | 'planning', language: string) 
                     minLength: currentField.minlength,
                 }),
             );
+        } else if (fieldDefinitions[fieldId] != null && currentField.type === 'multi_line') {
+            profileV2.header = profileV2.header.set(
+                fieldId,
+                fieldDefinitions[fieldId].getField({
+                    type: 'multi_line',
+                    id: fieldId,
+                    required: required,
+                    language: language,
+                    expandable: currentField.expandable,
+                    maxLength: currentField.maxlength,
+                    minLength: currentField.minlength,
+                }),
+            );
         } else if (fieldDefinitions[fieldId] != null) {
             profileV2.header = profileV2.header.set(
                 fieldId,
