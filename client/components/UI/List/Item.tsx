@@ -23,7 +23,7 @@ interface IProps {
     onMouseUp?(event: React.MouseEvent<HTMLLIElement>): void;
     onFocus?(event: React.FocusEvent<HTMLLIElement>): void;
     onKeyDown?(event: React.KeyboardEvent<HTMLLIElement>): void;
-    onDragstart?: React.DragEventHandler<HTMLElement>;
+    onDragStart?: React.DragEventHandler<HTMLElement>;
 }
 
 export class Item extends React.PureComponent<IProps> {
@@ -47,7 +47,7 @@ export class Item extends React.PureComponent<IProps> {
             refNode,
             tabIndex,
             draggable,
-            onDragstart,
+            onDragStart,
             testId,
         } = this.props;
 
@@ -90,7 +90,7 @@ export class Item extends React.PureComponent<IProps> {
                 ref={refNode}
                 tabIndex={tabIndex}
                 draggable={draggable}
-                onDragStart={onDragstart}
+                onDragStart={onDragStart}
             >
                 {children}
             </li>
