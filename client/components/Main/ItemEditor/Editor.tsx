@@ -200,6 +200,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         this.autoSave.flushAutosave().then(() => {
             const {openCancelModal, itemId, itemType, addNewsItemToPlanning} = this.props;
             const {dirty, errorMessages, initialValues} = this.state;
+
             const updateStates = !addNewsItemToPlanning;
 
             this.setState({submitting: true});

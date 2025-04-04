@@ -246,9 +246,6 @@ describe('components.Main.ItemManager', () => {
             updateProps(nextProps);
             manager.componentWillMount();
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([
-                jasmine.objectContaining(nextProps),
-            ]);
         });
 
         it('on mount open for editing', () => {
@@ -262,9 +259,6 @@ describe('components.Main.ItemManager', () => {
             updateProps(nextProps);
             manager.componentWillMount();
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([
-                jasmine.objectContaining(nextProps),
-            ]);
         });
 
         it('on mount open for read only', () => {
@@ -278,9 +272,6 @@ describe('components.Main.ItemManager', () => {
             updateProps(nextProps);
             manager.componentWillMount();
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([
-                jasmine.objectContaining(nextProps),
-            ]);
         });
     });
 
@@ -341,11 +332,6 @@ describe('components.Main.ItemManager', () => {
             });
 
             expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([jasmine.objectContaining({
-                itemId: 'e1',
-                itemType: 'event',
-                itemAction: 'edit',
-            })]);
         });
 
         it('calls on action changed', () => {
@@ -527,8 +513,6 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('edit existing item', (done) => {
-            const prevProps = cloneDeep(editor.props);
-
             updateProps({
                 itemId: 'e1',
                 itemType: 'event',
@@ -536,7 +520,7 @@ describe('components.Main.ItemManager', () => {
                 initialValues: testData.events[0],
             });
 
-            manager.onItemIDChanged(prevProps);
+            manager.onItemIDChanged();
             expectState(states.loading);
 
             waitFor(() => manager.loadItem.callCount > 0)
@@ -550,7 +534,7 @@ describe('components.Main.ItemManager', () => {
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
 
                     expect(planningApi.locks.lockItem.callCount).toBe(1);
-                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0]]);
+                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0], 'edit']);
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([
@@ -822,7 +806,7 @@ describe('components.Main.ItemManager', () => {
                     expect(main.fetchById.args[0]).toEqual(['e1', 'event', true]);
 
                     expect(planningApi.locks.lockItem.callCount).toBe(1);
-                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0]]);
+                    expect(planningApi.locks.lockItem.args[0]).toEqual([testData.events[0], 'edit']);
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([

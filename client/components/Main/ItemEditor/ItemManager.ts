@@ -18,6 +18,7 @@ import {
     eventUtils,
     isTemporaryId,
     itemsEqual,
+    lockUtils,
     planningUtils,
     removeAutosaveFields,
     shouldUnLockItem,
@@ -141,7 +142,7 @@ export class ItemManager {
         editor.events.onEditorMounted(this, this.autoSave);
 
         if (this.props.itemId && this.props.itemType && this.props.itemAction) {
-            this.onItemIDChanged(this.props);
+            this.onItemIDChanged();
         }
     }
 
@@ -154,7 +155,7 @@ export class ItemManager {
         return this.autoSave.flushAutosave()
             .then(() => (
                 this.dispatch<any>(actions.main.openEditorAction(
-                    this.state.initialValues,
+                    this.state.initialValues as IEventOrPlanningItem,
                     'edit',
                     false,
                     true
@@ -187,7 +188,7 @@ export class ItemManager {
         } else if (actionChanged) {
             this.onItemActionChanged(prevProps);
         } else if (idChanged) {
-            this.onItemIDChanged(prevProps);
+            this.onItemIDChanged();
         } else if (!this.state.loading &&
             !isTemporaryId(currentId) &&
             !itemsEqual(prevProps.item, this.props.item) &&
@@ -204,10 +205,10 @@ export class ItemManager {
             promise = this.autoSave.remove();
         }
 
-        return promise.then(() => this.onItemIDChanged(prevProps));
+        return promise.then(() => this.onItemIDChanged());
     }
 
-    onItemIDChanged(prevProps: IEditorProps) {
+    onItemIDChanged() {
         return this.setState({
             itemReady: false,
             tab: UI.EDITOR.CONTENT_TAB_INDEX,
@@ -356,10 +357,23 @@ export class ItemManager {
             promise = this.dispatch<any>(
                 actions.main.fetchById(nextProps.itemId, nextProps.itemType, true)
             )
-                .then((original) => {
+                .then((original: IEventOrPlanningItem) => {
                     initialValues = cloneDeep(original);
 
-                    return planningApi.locks.lockItem(original);
+                    const allLockedItems = selectors.locks
+                        .getLockedItems((planningApi.redux.store.getState() as any));
+                    const isItemLocked = lockUtils.isItemLockedInThisSession(
+                        original,
+                        this.props.session,
+                        allLockedItems,
+                    );
+
+                    // if the item is already locked in this session don't lock it again
+                    if (isItemLocked) {
+                        return Promise.resolve(original);
+                    } else {
+                        return planningApi.locks.lockItem(original, 'edit');
+                    }
                 });
         } else {
             // Fetch the latest item from the API to view in read-only mode

@@ -26,11 +26,7 @@ export class Editor extends React.PureComponent<IProps> {
                 <EditorFieldEventSchedule
                     required={true}
                     profile={profile}
-                    disabled={
-                        extensionBridge.ui.utils.planning_event_link_method === 'many_secondary'
-                            ? true
-                            : !extensionBridge.ui.utils.isTemporaryId(this.props.item.id)
-                    }
+                    disabled={false}
                     onChange={(changes: {[fieldPath: string]: any}) => {
                         const valueCopy = cloneDeep(this.props.value);
 

@@ -1969,6 +1969,7 @@ export interface IEditorProps {
     currentWorkspace: string;
     editorType: EDITOR_TYPE;
     groups: Array<IEditorFormGroup>;
+    initialValues?: IEventOrPlanningItem;
 
     minimize(): void;
     openCancelModal(modalProps: {
@@ -2068,6 +2069,7 @@ export interface IWebsocketMessageData {
         item: IEventOrPlanningItem['_id'];
         etag: IEventOrPlanningItem['_etag'];
         from_ingest: boolean;
+        event_ids?: Array<string>;
         user?: IEventOrPlanningItem['lock_user'];
         lock_session?: IEventOrPlanningItem['lock_session'];
         recurrence_id?: IEventItem['recurrence_id'];
@@ -2077,6 +2079,7 @@ export interface IWebsocketMessageData {
         item: IEventOrPlanningItem['_id'];
         etag: IEventOrPlanningItem['_etag'];
         user: IEventOrPlanningItem['lock_user'];
+        event_ids?: Array<string>;
         lock_session: IEventOrPlanningItem['lock_session'];
         lock_action: IEventOrPlanningItem['lock_action'];
         lock_time: IEventOrPlanningItem['lock_time'];
