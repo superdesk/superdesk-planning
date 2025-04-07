@@ -57,7 +57,7 @@ class PlanningPostService(BaseService):
         assignments_to_delete = []
         cancel_plan_with_event_enabled = is_cancel_planning_with_event_enabled()
         for doc in docs:
-            plan = get_resource_service("planning").find_one(req=None, _id=doc["planning"])
+            plan = await get_resource_service("planning").find_one_async(req=None, _id=doc["planning"])
             related_events = get_related_event_items_for_planning(plan, "primary")
 
             # TODO-ASYNC: awaiting for this service to be async
@@ -79,7 +79,7 @@ class PlanningPostService(BaseService):
             self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
 
-        get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete)
+        await get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete)
         return ids
 
     def on_created(self, docs):
@@ -167,7 +167,7 @@ class PlanningPostService(BaseService):
                     if coverage.get("planning", {}).pop("workflow_status_reason", None):
                         coverage["planning"]["workflow_status_reason"] = None
 
-        updated_plan = get_resource_service("planning").update(plan["_id"], updates, plan)
+        updated_plan = await get_resource_service("planning").update_async(plan["_id"], updates, plan)
         plan.update(updated_plan)
 
         # Set a version number

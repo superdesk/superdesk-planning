@@ -32,7 +32,7 @@ from superdesk.etree import parse_html
 import json
 from bson import ObjectId
 
-from planning.types import Planning, Coverage, Event
+from planning.types import Planning, Coverage, Event, EventAutosaveResourceModel, PlanningAutosaveResourceModel
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -394,18 +394,13 @@ def get_coverage_type_name(qcode):
     return coverage_type.get("name", qcode)
 
 
-def remove_autosave_on_spike(item):
-    """
-    TODO-ASYNC: Change this when planning_spike and event_spike are changed to async then make use of Autosave async services - Done
-    Remains as is for now since it is used in PlanningSpikeService which is used by EventsPostService that is yet to be converted.
-    Can be safely refactored once that is changed to async
-    """
+async def remove_autosave_on_spike(item):
     if item.get("lock_action") == "edit":
-        autosave_service = get_resource_service("planning_autosave")
+        autosave_service = PlanningAutosaveResourceModel.get_service()
         if item.get("type") == "event":
-            autosave_service = get_resource_service("event_autosave")
+            autosave_service = EventAutosaveResourceModel.get_service()
 
-        autosave_service.delete_action(lookup={"_id": item.get(ID_FIELD)})
+        await autosave_service.delete_many(lookup={"_id": item.get(ID_FIELD)})
 
 
 def update_returned_document(doc, item, custom_hateoas):
