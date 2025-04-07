@@ -58,7 +58,7 @@ class DeleteMarkedAssignmentsTest(TestCase):
             g.user = self.users[0]
             g.auth = self.auth[0]
 
-            DeleteMarkedAssignments().run()
+            await DeleteMarkedAssignments().run()
 
             self.assertAssignmentDeleted(["a1", "a2"])
             self.assertAssignmentDeleted(["a3"], True)
