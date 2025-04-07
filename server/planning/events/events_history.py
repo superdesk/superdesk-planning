@@ -9,8 +9,6 @@
 """Superdesk Files"""
 
 import logging
-
-from eve.utils import config
 from copy import deepcopy
 from typing import Any, TypedDict
 
