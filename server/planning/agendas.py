@@ -35,6 +35,7 @@ class AgendasResource(Resource):
 
 class AgendasService(Service):
     def _generate_planning_info(self, docs):
+        # TODO-ASYNC[PlanningService] - Update to use async `get_planning_by_agenda_id` when module is updated to use AsyncBaseService
         planning_service = get_resource_service("planning")
         for doc in docs:
             doc["plannings"] = planning_service.get_planning_by_agenda_id(doc.get(ID_FIELD)).docs
@@ -71,6 +72,7 @@ class AgendasService(Service):
         )
 
     def on_delete(self, doc):
+        # TODO-ASYNC[PlanningService] - Update to use async `get_planning_by_agenda_id` when module is updated to use AsyncBaseService
         if get_resource_service("planning").get_planning_by_agenda_id(doc.get(ID_FIELD)).count() > 0:
             raise SuperdeskApiError.badRequestError(
                 message="Agenda is referenced by Planning items. " "Cannot delete Agenda"

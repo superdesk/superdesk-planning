@@ -72,18 +72,18 @@ def mark_event_rescheduled(updates: dict[str, Any], reason: str, keep_dates: boo
         updates.pop("dates", None)
 
 
-def reschedule_event_plannings(original: dict[str, Any], reason: str, plans=None, state=None):
-    # TODO-ASYNC: Convert to use async services when `planning_cancel` and `planning_reschedule` and `planning_history` are converted
+async def reschedule_event_plannings(original: dict[str, Any], reason: str, plans=None, state=None):
+    # TODO-ASYNC: Convert to use async services `planning_history` are converted to async
     planning_cancel_service = get_resource_service("planning_cancel")
     planning_reschedule_service = get_resource_service("planning_reschedule")
 
     plan_updates = {"reason": reason, "state": state}
     for plan in plans or get_related_planning_for_events([original[ID_FIELD]], "primary"):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
-            updated_plan = planning_reschedule_service.patch(plan[ID_FIELD], plan_updates)
+            updated_plan = await planning_reschedule_service.patch_async(plan[ID_FIELD], plan_updates)
             get_resource_service("planning_history").on_reschedule(updated_plan, plan)
             if len(plan.get("coverages", [])) > 0:
-                planning_cancel_service.update(
+                await planning_cancel_service.update_async(
                     plan[ID_FIELD],
                     {
                         "reason": reason,
@@ -144,7 +144,7 @@ async def reschedule_single_event(updates: dict[str, Any], original: dict[str, A
             updates["state"] = WORKFLOW_STATE.DRAFT
 
         if has_plannings:
-            reschedule_event_plannings(original, reason)
+            await reschedule_event_plannings(original, reason)
 
     set_planning_schedule(updates)
 
@@ -255,7 +255,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
             if event[ID_FIELD] == original[ID_FIELD]:
                 mark_event_rescheduled(updates, reason, True)
                 updates["state"] = new_state
-                reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
+                await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
 
             else:
                 new_updates = {"reason": reason, "skip_on_update": True}
@@ -273,7 +273,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
 
                 # And finally update the Event, and Reschedule associated Planning items
                 await events_service.update(event[ID_FIELD], new_updates)
-                reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
+                await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
                 await signals.event_reschedule.send(new_updates, {"_id": event[ID_FIELD]})
 
             # Mark this date as being already processed
@@ -327,7 +327,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 await events_service.update(event[ID_FIELD], new_updates)
 
             if len(event_plans) > 0:
-                reschedule_event_plannings(original, reason, event_plans)
+                await reschedule_event_plannings(original, reason, event_plans)
         else:
             # This event has no Planning items, therefor we can safely
             # delete this event

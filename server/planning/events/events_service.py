@@ -519,7 +519,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             )
         else:
             if original.lock_action == "mark_completed" and updates.get("actioned_date"):
-                self.mark_event_complete(updates, original, False)
+                await self.mark_event_complete(updates, original, False)
 
             # This updates Event metadata only
             push_notification(
@@ -590,7 +590,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
                 )
             elif mark_completed:
                 ev = EventResourceModel.from_dict(e)
-                self.mark_event_complete(updates, ev, mark_complete_validated)
+                await self.mark_event_complete(updates, ev, mark_complete_validated)
                 # It is validated if the previous funciton did not raise an error
                 mark_complete_validated = True
 
@@ -608,7 +608,9 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             user=str(updates.get("version_creator", "")),
         )
 
-    def mark_event_complete(self, updates: dict[str, Any], event: EventResourceModel, mark_complete_validated: bool):
+    async def mark_event_complete(
+        self, updates: dict[str, Any], event: EventResourceModel, mark_complete_validated: bool
+    ):
         assert event.dates is not None
         assert event.dates.start is not None
 
@@ -625,8 +627,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         for plan in get_related_planning_for_events([event.id], "primary"):
             if plan.get("state") != WorkflowState.CANCELLED and len(plan.get("coverages", [])) > 0:
-                # TODO-ASYNC: replace when `planning_cancel` is async
-                get_resource_service("planning_cancel").patch(
+                await get_resource_service("planning_cancel").patch_async(
                     plan[ID_FIELD],
                     {
                         "reason": "Event Completed",

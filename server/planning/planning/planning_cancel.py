@@ -8,10 +8,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.flask import request
 from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
-from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
@@ -51,12 +51,12 @@ class PlanningCancelResource(PlanningResource):
     merge_nested_documents = True
 
 
-class PlanningCancelService(BaseService):
-    def on_update(self, updates, original):
+class PlanningCancelService(AsyncBaseService):
+    async def on_update_async(self, updates, original):
         if not is_valid_event_planning_reason(updates, original):
             raise SuperdeskApiError.badRequestError(message="Reason is required field.")
 
-    def update(self, id, updates, original):
+    async def update_async(self, id, updates, original):
         user = get_user(required=True).get(ID_FIELD, "")
         session = get_auth().get(ID_FIELD, "")
 
@@ -78,7 +78,7 @@ class PlanningCancelService(BaseService):
                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
             ]:
                 ids.append(coverage.get("coverage_id"))
-                planning_service.cancel_coverage(
+                await planning_service.cancel_coverage(
                     coverage,
                     coverage_cancel_state,
                     coverage.get("workflow_status"),
@@ -106,7 +106,7 @@ class PlanningCancelService(BaseService):
 
         self._cancel_plan(updates, reason)
 
-        item = self.backend.update(self.datasource, id, updates, original)
+        item = await self.backend.update_async(self.datasource, id, updates, original)
 
         push_notification(
             "planning:cancelled",
@@ -124,7 +124,7 @@ class PlanningCancelService(BaseService):
         updates["state_reason"] = reason
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
-    def on_updated(self, updates, original):
+    async def on_updated_async(self, updates, original):
         lock_action = original.get("lock_action")
         allowed_actions = [
             ITEM_ACTIONS.EDIT,

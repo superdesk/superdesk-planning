@@ -126,6 +126,7 @@ class ExportToNewsroom(Command):
     def _export_planning(self):
         """Export events"""
         logger.info("Starting to export planning")
+        # TODO-ASYNC[PlanningService] - Convert this to async when function is updated to async
         planning_service = get_resource_service("planning")
 
         formatter = JsonPlanningFormatter()

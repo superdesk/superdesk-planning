@@ -229,14 +229,16 @@ class EventsService(AsyncBaseService):
         if not doc.get("original_creator"):
             doc.pop("original_creator", None)
 
-    def get_all_items_in_relationship(self, item: Event, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"):
+    async def get_all_items_in_relationship(
+        self, item: Event, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"
+    ):
         # Get recurring items
         if item.get("recurrence_id"):
             all_items = self.find(where={"recurrence_id": item.get("recurrence_id")})
             # Now, get associated planning items with the same recurrence
             return itertools.chain(
                 all_items,
-                get_resource_service("planning").find(where={"recurrence_id": item.get("recurrence_id")}),
+                await get_resource_service("planning").find_async(where={"recurrence_id": item.get("recurrence_id")}),
             )
         else:
             # Get associated planning items
@@ -326,7 +328,7 @@ class EventsService(AsyncBaseService):
                 events_history.on_item_created([event])
 
             if planning_item:
-                self._link_to_planning(event)
+                await self._link_to_planning(event)
                 del event["_planning_item"]
 
         if generated_events:
@@ -651,7 +653,7 @@ class EventsService(AsyncBaseService):
             )
         else:
             if original.get("lock_action") == "mark_completed" and updates.get("actioned_date"):
-                self.mark_event_complete(original, updates, original, None)
+                await self.mark_event_complete(original, updates, original, None)
 
             # This updates Event metadata only
             push_notification(
@@ -716,7 +718,7 @@ class EventsService(AsyncBaseService):
                     [calendar for calendar in updated_calendars if calendar["qcode"] not in original_qcodes]
                 )
             elif mark_completed:
-                self.mark_event_complete(original, updates, e, mark_complete_validated)
+                await self.mark_event_complete(original, updates, e, mark_complete_validated)
                 # It is validated if the previous funciton did not raise an error
                 mark_complete_validated = True
 
@@ -735,7 +737,7 @@ class EventsService(AsyncBaseService):
             user=str(updates.get("version_creator", "")),
         )
 
-    def mark_event_complete(self, original, updates, event, mark_complete_validated):
+    async def mark_event_complete(self, original, updates, event, mark_complete_validated):
         # If the entire series is in future, raise an error
         if event.get("recurrence_id"):
             if not mark_complete_validated:
@@ -749,7 +751,7 @@ class EventsService(AsyncBaseService):
 
         for plan in get_related_planning_for_events([event[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED and len(plan.get("coverages", [])) > 0:
-                get_resource_service("planning_cancel").patch(
+                await get_resource_service("planning_cancel").patch_async(
                     plan[ID_FIELD],
                     {
                         "reason": "Event Completed",
@@ -798,7 +800,7 @@ class EventsService(AsyncBaseService):
         return generated_events
 
     @staticmethod
-    def _link_to_planning(event: Event):
+    async def _link_to_planning(event: Event):
         """
         Links an Event to an existing Planning Item
 
@@ -808,7 +810,7 @@ class EventsService(AsyncBaseService):
         planning_service = get_resource_service("planning")
         plan_id = event["_planning_item"]
         event_id = event[ID_FIELD]
-        planning_item = planning_service.find_one(req=None, _id=plan_id)
+        planning_item = await planning_service.find_one_async(req=None, _id=plan_id)
 
         if not planning_item:
             raise SuperdeskApiError.badRequestError("Planning item not found")
@@ -831,7 +833,7 @@ class EventsService(AsyncBaseService):
                 updates["recurrence_id"] = event["recurrence_id"]
 
         planning_service.validate_on_update(updates, planning_item, get_user())
-        planning_service.system_update(plan_id, updates, planning_item)
+        await planning_service.system_update_async(plan_id, updates, planning_item)
         app = get_current_app().as_any()
         app.on_updated_planning(updates, planning_item)
 

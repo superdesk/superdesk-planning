@@ -102,6 +102,7 @@ def sync_event_metadata_with_planning_items(
             event_updated, event_translations, embedded_planning, profiles, vocabs
         ):
             if update_required:
+                # TODO-ASYNC[PlanningService] - Update to use async when function is updated
                 planning_service.patch(planning_original["_id"], planning_updates)
         return
 

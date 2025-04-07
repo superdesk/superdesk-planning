@@ -15,10 +15,6 @@ import superdesk
 
 from .planning import PlanningResource, PlanningService  # noqa
 from .planning_schema import coverage_schema  # noqa
-from .planning_spike import (
-    PlanningSpikeResource,
-    PlanningSpikeService,
-)
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import (
     PlanningLockResource,
@@ -76,9 +72,6 @@ def init_app(app):
 
     planning_unlock_service = PlanningUnlockService("planning_unlock", backend=superdesk.get_backend())
     PlanningUnlockResource("planning_unlock", app=app, service=planning_unlock_service)
-
-    planning_spike_service = PlanningSpikeService("planning_spike", backend=superdesk.get_backend())
-    PlanningSpikeResource("planning_spike", app=app, service=planning_spike_service)
 
     planning_post_service = PlanningPostService("planning_post", backend=superdesk.get_backend())
     PlanningPostResource("planning_post", app=app, service=planning_post_service)

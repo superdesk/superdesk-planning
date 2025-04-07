@@ -73,7 +73,7 @@ from planning.common import (
     get_config_assignment_manual_reassignment_only,
 )
 
-from planning.types import EventResourceModel, PlanningResourceModel
+from planning.types import EventResourceModel
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
@@ -107,16 +107,14 @@ class AssignmentsService(AsyncBaseService):
     async def _enhance_archive_items(self, docs):
         ids = [str(item["assignment_id"]) for item in docs if item.get("assignment_id")]
         if len(ids):
-            assignments = {
-                str(item[ID_FIELD]): item
-                async for item in await self.get_from_mongo_async(req=None, lookup={"_id": {"$in": ids}})
-            }
+            cursor = await self.get_from_mongo_async(req=None, lookup={"_id": {"$in": ids}})
+            assignments = {str(item[ID_FIELD]): item async for item in cursor}
 
             for doc in docs:
                 if doc.get("assignment_id") in assignments:
                     doc["assignment"] = assignments[doc["assignment_id"]].get("assigned_to") or {}
 
-    async def on_fetched_async(self, docs):  # TODO-ASYNC: Confirm method overide from
+    async def on_fetched_async(self, docs):
         await self._enhance_assignments(docs.get("_items", []))
 
     async def on_fetched_item_async(self, doc):
@@ -256,8 +254,7 @@ class AssignmentsService(AsyncBaseService):
 
     async def validate_assignment_action(self, assignment):
         if assignment.get("_to_delete"):
-            planning_service = PlanningResourceModel.get_service()
-            plan = await planning_service.find_by_id_raw(assignment.get("planning_item"))
+            plan = await get_resource_service("planning").find_one_async(req=None, _id=assignment.get("planning_item"))
             state = "unposted" if (plan or {}).get("state") == WORKFLOW_STATE.KILLED else (plan or {}).get("state")
             raise SuperdeskApiError.forbiddenError("Action failed. Related planning item is {}".format(state))
 
@@ -1086,7 +1083,7 @@ class AssignmentsService(AsyncBaseService):
             if not delivery:
                 raise SuperdeskApiError.badRequestError("Delivery record not found.")
 
-            planning = planning_service.find_one(req=None, _id=delivery.get("planning_id"))
+            planning = await planning_service.find_one_async(req=None, _id=delivery.get("planning_id"))
             if not planning:
                 raise SuperdeskApiError.badRequestError("Planning does not exist")
 
@@ -1223,9 +1220,8 @@ class AssignmentsService(AsyncBaseService):
             return
 
         # Also make sure the Planning item is locked by this user and session
-        planning_service = PlanningResourceModel.get_service()
-        planning_item = await planning_service.find_by_id_raw(doc.get("planning_item"))
-        assert planning_item is not None, "Expected planning_item to be a dict, got None"
+        planning_service = get_resource_service("planning")
+        planning_item = await planning_service.find_one_async(req=None, _id=doc.get("planning_item"))
 
         # Make sure the Assignment is locked by this user and session unless when removing
         # assignments during spiking/unposting planning items
@@ -1291,11 +1287,10 @@ class AssignmentsService(AsyncBaseService):
         await self.archive_delete_assignment(doc)
         marked_for_delete = False
         # Delete all assignments in that coverage
-        assignments = list(
-            await get_resource_service("assignments").get_from_mongo_async(
-                req=None, lookup={"coverage_item": doc["coverage_item"]}
-            )
+        cursor = await get_resource_service("assignments").get_from_mongo_async(
+            req=None, lookup={"coverage_item": doc["coverage_item"]}
         )
+        assignments = await cursor.to_list()
         for a in assignments:
             if str(a["_id"]) != str(doc["_id"]):
                 await self.delete_async(lookup={"_id": a["_id"]})
@@ -1305,7 +1300,7 @@ class AssignmentsService(AsyncBaseService):
                     marked_for_delete = True
 
         # Remove assignment information from coverage
-        updated_planning = planning_service.remove_assignment(doc)
+        updated_planning = await planning_service.remove_assignment(doc)
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed
@@ -1370,7 +1365,7 @@ class AssignmentsService(AsyncBaseService):
             published_service = get_resource_service("published_planning")
             lock_service = get_component(LockService)
 
-            planning_item = planning_service.find_one(req=None, _id=planning_id) if planning_id else None
+            planning_item = await planning_service.find_one_async(req=None, _id=planning_id) if planning_id else None
             published_planning_item = published_service.get_last_published_item(planning_id) if planning_id else None
 
             if not planning_item or not published_planning_item or planning_item.get("state") == WORKFLOW_STATE.KILLED:
