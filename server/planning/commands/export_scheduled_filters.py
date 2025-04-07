@@ -6,19 +6,25 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from datetime import datetime
 import logging
+import click
+from datetime import datetime
 
-from superdesk import Command, command, Option, get_resource_service
+from superdesk import get_resource_service
+from superdesk.commands import cli
 from superdesk.core import get_app_config
 from superdesk.utc import utcnow, local_to_utc, utc_to_local
 from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
 
+from planning.search import EventsPlanningFiltersAsyncService
+
 logger = logging.getLogger(__name__)
 
 
-class ExportScheduledFilters(Command):
+@cli.command("planning:planning:export_scheduled_filters")
+@click.option("--now", "-n", required=False, help="Local date/hour in the format '%Y-%m-%dT%H', i.e. 2018-09-13T10")
+async def export_scheduled_filters_command(now):
     """Exports scheduled filters to news items
 
     Example:
@@ -28,18 +34,11 @@ class ExportScheduledFilters(Command):
         $ python manage planning:export_scheduled_filters --now '2021-01-11T15'
 
     """
+    await ExportScheduledFilters().run(now)
 
-    option_list = [
-        Option(
-            "--now",
-            "-n",
-            dest="now",
-            required=False,
-            help="Local date/hour in the format '%Y-%m-%dT%H', i.e. 2018-09-13T10",
-        )
-    ]
 
-    def run(self, now=None):
+class ExportScheduledFilters:
+    async def run(self, now=None):
         lock_name = get_lock_id("planning", "export_scheduled_filters")
         if not lock(lock_name, expire=600):
             logger.info("Export scheduled filters task is already running")
@@ -61,12 +60,14 @@ class ExportScheduledFilters(Command):
         now_local = now_local.replace(minute=0, second=0, microsecond=0)
 
         logger.info(f"Starting to export scheduled filters: {now_utc}")
-        self.process_filters(self.get_filters_with_schedules(), now_local, now_utc)
+        await self.process_filters(self.get_filters_with_schedules(), now_local, now_utc)
 
         unlock(lock_name)
         logger.info(f"Completed sending scheduled exports: {now_utc}")
 
-    def process_filters(self, filters, now_local, now_utc):
+    async def process_filters(self, filters, now_local, now_utc):
+        event_planning_filters_service = EventsPlanningFiltersAsyncService()
+
         if not filters.count():
             logger.info("No enabled filter schedules found, not continuing")
             return
@@ -74,34 +75,32 @@ class ExportScheduledFilters(Command):
         for search_filter in filters:
             for schedule in search_filter.get("schedules") or []:
                 try:
-                    self.export_filter(search_filter, schedule, now_local, now_utc)
+                    await self.export_filter(search_filter, schedule, now_local, now_utc)
                 except Exception as err:
                     search_filter_id = search_filter["_id"]
                     logger.error(f"Failed to export filter {search_filter_id}")
                     logger.exception(err)
 
             # Update the DB for _last_sent of all schedules for this filter
-            get_resource_service("events_planning_filters").system_update(
+            await event_planning_filters_service.system_update(
                 search_filter["_id"],
                 {"schedules": search_filter["schedules"]},
-                search_filter,
             )
 
-    def export_filter(self, search_filter, schedule, now_local, now_utc):
+    async def export_filter(self, search_filter, schedule, now_local, now_utc):
         if not self.should_export(schedule, now_local):
             return
 
         search_filter_id = search_filter["_id"]
         logger.info(f"Attempting to export filter {search_filter_id}")
-        self._export_filter(search_filter, schedule)
+        await self._export_filter(search_filter, schedule)
 
         # Update the _last_sent of the schedule
         schedule["_last_sent"] = now_utc
 
-    def get_filters_with_schedules(self):
-        return get_resource_service("events_planning_filters").get(
-            req=None, lookup={"schedules": {"$exists": True, "$ne": []}}
-        )
+    async def get_filters_with_schedules(self):
+        event_planning_filters_service = EventsPlanningFiltersAsyncService()
+        return await event_planning_filters_service.search(lookup={"schedules": {"$exists": True, "$ne": []}})
 
     def should_export(self, schedule, now_local):
         last_sent = None
@@ -136,11 +135,10 @@ class ExportScheduledFilters(Command):
 
         return True
 
-    def _export_filter(self, search_filter, schedule):
+    async def _export_filter(self, search_filter, schedule):
         start_of_week = get_app_config("START_OF_WEEK") or 0
 
-        # TODO-ASYNC[EventsPlanningSearch] - Convert `search_by_filter_id` to async when upgrading command
-        items = get_resource_service("events_planning_search").search_by_filter_id(
+        items = await get_resource_service("events_planning_search").search_by_filter_id(
             search_filter["_id"], projections=["_id"], args={"start_of_week": start_of_week}
         )
 
@@ -160,6 +158,3 @@ class ExportScheduledFilters(Command):
                 }
             ]
         )
-
-
-command("planning:export_scheduled_filters", ExportScheduledFilters())

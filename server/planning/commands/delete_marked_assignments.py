@@ -23,7 +23,7 @@ from superdesk.notification import push_notification
 
 
 @cli.command("planning:delete_assignments")
-async def delete_spiked_items_command():
+async def delete_marked_items_command():
     """
     Delete `Assignments` that are marked for delete  `{'_to_delete': True}`.
 

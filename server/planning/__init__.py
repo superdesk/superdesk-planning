@@ -329,5 +329,5 @@ async def delete_assignments():
 
 
 @celery.task(soft_time_limit=600)
-def export_scheduled_filters():
-    ExportScheduledFilters().run()
+async def export_scheduled_filters():
+    await ExportScheduledFilters().run()
