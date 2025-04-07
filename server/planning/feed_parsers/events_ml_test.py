@@ -179,7 +179,7 @@ class EventsMLFeedParserTestCase(TestCase):
                 start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                 end=datetime(2022, 7, 5, 23, 59, 59, tzinfo=utc),
                 all_day=True,
-                no_end_time=False,
+                no_end_time=True,
                 tz=None,
             ),
         )
@@ -192,7 +192,7 @@ class EventsMLFeedParserTestCase(TestCase):
                 start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                 end=datetime(2022, 7, 7, 23, 59, 59, tzinfo=utc),
                 all_day=True,
-                no_end_time=False,
+                no_end_time=True,
                 tz=None,
             ),
         )
