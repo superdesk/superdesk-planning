@@ -11,6 +11,7 @@
 import logging
 from copy import deepcopy
 from typing import Any, TypedDict
+from eve.utils import config
 
 from superdesk import Resource
 from planning.utils import get_related_planning_for_events
