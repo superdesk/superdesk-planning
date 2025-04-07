@@ -21,7 +21,13 @@ export interface IEditor3Field extends IBaseField<'editor3'> {
     minlength?: number;
 }
 
-export type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField | IEditor3Field;
+export interface IMultiLineField extends IBaseField<'multi_line'> {
+    expandable?: boolean;
+    maxlength?: number;
+    minlength?: number;
+}
+
+export type IFieldConverted = IBaseField<'normal'> | ICustomVocabularyField | IEditor3Field | IMultiLineField;
 
 /**
  * Fields that might exist in the planning profile (database)
@@ -126,6 +132,18 @@ export const getPlanningProfileFields = (
                 format_options: castedSchema.format_options,
                 maxlength: castedSchema.maxlength,
                 minlength: castedSchema.minlength,
+            });
+        } else if (
+            TEXT_FIELDS_WITH_EDITOR_TYPE_CONFIG.has(fieldId)
+            && (fieldSchema as IProfileSchemaTypeString).field_type === 'multi_line'
+        ) {
+            const castedSchema = fieldSchema as IProfileSchemaTypeString;
+
+            convertedFields.push({
+                type: 'multi_line',
+                fieldId: fieldId,
+                required: castedSchema.required ?? false,
+                expandable: castedSchema.expandable,
             });
         } else {
             convertedFields.push({

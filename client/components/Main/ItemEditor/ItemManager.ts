@@ -252,7 +252,7 @@ export class ItemManager {
             formProfiles: nextProps.formProfiles,
             errors: errors,
             messages: errorMessages,
-            ignoreDateValidation: !isTemporaryId(nextProps.itemId),
+            ignoreDateValidation: false,
         }));
 
         newState.errors = errors;

@@ -1247,9 +1247,11 @@ function getPlanningByDate(
     plansInList.forEach((plan) => {
         let dates = {};
         let groupDate = null;
+        const planningDate = getPlanningDate(plan);
 
         const setCoverageToDate = (coverage) => {
-            groupDate = getGroupDate(moment(get(coverage, 'planning.scheduled', plan.planning_date)).clone());
+            groupDate = getGroupDate(moment(get(coverage, 'planning.scheduled', planningDate)).clone());
+
             if (!isDateInRange(groupDate, startDate, endDate)) {
                 return;
             }
@@ -1274,7 +1276,7 @@ function getPlanningByDate(
         });
 
         if (isEmpty(dates)) {
-            groupDate = getGroupDate(moment(plan.planning_date).clone());
+            groupDate = getGroupDate(planningDate);
             if (isDateInRange(groupDate, startDate, endDate)) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
             }
@@ -1293,6 +1295,10 @@ function getPlanningByDate(
     });
 
     return sortBasedOnTBC(days);
+}
+
+function getPlanningDate(planning: IPlanningItem): moment.Moment {
+    return planning.all_day ? moment.utc(planning.planning_date) : moment(planning.planning_date);
 }
 
 function getFeaturedPlanningItemsForDate(items: Array<IPlanningItem>, date: moment.Moment): Array<IPlanningItem> {

@@ -10,8 +10,7 @@
     "cypress": "^13.16.1",
     "cypress-real-events": "^1.14.0",
     "cypress-terminal-report": "^5.0.2",
-    "extract-text-webpack-plugin": "3.0.2",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.15",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.47"
   },
