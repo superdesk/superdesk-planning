@@ -61,13 +61,7 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
         );
         const headlineField = extractedFields['headline'];
         const bodyField = extractedFields['body_html'];
-        const subjectSchemes = appConfig?.SUBJECT_SCHEME_LABELS || {};
-        const subjectKey = Object.keys(subjectSchemes).find((key) =>
-            this.props.item.subject?.some((item) => item.scheme === key)
-        );
-        const filteredSubjects = subjectKey ?
-            this.props.item.subject?.filter((item) => item.scheme === subjectKey) || []
-            : [];
+        const subjects = this.props.item.subject || [];
 
         return (
             <div style={{width: '100%'}} className="preview-content">
@@ -102,32 +96,28 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
                                     </div>
                                 ))
                         }
-                        {this.props.item.subject?.length > 0 && (subjectKey || Object.keys(subjectSchemes).length === 0)
-                         && (
-                             <div className="tr">
-                                 <div className="td sd-padding-b--0-5">
-                                     <span className="form-label">
-                                         {this.getLabel(
-                                             subjectKey ? subjectSchemes[subjectKey] || 'Subjects' : 'Subjects'
-                                         )}
-                                     </span>
-                                 </div>
-                                 <div className="td sd-padding-b--0-5 sd-padding-l--4">
-                                     <div className="subject-tags-container">
-                                         {(subjectKey ? filteredSubjects : this.props.item.subject || []).map((item) =>
-                                             (
-                                                 <span
-                                                     key={item.qcode}
-                                                     className="small-tag"
-                                                     style={{marginInlineEnd: '4px'}}
-                                                 >
-                                                     {item.name}
-                                                 </span>
-                                             ))}
-                                     </div>
-                                 </div>
-                             </div>
-                         )}
+                        {subjects.length > 0 && (
+                            <div className="tr">
+                                <div className="td sd-padding-b--0-5">
+                                    <span className="form-label">
+                                        {this.getLabel('Subjects')}
+                                    </span>
+                                </div>
+                                <div className="td sd-padding-b--0-5 sd-padding-l--4">
+                                    <div className="subject-tags-container">
+                                        {subjects.map((item) => (
+                                            <span
+                                                key={item.qcode}
+                                                className="small-tag"
+                                                style={{marginInlineEnd: '4px'}}
+                                            >
+                                                {item.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <ContentDivider />
                     {
