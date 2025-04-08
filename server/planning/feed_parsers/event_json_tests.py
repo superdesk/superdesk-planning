@@ -66,12 +66,14 @@ class EventJsonFeedParserTestCase(TestCase):
                         )
 
             # check if locations and contacts are created.
-            location = get_resource_service("locations").find_one(req=None, _id="835d5175-a2bc-41ad-a906-baf3f2281a5c")
+            location = await get_resource_service("locations").find_one_async(
+                req=None, _id="835d5175-a2bc-41ad-a906-baf3f2281a5c"
+            )
             contact = get_resource_service("contacts").find_one(req=None, _id="5d67ccc2fdf5baac5c93745c")
 
             self.assertTrue(True, location)
             self.assertTrue(True, contact)
 
             # remove the locations and contacts added.
-            get_resource_service("locations").delete(location)
+            await get_resource_service("locations").delete_async(location)
             get_resource_service("contacts").delete(contact)
