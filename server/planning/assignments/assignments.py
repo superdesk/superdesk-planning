@@ -772,7 +772,7 @@ class AssignmentsService(superdesk.Service):
             target_user=assigned_to.get("user"),
             target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
             message="assignment_cancelled_desk_msg",
-            user=(
+            user=str(
                 user.get("display_name", lazy_gettext("Unknown"))
                 if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user")
                 else lazy_gettext("You")
