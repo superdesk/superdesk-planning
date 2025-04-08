@@ -598,7 +598,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 for scheduled_update in orig_coverage.scheduled_updates:
                     await self.validate_and_remove_coverage_entity(scheduled_update, original_planning)
 
-                awaitself.validate_and_remove_coverage_entity(orig_coverage, original_planning)
+                await self.validate_and_remove_coverage_entity(orig_coverage, original_planning)
 
     async def validate_and_remove_coverage_entity(
         self,
@@ -664,7 +664,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 coverage.original_creator = get_user().get(ID_FIELD)
 
                 self.set_coverage_active(coverage, updated_planning)
-                self.set_slugline_from_xmp(coverage, None)
+                await self.set_slugline_from_xmp(coverage, None)
                 await self._create_or_update_assignment(original, updated_planning.to_dict(), coverage.to_dict())
                 await self.add_scheduled_updates(updated_planning, original, coverage)
 
@@ -694,7 +694,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 coverage.planning.scheduled = original_coverage.planning.scheduled
 
             self.set_coverage_active(coverage, updated_planning)
-            self.set_slugline_from_xmp(coverage, original_coverage)
+            await self.set_slugline_from_xmp(coverage, original_coverage)
 
             if self.has_coverage_changed(coverage, original_coverage):
                 user = get_user()
@@ -1399,7 +1399,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         )
 
     async def set_xmp_file_info(self, updates_coverage: dict[str, Any], original_coverage: dict[str, Any]):
-        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage)
+        xmp_file = await self.get_xmp_file_for_updates(updates_coverage, original_coverage)
         if not xmp_file:
             return
 
@@ -1452,7 +1452,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 )
             )
 
-    def set_slugline_from_xmp(
+    async def set_slugline_from_xmp(
         self,
         updates_coverage: PlanningCoverage,
         original_coverage: PlanningCoverage | None = None,
@@ -1461,7 +1461,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         if original_coverage is not None:
             original_coverage_dict = original_coverage.to_dict()
 
-        xmp_file = self.get_xmp_file_for_updates(updates_coverage.to_dict(), original_coverage_dict, for_slugline=True)
+        xmp_file = await self.get_xmp_file_for_updates(
+            updates_coverage.to_dict(), original_coverage_dict, for_slugline=True
+        )
         if not xmp_file:
             return
 

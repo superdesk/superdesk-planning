@@ -22,7 +22,7 @@ from planning.search import EventsPlanningFiltersAsyncService
 logger = logging.getLogger(__name__)
 
 
-@cli.command("planning:planning:export_scheduled_filters")
+@cli.command("planning:export_scheduled_filters")
 @click.option("--now", "-n", required=False, help="Local date/hour in the format '%Y-%m-%dT%H', i.e. 2018-09-13T10")
 async def export_scheduled_filters_command(now):
     """Exports scheduled filters to news items

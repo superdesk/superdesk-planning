@@ -92,7 +92,7 @@ class ExportToNewsroom:
         req = ParsedRequest()
         req.args = {"source": json.dumps(query)}
         cursor = await fetch_callback(req=req, lookup=None)
-        total_documents = cursor.count()
+        total_documents = await cursor.count()
 
         if total_documents > 0:
             query["size"] = self.page_size
@@ -102,7 +102,8 @@ class ExportToNewsroom:
                 req = ParsedRequest()
                 req.args = {"source": json.dumps(query)}
                 cursor = await fetch_callback(req=req, lookup=None)
-                yield list(cursor)
+                items = await cursor.to_list()
+                yield items
 
     async def _export_events(self):
         """Export events"""
