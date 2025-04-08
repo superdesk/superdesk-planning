@@ -63,6 +63,7 @@ from planning.common import (
     get_config_assignment_manual_reassignment_only,
 )
 from icalendar import Calendar, Event
+from flask_babel import lazy_gettext
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
@@ -641,9 +642,9 @@ class AssignmentsService(superdesk.Service):
                         client_url=client_url,
                         assignment_id=assignment_id,
                         assignor=(
-                            "by " + user.get("display_name", "")
+                            lazy_gettext("by ") + user.get("display_name", "")
                             if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user", "")
-                            else "to yourself"
+                            else lazy_gettext("to yourself")
                         ),
                         assignment=assignment,
                         event=event_item,
@@ -772,9 +773,9 @@ class AssignmentsService(superdesk.Service):
             target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
             message="assignment_cancelled_desk_msg",
             user=(
-                user.get("display_name", "Unknown")
+                user.get("display_name", lazy_gettext("Unknown"))
                 if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user")
-                else "You"
+                else lazy_gettext("You")
             ),
             omit_user=True,
             slugline=slugline,
