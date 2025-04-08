@@ -53,6 +53,7 @@ from apps.archive.common import get_auth, update_dates_for
 
 from planning.events.events_reschedule import reschedule_single_event
 from planning.events.events_utils import get_recurring_timeline
+from planning.events.events_history_async_service import EventsHistoryAsyncService
 from planning.types import EmbeddedCoverageItem, Event, PlanningRelatedEventLink, PLANNING_RELATED_EVENT_LINK_TYPE
 from planning.types.event import EmbeddedPlanning
 from planning.common import (
@@ -154,9 +155,9 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
     return False
 
 
-def get_user_updated_keys(event_id: str) -> set[str]:
-    history_service = get_resource_service("events_history")
-    updates = history_service.get_by_id(event_id)
+async def get_user_updated_keys(event_id: str) -> set[str]:
+    history_service = EventsHistoryAsyncService()
+    updates = await history_service.get_by_id(event_id)
     updated_keys = set()
     for update in updates:
         if not update.get("user_id"):
@@ -183,14 +184,14 @@ class EventsService(AsyncBaseService):
         self.on_created(docs)
         return ids
 
-    def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
+    async def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
         """Patch an ingested item onto an existing item locally"""
         prepare_ingested_item_for_storage(document)
-        events_history = get_resource_service("events_history")
-        events_history.on_item_updated(document, original, "ingested")
+        events_history = EventsHistoryAsyncService()
+        await events_history.on_item_updated(document, original, "ingested")
 
         content_fields = get_current_app().config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
-        updated_keys = get_user_updated_keys(_id)
+        updated_keys = await get_user_updated_keys(_id)
         for key in updated_keys:
             if key in document and key in content_fields and original.get(key):
                 document[key] = original[key]
@@ -324,8 +325,8 @@ class EventsService(AsyncBaseService):
                 event["_planning_item"] = planning_item
 
             if event["state"] == "ingested":
-                events_history = get_resource_service("events_history")
-                events_history.on_item_created([event])
+                events_history = EventsHistoryAsyncService()
+                await events_history.on_item_created([event])
 
             if planning_item:
                 await self._link_to_planning(event)
@@ -468,7 +469,7 @@ class EventsService(AsyncBaseService):
         Then send this list off to the clients so they can fetch these events
         """
         notifications_sent = []
-        history_service = get_resource_service("events_history")
+        history_service = EventsHistoryAsyncService()
 
         for doc in docs:
             event_id = str(doc.get(ID_FIELD))
@@ -477,8 +478,8 @@ class EventsService(AsyncBaseService):
                 parent_id = doc["duplicate_from"]
                 parent_event = self.find_one(req=None, _id=parent_id)
 
-                history_service.on_item_updated({"duplicate_id": event_id}, parent_event, "duplicate")
-                history_service.on_item_updated({"duplicate_id": parent_id}, doc, "duplicate_from")
+                await history_service.on_item_updated({"duplicate_id": event_id}, parent_event, "duplicate")
+                await history_service.on_item_updated({"duplicate_id": parent_id}, doc, "duplicate_from")
 
                 duplicate_ids = parent_event.get("duplicate_to", [])
                 duplicate_ids.append(event_id)
@@ -782,8 +783,8 @@ class EventsService(AsyncBaseService):
             set_planning_schedule(updates)
             await reschedule_single_event(updates, original)
             if updates.get("state") == WORKFLOW_STATE.RESCHEDULED:
-                history_service = get_resource_service("events_history")
-                history_service.on_reschedule(updates, original)
+                history_service = EventsHistoryAsyncService()
+                await history_service.on_reschedule(updates, original)
         else:
             # Original event falls as a part of the series
             # Remove the first element in the list (the current event being updated)

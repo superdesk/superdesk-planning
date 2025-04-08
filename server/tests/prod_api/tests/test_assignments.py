@@ -11,6 +11,7 @@ def test_service_get(prodapi_app_with_data):
     """
 
     with prodapi_app_with_data.app_context():
+        # TODO-ASYNC[AssignmentsService] - Convert this to async when test is updated to async
         items_service = get_resource_service("assignments")
 
         assert len(list(items_service.get(req=None, lookup={}))) == 4

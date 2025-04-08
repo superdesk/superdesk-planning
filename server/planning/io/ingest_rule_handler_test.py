@@ -197,6 +197,7 @@ class IngestRuleHandlerTestCase(TestCase):
 
         event["pubstatus"] = "cancelled"
         event["versioncreated"] = datetime.now()
+        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         events_service.patch_in_mongo(event["_id"], event, original)
 
         self.handler.apply_rule(AUTOPOST_RULE, event, {})

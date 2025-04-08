@@ -11,7 +11,6 @@
 """Superdesk Planning"""
 
 from typing import Dict, Any, Optional, List
-from planning.events.events_utils import get_recurring_timeline
 from typing_extensions import assert_never
 from copy import deepcopy
 import logging
@@ -74,6 +73,8 @@ from planning.common import (
     POST_STATE,
 )
 
+from planning.events.events_history_async_service import EventsHistoryAsyncService
+from planning.events.events_utils import get_recurring_timeline
 from planning.planning_notifications import PlanningNotifications
 from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from planning.signals import planning_created, planning_ingested
@@ -230,7 +231,7 @@ class PlanningService(AsyncBaseService):
 
     async def _update_event_history(self, doc: Planning):
         events_service = get_resource_service("events")
-        events_history_service = get_resource_service("events_history")
+        events_history_service = EventsHistoryAsyncService()
 
         for original_event in get_related_event_items_for_planning(doc, "primary"):
             await events_service.system_update_async(
@@ -244,7 +245,9 @@ class PlanningService(AsyncBaseService):
                 },
                 original_event,
             )
-            events_history_service.on_item_updated({"planning_id": doc[ID_FIELD]}, original_event, "planning_created")
+            await events_history_service.on_item_updated(
+                {"planning_id": doc[ID_FIELD]}, original_event, "planning_created"
+            )
 
     async def on_duplicated(self, doc, parent_id):
         await self._update_event_history(doc)
