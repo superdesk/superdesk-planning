@@ -18,6 +18,7 @@ from planning.common import (
     update_assignment_on_link_unlink,
     get_coverage_for_assignment,
 )
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from apps.content import push_content_notification
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
@@ -86,13 +87,13 @@ class AssignmentsUnlinkService(AsyncBaseService):
                 if len(other_linked_items) <= 0:
                     updates["assigned_to"]["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                     await assignments_service.patch_async(a.get(ID_FIELD), updates)
-                    assignment_history_service = get_resource_service("assignments_history")
+                    assignment_history_service = AssignmentsHistoryAsyncService()
                     if spike:
-                        get_resource_service("assignments_history").on_item_content_unlink(
+                        await assignment_history_service.on_item_content_unlink(
                             updates, a, ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK
                         )
                     else:
-                        assignment_history_service.on_item_content_unlink(updates, a)
+                        await assignment_history_service.on_item_content_unlink(updates, a)
 
                     if not cancel:
                         user = get_user()

@@ -11,6 +11,7 @@
 """Superdesk Planning"""
 
 from typing import Dict, Any, Optional, List
+from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from typing_extensions import assert_never
 from copy import deepcopy
 import logging
@@ -1023,7 +1024,7 @@ class PlanningService(AsyncBaseService):
                 if doc.get("scheduled_update"):
                     assignment["scheduled_update_id"] = doc.get("scheduled_update_id")
 
-                get_resource_service("assignments_history").on_item_deleted(assignment)
+                await AssignmentsHistoryAsyncService().on_item_deleted(assignment)
                 return
 
             # update the assignment using the coverage details

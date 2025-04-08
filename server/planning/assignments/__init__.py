@@ -33,9 +33,17 @@ from .delivery import DeliveryResource
 
 from .service import AssignmentsAsyncService
 from .delivery_service import DeliveryAsyncService
-from .module import assignments_resource_config, delivery_resource_config
+from .assignments_history_async import AssignmentsHistoryAsyncService
+from .module import assignments_resource_config, delivery_resource_config, assignments_history_resource_config
 
-__all__ = ["assignments_resource_config", "AssignmentsAsyncService", "delivery_resource_config", "DeliveryAsyncService"]
+__all__ = [
+    "assignments_resource_config",
+    "AssignmentsAsyncService",
+    "delivery_resource_config",
+    "DeliveryAsyncService",
+    "assignments_history_resource_config",
+    "AssignmentsHistoryAsyncService",
+]
 
 
 def init_app(app):

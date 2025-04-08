@@ -3,11 +3,13 @@ from superdesk.core.resources import (
     MongoIndexOptions,
     MongoResourceConfig,
     ElasticResourceConfig,
+    RestEndpointConfig,
 )
 
-from planning.types import AssignmentResourceModel, DeliveryResourceModel
+from planning.types import AssignmentResourceModel, DeliveryResourceModel, AssignmentsHistoryResourceModel
 from .service import AssignmentsAsyncService
 from .delivery_service import DeliveryAsyncService
+from .assignments_history_async import AssignmentsHistoryAsyncService
 
 assignments_resource_config = ResourceConfig(
     name="assignments",
@@ -69,4 +71,11 @@ delivery_resource_config = ResourceConfig(
             ),
         ],
     ),
+)
+
+assignments_history_resource_config: ResourceConfig = ResourceConfig(
+    name="assignments_history",
+    data_class=AssignmentsHistoryResourceModel,
+    service=AssignmentsHistoryAsyncService,
+    rest_endpoints=RestEndpointConfig(resource_methods=["GET"], item_methods=["GET"]),
 )

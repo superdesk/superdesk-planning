@@ -42,6 +42,7 @@ from planning.common import (
     sync_assignment_details_to_coverages,
 )
 from planning.core.service import BasePlanningAsyncService
+from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.types import (
     PlanningResourceModel,
@@ -969,7 +970,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 ]:
                     raise SuperdeskApiError.badRequestError("Coverage not in correct state to remove assignment.")
 
-                return self._remove_assignment(coverage_doc, original_planning, assignment_id)
+                return await self._remove_assignment(coverage_doc, original_planning, assignment_id)
 
             # update the assignment using the coverage details
             original_assignment = assignment_service.find_one(req=None, _id=assignment_id)
@@ -1137,12 +1138,12 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         return new_assignment_id, assign_state
 
     @staticmethod
-    def _remove_assignment(
+    async def _remove_assignment(
         coverage_doc: dict[str, Any],
         original_planning: PlanningResourceModel,
         assignment_id: str,
     ):
-        get_resource_service("assignments").delete(lookup={"_id": assignment_id})
+        await get_resource_service("assignments").delete_async(lookup={"_id": assignment_id})
         assignment = {
             "planning_item": original_planning.id,
             "coverage_item": coverage_doc.get("coverage_id"),
@@ -1150,7 +1151,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         if coverage_doc.get("scheduled_update"):
             assignment["scheduled_update_id"] = coverage_doc.get("scheduled_update_id")
 
-        get_resource_service("assignments_history").on_item_deleted(assignment)
+        await AssignmentsHistoryAsyncService().on_item_deleted(assignment)
 
     def _cancel_coverage_if_needed(
         self, original_coverage: dict[str, Any], coverage_updates: dict[str, Any], original_assignment: dict[str, Any]

@@ -77,6 +77,7 @@ from planning.types import EventResourceModel
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.utils import (
     get_event_formatted_dates,
     get_formatted_contacts,
@@ -176,7 +177,7 @@ class AssignmentsService(AsyncBaseService):
         for doc in docs:
             await self._send_assignment_creation_notification(doc)
 
-        get_resource_service("assignments_history").on_item_created(docs)
+        await AssignmentsHistoryAsyncService().on_item_created(docs)
 
     async def _send_assignment_creation_notification(self, doc):
         assignment_state = doc["assigned_to"].get("state")
@@ -324,7 +325,7 @@ class AssignmentsService(AsyncBaseService):
             doc = deepcopy(original)
             doc.update(updates)
             await self._send_assignment_creation_notification(doc)
-            get_resource_service("assignments_history").on_item_add_to_workflow(updates, original)
+            await AssignmentsHistoryAsyncService().on_item_add_to_workflow(updates, original)
         elif (
             original.get(LOCK_ACTION) != "content_edit"
             and updates.get("assigned_to")
@@ -860,7 +861,7 @@ class AssignmentsService(AsyncBaseService):
             )
 
             # Save history
-            get_resource_service("assignments_history").on_item_updated(
+            await AssignmentsHistoryAsyncService().on_item_updated(
                 updated_assignment,
                 original_assignment,
                 ASSIGNMENT_HISTORY_ACTIONS.CANCELLED,
@@ -922,8 +923,8 @@ class AssignmentsService(AsyncBaseService):
                 updated_assignment, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
             )
             await self._update_assignment_and_notify(updated_assignment, assignment_update_data.get("assignment"))
-            get_resource_service("assignments_history").on_item_updated(
-                updated_assignment, assignment_update_data.get("assignment")
+            await AssignmentsHistoryAsyncService().on_item_updated(
+                updated_assignment, assignment_update_data.get("assignment", {})
             )
 
     async def update_assignment_on_archive_operation(self, updates, original, operation=None):
@@ -956,7 +957,7 @@ class AssignmentsService(AsyncBaseService):
                 )
 
                 await self._update_assignment_and_notify(updated_assignment, assignment)
-                get_resource_service("assignments_history").on_item_updated(
+                await AssignmentsHistoryAsyncService().on_item_updated(
                     updated_assignment, assignment, ASSIGNMENT_HISTORY_ACTIONS.SUBMITTED
                 )
         elif operation == ITEM_PUBLISH:
@@ -985,7 +986,7 @@ class AssignmentsService(AsyncBaseService):
 
                     # Update the Assignment and send websocket notification
                     await self._update_assignment_and_notify(updated_assignment, assignment)
-                    get_resource_service("assignments_history").on_item_complete(updated_assignment, assignment)
+                    await AssignmentsHistoryAsyncService().on_item_complete(updated_assignment, assignment)
                 else:
                     # publish planning
                     self.publish_planning(assignment.get("planning_item"))
@@ -1446,9 +1447,7 @@ class AssignmentsService(AsyncBaseService):
         await self.system_update_async(ObjectId(assignment_id), update, original)
 
         # update the history
-        superdesk.get_resource_service("assignments_history").on_item_updated(
-            update, original, ASSIGNMENT_HISTORY_ACTIONS.ACCEPTED
-        )
+        await AssignmentsHistoryAsyncService().on_item_updated(update, original, ASSIGNMENT_HISTORY_ACTIONS.ACCEPTED)
 
         # send notification
         self.notify("assignments:accepted", update, original)
