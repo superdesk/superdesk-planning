@@ -45,6 +45,7 @@ from planning.types import (
     ContentProfile,
     PLANNING_RELATED_EVENT_LINK_TYPE,
 )
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.common import (
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
@@ -156,7 +157,7 @@ class PlanningService(AsyncBaseService):
     async def on_create_async(self, docs):
         """Set default metadata."""
         planning_type = get_resource_service("planning_types").find_one(req=None, name="planning")
-        history_service = get_resource_service("planning_history")
+        history_service = PlanningHistoryAsyncService()
         generated_planning_items = []
         for doc in docs:
             if "guid" not in doc:
@@ -181,14 +182,14 @@ class PlanningService(AsyncBaseService):
 
             is_ingested = doc["state"] == "ingested"
             if is_ingested:
-                history_service.on_item_created([doc])
+                await history_service.on_item_created([doc])
 
             update_method: Optional[UPDATE_METHOD] = doc.pop("update_method", None)
             if first_event and update_method is not None:
                 new_plans = await self._add_planning_to_event_series(doc, first_event, update_method)
                 if len(new_plans):
                     if is_ingested:
-                        history_service.on_item_created(new_plans)
+                        await history_service.on_item_created(new_plans)
                     generated_planning_items.extend(new_plans)
 
         if len(generated_planning_items):

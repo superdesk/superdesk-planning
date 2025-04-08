@@ -31,6 +31,7 @@ from planning.common import (
     get_version_item_for_post,
     get_contacts_from_item,
 )
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
 from planning.utils import get_related_event_items_for_planning
 
@@ -76,7 +77,7 @@ class PlanningPostService(BaseService):
             # if event and doc["pubstatus"] == POST_STATE.USABLE:
             #     self.post_associated_event(event)
 
-            self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
+            await self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
 
         await get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete)
@@ -146,7 +147,7 @@ class PlanningPostService(BaseService):
                 # )
                 pass
 
-    def post_planning(self, plan, new_post_state, assignments_to_delete, **kwargs):
+    async def post_planning(self, plan, new_post_state, assignments_to_delete, **kwargs):
         """Post a Planning item"""
         updates = {
             "state": get_item_post_state(plan, new_post_state),
@@ -176,7 +177,7 @@ class PlanningPostService(BaseService):
 
         # Save the version into the history
         updates["version"] = version
-        get_resource_service("planning_history")._save_history(plan, updates, "post")
+        await PlanningHistoryAsyncService()._save_history(plan, updates, "post")
 
     def publish_planning(self, plan, version):
         # Check and remove private contacts while posting planning, only public contact will be visible

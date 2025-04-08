@@ -15,6 +15,7 @@ from planning.history import HistoryService
 import logging
 from collections import namedtuple
 from planning.common import WORKFLOW_STATE
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +111,7 @@ class AssignmentsHistoryService(HistoryService):
 
         if diff:
             # Split an update to two actions if needed
-            planning_history_service = get_resource_service("planning_history")
+            planning_history_service = PlanningHistoryAsyncService()
             cov_diff = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
 
             if "priority" in diff.keys():
@@ -120,7 +121,7 @@ class AssignmentsHistoryService(HistoryService):
                     {"priority": cov_diff["assigned_to"]["priority"]},
                     ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
                 )
-                planning_history_service._save_history(
+                await planning_history_service._save_history(
                     {"_id": original.get("planning_item")},
                     cov_diff,
                     ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
@@ -129,7 +130,7 @@ class AssignmentsHistoryService(HistoryService):
             if "assigned_to" in diff.keys():
                 cov_diff["assigned_to"] = diff["assigned_to"]
                 self._save_history(item, diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
-                planning_history_service._save_history(
+                await planning_history_service._save_history(
                     {"_id": original.get("planning_item")},
                     cov_diff,
                     ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED,
@@ -145,7 +146,7 @@ class AssignmentsHistoryService(HistoryService):
         if doc.get("scheduled_update_id"):
             coverage_diff["scheduled_update_id"] = doc["scheduled_update_id"]
 
-        get_resource_service("planning_history")._save_history(
+        await PlanningHistoryAsyncService()._save_history(
             planning, coverage_diff, ASSIGNMENT_HISTORY_ACTIONS.ASSIGNMENT_REMOVED
         )
 
@@ -159,7 +160,7 @@ class AssignmentsHistoryService(HistoryService):
         if operation == ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW:
             cov["workflow_status"] = WORKFLOW_STATE.ACTIVE
 
-        get_resource_service("planning_history")._save_history({"_id": original.get("planning_item")}, cov, operation)
+        await PlanningHistoryAsyncService()._save_history({"_id": original.get("planning_item")}, cov, operation)
 
     def on_item_add_to_workflow(self, updates, original):
         self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW)

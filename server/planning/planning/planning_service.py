@@ -42,6 +42,7 @@ from planning.common import (
     sync_assignment_details_to_coverages,
 )
 from planning.core.service import BasePlanningAsyncService
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.types import (
     PlanningResourceModel,
     ContentProfile,
@@ -421,7 +422,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         Set default metadata.
         """
         planning_type = get_resource_service("planning_types").find_one(req=None, name="planning")
-        history_service = get_resource_service("planning_history")
+        history_service = PlanningHistoryAsyncService()
         generated_planning_items = []
 
         for doc in docs:
@@ -445,7 +446,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
             is_ingested = doc.state == WorkflowStates.INGESTED
             if is_ingested:
-                history_service.on_item_created([doc.to_dict()])
+                await history_service.on_item_created([doc.to_dict()])
 
             update_method = doc.update_method
             doc.update_method = None
@@ -453,7 +454,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 new_plans = await self._add_planning_to_event_series(doc, first_event, update_method)
                 if len(new_plans):
                     if is_ingested:
-                        history_service.on_item_created(new_plans)
+                        await history_service.on_item_created([plan.to_dict() for plan in new_plans])
                     generated_planning_items.extend(new_plans)
 
         if len(generated_planning_items):
