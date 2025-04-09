@@ -184,4 +184,3 @@ export function cleanArticlesFields(articles: Array<Partial<IArticle>>) {
 
     return articles;
 }
-
