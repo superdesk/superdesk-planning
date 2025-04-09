@@ -735,7 +735,9 @@ export class ItemManager {
                         return this.editor.onCancel(updateStates);
                     }
 
-                    planningApi.locks.reloadSoftLocksForRelatedEvents(updatedItem);
+                    if (updatedItem.type == 'planning') {
+                        planningApi.locks.reloadSoftLocksForRelatedEvents(updatedItem);
+                    }
 
                     const newState: Partial<IEditorState> = {
                         initialValues: updatedItem,

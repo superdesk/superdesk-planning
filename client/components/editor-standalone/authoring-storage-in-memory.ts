@@ -67,6 +67,9 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
                     } else {
                         return {...x} as unknown as T;
                     }
+                })
+                .catch(() => {
+                    return {...item} as unknown as T;
                 });
         },
 
