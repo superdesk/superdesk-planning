@@ -2,6 +2,7 @@ import React from 'react';
 import {get} from 'lodash';
 import {getTranslatedValue} from '.';
 import {IFieldsProps} from '../../interfaces';
+import {stringUtils} from '../../utils';
 
 export const slugline = ({item, language}: IFieldsProps) => {
     if (!get(item, 'slugline', '')) {
@@ -9,7 +10,10 @@ export const slugline = ({item, language}: IFieldsProps) => {
     }
 
     return (
-        <span className="sd-list-item__slugline">{getTranslatedValue(language, item, 'slugline') ||
-    item.slugline}</span>
+        <span className="sd-list-item__slugline">
+            {stringUtils.convertHtmlToPlainText(
+                getTranslatedValue(language, item, 'slugline') || item.slugline,
+            )}
+        </span>
     );
 };
