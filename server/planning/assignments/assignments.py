@@ -50,8 +50,7 @@ from apps.common.components.utils import get_component
 from apps.content import push_content_notification
 
 from planning.errors import AssignmentApiError
-from planning.planning import coverage_schema
-from planning.planning.planning import planning_schema
+from planning.planning.planning_schema import coverage_schema, planning_schema
 from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION, LOCK_SESSION
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,

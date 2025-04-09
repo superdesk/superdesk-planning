@@ -86,14 +86,17 @@ def init_app(app):
         service=recent_events_template_service,
     )
 
+    events_history_async_service = EventsHistoryAsyncService()
+
     # listen to async signals
-    signals.events_created.connect(events_history_service.on_item_created)
-    signals.event_time_updated.connect(events_history_service.on_update_time)
-    signals.event_spiked.connect(events_history_service.on_spike)
-    signals.event_unspiked.connect(events_history_service.on_unspike)
-    signals.event_postponed.connect(events_history_service.on_postpone)
-    signals.event_cancel.connect(events_history_service.on_cancel)
-    signals.event_reschedule.connect(events_history_service.on_reschedule)
+    signals.events_created.connect(events_history_async_service.on_item_created)
+    signals.event_time_updated.connect(events_history_async_service.on_update_time)
+    signals.event_spiked.connect(events_history_async_service.on_spike)
+    signals.event_unspiked.connect(events_history_async_service.on_unspike)
+    signals.event_postponed.connect(events_history_async_service.on_postpone)
+    signals.event_cancel.connect(events_history_async_service.on_cancel)
+    signals.event_reschedule.connect(events_history_async_service.on_reschedule)
+    signals.event_reschedule.connect(events_history_async_service.on_reschedule)
 
     app.on_updated_events += events_history_service.on_item_updated
 

@@ -58,6 +58,8 @@ ASSIGNMENT_HISTORY_ACTIONS = namedtuple(
 
 
 class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResourceModel]):
+    resource_name = "assignments_history"
+
     async def _save_history(self, item, update: dict[str, Any], operation: str | None = None):
         user = self.get_user_id()
         # confirmation could be from external fulfillment, so set the user to the assignor

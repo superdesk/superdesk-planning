@@ -9,10 +9,8 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import blinker
-from typing import Any
 
 from superdesk.core import AsyncSignal
-from planning.types import EventResourceModel, PlanningResourceModel
 
 __all__ = [
     "planning_created",
@@ -30,18 +28,18 @@ assignment_content_create = signals.signal("planning:assignment_content_create")
 #: Signal for when an Event is about to be updated in the DB
 #: param updates: Event updates
 #: param original_event: `EventResourceModel` instance of the event to be updated
-events_update = AsyncSignal[dict[str, Any], EventResourceModel]("events:update")
+events_update = AsyncSignal[dict, dict]("events:update")
 
 
 #: Signal for when a list of Events have been recorded into DB
 #: param events: List of events registered in DB
-events_created = AsyncSignal[list[EventResourceModel]]("events:created")
+events_created = AsyncSignal[list[dict]]("events:created")
 
 
 #: Signal for when a Planning item has been updated in the DB
 #: param updates: Planning item updates
 #: param planning_item: `PlanningResourceModel` instance of the event to be updated
-planning_updated = AsyncSignal[dict[str, Any], PlanningResourceModel]("planning:update")
+planning_updated = AsyncSignal[dict, dict]("planning:update")
 
 #: Signal for when an Event time is updated
 event_time_updated = AsyncSignal[dict, dict]("events:time_updated")
@@ -69,3 +67,9 @@ event_cancel = AsyncSignal[dict, dict]("events:cancel")
 
 #: Signal for when an Event is rescheduled
 event_reschedule = AsyncSignal[dict, dict]("events:reschedule")
+
+#: Signal for when an Assignment is updated
+assignments_updated = AsyncSignal[dict, dict]("assignments:updated")
+
+#: Signal for when an Assignment is deleted
+assignments_deleted = AsyncSignal[dict]("assignments:delete")

@@ -117,11 +117,13 @@ def init_app(app):
     planning_autosave_service = PlanningAutosaveService("planning_autosave", superdesk.get_backend())
     PlanningAutosaveResource("planning_autosave", app=app, service=planning_autosave_service)
 
+    planning_history_async_service = PlanningHistoryAsyncService()
+
     # listen to async signals
-    signals.planning_updated.connect(planning_history_service.on_item_updated)
-    signals.planning_spiked.connect(planning_history_service.on_spike)
-    signals.planning_unspiked.connect(planning_history_service.on_unspike)
-    signals.planning_postponed.connect(planning_history_service.on_postpone)
+    signals.planning_updated.connect(planning_history_async_service.on_item_updated)
+    signals.planning_spiked.connect(planning_history_async_service.on_spike)
+    signals.planning_unspiked.connect(planning_history_async_service.on_unspike)
+    signals.planning_postponed.connect(planning_history_async_service.on_postpone)
 
     app.on_inserted_planning += planning_history_service.on_item_created
     app.on_updated_planning_cancel += planning_history_service.on_cancel
