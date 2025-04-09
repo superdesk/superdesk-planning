@@ -10,10 +10,11 @@
 
 from eve.utils import ParsedRequest
 
+from superdesk.commands import cli
 from superdesk.core import json
 from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
-from superdesk import Command, command, get_resource_service
+from superdesk import get_resource_service
 from superdesk.logging import logger
 from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
@@ -21,7 +22,8 @@ from superdesk.lock import lock, unlock, remove_locks
 from superdesk.notification import push_notification
 
 
-class DeleteMarkedAssignments(Command):
+@cli.command("planning:delete_assignments")
+async def delete_marked_assignments_command():
     """
     Delete `Assignments` that are marked for delete  `{'_to_delete': True}`.
 
@@ -31,10 +33,13 @@ class DeleteMarkedAssignments(Command):
         $ python manage.py planning:delete_assignments
 
     """
+    await DeleteMarkedAssignments().run()
 
+
+class DeleteMarkedAssignments:
     log_msg = ""
 
-    def run(self):
+    async def run(self):
         now = utcnow()
         self.log_msg = "Delete Marked Assignments Time: {}.".format(now)
         logger.info("{} Starting to delete marked assignments at.".format(self.log_msg))
@@ -45,7 +50,7 @@ class DeleteMarkedAssignments(Command):
             return
 
         try:
-            self._delete_marked_assignments()
+            await self._delete_marked_assignments()
         except Exception as e:
             logger.exception(e)
 
@@ -54,7 +59,7 @@ class DeleteMarkedAssignments(Command):
         logger.info("{} Completed deleting marked assignments.".format(self.log_msg))
         remove_locks()
 
-    def _delete_marked_assignments(self):
+    async def _delete_marked_assignments(self):
         logger.info("{} Starting to delete marked assignments".format(self.log_msg))
         assignments_service = get_resource_service("assignments")
 
@@ -71,14 +76,14 @@ class DeleteMarkedAssignments(Command):
         }
         req = ParsedRequest()
         req.args = {"source": json.dumps(query)}
-        assignments_to_delete = assignments_service.get(req=req, lookup=None)
+        assignments_to_delete = await assignments_service.get_async(req=req, lookup=None)
         failed_assignments = []
         assignments_deleted = []
 
         for assignment in assignments_to_delete:
             assign_id = assignment.get(ID_FIELD)
             try:
-                assignments_service.delete_action(lookup={"_id": assign_id})
+                await assignments_service.delete_action_async(lookup={"_id": assign_id})
                 assignments_deleted.append(
                     {
                         "id": assign_id,
@@ -103,6 +108,3 @@ class DeleteMarkedAssignments(Command):
                     self.log_msg, len(failed_assignments), str(failed_assignments)
                 )
             )
-
-
-command("planning:delete_assignments", DeleteMarkedAssignments())
