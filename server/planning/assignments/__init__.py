@@ -10,7 +10,6 @@
 
 import superdesk
 from quart_babel import lazy_gettext
-from superdesk.services import BaseService
 
 from planning import signals
 from .assignments import AssignmentsResource, AssignmentsService
@@ -29,7 +28,7 @@ from .assignments_lock import (
     AssignmentsUnlockService,
 )
 from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryService
-from .delivery import DeliveryResource
+from .delivery import DeliveryResource, DeliveryService
 
 from .service import AssignmentsAsyncService
 from .delivery_service import DeliveryAsyncService
@@ -101,7 +100,7 @@ def init_app(app):
     app.on_updated_assignments += assignments_history_service.on_item_updated
     app.on_deleted_item_assignments += assignments_history_service.on_item_deleted
 
-    delivery_service = BaseService("delivery", backend=superdesk.get_backend())
+    delivery_service = DeliveryService("delivery", backend=superdesk.get_backend())
     DeliveryResource("delivery", app=app, service=delivery_service)
 
     # listen to async signals

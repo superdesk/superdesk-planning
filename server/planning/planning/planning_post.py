@@ -8,12 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from typing import List
 from superdesk.flask import abort
 from planning.validate import validate_docs
 from superdesk import get_resource_service, logger
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
 from superdesk.resource import Resource
-from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 from copy import deepcopy
@@ -34,6 +35,7 @@ from planning.common import (
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
 from planning.utils import get_related_event_items_for_planning
+from planning.types import Event, Planning
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +54,8 @@ class PlanningPostResource(PlanningResource):
     item_methods = []
 
 
-class PlanningPostService(BaseService):
-    def create(self, docs, **kwargs):
+class PlanningPostService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         ids = []
         assignments_to_delete = []
         cancel_plan_with_event_enabled = is_cancel_planning_with_event_enabled()
@@ -61,8 +63,7 @@ class PlanningPostService(BaseService):
             plan = await get_resource_service("planning").find_one_async(req=None, _id=doc["planning"])
             related_events = get_related_event_items_for_planning(plan, "primary")
 
-            # TODO-ASYNC: awaiting for this service to be async
-            # self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
+            await self.validate_item(plan, related_events, doc["pubstatus"], cancel_plan_with_event_enabled)
 
             if not plan:
                 abort(412)
@@ -83,7 +84,7 @@ class PlanningPostService(BaseService):
         await get_resource_service("planning").delete_assignments_for_coverages(assignments_to_delete)
         return ids
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         for doc in docs:
             push_notification(
                 "planning:posted",
@@ -98,34 +99,34 @@ class PlanningPostService(BaseService):
         except AssertionError:
             abort(409)
 
-    # TODO-ASYNC: Uncomment method when service is changed to async to allow new async validate_docs function
-    # @staticmethod
-    # def validate_item(doc: Planning, related_events: List[Event], new_post_status: str, cancel_plan_with_event_enabled: bool):
-    #     if (
-    #         cancel_plan_with_event_enabled
-    #         and new_post_status == POST_STATE.USABLE
-    #         and any(1 for e in related_events if e.get("pubstatus") == POST_STATE.CANCELLED)
-    #     ):
-    #         raise SuperdeskApiError(message="Can't post the planning item as event is already unposted/cancelled.")
+    @staticmethod
+    async def validate_item(
+        doc: Planning, related_events: List[Event], new_post_status: str, cancel_plan_with_event_enabled: bool
+    ):
+        if (
+            cancel_plan_with_event_enabled
+            and new_post_status == POST_STATE.USABLE
+            and any(1 for e in related_events if e.get("pubstatus") == POST_STATE.CANCELLED)
+        ):
+            raise SuperdeskApiError(message="Can't post the planning item as event is already unposted/cancelled.")
 
-    #     errors_list = await validate_docs([{"validate_on_post": True, "type": "planning", "validate": doc}])
-    #     errors = errors_list[0]
+        errors_list = await validate_docs([{"validate_on_post": True, "type": "planning", "validate": doc}])
+        errors = errors_list[0]
 
-    #     if errors:
-    #         # We use abort here instead of raising SuperdeskApiError.badRequestError
-    #         # as eve handles error responses differently between POST and PATCH methods
-    #         abort(400, description=errors)
+        if errors:
+            # We use abort here instead of raising SuperdeskApiError.badRequestError
+            # as eve handles error responses differently between POST and PATCH methods
+            abort(400, description=errors)
 
-    # TODO-ASYNC: Uncomment method when service is changed to async to allow new async validate_docs function
-    # @staticmethod
-    # def validate_related_item(doc):
-    #     errors_list = await validate_docs([{"validate_on_post": False, "type": "planning", "validate": doc}])
-    #     errors = errors_list[0]
-    #
-    #     if errors:
-    #         return abort(400, description=["Related planning : " + error for error in errors])
+    @staticmethod
+    async def validate_related_item(doc):
+        errors_list = await validate_docs([{"validate_on_post": False, "type": "planning", "validate": doc}])
+        errors = errors_list[0]
 
-    def post_associated_event(self, event):
+        if errors:
+            return abort(400, description=["Related planning : " + error for error in errors])
+
+    async def post_associated_event(self, event):
         """If the planning item is associated with an even that is not posted we need to post the event
 
         :param event_id:
@@ -134,17 +135,16 @@ class PlanningPostService(BaseService):
         if event:
             update_method = UPDATE_ALL if event.get("recurrence_id") else UPDATE_SINGLE
             if event and event.get("pubstatus") is None:
-                # TODO-ASYNC: Uncomment method when service is changed to async to allow `events_post` async usage
-                # get_resource_service("events_post").post_async(
-                #     [
-                #         {
-                #             "event": event[config.ID_FIELD],
-                #             "etag": event["_etag"],
-                #             "update_method": update_method,
-                #             "pubstatus": "usable",
-                #         }
-                #     ]
-                # )
+                get_resource_service("events_post").post_async(
+                    [
+                        {
+                            "event": event[config.ID_FIELD],
+                            "etag": event["_etag"],
+                            "update_method": update_method,
+                            "pubstatus": "usable",
+                        }
+                    ]
+                )
                 pass
 
     async def post_planning(self, plan, new_post_state, assignments_to_delete, **kwargs):
