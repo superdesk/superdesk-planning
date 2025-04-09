@@ -14,47 +14,11 @@ from planning.types import AssignmentsHistoryResourceModel
 from superdesk.resource_fields import ID_FIELD
 from copy import deepcopy
 import logging
-from collections import namedtuple
 from planning.common import WORKFLOW_STATE
+from planning.types.enums import AssignmentHistoryActions
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 
 logger = logging.getLogger(__name__)
-
-assignment_history_actions = [
-    "add_to_workflow",
-    "edit_priority",
-    "reassigned",
-    "content_link",
-    "complete",
-    "confirm",
-    "revert",
-    "submitted",
-    "cancelled",
-    "spike_unlink",
-    "unlink",
-    "start_working",
-    "assignment_removed",
-    "accepted",
-]
-ASSIGNMENT_HISTORY_ACTIONS = namedtuple(
-    "ASSIGNMENT_HISTORY_ACTIONS",
-    [
-        "ADD_TO_WORKFLOW",
-        "EDIT_PRIORITY",
-        "REASSIGNED",
-        "CONTENT_LINK",
-        "COMPLETE",
-        "CONFIRM",
-        "REVERT",
-        "SUBMITTED",
-        "CANCELLED",
-        "SPIKE_UNLINK",
-        "UNLINK",
-        "START_WORKING",
-        "ASSIGNMENT_REMOVED",
-        "ACCEPTED",
-    ],
-)(*assignment_history_actions)
 
 
 class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResourceModel]):
@@ -66,8 +30,8 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
         if (
             operation
             in [
-                ASSIGNMENT_HISTORY_ACTIONS.CONFIRM,
-                ASSIGNMENT_HISTORY_ACTIONS.START_WORKING,
+                AssignmentHistoryActions.CONFIRM.value,
+                AssignmentHistoryActions.START_WORKING.value,
             ]
             and self.get_user_id() is None
         ):
@@ -78,7 +42,7 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
                     assigned_to.get("assignor_user", assigned_to.get("assignor_desk")),
                 )
         # If external accept set the user to the assigned user
-        if operation == ASSIGNMENT_HISTORY_ACTIONS.ACCEPTED and self.get_user_id() is None:
+        if operation == AssignmentHistoryActions.ACCEPTED.value and self.get_user_id() is None:
             assigned_to = item.get("assigned_to", {})
             user = assigned_to.get("user")
             update["assigned_to"] = {"user": user}
@@ -112,21 +76,21 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
                 await self._save_history(
                     item,
                     {"priority": cov_diff["assigned_to"]["priority"]},
-                    ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
+                    AssignmentHistoryActions.EDIT_PRIORITY.value,
                 )
                 await planning_history_service._save_history(
                     {"_id": original.get("planning_item")},
                     cov_diff,
-                    ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY,
+                    AssignmentHistoryActions.EDIT_PRIORITY.value,
                 )
 
             if "assigned_to" in diff.keys():
                 cov_diff["assigned_to"] = diff["assigned_to"]
-                await self._save_history(item, diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
+                await self._save_history(item, diff, AssignmentHistoryActions.REASSIGNED.value)
                 await planning_history_service._save_history(
                     {"_id": original.get("planning_item")},
                     cov_diff,
-                    ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED,
+                    AssignmentHistoryActions.REASSIGNED.value,
                 )
 
     async def on_item_deleted(self, doc: dict[str, Any]):
@@ -140,7 +104,7 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
             coverage_diff["scheduled_update_id"] = doc["scheduled_update_id"]
 
         await PlanningHistoryAsyncService()._save_history(
-            planning, coverage_diff, ASSIGNMENT_HISTORY_ACTIONS.ASSIGNMENT_REMOVED
+            planning, coverage_diff, AssignmentHistoryActions.ASSIGNMENT_REMOVED.value
         )
 
     async def _update_assignment_coverage_history(
@@ -152,30 +116,32 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
         if "proxy_user" in updates:
             cov["proxy_user"] = updates.get("proxy_user")
 
-        if operation == ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW:
+        if operation == AssignmentHistoryActions.ADD_TO_WORKFLOW.value:
             cov["workflow_status"] = WORKFLOW_STATE.ACTIVE
 
         await PlanningHistoryAsyncService()._save_history({"_id": original.get("planning_item")}, cov, operation)
 
     async def on_item_add_to_workflow(self, updates: dict[str, Any], original: dict[str, Any]):
-        await self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW)
+        await self._update_assignment_coverage_history(
+            updates, original, AssignmentHistoryActions.ADD_TO_WORKFLOW.value
+        )
 
     async def on_item_start_working(self, updates: dict[str, Any], original: dict[str, Any]):
-        await self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.START_WORKING)
+        await self._update_assignment_coverage_history(updates, original, AssignmentHistoryActions.START_WORKING.value)
 
     async def on_item_complete(self, updates: dict[str, Any], original: dict[str, Any]):
-        await self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.COMPLETE)
+        await self._update_assignment_coverage_history(updates, original, AssignmentHistoryActions.COMPLETE.value)
 
     async def on_item_confirm_availability(self, updates: dict[str, Any], original: dict[str, Any]):
-        await self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.CONFIRM)
+        await self._update_assignment_coverage_history(updates, original, AssignmentHistoryActions.CONFIRM.value)
 
     async def on_item_revert_availability(self, updates: dict[str, Any], original: dict[str, Any]):
-        await self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.REVERT)
+        await self._update_assignment_coverage_history(updates, original, AssignmentHistoryActions.REVERT.value)
 
     async def on_item_content_link(self, updates: dict[str, Any], original: dict[str, Any]):
-        await self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.CONTENT_LINK)
+        await self._update_assignment_coverage_history(updates, original, AssignmentHistoryActions.CONTENT_LINK.value)
 
     async def on_item_content_unlink(self, updates: dict[str, Any], original: dict[str, Any], operation=None):
         await self._update_assignment_coverage_history(
-            updates, original, operation or ASSIGNMENT_HISTORY_ACTIONS.UNLINK
+            updates, original, operation or AssignmentHistoryActions.UNLINK.value
         )
