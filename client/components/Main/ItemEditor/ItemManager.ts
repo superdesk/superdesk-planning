@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Dispatch} from 'redux';
-import {cloneDeep, get, isEqual, partition, set} from 'lodash';
+import {cloneDeep, get, isEqual, set} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {
@@ -18,7 +18,6 @@ import {
     eventUtils,
     isTemporaryId,
     itemsEqual,
-    lockUtils,
     planningUtils,
     removeAutosaveFields,
     shouldUnLockItem,
@@ -30,10 +29,8 @@ import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
 import * as selectors from '../../../selectors';
-import {
-    handleEmbeddedItems,
-    IEmbeddedPlanningsActionType,
-} from '../../../components/editor-standalone/save-handling';
+import {handleEmbeddedItems} from '../../../components/editor-standalone/save-handling';
+
 
 export class ItemManager {
     editor: EditorComponent;
@@ -360,20 +357,7 @@ export class ItemManager {
                 .then((original: IEventOrPlanningItem) => {
                     initialValues = cloneDeep(original);
 
-                    const allLockedItems = selectors.locks
-                        .getLockedItems((planningApi.redux.store.getState() as any));
-                    const isItemLocked = lockUtils.isItemLockedInThisSession(
-                        original,
-                        this.props.session,
-                        allLockedItems,
-                    );
-
-                    // if the item is already locked in this session don't lock it again
-                    if (isItemLocked) {
-                        return Promise.resolve(original);
-                    } else {
-                        return planningApi.locks.lockItem(original, 'edit');
-                    }
+                    return planningApi.locks.lockItem(original, 'edit');
                 });
         } else {
             // Fetch the latest item from the API to view in read-only mode
@@ -688,7 +672,7 @@ export class ItemManager {
                 ])
             );
 
-        return promise.then(([embeddedItems]) => {
+        return promise.then(() => {
             if (this.props.addNewsItemToPlanning) {
                 return this._saveFromAuthoring({post, unpost});
             }
@@ -715,42 +699,20 @@ export class ItemManager {
                 updates.update_method = updateMethod;
 
                 if (Object.keys(planningUpdateMethods).length > 0) {
-                        updates.associated_plannings?.forEach((planningItem) => {
-                            if (planningUpdateMethods[planningItem._id] != null) {
-                                planningItem.update_method = planningUpdateMethods[planningItem._id];
-                            }
-                        });
+                    updates.associated_plannings?.forEach((planningItem) => {
+                        if (planningUpdateMethods[planningItem._id] != null) {
+                            planningItem.update_method = planningUpdateMethods[planningItem._id];
+                        }
+                    });
                 }
             }
 
-            if (
-                updates.type === 'planning'
-                && (
-                    (updates.related_events ?? []).length > 0
-                    || ((updates as IPlanningItem)._unsaved_related_events ?? []).length > 0
-                )
-            ) {
-                const [_withNewEvents, withExistingEvents] = partition(
-                    ((updates as IPlanningItem).related_events ?? []) as Array<IPlanningRelatedEventLink>,
-                    (x) => !isTemporaryId(x._id),
-                );
-
-                const updatedLinks = eventUtils.addRelatedEvents(
-                    withExistingEvents,
-                    embeddedItems as Array<IEventItem>,
-                );
-
-                (updates as IPlanningItem).related_events = updatedLinks.next;
-            }
-
             return this.autoSave.flushAutosave()
-                .then(() => (
-                    this.dispatch<any>(actions.main.save(
-                        isTemporary ? {} : this.state.initialValues,
-                        updates,
-                        withConfirmation
-                    ))
-                ))
+                .then(() => this.dispatch<any>(actions.main.save(
+                    isTemporary ? {} : this.state.initialValues,
+                    updates,
+                    withConfirmation
+                )))
                 .then((updatedItem) => {
                     if (!updatedItem) {
                         // This occurs during an 'Ignore/Cancel/Save' from ModalEditor
@@ -771,24 +733,27 @@ export class ItemManager {
                         }
                     } else if (closeAfter) {
                         return this.editor.onCancel(updateStates);
-                    } else {
-                        const newState: Partial<IEditorState> = {
-                            initialValues: updatedItem,
-                            diff: cloneDeep(updatedItem),
-                            dirty: false,
-                            submitting: false,
-                            submitFailed: false,
-                            errors: {},
-                            errorMessages: [],
-                            itemReady: true,
-                            loading: false,
-                        };
-
-                        this.editorApi.events.onItemUpdated(newState);
-
-                        return this.setState(newState, null, true);
                     }
-                }, (error) => {
+
+                    planningApi.locks.reloadSoftLocksForRelatedEvents(updatedItem);
+
+                    const newState: Partial<IEditorState> = {
+                        initialValues: updatedItem,
+                        diff: cloneDeep(updatedItem),
+                        dirty: false,
+                        submitting: false,
+                        submitFailed: false,
+                        errors: {},
+                        errorMessages: [],
+                        itemReady: true,
+                        loading: false,
+                    };
+
+                    this.editorApi.events.onItemUpdated(newState);
+
+                    return this.setState(newState, null, true);
+                })
+                .catch((error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
                         this.dispatch<any>(
@@ -802,6 +767,10 @@ export class ItemManager {
                 });
         }).catch((error) => {
             this.setState({submitting: false});
+
+            if (error === 'validation errors were found') {
+                return;
+            }
 
             throw error;
         });
@@ -879,10 +848,10 @@ export class ItemManager {
             ));
     }
 
-    unlockAndCancel(embeddedEditorAction: IEmbeddedPlanningsActionType) {
+    unlockAndCancel() {
         return handleEmbeddedItems(
             this.props.editorType,
-            embeddedEditorAction,
+            'DISCARD',
             this.props.itemType,
         ).then(() => {
             const {session, currentWorkspace} = this.props;
@@ -891,6 +860,13 @@ export class ItemManager {
 
             if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
                 promises.push(planningApi.locks.unlockItem(this.props.item));
+
+                if (this.autoSave.autosaveItem.type == 'planning') {
+                    (this.autoSave.autosaveItem.related_events ?? []).forEach((x) => {
+                        // remove soft lock that was added on load in AssociatedEvent.tsx
+                        promises.push(planningApi.locks.unlockEmbeddedEvent(x._id));
+                    });
+                }
             }
 
             // If event was created by a planning item, unlock the planning item

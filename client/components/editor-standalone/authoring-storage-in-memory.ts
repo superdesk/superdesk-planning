@@ -79,12 +79,15 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
         saveEntity: (current, original) => {
             return onSave(current, original);
         },
+
         getContentProfile: () => {
             return Promise.resolve(getProfile(profile, item.language ?? 'en'));
         },
+
         closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
             return Promise.resolve();
         },
+
         getUserPreferences: () => ng.get('preferencesService').get()
     };
 

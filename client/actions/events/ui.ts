@@ -766,7 +766,6 @@ export const convertPlanningToEvent = (plan, getState) => {
         calendars: [],
         place: plan.place,
         occur_status: unplannedStatus,
-        _planning_item: plan._id,
         language: plan.language,
     };
 

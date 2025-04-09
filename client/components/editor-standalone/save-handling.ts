@@ -1,5 +1,5 @@
 import {notNullOrUndefined} from '@sourcefabric/common';
-import {EDITOR_TYPE} from '../../interfaces';
+import {EDITOR_TYPE, IEventItem, IPlanningItem} from '../../interfaces';
 import {IExposedFromAuthoring} from 'superdesk-api';
 import {planningApi} from '../../superdeskApi';
 import {RelatedPlanningItem} from '../../components/fields/editor/EventRelatedPlannings/RelatedPlanningItem';
@@ -46,23 +46,28 @@ export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
 ): Promise<Array<T>> => {
-    const updatedItems: Array<T> = [];
+    const updatedItems: Array<Promise<T>> = [];
+    const itemsExposed = getEmbeddedItemsExposed<T>(editorType, itemType);
 
-    for (const exposed of getEmbeddedItemsExposed<T>(editorType, itemType)) {
+    for (const exposed of itemsExposed) {
         if (!exposed.hasUnsavedChanges()) {
-            updatedItems.push(exposed.getLatestItem());
+            updatedItems.push(
+                Promise.resolve(exposed.getLatestItem())
+            );
+            continue;
         }
 
         if (action === 'SAVE') {
-            updatedItems.push(await exposed.save());
+            updatedItems.push(exposed.save());
         } else if (action === 'DISCARD') {
             await exposed.discardUnsavedChanges();
+            updatedItems.push(Promise.resolve(exposed.getLatestItem()));
         } else {
-            updatedItems.push(await exposed.handleUnsavedChanges());
+            updatedItems.push(exposed.handleUnsavedChanges());
         }
     }
 
-    return updatedItems;
+    return await Promise.all(updatedItems);
 };
 
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {

@@ -6,7 +6,7 @@ export interface IAssociatedEventFieldProps extends IEditorFieldProps {
     events?: Array<IEventItem>;
     tabEnabled?: boolean; // defaults to true
     unlinkEvent(item: DeepPartial<IEventItem>): void;
-    updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): void;
+    updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): Promise<void>;
 }
 
 export class EditorFieldAssociatedEvents extends React.PureComponent<IAssociatedEventFieldProps> {

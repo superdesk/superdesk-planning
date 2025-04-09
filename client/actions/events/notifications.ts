@@ -92,7 +92,7 @@ const onEventLocked = (_e, data) => (
                         payload: {event: evtInStore},
                     });
 
-                    // reload the initialvalues of the editor if different session has made changes
+                    // reload the initialValues of the editor if different session has made changes
                     if (data.lock_session !== sessionId) {
                         dispatch(main.reloadEditor(eventInStore, 'read'));
                     }

@@ -18,11 +18,10 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         this.relatedItemRefs = {};
         this.getCurrentValue = this.getCurrentValue.bind(this);
         this.addRelatedEvent = this.addRelatedEvent.bind(this);
-        this.removeRelatedEvent = this.removeRelatedEvent.bind(this);
         this.relatedItemExists = this.relatedItemExists.bind(this);
         this.addNewRelatedEvent = this.addNewRelatedEvent.bind(this);
+        this.lockRelatedItemsOnFrontEnd = this.lockRelatedItemsOnFrontEnd.bind(this);
     }
-
 
     private getCurrentValue(): Array<IPlanningRelatedEventLink> {
         const {field, item} = this.props;
@@ -47,13 +46,6 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         });
     }
 
-    private removeRelatedEvent(id: IEventItem['_id']) {
-        this.props.onChange(
-            this.props.field,
-            this.getCurrentValue().filter((item) => item._id !== id),
-        );
-    }
-
     private relatedItemExists(id: IEventItem['_id']) {
         const {field, item} = this.props;
         const relatedEvents = item[field] ?? [];
@@ -67,9 +59,28 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
             ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
         };
 
-        return autosave.save(undefined, newEvent).then(() => {
-            this.addRelatedEvent(newEvent as IEventItem);
+        return autosave.save(undefined, newEvent).then((autosavedEvent) => {
+            this.addRelatedEvent(autosavedEvent as IEventItem);
+
+            return autosavedEvent;
         });
+    }
+
+    private lockRelatedItemsOnFrontEnd() {
+        planningApi.locks.setItemAsLocked({
+            ...this.props.item,
+            event_ids: this.props.events.map((x) => x._id),
+            etag: this.props.item._etag,
+            item: this.props.item._id,
+            user: this.props.item.lock_user,
+            lock_action: this.props.item.lock_action,
+            lock_session: this.props.item.lock_session,
+            lock_time: this.props.item.lock_time,
+        });
+    }
+
+    componentDidMount(): void {
+        this.lockRelatedItemsOnFrontEnd();
     }
 
     render() {
@@ -102,7 +113,14 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                             shape="round"
                             size="small"
                             iconOnly={true}
-                            onClick={this.addNewRelatedEvent}
+                            onClick={() => {
+                                this.addNewRelatedEvent()
+                                    .then(() => {
+                                        setTimeout(() => {
+                                            this.lockRelatedItemsOnFrontEnd();
+                                        }, 100);
+                                    });
+                            }}
                         />
                     )}
                 </Spacer>
@@ -110,12 +128,23 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     <Spacer gap="8" v>
                         {events.map((event, i) => (
                             <AssociatedEventItem
-                                isTemporary={isTemporaryId(event._id)}
                                 index={i}
                                 key={event._id}
                                 event={event}
-                                updateEventItem={this.props.updateEventItem}
-                                unlinkEvent={this.props.unlinkEvent}
+                                planningItem={this.props.item}
+                                updateEventItem={(item, updates, scrollOnChange) =>
+                                    this.props.updateEventItem(item as IEventItem, updates, scrollOnChange)
+                                        .then(() => {
+                                            setTimeout(() => {
+                                                this.lockRelatedItemsOnFrontEnd();
+                                            }, 100);
+                                        })
+                                }
+                                unlinkEvent={(item) => {
+                                    this.props.unlinkEvent(item);
+
+                                    planningApi.locks.unlockEmbeddedEvent(item._id);
+                                }}
                                 disabled={this.props.disabled}
                                 ref={(ref) => {
                                     this.relatedItemRefs[i] = ref;
@@ -138,6 +167,10 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                                 const eventItem: IEventItem = JSON.parse(data);
 
                                 this.addRelatedEvent(eventItem);
+
+                                setTimeout(() => {
+                                    this.lockRelatedItemsOnFrontEnd();
+                                }, 100);
                             }
                         }}
                         multiple={true}
