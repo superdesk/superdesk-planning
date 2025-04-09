@@ -229,7 +229,7 @@ class ExportToNewsroomTest(TestCase):
             await self.setup_data()
 
             mock_transmitter.return_value = MockTransmitter()
-            ExportToNewsroom().run(assets_url="foo", resource_url="bar")
+            await ExportToNewsroom().run(assets_url="foo", resource_url="bar")
             valid_ids = ["scheduled", "postponed", "rescheduled"]
 
             for item_id in mock_transmitter.return_value.events:

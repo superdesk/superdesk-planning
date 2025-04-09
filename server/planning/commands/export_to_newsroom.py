@@ -1,9 +1,11 @@
 import json
+import click
 
 from eve.utils import ParsedRequest
 
+from superdesk.commands import cli
 from superdesk.resource_fields import VERSION
-from superdesk import Command, command, get_resource_service, Option
+from superdesk import get_resource_service
 from superdesk.logging import logger
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock
@@ -22,7 +24,11 @@ class NewsroomHTTPTransmitter(HTTPPushService):
             logger.exception("Failed to transmit the item {}.".format(queue_item.get("item_id")))
 
 
-class ExportToNewsroom(Command):
+@cli.command("planning:export_to_newsroom")
+@click.option("--resource-url", "-u", required=True)
+@click.option("--assets-url", "-a", required=True)
+@click.option("--page-size", "-p", required=False)
+async def export_to_newroom_command(resource_url, assests_url, size=None):
     """
     Exports `Events` and `Planning` to Newsroom.
 
@@ -36,21 +42,17 @@ class ExportToNewsroom(Command):
         --assets-url=http://<host>:<port>/<path> --page-size=200
 
     """
+    await ExportToNewsroom().run(resource_url, assests_url, size)
 
-    option_list = (
-        Option("--resource-url", "-u", dest="resource_url", required=True),
-        Option("--assets-url", "-a", dest="assets_url", required=True),
-        Option("--page-size", "-p", dest="size", required=False),
-    )
+
+class ExportToNewsroom:
     page_size = 200
-
     # dummy subscriber
     subscriber = {"is_active": True, "_id": 1}
-
     resource_url = None
     assets_url = None
 
-    def run(self, resource_url, assets_url, size=None):
+    async def run(self, resource_url, assets_url, size=None):
         logger.info("Starting to export content")
 
         if size:
@@ -65,8 +67,8 @@ class ExportToNewsroom(Command):
             return
 
         try:
-            self._export_events()
-            self._export_planning()
+            await self._export_events()
+            await self._export_planning()
         except Exception:
             logger.exception("Failed to export events and planning")
         finally:
@@ -74,7 +76,7 @@ class ExportToNewsroom(Command):
 
         logger.info("Completed export events and planning.")
 
-    def _fetch_items(self, fetch_callback):
+    async def _fetch_items(self, fetch_callback):
         query = {
             "query": {
                 "bool": {
@@ -89,8 +91,8 @@ class ExportToNewsroom(Command):
         }
         req = ParsedRequest()
         req.args = {"source": json.dumps(query)}
-        cursor = fetch_callback(req=req, lookup=None)
-        total_documents = cursor.count()
+        cursor = await fetch_callback(req=req, lookup=None)
+        total_documents = await cursor.count()
 
         if total_documents > 0:
             query["size"] = self.page_size
@@ -99,20 +101,20 @@ class ExportToNewsroom(Command):
                 query["from"] = page_num * self.page_size
                 req = ParsedRequest()
                 req.args = {"source": json.dumps(query)}
-                cursor = fetch_callback(req=req, lookup=None)
-                yield list(cursor)
+                cursor = await fetch_callback(req=req, lookup=None)
+                items = await cursor.to_list()
+                yield items
 
-    def _export_events(self):
+    async def _export_events(self):
         """Export events"""
         logger.info("Starting to export events")
-        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         events_service = get_resource_service("events")
 
         formatter = JsonEventFormatter()
         destination = self._get_destination("json_event")
         formatter.set_destination(destination=destination, subscriber=self.subscriber)
         transmitter = NewsroomHTTPTransmitter()
-        for items in self._fetch_items(events_service.get):
+        async for items in self._fetch_items(events_service.get_async):
             for item in items:
                 try:
                     logger.info("Processing event item: {}".format(item.get("_id")))
@@ -123,7 +125,7 @@ class ExportToNewsroom(Command):
                 except Exception:
                     logger.exception("Failed to export event: {}".format(item.get("_id")))
 
-    def _export_planning(self):
+    async def _export_planning(self):
         """Export events"""
         logger.info("Starting to export planning")
         # TODO-ASYNC[PlanningService] - Convert this to async when function is updated to async
@@ -133,7 +135,7 @@ class ExportToNewsroom(Command):
         destination = self._get_destination("json_planning")
         formatter.set_destination(destination=destination, subscriber=self.subscriber)
         transmitter = NewsroomHTTPTransmitter()
-        for items in self._fetch_items(planning_service.get):
+        async for items in self._fetch_items(planning_service.get_async):
             for item in items:
                 try:
                     logger.info("Processing planning item: {}".format(item.get("_id")))
@@ -174,6 +176,3 @@ class ExportToNewsroom(Command):
             },
             "name": destionation_format,
         }
-
-
-command("planning:export_to_newsroom", ExportToNewsroom())

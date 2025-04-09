@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from planning.planning import PlanningAsyncService
-from planning.planning.planning_spike_async import process_spike_planning_item, process_unspike_planning_item
+from planning.planning.planning_spike import process_spike_planning_item, process_unspike_planning_item
 from planning.planning.planning_duplicate import process_planning_item_duplicate
 from planning.planning.planning_postpone import process_postpone_planning_item
 from planning.utils import get_json_or_400_async

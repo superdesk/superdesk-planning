@@ -20,7 +20,7 @@ from planning.events.events_utils import (
     pre_update_event_actions,
 )
 from planning.item_lock import LOCK_USER, LOCK_SESSION
-from planning.planning.planning_spike_async import process_spike_planning_item
+from planning.planning.planning_spike import process_spike_planning_item
 from planning.types.assignment import AssignmentResourceModel
 from planning.types.event import EventResourceModel
 from planning.types.planning import PlanningResourceModel

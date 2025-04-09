@@ -303,7 +303,7 @@ class AssignmentsService(AsyncBaseService):
         # If Desk, User and/or State was changed, then re-publish the Planning item
         # So that the newly appointed assignee's/state will be pushed to subscribers
         if self.assignee_details_changed(updates, original):
-            self.publish_planning(original.get("planning_item"))
+            await self.publish_planning(original.get("planning_item"))
 
     def assignee_details_changed(self, updates: Dict[str, Any], original: Dict[str, Any]) -> bool:
         if "assigned_to" not in updates:
@@ -988,7 +988,7 @@ class AssignmentsService(AsyncBaseService):
                     get_resource_service("assignments_history").on_item_complete(updated_assignment, assignment)
                 else:
                     # publish planning
-                    self.publish_planning(assignment.get("planning_item"))
+                    await self.publish_planning(assignment.get("planning_item"))
 
                 assigned_to_user = get_resource_service("users").find_one(req=None, _id=get_user().get(ID_FIELD, ""))
                 assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
@@ -1141,7 +1141,7 @@ class AssignmentsService(AsyncBaseService):
         await get_resource_service("assignments_unlink").post_async(
             [{"assignment_id": assignment_id, "item_id": item_id}]
         )
-        self.publish_planning(assignment["planning_item"])
+        await self.publish_planning(assignment["planning_item"])
 
     async def _update_assignment_and_notify(self, updates, original):
         await self.system_update_async(original.get(ID_FIELD), updates, original)
@@ -1318,7 +1318,7 @@ class AssignmentsService(AsyncBaseService):
             )
         if not doc.get("_to_delete") or marked_for_delete:
             # publish planning
-            self.publish_planning(doc.get("planning_item"))
+            await self.publish_planning(doc.get("planning_item"))
 
     def is_assignment_draft(self, updates, original):
         return updates.get("assigned_to", original.get("assigned_to")).get("state") == ASSIGNMENT_WORKFLOW_STATE.DRAFT
@@ -1346,7 +1346,7 @@ class AssignmentsService(AsyncBaseService):
 
         return text_assignment
 
-    def publish_planning(self, planning_id):
+    async def publish_planning(self, planning_id):
         """Publish the planning item if assignment state changes for following actions
 
         - Work is started on Assignment
