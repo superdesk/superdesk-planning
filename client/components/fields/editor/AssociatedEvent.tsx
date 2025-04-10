@@ -56,7 +56,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
     private addNewRelatedEvent() {
         const newEvent = {
             _id: generateTempId(),
-            ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
+            ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState, false)
         };
 
         return autosave.save(undefined, newEvent).then((autosavedEvent) => {

@@ -737,7 +737,7 @@ const receiveEventHistory = (eventHistoryItems) => ({
     payload: eventHistoryItems,
 });
 
-export const convertPlanningToEvent = (plan, getState) => {
+export const convertPlanningToEvent = (plan, getState, associatePlanning = true) => {
     const state = getState();
     const defaultDurationOnChange = selectors.forms.defaultEventDuration(state);
     const occurStatuses = selectors.vocabs.eventOccurStatuses(state);
@@ -768,6 +768,10 @@ export const convertPlanningToEvent = (plan, getState) => {
         occur_status: unplannedStatus,
         language: plan.language,
     };
+
+    if (associatePlanning) {
+        newEvent._planning_item = plan._id;
+    }
 
     if (plan.languages != null) {
         newEvent.languages = plan.languages;
