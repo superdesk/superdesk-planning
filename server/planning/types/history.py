@@ -16,3 +16,7 @@ class PlanningHistoryResourceModel(HistoryResourceModel):
 
 class EventsHistoryResourceModel(HistoryResourceModel):
     event_id: Annotated[fields.Keyword, validate_data_relation_async("events")]
+
+
+class AssignmentsHistoryResourceModel(HistoryResourceModel):
+    assignment_id: Annotated[fields.Keyword, validate_data_relation_async("assignments")]

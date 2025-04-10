@@ -22,6 +22,7 @@ from planning.common import (
     get_delivery_publish_time,
     is_content_link_to_coverage_allowed,
 )
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
@@ -123,8 +124,7 @@ class AssignmentsLinkService(AsyncBaseService):
         if len(ids) > 0:
             updates["assigned_to"]["item_ids"] = ids
             if not assignment.get("scheduled_update_id"):
-                assignment_history_service = get_resource_service("assignments_history")
-                assignment_history_service.on_item_content_link(updates, assignment)
+                await AssignmentsHistoryAsyncService().on_item_content_link(updates, assignment)
 
             if (
                 not assignment_was_updated

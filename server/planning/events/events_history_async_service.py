@@ -1,17 +1,25 @@
 import logging
 
 from copy import deepcopy
-from typing import Any
+from typing import Any, TypedDict
 
 from planning.types import EventResourceModel
 
 from planning.types import EventsHistoryResourceModel
+from superdesk.core.types import SearchRequest
 from superdesk.resource_fields import ID_FIELD
 from planning.utils import get_related_planning_for_events
 from planning.history_async_service import HistoryAsyncService
 from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
+
+
+class EventHistoryRecord(TypedDict):
+    event_id: str
+    user_id: str
+    operation: str
+    update: dict[str, Any]
 
 
 class EventsHistoryAsyncService(HistoryAsyncService[EventsHistoryResourceModel]):
@@ -72,3 +80,17 @@ class EventsHistoryAsyncService(HistoryAsyncService[EventsHistoryResourceModel])
 
     async def on_update_time(self, updates: dict[str, Any], original: dict[str, Any]):
         await self.on_item_updated(updates, original, "update_time")
+
+    async def get_by_id(self, _id: str) -> list[EventHistoryRecord]:
+        search_request = SearchRequest(where={"event_id": _id})
+        cursor = await self.find(search_request)
+        records = await cursor.to_list_raw()
+        return [
+            {
+                "event_id": record["event_id"],
+                "user_id": record["user_id"],
+                "operation": record["operation"],
+                "update": record["update"],
+            }
+            for record in records
+        ]

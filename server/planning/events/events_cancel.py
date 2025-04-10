@@ -17,6 +17,7 @@ from planning.events.events_utils import (
     post_update_event_actions,
     pre_update_event_actions,
 )
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.types import EventResourceModel, EventsHistoryResourceModel
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
@@ -70,19 +71,17 @@ def validate_states(event: dict[str, Any]):
 
 
 async def cancel_event_plannings(updates: dict[str, Any], original: dict[str, Any]):
-    # TODO-ASYNC: Convert to use async services when `planning_history` is converted to async
     planning_cancel_service = get_resource_service("planning_cancel")
-    planning_history_service = get_resource_service("planning_history")
+    planning_history_service = PlanningHistoryAsyncService()
     reason = updates.get("reason", None)
 
     for plan in get_related_planning_for_events([original[ID_FIELD]], "primary"):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
-            # TODO-ASYNC - Confirm if `request.view_args` works from new async endpoint too
             request.view_args["event_cancellation"] = True
             cancelled_plan = await planning_cancel_service.patch_async(plan[ID_FIELD], {"reason": reason})
 
             # Write history records
-            planning_history_service.on_cancel(cancelled_plan, plan)
+            await planning_history_service.on_cancel(cancelled_plan, plan)
 
 
 def set_event_cancelled(updates: dict[str, Any], original: dict[str, Any], occur_cancel_state):

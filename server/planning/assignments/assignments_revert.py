@@ -18,6 +18,7 @@ from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 
 from .assignments import AssignmentsResource, assignments_schema
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
 
 
@@ -60,7 +61,7 @@ class AssignmentsRevertService(AsyncBaseService):
         session = get_auth().get(ID_FIELD, "")
 
         # Save history
-        get_resource_service("assignments_history").on_item_revert_availability(updates, original)
+        await AssignmentsHistoryAsyncService().on_item_revert_availability(updates, original)
 
         push_notification(
             "assignments:reverted",

@@ -33,6 +33,7 @@ from planning.events.events_utils import (
     remove_fields,
     generate_recurring_dates,
 )
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.types import EventResourceModel, EventsHistoryResourceModel
 from planning.utils import get_related_planning_for_events, event_has_planning_items
 
@@ -73,15 +74,15 @@ def mark_event_rescheduled(updates: dict[str, Any], reason: str, keep_dates: boo
 
 
 async def reschedule_event_plannings(original: dict[str, Any], reason: str, plans=None, state=None):
-    # TODO-ASYNC: Convert to use async services `planning_history` are converted to async
     planning_cancel_service = get_resource_service("planning_cancel")
     planning_reschedule_service = get_resource_service("planning_reschedule")
+    planning_history_service = PlanningHistoryAsyncService()
 
     plan_updates = {"reason": reason, "state": state}
     for plan in plans or get_related_planning_for_events([original[ID_FIELD]], "primary"):
         if plan.get("state") != WORKFLOW_STATE.CANCELLED:
             updated_plan = await planning_reschedule_service.patch_async(plan[ID_FIELD], plan_updates)
-            get_resource_service("planning_history").on_reschedule(updated_plan, plan)
+            await planning_history_service.on_reschedule(updated_plan, plan)
             if len(plan.get("coverages", [])) > 0:
                 await planning_cancel_service.update_async(
                     plan[ID_FIELD],

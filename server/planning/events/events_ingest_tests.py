@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from planning.tests import TestCase
 from superdesk.flask import g
 
+from planning.events import EventsHistoryAsyncService
+
 
 class EventIngestTestCase(TestCase):
     # TODO-ASYNC: Understand the logic and figure out why it is failing
@@ -11,7 +13,7 @@ class EventIngestTestCase(TestCase):
     async def test_ingest_updated_event(self):
         async with self.app.app_context():
             events_service = get_resource_service("events")
-            events_history_service = get_resource_service("events_history")
+            events_history_service = EventsHistoryAsyncService()
             dates = {"start": datetime.now(), "end": datetime.now() + timedelta(days=1)}
             old_event = {
                 "guid": "1",
@@ -25,7 +27,7 @@ class EventIngestTestCase(TestCase):
 
             # event is created
             events_service.post_in_mongo([old_event])
-            history = events_history_service.get_by_id("1")
+            history = await events_history_service.get_by_id("1")
             assert 1 == len(history)
 
             # user updates the event
@@ -37,9 +39,9 @@ class EventIngestTestCase(TestCase):
 
             g.user = {"_id": "test"}
             events_service.patch(old_event["_id"], updates)
-            events_history_service.on_item_updated(updates, old_event, "edited")
+            await events_history_service.on_item_updated(updates, old_event, "edited")
 
-            history = events_history_service.get_by_id("1")
+            history = await events_history_service.get_by_id("1")
             assert 2 == len(history)
 
             new_event = {
@@ -56,7 +58,7 @@ class EventIngestTestCase(TestCase):
             assert events_service.should_update(old_event, new_event, {})
 
             # event is updated via ingest
-            events_service.patch_in_mongo(new_event["guid"], new_event, old_event)
+            await events_service.patch_in_mongo(new_event["guid"], new_event, old_event)
             updated_event = events_service.find_one(req=None, _id="1")
 
             assert updated_event is not None

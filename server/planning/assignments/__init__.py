@@ -27,14 +27,21 @@ from .assignments_lock import (
     AssignmentsUnlockResource,
     AssignmentsUnlockService,
 )
-from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryService
 from .delivery import DeliveryResource, DeliveryService
 
 from .service import AssignmentsAsyncService
 from .delivery_service import DeliveryAsyncService
-from .module import assignments_resource_config, delivery_resource_config
+from .assignments_history_async import AssignmentsHistoryAsyncService
+from .module import assignments_resource_config, delivery_resource_config, assignments_history_resource_config
 
-__all__ = ["assignments_resource_config", "AssignmentsAsyncService", "delivery_resource_config", "DeliveryAsyncService"]
+__all__ = [
+    "assignments_resource_config",
+    "AssignmentsAsyncService",
+    "delivery_resource_config",
+    "DeliveryAsyncService",
+    "assignments_history_resource_config",
+    "AssignmentsHistoryAsyncService",
+]
 
 
 def init_app(app):
@@ -87,10 +94,9 @@ def init_app(app):
         service=assignments_revert_service,
     )
 
-    assignments_history_service = AssignmentsHistoryService("assignments_history", backend=superdesk.get_backend())
-    AssignmentsHistoryResource("assignments_history", app=app, service=assignments_history_service)
-    app.on_updated_assignments += assignments_history_service.on_item_updated
-    app.on_deleted_item_assignments += assignments_history_service.on_item_deleted
+    assignments_history_service = AssignmentsHistoryAsyncService()
+    signals.assignments_updated.connect(assignments_history_service.on_item_updated)
+    signals.assignments_deleted.connect(assignments_history_service.on_item_deleted)
 
     delivery_service = DeliveryService("delivery", backend=superdesk.get_backend())
     DeliveryResource("delivery", app=app, service=delivery_service)

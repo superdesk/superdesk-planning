@@ -11,7 +11,7 @@
 """Superdesk Planning"""
 
 from typing import Dict, Any, Optional, List
-from planning.events.events_utils import get_recurring_timeline
+from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from typing_extensions import assert_never
 from copy import deepcopy
 import logging
@@ -46,6 +46,7 @@ from planning.types import (
     ContentProfile,
     PLANNING_RELATED_EVENT_LINK_TYPE,
 )
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.common import (
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
@@ -74,6 +75,8 @@ from planning.common import (
     POST_STATE,
 )
 
+from planning.events.events_history_async_service import EventsHistoryAsyncService
+from planning.events.events_utils import get_recurring_timeline
 from planning.planning_notifications import PlanningNotifications
 from planning.content_profiles.utils import is_field_enabled, is_post_planning_with_event_enabled
 from planning.signals import planning_created, planning_ingested
@@ -155,7 +158,7 @@ class PlanningService(AsyncBaseService):
     async def on_create_async(self, docs):
         """Set default metadata."""
         planning_type = get_resource_service("planning_types").find_one(req=None, name="planning")
-        history_service = get_resource_service("planning_history")
+        history_service = PlanningHistoryAsyncService()
         generated_planning_items = []
         for doc in docs:
             if "guid" not in doc:
@@ -180,14 +183,14 @@ class PlanningService(AsyncBaseService):
 
             is_ingested = doc["state"] == "ingested"
             if is_ingested:
-                history_service.on_item_created([doc])
+                await history_service.on_item_created([doc])
 
             update_method: Optional[UPDATE_METHOD] = doc.pop("update_method", None)
             if first_event and update_method is not None:
                 new_plans = await self._add_planning_to_event_series(doc, first_event, update_method)
                 if len(new_plans):
                     if is_ingested:
-                        history_service.on_item_created(new_plans)
+                        await history_service.on_item_created(new_plans)
                     generated_planning_items.extend(new_plans)
 
         if len(generated_planning_items):
@@ -230,7 +233,7 @@ class PlanningService(AsyncBaseService):
 
     async def _update_event_history(self, doc: Planning):
         events_service = get_resource_service("events")
-        events_history_service = get_resource_service("events_history")
+        events_history_service = EventsHistoryAsyncService()
 
         for original_event in get_related_event_items_for_planning(doc, "primary"):
             await events_service.system_update_async(
@@ -244,7 +247,9 @@ class PlanningService(AsyncBaseService):
                 },
                 original_event,
             )
-            events_history_service.on_item_updated({"planning_id": doc[ID_FIELD]}, original_event, "planning_created")
+            await events_history_service.on_item_updated(
+                {"planning_id": doc[ID_FIELD]}, original_event, "planning_created"
+            )
 
     async def on_duplicated(self, doc, parent_id):
         await self._update_event_history(doc)
@@ -1019,7 +1024,7 @@ class PlanningService(AsyncBaseService):
                 if doc.get("scheduled_update"):
                     assignment["scheduled_update_id"] = doc.get("scheduled_update_id")
 
-                get_resource_service("assignments_history").on_item_deleted(assignment)
+                await AssignmentsHistoryAsyncService().on_item_deleted(assignment)
                 return
 
             # update the assignment using the coverage details

@@ -32,6 +32,7 @@ from planning.common import (
     get_version_item_for_post,
     get_contacts_from_item,
 )
+from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.content_profiles.utils import is_cancel_planning_with_event_enabled
 from planning.utils import get_related_event_items_for_planning
 from planning.types import Event, Planning
@@ -176,7 +177,7 @@ class PlanningPostService(AsyncBaseService):
 
         # Save the version into the history
         updates["version"] = version
-        get_resource_service("planning_history")._save_history(plan, updates, "post")
+        await PlanningHistoryAsyncService()._save_history(plan, updates, "post")
 
     def publish_planning(self, plan, version):
         # Check and remove private contacts while posting planning, only public contact will be visible

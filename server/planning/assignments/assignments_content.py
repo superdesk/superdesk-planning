@@ -22,6 +22,7 @@ from apps.archive.common import BYLINE
 from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
 
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.planning_article_export import get_desk_template
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
@@ -246,7 +247,7 @@ class AssignmentsContentService(AsyncBaseService):
                     no_email=True,
                 )
             # Save history
-            get_resource_service("assignments_history").on_item_start_working(updates, assignment)
+            await AssignmentsHistoryAsyncService().on_item_start_working(updates, assignment)
 
         return ids
 

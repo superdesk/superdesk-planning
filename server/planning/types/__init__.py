@@ -17,7 +17,12 @@ from .base import BasePlanningModel
 from .common import PlanningSchedule
 from .delivery import DeliveryResourceModel
 from .event import EventResourceModel
-from .history import HistoryResourceModel, EventsHistoryResourceModel, PlanningHistoryResourceModel
+from .history import (
+    HistoryResourceModel,
+    EventsHistoryResourceModel,
+    PlanningHistoryResourceModel,
+    AssignmentsHistoryResourceModel,
+)
 from .planning import PlanningResourceModel
 from .assignment import AssignmentResourceModel
 from .published import PublishedPlanningModel
@@ -69,6 +74,7 @@ __all__ = [
     "PlanningAutosaveResourceModel",
     "LocationResourceModel",
     "EventPlanningFilter",
+    "AssignmentsHistoryResourceModel",
 ]
 
 
