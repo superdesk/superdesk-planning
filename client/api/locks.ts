@@ -277,7 +277,7 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
                 item: unlockedItem._id,
                 type: unlockedItem.type,
                 event_ids: unlockedItem.type === 'planning' ?
-                    getRelatedEventIdsForPlanning(unlockedItem, 'primary') :
+                    getRelatedEventIdsForPlanning(unlockedItem) :
                     [],
                 recurrence_id: unlockedItem.type !== 'assignment' ? unlockedItem.recurrence_id : undefined,
                 etag: unlockedItem._etag,
