@@ -6,7 +6,7 @@ from .agendas_async_service import AgendasAsyncService
 from .rest_api import AgendasRestEndpoints
 from planning.types import AgendasResourceModel
 
-agendas_resource_config = ResourceConfig(
+agendas_resource_config: ResourceConfig = ResourceConfig(
     name="agenda",
     data_class=AgendasResourceModel,
     service=AgendasAsyncService,

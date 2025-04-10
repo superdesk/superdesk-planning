@@ -11,8 +11,6 @@
 """Superdesk Planning"""
 
 from typing import Dict, Any, Optional, List
-from planning.agendas_async.agendas_async_service import AgendasAsyncService
-from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from typing_extensions import assert_never
 from copy import deepcopy
 import logging
@@ -48,6 +46,7 @@ from planning.types import (
     PLANNING_RELATED_EVENT_LINK_TYPE,
 )
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
+from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
@@ -314,6 +313,8 @@ class PlanningService(AsyncBaseService):
         await self.validate_planning(updates, original)
 
     async def validate_planning(self, updates, original=None):
+        from planning.agendas_async.agendas_async_service import AgendasAsyncService
+
         if (not original and not updates.get("planning_date")) or (
             "planning_date" in updates and updates["planning_date"] is None
         ):

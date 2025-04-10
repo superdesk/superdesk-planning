@@ -43,7 +43,6 @@ from planning.common import (
     sync_assignment_details_to_coverages,
 )
 from planning.core.service import BasePlanningAsyncService
-from planning.agendas_async.agendas_async_service import AgendasAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.types import (
@@ -464,6 +463,8 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             docs.extend(generated_planning_items)
 
     async def validate_planning(self, updated_planning: dict[str, Any], original=None):
+        from planning.agendas_async.agendas_async_service import AgendasAsyncService
+
         if (not original and not updated_planning.get("planning_date")) or (
             "planning_date" in updated_planning and updated_planning["planning_date"] is None
         ):

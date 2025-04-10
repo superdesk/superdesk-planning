@@ -158,7 +158,7 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
 async def get_user_updated_keys(event_id: str) -> set[str]:
     history_service = EventsHistoryAsyncService()
     updates = await history_service.get_by_id(event_id)
-    updated_keys = set()
+    updated_keys: set[str] = set()
     for update in updates:
         if not update.get("user_id"):
             continue
