@@ -150,6 +150,7 @@ class JsonPlanningFormatter(Formatter):
         }
         expanded = []
         for agenda in item.get("agendas", []):
+            # TODO-ASYNC[AgendasAsyncService] - Convert this to async when function is updated to async
             agenda_details = get_resource_service("agenda").find_one(req=None, _id=agenda)
             if agenda_details and agenda_details.get("is_enabled"):
                 for f in remove_agenda_fields:

@@ -11,6 +11,7 @@
 """Superdesk Planning"""
 
 from typing import Dict, Any, Optional, List
+from planning.agendas_async.agendas_async_service import AgendasAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from typing_extensions import assert_never
 from copy import deepcopy
@@ -172,7 +173,7 @@ class PlanningService(AsyncBaseService):
                 except (KeyError, IndexError):
                     doc["language"] = get_app_config("DEFAULT_LANGUAGE")
 
-            self.validate_planning(doc)
+            await self.validate_planning(doc)
             set_original_creator(doc)
 
             first_event = await self._set_planning_event_info(doc, planning_type)
@@ -292,7 +293,7 @@ class PlanningService(AsyncBaseService):
         update_method = updates.pop("update_method", UPDATE_SINGLE)
         user = get_user()
 
-        self.validate_on_update(updates, original, user)
+        await self.validate_on_update(updates, original, user)
 
         if user and user.get(ID_FIELD):
             updates["version_creator"] = user[ID_FIELD]
@@ -303,16 +304,16 @@ class PlanningService(AsyncBaseService):
         if update_method and update_method != UPDATE_SINGLE:
             self._update_recurring_planning_items(updates, original, update_method)
 
-    def validate_on_update(self, updates, original, user):
+    async def validate_on_update(self, updates, original, user):
         lock_user = original.get("lock_user", None)
         str_user_id = str(user.get(ID_FIELD)) if user else None
 
         if lock_user and str(lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError("The item was locked by another user")
 
-        self.validate_planning(updates, original)
+        await self.validate_planning(updates, original)
 
-    def validate_planning(self, updates, original=None):
+    async def validate_planning(self, updates, original=None):
         if (not original and not updates.get("planning_date")) or (
             "planning_date" in updates and updates["planning_date"] is None
         ):
@@ -323,9 +324,9 @@ class PlanningService(AsyncBaseService):
         self._validate_events_links(updates)
 
         # Validate if agendas being added are enabled agendas
-        agenda_service = get_resource_service("agenda")
+        agenda_service = AgendasAsyncService()
         for agenda_id in updates.get("agendas", []):
-            agenda = agenda_service.find_one(req=None, _id=agenda_id)
+            agenda = await agenda_service.find_one(req=None, _id=agenda_id)
             if not agenda:
                 raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda_id))
 
