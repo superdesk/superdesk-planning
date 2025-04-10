@@ -138,11 +138,13 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                                 event={event}
                                 planningItem={this.props.item}
                                 updateEventItem={(item, updates, scrollOnChange) =>
-                                    this.props.updateEventItem(item as IEventItem, updates, scrollOnChange).then(() => {
-                                        setTimeout(() => {
-                                            this.lockRelatedItemsOnFrontEnd();
-                                        }, 100);
-                                    })
+                                    this.props.updateEventItem(item as IEventItem, updates, scrollOnChange)
+                                        .then(() => {
+                                            // Wait for redux store to update
+                                            setTimeout(() => {
+                                                this.lockRelatedItemsOnFrontEnd();
+                                            }, 100);
+                                        })
                                 }
                                 unlinkEvent={(item) => {
                                     this.props.unlinkEvent(item);

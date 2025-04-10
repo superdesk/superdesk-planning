@@ -117,14 +117,6 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                                         ['_endTime', '_startTime', '_created', '_etag', '_links', '_updated']
                                     );
 
-                                    // Sometimes UI is clicked too fast, and since we don't have a perfect flow
-                                    // the users could end up creating a new event with the same ID twice
-                                    if (!isTemporaryId(itemClean._id)) {
-                                        this.update(itemClean as IEventItem);
-
-                                        return Promise.resolve(itemClean as IEventItem);
-                                    }
-
                                     return eventsApi.events.create(itemClean).then(([created]) =>
                                         planningApi.locks.unlockEmbeddedEvent(created._id)
                                             .then((unlocked) => {

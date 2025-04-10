@@ -45,29 +45,29 @@ export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
     editorType: EDITOR_TYPE,
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
-): Promise<Array<T>> => {
-    const updatedItems: Array<Promise<T>> = [];
+) => {
+    const updatedItems: Array<T> = [];
     const itemsExposed = getEmbeddedItemsExposed<T>(editorType, itemType);
 
     for (const exposed of itemsExposed) {
         if (!exposed.hasUnsavedChanges()) {
             updatedItems.push(
-                Promise.resolve(exposed.getLatestItem())
+                await exposed.getLatestItem(),
             );
             continue;
         }
 
         if (action === 'SAVE') {
-            updatedItems.push(exposed.save());
+            updatedItems.push(await exposed.save());
         } else if (action === 'DISCARD') {
             await exposed.discardUnsavedChanges();
-            updatedItems.push(Promise.resolve(exposed.getLatestItem()));
+            updatedItems.push(await exposed.getLatestItem());
         } else {
-            updatedItems.push(exposed.handleUnsavedChanges());
+            updatedItems.push(await exposed.handleUnsavedChanges());
         }
     }
 
-    return await Promise.all(updatedItems);
+    return updatedItems;
 };
 
 export const embeddedItemHasUnsavedChanges = (itemType: ItemType) => {

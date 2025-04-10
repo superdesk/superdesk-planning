@@ -69,6 +69,8 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
                     }
                 })
                 .catch(() => {
+                    // If there's no autosaved item an error is returned from the backend,
+                    // so process it here and return the original item
                     return {...item} as unknown as T;
                 });
         },

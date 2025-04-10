@@ -102,13 +102,13 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         const index = events.findIndex(
             (event) => event._id === original._id
         );
-        const isFirstRelatedEvent = events.length < 1;
+        const isEmpty = events.length < 1;
 
-        if (!isFirstRelatedEvent && index < 0) {
+        if (!isEmpty && index < 0) {
             return;
         }
 
-        events[isFirstRelatedEvent ? 0 : index] = {
+        events[isEmpty ? 0 : index] = {
             _id: updates._id,
             link_type: original.link_type,
             recurrence_id: original.recurrence_id
