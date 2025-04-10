@@ -5,7 +5,7 @@ import {IPlanningItem, IG2ContentType, ILockedItems, IAgenda} from '../../../int
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 
-import {lockUtils, getItemWorkflowStateLabel} from '../../../utils';
+import {lockUtils, getItemWorkflowStateLabel, stringUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 
 import {Label} from 'superdesk-ui-framework/react';
@@ -84,7 +84,11 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                         )}
                         {itemDescription.length === 0 ? null : (
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                {this.props.item.name || this.props.item.description_text}
+                                {/* Description_text may contain HTML and we
+                                do not want to display that in this header */}
+                                {stringUtils.convertHtmlToPlainText(
+                                    this.props.item.name || this.props.item.description_text,
+                                )}
                             </span>
                         )}
                     </List.Row>

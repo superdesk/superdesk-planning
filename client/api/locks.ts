@@ -12,7 +12,7 @@ import {EVENTS, LOCKS, PLANNING, WORKSPACE, ASSIGNMENTS} from '../constants';
 
 import featuredPlanning from '../actions/planning/featuredPlanning';
 import {lockUtils, getErrorMessage, eventUtils, planningUtils, isExistingItem} from '../utils';
-import {getRelatedEventIdsForPlanning, getRelatedEventLinksForPlanning} from '../utils/planning';
+import {getRelatedEventIdsForPlanning} from '../utils/planning';
 import {currentWorkspace as getCurrentWorkspace} from '../selectors/general';
 import {getLockedItems} from '../selectors/locks';
 
@@ -150,7 +150,7 @@ function lockItem<T extends IAssignmentOrPlanningItem>(item: T, action?: string)
                 item: lockedItem._id,
                 type: lockedItem.type,
                 event_ids: lockedItem.type === 'planning' ?
-                    getRelatedEventIdsForPlanning(lockedItem, 'primary') :
+                    getRelatedEventIdsForPlanning(lockedItem) :
                     [],
                 recurrence_id: lockedItem.type !== 'assignment' ? lockedItem.recurrence_id : undefined,
                 etag: lockedItem._etag,
@@ -178,7 +178,8 @@ function lockItem<T extends IAssignmentOrPlanningItem>(item: T, action?: string)
             }
 
             return lockedItem;
-        }, (error) => {
+        })
+        .catch((error) => {
             const {gettext} = superdeskApi.localization;
             const {notify} = superdeskApi.ui;
 
@@ -276,7 +277,7 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
                 item: unlockedItem._id,
                 type: unlockedItem.type,
                 event_ids: unlockedItem.type === 'planning' ?
-                    getRelatedEventIdsForPlanning(unlockedItem, 'primary') :
+                    getRelatedEventIdsForPlanning(unlockedItem) :
                     [],
                 recurrence_id: unlockedItem.type !== 'assignment' ? unlockedItem.recurrence_id : undefined,
                 etag: unlockedItem._etag,
@@ -304,6 +305,42 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
 
             return unlockedItem;
         }, (error) => {
+            const {gettext} = superdeskApi.localization;
+            const {notify} = superdeskApi.ui;
+
+            notify.error(getErrorMessage(error, gettext('Failed to unlock item')));
+
+            return Promise.reject(error);
+        });
+}
+
+function unlockEmbeddedEvent(itemId: string): Promise<IEventItem> {
+    const {dispatch} = planningApi.redux.store;
+    const endpoint = `events/${itemId}/unlock`;
+
+    return superdeskApi.dataApi.create<IEventItem>(endpoint, {})
+        .then((unlockedItem) => {
+            eventUtils.modifyForClient(unlockedItem);
+
+            locks.setItemAsUnlocked({
+                item: unlockedItem._id,
+                type: unlockedItem.type,
+                event_ids: [],
+                recurrence_id: unlockedItem.recurrence_id,
+                etag: unlockedItem._etag,
+                from_ingest: false,
+                user: unlockedItem.lock_user,
+                lock_session: unlockedItem.lock_session,
+            });
+
+            dispatch({
+                type: EVENTS.ACTIONS.UNLOCK_EVENT,
+                payload: {event: unlockedItem},
+            });
+
+            return unlockedItem;
+        })
+        .catch((error) => {
             const {gettext} = superdeskApi.localization;
             const {notify} = superdeskApi.ui;
 
@@ -350,5 +387,6 @@ export const locks: IPlanningAPI['locks'] = {
     unlockItemById: unlockItemById,
     unlockThenLockItem: unlockThenLockItem,
     lockFeaturedPlanning: lockFeaturedPlanning,
+    unlockEmbeddedEvent: unlockEmbeddedEvent,
     unlockFeaturedPlanning: unlockFeaturedPlanning,
 };

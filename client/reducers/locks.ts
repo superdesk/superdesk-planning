@@ -16,7 +16,8 @@ function removeLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_UNLOC
         delete state.recurring[data.recurrence_id];
     } else if ((data.event_ids?.length ?? 0) > 0) {
         // For now, only support 1 primary event link for locks
-        delete state.event[data.event_ids[0]];
+
+        data.event_ids.forEach((x) => delete state.event[x]);
     }
 
     // Always try and delete a lock direclty on the supplied item
@@ -43,8 +44,9 @@ function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']
     } else if ((data.event_ids?.length ?? 0) > 0) {
         state[data.type][data.item] = lockData;
 
-        // For now, only support 1 primary event link for locks
-        state.event[data.event_ids[0]] = lockData;
+        data.event_ids.forEach((x) => {
+            state.event[x] = lockData;
+        });
     } else {
         state[data.type][data.item] = lockData;
     }
@@ -84,7 +86,7 @@ export default createReducer(initialLockState, {
             }
         }
 
-        for (const relatedEventId of getRelatedEventIdsForPlanning(planning, 'primary')) {
+        for (const relatedEventId of getRelatedEventIdsForPlanning(planning)) {
             // lock related planning unless event itself is locked
             // if event itself is locked, locking a related planning item would drop event's lock
             if (nextEventLocks[relatedEventId]?.item_type !== 'event') {

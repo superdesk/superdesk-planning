@@ -67,6 +67,11 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
                     } else {
                         return {...x} as unknown as T;
                     }
+                })
+                .catch(() => {
+                    // If there's no autosaved item an error is returned from the backend,
+                    // so process it here and return the original item
+                    return {...item} as unknown as T;
                 });
         },
 
@@ -79,12 +84,15 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
         saveEntity: (current, original) => {
             return onSave(current, original);
         },
+
         getContentProfile: () => {
             return Promise.resolve(getProfile(profile, item.language ?? 'en'));
         },
+
         closeAuthoring: (_current, original, hasUnsavedChanges, _cancelAutosave, doClose) => {
             return Promise.resolve();
         },
+
         getUserPreferences: () => ng.get('preferencesService').get()
     };
 

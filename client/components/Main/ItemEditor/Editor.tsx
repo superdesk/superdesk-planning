@@ -238,9 +238,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
                     }
                 },
                 onIgnore: () => {
-                    this.itemManager.unlockAndCancel(
-                        embeddedItemHasUnsavedChanges(this.props.itemType) ? 'HANDLE_UNSAVED_CHANGES' : 'DISCARD',
-                    );
+                    this.itemManager.unlockAndCancel();
                 },
                 onSave: onSave,
                 onSaveAndPost: onSaveAndPost,
