@@ -8,6 +8,7 @@ import {Spacer, Button} from 'superdesk-ui-framework/react';
 import {generateTempId, isTemporaryId} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
 import {autosave} from '../../../api/autosave';
+import {isEqual} from 'lodash';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
@@ -83,6 +84,15 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         this.lockRelatedItemsOnFrontEnd();
     }
 
+    componentDidUpdate(prevProps: Readonly<IAssociatedEventFieldProps>): void {
+        const prevEventIds = prevProps.events.map((x) => x._id);
+        const currentEventIds = this.props.events.map((x) => x._id);
+
+        if (isEqual(prevEventIds, currentEventIds) === false) {
+            this.lockRelatedItemsOnFrontEnd();
+        }
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {DropZone} = superdeskApi.components;
@@ -114,12 +124,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                             size="small"
                             iconOnly={true}
                             onClick={() => {
-                                this.addNewRelatedEvent()
-                                    .then(() => {
-                                        setTimeout(() => {
-                                            this.lockRelatedItemsOnFrontEnd();
-                                        }, 100);
-                                    });
+                                this.addNewRelatedEvent();
                             }}
                         />
                     )}
@@ -134,11 +139,6 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                                 planningItem={this.props.item}
                                 updateEventItem={(item, updates, scrollOnChange) =>
                                     this.props.updateEventItem(item as IEventItem, updates, scrollOnChange)
-                                        .then(() => {
-                                            setTimeout(() => {
-                                                this.lockRelatedItemsOnFrontEnd();
-                                            }, 100);
-                                        })
                                 }
                                 unlinkEvent={(item) => {
                                     this.props.unlinkEvent(item);
@@ -167,10 +167,6 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                                 const eventItem: IEventItem = JSON.parse(data);
 
                                 this.addRelatedEvent(eventItem);
-
-                                setTimeout(() => {
-                                    this.lockRelatedItemsOnFrontEnd();
-                                }, 100);
                             }
                         }}
                         multiple={true}
