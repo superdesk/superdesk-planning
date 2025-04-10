@@ -45,7 +45,7 @@ export const handleEmbeddedItems = async<T extends IEventItem | IPlanningItem>(
     editorType: EDITOR_TYPE,
     action: IEmbeddedPlanningsActionType,
     itemType: ItemType,
-) => {
+): Promise<Array<T>> => {
     const updatedItems: Array<T> = [];
     const itemsExposed = getEmbeddedItemsExposed<T>(editorType, itemType);
 
