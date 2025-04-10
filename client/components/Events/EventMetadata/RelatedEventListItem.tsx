@@ -10,6 +10,7 @@ import * as selectors from '../../../selectors';
 import * as List from '../../UI/List';
 import {ItemIcon} from '../../ItemIcon';
 import {StateLabel} from '../../StateLabel';
+import {stringUtils} from '../../../utils';
 
 interface IProps {
     item: DeepPartial<IEventItem>;
@@ -68,7 +69,9 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
                 >
                     <List.Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-strong">{this.props.item.name}</span>
+                            <span className="sd-list-item__text-strong">
+                                {stringUtils.convertHtmlToPlainText(this.props.item.name)}
+                            </span>
                         </span>
                     </List.Row>
                     <List.Row>

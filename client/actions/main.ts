@@ -704,14 +704,18 @@ const openIgnoreCancelSaveModal = ({
             itemId
         ) || {};
 
-        if (itemId && isItemSameAsAutosave(
-            {
-                _id: itemId,
-                type: itemType,
-            },
-            autosaveData,
-            selectors.events.storedEvents(getState()),
-            selectors.planning.storedPlannings(getState()))) {
+        if (
+            itemId
+            && isItemSameAsAutosave(
+                {
+                    _id: itemId,
+                    type: itemType,
+                },
+                autosaveData,
+                selectors.events.storedEvents(getState()),
+                selectors.planning.storedPlannings(getState()),
+            )
+        ) {
             return onIgnore();
         }
 
@@ -1195,7 +1199,7 @@ const openFromLockActions = () => (
                 PLANNING.ITEM_ACTIONS,
                 EVENTS.ITEM_ACTIONS)).filter((a) => a.lock_action == sessionLastLock.action);
 
-            if (action) {
+            if (action.length > 0) {
                 /* get the item we're operating on */
                 dispatch(self.fetchById(sessionLastLock.item_id, sessionLastLock.item_type)).then((item) => {
                     actionUtils.getActionDispatches({

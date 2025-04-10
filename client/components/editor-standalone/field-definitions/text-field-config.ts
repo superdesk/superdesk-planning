@@ -6,8 +6,7 @@ export function getTextFieldConfig(
     options: (IBaseFieldDefinition<'base'> | IEditor3Definition | IMultiLineDefinition) & {label: string},
 ): IAuthoringFieldV2 {
     const editor3Config: IEditor3Config = (() => {
-        const basicOptions = {cleanPastedHtml: true,
-            singleLine: false,
+        const basicOptions = {
             disallowedCharacters: [],
             showStatistics: true,
             width: 100,
@@ -20,6 +19,7 @@ export function getTextFieldConfig(
                 minLength: undefined,
                 maxLength: undefined,
                 cleanPastedHtml: false,
+                singleLine: true,
                 ...basicOptions,
             };
         } else if (fieldType === 'editor3') {
@@ -28,6 +28,7 @@ export function getTextFieldConfig(
                 minLength: options.minLength ?? undefined,
                 maxLength: options.maxLength ?? undefined,
                 cleanPastedHtml: true,
+                singleLine: false,
                 ...basicOptions,
             };
         } else if (fieldType === 'multi_line') {
@@ -36,11 +37,12 @@ export function getTextFieldConfig(
                 minLength: options.minLength ?? undefined,
                 maxLength: options.maxLength ?? undefined,
                 cleanPastedHtml: false,
-                expandable: {
-                    enabled: options.expandable,
+                singleLine: true,
+                expandable: options.expandable ? {
+                    enabled: true,
                     defaultValue: false,
                     numberOfRowsWhenCollapsed: 4,
-                },
+                } : undefined,
                 ...basicOptions,
             };
         }

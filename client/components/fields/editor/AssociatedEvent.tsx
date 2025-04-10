@@ -8,6 +8,7 @@ import {Spacer, Button} from 'superdesk-ui-framework/react';
 import {generateTempId, isTemporaryId} from '../../../utils';
 import {convertPlanningToEvent} from '../../../actions/events/ui';
 import {autosave} from '../../../api/autosave';
+import {isEqual} from 'lodash';
 
 export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAssociatedEventFieldProps> {
     public relatedItemRefs: {[id: string]: AssociatedEventItem};
@@ -18,11 +19,10 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         this.relatedItemRefs = {};
         this.getCurrentValue = this.getCurrentValue.bind(this);
         this.addRelatedEvent = this.addRelatedEvent.bind(this);
-        this.removeRelatedEvent = this.removeRelatedEvent.bind(this);
         this.relatedItemExists = this.relatedItemExists.bind(this);
         this.addNewRelatedEvent = this.addNewRelatedEvent.bind(this);
+        this.lockRelatedItemsOnFrontEnd = this.lockRelatedItemsOnFrontEnd.bind(this);
     }
-
 
     private getCurrentValue(): Array<IPlanningRelatedEventLink> {
         const {field, item} = this.props;
@@ -47,13 +47,6 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         });
     }
 
-    private removeRelatedEvent(id: IEventItem['_id']) {
-        this.props.onChange(
-            this.props.field,
-            this.getCurrentValue().filter((item) => item._id !== id),
-        );
-    }
-
     private relatedItemExists(id: IEventItem['_id']) {
         const {field, item} = this.props;
         const relatedEvents = item[field] ?? [];
@@ -64,12 +57,40 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
     private addNewRelatedEvent() {
         const newEvent = {
             _id: generateTempId(),
-            ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState)
+            ...convertPlanningToEvent(this.props.item, planningApi.redux.store.getState, false)
         };
 
-        return autosave.save(undefined, newEvent).then(() => {
-            this.addRelatedEvent(newEvent as IEventItem);
+        return autosave.save(undefined, newEvent).then((autosavedEvent) => {
+            this.addRelatedEvent(autosavedEvent as IEventItem);
+
+            return autosavedEvent;
         });
+    }
+
+    private lockRelatedItemsOnFrontEnd() {
+        planningApi.locks.setItemAsLocked({
+            ...this.props.item,
+            event_ids: this.props.events.map((x) => x._id),
+            etag: this.props.item._etag,
+            item: this.props.item._id,
+            user: this.props.item.lock_user,
+            lock_action: this.props.item.lock_action,
+            lock_session: this.props.item.lock_session,
+            lock_time: this.props.item.lock_time,
+        });
+    }
+
+    componentDidMount(): void {
+        this.lockRelatedItemsOnFrontEnd();
+    }
+
+    componentDidUpdate(prevProps: Readonly<IAssociatedEventFieldProps>): void {
+        const prevEventIds = prevProps.events.map((x) => x._id);
+        const currentEventIds = this.props.events.map((x) => x._id);
+
+        if (isEqual(prevEventIds, currentEventIds) === false) {
+            this.lockRelatedItemsOnFrontEnd();
+        }
     }
 
     render() {
@@ -102,7 +123,9 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                             shape="round"
                             size="small"
                             iconOnly={true}
-                            onClick={this.addNewRelatedEvent}
+                            onClick={() => {
+                                this.addNewRelatedEvent();
+                            }}
                         />
                     )}
                 </Spacer>
@@ -110,12 +133,24 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                     <Spacer gap="8" v>
                         {events.map((event, i) => (
                             <AssociatedEventItem
-                                isTemporary={isTemporaryId(event._id)}
                                 index={i}
                                 key={event._id}
                                 event={event}
-                                updateEventItem={this.props.updateEventItem}
-                                unlinkEvent={this.props.unlinkEvent}
+                                planningItem={this.props.item}
+                                updateEventItem={(item, updates, scrollOnChange) =>
+                                    this.props.updateEventItem(item as IEventItem, updates, scrollOnChange)
+                                        .then(() => {
+                                            // Wait for redux store to update
+                                            setTimeout(() => {
+                                                this.lockRelatedItemsOnFrontEnd();
+                                            }, 100);
+                                        })
+                                }
+                                unlinkEvent={(item) => {
+                                    this.props.unlinkEvent(item);
+
+                                    planningApi.locks.unlockEmbeddedEvent(item._id);
+                                }}
                                 disabled={this.props.disabled}
                                 ref={(ref) => {
                                     this.relatedItemRefs[i] = ref;

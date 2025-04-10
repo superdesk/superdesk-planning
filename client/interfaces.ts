@@ -2196,7 +2196,7 @@ export interface IEditorAPI {
                 bookmarks: Array<IEditorBookmark>;
                 groups: Array<IEditorFormGroup>;
             };
-            updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): void;
+            updateEventItem(item: IEventItem, updates: IEventItem, scrollOnChange: boolean): Promise<void>;
             unlinkEvent(item: DeepPartial<IEventItem>): void;
             getRelatedEventsDomRef(eventId: IEventItem['_id']): React.RefObject<any>;
             getCoverageFields(
@@ -2366,6 +2366,7 @@ export interface IPlanningAPI {
         updateProfilesInStore(): Promise<void>;
     };
     locks: {
+        unlockEmbeddedEvent(itemId: string): Promise<IEventItem>;
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
         setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
         setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;

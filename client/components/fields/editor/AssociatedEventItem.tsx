@@ -1,6 +1,6 @@
 import React, {createRef} from 'react';
 import {IAuthoringReact} from 'superdesk-api';
-import {superdeskApi} from '../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {authoringStorageEventItemHttp} from '../../../components/editor-standalone/authoring-storage-event-http';
 import {EventEditorStandalone} from '../../../components/editor-standalone/event-editor-standalone';
 import {RelatedEventListItem} from '../../../components/Events/EventMetadata/RelatedEventListItem';
@@ -13,19 +13,27 @@ import {omit} from 'lodash';
 import {IPlanningRelatedEventLink} from 'interfaces';
 
 interface IPropsSavedEvent {
-    isTemporary: false;
     unlinkEvent(item: DeepPartial<IEventItem>): void;
-    updateEventItem(item: IPlanningRelatedEventLink, updates: IEventItem, scrollOnChange: boolean): void;
+    updateEventItem(
+        item: IPlanningRelatedEventLink,
+        updates: IEventItem,
+        scrollOnChange: boolean,
+    ): Promise<void>;
     event: IEventItem;
+    planningItem: IPlanningItem;
     index: number;
     disabled?: boolean;
 }
 
 interface IPropsTemporaryEvent {
-    isTemporary: true;
     unlinkEvent(item: DeepPartial<IPlanningRelatedEventLink>): void;
-    updateEventItem(item: IPlanningRelatedEventLink, updates: IEventItem, scrollOnChange: boolean): void;
+    updateEventItem(
+        item: IPlanningRelatedEventLink,
+        updates: IEventItem,
+        scrollOnChange: boolean,
+    ): Promise<void>;
     event: IPlanningRelatedEventLink;
+    planningItem: IPlanningItem;
     index: number;
     disabled?: boolean;
 }
@@ -85,9 +93,11 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                     toggleBoxRef={this.toggleBoxRef}
                     getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                     alwaysRenderChildren
+                    key={event._id}
                     header={(
-                        this.props.isTemporary ?
-                            renderRelatedEvent(event as IEventItem) : (
+                        isTemporaryId(event._id)
+                            ? renderRelatedEvent(event as IEventItem)
+                            : (
                                 <WithLiveResources resources={[{ids: [event._id], resource: 'events'}]}>
                                     {(res) => renderRelatedEvent(res[0]._items[0] as IEventItem)}
                                 </WithLiveResources>
@@ -97,7 +107,7 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                     <EventEditorStandalone
                         editorRef={this.authoringRef}
                         itemId={event._id}
-                        authoringStorage={this.props.isTemporary
+                        authoringStorage={isTemporaryId(event._id)
                             ? getAuthoringStorageInMemory(
                                 'event',
                                 event as IEventItem,
@@ -107,11 +117,14 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                                         ['_endTime', '_startTime', '_created', '_etag', '_links', '_updated']
                                     );
 
-                                    return eventsApi.events.create(itemClean).then(([createdEvent]) => {
-                                        this.update(createdEvent);
+                                    return eventsApi.events.create(itemClean).then(([created]) =>
+                                        planningApi.locks.unlockEmbeddedEvent(created._id)
+                                            .then((unlocked) => {
+                                                this.update(unlocked);
 
-                                        return createdEvent;
-                                    });
+                                                return unlocked;
+                                            })
+                                    );
                                 },
                             )
                             : authoringStorageEventItemHttp

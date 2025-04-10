@@ -102,19 +102,20 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         const index = events.findIndex(
             (event) => event._id === original._id
         );
+        const isEmpty = events.length < 1;
 
-        if (index < 0) {
+        if (!isEmpty && index < 0) {
             return;
         }
 
-        events[index] = {
+        events[isEmpty ? 0 : index] = {
             _id: updates._id,
             link_type: original.link_type,
             recurrence_id: original.recurrence_id
         };
 
         const updateMainField = () => {
-            editor.form.changeField('related_events', events)
+            return editor.form.changeField('related_events', events, true, true)
                 .then(() => {
                     if (scrollOnChange) {
                         getRelatedEventsDomRef(original._id).current?.scrollIntoView();
@@ -126,12 +127,14 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         // we must also remove it from _unsaved_related_events
         // otherwise trying to save the same item twice would happen
         if (isTemporaryId(original._id) && !isTemporaryId(updates._id)) {
-            editor.form.changeField(
+            return editor.form.changeField(
                 superdeskApi.helpers.nameof<IPlanningItem>('_unsaved_related_events'),
-                planning._unsaved_related_events.filter((x) => x._id != original._id)
+                planning._unsaved_related_events.filter((x) => x._id != original._id),
+                true,
+                true
             ).then(updateMainField);
         } else {
-            updateMainField();
+            return updateMainField();
         }
     }
 
@@ -163,7 +166,7 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
             .then(() => {
                 const lastEvent = events[events.length - 1];
 
-                getRelatedEventsDomRef(lastEvent?._id).current?.toggleBoxRef.current.scrollIntoView();
+                getRelatedEventsDomRef(lastEvent?._id)?.current?.scrollIntoView();
             });
     }
 
