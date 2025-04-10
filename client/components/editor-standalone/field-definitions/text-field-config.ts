@@ -38,11 +38,11 @@ export function getTextFieldConfig(
                 maxLength: options.maxLength ?? undefined,
                 cleanPastedHtml: false,
                 singleLine: true,
-                expandable: {
-                    enabled: options.expandable,
+                expandable: options.expandable ? {
+                    enabled: true,
                     defaultValue: false,
                     numberOfRowsWhenCollapsed: 4,
-                },
+                } : undefined,
                 ...basicOptions,
             };
         }
