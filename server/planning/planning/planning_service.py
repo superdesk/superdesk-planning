@@ -5,6 +5,7 @@ from lxml import etree
 from copy import deepcopy
 from bson import ObjectId
 from datetime import datetime
+from superdesk.core.types import SearchRequest
 from typing_extensions import assert_never
 from typing import AsyncGenerator, Any, cast
 
@@ -1601,3 +1602,13 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             await events_history_service.on_item_updated(
                 {"planning_id": doc[ID_FIELD]}, original_event, "planning_created"
             )
+
+    async def get_planning_by_agenda_id(self, agenda_id):
+        """Get the planing item by Agenda
+
+        :param dict agenda_id: Agenda _id
+        :return list: list of planing items
+        """
+        query = {"query": {"bool": {"must": {"term": {"agendas": str(agenda_id)}}}}}
+        search_request = SearchRequest(args={"source": query})
+        return await super().find(search_request)
