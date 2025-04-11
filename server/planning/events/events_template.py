@@ -220,18 +220,18 @@ class RecentEventsTemplateService(AsyncBaseService):
 
         app = get_current_app()
         templates_ids = [_["_id"] for _ in app.data.mongo.pymongo(resource="events").db["events"].aggregate(pipeline)]
-        templates = list(
+        templates = await (
             app.data.mongo_async.pymongo(resource="events_template")
             .db["events_template"]
             .find({"_id": {"$in": templates_ids}})
-        )
+        ).to_list()
         # keep `templates_ids` ordering
         templates.sort(key=lambda template: templates_ids.index(template["_id"]))
         # query not used templates
-        templates += (
+        templates += await (
             app.data.mongo_async.pymongo(resource="events_template")
             .db["events_template"]
             .find({"_id": {"$nin": templates_ids}})
-        )
+        ).to_list()
 
         return ListCursor(templates)

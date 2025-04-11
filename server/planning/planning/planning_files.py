@@ -64,5 +64,5 @@ class PlanningFilesService(AsyncBaseService):
             ],
         }
         plannings_using_file = await get_resource_service("planning").find_async(where=find_clause)
-        if plannings_using_file.count() > 0:
+        if await plannings_using_file.count() > 0:
             raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other planning items.")

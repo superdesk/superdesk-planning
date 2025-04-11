@@ -239,7 +239,7 @@ class EventsService(AsyncBaseService):
             # Now, get associated planning items with the same recurrence
             return itertools.chain(
                 all_items,
-                await get_resource_service("planning").find_async(where={"recurrence_id": item.get("recurrence_id")}),
+                await (await get_resource_service("planning").find_async(where={"recurrence_id": item.get("recurrence_id")})).to_list(),
             )
         else:
             # Get associated planning items

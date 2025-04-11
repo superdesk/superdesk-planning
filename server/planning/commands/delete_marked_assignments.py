@@ -80,7 +80,7 @@ class DeleteMarkedAssignments:
         failed_assignments = []
         assignments_deleted = []
 
-        for assignment in assignments_to_delete:
+        async for assignment in assignments_to_delete:
             assign_id = assignment.get(ID_FIELD)
             try:
                 await assignments_service.delete_action_async(lookup={"_id": assign_id})

@@ -576,12 +576,12 @@ class PlanningService(AsyncBaseService):
         events_service = get_resource_service("events")
         if item.get("recurrence_id"):
             # One call wil get all items in the recurring series from event service
-            return events_service.get_all_items_in_relationship(
+            return await events_service.get_all_items_in_relationship(
                 {"recurrence_id": item["recurrence_id"]}, event_link_type
             )
         else:
             # Get associated event
-            all_items = await events_service.find_async(where={"_id": event_id})
+            all_items = await (await events_service.find_async(where={"_id": event_id})).to_list()
             # Get all associated planning items
             return chain(all_items, get_related_planning_for_events([event_id], event_link_type))
 
@@ -1197,7 +1197,7 @@ class PlanningService(AsyncBaseService):
                 assignment_service.cancel_assignment(assignment, coverage, event_cancellation, event_reschedule)
 
     async def duplicate_coverage_for_article_rewrite(self, planning_id, coverage_id, updates):
-        planning = self.find_one_async(req=None, _id=planning_id)
+        planning = await self.find_one_async(req=None, _id=planning_id)
 
         if not planning:
             raise SuperdeskApiError.badRequestError("Planning does not exist")
@@ -1226,7 +1226,7 @@ class PlanningService(AsyncBaseService):
         )
 
         coverage_ids = [c["coverage_id"] for c in coverages if c.get("coverage_id")]
-        new_plan = self.patch_async(planning[ID_FIELD], {"coverages": coverages})
+        new_plan = await self.patch_async(planning[ID_FIELD], {"coverages": coverages})
 
         try:
             new_coverage = next(c for c in new_plan["coverages"] if c.get("coverage_id") not in coverage_ids)

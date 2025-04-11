@@ -54,7 +54,7 @@ class PlanningLockService(AsyncBaseService):
         item = await get_resource_service("planning").find_one_async(req=None, _id=item_id)
 
         if item and len(get_related_event_links_for_planning(item, "primary")):
-            lock_service.validate_relationship_locks(item, "planning")
+            await lock_service.validate_relationship_locks(item, "planning")
 
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, "planning")
         return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_PLANNING)
