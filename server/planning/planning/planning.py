@@ -46,6 +46,7 @@ from planning.types import (
     PLANNING_RELATED_EVENT_LINK_TYPE,
 )
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
+from planning.planning.planning_autosave_async_service import PlanningAutosaveAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
     get_coverage_status_from_cv,
@@ -1284,7 +1285,7 @@ class PlanningService(AsyncBaseService):
             planning_item[ID_FIELD], {"coverages": coverages}, planning_item
         )
 
-        get_resource_service("planning_autosave").on_assignment_removed(planning_item[ID_FIELD], coverage_id)
+        await PlanningAutosaveAsyncService().on_assignment_removed(planning_item[ID_FIELD], coverage_id)
 
         updated_planning["related_events"] = get_related_event_links_for_planning(planning_item)
 
