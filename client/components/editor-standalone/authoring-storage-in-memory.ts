@@ -27,7 +27,7 @@ export function getAuthoringStorageInMemory<T extends IEventOrPlanningItem>(
                 .getById(getProfileType(profile), id)
                 .then((x) => {
                     if (x == null) {
-                        item;
+                        return {...item};
                     } else {
                         return {...x} as unknown as T;
                     }
