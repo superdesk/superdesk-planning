@@ -133,6 +133,7 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                     (item) => {
                                         // Remove fields responsible for creating a link, so that item can be
                                         // standalone until user decides to link it through main editor "Save"
+
                                         const itemClean = omit(
                                             modifyForServer(item, true),
                                             ['_temporary', 'related_events', '_created', '_etag', '_links', '_updated'],
