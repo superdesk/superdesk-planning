@@ -43,7 +43,7 @@ from .module import (
 from .planning_service import PlanningAsyncService
 from .planning_history_async_service import PlanningHistoryAsyncService
 from .planning_featured_async_service import PlanningFeaturedAsyncService
-from .planning_autosave_async_service import PlanningAutosaveAsyncService
+from .planning_autosave_service import PlanningAutosaveAsyncService
 
 
 __all__ = [

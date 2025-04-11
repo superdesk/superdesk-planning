@@ -31,7 +31,7 @@ from .events_template import (
 
 from .events_service import EventsAsyncService
 from .events_history_async_service import EventsHistoryAsyncService
-from .events_autosave_async_service import EventsAutosaveAsyncService
+from .events_autosave_service import EventsAutosaveAsyncService
 from .module import events_resource_config, events_history_resource_config, events_autosave_resource_config
 
 __all__ = [
