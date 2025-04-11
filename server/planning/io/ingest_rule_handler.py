@@ -142,6 +142,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return None
 
         # Get the active agendas from the DB
+        # TODO-ASYNC[AgendasAsyncService] - Convert to use new AgendasAsyncService when function is converted to async
         agendas = get_resource_service("agenda").get(
             req=None,
             lookup={

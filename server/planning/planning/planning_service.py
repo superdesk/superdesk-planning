@@ -5,6 +5,7 @@ from lxml import etree
 from copy import deepcopy
 from bson import ObjectId
 from datetime import datetime
+from superdesk.core.types import SearchRequest
 from typing_extensions import assert_never
 from typing import AsyncGenerator, Any, cast
 
@@ -185,7 +186,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         updates.setdefault("versioncreated", utcnow())
 
         user = get_user()
-        self.validate_on_update(updates, original, user)
+        await self.validate_on_update(updates, original, user)
 
         updated_planning = PlanningResourceModel.from_dict(updates)
         await self._handle_coverages(updated_planning, original)
@@ -256,14 +257,14 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             doc.pop("_updates_schedule", None)
             sync_assignment_details_to_coverages(doc)
 
-    def validate_on_update(self, updates: dict[str, Any], original: PlanningResourceModel, user: dict[str, Any]):
+    async def validate_on_update(self, updates: dict[str, Any], original: PlanningResourceModel, user: dict[str, Any]):
         lock_user = original.lock_user
         str_user_id = str(user.get(ID_FIELD)) if user else None
 
         if lock_user and str(lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError("The item was locked by another user")
 
-        self.validate_planning(updates, original)
+        await self.validate_planning(updates, original)
 
     async def _update_recurring_planning_items(
         self, updates: dict[str, Any], original: PlanningResourceModel, update_method: str
@@ -431,7 +432,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 doc.language = doc.languages[0] if len(doc.languages) > 0 else get_app_config("DEFAULT_LANGUAGE")
 
             # TODO-ASYNC: consider moving the validation to the pydantic model instead
-            self.validate_planning(doc.to_dict())
+            await self.validate_planning(doc.to_dict())
 
             # remove duplicate agendas
             if doc.agendas:
@@ -461,7 +462,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         if len(generated_planning_items):
             docs.extend(generated_planning_items)
 
-    def validate_planning(self, updated_planning: dict[str, Any], original=None):
+    async def validate_planning(self, updated_planning: dict[str, Any], original=None):
+        from planning.agendas_async.agendas_async_service import AgendasAsyncService
+
         if (not original and not updated_planning.get("planning_date")) or (
             "planning_date" in updated_planning and updated_planning["planning_date"] is None
         ):
@@ -473,9 +476,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         self._validate_events_links(updated_planning)
 
         # Validate if agendas being added are enabled agendas
-        agenda_service = get_resource_service("agenda")
+        agenda_service = AgendasAsyncService()
         for agenda_id in updated_planning.get("agendas", []):
-            agenda = agenda_service.find_one(req=None, _id=agenda_id)
+            agenda = await agenda_service.find_one(req=None, _id=agenda_id)
             if not agenda:
                 raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda_id))
 
@@ -1601,3 +1604,13 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             await events_history_service.on_item_updated(
                 {"planning_id": doc[ID_FIELD]}, original_event, "planning_created"
             )
+
+    async def get_planning_by_agenda_id(self, agenda_id):
+        """Get the planing item by Agenda
+
+        :param dict agenda_id: Agenda _id
+        :return list: list of planing items
+        """
+        query = {"query": {"bool": {"must": {"term": {"agendas": str(agenda_id)}}}}}
+        search_request = SearchRequest(args={"source": query})
+        return await super().find(search_request)

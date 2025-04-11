@@ -111,6 +111,7 @@ def group_items_by_agenda(items):
             if len(agenda_in_array) > 0:
                 agenda_in_array[0]["items"].append(item)
             else:
+                # TODO-ASYNC[AgendasAsyncService] - Convert to use new AgendasAsyncService when function is converted to async
                 agenda = get_resource_service("agenda").find_one(req=None, _id=str(agenda_id))
                 if agenda is not None and agenda["is_enabled"]:
                     agenda["items"] = [item]

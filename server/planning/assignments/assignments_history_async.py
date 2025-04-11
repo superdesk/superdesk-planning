@@ -69,7 +69,7 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
         if diff:
             # Split an update to two actions if needed
             planning_history_service = PlanningHistoryAsyncService()
-            cov_diff = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
+            cov_diff: dict[str, Any] = {"coverage_id": original.get("coverage_item"), "assigned_to": {}}
 
             if "priority" in diff.keys():
                 cov_diff["assigned_to"]["priority"] = diff.pop("priority")
