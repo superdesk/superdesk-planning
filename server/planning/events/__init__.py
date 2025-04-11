@@ -22,14 +22,12 @@ from .events_lock import (
     EventsUnlockService,
 )
 from .events_post import EventsPostService, EventsPostResource
-from .event_autosave import EventAutosaveResource
 from .events_template import (
     EventsTemplateResource,
     EventsTemplateService,
     RecentEventsTemplateResource,
     RecentEventsTemplateService,
 )
-from planning.autosave import AutosaveService
 
 from .events_service import EventsAsyncService
 from .events_history_async_service import EventsHistoryAsyncService
@@ -68,9 +66,6 @@ def init_app(app):
 
     events_history_service = EventsHistoryService("events_history", backend=superdesk.get_backend())
     EventsHistoryResource("events_history", app=app, service=events_history_service)
-
-    event_autosave_service = AutosaveService("event_autosave", superdesk.get_backend())
-    EventAutosaveResource("event_autosave", app=app, service=event_autosave_service)
 
     events_template_service = EventsTemplateService(
         EventsTemplateResource.endpoint_name, backend=superdesk.get_backend()
