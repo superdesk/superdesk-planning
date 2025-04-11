@@ -8,7 +8,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 
 
-async def generate_planning_info(docs):
+async def generate_planning_info(docs: list[dict[str, Any]]):
     planning_service = PlanningAsyncService()
     for doc in docs:
         cursor = await planning_service.get_planning_by_agenda_id(doc.get(ID_FIELD))
