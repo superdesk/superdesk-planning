@@ -60,7 +60,7 @@ class ExportScheduledFilters:
         now_local = now_local.replace(minute=0, second=0, microsecond=0)
 
         logger.info(f"Starting to export scheduled filters: {now_utc}")
-        await self.process_filters(self.get_filters_with_schedules(), now_local, now_utc)
+        await self.process_filters(await self.get_filters_with_schedules(), now_local, now_utc)
 
         unlock(lock_name)
         logger.info(f"Completed sending scheduled exports: {now_utc}")

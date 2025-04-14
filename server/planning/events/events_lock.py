@@ -58,7 +58,7 @@ class EventsLockService(AsyncBaseService):
         item = await events_service.find_by_id_raw(item_id)
         assert item is not None, "Expected item to be a dict, got None"
 
-        lock_service.validate_relationship_locks(item, "events")
+        await lock_service.validate_relationship_locks(item, "events")
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, "events")
 
         return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_EVENTS)

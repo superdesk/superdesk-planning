@@ -217,11 +217,11 @@ class LockService(BaseComponent):
         logger.info("planning:item_lock: On session end")
         self.unlock_session(user_id, session_id, is_last_session)
 
-    def validate_relationship_locks(self, item, resource_name):
+    async def validate_relationship_locks(self, item, resource_name):
         if not item:
             raise SuperdeskApiError.notFoundError()
 
-        all_items = get_resource_service(resource_name).get_all_items_in_relationship(item)
+        all_items = await get_resource_service(resource_name).get_all_items_in_relationship(item)
         for related_item in all_items:
             if related_item[ID_FIELD] != item[ID_FIELD]:
                 if related_item.get(LOCK_USER) and related_item.get(LOCK_SESSION):

@@ -176,7 +176,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
             req=None, lookup={"assignment_id": assignment.get(ID_FIELD)}
         )
         # Match the passed item_id in doc or if the item is archived the archived item_id
-        delivery = [d for d in deliveries if d.get("item_id") == item.get("item_id", doc.get("item_id"))]
+        delivery = [d async for d in deliveries if d.get("item_id") == item.get("item_id", doc.get("item_id"))]
         if len(delivery) <= 0:
             raise SuperdeskApiError.badRequestError(
                 "Content doesnt exist for the assignment. Cannot unlink assignment and content."

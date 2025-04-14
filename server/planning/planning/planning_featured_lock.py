@@ -43,8 +43,8 @@ class PlanningFeaturedLockService(AsyncBaseService):
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
 
-        existing_locks = list(await self.find_async(where={}))
-        for existing_lock in existing_locks:
+        existing_locks = await self.find_async(where={})
+        async for existing_lock in existing_locks:
             if str(existing_lock.get(LOCK_USER)) != str(user_id):
                 raise SuperdeskApiError.forbiddenError(
                     message="Featured stories already being managed by another user."

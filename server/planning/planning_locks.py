@@ -184,4 +184,5 @@ def _get_query():
 
 
 async def _get_planning_featured_lock():
-    return get_resource_service("planning_featured_lock").get_async(req=_get_query(), lookup=None)
+    cursor = await get_resource_service("planning_featured_lock").get_async(req=_get_query(), lookup=None)
+    return await cursor.to_list()
