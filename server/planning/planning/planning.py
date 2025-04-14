@@ -11,7 +11,6 @@
 """Superdesk Planning"""
 
 from typing import Dict, Any, Optional, List
-from superdesk.core.types import SearchRequest
 from typing_extensions import assert_never
 from copy import deepcopy
 import logging

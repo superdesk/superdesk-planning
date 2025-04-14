@@ -51,6 +51,7 @@ from planning.types import (
     ContentProfile,
     UpdateMethods,
     EventResourceModel,
+    PlanningTypesResourceModel,
 )
 from planning.utils import (
     get_related_event_links_for_planning,
@@ -441,7 +442,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             if doc.agendas:
                 doc.agendas = unique_items_in_order(doc.agendas)
 
-            first_event = await self._populate_planning_from_event(doc, ContentProfile(**planning_type.to_dict()))
+            first_event = await self._populate_planning_from_event(doc, planning_type)
             await self._handle_coverages(doc)
             self.set_planning_schedule(doc)
 
@@ -1054,7 +1055,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
     @staticmethod
     async def _populate_planning_from_event(
-        planning: PlanningResourceModel, planning_type: ContentProfile
+        planning: PlanningResourceModel, planning_type: ContentProfile | PlanningTypesResourceModel
     ) -> EventResourceModel | None:
         """
         Populate planning document information based on a linked event. Retrieves a primary linked event
