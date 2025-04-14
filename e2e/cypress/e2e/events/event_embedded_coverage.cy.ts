@@ -114,9 +114,9 @@ describe('Planning.Events: embedded coverage', () => {
             .click();
 
         // Wait for save to be completed
-        editor.closeButton
+        editor.saveButton
             .should('exist')
-            .should('be.enabled');
+            .should('be.disabled');
         editor.waitForAutosave();
 
         editor.closeButton

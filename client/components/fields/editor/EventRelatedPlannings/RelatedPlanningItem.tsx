@@ -7,18 +7,17 @@ import {
     IPlanningItem,
     ISearchProfile
 } from '../../../../interfaces';
-import {superdeskApi} from '../../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../../superdeskApi';
 
 import {IconButton, ToggleBox} from 'superdesk-ui-framework/react';
 import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
 import {PlanningEditorStandalone} from '../../../editor-standalone/planning-editor-standalone';
 import {authoringStoragePlanningItemHttp} from '../../../editor-standalone/authoring-storage-planning-http';
-import {
-    getAuthoringStorageInMemory
-} from '../../../editor-standalone/authoring-storage-in-memory';
+import {getAuthoringStorageInMemory} from '../../../editor-standalone/authoring-storage-in-memory';
 import {IAuthoringReact} from 'superdesk-api';
 import {CustomHeaderToggleBox} from 'superdesk-ui-framework/react/components/ToggleBox/CustomHeaderToggleBox';
-import {isTemporaryId} from '../../../../utils';
+import {isTemporaryId, modifyForServer} from '../../../../utils';
+import {omit} from 'lodash';
 
 interface IProps {
     event: IEventItem;
@@ -121,7 +120,6 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                     }}
                                 </WithLiveResources>
                             )
-
                     }
                 >
                     <PlanningEditorStandalone
@@ -133,12 +131,27 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
                                     'planning',
                                     item as IPlanningItem,
                                     (item) => {
-                                        this.update(item);
+                                        // Remove fields responsible for creating a link, so that item can be
+                                        // standalone until user decides to link it through main editor "Save"
+                                        const fieldsToOmit = [
+                                            '_temporary', 'related_events', '_created', '_etag', '_links', '_updated',
+                                        ] satisfies Array<keyof IPlanningItem>;
+                                        const itemClean = omit(
+                                            modifyForServer(item, true),
+                                            fieldsToOmit,
+                                        );
 
-                                        return Promise.resolve(item);
+                                        return planningApi.planning.create(itemClean)
+                                            .then((created) =>
+                                                planningApi.locks.unlockItem(created)
+                                                    .then((unlocked) => {
+                                                        this.update(unlocked);
+
+                                                        return unlocked;
+                                                    })
+                                            );
                                     },
-                                )
-                                : authoringStoragePlanningItemHttp
+                                ) : authoringStoragePlanningItemHttp
                         }
                         makeVisible={() => {
                             if (this.toggleBoxRef.current.isOpen()) {
