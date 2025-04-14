@@ -143,8 +143,8 @@ class PlanningSearchService(AsyncBaseService):
                         if doc["type"] == resource or (resource == "events" and doc["type"] == "event")
                     ]
                 }
-                getattr(app, "on_fetched_resource")(resource, response)
-                getattr(app, "on_fetched_resource_%s" % resource)(response)
+                await getattr(app, "on_fetched_resource").call_async(resource, response)
+                await getattr(app, "on_fetched_resource_%s" % resource).call_async(response)
 
         return docs
 

@@ -1206,7 +1206,7 @@ class AssignmentsService(AsyncBaseService):
         else:
             lock_service = get_component(LockService)
             try:
-                lock_service.validate_relationship_locks(event, "events")
+                await lock_service.validate_relationship_locks(event, "events")
             except SuperdeskApiError:
                 # Something along the relationship line is locked - allow remove
                 return True
@@ -1290,8 +1290,7 @@ class AssignmentsService(AsyncBaseService):
         cursor = await get_resource_service("assignments").get_from_mongo_async(
             req=None, lookup={"coverage_item": doc["coverage_item"]}
         )
-        assignments = await cursor.to_list()
-        for a in assignments:
+        async for a in cursor:
             if str(a["_id"]) != str(doc["_id"]):
                 await self.delete_async(lookup={"_id": a["_id"]})
                 await self.archive_delete_assignment(a)
