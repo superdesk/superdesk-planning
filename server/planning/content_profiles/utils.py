@@ -14,6 +14,7 @@ from planning.types import ContentProfile
 
 
 def get_planning_schema(resource: str) -> ContentProfile:
+    # TODO-ASYNC[PlanningTypesAsyncService] - Update to use PlanningTypesAsyncService when function is updated to async and everywhere else it is also called
     return get_resource_service("planning_types").find_one(req=None, name=resource)
 
 

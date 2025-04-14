@@ -619,6 +619,7 @@ def is_valid_event_planning_reason(updates, original):
     item_type = original.get(ITEM_TYPE)
 
     # get the validator based on the item_type and lock_action
+    # TODO-ASYNC[PlanningTypesAsyncService] - Update to use PlanningTypesAsyncService when function is updated to async and everywhere else it is called
     validator = (
         get_resource_service("planning_types").find_one(req=None, name="{}_{}".format(item_type, lock_action)) or {}
     )

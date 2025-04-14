@@ -11,8 +11,8 @@
 import os
 import json
 
+from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
 from planning.tests import TestCase
-from superdesk import get_resource_service
 from apps.prepopulate.app_populate import AppPopulateCommand
 
 
@@ -50,14 +50,15 @@ class AppPopulatePlanningTypesTest(TestCase):
     async def test_populate_types(self):
         cmd = AppPopulateCommand()
         async with self.app.app_context():
-            service = get_resource_service("planning_types")
-            cmd.run(self.filename)
+            service = PlanningTypesAsyncService()
+            await cmd.run(self.filename)
 
             for item in self.json_data:
-                data = service.find_one(_id=item["_id"], req=None)
-                self.assertEqual(data["_id"], item["_id"])
-                self.assertEqual(data["editor"]["definition_long"], item["editor"]["definition_long"])
-                self.assertDictEqual(data["schema"]["definition_long"], item["schema"]["definition_long"])
+                data = await service.find_one(_id=item["_id"])
+                self.assertIsNotNone(data)
+                self.assertEqual(data.id, item["_id"])
+                self.assertEqual(data.editor["definition_long"], item["editor"]["definition_long"])
+                self.assertDictEqual(data.schema["definition_long"], item["schema"]["definition_long"])
 
     def tearDown(self):
         os.remove(self.filename)
