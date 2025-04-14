@@ -127,7 +127,7 @@ async def purge_item_locks(resource: str, expiry_datetime: datetime):
 
             try:
                 # Delete any autosave items associated with this item
-                autosave_service.delete_many(lookup={"_id": item_id})
+                await autosave_service.delete_many(lookup={"_id": item_id})
             except Exception as err:
                 logger.exception(f"Failed to delete autosave item(s) ({err})")
 
