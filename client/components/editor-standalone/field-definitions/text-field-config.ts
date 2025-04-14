@@ -37,7 +37,7 @@ export function getTextFieldConfig(
                 minLength: options.minLength ?? undefined,
                 maxLength: options.maxLength ?? undefined,
                 cleanPastedHtml: false,
-                singleLine: true,
+                singleLine: false,
                 expandable: options.expandable ? {
                     enabled: true,
                     defaultValue: false,
