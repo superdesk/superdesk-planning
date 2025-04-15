@@ -1,13 +1,14 @@
 import {IEventItem} from 'interfaces';
-import {convertToRaw} from 'draft-js';
+import {ContentState, convertToRaw} from 'draft-js';
 import {
     IEditor3Config,
     IEditor3ValueStorage,
     IStorageAdapter,
 } from 'superdesk-api';
-import {superdeskApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {getFieldDefinitions} from './field-definitions/index';
 import {IFieldDefinition, IFieldStorageAdapter} from './field-definitions/interfaces';
+import {isMultiLineField} from './utils';
 
 export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
     profile: 'event' | 'planning',
@@ -18,17 +19,18 @@ export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
             const {computeEditor3Output} = superdeskApi.helpers;
             const fieldDefinitions = getFieldDefinitions(profile);
             const fieldStorageAdapter = getFieldStorageAdapter(fieldDefinitions[fieldId]);
+            const itemProfile = planningApi.contentProfiles.get(profile);
 
             if (fieldStorageAdapter != null) {
                 return fieldStorageAdapter.storeValue(item, value);
             } else if (fieldType === 'editor3') {
                 const editor3Config = config as IEditor3Config;
                 const rawState = (value as IEditor3ValueStorage).rawContentState;
-
                 const computed = computeEditor3Output(
                     rawState,
                     editor3Config,
                     item.language ?? 'en',
+                    isMultiLineField(itemProfile.schema[fieldId]),
                 );
 
                 return {
@@ -48,14 +50,16 @@ export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
             const fieldDefinitions = getFieldDefinitions(profile);
             const value = (item as {[key: string]: any})[fieldId] ?? undefined;
             const fieldStorageAdapter = getFieldStorageAdapter(fieldDefinitions[fieldId]);
+            const itemProfile = planningApi.contentProfiles.get(profile);
 
             if (fieldStorageAdapter != null) {
                 return fieldStorageAdapter.retrieveStoredValue(item, fieldId);
             } else if (fieldType === 'editor3') {
-                const returnValue: IEditor3ValueStorage
-                    = {rawContentState: convertToRaw(getContentStateFromHtml(value ?? ''))};
+                if (isMultiLineField(itemProfile.schema[fieldId])) {
+                    return {rawContentState: convertToRaw(ContentState.createFromText(value ?? ''))};
+                }
 
-                return returnValue;
+                return {rawContentState: convertToRaw(getContentStateFromHtml(value ?? ''))};
             } else {
                 return value;
             }

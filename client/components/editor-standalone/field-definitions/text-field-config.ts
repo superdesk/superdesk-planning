@@ -18,7 +18,7 @@ export function getTextFieldConfig(
                 editorFormat: [],
                 minLength: undefined,
                 maxLength: undefined,
-                cleanPastedHtml: false,
+                cleanPastedHtml: true,
                 singleLine: true,
                 ...basicOptions,
             };
@@ -27,7 +27,7 @@ export function getTextFieldConfig(
                 editorFormat: options.formattingOptions ?? [],
                 minLength: options.minLength ?? undefined,
                 maxLength: options.maxLength ?? undefined,
-                cleanPastedHtml: true,
+                cleanPastedHtml: false,
                 singleLine: false,
                 ...basicOptions,
             };
@@ -36,7 +36,7 @@ export function getTextFieldConfig(
                 editorFormat: [],
                 minLength: options.minLength ?? undefined,
                 maxLength: options.maxLength ?? undefined,
-                cleanPastedHtml: false,
+                cleanPastedHtml: true,
                 singleLine: false,
                 expandable: options.expandable ? {
                     enabled: true,
