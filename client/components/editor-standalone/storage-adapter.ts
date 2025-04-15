@@ -1,4 +1,4 @@
-import {IEventItem, IProfileSchemaTypeString} from 'interfaces';
+import {IEventItem} from 'interfaces';
 import {ContentState, convertToRaw} from 'draft-js';
 import {
     IEditor3Config,

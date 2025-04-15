@@ -1,4 +1,4 @@
-import {IProfileSchemaType, IProfileSchemaType, IProfileSchemaTypeString} from 'interfaces';
+import {IProfileSchemaType, IProfileSchemaTypeString} from 'interfaces';
 import {omit} from 'lodash';
 import {IBaseRestApiResponse} from 'superdesk-api';
 
