@@ -147,7 +147,7 @@ class ExportScheduledFilters:
             logger.info(f"No items found for filter {search_filter_id}")
             return
 
-        get_resource_service("planning_article_export").post(
+        await get_resource_service("planning_article_export").post_async(
             [
                 {
                     "items": [item["_id"] for item in items],
