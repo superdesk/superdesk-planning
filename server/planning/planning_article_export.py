@@ -253,7 +253,7 @@ def enhance_coverage(planning, item, users, desks, text_users, text_desks):
 
 
 async def generate_text_item(items, template_name, resource_type):
-    template = get_resource_service("planning_export_templates").get_export_template(template_name, resource_type)
+    template = await get_resource_service("planning_export_templates").get_export_template(template_name, resource_type)
     if not template:
         raise SuperdeskApiError.badRequestError("Invalid template selected")
 
