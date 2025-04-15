@@ -1,3 +1,4 @@
+import {IProfileSchemaType, IProfileSchemaType, IProfileSchemaTypeString} from 'interfaces';
 import {omit} from 'lodash';
 import {IBaseRestApiResponse} from 'superdesk-api';
 
@@ -18,4 +19,8 @@ export function omitFields<T extends IBaseRestApiResponse>(
     }
 
     return {...omit(item, baseApiFields)};
+}
+
+export function isMultiLineField(fieldSchema: IProfileSchemaType) {
+    return (fieldSchema as IProfileSchemaTypeString)?.field_type === 'multi_line';
 }

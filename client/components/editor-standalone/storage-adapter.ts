@@ -8,6 +8,7 @@ import {
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {getFieldDefinitions} from './field-definitions/index';
 import {IFieldDefinition, IFieldStorageAdapter} from './field-definitions/interfaces';
+import {isMultiLineField} from './utils';
 
 export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
     profile: 'event' | 'planning',
@@ -25,15 +26,11 @@ export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
             } else if (fieldType === 'editor3') {
                 const editor3Config = config as IEditor3Config;
                 const rawState = (value as IEditor3ValueStorage).rawContentState;
-                const isMultiLineField = (
-                    itemProfile.schema[fieldId] as IProfileSchemaTypeString
-                )?.field_type === 'multi_line';
-
                 const computed = computeEditor3Output(
                     rawState,
                     editor3Config,
                     item.language ?? 'en',
-                    isMultiLineField,
+                    isMultiLineField(itemProfile.schema[fieldId]),
                 );
 
                 return {
@@ -58,11 +55,7 @@ export function getStorageAdapter<T extends IPlanningItem | IEventItem>(
             if (fieldStorageAdapter != null) {
                 return fieldStorageAdapter.retrieveStoredValue(item, fieldId);
             } else if (fieldType === 'editor3') {
-                const isMultiLineField = (
-                    itemProfile.schema[fieldId] as IProfileSchemaTypeString
-                )?.field_type === 'multi_line';
-
-                if (isMultiLineField) {
+                if (isMultiLineField(itemProfile.schema[fieldId])) {
                     return {rawContentState: convertToRaw(ContentState.createFromText(value ?? ''))};
                 }
 

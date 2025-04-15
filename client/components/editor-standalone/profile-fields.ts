@@ -4,6 +4,7 @@ import {planningApi, superdeskApi} from '../../superdeskApi';
 import {getEditorFormGroupsFromProfile} from '../../utils/contentProfiles';
 import {IProfileSchemaTypeString} from 'interfaces';
 import {RICH_FORMATTING_OPTION} from 'superdesk-api';
+import {isMultiLineField} from './utils';
 
 interface IBaseField<T> {
     type: T;
@@ -133,10 +134,7 @@ export const getPlanningProfileFields = (
                 maxlength: castedSchema.maxlength,
                 minlength: castedSchema.minlength,
             });
-        } else if (
-            TEXT_FIELDS_WITH_EDITOR_TYPE_CONFIG.has(fieldId)
-            && (fieldSchema as IProfileSchemaTypeString).field_type === 'multi_line'
-        ) {
+        } else if (TEXT_FIELDS_WITH_EDITOR_TYPE_CONFIG.has(fieldId) && isMultiLineField(fieldSchema)) {
             const castedSchema = fieldSchema as IProfileSchemaTypeString;
 
             convertedFields.push({
