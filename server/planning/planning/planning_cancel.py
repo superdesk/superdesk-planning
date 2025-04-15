@@ -53,7 +53,7 @@ class PlanningCancelResource(PlanningResource):
 
 class PlanningCancelService(AsyncBaseService):
     async def on_update_async(self, updates, original):
-        if not is_valid_event_planning_reason(updates, original):
+        if not await is_valid_event_planning_reason(updates, original):
             raise SuperdeskApiError.badRequestError(message="Reason is required field.")
 
     async def update_async(self, id, updates, original):

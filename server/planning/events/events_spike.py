@@ -252,7 +252,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     ACTION = "spiked"
 
     # Perform pre update event actions
-    pre_update_event_actions(updates, original, ACTION)
+    await pre_update_event_actions(updates, original, ACTION)
 
     # Determine update method
     update_method = get_update_method(updates, original)
@@ -302,7 +302,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     ACTION = "unspiked"
 
     # Perform pre update event actions
-    pre_update_event_actions(updates, original, ACTION)
+    await pre_update_event_actions(updates, original, ACTION)
 
     # Determine update method
     update_method = get_update_method(updates, original)

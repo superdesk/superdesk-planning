@@ -10,7 +10,7 @@
 
 """Superdesk Planning"""
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, cast
 from typing_extensions import assert_never
 from copy import deepcopy
 import logging
@@ -178,7 +178,7 @@ class PlanningService(AsyncBaseService):
             await self.validate_planning(doc)
             set_original_creator(doc)
 
-            first_event = await self._set_planning_event_info(doc, ContentProfile(**planning_type.to_dict()))
+            first_event = await self._set_planning_event_info(doc, cast(ContentProfile, planning_type.to_dict()))
             await self._set_coverage(doc)
             self.set_planning_schedule(doc)
             # set timestamps
