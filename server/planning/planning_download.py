@@ -23,7 +23,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
-planning_download_endpoint: EndpointGroup = EndpointGroup("planning", __name__)
+planning_download_endpoint: EndpointGroup = EndpointGroup("planning_download", __name__)
 
 
 @planning_download_endpoint.endpoint(

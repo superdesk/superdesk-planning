@@ -23,7 +23,6 @@ from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
 
 from .assignments_history_async import AssignmentsHistoryAsyncService
-from planning.planning_article_export import get_desk_template
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_coverage_type_name,
@@ -48,6 +47,8 @@ FIELDS_TO_OVERRIDE = [
 
 
 async def get_item_from_assignment(assignment, template=None):
+    from planning.planning_article_export import get_desk_template
+
     """Get the item from assignment
 
     :param dict assignment: Assignment document

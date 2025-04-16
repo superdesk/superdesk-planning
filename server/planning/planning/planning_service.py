@@ -20,7 +20,7 @@ from superdesk.notification import push_notification
 from superdesk import get_resource_service, get_app_config
 from superdesk.core.utils import date_to_str, generate_guid
 
-from planning import PlanningNotifications
+from planning.planning_notifications import PlanningNotifications
 from planning.content_profiles.utils import is_field_enabled
 from planning.events.events_utils import get_recurring_timeline
 from planning.types.enums import AssignmentWorkflowState, LinkType
@@ -51,7 +51,6 @@ from planning.types import (
     ContentProfile,
     UpdateMethods,
     EventResourceModel,
-    PlanningTypesResourceModel,
 )
 from planning.utils import (
     get_related_event_links_for_planning,
