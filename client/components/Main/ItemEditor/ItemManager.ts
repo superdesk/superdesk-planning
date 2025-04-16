@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Dispatch} from 'redux';
-import {cloneDeep, get, isEqual, set} from 'lodash';
+import {cloneDeep, get, isEqual, omit, set} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {
@@ -415,7 +415,22 @@ export class ItemManager {
                 const newState = {
                     initialValues: original,
                     diff: diff,
-                    dirty: this.editor.isDirty(initialValues, autosaveItem),
+                    dirty: (() => {
+                        // if associated_plannings in autosaveItem is undefined
+                        // we treat that as there's been no changes to associated_plannings
+                        if (initialValues.type === 'event' && autosaveItem.associated_plannings === undefined) {
+                            return this.editor.isDirty(
+                                initialValues,
+                                autosaveItem,
+                                false,
+                            );
+                        } else {
+                            return this.editor.isDirty(
+                                initialValues,
+                                autosaveItem,
+                            );
+                        }
+                    })(),
                     submitting: false,
                     itemReady: true,
                     loading: false,

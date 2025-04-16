@@ -333,10 +333,13 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         return promise.then((event) => {
             if (loadPlanning) {
                 return dispatch(self.loadAssociatedPlannings(event))
-                    .then(
-                        () => Promise.resolve(event),
-                        (error) => Promise.reject(error)
-                    );
+                    .then((plannings) => {
+                        return Promise.resolve({
+                            ...event,
+                            associated_plannings: plannings,
+                        });
+                    })
+                    .catch((error) => Promise.reject(error));
             }
 
             return Promise.resolve(event);
