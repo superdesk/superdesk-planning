@@ -45,11 +45,13 @@ from planning.common import (
 from planning.core.service import BasePlanningAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
+from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
 from planning.types import (
     PlanningResourceModel,
     ContentProfile,
     UpdateMethods,
     EventResourceModel,
+    PlanningTypesResourceModel,
 )
 from planning.utils import (
     get_related_event_links_for_planning,
@@ -423,7 +425,9 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         """
         Set default metadata.
         """
-        planning_type = get_resource_service("planning_types").find_one(req=None, name="planning")
+        planning_type = await PlanningTypesAsyncService().find_one(name="planning")
+        assert planning_type is not None, "Expexted planning_type to not be None"
+
         history_service = PlanningHistoryAsyncService()
         generated_planning_items = []
 
@@ -438,7 +442,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             if doc.agendas:
                 doc.agendas = unique_items_in_order(doc.agendas)
 
-            first_event = await self._populate_planning_from_event(doc, planning_type)
+            first_event = await self._populate_planning_from_event(doc, cast(ContentProfile, planning_type.to_dict()))
             await self._handle_coverages(doc)
             self.set_planning_schedule(doc)
 

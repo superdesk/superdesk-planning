@@ -25,7 +25,6 @@ from .planning_lock import (
 from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
-from .planning_autosave import PlanningAutosaveResource, PlanningAutosaveService
 from .planning_featured_lock import (
     PlanningFeaturedLockResource,
     PlanningFeaturedLockService,
@@ -44,7 +43,7 @@ from .module import (
 from .planning_service import PlanningAsyncService
 from .planning_history_async_service import PlanningHistoryAsyncService
 from .planning_featured_async_service import PlanningFeaturedAsyncService
-from .planning_autosave_async_service import PlanningAutosaveAsyncService
+from .planning_autosave_service import PlanningAutosaveAsyncService
 
 
 __all__ = [
@@ -113,9 +112,6 @@ def init_app(app):
         app=app,
         service=planning_featured_unlock_service,
     )
-
-    planning_autosave_service = PlanningAutosaveService("planning_autosave", superdesk.get_backend())
-    PlanningAutosaveResource("planning_autosave", app=app, service=planning_autosave_service)
 
     planning_history_async_service = PlanningHistoryAsyncService()
 

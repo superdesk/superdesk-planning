@@ -244,7 +244,7 @@ async def get_recurring_timeline(
     return historic, past, future
 
 
-def pre_update_event_actions(
+async def pre_update_event_actions(
     updates: dict[str, Any], original: dict[str, Any], ACTION: str = "", require_lock: bool = True
 ):
     # Set version_creator and update ingested state
@@ -254,7 +254,7 @@ def pre_update_event_actions(
         set_ingested_event_state(updates, original)
 
     # Perform additional validation for event action
-    validate_event_action(updates, original, ACTION, require_lock)
+    await validate_event_action(updates, original, ACTION, require_lock)
 
 
 def get_update_method(updates: dict[str, Any], original: dict[str, Any]) -> str:
@@ -268,7 +268,7 @@ def get_update_method(updates: dict[str, Any], original: dict[str, Any]) -> str:
     return update_method
 
 
-def validate_event_action(
+async def validate_event_action(
     updates: dict[str, Any],
     original: dict[str, Any],
     ACTION: str = "",
@@ -283,7 +283,7 @@ def validate_event_action(
     if not original:
         raise SuperdeskApiError.notFoundError()
 
-    if not is_valid_event_planning_reason(updates, original):
+    if not await is_valid_event_planning_reason(updates, original):
         raise SuperdeskApiError.badRequestError(message="Reason is required field.")
 
     if original.get("state") == WORKFLOW_STATE.CANCELLED:

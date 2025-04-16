@@ -144,6 +144,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
             pass
 
     def get_default_event_duration(self):
+        # TODO-ASYNC[PlanningTypesAsyncService] - Update to use PlanningTypesAsyncService when class is updated to async
         profile = get_resource_service("planning_types").find_one(req=None, name="event") or {}
         return ((profile.get("editor") or {}).get("dates") or {}).get("default_duration_on_change", 1)
 
