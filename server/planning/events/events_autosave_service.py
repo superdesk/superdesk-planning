@@ -1,4 +1,4 @@
-from planning.autosave_async_service import AutosaveAsyncService
+from planning.autosave_service import AutosaveAsyncService
 
 
 class EventsAutosaveAsyncService(AutosaveAsyncService):

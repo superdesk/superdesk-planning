@@ -1,6 +1,6 @@
 import logging
 
-from planning.autosave_async_service import AutosaveAsyncService
+from planning.autosave_service import AutosaveAsyncService
 from planning.common import WORKFLOW_STATE
 
 logger = logging.getLogger(__name__)

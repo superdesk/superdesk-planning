@@ -11,7 +11,7 @@ from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 from planning.types import AgendasResourceModel
 from planning.agendas_async import agendas_resource_config
 from planning.events import events_resource_config, events_history_resource_config, events_autosave_resource_config
-from planning.events.events_autosave_async_service import EventsAutosaveAsyncService
+from planning.events.events_autosave_service import EventsAutosaveAsyncService
 from planning.planning import (
     planning_resource_config,
     planning_history_resource_config,
@@ -19,7 +19,7 @@ from planning.planning import (
     planning_autosave_resource_config,
 )
 from planning.events.views import events_endpoints_group
-from planning.planning.planning_autosave_async_service import PlanningAutosaveAsyncService
+from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
 from planning.planning.views import planning_endpoint_group
 from planning.assignments import (
     assignments_resource_config,
@@ -30,7 +30,6 @@ from planning.locations import locations_resource_config
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
 from planning.assignments import assignments_resource_config, delivery_resource_config
-from planning.planning.planning_autosave_async_service import PlanningAutosaveAsyncService
 from planning.search import connect_signals_listeners, events_planning_filters_resource_config
 
 from .planning_locks import planning_locks as planning_locks_endpoint

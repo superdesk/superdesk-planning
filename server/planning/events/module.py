@@ -9,7 +9,7 @@ from superdesk.core.resources import (
 from planning.types import EventResourceModel, EventsHistoryResourceModel, EventAutosaveResourceModel
 from .events_service import EventsAsyncService
 from .events_history_async_service import EventsHistoryAsyncService
-from .events_autosave_async_service import EventsAutosaveAsyncService
+from .events_autosave_service import EventsAutosaveAsyncService
 
 events_resource_config: ResourceConfig = ResourceConfig(
     name="events",

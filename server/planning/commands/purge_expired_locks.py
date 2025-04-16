@@ -13,7 +13,6 @@ import logging
 from datetime import timedelta, datetime
 from typing import AsyncGenerator, Any
 
-from superdesk import get_resource_service
 from superdesk.core import get_app_config
 from superdesk.core.utils import date_to_str
 from superdesk.utc import utcnow
@@ -21,6 +20,8 @@ from superdesk.lock import lock, unlock
 from superdesk.celery_task_utils import get_lock_id
 from planning.item_lock import LOCK_ACTION, LOCK_SESSION, LOCK_TIME, LOCK_USER
 from planning.utils import get_service, try_cast_object_id
+from planning.events import EventsAutosaveAsyncService
+from planning.planning import PlanningAutosaveAsyncService
 from .async_cli import planning_cli
 
 logger = logging.getLogger(__name__)
@@ -89,10 +90,12 @@ async def purge_expired_locks_handler(resource: str, expire_hours: int = 24):
 async def purge_item_locks(resource: str, expiry_datetime: datetime):
     logger.info(f"Purging expired locks for {resource}")
     resource_service = get_service(resource)
-    try:
-        autosave_service = get_resource_service("event_autosave" if resource == "events" else f"{resource}_autosave")
-    except KeyError:
-        autosave_service = None
+
+    autosave_service = None
+    if resource == "events":
+        autosave_service = EventsAutosaveAsyncService()
+    elif resource == "planning":
+        autosave_service = PlanningAutosaveAsyncService()
 
     async for items in get_locked_items(resource, expiry_datetime):
         failed_ids = []
@@ -124,7 +127,7 @@ async def purge_item_locks(resource: str, expiry_datetime: datetime):
 
             try:
                 # Delete any autosave items associated with this item
-                autosave_service.delete_action(lookup={"_id": item_id})
+                await autosave_service.delete_many(lookup={"_id": item_id})
             except Exception as err:
                 logger.exception(f"Failed to delete autosave item(s) ({err})")
 
