@@ -1,1 +1,0 @@
-[{"_id": "event", "name": "event", "editor": {"definition_long": {"enabled": false, "group": "details", "index": 3}}, "schema": {"definition_long": {"type": "string", "required": false, "minlength": null, "maxlength": null, "field_type": "multi_line"}}}]
