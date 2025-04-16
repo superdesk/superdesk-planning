@@ -94,7 +94,7 @@ async def process_postpone_event(updates: dict[str, Any], original: dict[str, An
     ACTION = "postpone"
 
     # Perform pre update event actions
-    pre_update_event_actions(updates, original, ACTION)
+    await pre_update_event_actions(updates, original, ACTION)
 
     # Determin update method
     update_method = get_update_method(updates, original)

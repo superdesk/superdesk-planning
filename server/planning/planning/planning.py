@@ -10,7 +10,7 @@
 
 """Superdesk Planning"""
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, cast
 from typing_extensions import assert_never
 from copy import deepcopy
 import logging
@@ -48,6 +48,7 @@ from planning.types import (
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
 from planning.planning.planning_autosave_service import PlanningAutosaveAsyncService
 from planning.assignments.assignments_history_async import AssignmentsHistoryAsyncService
+from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
 from planning.common import (
     get_coverage_status_from_cv,
     WORKFLOW_STATE,
@@ -158,7 +159,9 @@ class PlanningService(AsyncBaseService):
 
     async def on_create_async(self, docs):
         """Set default metadata."""
-        planning_type = get_resource_service("planning_types").find_one(req=None, name="planning")
+        planning_type = await PlanningTypesAsyncService().find_one(name="planning")
+        assert planning_type is not None, "Expexted planning_type to not be None"
+
         history_service = PlanningHistoryAsyncService()
         generated_planning_items = []
         for doc in docs:
@@ -176,7 +179,7 @@ class PlanningService(AsyncBaseService):
             await self.validate_planning(doc)
             set_original_creator(doc)
 
-            first_event = await self._set_planning_event_info(doc, planning_type)
+            first_event = await self._set_planning_event_info(doc, cast(ContentProfile, planning_type.to_dict()))
             await self._set_coverage(doc)
             self.set_planning_schedule(doc)
             # set timestamps

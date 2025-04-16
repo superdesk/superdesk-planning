@@ -354,7 +354,7 @@ async def process_reschedule_event(
     ACTION = "reschedule"
 
     # Perform pre update event actions
-    pre_update_event_actions(updates, original, ACTION, require_lock)
+    await pre_update_event_actions(updates, original, ACTION, require_lock)
 
     # Determin update method
     update_method = get_update_method(updates, original)

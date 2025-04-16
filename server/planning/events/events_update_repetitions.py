@@ -227,7 +227,7 @@ async def process_update_repetitions(
     ACTION = "update_repetitions"
 
     # Perform pre update event actions
-    pre_update_event_actions(updates, original, ACTION, require_lock)
+    await pre_update_event_actions(updates, original, ACTION, require_lock)
 
     await update_event_repetitions(updates, original)
 
