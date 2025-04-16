@@ -122,6 +122,9 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                                             .then((unlocked) => {
                                                 this.update(unlocked);
 
+                                                // remove the temporary event so user doesn't see it in the work queue
+                                                planningApi.autosave.delete(item);
+
                                                 return unlocked;
                                             })
                                     );

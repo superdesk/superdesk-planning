@@ -99,20 +99,34 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
         const editor = planningApi.editor(type);
         const planning = editor.form.getDiff<IPlanningItem>();
         const events = cloneDeep(planning.related_events || []);
+        const tempEvents = planning._unsaved_related_events ?? [];
         const index = events.findIndex(
             (event) => event._id === original._id
         );
         const isEmpty = events.length < 1;
 
         if (!isEmpty && index < 0) {
-            return;
+            if (tempEvents.find((x) => x._id === original._id) != null) {
+                events.push({
+                    _id: updates._id,
+                    link_type: original.link_type,
+                    recurrence_id: original.recurrence_id,
+                });
+            } else {
+                // This should never happen, but make sure to notify the user in some corruption case
+                superdeskApi.ui.notify.error(
+                    superdeskApi.localization.gettext(
+                        'Could not link event - A corruption occurred, please close the item and try linking again'
+                    ),
+                );
+            }
+        } else {
+            events[isEmpty ? 0 : index] = {
+                _id: updates._id,
+                link_type: original.link_type,
+                recurrence_id: original.recurrence_id
+            };
         }
-
-        events[isEmpty ? 0 : index] = {
-            _id: updates._id,
-            link_type: original.link_type,
-            recurrence_id: original.recurrence_id
-        };
 
         const updateMainField = () => {
             return editor.form.changeField('related_events', events, true, true)

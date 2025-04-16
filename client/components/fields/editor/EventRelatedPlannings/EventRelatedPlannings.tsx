@@ -97,7 +97,7 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
 
                             return (
                                 <RelatedPlanningItem
-                                    // Reload if _etag has changed so saving doesn't crash
+                                    // Reload if _etag has changed so autosave and saving doesn't crash
                                     key={plan._etag}
                                     ref={(ref) => {
                                         this.relatedItemRefs[index] = ref;
