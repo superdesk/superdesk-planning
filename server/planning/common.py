@@ -32,8 +32,14 @@ from superdesk.etree import parse_html
 import json
 from bson import ObjectId
 
-from planning.content_profiles.planning_types_async_service import PlanningTypesAsyncService
-from planning.types import Planning, Coverage, Event, EventAutosaveResourceModel, PlanningAutosaveResourceModel
+from planning.types import (
+    Planning,
+    Coverage,
+    Event,
+    EventAutosaveResourceModel,
+    PlanningAutosaveResourceModel,
+    PlanningTypesResourceModel,
+)
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -620,7 +626,8 @@ async def is_valid_event_planning_reason(updates, original):
     item_type = original.get(ITEM_TYPE)
 
     # get the validator based on the item_type and lock_action
-    planning_type = await PlanningTypesAsyncService().find_one(name=f"{item_type}_{lock_action}")
+    planning_types_service = PlanningTypesResourceModel.get_service()
+    planning_type = await planning_types_service.find_one(name=f"{item_type}_{lock_action}")
     validator = planning_type.to_dict() if planning_type is not None else {}
 
     if not validator.get("schema"):
