@@ -1922,7 +1922,7 @@ export type IEditorAction = 'read' | 'create' | 'edit';
 
 export interface IEditorState {
     tab: number;
-    diff: DeepPartial<IEventOrPlanningItem>;
+    diff: Partial<IEventOrPlanningItem>;
     errors: {[key: string]: string};
     errorMessages: Array<string>;
     dirty: boolean;
@@ -1931,7 +1931,7 @@ export interface IEditorState {
     partialSave: boolean;
     itemReady: boolean;
     loading: boolean;
-    initialValues: DeepPartial<IEventOrPlanningItem>;
+    initialValues: Partial<IEventOrPlanningItem>;
     mainLanguage?: IVocabularyItem['qcode'];
     showAllLanguages: boolean;
 

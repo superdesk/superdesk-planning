@@ -704,6 +704,7 @@ export const events: Array<IEventItem> = [
             tz: 'Australia/Sydney',
         },
         planning_ids: [],
+        associated_plannings: undefined,
     },
     {
         _id: 'e3',
@@ -714,6 +715,7 @@ export const events: Array<IEventItem> = [
             end: '2015-10-15T15:01:11+0000',
             tz: 'Australia/Sydney',
         },
+        associated_plannings: undefined,
     },
 ];
 

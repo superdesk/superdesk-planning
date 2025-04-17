@@ -138,13 +138,14 @@ describe('actions.events.api', () => {
         it('returns the Event from the API if force = true', (done) => (
             store.test(done, eventsApi.fetchById('e2', {force: true}))
                 .then((event) => {
-                    expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
+                    const mockedEventResult = data.events[1];
 
+                    expect(event).toEqual(mockedEventResult);
                     expect(planningApis.events.getById.callCount).toBe(1);
                     expect(planningApis.events.getById.args[0]).toEqual(['e2', {cache: false}]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
-                    expect(eventsApi.receiveEvents.args[0]).toEqual([[data.events[1]]]);
+                    expect(eventsApi.receiveEvents.args[0]).toEqual([[mockedEventResult]]);
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
 
                     done();
@@ -761,7 +762,6 @@ describe('actions.events.api', () => {
                         name: 'New Event',
                         slugline: 'New Slugline',
                         update_method: 'single',
-                        associated_plannings: [],
                     }]);
 
                     done();

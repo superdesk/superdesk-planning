@@ -4,7 +4,7 @@ import {superdeskApi} from '../../superdeskApi';
 import {getProfile} from './profile';
 import {omitFields} from './utils';
 import {AutoSaveHttp} from './authoring-autosave';
-import {eventUtils} from '../../utils';
+import {eventUtils, getErrorMessage, gettext, notifyError} from '../../utils';
 
 export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
     autosave: new AutoSaveHttp<IEventItem>(
@@ -45,6 +45,11 @@ export const authoringStorageEventItemHttp: IAuthoringStorage<IEventItem> = {
             headers: {
                 'If-Match': original._etag,
             },
+        }).catch((err) => {
+            // Handles date issues like start time should not be after end time
+            superdeskApi.ui.notify.error(getErrorMessage(err, gettext('Could not save event')));
+
+            return original;
         });
     },
     getContentProfile: (item) => {

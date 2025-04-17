@@ -9,7 +9,6 @@ import {
     POST_STATE,
     MAIN,
     TO_BE_CONFIRMED_FIELD,
-    TEMP_ID_PREFIX,
 } from '../../constants';
 import * as selectors from '../../selectors';
 import {
@@ -18,9 +17,7 @@ import {
     isExistingItem,
     isValidFileInput,
     isPublishedItemId,
-    isTemporaryId,
     gettext,
-    planningUtils,
 } from '../../utils';
 
 import planningApis from '../planning/api';
@@ -29,7 +26,7 @@ import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import {planning} from '../../api/planning';
-import * as actions from '../../actions';
+import {areEmbeddedItemsDirty} from '../../components/editor-standalone/utils';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -333,10 +330,13 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         return promise.then((event) => {
             if (loadPlanning) {
                 return dispatch(self.loadAssociatedPlannings(event))
-                    .then(
-                        () => Promise.resolve(event),
-                        (error) => Promise.reject(error)
-                    );
+                    .then((plannings) => {
+                        return Promise.resolve({
+                            ...event,
+                            associated_plannings: plannings,
+                        });
+                    })
+                    .catch((error) => Promise.reject(error));
             }
 
             return Promise.resolve(event);
@@ -558,16 +558,16 @@ function updateLinkedPlanningsForEvent(
      * missing items will be linked, extra items unlinked
      */
     associatedPlannings: Array<IPlanningItem>,
-):Promise<void> {
+):Promise<Array<IPlanningItem>> {
     return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
         const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
-
         const toLink: Array<IPlanningItem> = associatedPlannings
             .filter(({_id}) => currentLinkedIds.has(_id) !== true);
         const toUnlink: Array<IPlanningItem> = currentlyLinked
             .filter((item) => associatedPlannings.find(({_id}) => _id === item._id) == null);
+        const associatedPlanningIds = associatedPlannings.map(({_id}) => _id);
 
-        return planningApi.planning.getByIds(associatedPlannings.map(({_id}) => _id), undefined)
+        return planningApi.planning.getByIds(associatedPlanningIds, undefined)
             .then((allPlanningItems) => Promise.all([
                 ...toLink.map((oldPlanning) => {
                     const planningItem = allPlanningItems.find((x) => x._id === oldPlanning._id);
@@ -601,7 +601,17 @@ function updateLinkedPlanningsForEvent(
             ]).then((updatedPlanningItems) => {
                 planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(updatedPlanningItems));
 
-                return null;
+                if (associatedPlanningIds.length > 0) {
+                    const updatedPlanningIds = updatedPlanningItems.map((x) => x._id);
+
+                    // In cases there's no new links, we still want to return all
+                    // related planning items. Existing link data doesn't change here
+                    // (besides new links and ones to be removed), // but this result is used to update the UI.
+                    return [
+                        ...associatedPlannings.filter((x) => !updatedPlanningIds.includes(x._id)),
+                        ...updatedPlanningItems.filter((x) => associatedPlanningIds.includes(x._id)),
+                    ];
+                }
             }));
     });
 }
@@ -628,74 +638,27 @@ const save = (original, updates) => (
                 EVENTS.UPDATE_METHODS[0].value :
                 eventUpdates.update_method?.value ?? eventUpdates.update_method;
 
-            const [planningsToCreate, planningsToUpdate] = partition(
-                (eventUpdates.associated_plannings ?? []).map((planning) => planningUtils.modifyForServer(planning)),
-                (item) => item._id.startsWith(TEMP_ID_PREFIX),
-            );
-
-            // ensure `associated_plannings` doesn't contain `planningsToCreate`
-            // otherwise it would get created twice - separately and together with event patch
-            eventUpdates.associated_plannings = planningsToUpdate;
-
             const createOrUpdatePromise: Promise<Array<IEventItem>> = originalEvent?._id != null ?
                 planningApi.events.update(originalItem, eventUpdates) :
                 planningApi.events.create(eventUpdates);
 
             return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) => {
-                if (updates.associated_plannings == null) {
-                    return Promise.resolve([updatedEvent]);
+                const haveLinksChanged = updatedEvent?._id ? areEmbeddedItemsDirty(original, updatedEvent) : false;
+
+                if (!haveLinksChanged) {
+                    return [updatedEvent];
+                } else {
+                    return updateLinkedPlanningsForEvent(
+                        updatedEvent._id,
+                        updates.associated_plannings,
+                    ).then((updatedPlannings) => {
+                        // Update associated events, so if a link has been added/removed etags are updated
+                        // after the change in planning items
+                        updatedEvent.associated_plannings = updatedPlannings;
+
+                        return [updatedEvent];
+                    });
                 }
-
-                let promise = Promise.resolve<void>(null);
-
-                promise = promise.then(
-                    () => Promise.all(
-                        planningsToCreate.map((planning) => {
-                            const linkType = planning._temporary?.link_type;
-
-                            delete planning['_temporary'];
-
-                            if (linkType == null) {
-                                throw new Error('linkType expected but not found');
-                            }
-
-                            for (const relatedEvent of (planning.related_events ?? [])) {
-                                if (relatedEvent._id === originalEvent._id) {
-                                    relatedEvent.link_type = linkType;
-                                }
-                            }
-
-                            return planningApi.planning.create(planning)
-                                .then((saved) => {
-                                    // replace temp ID with newly received permanent ID
-                                    updates.associated_plannings = updates.associated_plannings.map(
-                                        (associated_planning) => {
-                                            if (associated_planning._id === planning._id) {
-                                                return {
-                                                    ...associated_planning,
-                                                    _id: saved._id,
-                                                };
-                                            } else {
-                                                return associated_planning;
-                                            }
-                                        }
-                                    );
-                                });
-                        }),
-                    ).then(() => null)
-                );
-
-                // ensure temp ID replacement takes effect in the editor
-                promise = promise.then(() => {
-                    updatedEvent.associated_plannings = updates.associated_plannings;
-                });
-
-                promise = promise.then(() => updateLinkedPlanningsForEvent(
-                    updatedEvent._id,
-                    updates.associated_plannings,
-                ));
-
-                return promise.then(() => [updatedEvent]);
             });
         });
     }
