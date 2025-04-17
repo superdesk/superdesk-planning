@@ -42,7 +42,7 @@ async def planning_download_file() -> Response:
     export_service = superdesk.get_resource_service("planning_article_export")
     raw_data = await request.get_data()
     decoded_data = raw_data.decode("utf-8")
-    items = get_items(json.loads(decoded_data), "events")
+    items = await get_items(json.loads(decoded_data), "events")
     template = await superdesk.get_resource_service("planning_export_templates").get_download_template(
         request.args.get("template"), request.args.get("type", "event")
     )
