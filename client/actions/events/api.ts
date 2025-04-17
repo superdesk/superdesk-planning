@@ -645,18 +645,22 @@ const save = (original, updates) => (
                 planningApi.events.update(originalItem, eventUpdates) :
                 planningApi.events.create(eventUpdates);
 
-            return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) =>
-                updateLinkedPlanningsForEvent(
-                    updatedEvent._id,
-                    updates.associated_plannings,
-                ).then((updatedPlannings) => {
-                    // Update associated events, so if a link has been added/removed etags are updated
-                    // after the change in planning items
-                    updatedEvent.associated_plannings = updatedPlannings;
+            return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) => {
+                if (updatedEvent?._id != null) {
+                    updateLinkedPlanningsForEvent(
+                        updatedEvent._id,
+                        updates.associated_plannings,
+                    ).then((updatedPlannings) => {
+                        // Update associated events, so if a link has been added/removed etags are updated
+                        // after the change in planning items
+                        updatedEvent.associated_plannings = updatedPlannings;
 
+                        return [updatedEvent];
+                    });
+                } else {
                     return [updatedEvent];
-                }),
-            );
+                }
+            });
         });
     }
 );

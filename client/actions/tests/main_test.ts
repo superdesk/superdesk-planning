@@ -448,6 +448,7 @@ describe('actions.main', () => {
                     expect(main.openPreview.callCount).toBe(1);
                     expect(main.openPreview.args[0]).toEqual([{
                         ...data.events[0],
+                        associated_plannings: [],
                         dates: {
                             ...data.events[0].dates,
                             start: moment(data.events[0].dates.start),
@@ -468,6 +469,7 @@ describe('actions.main', () => {
                     expect(main.openPreview.callCount).toBe(1);
                     expect(main.openPreview.args[0]).toEqual([{
                         ...data.events[0],
+                        associated_plannings: [],
                         dates: {
                             ...data.events[0].dates,
                             start: moment(data.events[0].dates.start),
