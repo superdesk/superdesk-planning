@@ -64,7 +64,6 @@ import planning.feeding_services  # noqa
 import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 import planning.io  # noqa
-from planning.planning_download import init_app as init_planning_download_app
 from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
 
 from .module import module  # noqa
@@ -103,7 +102,6 @@ def init_app(app):
     init_planning_app(app)
     init_assignments_app(app)
     init_search_app(app)
-    init_planning_download_app(app)
     init_planning_autocomplete_app(app)
 
     superdesk.register_resource(

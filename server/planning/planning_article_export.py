@@ -10,11 +10,13 @@ from dateutil import tz
 from bson import ObjectId
 
 from superdesk.core import get_app_config
+from superdesk.core.types import ItemId
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.resource_fields import VERSION
 from superdesk.flask import render_template_string, render_template
 
 from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
-from superdesk import get_resource_service, Resource, Service
+from superdesk import get_resource_service, Resource
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import get_schema
 
@@ -28,6 +30,8 @@ from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     get_first_paragraph_text,
 )
+from planning.events import EventsAsyncService
+from planning.agendas_async import AgendasAsyncService
 from planning.utils import get_related_planning_for_events, get_first_related_event_id_for_planning
 from planning.archive import create_item_from_template
 
@@ -59,23 +63,21 @@ class PlanningArticleExportResource(Resource):
     privileges = {"POST": "planning"}
 
 
-def get_items(ids, resource_type):
+async def get_items(ids, resource_type):
     ids_string = [str(item_id) for item_id in ids]
-    # TODO-ASYNC[EventsPlanningSearch] - Convert `search_repos` to async when upgrading module
-    items = get_resource_service("events_planning_search").search_repos(
+    items = await get_resource_service("events_planning_search").search_repos(
         resource_type, {"item_ids": ",".join(ids_string), "only_future": False}
     )
-    items = sorted(items, key=lambda i: ids_string.index(str(i.get("_id"))))
+    items = sorted([item async for item in items], key=lambda i: ids_string.index(str(i.get("_id"))))
 
-    # TODO-ASYNC[EventsService] - Convert this to async when class is updated to async
-    events_service = get_resource_service("events")
+    events_service = EventsAsyncService()
     for item in items:
         item_type = item.get("type")
 
         if item_type == "planning":
             event_id = get_first_related_event_id_for_planning(item, "primary")
             if event_id:
-                item["event"] = events_service.find_one(req=None, _id=event_id)
+                item["event"] = await events_service.find_by_id_raw(event_id)
         elif item_type == "event":
             item["plannings"] = get_related_planning_for_events([item["_id"]], "primary")
             item["coverages"] = []
@@ -85,7 +87,7 @@ def get_items(ids, resource_type):
     return items
 
 
-def group_items_by_agenda(items):
+async def group_items_by_agenda(items):
     """
     Returns an array with all agendas for the provided items.
 
@@ -111,8 +113,7 @@ def group_items_by_agenda(items):
             if len(agenda_in_array) > 0:
                 agenda_in_array[0]["items"].append(item)
             else:
-                # TODO-ASYNC[AgendasAsyncService] - Convert to use new AgendasAsyncService when function is converted to async
-                agenda = get_resource_service("agenda").find_one(req=None, _id=str(agenda_id))
+                agenda = await AgendasAsyncService().find_by_id_raw(str(agenda_id))
                 if agenda is not None and agenda["is_enabled"]:
                     agenda["items"] = [item]
                     agendas.append(agenda)
@@ -133,9 +134,9 @@ def group_items_by_agenda(items):
     return agendas
 
 
-def inject_internal_coverages(items):
+async def inject_internal_coverages(items):
     coverage_labels = {}
-    cv = get_resource_service("vocabularies").find_one(req=None, _id="g2_content_type")
+    cv = await get_resource_service("vocabularies").find_one_async(req=None, _id="g2_content_type")
     if cv:
         coverage_labels = {_type["qcode"]: _type["name"] for _type in cv["items"]}
 
@@ -149,7 +150,7 @@ def inject_internal_coverages(items):
                 if assigned_to.get("coverage_provider"):
                     user = assigned_to["coverage_provider"]
                 elif assigned_to.get("user"):
-                    user = get_resource_service("users").find_one(req=None, _id=assigned_to.get("user"))
+                    user = await get_resource_service("users").find_one_async(req=None, _id=assigned_to.get("user"))
 
                 coverage_type = coverage.get("planning").get("g2_content_type")
                 label = coverage_labels.get(coverage_type, coverage_type)
@@ -251,8 +252,8 @@ def enhance_coverage(planning, item, users, desks, text_users, text_desks):
     item["contacts"] = get_contacts_from_item(item)
 
 
-def generate_text_item(items, template_name, resource_type):
-    template = get_resource_service("planning_export_templates").get_export_template(template_name, resource_type)
+async def generate_text_item(items, template_name, resource_type):
+    template = await get_resource_service("planning_export_templates").get_export_template(template_name, resource_type)
     if not template:
         raise SuperdeskApiError.badRequestError("Invalid template selected")
 
@@ -273,9 +274,11 @@ def generate_text_item(items, template_name, resource_type):
             for p in item.get("plannings") or []:
                 enhance_coverage(p, item, users, desks, text_users, text_desks)
 
-        users = list(get_resource_service("users").find(where={"_id": {"$in": users}}))
+        cursor_users = await get_resource_service("users").find_async(where={"_id": {"$in": users}})
+        users = await cursor_users.to_list()
 
-        desks = list(get_resource_service("desks").find(where={"_id": {"$in": desks}}))
+        cursor_desks = await get_resource_service("desks").find_async(where={"_id": {"$in": desks}})
+        desks = await cursor_desks.to_list()
 
         for u in text_users:
             user = next((_i for _i in users if str(_i.get("_id")) == u["user"]) or [], None)
@@ -309,11 +312,11 @@ def generate_text_item(items, template_name, resource_type):
             else:
                 item["schedule"] = item["schedule"].strftime("%H%M")
 
-    agendas = group_items_by_agenda(items)
-    inject_internal_coverages(items)
+    agendas = await group_items_by_agenda(items)
+    await inject_internal_coverages(items)
 
     labels = {}
-    cv = get_resource_service("vocabularies").find_one(req=None, _id="g2_content_type")
+    cv = await get_resource_service("vocabularies").find_one_async(req=None, _id="g2_content_type")
     if cv:
         labels = {_type["qcode"]: _type["name"] for _type in cv["items"]}
 
@@ -352,13 +355,13 @@ def set_item_place(item):
     item["place"] = [p.get("name") for p in item["place"]] if item.get("place") else None
 
 
-class PlanningArticleExportService(Service):
-    def create(self, docs, **kwargs):
+class PlanningArticleExportService(AsyncBaseService):
+    async def create_async(self, docs: list[dict], **kwargs) -> list[ItemId]:
         ids = []
         for doc in docs:
             item_type = doc.pop("type")
-            item_list = get_items(doc.pop("items", []), item_type)
-            desk = get_resource_service("desks").find_one(req=None, _id=doc.pop("desk")) or {}
+            item_list = await get_items(doc.pop("items", []), item_type)
+            desk = await get_resource_service("desks").find_one_async(req=None, _id=doc.pop("desk")) or {}
             article_template = doc.pop("article_template", None)
             if article_template:
                 content_template = (
@@ -383,7 +386,7 @@ class PlanningArticleExportService(Service):
                 "user": get_user_id(),
                 "stage": desk.get("working_stage"),
             }
-            item_from_template = generate_text_item(item_list, doc.pop("template", None), item_type)
+            item_from_template = await generate_text_item(item_list, doc.pop("template", None), item_type)
             fields_to_override = []
             for key, val in item_from_template.items():
                 if item.get(key):
@@ -405,7 +408,7 @@ class PlanningArticleExportService(Service):
             ids.append(doc["_id"])
         return ids
 
-    def export_events_to_text(self, items, format="utf-8", template=None, tz_offset=None):
+    async def export_events_to_text(self, items, format="utf-8", template="", tz_offset=None):
         for item in items:
             item["formatted_state"] = (
                 item["state"]
@@ -466,4 +469,4 @@ class PlanningArticleExportService(Service):
 
             set_item_place(item)
 
-        return str.encode(render_template(template, items=items), format)
+        return str.encode(await render_template(template, items=items), format)

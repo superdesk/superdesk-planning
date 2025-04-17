@@ -12,38 +12,46 @@
 import io
 import logging
 import superdesk
+from superdesk.core.types import Response
+from superdesk.core.web import EndpointGroup
 from werkzeug.utils import secure_filename
-from superdesk.errors import SuperdeskApiError
-
-from superdesk.flask import send_file, request, make_response, Blueprint
+from superdesk.flask import send_file, request, make_response
 from superdesk.utc import utcnow
 from .planning_article_export import get_items
 import json
 
 
-bp = Blueprint("planning_download", __name__)
 logger = logging.getLogger(__name__)
 
+planning_download_endpoint: EndpointGroup = EndpointGroup("planning_download", __name__)
 
-@bp.route("/planning_download/events", methods=["POST", "OPTIONS"])
-def planning_download_file():
+
+@planning_download_endpoint.endpoint(
+    "/planning_download/events",
+    methods=["POST", "OPTIONS"],
+)
+async def planning_download_file() -> Response:
     if request.method == "OPTIONS":
         # return headers to avoid CORS problems
-        response = make_response()
+        response = await make_response()
         response.headers.add("Access-Control-Allow-Origin", "*")
         response.headers.add("Access-Control-Allow-Headers", "*")
         response.headers.add("Access-Control-Allow-Methods", "POST")
         return response
 
     export_service = superdesk.get_resource_service("planning_article_export")
-    items = get_items(json.loads(request.data.decode("utf-8")), "events")
-    template = superdesk.get_resource_service("planning_export_templates").get_download_template(
+    raw_data = await request.get_data()
+    decoded_data = raw_data.decode("utf-8")
+    items = await get_items(json.loads(decoded_data), "events")
+    template = await superdesk.get_resource_service("planning_export_templates").get_download_template(
         request.args.get("template"), request.args.get("type", "event")
     )
     if not template:
-        raise superdesk.errors.SuperdeskApiError.badRequestError("Template not available")
+        await request.abort(400, "Template not available")
 
-    exported_text = export_service.export_events_to_text(items, template=template, tz_offset=request.args.get("tz"))
+    exported_text = await export_service.export_events_to_text(
+        items, template=template, tz_offset=request.args.get("tz")
+    )
     if exported_text:
         try:
             temp_file = io.BytesIO()
@@ -53,7 +61,7 @@ def planning_download_file():
             mimetype = "text/plain"
             attachment_filename = secure_filename(attachment_filename)
 
-            response = send_file(
+            response = await send_file(
                 temp_file,
                 mimetype=mimetype,
                 attachment_filename=attachment_filename,
@@ -64,16 +72,6 @@ def planning_download_file():
             return response
 
         except Exception:
-            raise SuperdeskApiError.notFoundError("Error exporting data to file")
-
-
-def init_app(app):
-    endpoint_name = "planning_download"
-    superdesk.blueprint(bp, app)
-    service = superdesk.Service(endpoint_name, backend=superdesk.get_backend())
-    PlanningDownloadResource(endpoint_name, app=app, service=service)
-
-
-class PlanningDownloadResource(superdesk.Resource):
-    schema = {"file": {"type": "file"}}
-    item_methods = []
+            await request.abort(404, "Error exporting data to file")
+    else:
+        await request.abort(400, "Exported data is empty")

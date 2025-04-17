@@ -8,9 +8,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from eve.utils import ParsedRequest
 import superdesk
 from superdesk.core import get_app_config
-from superdesk.utils import ListCursor
+from superdesk.eve_async.service import AsyncBaseService
 
 
 class PlanningExportTemplatesResource(superdesk.Resource):
@@ -104,10 +105,10 @@ default_export_templates = [
 ]
 
 
-class PlanningExportTemplatesService(superdesk.Service):
-    def get(self, req, lookup):
-        export_templates = list(super().get(req, lookup))
-        return ListCursor(export_templates)
+class PlanningExportTemplatesService(AsyncBaseService):
+    async def get_async(self, req: ParsedRequest | None, lookup: dict | None):
+        cursor = await super().get_async(req, lookup)
+        return await cursor.to_list()
 
     def _get_default_template_data(self, item_type):
         """Retrieves the default body_html template for the provided item type
@@ -129,14 +130,14 @@ class PlanningExportTemplatesService(superdesk.Service):
 
         return template.get("data") if template else None
 
-    def get_export_template(self, name, type):
+    async def get_export_template(self, name, type):
         if name:
-            return (self.find_one(req=None, name=name) or {}).get("data")
+            return (await self.find_one_async(req=None, name=name) or {}).get("data")
 
         return self._get_default_template_data(type)
 
-    def get_download_template(self, name, type):
+    async def get_download_template(self, name, type):
         if name:
-            return ((self.find_one(req=None, name=name) or {}).get("data") or {}).get("template_file")
+            return ((await self.find_one_async(req=None, name=name) or {}).get("data") or {}).get("template_file")
 
         return "event_download_default.html" if type == "event" else None
