@@ -26,7 +26,9 @@ export function isMultiLineField(fieldSchema: IProfileSchemaType) {
     return (fieldSchema as IProfileSchemaTypeString)?.field_type === 'multi_line';
 }
 
-const FIELDS_TO_OMIT_FOR_COMPARISON = ['_links', '_planning_schedule', '_updates_schedule', 'event'];
+function cleanAndSortPlans(plans: Array<Partial<IPlanningItem>>) {
+    return plans.map((x) => x._id).sort((a, b) => a.localeCompare(b));
+}
 
 export function areEmbeddedItemsDirty<T extends Partial<IEventOrPlanningItem>>(original: T, diff: T) {
     if (diff.type === 'event' && original.type === 'event') { // check both so type narrowing works
@@ -37,24 +39,8 @@ export function areEmbeddedItemsDirty<T extends Partial<IEventOrPlanningItem>>(o
             return true;
         }
 
-        const plansOriginal = origPlans.map((x) => {
-            const itemCleaned = omit(x, FIELDS_TO_OMIT_FOR_COMPARISON);
-
-            if (isMoment(itemCleaned.planning_date)) {
-                itemCleaned.planning_date = itemCleaned.planning_date.toISOString();
-            }
-
-            return itemCleaned;
-        }).sort((a, b) => a._id.localeCompare(b._id));
-        const plansDiff = diffPlans.map((x) => {
-            const itemCleaned = omit(x, FIELDS_TO_OMIT_FOR_COMPARISON);
-
-            if (isMoment(itemCleaned.planning_date)) {
-                itemCleaned.planning_date = itemCleaned.planning_date.toISOString();
-            }
-
-            return itemCleaned;
-        }).sort((a, b) => a._id.localeCompare(b._id));
+        const plansOriginal = cleanAndSortPlans(origPlans);
+        const plansDiff = cleanAndSortPlans(diffPlans);
 
         // both arrays are sorted, to make sure order of items doesn't make a difference
         return !isEqual(plansOriginal, plansDiff);

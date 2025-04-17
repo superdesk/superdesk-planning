@@ -418,18 +418,14 @@ export class ItemManager {
                     dirty: (() => {
                         // if associated_plannings in autosaveItem is undefined
                         // we treat that as there's been no changes to associated_plannings
-                        if (initialValues.type === 'event' && autosaveItem.associated_plannings === undefined) {
-                            return this.editor.isDirty(
-                                initialValues,
-                                autosaveItem,
-                                false,
-                            );
-                        } else {
-                            return this.editor.isDirty(
-                                initialValues,
-                                autosaveItem,
-                            );
-                        }
+                        const ignoreAssociatedPlannings = initialValues.type === 'event'
+                            && autosaveItem.associated_plannings === undefined;
+
+                        return this.editor.isDirty(
+                            initialValues,
+                            autosaveItem,
+                            ignoreAssociatedPlannings ? false : undefined,
+                        );
                     })(),
                     submitting: false,
                     itemReady: true,

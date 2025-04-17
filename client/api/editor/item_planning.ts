@@ -116,9 +116,11 @@ export function getPlanningInstance(type: EDITOR_TYPE): IEditorAPI['item']['plan
                 // This should never happen, but make sure to notify the user in some corruption case
                 superdeskApi.ui.notify.error(
                     superdeskApi.localization.gettext(
-                        'Could not link event - A corruption occurred, please close the item and try linking again'
+                        'Could not link event - Please close the item and try linking again'
                     ),
                 );
+
+                return;
             }
         } else {
             events[isEmpty ? 0 : index] = {

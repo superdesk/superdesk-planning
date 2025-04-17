@@ -173,7 +173,7 @@ export class EditorComponent extends React.Component<IEditorProps, IEditorState>
         const embeddedItemsAreDirty = checkRelatedItemsChanges ? areEmbeddedItemsDirty(initialValues, diff) : false;
         const fieldsToOmit = ['associated_plannings', '_unsaved_related_events', 'embedded_planning'];
 
-        if (checkRelatedItemsChanges === false) {
+        if (!checkRelatedItemsChanges) {
             fieldsToOmit.push('related_events');
         }
 

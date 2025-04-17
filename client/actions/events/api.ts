@@ -9,7 +9,6 @@ import {
     POST_STATE,
     MAIN,
     TO_BE_CONFIRMED_FIELD,
-    TEMP_ID_PREFIX,
 } from '../../constants';
 import * as selectors from '../../selectors';
 import {
@@ -18,9 +17,7 @@ import {
     isExistingItem,
     isValidFileInput,
     isPublishedItemId,
-    isTemporaryId,
     gettext,
-    planningUtils,
 } from '../../utils';
 
 import planningApis from '../planning/api';
@@ -29,7 +26,7 @@ import main from '../main';
 import {eventParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import {planning} from '../../api/planning';
-import * as actions from '../../actions';
+import {areEmbeddedItemsDirty} from '../../components/editor-standalone/utils';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -646,8 +643,12 @@ const save = (original, updates) => (
                 planningApi.events.create(eventUpdates);
 
             return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) => {
-                if (updatedEvent?._id != null) {
-                    updateLinkedPlanningsForEvent(
+                const haveLinksChanged = updatedEvent?._id ? areEmbeddedItemsDirty(original, updatedEvent) : false;
+
+                if (!haveLinksChanged) {
+                    return [updatedEvent];
+                } else {
+                    return updateLinkedPlanningsForEvent(
                         updatedEvent._id,
                         updates.associated_plannings,
                     ).then((updatedPlannings) => {
@@ -657,8 +658,6 @@ const save = (original, updates) => (
 
                         return [updatedEvent];
                     });
-                } else {
-                    return [updatedEvent];
                 }
             });
         });
