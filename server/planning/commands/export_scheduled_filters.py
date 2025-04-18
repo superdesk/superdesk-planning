@@ -68,7 +68,7 @@ class ExportScheduledFilters:
     async def process_filters(self, filters, now_local, now_utc):
         event_planning_filters_service = EventsPlanningFiltersAsyncService()
 
-        if not filters.count():
+        if not await filters.count():
             logger.info("No enabled filter schedules found, not continuing")
             return
 

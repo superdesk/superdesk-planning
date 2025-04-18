@@ -12,17 +12,26 @@ import superdesk
 from quart_babel import lazy_gettext
 from superdesk.core.resources import ResourceConfig, RestEndpointConfig
 from superdesk.core.auth.privilege_rules import http_method_privilege_based_rules
+from superdesk.core.privileges import Privilege
 
 from planning.types import EventPlanningFilter
 from .planning_search import PlanningSearchResource, PlanningSearchService
 from .eventsplanning_search import EventsPlanningResource, EventsPlanningService
-from .eventsplanning_filters import (
-    EventPlanningFiltersResource,
-    EventPlanningFiltersService,
-)
 from .eventsplanning_filters_service import EventsPlanningFiltersAsyncService, connect_signals_listeners
 
-__all__ = ["events_planning_filters_resource_config", "connect_signals_listeners"]
+__all__ = [
+    "events_planning_filters_resource_config",
+    "connect_signals_listeners",
+    "events_planning_filters_privileges",
+]
+
+events_planning_filters_privileges = [
+    Privilege(
+        name="planning_eventsplanning_filters_management",
+        label=lazy_gettext("Planning - Events & Planning View Filters Management"),
+        description=lazy_gettext("Create/Update/Delete Events & Planning View Filters"),
+    ),
+]
 
 events_planning_filters_resource_config: ResourceConfig = ResourceConfig(
     name="events_planning_filters",
@@ -57,13 +66,8 @@ def init_app(app):
         _app=app,
     )
 
-    superdesk.register_resource(
-        EventPlanningFiltersResource.endpoint_name,
-        EventPlanningFiltersResource,
-        EventPlanningFiltersService,
-        _app=app,
-    )
-
+    # TODO-ASYNC: migrate to new async privileges and adjust functionality
+    # at the moment if we remove this, the management of filters won't be visible in the UI
     superdesk.privilege(
         name="planning_eventsplanning_filters_management",
         label=lazy_gettext("Planning - Events & Planning View Filters Management"),
