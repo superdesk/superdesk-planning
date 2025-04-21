@@ -72,7 +72,7 @@ class ExportScheduledFilters:
             logger.info("No enabled filter schedules found, not continuing")
             return
 
-        for search_filter in filters:
+        async for search_filter in filters:
             for schedule in search_filter.get("schedules") or []:
                 try:
                     await self.export_filter(search_filter, schedule, now_local, now_utc)
