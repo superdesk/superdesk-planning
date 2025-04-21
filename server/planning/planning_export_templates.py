@@ -8,7 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from eve.utils import ParsedRequest
 import superdesk
 from superdesk.core import get_app_config
 from superdesk.eve_async.service import AsyncBaseService
@@ -106,10 +105,6 @@ default_export_templates = [
 
 
 class PlanningExportTemplatesService(AsyncBaseService):
-    async def get_async(self, req: ParsedRequest | None, lookup: dict | None):
-        cursor = await super().get_async(req, lookup)
-        return await cursor.to_list()
-
     def _get_default_template_data(self, item_type):
         """Retrieves the default body_html template for the provided item type
 

@@ -1009,7 +1009,7 @@ class PlanningService(AsyncBaseService):
             if TO_BE_CONFIRMED_FIELD in doc:
                 assignment["planning"][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
-            new_assignment_id = str(await assignment_service.post_async([assignment])[0])
+            new_assignment_id = str((await assignment_service.post_async([assignment]))[0])
             updates["assigned_to"]["assignment_id"] = new_assignment_id
             updates["assigned_to"]["state"] = assign_state
         elif assigned_to.get("assignment_id"):

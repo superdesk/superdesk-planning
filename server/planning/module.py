@@ -30,7 +30,11 @@ from planning.locations import locations_resource_config
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
 from planning.assignments import assignments_resource_config, delivery_resource_config
-from planning.search import connect_signals_listeners, events_planning_filters_resource_config
+from planning.search import (
+    connect_signals_listeners,
+    events_planning_filters_resource_config,
+    events_planning_filters_privileges,
+)
 
 from .planning_locks import planning_locks as planning_locks_endpoint
 from .planning_download import planning_download_endpoint
@@ -89,4 +93,5 @@ module = Module(
         events_planning_filters_resource_config,
         assignments_history_resource_config,
     ],
+    privileges=events_planning_filters_privileges,
 )

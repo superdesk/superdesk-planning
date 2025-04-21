@@ -15,10 +15,14 @@ from os import path
 from copy import copy
 
 from apps.prepopulate.app_populate import AppPopulateCommand
-from superdesk.tests.environment import before_step, after_scenario as after_scenario_core  # noqa
-from superdesk.tests.environment import setup_before_all, setup_before_scenario
+from superdesk.tests.environment import (
+    setup_before_all,
+    before_feature,
+    before_scenario_async as setup_before_scenario,
+    before_step,
+    after_scenario,
+)
 from superdesk.default_settings import MODULES as CORE_MODULES
-from superdesk.tests import stop_previous_app
 
 from app import get_app
 from settings import INSTALLED_APPS, env, MODULES
@@ -28,10 +32,18 @@ logger = logging.getLogger(__name__)
 
 
 def before_all(context):
+    TEST_MODULES = copy(MODULES)
+    TEST_MODULES.extend(CORE_MODULES)
     config = {
         "INSTALLED_APPS": INSTALLED_APPS,
         "ELASTICSEARCH_FORCE_REFRESH": True,
+        "MODULES": TEST_MODULES,
     }
+
+    LOG_CONFIG_FILE = env("LOG_CONFIG_FILE", "../e2e/server/logging_config.yml")
+    if LOG_CONFIG_FILE:
+        config["LOG_CONFIG_FILE"] = LOG_CONFIG_FILE
+
     setup_before_all(context, config, app_factory=get_app)
 
 
@@ -52,48 +64,25 @@ def before_scenario(context, scenario):
 
 
 async def before_scenario_async(context, scenario):
-    TEST_MODULES = copy(MODULES)
-    TEST_MODULES.extend(CORE_MODULES)
-
-    config = {
-        "INSTALLED_APPS": INSTALLED_APPS,
-        "ELASTICSEARCH_FORCE_REFRESH": True,
-        "MODULES": TEST_MODULES,
-    }
-
-    LOG_CONFIG_FILE = env("LOG_CONFIG_FILE", "../e2e/server/logging_config.yml")
-    if LOG_CONFIG_FILE:
-        config["LOG_CONFIG_FILE"] = LOG_CONFIG_FILE
-
+    # Update app config based on scenario tags
+    current_app = context.app
     if "link_updates" in scenario.tags:
-        config["PLANNING_LINK_UPDATES_TO_COVERAGES"] = True
+        current_app.config["PLANNING_LINK_UPDATES_TO_COVERAGES"] = True
     else:
-        config["PLANNING_LINK_UPDATES_TO_COVERAGES"] = False
+        current_app.config["PLANNING_LINK_UPDATES_TO_COVERAGES"] = False
 
     if "no_scheduled_updates" in scenario.tags:
-        config["PLANNING_ALLOW_SCHEDULED_UPDATES"] = False
+        current_app.config["PLANNING_ALLOW_SCHEDULED_UPDATES"] = False
+    else:
+        current_app.config["PLANNING_ALLOW_SCHEDULED_UPDATES"] = True
 
     if "skipped" in scenario.tags:
         scenario.mark_skipped()
 
-    await setup_before_scenario(context, scenario, config, app_factory=get_app)
+    await setup_before_scenario(context, scenario)
 
     if "planning_cvs" in scenario.tags:
         async with context.app.app_context():
             cmd = AppPopulateCommand()
             filename = path.join(path.abspath(path.dirname("features/steps/fixtures/")), "vocabularies.json")
             cmd.run(filename)
-
-
-def try_stop_previous_app():
-    """
-    Let's make sure to stop the previous app to prevent mongodb connections leak
-    plus to avoid the "Too many open files" error.
-    """
-
-    run_async_task(stop_previous_app())
-
-
-def after_scenario(context, scenario):
-    after_scenario_core(context, scenario)
-    try_stop_previous_app()
