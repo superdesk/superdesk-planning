@@ -248,7 +248,10 @@ function lockItemById<T extends IAssignmentOrPlanningItem>(
     return getItemById(itemId, itemType).then((item) => locks.lockItem(item, action));
 }
 
-function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfNotFound: boolean = true): Promise<T> {
+function unlockItem<T extends IAssignmentOrPlanningItem>(
+    item: T,
+    reloadLocksIfNotFound: boolean = true,
+): Promise<T> {
     if (!isExistingItem(item)) {
         const autosaveDeletePromise = item.type === 'assignment' ?
             Promise.resolve() :
@@ -312,9 +315,9 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
             locks.setItemAsUnlocked({
                 item: unlockedItem._id,
                 type: unlockedItem.type,
-                event_ids: unlockedItem.type === 'planning' ?
-                    getRelatedEventIdsForPlanning(unlockedItem) :
-                    [],
+                event_ids: unlockedItem.type === 'planning' ? getRelatedEventIdsForPlanning(unlockedItem) :
+                    undefined,
+                plan_ids: unlockedItem.type === 'event' ? (item as IEventItem).planning_ids : undefined,
                 recurrence_id: unlockedItem.type !== 'assignment' ? unlockedItem.recurrence_id : undefined,
                 etag: unlockedItem._etag,
                 from_ingest: false,

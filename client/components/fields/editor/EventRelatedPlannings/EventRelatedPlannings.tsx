@@ -22,7 +22,6 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
 
         this.relatedItemRefs = {};
         this.softLockPlannings = this.softLockPlannings.bind(this);
-        this.unlockPlannings = this.unlockPlannings.bind(this);
     }
 
     private softLockPlannings() {
@@ -30,19 +29,6 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
             type: 'event',
             item: this.props.item,
             plan_ids: this.props.item.associated_plannings.map((x) => x._id),
-        });
-    }
-
-    private unlockPlannings(ids: Array<IPlanningItem['_id']>) {
-        planningApi.locks.setItemAsUnlocked({
-            ...this.props.item,
-            plan_ids: ids,
-            etag: this.props.item._etag,
-            item: this.props.item._id,
-            user: this.props.item.lock_user,
-            lock_session: this.props.item.lock_session,
-            type: this.props.item.type,
-            from_ingest: false,
         });
     }
 
@@ -60,7 +46,9 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
     }
 
     componentWillUnmount(): void {
-        this.unlockPlannings(this.props.item.associated_plannings.map((x) => x._id));
+        this.props.item.associated_plannings
+            .filter((x) => x._temporary != null)
+            .forEach((x) => planningApi.locks.unlockEmbeddedItem(x as IPlanningItem));
     }
 
     render() {
