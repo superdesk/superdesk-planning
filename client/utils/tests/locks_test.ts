@@ -46,7 +46,9 @@ describe('utils.locks', () => {
             // Associated Single Event locked
             item = cloneDeep(testData.plannings[1]);
             lockedItems.event[testData.events[0]._id] = testData.events[0];
-            expect(lockUtils.getLock(item, lockedItems)).toEqual(testData.events[0]);
+
+            lockedItems.planning[item._id] = item;
+            expect(lockUtils.getLock(item, lockedItems)).toEqual(item);
 
             // Associated Recurring Event locked
             item.recurrence_id = 'rec1';

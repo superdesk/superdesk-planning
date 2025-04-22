@@ -252,6 +252,18 @@ describe('PlanningUtils', () => {
                     [locks.plans.adhoc.currentUser.otherSession._id]: lockUtils.getLockFromItem(
                         locks.plans.adhoc.currentUser.otherSession
                     ),
+                    [locks.plans.event.currentUser.currentSession._id]: lockUtils.getLockFromItem(
+                        locks.plans.event.currentUser.currentSession
+                    ),
+                    [locks.plans.event.otherUser._id]: lockUtils.getLockFromItem(
+                        locks.plans.event.otherUser
+                    ),
+                    [locks.plans.associated.standalone._id]: lockUtils.getLockFromItem(
+                        locks.plans.event.otherUser
+                    ),
+                    [locks.plans.event.currentUser.otherSession._id]: lockUtils.getLockFromItem(
+                        locks.plans.event.currentUser.otherSession
+                    ),
                     [locks.plans.adhoc.otherUser._id]: lockUtils.getLockFromItem(
                         locks.plans.adhoc.otherUser
                     ),
