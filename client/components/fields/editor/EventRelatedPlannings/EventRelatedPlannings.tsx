@@ -12,6 +12,7 @@ import {TEMP_ID_PREFIX} from '../../../../constants';
 import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
 import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
 import {isTemporaryId} from '../../../../utils';
+import {isEqual} from 'lodash';
 
 export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
     relatedItemRefs: {[id: string]: RelatedPlanningItem};
@@ -20,6 +21,51 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
         super(props);
 
         this.relatedItemRefs = {};
+        this.softLockPlannings = this.softLockPlannings.bind(this);
+        this.unlockPlannings = this.unlockPlannings.bind(this);
+    }
+
+    private softLockPlannings() {
+        planningApi.locks.setItemAsLocked({
+            ...this.props.item,
+            plan_ids: this.props.item.associated_plannings.map((x) => x._id),
+            etag: this.props.item._etag,
+            item: this.props.item._id,
+            user: this.props.item.lock_user,
+            lock_action: this.props.item.lock_action,
+            lock_session: this.props.item.lock_session,
+            lock_time: this.props.item.lock_time,
+        });
+    }
+
+    private unlockPlannings(ids: Array<IPlanningItem['_id']>) {
+        planningApi.locks.setItemAsUnlocked({
+            ...this.props.item,
+            plan_ids: ids,
+            etag: this.props.item._etag,
+            item: this.props.item._id,
+            user: this.props.item.lock_user,
+            lock_session: this.props.item.lock_session,
+            type: this.props.item.type,
+            from_ingest: false,
+        });
+    }
+
+    componentDidMount(): void {
+        this.softLockPlannings();
+    }
+
+    componentDidUpdate(prevProps: Readonly<IRelatedPlanningProps>): void {
+        const prevPlanIds = prevProps.item.associated_plannings.map((x) => x._id);
+        const currentPlanIds = this.props.item.associated_plannings.map((x) => x._id);
+
+        if (isEqual(prevPlanIds, currentPlanIds) === false) {
+            this.softLockPlannings();
+        }
+    }
+
+    componentWillUnmount(): void {
+        this.unlockPlannings(this.props.item.associated_plannings.map((x) => x._id));
     }
 
     render() {
@@ -105,8 +151,19 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                                     index={index}
                                     event={this.props.item}
                                     item={plan}
-                                    unlinkPlanning={this.props.unlinkPlanning}
-                                    updatePlanningItem={this.props.updatePlanningItem}
+                                    unlinkPlanning={(item) => {
+                                        return this.props.unlinkPlanning(item).then(() =>
+                                            planningApi.locks.unlockEmbeddedItem(item as IPlanningItem)
+                                        );
+                                    }}
+                                    updatePlanningItem={(org, updates, scrollOnChange) => {
+                                        return this.props.updatePlanningItem(org, updates, scrollOnChange).then(() => {
+                                            // Wait for redux store to update
+                                            setTimeout(() => {
+                                                this.softLockPlannings();
+                                            }, 100);
+                                        });
+                                    }}
                                     disabled={false}
                                     editorType={this.props.editorType}
                                     profile={this.props.profile}

@@ -118,15 +118,15 @@ export class AssociatedEventItem extends React.PureComponent<IProps> {
                                     );
 
                                     return eventsApi.events.create(itemClean).then(([created]) =>
-                                        planningApi.locks.unlockEmbeddedEvent(created._id)
-                                            .then((unlocked) => {
-                                                this.update(unlocked);
+                                        planningApi.locks.unlockEmbeddedItem(created, false).then((unlockedItem) => {
+                                            this.update(unlockedItem);
 
-                                                // remove the temporary event so user doesn't see it in the work queue
-                                                planningApi.autosave.delete(item);
+                                            // remove the temporary event so user doesn't see it in the work queue
+                                            planningApi.autosave.delete(item);
 
-                                                return unlocked;
-                                            })
+                                            return unlockedItem;
+                                        })
+
                                     );
                                 },
                             )

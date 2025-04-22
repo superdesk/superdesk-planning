@@ -80,10 +80,6 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
         });
     }
 
-    componentDidMount(): void {
-        this.lockRelatedItemsOnFrontEnd();
-    }
-
     componentDidUpdate(prevProps: Readonly<IAssociatedEventFieldProps>): void {
         const prevEventIds = prevProps.events.map((x) => x._id);
         const currentEventIds = this.props.events.map((x) => x._id);
@@ -149,7 +145,7 @@ export class EditorFieldAssociatedEventComponent extends React.PureComponent<IAs
                                 unlinkEvent={(item) => {
                                     this.props.unlinkEvent(item);
 
-                                    planningApi.locks.unlockEmbeddedEvent(item._id);
+                                    planningApi.locks.unlockEmbeddedItem(item);
                                 }}
                                 disabled={this.props.disabled}
                                 ref={(ref) => {
