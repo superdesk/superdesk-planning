@@ -2064,6 +2064,16 @@ export interface IInputArrayHocModeOptions {
     emptyValueElement: React.ReactNode;
 }
 
+export type ISoftLockItemData = {
+    type: IEventItem['type'];
+    item: IEventItem;
+    plan_ids?: Array<IPlanningItem['_id']>;
+} | {
+    type: IPlanningItem['type'];
+    item: IPlanningItem;
+    event_ids?: Array<IEventItem['_id']>;
+}
+
 export interface IWebsocketMessageData {
     ITEM_UNLOCKED: {
         item: IEventOrPlanningItem['_id'];
@@ -2371,6 +2381,7 @@ export interface IPlanningAPI {
         unlockEmbeddedItem<T extends IEventOrPlanningItem>(item: T, softOnly?: boolean): Promise<T>;
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
         setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
+        softLockItem(item: ISoftLockItemData): void;
         setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
         reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void;
         reloadSoftLocksForAssociatedPlannings(event: IEventItem): void;

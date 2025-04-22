@@ -6,6 +6,7 @@ import {
     IAssignmentOrPlanningItem,
     IFeaturedPlanningLock,
     IEventOrPlanningItem,
+    ISoftLockItemData,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
@@ -89,6 +90,26 @@ function setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void {
     dispatch({
         type: LOCKS.ACTIONS.SET_ITEM_AS_LOCKED,
         payload: data,
+    });
+}
+
+/**
+ * A function only used for abstracting property mapping for `setItemAsLocked`
+ */
+function softLockItem(options: ISoftLockItemData): void {
+    const {item} = options;
+
+    return setItemAsLocked({
+        item: item._id,
+        type: item.type,
+        recurrence_id: item.recurrence_id,
+        etag: item._etag,
+        user: item.lock_user,
+        lock_session: item.lock_session,
+        lock_action: item.lock_action,
+        lock_time: item.lock_time,
+        event_ids: options.type === 'planning' ? options.event_ids : undefined,
+        plan_ids: options.type === 'event' ? options.plan_ids : undefined,
     });
 }
 
@@ -401,6 +422,7 @@ function unlockFeaturedPlanning(): Promise<void> {
 export const locks: IPlanningAPI['locks'] = {
     loadLockedItems: loadLockedItems,
     setItemAsLocked: setItemAsLocked,
+    softLockItem: softLockItem,
     setItemAsUnlocked: setItemAsUnlocked,
     reloadSoftLocksForRelatedEvents: reloadSoftLocksForRelatedEvents,
     reloadSoftLocksForAssociatedPlannings: reloadSoftLocksForAssociatedPlannings,

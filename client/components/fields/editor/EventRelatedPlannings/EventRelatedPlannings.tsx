@@ -26,15 +26,10 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
     }
 
     private softLockPlannings() {
-        planningApi.locks.setItemAsLocked({
-            ...this.props.item,
+        planningApi.locks.softLockItem({
+            type: 'event',
+            item: this.props.item,
             plan_ids: this.props.item.associated_plannings.map((x) => x._id),
-            etag: this.props.item._etag,
-            item: this.props.item._id,
-            user: this.props.item.lock_user,
-            lock_action: this.props.item.lock_action,
-            lock_session: this.props.item.lock_session,
-            lock_time: this.props.item.lock_time,
         });
     }
 
