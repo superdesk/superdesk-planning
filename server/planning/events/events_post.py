@@ -258,7 +258,7 @@ class EventsPostService(AsyncBaseService):
             if len(docs) > 0:
                 for doc in docs:
                     try:
-                        planning_post_service.post([doc], related_planning=True)
+                        await planning_post_service.post_async([doc], related_planning=True)
                     except Exception as e:
                         failed_planning_ids.append({"_id": doc["planning"], "error": getattr(e, "description", str(e))})
             return failed_planning_ids

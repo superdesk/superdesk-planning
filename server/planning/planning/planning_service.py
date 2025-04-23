@@ -238,7 +238,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 # from_ingest=from_ingest, # TODO-ASYNC: adjust when we know how to tackle this
             )
 
-        posted = update_post_item(updates, original)
+        posted = await update_post_item(updates, original)
         if posted:
             new_planning = self.find_one(req=None, _id=original.get(ID_FIELD))
             updates["_etag"] = new_planning["_etag"]

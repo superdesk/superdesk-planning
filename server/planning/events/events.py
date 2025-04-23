@@ -586,7 +586,7 @@ class EventsService(AsyncBaseService):
             get_resource_service("planning").on_event_converted_to_recurring(updates, original)
 
         if not updates.get("duplicate_to"):
-            posted = update_post_item(updates, original)
+            posted = await update_post_item(updates, original)
             if posted:
                 new_event = await get_resource_service("events").find_one_async(req=None, _id=original.get(ID_FIELD))
                 updates["_etag"] = new_event["_etag"]

@@ -7,20 +7,21 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+import logging
 
 from typing import List
+from copy import deepcopy
+from eve.utils import config
+
+from superdesk.utc import utcnow
 from superdesk.flask import abort
-from planning.validate import validate_docs
+from superdesk.resource import Resource
 from superdesk import get_resource_service, logger
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
-from superdesk.resource import Resource
 from superdesk.notification import push_notification
-from superdesk.utc import utcnow
-from copy import deepcopy
-import logging
 
-from eve.utils import config
+from planning.validate import validate_docs
 from planning.planning import PlanningResource
 from planning.common import (
     WORKFLOW_STATE,

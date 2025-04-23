@@ -123,7 +123,7 @@ async def process_update_time(
     await events_service.update(original[ID_FIELD], updates)
 
     # Perform post update actions
-    post_update_event_actions(updates, original, ACTION)
+    await post_update_event_actions(updates, original, ACTION)
 
     updated_event = await events_service.find_by_id_raw(original[ID_FIELD])
     assert updated_event is not None, "Expected updated_event to be a dict, got None"

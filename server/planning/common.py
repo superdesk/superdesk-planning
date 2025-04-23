@@ -358,10 +358,10 @@ def post_required(updates, original):
     return pub_status is not None
 
 
-def update_post_item(updates, original):
+async def update_post_item(updates, original):
     """Method to update(re-post) a posted item after the item is updated"""
     # TODO-ASYNC: update once `events_post` & `planning_post` are async
-    # also ot use pydantic models intead of dicts
+    # also to use pydantic models intead of dicts
 
     pub_status = None
     # Save&Post or Save&Unpost
@@ -382,7 +382,7 @@ def update_post_item(updates, original):
                 original.get(ITEM_TYPE): original.get(ID_FIELD),
                 "pubstatus": pub_status,
             }
-            return item_post_service.post([doc])
+            return await item_post_service.post_async([doc])
 
 
 def get_coverage_type_name(qcode):
