@@ -139,7 +139,7 @@ INSTALLED_PLUGINS = ["planning"]
 
 INSTALLED_APPS.extend(INSTALLED_PLUGINS)
 
-MODULES = ["planning", "planning.content_api.events"]
+MODULES = ["planning", "planning.content_api.events", "planning.content_api.planning"]
 
 RENDITIONS = {
     "picture": {
