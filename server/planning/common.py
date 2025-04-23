@@ -425,14 +425,14 @@ def get_version_item_for_post(item):
 
 
 @celery.task(soft_time_limit=600)
-def enqueue_planning_item(id):
+async def enqueue_planning_item(id):
     """
     Get the version of the item to be published from the planning versions collection and enqueue it.
 
     :param id:
     :return:
     """
-    planning_version = get_resource_service("published_planning").find_one(req=None, _id=id)
+    planning_version = await get_resource_service("published_planning").find_one_async(req=None, _id=id)
     if planning_version:
         try:
             get_enqueue_service("publish").enqueue_item(planning_version.get("published_item"), "event")

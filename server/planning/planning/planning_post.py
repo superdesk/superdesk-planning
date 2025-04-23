@@ -173,13 +173,13 @@ class PlanningPostService(AsyncBaseService):
 
         # Set a version number
         version, plan = get_version_item_for_post(plan)
-        self.publish_planning(plan, version)
+        await self.publish_planning(plan, version)
 
         # Save the version into the history
         updates["version"] = version
         await PlanningHistoryAsyncService()._save_history(plan, updates, "post")
 
-    def publish_planning(self, plan, version):
+    async def publish_planning(self, plan, version):
         # Check and remove private contacts while posting planning, only public contact will be visible
         public_contact_ids = [str(contact["_id"]) for contact in get_contacts_from_item(plan)]
         for coverage in plan.get("coverages") or []:
@@ -190,7 +190,7 @@ class PlanningPostService(AsyncBaseService):
 
         """Enqueue the planning item"""
         # Create an entry in the planning versions collection for this published version
-        version_id = get_resource_service("published_planning").post(
+        version_id = await get_resource_service("published_planning").post_async(
             [
                 {
                     "item_id": plan["_id"],
@@ -202,7 +202,7 @@ class PlanningPostService(AsyncBaseService):
         )
         if version_id:
             # Asynchronously enqueue the item for publishing.
-            enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
+            await enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
         else:
             logger.error("Failed to save planning version for planning item id {}".format(plan["_id"]))
 

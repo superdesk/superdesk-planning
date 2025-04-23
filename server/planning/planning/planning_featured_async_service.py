@@ -74,7 +74,7 @@ class PlanningFeaturedAsyncService(BasePlanningAsyncService[PlanningFeaturedReso
             version, plan = get_version_item_for_post(plan)
 
             # Create an entry in the planning versions collection for this published version
-            version_id = get_resource_service("published_planning").post(
+            version_id = await get_resource_service("published_planning").post_async(
                 [
                     {
                         "item_id": plan["_id"],
@@ -86,7 +86,7 @@ class PlanningFeaturedAsyncService(BasePlanningAsyncService[PlanningFeaturedReso
             )
             if version_id:
                 # Asynchronously enqueue the item for publishing.
-                enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
+                await enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
             else:
                 logger.error("Failed to save planning_featured version for featured item id {}".format(plan["_id"]))
 
