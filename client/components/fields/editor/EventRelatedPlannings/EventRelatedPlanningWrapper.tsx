@@ -9,8 +9,12 @@ interface IOwnProps extends IEditorFieldProps {
     schema?: IProfileSchemaTypeList;
     coverageProfile?: ISearchProfile;
     addPlanningItem(item?: IPlanningItem): Promise<Partial<IPlanningItem>>;
-    unlinkPlanning(item: DeepPartial<IPlanningItem>): void;
-    updatePlanningItem(original: DeepPartial<IPlanningItem>, updates: DeepPartial<IPlanningItem>): void;
+    unlinkPlanning(item: DeepPartial<IPlanningItem>): Promise<void>;
+    updatePlanningItem(
+        original: DeepPartial<IPlanningItem>,
+        updates: DeepPartial<IPlanningItem>,
+        scrollOnChange: boolean,
+    ): Promise<void>;
 }
 
 interface IReduxProps {

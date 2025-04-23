@@ -15,9 +15,9 @@ function removeLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_UNLOC
     if (data.recurrence_id != null) {
         delete state.recurring[data.recurrence_id];
     } else if ((data.event_ids?.length ?? 0) > 0) {
-        // For now, only support 1 primary event link for locks
-
         data.event_ids.forEach((x) => delete state.event[x]);
+    } else if ((data.plan_ids?.length ?? 0) > 0) {
+        data.plan_ids.forEach((x) => delete state.planning[x]);
     }
 
     // Always try and delete a lock direclty on the supplied item
@@ -46,6 +46,12 @@ function addLock(state: ILockedItems, data: IWebsocketMessageData['ITEM_LOCKED']
 
         data.event_ids.forEach((x) => {
             state.event[x] = lockData;
+        });
+    } else if ((data.plan_ids?.length ?? 0) > 0) {
+        state[data.type][data.item] = lockData;
+
+        data.plan_ids.forEach((x) => {
+            state.planning[x] = lockData;
         });
     } else {
         state[data.type][data.item] = lockData;
@@ -106,4 +112,33 @@ export default createReducer(initialLockState, {
             event: nextEventLocks,
         };
     },
+
+    [LOCKS.ACTIONS.RELOAD_SOFT_LOCKS_FOR_ASSOCIATED_PLANNINGS]: (state: ILockedItems, payload: {event: IEventItem}) => {
+        const nextPlanLocks = {...state.event};
+        const {event} = payload;
+
+        for (const [eventId, lockObject] of Object.entries(nextPlanLocks)) {
+            if (lockObject.item_id === event._id) {
+                delete nextPlanLocks[eventId];
+            }
+        }
+
+        for (const associatedPlanId of (event.associated_plannings ?? []).map((x) => x._id)) {
+            if (nextPlanLocks[associatedPlanId]?.item_type !== 'planning') {
+                nextPlanLocks[associatedPlanId] = {
+                    action: event.lock_action,
+                    item_id: event._id,
+                    item_type: 'event',
+                    session: event.lock_session,
+                    time: event.lock_time,
+                    user: event.lock_user,
+                };
+            }
+        }
+
+        return {
+            ...state,
+            planning: nextPlanLocks,
+        };
+    }
 });

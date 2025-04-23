@@ -12,6 +12,7 @@ import {TEMP_ID_PREFIX} from '../../../../constants';
 import {addSomeRelatedPlanningsToEventEditor} from '../../../../utils/planning';
 import {IRelatedPlanningProps} from './EventRelatedPlanningWrapper';
 import {isTemporaryId} from '../../../../utils';
+import {isEqual} from 'lodash';
 
 export class EditorFieldEventRelatedPlanningsComponent extends React.PureComponent<IRelatedPlanningProps> {
     relatedItemRefs: {[id: string]: RelatedPlanningItem};
@@ -20,6 +21,34 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
         super(props);
 
         this.relatedItemRefs = {};
+        this.softLockPlannings = this.softLockPlannings.bind(this);
+    }
+
+    private softLockPlannings() {
+        planningApi.locks.softLockItem({
+            type: 'event',
+            item: this.props.item,
+            plan_ids: this.props.item.associated_plannings.map((x) => x._id),
+        });
+    }
+
+    componentDidMount(): void {
+        this.softLockPlannings();
+    }
+
+    componentDidUpdate(prevProps: Readonly<IRelatedPlanningProps>): void {
+        const prevPlanIds = prevProps.item.associated_plannings.map((x) => x._id);
+        const currentPlanIds = this.props.item.associated_plannings.map((x) => x._id);
+
+        if (isEqual(prevPlanIds, currentPlanIds) === false) {
+            this.softLockPlannings();
+        }
+    }
+
+    componentWillUnmount(): void {
+        this.props.item.associated_plannings
+            .filter((x) => x._temporary != null)
+            .forEach((x) => planningApi.locks.unlockEmbeddedItem(x as IPlanningItem));
     }
 
     render() {
@@ -105,8 +134,19 @@ export class EditorFieldEventRelatedPlanningsComponent extends React.PureCompone
                                     index={index}
                                     event={this.props.item}
                                     item={plan}
-                                    unlinkPlanning={this.props.unlinkPlanning}
-                                    updatePlanningItem={this.props.updatePlanningItem}
+                                    unlinkPlanning={(item) => {
+                                        return this.props.unlinkPlanning(item).then(() =>
+                                            planningApi.locks.unlockEmbeddedItem(item as IPlanningItem)
+                                        );
+                                    }}
+                                    updatePlanningItem={(org, updates, scrollOnChange) => {
+                                        return this.props.updatePlanningItem(org, updates, scrollOnChange).then(() => {
+                                            // Wait for redux store to update
+                                            setTimeout(() => {
+                                                this.softLockPlannings();
+                                            }, 100);
+                                        });
+                                    }}
                                     disabled={false}
                                     editorType={this.props.editorType}
                                     profile={this.props.profile}

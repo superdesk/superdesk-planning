@@ -151,7 +151,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             (plan) => plan._id !== item._id
         );
 
-        editor.form.changeField('associated_plannings', plans)
+        return editor.form.changeField('associated_plannings', plans)
             .then(() => {
                 const lastPlan = plans[plans.length - 1];
 
@@ -181,7 +181,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         };
 
 
-        editor.form.changeField('associated_plannings', plans)
+        return editor.form.changeField('associated_plannings', plans)
             .then(() => {
                 if (scrollOnChange) {
                     getRelatedPlanningDomRef(original._id).current?.scrollIntoView();

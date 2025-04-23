@@ -746,8 +746,10 @@ export class ItemManager {
                         return this.editor.onCancel(updateStates);
                     }
 
-                    if (updatedItem.type == 'planning') {
+                    if (updatedItem.type === 'planning') {
                         planningApi.locks.reloadSoftLocksForRelatedEvents(updatedItem);
+                    } else if (updatedItem.type === 'event') {
+                        planningApi.locks.reloadSoftLocksForAssociatedPlannings(updatedItem);
                     }
 
                     const newState: Partial<IEditorState> = {
@@ -873,13 +875,6 @@ export class ItemManager {
 
             if (shouldUnLockItem(initialValues, session, currentWorkspace, this.props.lockedItems)) {
                 promises.push(planningApi.locks.unlockItem(this.props.item));
-
-                if (this.autoSave.autosaveItem.type == 'planning') {
-                    (this.autoSave.autosaveItem.related_events ?? []).forEach((x) => {
-                        // remove soft lock that was added on load in AssociatedEvent.tsx
-                        promises.push(planningApi.locks.unlockEmbeddedEvent(x._id));
-                    });
-                }
             }
 
             // If event was created by a planning item, unlock the planning item

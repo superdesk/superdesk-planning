@@ -5,13 +5,15 @@ import {
     IWebsocketMessageData,
     IAssignmentOrPlanningItem,
     IFeaturedPlanningLock,
+    IEventOrPlanningItem,
+    ISoftLockItemData,
 } from '../interfaces';
 import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {EVENTS, LOCKS, PLANNING, WORKSPACE, ASSIGNMENTS} from '../constants';
 
 import featuredPlanning from '../actions/planning/featuredPlanning';
-import {lockUtils, getErrorMessage, eventUtils, planningUtils, isExistingItem} from '../utils';
+import {lockUtils, getErrorMessage, eventUtils, planningUtils, isExistingItem, modifyForClient} from '../utils';
 import {getRelatedEventIdsForPlanning} from '../utils/planning';
 import {currentWorkspace as getCurrentWorkspace} from '../selectors/general';
 import {getLockedItems} from '../selectors/locks';
@@ -91,6 +93,26 @@ function setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void {
     });
 }
 
+/**
+ * A function only used for abstracting property mapping for `setItemAsLocked`
+ */
+function softLockItem(options: ISoftLockItemData): void {
+    const {item} = options;
+
+    return setItemAsLocked({
+        item: item._id,
+        type: item.type,
+        recurrence_id: item.recurrence_id,
+        etag: item._etag,
+        user: item.lock_user,
+        lock_session: item.lock_session,
+        lock_action: item.lock_action,
+        lock_time: item.lock_time,
+        event_ids: options.type === 'planning' ? options.event_ids : undefined,
+        plan_ids: options.type === 'event' ? options.plan_ids : undefined,
+    });
+}
+
 function setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void {
     const {dispatch} = planningApi.redux.store;
 
@@ -106,6 +128,15 @@ function reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void {
     dispatch({
         type: LOCKS.ACTIONS.RELOAD_SOFT_LOCKS_FOR_RELATED_EVENTS,
         payload: {planning},
+    });
+}
+
+function reloadSoftLocksForAssociatedPlannings(event: IEventItem): void {
+    const {dispatch} = planningApi.redux.store;
+
+    dispatch({
+        type: LOCKS.ACTIONS.RELOAD_SOFT_LOCKS_FOR_ASSOCIATED_PLANNINGS,
+        payload: {event},
     });
 }
 
@@ -146,19 +177,24 @@ function lockItem<T extends IAssignmentOrPlanningItem>(item: T, action?: string)
                 planningUtils.modifyForClient(lockedItem);
             }
 
-            locks.setItemAsLocked({
+            const lockPayload: IWebsocketMessageData['ITEM_LOCKED'] = {
                 item: lockedItem._id,
                 type: lockedItem.type,
-                event_ids: lockedItem.type === 'planning' ?
-                    getRelatedEventIdsForPlanning(lockedItem) :
-                    [],
                 recurrence_id: lockedItem.type !== 'assignment' ? lockedItem.recurrence_id : undefined,
                 etag: lockedItem._etag,
                 user: lockedItem.lock_user,
                 lock_session: lockedItem.lock_session,
                 lock_action: lockedItem.lock_action,
                 lock_time: lockedItem.lock_time,
-            });
+            };
+
+            if (lockedItem.type === 'planning') {
+                lockPayload.event_ids = getRelatedEventIdsForPlanning(lockedItem);
+            } else if (lockedItem.type === 'event') {
+                lockPayload.plan_ids = (lockedItem.associated_plannings ?? []).map((x) => x._id);
+            }
+
+            locks.setItemAsLocked(lockPayload);
 
             if (lockedItem.type === 'event') {
                 dispatch({
@@ -212,7 +248,10 @@ function lockItemById<T extends IAssignmentOrPlanningItem>(
     return getItemById(itemId, itemType).then((item) => locks.lockItem(item, action));
 }
 
-function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfNotFound: boolean = true): Promise<T> {
+function unlockItem<T extends IAssignmentOrPlanningItem>(
+    item: T,
+    reloadLocksIfNotFound: boolean = true,
+): Promise<T> {
     if (!isExistingItem(item)) {
         const autosaveDeletePromise = item.type === 'assignment' ?
             Promise.resolve() :
@@ -276,9 +315,9 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
             locks.setItemAsUnlocked({
                 item: unlockedItem._id,
                 type: unlockedItem.type,
-                event_ids: unlockedItem.type === 'planning' ?
-                    getRelatedEventIdsForPlanning(unlockedItem) :
-                    [],
+                event_ids: unlockedItem.type === 'planning' ? getRelatedEventIdsForPlanning(unlockedItem) :
+                    undefined,
+                plan_ids: unlockedItem.type === 'event' ? (item as IEventItem).planning_ids : undefined,
                 recurrence_id: unlockedItem.type !== 'assignment' ? unlockedItem.recurrence_id : undefined,
                 etag: unlockedItem._etag,
                 from_ingest: false,
@@ -314,40 +353,47 @@ function unlockItem<T extends IAssignmentOrPlanningItem>(item: T, reloadLocksIfN
         });
 }
 
-function unlockEmbeddedEvent(itemId: string): Promise<IEventItem> {
-    const {dispatch} = planningApi.redux.store;
-    const endpoint = `events/${itemId}/unlock`;
-
-    return superdeskApi.dataApi.create<IEventItem>(endpoint, {})
-        .then((unlockedItem) => {
-            eventUtils.modifyForClient(unlockedItem);
-
-            locks.setItemAsUnlocked({
-                item: unlockedItem._id,
-                type: unlockedItem.type,
-                event_ids: [],
-                recurrence_id: unlockedItem.recurrence_id,
-                etag: unlockedItem._etag,
-                from_ingest: false,
-                user: unlockedItem.lock_user,
-                lock_session: unlockedItem.lock_session,
-            });
-
-            dispatch({
-                type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                payload: {event: unlockedItem},
-            });
-
-            return unlockedItem;
-        })
-        .catch((error) => {
-            const {gettext} = superdeskApi.localization;
-            const {notify} = superdeskApi.ui;
-
-            notify.error(getErrorMessage(error, gettext('Failed to unlock item')));
-
-            return Promise.reject(error);
+function unlockEmbeddedItem<T extends IEventOrPlanningItem>(item: T, softOnly: boolean = true): Promise<T> {
+    if (softOnly) {
+        locks.setItemAsUnlocked({
+            item: item._id,
+            type: item.type,
+            recurrence_id: item.recurrence_id,
+            etag: item._etag,
+            from_ingest: false,
+            user: item.lock_user,
+            lock_session: item.lock_session,
         });
+
+        return Promise.resolve(item);
+    } else {
+        const endpoint = `${item.type === 'event' ? 'events' : 'planning'}/${item._id}/unlock`;
+
+        return superdeskApi.dataApi.create<T>(endpoint, {})
+            .then((unlockedItem) => {
+                modifyForClient(unlockedItem);
+
+                locks.setItemAsUnlocked({
+                    item: unlockedItem._id,
+                    type: unlockedItem.type,
+                    recurrence_id: unlockedItem.recurrence_id,
+                    etag: unlockedItem._etag,
+                    from_ingest: false,
+                    user: unlockedItem.lock_user,
+                    lock_session: unlockedItem.lock_session,
+                });
+
+                return unlockedItem;
+            })
+            .catch((error) => {
+                const {gettext} = superdeskApi.localization;
+                const {notify} = superdeskApi.ui;
+
+                notify.error(getErrorMessage(error, gettext('Failed to unlock item')));
+
+                return Promise.reject(error);
+            });
+    }
 }
 
 function unlockItemById<T extends IAssignmentOrPlanningItem>(itemId: T['_id'], itemType: T['type']): Promise<T> {
@@ -379,14 +425,16 @@ function unlockFeaturedPlanning(): Promise<void> {
 export const locks: IPlanningAPI['locks'] = {
     loadLockedItems: loadLockedItems,
     setItemAsLocked: setItemAsLocked,
+    softLockItem: softLockItem,
     setItemAsUnlocked: setItemAsUnlocked,
     reloadSoftLocksForRelatedEvents: reloadSoftLocksForRelatedEvents,
+    reloadSoftLocksForAssociatedPlannings: reloadSoftLocksForAssociatedPlannings,
     lockItem: lockItem,
     lockItemById: lockItemById,
     unlockItem: unlockItem,
     unlockItemById: unlockItemById,
     unlockThenLockItem: unlockThenLockItem,
     lockFeaturedPlanning: lockFeaturedPlanning,
-    unlockEmbeddedEvent: unlockEmbeddedEvent,
+    unlockEmbeddedItem: unlockEmbeddedItem,
     unlockFeaturedPlanning: unlockFeaturedPlanning,
 };

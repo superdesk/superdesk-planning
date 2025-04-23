@@ -2064,12 +2064,23 @@ export interface IInputArrayHocModeOptions {
     emptyValueElement: React.ReactNode;
 }
 
+export type ISoftLockItemData = {
+    type: IEventItem['type'];
+    item: IEventItem;
+    plan_ids?: Array<IPlanningItem['_id']>;
+} | {
+    type: IPlanningItem['type'];
+    item: IPlanningItem;
+    event_ids?: Array<IEventItem['_id']>;
+}
+
 export interface IWebsocketMessageData {
     ITEM_UNLOCKED: {
         item: IEventOrPlanningItem['_id'];
         etag: IEventOrPlanningItem['_etag'];
         from_ingest: boolean;
         event_ids?: Array<string>;
+        plan_ids?: Array<string>;
         user?: IEventOrPlanningItem['lock_user'];
         lock_session?: IEventOrPlanningItem['lock_session'];
         recurrence_id?: IEventItem['recurrence_id'];
@@ -2080,6 +2091,7 @@ export interface IWebsocketMessageData {
         etag: IEventOrPlanningItem['_etag'];
         user: IEventOrPlanningItem['lock_user'];
         event_ids?: Array<string>;
+        plan_ids?: Array<string>;
         lock_session: IEventOrPlanningItem['lock_session'];
         lock_action: IEventOrPlanningItem['lock_action'];
         lock_time: IEventOrPlanningItem['lock_time'];
@@ -2183,12 +2195,12 @@ export interface IEditorAPI {
                     scrollIntoViewAndFocus?: boolean;
                 },
             ): Promise<Partial<IPlanningItem>>;
-            unlinkPlanning(item: DeepPartial<IPlanningItem>): void;
+            unlinkPlanning(item: DeepPartial<IPlanningItem>): Promise<void>;
             updatePlanningItem(
                 original: DeepPartial<IPlanningItem>,
                 updates: DeepPartial<IPlanningItem>,
                 scrollOnChange: boolean
-            ): void;
+            ): Promise<void>;
             onEventDatesChanged(updates: Partial<IEventItem['dates']>): void;
         };
         planning: {
@@ -2366,11 +2378,13 @@ export interface IPlanningAPI {
         updateProfilesInStore(): Promise<void>;
     };
     locks: {
-        unlockEmbeddedEvent(itemId: string): Promise<IEventItem>;
+        unlockEmbeddedItem<T extends IEventOrPlanningItem>(item: T, softOnly?: boolean): Promise<T>;
         loadLockedItems(types?: Array<'events_and_planning' | 'featured_planning' | 'assignments'>): Promise<void>;
         setItemAsLocked(data: IWebsocketMessageData['ITEM_LOCKED']): void;
+        softLockItem(item: ISoftLockItemData): void;
         setItemAsUnlocked(data: IWebsocketMessageData['ITEM_UNLOCKED']): void;
         reloadSoftLocksForRelatedEvents(planning: IPlanningItem): void;
+        reloadSoftLocksForAssociatedPlannings(event: IEventItem): void;
         lockItem<T extends IAssignmentOrPlanningItem>(item: T, action: string): Promise<T>;
         lockItemById<T extends IAssignmentOrPlanningItem>(
             itemId: T['_id'],
