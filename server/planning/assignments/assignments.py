@@ -1389,7 +1389,7 @@ class AssignmentsService(AsyncBaseService):
                 )
                 if version_id:
                     # Asynchronously enqueue the item for publishing.
-                    await enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
+                    await enqueue_planning_item.apply_async(kwargs={"id": version_id[0]})
                 else:
                     logger.error("Failed to save planning version for planning item id {}".format(item["_id"]))
 

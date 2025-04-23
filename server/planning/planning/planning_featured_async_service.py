@@ -86,7 +86,7 @@ class PlanningFeaturedAsyncService(BasePlanningAsyncService[PlanningFeaturedReso
             )
             if version_id:
                 # Asynchronously enqueue the item for publishing.
-                await enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
+                await enqueue_planning_item.apply_async(kwargs={"id": version_id[0]})
             else:
                 logger.error("Failed to save planning_featured version for featured item id {}".format(plan["_id"]))
 

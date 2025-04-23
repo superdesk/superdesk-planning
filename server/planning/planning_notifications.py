@@ -129,7 +129,7 @@ class PlanningNotifications:
                 "target_desk2": target_desk2,
                 "message": _get_slack_message_string(source, data),
             }
-            self._notify_slack.apply_async(kwargs=args, serializer="eve/json")
+            self._notify_slack.apply_async(kwargs=args)
 
         # No assignment notification sent, if user is not enabled assignment notification
         if (
@@ -147,7 +147,7 @@ class PlanningNotifications:
                 "meta_message": meta_message,
                 "data": data,
             }
-            self._notify_email.apply_async(kwargs=args, serializer="eve/json")
+            self._notify_email.apply_async(kwargs=args)
 
     def user_update(self, updates, original):
         """

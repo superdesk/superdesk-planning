@@ -12,9 +12,15 @@ from typing import NamedTuple, Dict, Any, Set, Optional, Union
 
 import re
 import time
+import json
+from bson import ObjectId
 from collections import namedtuple
+from eve.utils import ParsedRequest
 from datetime import timedelta, datetime
+from werkzeug.datastructures import MultiDict
 
+from superdesk.types import PublishRequest
+from superdesk.publish_async.commands import publish_item
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD, VERSION
 from superdesk.resource import not_analyzed, build_custom_hateoas
@@ -24,13 +30,8 @@ from superdesk.utc import utcnow
 from superdesk.celery_app import celery
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
-from apps.publish.enqueue import get_enqueue_service
-from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
-from eve.utils import ParsedRequest
-from werkzeug.datastructures import MultiDict
+from apps.publish.content.common import ITEM_PUBLISH
 from superdesk.etree import parse_html
-import json
-from bson import ObjectId
 
 from planning.types import (
     Planning,
@@ -40,6 +41,8 @@ from planning.types import (
     PlanningAutosaveResourceModel,
     PlanningTypesResourceModel,
 )
+
+from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -433,11 +436,21 @@ async def enqueue_planning_item(id):
     :return:
     """
     planning_version = await get_resource_service("published_planning").find_one_async(req=None, _id=id)
+
     if planning_version:
-        try:
-            get_enqueue_service("publish").enqueue_item(planning_version.get("published_item"), "event")
-        except Exception:
-            logger.exception("Failed to queue {} item {}".format(planning_version.get("type"), id))
+        item = planning_version.get("published_item")
+        publish_response = await publish_item(
+            PublishRequest(
+                item=item,
+                item_id=item[ID_FIELD],
+                item_type="event",
+                operation=ITEM_PUBLISH,
+                published_state=item[ITEM_STATE],
+            )
+        )
+
+        if not publish_response.routed:
+            logger.exception(f"Failed to queue {planning_version.get('type')} item {id}")
     else:
         logger.error("Failed to retrieve planning item from planning versions with id: {}".format(id))
 
