@@ -427,7 +427,6 @@ def get_version_item_for_post(item):
     return version, item
 
 
-@celery.task(soft_time_limit=600)
 async def enqueue_planning_item(id):
     """
     Get the version of the item to be published from the planning versions collection and enqueue it.
@@ -443,7 +442,7 @@ async def enqueue_planning_item(id):
             PublishRequest(
                 item=item,
                 item_id=item[ID_FIELD],
-                item_type="event",
+                item_type=item[ITEM_TYPE],
                 operation=ITEM_PUBLISH,
                 published_state=item[ITEM_STATE],
             )

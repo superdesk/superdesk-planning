@@ -13,10 +13,9 @@ from eve.utils import ParsedRequest
 from eve.methods.common import resolve_embedded_fields, resolve_embedded_documents
 
 from superdesk import Resource
-from superdesk.utils import ListCursor
 from superdesk.resource_fields import ID_FIELD
 from superdesk.eve_async import AsyncBaseService
-
+from superdesk.eve_async.cursors import AsyncListCursor
 from .events import EventsResource
 from .planning import PlanningResource
 from .types import PlanningFeaturedResourceModel
@@ -54,11 +53,11 @@ class PublishedPlanningService(AsyncBaseService):
         cursor = await super().get_async(req, lookup)
         if req and req.embedded:
             documents = []
-            for doc in cursor:
+            async for doc in cursor:
                 self._resolve_embedded_item(doc, req)
                 documents.append(doc)
 
-            cursor = ListCursor(docs=documents)
+            cursor = AsyncListCursor(docs=documents)
 
         return cursor
 
