@@ -23,7 +23,7 @@ from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 
 
 content_api_planning_resource_config: ResourceConfig = ResourceConfig(
-    name="planning",
+    name="planning_capi",
     data_class=ContentAPIPlanningResourceModel,
     service=PlanningAsyncService,
     mongo=MongoResourceConfig(

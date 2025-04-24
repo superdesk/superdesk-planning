@@ -21,7 +21,7 @@ from .event import EventResourceModel
 from planning.events import EventsService
 
 content_api_event_resource_config: ResourceConfig = ResourceConfig(
-    name="events",
+    name="events_capi",
     data_class=EventResourceModel,
     service=EventsService,
     default_sort=[("versioncreated", -1)],
