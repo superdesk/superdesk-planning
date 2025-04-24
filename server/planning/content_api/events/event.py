@@ -14,12 +14,13 @@ from superdesk.core.resources import ModelWithVersions
 from planning.types import EventResourceModel
 from planning.output_formatters.utils import expand_contact_info, get_matching_products
 from planning.output_formatters.json_event import JsonEventFormatter
+from typing import Any
 
 
 class ContentAPIEventResourceModel(EventResourceModel, ModelWithVersions):
     event_contact_info: List[Dict[str, Any]] = Field(default_factory=list)
     products: List[Dict[str, str]] = Field(default_factory=list)
-    files: Optional[List[Dict[str, Any]]] = Field(None)
+    files: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
     # Validators to expand fields
     @validator("event_contact_info", pre=True)

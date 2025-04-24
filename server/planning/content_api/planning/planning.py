@@ -15,14 +15,15 @@ from superdesk import get_resource_service
 from planning.types import PlanningResourceModel
 from planning.output_formatters.utils import get_matching_products
 from planning.output_formatters.json_planning import JsonPlanningFormatter
+from planning.types.common import PlanningCoverage
 
 
 class ContentAPIPlanningResourceModel(PlanningResourceModel, ModelWithVersions):
     agendas: List[Dict[str, Any]] = Field(default_factory=list)
     products: List[Dict[str, str]] = Field(default_factory=list)
     events: List[Dict[str, Any]] = Field(default_factory=list)
-    coverages: List[Dict[str, Any]] = Field(default_factory=list)
-    event_item: Optional[str] = Field(None)
+    coverages: list[PlanningCoverage] = Field(default_factory=list)
+    event_item: Optional[str] = Field(default_factory=list)
 
     # Validators to expand fields
     @validator("agendas", pre=True)
