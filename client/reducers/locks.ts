@@ -114,7 +114,7 @@ export default createReducer(initialLockState, {
     },
 
     [LOCKS.ACTIONS.RELOAD_SOFT_LOCKS_FOR_ASSOCIATED_PLANNINGS]: (state: ILockedItems, payload: {event: IEventItem}) => {
-        const nextPlanLocks = {...state.event};
+        const nextPlanLocks = {...state.planning};
         const {event} = payload;
 
         for (const [eventId, lockObject] of Object.entries(nextPlanLocks)) {
