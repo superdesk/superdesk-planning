@@ -35,7 +35,6 @@ class PlanningSchema(BaseSchema):
     subject = subjectField
     urgency = schema.IntegerField()
     priority = schema.IntegerField()
-    custom_vocabularies = schema.ListField()
     associated_event = schema.NoneField()
     coverages = schema.ListField()
 
@@ -102,11 +101,6 @@ DEFAULT_PLANNING_PROFILE = {
             "enabled": True,
             "group": "details",
             "index": 3,
-        },
-        "custom_vocabularies": {
-            "enabled": False,
-            "group": "details",
-            "index": 4,
         },
         "urgency": {
             "enabled": True,

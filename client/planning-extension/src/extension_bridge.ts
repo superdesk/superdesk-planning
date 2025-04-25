@@ -54,6 +54,7 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
+            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
         },
     }
     ui: {
@@ -82,7 +83,7 @@ interface IExtensionBridge {
     fields: {
         registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
             field: string,
-            Component: React.ComponentClass<ComponentProps>,
+            Component: React.ComponentType<ComponentProps>,
             props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
             mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
             forwardRef?: boolean

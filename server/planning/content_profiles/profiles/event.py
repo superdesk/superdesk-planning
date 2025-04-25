@@ -43,7 +43,6 @@ class EventSchema(BaseSchema):
     reference = StringField()
     slugline = StringField()
     subject = subjectField
-    custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
     related_plannings.schema["planning_auto_publish"] = False
@@ -173,8 +172,6 @@ DEFAULT_EVENT_PROFILE = {
             "group": "related_plannings",
             "index": 1,
         },
-        # Fields disabled by default
-        "custom_vocabularies": {"enabled": False},
         "registration_details": {"enabled": False},
         "invitation_details": {"enabled": False},
         "accreditation_info": {"enabled": False},

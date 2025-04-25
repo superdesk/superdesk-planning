@@ -62,9 +62,10 @@ export function getGroupFieldsSorted(
     profile: IEditorProfile,
     groupId?: IEditorProfileGroup['_id']
 ): Array<IProfileFieldEntry> {
+    const fieldsForGroup = getEnabledProfileGroupFields(profile, groupId);
     const fields = (groupId == null ?
         getEnabledProfileFields(profile) :
-        getEnabledProfileGroupFields(profile, groupId)
+        fieldsForGroup
     ).sort(
         (a, b) => a.field.index - b.field.index
     );
@@ -81,10 +82,46 @@ export function getUnusedProfileFields(
     profile: IEditorProfile,
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
+    const cvs = superdeskApi.entities.vocabulary.getAll().toArray();
+    const cvIds = cvs.map((x) => x._id);
+    const cvFieldEntries = cvs
+        .map((x, i) => ({
+            field: {
+                enabled: false,
+                group: undefined,
+                index: i,
+            },
+            name: x._id,
+            schema: {
+                type: 'custom_vocabulary',
+                required: false,
+            }
+        }) as IProfileFieldEntry);
+
+    const fieldsFromProfile = getProfileFields(profile);
+    const usedCVs = fieldsFromProfile.filter(
+        (fieldEntry) =>
+            fieldEntry.schema?.type === 'custom_vocabulary'
+            && cvIds.includes(fieldEntry.name)
+            && fieldEntry.field.enabled
+    );
+
+    const unusedCVs = cvFieldEntries.filter((field) => {
+        const fieldSchema = field.schema;
+
+        return fieldSchema?.type === 'custom_vocabulary' && !usedCVs.some((usedFieldEntry) =>
+            usedFieldEntry.name === field.name);
+    });
+
     return orderBy(
-        getProfileFields(profile).filter(
-            (item) => (includeGroupCheck && item.field.group == null) || !item.field.enabled
-        ),
+        fieldsFromProfile
+            .filter((field) => (includeGroupCheck && field.field.group == null) || !field.field.enabled)
+            .filter((field) => {
+                const fieldSchema = field.schema;
+
+                return fieldSchema?.type !== 'custom_vocabulary' || !cvIds.includes(field.name);
+            })
+            .concat(unusedCVs),
         'name'
     );
 }

@@ -39,6 +39,7 @@ import {IEditorFieldEventRecurringRulesProps} from './components/fields/editor/E
 import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRecurringRules';
 import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
 import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
+import {EditorFieldCV} from './components/fields/editor/vocabularyAsField';
 import {appConfig} from 'appConfig';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
@@ -70,6 +71,7 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
+            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
         },
     }
     ui: {
@@ -97,13 +99,7 @@ interface IExtensionBridge {
         };
     };
     fields: {
-        registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
-            field: string,
-            Component: React.ComponentClass<ComponentProps>,
-            props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
-            mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
-            forwardRef?: boolean
-        ): void;
+        registerEditorField: typeof registerEditorField;
     };
 }
 
@@ -138,6 +134,7 @@ export const extensionBridge: IExtensionBridge = {
             EditorFieldCoverages: EditorFieldCoverages,
             EditorFieldEventRecurringRules: EditorFieldEventRecurringRules,
             EditorFieldEventSchedule: EditorFieldEventSchedule,
+            EditorFieldCV: EditorFieldCV,
         },
     },
     ui: {

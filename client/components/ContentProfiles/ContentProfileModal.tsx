@@ -321,6 +321,7 @@ class ContentProfileModalComponent extends React.Component<IProps, IState> {
             fields.forEach((item, index) => {
                 profile.editor[item.name] = {...item.field};
                 profile.editor[item.name].index = index;
+                profile.schema[item.name] = {...item.schema};
             });
 
             return {

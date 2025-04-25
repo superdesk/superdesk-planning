@@ -80,6 +80,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
     }
 
     render() {
+        const allCVs = superdeskApi.entities.vocabulary.getAll();
         const {gettext} = superdeskApi.localization;
         const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema?.type);
         const fieldType = this.props.item.schema?.type !== 'string' ?
@@ -145,7 +146,18 @@ export class FieldEditor extends React.Component<IProps, IState> {
                     </div>
                     <div className="side-panel__sliding-toolbar">
                         <span className="sd-text__strong">
-                            {getFieldNameTranslated(this.props.item.name)}
+                            {this.props.item.schema?.type === 'custom_vocabulary'
+                                ? (
+                                    <>
+                                        {allCVs.get(this.props.item.name).display_name}
+                                        {' '}
+                                        <span className="sd-text--italic sd-text--light">
+                                            {gettext('(custom vocabulary)')}
+                                        </span>
+                                    </>
+                                )
+                                : getFieldNameTranslated(this.props.item.name)
+                            }
                         </span>
                         <ButtonGroup align="end">
                             <Button

@@ -269,6 +269,20 @@ const extension: IExtension = {
             },
         };
 
+        // Register all CVs as editor fields
+        superdesk.entities.vocabulary.getAll().toArray().forEach((vocab) => {
+            registerEditorField(
+                vocab._id,
+                extensionBridge.editor.fields.EditorFieldCV,
+                () => ({
+                    label: vocab.display_name,
+                    field: vocab._id,
+                }),
+                undefined,
+                true
+            )
+        });
+
         return Promise.resolve(result);
     },
 };

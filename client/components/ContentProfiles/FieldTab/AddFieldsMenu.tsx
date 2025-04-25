@@ -3,10 +3,12 @@ import {IProfileFieldEntry} from 'interfaces';
 import {TreeMenu, Button} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../../superdeskApi';
 import {getFieldNameTranslated} from '../../../utils/contentProfiles';
+import {IVocabulary} from 'superdesk-api';
 
 interface IProps {
     options: Array<{value: IProfileFieldEntry; onSelect: () => void;}>;
     buttonLabel: string;
+    allCVs: Immutable.OrderedMap<string, IVocabulary>;
 }
 
 export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
@@ -20,7 +22,7 @@ export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
                 getId={(field) => field.name}
                 optionTemplate={(item) => item.schema?.type === 'custom_vocabulary' ? (
                     <>
-                        {getFieldNameTranslated(item.name)}
+                        {this.props.allCVs.get(item.name).display_name}
                         <span className="sd-text--italic sd-text--light">
                             &nbsp;({gettext('custom vocabulary')})
                         </span>
@@ -30,7 +32,13 @@ export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
                         {getFieldNameTranslated(item.name)}
                     </>
                 )}
-                getLabel={(item) => getFieldNameTranslated(item.name)}
+                getLabel={(item) => {
+                    if (item.schema?.type === 'custom_vocabulary') {
+                        return this.props.allCVs.get(item.name).display_name;
+                    }
+
+                    return getFieldNameTranslated(item.name);
+                }}
                 getOptions={() => options}
             >
                 {(toggle) => (
