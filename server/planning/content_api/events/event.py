@@ -20,7 +20,7 @@ from typing import Any
 class ContentAPIEventResourceModel(EventResourceModel, ModelWithVersions):
     event_contact_info: List[Dict[str, Any]] = Field(default_factory=list)
     products: List[Dict[str, str]] = Field(default_factory=list)
-    files: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    files: List[Dict[str, Any]] = Field(default_factory=list)
 
     # Validators to expand fields
     @validator("event_contact_info", pre=True)
