@@ -76,7 +76,10 @@ events_schema = {
     "registration_details": {"type": "string"},
     "invitation_details": {"type": "string"},
     "accreditation_info": {"type": "string"},
-    "accreditation_deadline": {"type": "datetime"},
+    "accreditation_deadline": {
+        "type": "datetime",
+        "nullable": True,
+    },
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
     "anpa_category": {
