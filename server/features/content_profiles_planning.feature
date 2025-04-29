@@ -71,11 +71,6 @@ Feature: Planning Content Profiles
                 "group": "details",
                 "index": 3
             },
-            "custom_vocabularies": {
-                "enabled": false,
-                "group": "details",
-                "index": 4
-            },
             "urgency": {
                 "enabled": true,
                 "group": "details",
@@ -174,10 +169,6 @@ Feature: Planning Content Profiles
             "urgency": {
                 "required": false,
                 "type": "integer"
-            },
-            "custom_vocabularies": {
-                "required": false,
-                "type": "list"
             },
             "associated_event": null,
             "coverages": {
