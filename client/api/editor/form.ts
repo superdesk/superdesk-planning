@@ -19,7 +19,7 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
     }
 
     function getState() {
-        return planningApi.editor(type).manager.getState();
+        return planningApi.editor(type).manager?.getState?.();
     }
 
     function scrollToBookmarkGroup(bookmarkId: IEditorBookmarkGroup['group_id'], options?: {focus?: boolean}) {

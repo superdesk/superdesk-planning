@@ -133,7 +133,7 @@ export function renderFieldsForPanel(
     // Only render custom_vocabularies for preview. Otherwise rendering in editor is done differently
     if ((panelType === 'simple-preview' || panelType === 'form-preview')) {
         const editorApi = planningApi.editor(EDITOR_TYPE.INLINE);
-        const currentState = editorApi?.form?.getState != null ? editorApi.form.getState() : {} as IEditorState;
+        const currentState = editorApi.form.getState();
         const schemes = new Set<string>((currentState?.initialValues?.subject ?? []).map((item) => item.scheme));
 
         if ((schemes.size > 0 || !schemes.has('subject'))) {
