@@ -82,6 +82,17 @@ export function getUnusedProfileFields(
     profile: IEditorProfile,
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
+    // Temporary FIXME: Will be removed once we add support for CVs as fields in coverage profiles
+    if (profile.name === 'coverage') {
+        const fieldsFromProfile = getProfileFields(profile);
+
+        return orderBy(
+            fieldsFromProfile
+                .filter((field) => (includeGroupCheck && field.field.group == null) || !field.field.enabled),
+            'name'
+        );
+    }
+
     const cvs = planningApi.vocabularies.getCustomVocabularies();
     const cvIds = cvs.map((x) => x._id);
     const cvFieldEntries = cvs

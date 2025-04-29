@@ -4,7 +4,7 @@ import {get} from 'lodash';
 import {IEditorFieldProps} from '../../../../interfaces';
 
 import {TreeSelect} from 'superdesk-ui-framework/react';
-import {ITreeNode} from 'superdesk-ui-framework/react/components/TreeSelect';
+import {ITreeNode} from 'superdesk-ui-framework/react/components/TreeSelect/TreeSelect';
 import {Row} from '../../../UI/Form';
 
 export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps {

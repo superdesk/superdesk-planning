@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import {connect, Provider} from 'react-redux';
 
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
@@ -32,7 +32,9 @@ const ActionsSubnavDropdownComponent = (props) => {
         items.push({
             label: gettext('Manage coverage profiles'),
             action: () => showModalSf(({closeModal}) => (
-                <CoverageProfilesModal closeModal={closeModal} />
+                <Provider store={planningApi.redux.store}>
+                    <CoverageProfilesModal closeModal={closeModal} />
+                </Provider>
             )),
         });
 
