@@ -279,8 +279,7 @@ const extension: IExtension = {
         const customCvs = superdesk.entities.vocabulary
             .getAll()
             .toArray()
-            .filter((cv) => !COVERAGE_CVS.includes(cv._id) && !isEmpty(cv.service) && isEmpty(cv.field_type)
-        )
+            .filter((cv) => !COVERAGE_CVS.includes(cv._id) && !isEmpty(cv.service) && isEmpty(cv.field_type));
 
         customCvs.forEach((vocab) => {
             registerEditorField(
@@ -292,7 +291,7 @@ const extension: IExtension = {
                 }),
                 undefined,
                 true
-            )
+            );
         });
 
         return Promise.resolve(result);
