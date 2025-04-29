@@ -2,13 +2,15 @@ import React from 'react';
 import {sortBy} from 'lodash';
 
 import {
+    EDITOR_TYPE,
+    IEditorState,
     IEventOrPlanningItem,
     IProfileSchemaType,
     IRenderPanelType,
     ISearchProfile,
     PREVIEW_PANEL,
 } from '../../interfaces';
-import {superdeskApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -28,7 +30,7 @@ import {reference} from './reference';
 import {FIELD_TO_EDITOR_COMPONENT} from './editor';
 import {FIELD_TO_LIST_COMPONENT} from './list';
 
-import {FIELD_TO_PREVIEW_COMPONENT, FIELD_TO_FORM_PREVIEW_COMPONENT} from './preview';
+import {FIELD_TO_FORM_PREVIEW_COMPONENT, FIELD_TO_PREVIEW_COMPONENT} from './preview';
 
 import {ToggleBox} from '../UI/ToggleBox';
 import './style.scss';
@@ -128,6 +130,21 @@ export function renderFieldsForPanel(
     const fieldComponents = getFieldsForPanel(panelType);
     const fields: {[key: string]: IRenderFieldItem} = {};
 
+    // Only render custom_vocabularies for preview. Otherwise rendering in editor is done differently
+    if ((panelType === 'simple-preview' || panelType === 'form-preview')) {
+        const editorApi = planningApi.editor(EDITOR_TYPE.INLINE);
+        const currentState = editorApi?.form?.getState != null ? editorApi.form.getState() : {} as IEditorState;
+        const schemes = new Set<string>((currentState?.initialValues?.subject ?? []).map((item) => item.scheme));
+
+        if ((schemes.size > 0 || !schemes.has('subject'))) {
+            profile['custom_vocabularies'] = {
+                enabled: true,
+                index: -1,
+                group: 'details',
+            };
+        }
+    }
+
     Object.keys(profile).forEach((fieldName) => {
         const newField: IRenderFieldItem = {
             component: fieldComponents[fieldName],
@@ -151,10 +168,11 @@ export function renderFieldsForPanel(
 
         if (newField.component == null) {
             console.error(`Component for field ${fieldName} not registered`);
-        } else if (profile[fieldName].enabled &&
+        } else if (
+            profile[fieldName].enabled &&
             profile[fieldName][enabledField] &&
-            (!groupName || newField.group === groupName) &&
-            fieldProps[fieldName]?.enabled != false
+            (!groupName || newField.group === groupName)
+            && fieldProps[fieldName]?.enabled != false
         ) {
             newField.enabled = true;
             fields[fieldName] = newField;
