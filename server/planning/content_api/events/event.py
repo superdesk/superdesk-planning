@@ -8,51 +8,46 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Any, Dict, List, Optional
-from pydantic import Field, validator, root_validator
-from superdesk.core.resources import ModelWithVersions
-from planning.types import EventResourceModel
-from planning.output_formatters.utils import expand_contact_info, get_matching_products
-from planning.output_formatters.json_event import JsonEventFormatter
-from typing import Any
+from superdesk.core.resources import (
+    ResourceConfig,
+    MongoResourceConfig,
+    MongoIndexOptions,
+    ElasticResourceConfig,
+    RestEndpointConfig,
+)
+from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from planning.content_api.types.events import ContentAPIEventResource
+from superdesk.core.resources.service import AsyncResourceService
 
 
-class ContentAPIEventResourceModel(EventResourceModel, ModelWithVersions):
-    event_contact_info: List[Dict[str, Any]] = Field(default_factory=list)
-    products: List[Dict[str, str]] = Field(default_factory=list)
-    files: List[Dict[str, Any]] = Field(default_factory=list)
+class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
+    pass
 
-    # Validators to expand fields
-    @validator("event_contact_info", pre=True)
-    def expand_contacts(cls, v):
-        """Expand contact info using the formatter's utility function"""
-        return expand_contact_info(v) if v else []
 
-    @validator("products", pre=True)
-    def expand_products(cls, v, values):
-        """Expand products using the formatter's utility function"""
-        if isinstance(v, list) and all(isinstance(i, dict) for i in v):
-            return v  # Already expanded
-        return get_matching_products(values) if values else []
-
-    @root_validator(pre=True)
-    def expand_fields(cls, values):
-        """Root validator to handle field expansions"""
-        formatter = JsonEventFormatter()
-
-        if "event_contact_info" in values:
-            values["event_contact_info"] = expand_contact_info(values.get("event_contact_info", []))
-
-        if "products" not in values:
-            values["products"] = get_matching_products(values)
-
-        if "files" in values and values["files"]:
-            try:
-                values["files"] = formatter._get_files_for_publish(values)
-            except NotImplementedError:
-                values.pop("files", None)
-
-        for field in formatter.remove_fields:
-            values.pop(field, None)
-
-        return values
+content_api_event_resource_config: ResourceConfig = ResourceConfig(
+    name="events_capi",
+    data_class=ContentAPIEventResource,
+    service=ContentAPIEventService,
+    default_sort=[("versioncreated", -1)],
+    versioning=True,
+    mongo=MongoResourceConfig(
+        prefix=MONGO_PREFIX,
+        indexes=[
+            MongoIndexOptions(
+                name="recurrence_id_1",
+                keys=[("recurrence_id", 1)],
+                unique=False,
+            ),
+            MongoIndexOptions(name="state", keys=[("state", 1)], unique=False),
+            MongoIndexOptions(name="dates_start_1", keys=[("dates.start", 1)], unique=False),
+            MongoIndexOptions(name="dates_end_1", keys=[("dates.end", 1)], unique=False),
+            MongoIndexOptions(name="template", keys=[("template", 1)], unique=False),
+        ],
+    ),
+    elastic=ElasticResourceConfig(prefix=ELASTIC_PREFIX),
+    rest_endpoints=RestEndpointConfig(
+        resource_methods=["GET"],
+        item_methods=["GET"],
+        enable_cors=True,
+    ),
+)
