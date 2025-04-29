@@ -63,6 +63,17 @@ function validate<T extends IPlanningItem | IEventItem>(
                 messages: messages,
                 diff: latestItem,
             });
+        } else if (profileFields.find((x) => x.fieldId === fieldId)?.type === 'custom_vocabulary') {
+            formProfile({
+                field: fieldId,
+
+                // scheme is vocabularyId and fieldId is also vocabularyId, all cv values are stored in subject
+                value: latestItem.subject.filter((x) => x.scheme === fieldId),
+                profile: planningProfile,
+                errors: errors,
+                messages: messages,
+                diff: latestItem,
+            });
         } else {
             formProfile({
                 field: fieldId,

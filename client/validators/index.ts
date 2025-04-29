@@ -5,7 +5,7 @@ import {gettext} from '../utils';
 
 import {default as eventValidators} from './events';
 import {default as planningValidators} from './planning';
-import {formProfile, formProfileCustomVocabularies} from './profile';
+import {formProfile} from './profile';
 import {validateAssignment} from './assignments';
 
 export {eventValidators, formProfile, validateAssignment};
@@ -144,7 +144,6 @@ export const validators = {
         recurring_rules: [eventValidators.validateRecurringRules],
         place: [formProfile],
         reference: [formProfile],
-        custom_vocabularies: [formProfileCustomVocabularies],
         related_plannings: [formProfile],
     },
     planning: {
@@ -159,7 +158,6 @@ export const validators = {
         subject: [formProfile],
         urgency: [formProfile],
         coverages: [planningValidators.validateCoverages],
-        custom_vocabularies: [formProfileCustomVocabularies],
         place: [formProfile],
         name: [formProfile],
     },

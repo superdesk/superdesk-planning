@@ -39,7 +39,7 @@ import {IEditorFieldEventRecurringRulesProps} from './components/fields/editor/E
 import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRecurringRules';
 import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
 import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
-import {EditorFieldCV} from './components/fields/editor/vocabularyAsField';
+import {EditorFieldCV} from './components/fields/editor/CustomCV';
 import {appConfig} from 'appConfig';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts

@@ -3,7 +3,7 @@ import * as React from 'react';
 import {IEditorProfile, IEditorProfileGroup, IProfileFieldEntry} from '../../../interfaces';
 
 import {getProfileGroupNameTranslated} from '../../../utils/contentProfiles';
-import {superdeskApi} from '../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import {ToggleBox} from 'superdesk-ui-framework/react';
 import {arrayMove, WithSortable} from '@sourcefabric/common';
@@ -28,7 +28,7 @@ interface IProps {
 export class FieldList extends React.PureComponent<IProps> {
     renderList() {
         const {gettext} = superdeskApi.localization;
-        const allCVs = superdeskApi.entities.vocabulary.getAll();
+        const allCVs = planningApi.vocabularies.getCustomVocabularies();
 
         return (this.props.fields ?? []).length < 1 ? (
             <div className="planning-profile__empty-list">

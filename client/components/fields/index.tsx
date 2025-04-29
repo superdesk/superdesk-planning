@@ -282,7 +282,6 @@ const PREVIEW_GROUPS: IPreviewGroups = {
         fields: [
             'anpa_category',
             'subject',
-            'custom_vocabularies',
             'definition_long',
             'internal_note',
             'ednote',
@@ -312,7 +311,6 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'ednote',
             'anpa_category',
             'subject',
-            'custom_vocabularies',
             'urgency',
             'flags',
         ]

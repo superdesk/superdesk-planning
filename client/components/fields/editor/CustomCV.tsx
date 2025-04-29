@@ -15,18 +15,12 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
             errors,
             item,
             onChange,
-            required,
             testId,
             language,
             disabled,
             invalid,
         } = this.props;
-
         const cv = superdeskApi.entities.vocabulary.getVocabulary(this.props.field);
-
-        if (cv?._id === undefined) {
-            return null;
-        }
 
         return (
             <Row
@@ -41,7 +35,7 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
                     allowMultiple={true}
                     value={(item.subject ?? []).filter((x) => x.scheme === cv._id)}
                     label={gettext(cv.display_name)}
-                    required={required}
+                    required={this.props.schema.required}
                     getOptions={() => superdeskApi.utilities.arrayToTree(
                             cv.items.map((cvItem) => ({
                                 ...cvItem,

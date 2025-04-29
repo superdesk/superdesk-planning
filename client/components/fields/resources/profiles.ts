@@ -131,17 +131,6 @@ registerEditorField(
 );
 
 registerEditorField(
-    'schema.vocabularies',
-    SelectCustomVocabulariesList,
-    () => ({
-        label: superdeskApi.localization.gettext('Vocabularies'),
-        field: 'schema.vocabularies',
-    }),
-    null,
-    true
-);
-
-registerEditorField(
     'field.all_day.enabled',
     EditorFieldToggle,
     () => ({

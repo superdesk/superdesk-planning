@@ -16,7 +16,7 @@ interface IProps {
     onClick(item: IProfileFieldEntry): void;
     unusedFields: Array<IProfileFieldEntry>;
     removeField(item: IProfileFieldEntry): void;
-    allCVs: Immutable.OrderedMap<string, IVocabulary>;
+    allCVs: Array<IVocabulary>;
     insertField(item: IProfileFieldEntry, groupId: IEditorProfileGroup['_id'], index: number): void;
 }
 
@@ -79,7 +79,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                             {fieldEntry.schema?.type === 'custom_vocabulary'
                                 ? (
                                     <>
-                                        {this.props.allCVs.get(fieldEntry.name).display_name}
+                                        {this.props.allCVs.find((x) => x._id === fieldEntry.name).display_name}
                                         {' '}
                                         <span className="sd-text--italic sd-text--light">
                                             {gettext('(custom vocabulary)')}

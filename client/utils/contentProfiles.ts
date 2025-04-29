@@ -10,7 +10,7 @@ import {
     IEditorFormGroup,
     ICoverageContentProfile,
 } from '../interfaces';
-import {superdeskApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 import {getUserInterfaceLanguageFromCV} from './users';
@@ -82,7 +82,7 @@ export function getUnusedProfileFields(
     profile: IEditorProfile,
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
-    const cvs = superdeskApi.entities.vocabulary.getAll().toArray();
+    const cvs = planningApi.vocabularies.getCustomVocabularies();
     const cvIds = cvs.map((x) => x._id);
     const cvFieldEntries = cvs
         .map((x, i) => ({
@@ -243,8 +243,6 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Associated Event');
     case 'coverages':
         return gettext('Coverages');
-    case 'custom_vocabularies':
-        return gettext('Custom Vocabularies');
     case 'headline':
         return gettext('Headline');
     case 'g2_content_type':
