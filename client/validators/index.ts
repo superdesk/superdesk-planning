@@ -36,7 +36,7 @@ export const validateField = ({
     diff,
     item,
 }: IValidateFieldProps) => {
-    if (profile.schema[field]?.validate_on_post) {
+    if (profile?.schema?.[field]?.validate_on_post) {
         return;
     }
 
