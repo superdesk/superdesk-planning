@@ -2,23 +2,20 @@ from superdesk.core.resources import fields, Dataclass
 from pydantic import Field
 from superdesk.utc import utcnow
 from datetime import datetime
+from .common import MatchingProduct
 from planning.types import PlanningResourceModel, PLANNING_EVENT_LINK_METHOD
 
 
 class AgendaItem(Dataclass):
-    qcode: fields.Keyword
-    name: str
-
-
-class MatchingProduct(Dataclass):
-    code: fields.Keyword
+    _id: fields.Keyword
     name: str
 
 
 class RelatedEvent(Dataclass):
-    _id: fields.Keyword
-    recurrence_id: str | None = None
-    link_type: PLANNING_EVENT_LINK_METHOD | None = None
+    uri: fields.Keyword
+    name: str | None = None
+    literal: fields.Keyword
+    rel: PLANNING_EVENT_LINK_METHOD | None = None
 
 
 class CoverageAssignedTo(Dataclass):
@@ -27,6 +24,9 @@ class CoverageAssignedTo(Dataclass):
     contact: fields.Keyword | None = None
     assignment_id: fields.Keyword | None = None
     coverage_provider: dict | None = None
+    assigned_user: dict | None = None
+    assigned_desk: dict | None = None
+    coverage_provider_contact_info: dict | None = None
 
 
 class CoveragePlanning(Dataclass):
@@ -56,4 +56,4 @@ class ContentAPIPlanningResourceModel(PlanningResourceModel):
     products: list[MatchingProduct] | None = None
     events: list[RelatedEvent] | None = None
     coverages: list[PlanningCoverageItem] = Field(default_factory=list)
-    event_item: list[str] | None = None
+    event_item: str | None = None
