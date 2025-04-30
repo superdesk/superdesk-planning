@@ -12,6 +12,7 @@
 
 import os
 import json
+from superdesk.default_settings import MODULES
 import planning.types as planning_types
 
 from urllib.parse import urlparse
@@ -42,11 +43,6 @@ URL_PREFIX = server_url.path.lstrip("/") or ""
 if isinstance(SERVER_NAME, str) and SERVER_NAME.endswith(":80"):
     SERVER_NAME = SERVER_NAME[:-3]
 
-INSTALLED_APPS = [
-    "apps.auth",
-    "superdesk.roles",
-]
-
 # LDAP settings
 LDAP_SERVER = env("LDAP_SERVER", "")  # Ex: ldap://sourcefabric.org
 LDAP_SERVER_PORT = env("LDAP_SERVER_PORT", 389)
@@ -70,75 +66,9 @@ LDAP_USER_ATTRIBUTES = json.loads(
     )
 )
 
-if LDAP_SERVER:
-    INSTALLED_APPS.append("apps.ldap")
-else:
-    INSTALLED_APPS.append("superdesk.users")
-    INSTALLED_APPS.append("apps.auth.db")
 
-
-INSTALLED_APPS.extend(
-    [
-        "superdesk.upload",
-        "superdesk.sequences",
-        "superdesk.notification",
-        "superdesk.activity",
-        "superdesk.vocabularies",
-        "superdesk.backend_meta",
-        "apps.comments",
-        "superdesk.io",
-        "superdesk.io.feeding_services",
-        "superdesk.io.feed_parsers",
-        "superdesk.io.subjectcodes",
-        "superdesk.io.iptc",
-        "apps.io",
-        "apps.io.feeding_services",
-        "superdesk.publish",
-        "superdesk.commands",
-        "superdesk.locators",
-        "superdesk.data_updates",
-        "apps.auth",
-        "apps.archive",
-        "apps.stages",
-        "apps.desks",
-        "apps.tasks",
-        "apps.preferences",
-        "apps.spikes",
-        "apps.prepopulate",
-        "apps.legal_archive",
-        "apps.search",
-        "apps.saved_searches",
-        "apps.privilege",
-        "apps.rules",
-        "apps.highlights",
-        "apps.products",
-        "apps.publish",
-        "apps.publish.formatters",
-        "apps.content_filters",
-        "apps.content_types",
-        "apps.dictionaries",
-        "apps.duplication",
-        "apps.spellcheck",
-        "apps.templates",
-        "apps.archived",
-        "apps.validators",
-        "apps.validate",
-        "apps.workspace",
-        "apps.macros",
-        "apps.archive_broadcast",
-        "apps.search_providers",
-        "apps.vidible",
-        "apps.feature_preview",
-        "apps.workqueue",
-        "apps.languages",
-    ]
-)
-
-INSTALLED_PLUGINS = ["planning"]
-
-INSTALLED_APPS.extend(INSTALLED_PLUGINS)
-
-MODULES = ["planning"]
+INSTALLED_APPS = ["planning"]
+MODULES.append("planning")
 
 RENDITIONS = {
     "picture": {
