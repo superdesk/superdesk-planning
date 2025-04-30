@@ -12,9 +12,16 @@ from typing import NamedTuple, Dict, Any, Set, Optional, Union
 
 import re
 import time
+import json
+from bson import ObjectId
 from collections import namedtuple
+from eve.utils import ParsedRequest
 from datetime import timedelta, datetime
+from werkzeug.datastructures import MultiDict
+from quart_babel import gettext
 
+from superdesk.types import PublishRequest
+from superdesk.publish_async.commands import publish_item
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD, VERSION
 from superdesk.resource import not_analyzed, build_custom_hateoas
@@ -24,13 +31,8 @@ from superdesk.utc import utcnow
 from superdesk.celery_app import celery
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
-from apps.publish.enqueue import get_enqueue_service
-from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
-from eve.utils import ParsedRequest
-from werkzeug.datastructures import MultiDict
+from apps.publish.content.common import ITEM_PUBLISH
 from superdesk.etree import parse_html
-import json
-from bson import ObjectId
 
 from planning.types import (
     Planning,
@@ -40,6 +42,8 @@ from planning.types import (
     PlanningAutosaveResourceModel,
     PlanningTypesResourceModel,
 )
+
+from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 
 ITEM_STATE = "state"
 ITEM_EXPIRY = "expiry"
@@ -358,10 +362,10 @@ def post_required(updates, original):
     return pub_status is not None
 
 
-def update_post_item(updates, original):
+async def update_post_item(updates, original):
     """Method to update(re-post) a posted item after the item is updated"""
     # TODO-ASYNC: update once `events_post` & `planning_post` are async
-    # also ot use pydantic models intead of dicts
+    # also to use pydantic models intead of dicts
 
     pub_status = None
     # Save&Post or Save&Unpost
@@ -382,7 +386,7 @@ def update_post_item(updates, original):
                 original.get(ITEM_TYPE): original.get(ID_FIELD),
                 "pubstatus": pub_status,
             }
-            return item_post_service.post([doc])
+            return await item_post_service.post_async([doc])
 
 
 def get_coverage_type_name(qcode):
@@ -424,20 +428,29 @@ def get_version_item_for_post(item):
     return version, item
 
 
-@celery.task(soft_time_limit=600)
-def enqueue_planning_item(id):
+async def enqueue_planning_item(id):
     """
     Get the version of the item to be published from the planning versions collection and enqueue it.
 
     :param id:
     :return:
     """
-    planning_version = get_resource_service("published_planning").find_one(req=None, _id=id)
+    planning_version = await get_resource_service("published_planning").find_one_async(req=None, _id=id)
+
     if planning_version:
-        try:
-            get_enqueue_service("publish").enqueue_item(planning_version.get("published_item"), "event")
-        except Exception:
-            logger.exception("Failed to queue {} item {}".format(planning_version.get("type"), id))
+        item = planning_version.get("published_item")
+        publish_response = await publish_item(
+            PublishRequest(
+                item=item,
+                item_id=item[ID_FIELD],
+                item_type=item[ITEM_TYPE],
+                operation=ITEM_PUBLISH,
+                published_state=item[ITEM_STATE],
+            )
+        )
+
+        if not publish_response.routed:
+            raise SuperdeskApiError.badRequestError(message=gettext("Failed to publish the item"))
     else:
         logger.error("Failed to retrieve planning item from planning versions with id: {}".format(id))
 

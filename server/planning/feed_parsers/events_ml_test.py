@@ -318,7 +318,7 @@ class EventsMLFeedParserTestCase(TestCase):
             )
 
             # Make sure the Event has been added to the ``published_planning`` collection
-            self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 1)
+            self.assertEqual(await published_service.get_async(req=None, lookup={"item_id": source["guid"]}).count(), 1)
             dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
             self.assertEqual(dest["state"], CONTENT_STATE.SCHEDULED)
             self.assertEqual(dest["pubstatus"], POST_STATE.USABLE)

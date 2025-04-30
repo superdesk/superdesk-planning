@@ -75,7 +75,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         if updates is not None:
             ingest_item.update(updates)
         elif attributes.get("autopost", False):
-            self.process_autopost(ingest_item)
+            await self.process_autopost(ingest_item)
 
     def _is_original_posted(self, ingest_item: Dict[str, Any]):
         service = get_resource_service("events" if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT else "planning")
@@ -168,7 +168,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         updates["_etag"] = updated_item["_etag"]
         return updates
 
-    def process_autopost(self, ingest_item: Dict[str, Any]):
+    async def process_autopost(self, ingest_item: Dict[str, Any]):
         """Automatically post this item"""
         if self._is_original_posted(ingest_item):
             # No need to autopost this item
@@ -177,7 +177,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             return
 
         item_id = ingest_item.get(ID_FIELD)
-        update_post_item(
+        await update_post_item(
             {
                 "pubstatus": ingest_item.get("ingest_pubstatus") or POST_STATE.USABLE,
                 "_etag": ingest_item.get("_etag"),

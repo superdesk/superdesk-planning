@@ -10,7 +10,8 @@
 
 from flask import current_app
 
-from superdesk import Service, Resource, get_backend, get_resource_service
+from superdesk import Resource, get_backend, get_resource_service
+from superdesk.eve_async import AsyncBaseService
 from apps.prepopulate.app_prepopulate import get_default_user, set_logged_user
 
 
@@ -43,11 +44,11 @@ class PlanningPrepopulateResource(Resource):
     }
 
 
-class PlanningPrepopulateService(Service):
-    def create(self, docs, **kwargs):
+class PlanningPrepopulateService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         ids = []
         user = get_default_user()
-        set_logged_user(user['username'], user['password'])
+        await set_logged_user(user['username'], user['password'])
         for doc in docs:
             resource = doc.get('resource')
             service = get_resource_service(doc.get('resource'))

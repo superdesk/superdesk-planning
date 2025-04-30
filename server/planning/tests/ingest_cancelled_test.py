@@ -30,7 +30,7 @@ class IngestCancelledTestCase(TestCase):
         self.app.data.insert("planning", [planning])
 
         async with self.app.app_context():
-            update_post_item({"pubstatus": "cancelled"}, planning)
+            await update_post_item({"pubstatus": "cancelled"}, planning)
 
         cursor, count = self.app.data.find("assignments", req=None, lookup={})
         assert count == 0

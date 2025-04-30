@@ -136,7 +136,7 @@ class PlanningCancelService(AsyncBaseService):
             or lock_action in allowed_actions
             or self.is_related_event_completed(updates, original)
         ):
-            update_post_item(updates, original)
+            await update_post_item(updates, original)
 
     def is_related_event_completed(self, updates, original):
         if (

@@ -1,7 +1,8 @@
 import json
 import tempfile
 
-from unittest import mock
+from superdesk.tests import utils as test_utils, fixtures
+
 from planning.tests import TestCase
 from planning.output_formatters.json_event import JsonEventFormatter
 from planning.events import init_app
@@ -9,14 +10,11 @@ from eve.methods.common import store_media_files
 from bson import ObjectId
 
 
-async def generate_sequence_number_mock(self, subscriber):
-    return 1
+PRODUCT_ID = ObjectId()
+FILTER_CONDITION_ID = ObjectId()
+CONTENT_FILTER_ID = ObjectId()
 
 
-@mock.patch(
-    "superdesk.publish.subscribers.SubscribersService.generate_sequence_number_async",
-    generate_sequence_number_mock,
-)
 class JsonEventTestCase(TestCase):
     item = {
         "_id": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7946",
@@ -122,22 +120,29 @@ class JsonEventTestCase(TestCase):
                 "_created": "2018-03-23T05:31:19.000Z",
             }
         ]
-        self.app.data.insert("contacts", contact)
+        await test_utils.post_items("contacts", contact)
+        self.subscriber = fixtures.subscribers.sub1_subscriber().to_dict()
 
-        self.app.data.insert(
-            "content_filters",
-            [{"_id": 301, "content_filter": [{"expression": {"pf": [1]}}], "name": "filter-test"}],
-        )
-        self.app.data.insert(
+        await test_utils.post_items(
             "filter_conditions",
-            [{"_id": 101, "field": "type", "operator": "eq", "value": "event", "name": "test-1"}],
+            [{"_id": FILTER_CONDITION_ID, "field": "type", "operator": "eq", "value": "event", "name": "test-1"}],
         )
-        self.app.data.insert(
+        await test_utils.post_items(
+            "content_filters",
+            [
+                {
+                    "_id": CONTENT_FILTER_ID,
+                    "content_filter": [{"expression": {"fc": [FILTER_CONDITION_ID]}}],
+                    "name": "filter-test",
+                }
+            ],
+        )
+        await test_utils.post_items(
             "products",
             [
                 {
-                    "_id": 201,
-                    "content_filter": {"filter_id": 3, "filter_type": "permitting"},
+                    "_id": PRODUCT_ID,
+                    "content_filter": {"filter_id": CONTENT_FILTER_ID, "filter_type": "permitting"},
                     "name": "p-1",
                     "product_type": "api",
                 }
@@ -147,13 +152,13 @@ class JsonEventTestCase(TestCase):
     async def test_formatter(self):
         async with self.app.app_context():
             formatter = JsonEventFormatter()
-            output = (await formatter.format(self.item, {"name": "Test Subscriber"}))[0]
+            output = (await formatter.format(self.item, self.subscriber))[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get("name"), "Name of the event")
             self.assertEqual(output_item.get("event_contact_info")[0].get("last_name"), "Doe")
             self.assertEqual(output_item.get("internal_note"), "An internal Note")
             self.assertEqual(output_item.get("ednote"), "An editorial Note")
-            self.assertEqual(output_item.get("products"), [{"code": 201, "name": "p-1"}])
+            self.assertEqual(output_item.get("products"), [{"code": str(PRODUCT_ID), "name": "p-1"}])
             self.assertEqual(output_item.get("subject")[0]["name"], "Tourism")
             self.assertEqual(output_item.get("calendars")[0]["name"], "Holidays Calendar")
             self.assertEqual(output_item.get("anpa_category")[0]["name"], "News")
@@ -168,16 +173,15 @@ class JsonEventTestCase(TestCase):
                 input.filename = "foo.txt"
                 input.mimetype = "text/plain"
                 attachment = {"media": input}
-                store_media_files(attachment, "events_files")
+                await store_media_files(attachment, "events_files")
                 files_ids = self.app.data.insert("events_files", [attachment])
             item = self.item.copy()
             item["files"] = files_ids
 
-            subscriber = {"name": "Test Subscriber", "is_active": True}
             destination = {"delivery_type": "http_push"}
             formatter = JsonEventFormatter()
-            formatter.set_destination(destination, subscriber)
-            output = (await formatter.format(item, subscriber))[0]
+            formatter.set_destination(destination, self.subscriber)
+            output = (await formatter.format(item, self.subscriber))[0]
 
             output_item = json.loads(output[1])
             self.assertEqual(1, len(output_item["files"]))

@@ -235,6 +235,6 @@ async def process_update_repetitions(
     assert updated_repetitions_event is not None, "Expected updated_repetitions_event to be a dict, got None"
 
     # Perform post update actions
-    post_update_event_actions(updates, original, ACTION)
+    await post_update_event_actions(updates, original, ACTION)
 
     return updated_repetitions_event

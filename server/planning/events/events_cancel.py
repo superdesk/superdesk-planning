@@ -189,6 +189,6 @@ async def process_cancel_event(updates: dict[str, Any], original: dict[str, Any]
     )
 
     # Perform post update actions
-    post_update_event_actions(updates, original, ACTION)
+    await post_update_event_actions(updates, original, ACTION)
 
     return canceled_event
