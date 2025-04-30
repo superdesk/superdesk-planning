@@ -123,7 +123,7 @@ export const validateItem = ({
             ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])
         );
 
-        return fieldsToBeValidated.forEach((key) => (
+        fieldsToBeValidated.forEach((key) => (
             validateField({
                 dispatch: dispatch,
                 getState: getState,
