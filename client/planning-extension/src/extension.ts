@@ -26,7 +26,6 @@ import {getContactField} from './authoring-react-fields/contact';
 import {getLocationField} from './authoring-react-fields/location';
 import {getRecurringRulesField} from './authoring-react-fields/recurring-rules/index';
 import {getEventDateField} from './authoring-react-fields/event-dates';
-import {isEmpty} from 'lodash';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -115,7 +114,7 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
     return Promise.resolve();
 }
 
-const COVERAGE_CVS = ['news_coverage_status', 'g2_content_type'];
+const COVERAGE_VOCABULARIES = ['news_coverage_status', 'g2_content_type'];
 
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
@@ -276,12 +275,12 @@ const extension: IExtension = {
         // Do not register CVs that aren't considered "custom CVs" also,
         // because if some are already registered as specific fields they will be overridden.
         // Definition of a custom CV: client/services/PlanningStoreService.ts:255
-        const customCvs = superdesk.entities.vocabulary
+        const vocabularies = superdesk.entities.vocabulary
             .getAll()
             .toArray()
-            .filter((cv) => !COVERAGE_CVS.includes(cv._id) && !isEmpty(cv.service) && isEmpty(cv.field_type));
+            .filter((x) => !COVERAGE_VOCABULARIES.includes(x._id) && extensionBridge.ui.utils.isCustomVocabulary(x));
 
-        customCvs.forEach((vocab) => {
+        vocabularies.forEach((vocab) => {
             registerEditorField(
                 vocab._id,
                 extensionBridge.editor.fields.EditorFieldCV,

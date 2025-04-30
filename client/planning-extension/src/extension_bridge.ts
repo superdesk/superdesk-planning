@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IArticle, IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabulary, IVocabularyItem} from 'superdesk-api';
 import {
     IAssignmentItem,
     IEditorFieldProps,
@@ -73,6 +73,7 @@ interface IExtensionBridge {
                 fallbackField?: string
             ): string;
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
+            isCustomVocabulary(vocabulary: IVocabulary): boolean;
         };
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;

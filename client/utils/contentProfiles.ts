@@ -89,7 +89,7 @@ export function getUnusedProfileFields(
         return orderBy(
             fieldsFromProfile
                 .filter((field) => (includeGroupCheck && field.field.group == null) || !field.field.enabled),
-            'name'
+            superdeskApi.helpers.nameof<IProfileFieldEntry>('name')
         );
     }
 
@@ -123,12 +123,14 @@ export function getUnusedProfileFields(
 
     return orderBy(
         fieldsFromProfile
-            .filter((field) => (
-                ((includeGroupCheck && field.field.group == null) || !field.field.enabled) &&
-                (field.schema?.type !== 'custom_vocabulary' || !vocabularyIds.includes(field.name))
-            ))
+            .filter((field) => {
+                const isUnused = (includeGroupCheck && field.field.group == null) || !field.field.enabled;
+                const isVocabulary = field.schema?.type === 'custom_vocabulary' || vocabularyIds.includes(field.name);
+
+                return isUnused && !isVocabulary;
+            })
             .concat(unusedVocabularies),
-        'name'
+        superdeskApi.helpers.nameof<IProfileFieldEntry>('name')
     );
 }
 

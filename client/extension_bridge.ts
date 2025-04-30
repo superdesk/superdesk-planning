@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {IArticle, IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabulary, IVocabularyItem} from 'superdesk-api';
 import {getAssignmentTypeInfo} from './utils/assignments';
 import {SluglineComponent} from './components/Assignments/AssignmentItem/fields/Slugline';
 import {DueDateComponent} from './components/Assignments/AssignmentItem/fields/DueDate';
@@ -28,7 +28,6 @@ import {planningApi} from './superdeskApi';
 import {
     IAssignmentItem,
     IEditorFieldProps,
-    IPlanningAppState,
     IPlanningContentProfile,
     IPlanningCoverageItem,
 } from './interfaces';
@@ -40,6 +39,7 @@ import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRe
 import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
 import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
 import {EditorFieldCV} from './components/fields/editor/CustomCV';
+import {isCustomVocabulary} from './helpers';
 import {appConfig} from 'appConfig';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
@@ -90,6 +90,7 @@ interface IExtensionBridge {
                 fallbackField?: string
             ): string;
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
+            isCustomVocabulary(vocabulary: IVocabulary): boolean;
         };
 
         components: {
@@ -145,6 +146,7 @@ export const extensionBridge: IExtensionBridge = {
             getUserInterfaceLanguageFromCV: getUserInterfaceLanguageFromCV,
             getVocabularyItemFieldTranslated: getVocabularyItemFieldTranslated,
             isContentLinkToCoverageAllowed: isContentLinkToCoverageAllowed,
+            isCustomVocabulary: isCustomVocabulary,
         },
         components: {
             EditorFieldVocabulary,
