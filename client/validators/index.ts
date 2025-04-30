@@ -7,8 +7,22 @@ import {default as eventValidators} from './events';
 import {default as planningValidators} from './planning';
 import {formProfile, formProfileCustomVocabularies} from './profile';
 import {validateAssignment} from './assignments';
+import {IAssignmentOrPlanningItem, IFormProfileItem} from '../interfaces';
 
 export {eventValidators, formProfile, validateAssignment};
+
+interface IValidateFieldProps {
+    dispatch: () => any;
+    getState: () => any;
+    profileName: string;
+    field: keyof IAssignmentOrPlanningItem;
+    value: any;
+    profile: IFormProfileItem;
+    errors: any;
+    messages: any;
+    diff: any;
+    item: any;
+}
 
 export const validateField = ({
     dispatch,
@@ -21,24 +35,26 @@ export const validateField = ({
     messages,
     diff,
     item,
-}) => {
-    if (get(profile, `schema.${field}.validate_on_post`)) {
+}: IValidateFieldProps) => {
+    if (profile?.schema?.[field]?.validate_on_post) {
         return;
     }
 
-    const funcs = get(validators[profileName], field, []) || [formProfile];
+    const validatorsForField = validators[profileName]?.[field] ?? [formProfile];
 
-    funcs.forEach((func) => func({
-        dispatch,
-        getState,
-        field,
-        value,
-        profile,
-        errors,
-        messages,
-        diff,
-        item,
-    }));
+    validatorsForField.forEach((func) =>
+        func({
+            dispatch,
+            getState,
+            field,
+            value,
+            profile,
+            errors,
+            messages,
+            diff,
+            item,
+        }),
+    );
 };
 
 export const validateItem = ({
@@ -103,8 +119,11 @@ export const validateItem = ({
                 });
         }
 
-        return (fields || Object.keys(
-            ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])).forEach((key) => (
+        const fieldsToBeValidated = (fields || Object.keys(
+            ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])
+        );
+
+        fieldsToBeValidated.forEach((key) => (
             validateField({
                 dispatch: dispatch,
                 getState: getState,

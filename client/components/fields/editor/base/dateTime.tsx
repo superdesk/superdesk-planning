@@ -15,6 +15,10 @@ interface IProps extends IEditorFieldProps {
     onToBeConfirmed?(field: string): void;
 }
 
+
+/**
+ * @deprecated use EditorFieldDateTimeUIFramework from client/components/fields/editor/base/dateTimeUIFramework.tsx
+ */
 export class EditorFieldDateTime extends React.PureComponent<IProps> {
     node: HTMLInputElement;
 
