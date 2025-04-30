@@ -18,6 +18,7 @@ from collections import namedtuple
 from eve.utils import ParsedRequest
 from datetime import timedelta, datetime
 from werkzeug.datastructures import MultiDict
+from quart_babel import gettext
 
 from superdesk.types import PublishRequest
 from superdesk.publish_async.commands import publish_item
@@ -449,7 +450,7 @@ async def enqueue_planning_item(id):
         )
 
         if not publish_response.routed:
-            logger.exception(f"Failed to queue {planning_version.get('type')} item {id}")
+            raise SuperdeskApiError.badRequestError(message=gettext("Failed to publish the item"))
     else:
         logger.error("Failed to retrieve planning item from planning versions with id: {}".format(id))
 
