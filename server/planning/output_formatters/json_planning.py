@@ -14,6 +14,7 @@ import superdesk
 from superdesk.core import json, get_app_config
 from superdesk import get_resource_service
 from superdesk.publish.formatters import Formatter
+from superdesk.publish_async.utils import generate_sequence_number
 from superdesk.utils import json_serialize_datetime_objectId
 from superdesk.metadata.item import CONTENT_STATE
 from apps.archive.common import ARCHIVE
@@ -70,8 +71,8 @@ class JsonPlanningFormatter(Formatter):
         return format_type == self.format_type and article.get("type") == "planning"
 
     async def format(self, item, subscriber, codes=None):
-        pub_seq_num = await superdesk.get_resource_service("subscribers").generate_sequence_number_async(subscriber)
-        output_item = self._format_item(item)
+        pub_seq_num = await generate_sequence_number(subscriber)
+        output_item = await self._format_item(item)
         return [
             (
                 pub_seq_num,
@@ -79,7 +80,7 @@ class JsonPlanningFormatter(Formatter):
             )
         ]
 
-    def _format_item(self, item):
+    async def _format_item(self, item):
         """Format the item to json planning"""
         output_item = deepcopy(item)
         for f in self.remove_fields:
@@ -100,7 +101,7 @@ class JsonPlanningFormatter(Formatter):
                     coverage["planning"].pop(key, None)
 
         output_item["agendas"] = self._expand_agendas(item)
-        output_item["products"] = get_matching_products(item)
+        output_item["products"] = await get_matching_products(item)
 
         translate_names(output_item)
 

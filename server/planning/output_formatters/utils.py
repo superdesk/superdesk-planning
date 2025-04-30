@@ -1,5 +1,6 @@
-from typing import List, Dict, Any
 from superdesk import get_resource_service
+from superdesk.publish_async.publish_cache import PublishCache
+from superdesk.publish_async.utils import test_products_against_item
 from planning.utils import try_cast_object_id
 
 
@@ -36,8 +37,9 @@ def expand_contact_info(contacts):
     return expanded
 
 
-def get_matching_products(item: Dict[str, Any]) -> List[Dict[str, str]]:
+async def get_matching_products(item: dict) -> list[dict]:
     """Return a list of API product id's that the article matches."""
 
-    result = get_resource_service("product_tests").test_products(item, lookup=None)
-    return [{"code": p["product_id"], "name": p.get("name")} for p in result if p.get("matched", False)]
+    await PublishCache.init()
+    matches = test_products_against_item(item)
+    return [{"code": p["product_id"], "name": p["name"]} for p in matches if p["matched"]]

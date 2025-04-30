@@ -39,13 +39,7 @@ from superdesk.users.services import current_user_has_privilege
 
 from apps.archive.common import get_user, get_auth
 from apps.duplication.archive_move import ITEM_MOVE
-from apps.publish.enqueue import (
-    ITEM_PUBLISH,
-    ITEM_CORRECT,
-    ITEM_KILL,
-    ITEM_TAKEDOWN,
-    ITEM_UNPUBLISH,
-)
+from apps.publish.content.common import ITEM_PUBLISH, ITEM_CORRECT, ITEM_KILL, ITEM_TAKEDOWN, ITEM_UNPUBLISH
 from apps.common.components.utils import get_component
 from apps.content import push_content_notification
 

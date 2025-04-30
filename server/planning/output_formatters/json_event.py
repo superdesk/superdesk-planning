@@ -13,6 +13,7 @@ from copy import deepcopy
 import superdesk
 from superdesk.core import get_current_app, json
 from superdesk.publish.formatters import Formatter
+from superdesk.publish_async.utils import generate_sequence_number
 from superdesk.utils import json_serialize_datetime_objectId
 from .utils import expand_contact_info, get_matching_products
 from .json_utils import translate_names
@@ -51,8 +52,8 @@ class JsonEventFormatter(Formatter):
         return format_type == self.format_type and article.get("type") == "event"
 
     async def format(self, item, subscriber, codes=None):
-        pub_seq_num = await superdesk.get_resource_service("subscribers").generate_sequence_number_async(subscriber)
-        output_item = self._format_item(item)
+        pub_seq_num = await generate_sequence_number(subscriber)
+        output_item = await self._format_item(item)
         return [
             (
                 pub_seq_num,
@@ -60,11 +61,11 @@ class JsonEventFormatter(Formatter):
             )
         ]
 
-    def _format_item(self, item):
+    async def _format_item(self, item):
         """Format the item to json event"""
         output_item = deepcopy(item)
         output_item["event_contact_info"] = expand_contact_info(item.get("event_contact_info", []))
-        output_item["products"] = get_matching_products(item)
+        output_item["products"] = await get_matching_products(item)
         if item.get("files"):
             try:
                 output_item["files"] = self._get_files_for_publish(item)
