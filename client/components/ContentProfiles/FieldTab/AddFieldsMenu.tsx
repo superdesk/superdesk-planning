@@ -8,13 +8,14 @@ import {IVocabulary} from 'superdesk-api';
 interface IProps {
     options: Array<{value: IProfileFieldEntry; onSelect: () => void;}>;
     buttonLabel: string;
-    allCVs: Array<IVocabulary>;
+    vocabularies: Array<IVocabulary>;
 }
 
 export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
     render(): React.ReactNode {
         const {gettext} = superdeskApi.localization;
         const {options, buttonLabel} = this.props;
+        const vocabularyLabels = new Map(this.props.vocabularies.map((x) => [x._id, x.display_name]));
 
         return (
             <TreeMenu
@@ -22,7 +23,7 @@ export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
                 getId={(field) => field.name}
                 optionTemplate={(item) => item.schema?.type === 'custom_vocabulary' ? (
                     <>
-                        {this.props.allCVs.find((x) => x._id === item.name).display_name}
+                        {vocabularyLabels.get(item.name)}
                         <span className="sd-text--italic sd-text--light">
                             &nbsp;({gettext('custom vocabulary')})
                         </span>
@@ -34,7 +35,7 @@ export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
                 )}
                 getLabel={(item) => {
                     if (item.schema?.type === 'custom_vocabulary') {
-                        return this.props.allCVs.find((x) => x._id === item.name).display_name ?? '';
+                        return vocabularyLabels.get(item.name);
                     }
 
                     return getFieldNameTranslated(item.name);

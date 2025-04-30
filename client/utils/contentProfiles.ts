@@ -93,9 +93,9 @@ export function getUnusedProfileFields(
         );
     }
 
-    const cvs = planningApi.vocabularies.getCustomVocabularies();
-    const cvIds = cvs.map((x) => x._id);
-    const cvFieldEntries = cvs
+    const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
+    const vocabularyIds = customVocabularies.map((x) => x._id);
+    const vocabularyFields: Array<IProfileFieldEntry> = customVocabularies
         .map((x, i) => ({
             field: {
                 enabled: false,
@@ -107,32 +107,27 @@ export function getUnusedProfileFields(
                 type: 'custom_vocabulary',
                 required: false,
             }
-        }) as IProfileFieldEntry);
+        }));
 
     const fieldsFromProfile = getProfileFields(profile);
-    const usedCVs = fieldsFromProfile.filter(
+    const usedVocabularies = fieldsFromProfile.filter(
         (fieldEntry) =>
             fieldEntry.schema?.type === 'custom_vocabulary'
-            && cvIds.includes(fieldEntry.name)
+            && vocabularyIds.includes(fieldEntry.name)
             && fieldEntry.field.enabled
     );
-
-    const unusedCVs = cvFieldEntries.filter((field) => {
-        const fieldSchema = field.schema;
-
-        return fieldSchema?.type === 'custom_vocabulary' && !usedCVs.some((usedFieldEntry) =>
-            usedFieldEntry.name === field.name);
-    });
+    const unusedVocabularies = vocabularyFields.filter((field) =>
+        field.schema?.type === 'custom_vocabulary'
+        && !usedVocabularies.some((usedFieldEntry) => usedFieldEntry.name === field.name)
+    );
 
     return orderBy(
         fieldsFromProfile
-            .filter((field) => (includeGroupCheck && field.field.group == null) || !field.field.enabled)
-            .filter((field) => {
-                const fieldSchema = field.schema;
-
-                return fieldSchema?.type !== 'custom_vocabulary' || !cvIds.includes(field.name);
-            })
-            .concat(unusedCVs),
+            .filter((field) => (
+                ((includeGroupCheck && field.field.group == null) || !field.field.enabled) &&
+                (field.schema?.type !== 'custom_vocabulary' || !vocabularyIds.includes(field.name))
+            ))
+            .concat(unusedVocabularies),
         'name'
     );
 }

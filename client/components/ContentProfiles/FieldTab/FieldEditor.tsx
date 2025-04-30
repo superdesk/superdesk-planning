@@ -80,7 +80,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
     }
 
     render() {
-        const allCVs = planningApi.vocabularies.getCustomVocabularies();
+        const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
         const {gettext} = superdeskApi.localization;
         const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema?.type);
         const fieldType = this.props.item.schema?.type !== 'string' ?
@@ -148,7 +148,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                             {this.props.item.schema?.type === 'custom_vocabulary'
                                 ? (
                                     <>
-                                        {allCVs.find((x) => x._id === this.props.item.name).display_name}
+                                        {customVocabularies.find((x) => x._id === this.props.item.name).display_name}
                                         {' '}
                                         <span className="sd-text--italic sd-text--light">
                                             {gettext('(custom vocabulary)')}

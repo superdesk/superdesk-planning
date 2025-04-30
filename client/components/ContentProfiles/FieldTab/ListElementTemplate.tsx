@@ -16,7 +16,7 @@ interface IProps {
     onClick(item: IProfileFieldEntry): void;
     unusedFields: Array<IProfileFieldEntry>;
     removeField(item: IProfileFieldEntry): void;
-    allCVs: Array<IVocabulary>;
+    vocabularies: Array<IVocabulary>;
     insertField(item: IProfileFieldEntry, groupId: IEditorProfileGroup['_id'], index: number): void;
 }
 
@@ -64,7 +64,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                 {!menuItems.before.length ? null : (
                     <div className="profile-item__add-btn">
                         <AddFieldsMenu
-                            allCVs={this.props.allCVs}
+                            vocabularies={this.props.vocabularies}
                             options={menuItems.before}
                             buttonLabel={gettext('Add field before')}
                         />
@@ -79,7 +79,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                             {fieldEntry.schema?.type === 'custom_vocabulary'
                                 ? (
                                     <>
-                                        {this.props.allCVs.find((x) => x._id === fieldEntry.name).display_name}
+                                        {this.props.vocabularies.find((x) => x._id === fieldEntry.name).display_name}
                                         {' '}
                                         <span className="sd-text--italic sd-text--light">
                                             {gettext('(custom vocabulary)')}
@@ -118,7 +118,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                 {(!isLastField || !menuItems.after.length) ? null : (
                     <div className="profile-item__add-btn profile-item__add-btn--bottom">
                         <AddFieldsMenu
-                            allCVs={this.props.allCVs}
+                            vocabularies={this.props.vocabularies}
                             options={menuItems.after}
                             buttonLabel={gettext('Add field after')}
                         />

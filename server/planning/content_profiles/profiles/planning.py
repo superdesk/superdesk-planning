@@ -35,6 +35,7 @@ class PlanningSchema(BaseSchema):
     subject = subjectField
     urgency = schema.IntegerField()
     priority = schema.IntegerField()
+    custom_vocabularies = schema.ListField()
     associated_event = schema.NoneField()
     coverages = schema.ListField()
 

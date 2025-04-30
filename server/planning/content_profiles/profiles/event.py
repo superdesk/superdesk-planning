@@ -43,6 +43,7 @@ class EventSchema(BaseSchema):
     reference = StringField()
     slugline = StringField()
     subject = subjectField
+    custom_vocabularies = schema.ListField()
     related_plannings = schema.ListField()
     related_plannings.schema["read_only"] = False
     related_plannings.schema["planning_auto_publish"] = False

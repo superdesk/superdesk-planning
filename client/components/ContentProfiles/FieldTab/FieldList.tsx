@@ -28,12 +28,12 @@ interface IProps {
 export class FieldList extends React.PureComponent<IProps> {
     renderList() {
         const {gettext} = superdeskApi.localization;
-        const allCVs = planningApi.vocabularies.getCustomVocabularies();
+        const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
 
         return (this.props.fields ?? []).length < 1 ? (
             <div className="planning-profile__empty-list">
                 <AddFieldsMenu
-                    allCVs={allCVs}
+                    vocabularies={customVocabularies}
                     options={this.props.unusedFields.map((item) => ({
                         value: item,
                         onSelect: () => this.props.insertField(item, this.props.group?._id, 0),
@@ -48,7 +48,7 @@ export class FieldList extends React.PureComponent<IProps> {
                     getId={(item) => item.name}
                     itemTemplate={(item) => (
                         <ProfileFieldTemplate
-                            allCVs={allCVs}
+                            vocabularies={customVocabularies}
                             group={this.props.group}
                             selectedField={this.props.selectedField}
                             systemRequiredFields={this.props.systemRequiredFields}
