@@ -231,7 +231,7 @@ class PlanningService(AsyncBaseService):
                 elif event.get("pubstatus") == POST_STATE.USABLE:
                     updates = doc.copy()
                     updates["pubstatus"] = POST_STATE.USABLE
-                    update_post_item(updates, doc)
+                    await update_post_item(updates, doc)
 
         self.generate_related_assignments(docs)
 
@@ -550,7 +550,7 @@ class PlanningService(AsyncBaseService):
                 from_ingest=from_ingest,
             )
 
-        posted = update_post_item(updates, original)
+        posted = await update_post_item(updates, original)
         if posted:
             new_planning = self.find_one(req=None, _id=original.get(ID_FIELD))
             updates["_etag"] = new_planning["_etag"]

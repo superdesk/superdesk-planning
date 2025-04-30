@@ -7,20 +7,21 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+import logging
 
 from typing import List
+from copy import deepcopy
+from eve.utils import config
+
+from superdesk.utc import utcnow
 from superdesk.flask import abort
-from planning.validate import validate_docs
+from superdesk.resource import Resource
 from superdesk import get_resource_service, logger
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
-from superdesk.resource import Resource
 from superdesk.notification import push_notification
-from superdesk.utc import utcnow
-from copy import deepcopy
-import logging
 
-from eve.utils import config
+from planning.validate import validate_docs
 from planning.planning import PlanningResource
 from planning.common import (
     WORKFLOW_STATE,
@@ -69,14 +70,13 @@ class PlanningPostService(AsyncBaseService):
                 abort(412)
 
             if kwargs.get("related_planning"):
-                pass
-                # self.validate_related_item(plan)
+                await self.validate_related_item(plan)
 
             self.validate_post_state(doc["pubstatus"])
 
-            # TODO-ASYNC: verify if this has to be ported to async
-            # if event and doc["pubstatus"] == POST_STATE.USABLE:
-            #     self.post_associated_event(event)
+            if doc["pubstatus"] == POST_STATE.USABLE:
+                for related_event in related_events:
+                    await self.post_associated_event(related_event)
 
             await self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
@@ -173,13 +173,13 @@ class PlanningPostService(AsyncBaseService):
 
         # Set a version number
         version, plan = get_version_item_for_post(plan)
-        self.publish_planning(plan, version)
+        await self.publish_planning(plan, version)
 
         # Save the version into the history
         updates["version"] = version
         await PlanningHistoryAsyncService()._save_history(plan, updates, "post")
 
-    def publish_planning(self, plan, version):
+    async def publish_planning(self, plan, version):
         # Check and remove private contacts while posting planning, only public contact will be visible
         public_contact_ids = [str(contact["_id"]) for contact in get_contacts_from_item(plan)]
         for coverage in plan.get("coverages") or []:
@@ -190,7 +190,7 @@ class PlanningPostService(AsyncBaseService):
 
         """Enqueue the planning item"""
         # Create an entry in the planning versions collection for this published version
-        version_id = get_resource_service("published_planning").post(
+        version_id = await get_resource_service("published_planning").post_async(
             [
                 {
                     "item_id": plan["_id"],
@@ -201,8 +201,8 @@ class PlanningPostService(AsyncBaseService):
             ]
         )
         if version_id:
-            # Asynchronously enqueue the item for publishing.
-            enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
+            # Enqueue the item for publishing.
+            await enqueue_planning_item(version_id[0])
         else:
             logger.error("Failed to save planning version for planning item id {}".format(plan["_id"]))
 

@@ -39,13 +39,7 @@ from superdesk.users.services import current_user_has_privilege
 
 from apps.archive.common import get_user, get_auth
 from apps.duplication.archive_move import ITEM_MOVE
-from apps.publish.enqueue import (
-    ITEM_PUBLISH,
-    ITEM_CORRECT,
-    ITEM_KILL,
-    ITEM_TAKEDOWN,
-    ITEM_UNPUBLISH,
-)
+from apps.publish.content.common import ITEM_PUBLISH, ITEM_CORRECT, ITEM_KILL, ITEM_TAKEDOWN, ITEM_UNPUBLISH
 from apps.common.components.utils import get_component
 from apps.content import push_content_notification
 
@@ -1362,21 +1356,22 @@ class AssignmentsService(AsyncBaseService):
         try:
             planning_service = get_resource_service("planning")
             published_service = get_resource_service("published_planning")
-            lock_service = get_component(LockService)
 
             planning_item = await planning_service.find_one_async(req=None, _id=planning_id) if planning_id else None
-            published_planning_item = published_service.get_last_published_item(planning_id) if planning_id else None
+            published_planning_item = (
+                await published_service.get_last_published_item(planning_id) if planning_id else None
+            )
 
             if not planning_item or not published_planning_item or planning_item.get("state") == WORKFLOW_STATE.KILLED:
                 return
 
-            def _publish_planning(item):
+            async def _publish_planning(item):
                 item.pop(VERSION, None)
                 item.pop("item_id", None)
                 version, item = get_version_item_for_post(item)
 
                 # Create an entry in the planning versions collection for this published version
-                version_id = get_resource_service("published_planning").post(
+                version_id = await published_service.post_async(
                     [
                         {
                             "item_id": item["_id"],
@@ -1387,12 +1382,12 @@ class AssignmentsService(AsyncBaseService):
                     ]
                 )
                 if version_id:
-                    # Asynchronously enqueue the item for publishing.
-                    enqueue_planning_item.apply_async(kwargs={"id": version_id[0]}, serializer="eve/json")
+                    # Enqueue the item for publishing.
+                    await enqueue_planning_item(version_id[0])
                 else:
                     logger.error("Failed to save planning version for planning item id {}".format(item["_id"]))
 
-            _publish_planning(planning_item)
+            await _publish_planning(planning_item)
         except Exception:
             logger.exception("Failed to publish assignment for planning.")
 

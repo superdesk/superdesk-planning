@@ -375,6 +375,6 @@ async def process_reschedule_event(
     assert rescheduled_event is not None, "Expected rescheduled_event to be a dict, got None"
 
     # Perform post update actions
-    post_update_event_actions(updates, original, ACTION)
+    await post_update_event_actions(updates, original, ACTION)
 
     return rescheduled_event

@@ -669,5 +669,5 @@ class FlagExpiredItemsTest(TestCase):
                 ],
             )
             await flag_expired_items_handler()
-            version_entries = get_resource_service("published_planning").get(req=None, lookup={})
+            version_entries = await get_resource_service("published_planning").get_async(req=None, lookup={})
             self.assertEqual(1, version_entries.count())

@@ -335,7 +335,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
             await PlanningAsyncService().on_event_converted_to_recurring(updates, original)
 
         if not updates.get("duplicate_to"):
-            posted = update_post_item(updates, original.to_dict())
+            posted = await update_post_item(updates, original.to_dict())
             if posted:
                 new_event = await self.find_by_id(original.id)
                 assert new_event is not None

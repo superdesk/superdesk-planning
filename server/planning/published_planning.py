@@ -7,21 +7,23 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+import logging
+
 from eve.utils import ParsedRequest
 from eve.methods.common import resolve_embedded_fields, resolve_embedded_documents
 
+from superdesk import Resource
 from superdesk.resource_fields import ID_FIELD
-from superdesk import Service, Resource
-from superdesk.utils import ListCursor
+from superdesk.eve_async import AsyncBaseService
+from superdesk.eve_async.cursors import AsyncListCursor
 from .events import EventsResource
 from .planning import PlanningResource
 from .types import PlanningFeaturedResourceModel
-import logging
 
 logger = logging.getLogger(__name__)
 
 
-class PublishedPlanningService(Service):
+class PublishedPlanningService(AsyncBaseService):
     def _resolve_embedded_item(self, doc, req):
         """Resolve embedded fields
 
@@ -47,19 +49,19 @@ class PublishedPlanningService(Service):
                 fields,
             )
 
-    def get(self, req, lookup):
-        cursor = super().get(req, lookup)
+    async def get_async(self, req, lookup):
+        cursor = await super().get_async(req, lookup)
         if req and req.embedded:
             documents = []
-            for doc in cursor:
+            async for doc in cursor:
                 self._resolve_embedded_item(doc, req)
                 documents.append(doc)
 
-            cursor = ListCursor(docs=documents)
+            cursor = AsyncListCursor(docs=documents)
 
         return cursor
 
-    def get_last_published_item(self, item_id):
+    async def get_last_published_item(self, item_id):
         """Get the last published item
 
         :param item_id: Id of the planning item or event ite,
@@ -67,7 +69,7 @@ class PublishedPlanningService(Service):
         """
         req = ParsedRequest()
         req.sort = "-version"
-        return self.find_one(req=req, item_id=item_id)
+        return await self.find_one_async(req=req, item_id=item_id)
 
 
 class PublishedPlanningResource(Resource):

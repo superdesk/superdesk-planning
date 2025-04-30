@@ -311,7 +311,7 @@ async def validate_event_action(
     event_service.validate_event(updates, EventResourceModel(**original))
 
 
-def post_update_event_actions(
+async def post_update_event_actions(
     updates: dict[str, Any],
     original: dict[str, Any],
     ACTION: str = "",
@@ -336,7 +336,7 @@ def post_update_event_actions(
     push_event_notification(ACTION, updates, original)
 
     if update_post:
-        update_post_item(updates, original)
+        await update_post_item(updates, original)
 
 
 def push_event_notification(name: str, updates: dict[str, Any], original: dict[str, Any]):

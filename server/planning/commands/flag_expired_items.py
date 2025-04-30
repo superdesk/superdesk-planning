@@ -69,7 +69,7 @@ async def flag_expired_items_handler():
     logger.info(f"{log_msg} Completed flagging expired items.")
     remove_locks()
     logger.info(f"{log_msg} Starting to remove expired planning versions.")
-    remove_expired_published_planning()
+    await remove_expired_published_planning()
     logger.info(f"{log_msg} Completed removing expired planning versions.")
 
 
@@ -228,7 +228,7 @@ def get_latest_scheduled_date(event: dict[str, Any]) -> datetime:
     return latest_scheduled
 
 
-def remove_expired_published_planning():
+async def remove_expired_published_planning():
     """Expire planning versions
 
     Expiry of the planning versions mirrors the expiry of items within the publish queue in Superdesk so it uses the
@@ -239,4 +239,6 @@ def remove_expired_published_planning():
         expire_time = utcnow() - timedelta(minutes=expire_interval)
         logger.info("Removing planning history items created before {}".format(str(expire_time)))
 
-        get_resource_service("published_planning").delete({"_id": {"$lte": ObjectId.from_datetime(expire_time)}})
+        await get_resource_service("published_planning").delete_async(
+            {"_id": {"$lte": ObjectId.from_datetime(expire_time)}}
+        )

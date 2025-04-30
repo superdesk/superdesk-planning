@@ -284,7 +284,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
         )
 
     # Perform post update actions
-    post_update_event_actions(updates, original, ACTION, False)
+    await post_update_event_actions(updates, original, ACTION, False)
     await post_spike_event_actions(original)
 
     return spiked_event
@@ -331,6 +331,6 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
         )
 
     # Perform post update actions
-    post_update_event_actions(updates, original, ACTION)
+    await post_update_event_actions(updates, original, ACTION)
 
     return unspiked_event
