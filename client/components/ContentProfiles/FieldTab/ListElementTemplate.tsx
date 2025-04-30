@@ -5,6 +5,7 @@ import {superdeskApi} from '../../../superdeskApi';
 import {getFieldNameTranslated} from '../../../utils/contentProfiles';
 import AddFieldsMenu from './AddFieldsMenu';
 import {IEditorProfileGroup, IProfileFieldEntry} from 'interfaces';
+import {IVocabulary} from 'superdesk-api';
 
 interface IProps {
     selectedField?: string;
@@ -15,6 +16,7 @@ interface IProps {
     onClick(item: IProfileFieldEntry): void;
     unusedFields: Array<IProfileFieldEntry>;
     removeField(item: IProfileFieldEntry): void;
+    vocabularies: Array<IVocabulary>;
     insertField(item: IProfileFieldEntry, groupId: IEditorProfileGroup['_id'], index: number): void;
 }
 
@@ -62,6 +64,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                 {!menuItems.before.length ? null : (
                     <div className="profile-item__add-btn">
                         <AddFieldsMenu
+                            vocabularies={this.props.vocabularies}
                             options={menuItems.before}
                             buttonLabel={gettext('Add field before')}
                         />
@@ -73,7 +76,18 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                 >
                     <List.Row>
                         <span className="sd-text__strong">
-                            {getFieldNameTranslated(fieldEntry.name)}
+                            {fieldEntry.schema?.type === 'custom_vocabulary'
+                                ? (
+                                    <>
+                                        {this.props.vocabularies.find((x) => x._id === fieldEntry.name).display_name}
+                                        {' '}
+                                        <span className="sd-text--italic sd-text--light">
+                                            {gettext('(custom vocabulary)')}
+                                        </span>
+                                    </>
+                                )
+                                : getFieldNameTranslated(fieldEntry.name)
+                            }
                         </span>
                     </List.Row>
                 </List.Column>
@@ -104,6 +118,7 @@ export default class ProfileFieldTemplate extends React.PureComponent<IProps, an
                 {(!isLastField || !menuItems.after.length) ? null : (
                     <div className="profile-item__add-btn profile-item__add-btn--bottom">
                         <AddFieldsMenu
+                            vocabularies={this.props.vocabularies}
                             options={menuItems.after}
                             buttonLabel={gettext('Add field after')}
                         />

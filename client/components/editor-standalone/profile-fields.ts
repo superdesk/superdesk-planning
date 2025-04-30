@@ -111,15 +111,13 @@ export const getPlanningProfileFields = (
             continue;
         }
 
-        if (fieldSchema?.type === 'list' && ((fieldSchema.vocabularies ?? []).length > 0)) {
-            for (const vocabId of fieldSchema.vocabularies) {
-                convertedFields.push({
-                    type: 'custom_vocabulary',
-                    fieldId: vocabId,
-                    required: fieldSchema.required ?? false,
-                    vocabularyId: vocabId,
-                });
-            }
+        if (fieldSchema?.type === 'custom_vocabulary') {
+            convertedFields.push({
+                type: 'custom_vocabulary',
+                fieldId: fieldId,
+                required: fieldSchema.required ?? false,
+                vocabularyId: fieldId,
+            });
         } else if (
             TEXT_FIELDS_WITH_EDITOR_TYPE_CONFIG.has(fieldId)
             && (fieldSchema as IProfileSchemaTypeString).field_type === 'editor_3'

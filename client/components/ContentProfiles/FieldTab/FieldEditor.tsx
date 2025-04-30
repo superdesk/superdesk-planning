@@ -80,6 +80,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
     }
 
     render() {
+        const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
         const {gettext} = superdeskApi.localization;
         const disableMinMax = this.props.disableMinMax || !['string', 'list'].includes(this.props.item.schema?.type);
         const fieldType = this.props.item.schema?.type !== 'string' ?
@@ -117,7 +118,6 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.maxlength': {enabled: !disableMinMax},
             'schema.expandable': {enabled: fieldType === 'multi_line'},
             'schema.format_options': {enabled: fieldType === 'editor_3'},
-            'schema.vocabularies': {enabled: this.props.item.name === 'custom_vocabularies'},
             'field.all_day.enabled': {enabled: this.props.item.name === 'dates'},
             'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
             'schema.languages': {enabled: (this.props.item.name === 'language' && isMultilingual)},
@@ -145,7 +145,18 @@ export class FieldEditor extends React.Component<IProps, IState> {
                     </div>
                     <div className="side-panel__sliding-toolbar">
                         <span className="sd-text__strong">
-                            {getFieldNameTranslated(this.props.item.name)}
+                            {this.props.item.schema?.type === 'custom_vocabulary'
+                                ? (
+                                    <>
+                                        {customVocabularies.find((x) => x._id === this.props.item.name).display_name}
+                                        {' '}
+                                        <span className="sd-text--italic sd-text--light">
+                                            {gettext('(custom vocabulary)')}
+                                        </span>
+                                    </>
+                                )
+                                : getFieldNameTranslated(this.props.item.name)
+                            }
                         </span>
                         <ButtonGroup align="end">
                             <Button
@@ -208,7 +219,6 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                             'schema.minlength': {enabled: true, index: 6},
                                             'schema.maxlength': {enabled: true, index: 7},
                                             'schema.format_options': {enabled: true, index: 8},
-                                            'schema.vocabularies': {enabled: true, index: 9},
                                             'field.all_day.enabled': {enabled: true, index: 10},
                                             'field.default_duration_on_change': {enabled: true, index: 11},
                                             'schema.multilingual': {enabled: true, index: 12},

@@ -5,7 +5,7 @@ import {IEditorFieldProps, IPlanningAppState} from '../../../interfaces';
 import {FIELD_TO_EDITOR_COMPONENT} from '../editor';
 
 interface IEditorHocOptions<S extends IEditorFieldProps> {
-    Component: React.ComponentClass<S>;
+    Component: React.ComponentType<S>;
     props?(currentProps: S): Partial<S>;
     mapStateToProps?: (state: IPlanningAppState) => Partial<S>;
     forwardRef?: boolean;
@@ -45,7 +45,7 @@ function editorHoc<S extends IEditorFieldProps>(options: IEditorHocOptions<S>) {
 
 export function registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
     field: string,
-    Component: React.ComponentClass<ComponentProps>,
+    Component: React.ComponentType<ComponentProps>,
     props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
     mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
     forwardRef?: boolean

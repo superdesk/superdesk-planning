@@ -144,7 +144,6 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     xmp_file: EditorFieldXMPFile,
     add_coverage_to_workflow: EditorFieldAddCoverageToWorkflow,
     scheduled_updates: EditorFieldScheduledUpdates,
-    custom_vocabularies: EditorFieldCustomVocabularies,
     coverage_assignment_status: EditorFieldAssignedCoverageComponent,
 };
 

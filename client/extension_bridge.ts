@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {IArticle, IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabulary, IVocabularyItem} from 'superdesk-api';
 import {getAssignmentTypeInfo} from './utils/assignments';
 import {SluglineComponent} from './components/Assignments/AssignmentItem/fields/Slugline';
 import {DueDateComponent} from './components/Assignments/AssignmentItem/fields/DueDate';
@@ -28,7 +28,6 @@ import {planningApi} from './superdeskApi';
 import {
     IAssignmentItem,
     IEditorFieldProps,
-    IPlanningAppState,
     IPlanningContentProfile,
     IPlanningCoverageItem,
 } from './interfaces';
@@ -39,6 +38,8 @@ import {IEditorFieldEventRecurringRulesProps} from './components/fields/editor/E
 import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRecurringRules';
 import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
 import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
+import {EditorFieldCV} from './components/fields/editor/CustomCV';
+import {isCustomVocabulary} from './helpers';
 import {appConfig} from 'appConfig';
 
 // KEEP IN SYNC WITH client/planning-extension/src/extension_bridge.ts
@@ -70,6 +71,7 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
+            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
         },
     }
     ui: {
@@ -88,6 +90,7 @@ interface IExtensionBridge {
                 fallbackField?: string
             ): string;
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
+            isCustomVocabulary(vocabulary: IVocabulary): boolean;
         };
 
         components: {
@@ -97,13 +100,7 @@ interface IExtensionBridge {
         };
     };
     fields: {
-        registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
-            field: string,
-            Component: React.ComponentClass<ComponentProps>,
-            props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
-            mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
-            forwardRef?: boolean
-        ): void;
+        registerEditorField: typeof registerEditorField;
     };
 }
 
@@ -138,6 +135,7 @@ export const extensionBridge: IExtensionBridge = {
             EditorFieldCoverages: EditorFieldCoverages,
             EditorFieldEventRecurringRules: EditorFieldEventRecurringRules,
             EditorFieldEventSchedule: EditorFieldEventSchedule,
+            EditorFieldCV: EditorFieldCV,
         },
     },
     ui: {
@@ -148,6 +146,7 @@ export const extensionBridge: IExtensionBridge = {
             getUserInterfaceLanguageFromCV: getUserInterfaceLanguageFromCV,
             getVocabularyItemFieldTranslated: getVocabularyItemFieldTranslated,
             isContentLinkToCoverageAllowed: isContentLinkToCoverageAllowed,
+            isCustomVocabulary: isCustomVocabulary,
         },
         components: {
             EditorFieldVocabulary,

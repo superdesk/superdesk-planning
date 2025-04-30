@@ -114,6 +114,8 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
     return Promise.resolve();
 }
 
+const COVERAGE_VOCABULARIES = ['news_coverage_status', 'g2_content_type'];
+
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
@@ -268,6 +270,28 @@ const extension: IExtension = {
                 ],
             },
         };
+
+        // Do not register coverage related CVs as fields, because it overrides current implementation for these fields.
+        // Do not register CVs that aren't considered "custom CVs" also,
+        // because if some are already registered as specific fields they will be overridden.
+        // Definition of a custom CV: client/services/PlanningStoreService.ts:255
+        const vocabularies = superdesk.entities.vocabulary
+            .getAll()
+            .toArray()
+            .filter((x) => !COVERAGE_VOCABULARIES.includes(x._id) && extensionBridge.ui.utils.isCustomVocabulary(x));
+
+        vocabularies.forEach((vocab) => {
+            registerEditorField(
+                vocab._id,
+                extensionBridge.editor.fields.EditorFieldCV,
+                () => ({
+                    label: vocab.display_name,
+                    field: vocab._id,
+                }),
+                undefined,
+                true
+            );
+        });
 
         return Promise.resolve(result);
     },

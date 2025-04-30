@@ -8,7 +8,6 @@ import {EditorFieldToggle} from '../editor/base/toggle';
 import {EditorFieldSelect} from '../editor/base/select';
 import {EditorFieldCheckbox} from '../editor/base/checkbox';
 import {EditorFieldTreeSelect, IEditorFieldTreeSelectProps} from '../editor/base/treeSelect';
-import {SelectCustomVocabulariesList} from '../editor/SelectCustomVocabulariesList';
 import {ProfileFieldDefaultValue} from '../editor/ProfileFieldDefaultValue';
 
 import {getLanguagesForTreeSelectInput} from '../../../selectors/vocabs';
@@ -131,17 +130,6 @@ registerEditorField(
 );
 
 registerEditorField(
-    'schema.vocabularies',
-    SelectCustomVocabulariesList,
-    () => ({
-        label: superdeskApi.localization.gettext('Vocabularies'),
-        field: 'schema.vocabularies',
-    }),
-    null,
-    true
-);
-
-registerEditorField(
     'field.all_day.enabled',
     EditorFieldToggle,
     () => ({
@@ -216,7 +204,7 @@ registerEditorField<IEditorFieldTreeSelectProps, {options: Array<{value: IVocabu
 registerEditorField(
     'schema.default_value',
     ProfileFieldDefaultValue,
-    (props) => ({
+    () => ({
         label: superdeskApi.localization.gettext('Default Value'),
         field: 'schema.default_value',
     }),

@@ -3,7 +3,7 @@ import * as React from 'react';
 import {IEditorProfile, IEditorProfileGroup, IProfileFieldEntry} from '../../../interfaces';
 
 import {getProfileGroupNameTranslated} from '../../../utils/contentProfiles';
-import {superdeskApi} from '../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 import {ToggleBox} from 'superdesk-ui-framework/react';
 import {arrayMove, WithSortable} from '@sourcefabric/common';
@@ -28,10 +28,12 @@ interface IProps {
 export class FieldList extends React.PureComponent<IProps> {
     renderList() {
         const {gettext} = superdeskApi.localization;
+        const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
 
         return (this.props.fields ?? []).length < 1 ? (
             <div className="planning-profile__empty-list">
                 <AddFieldsMenu
+                    vocabularies={customVocabularies}
                     options={this.props.unusedFields.map((item) => ({
                         value: item,
                         onSelect: () => this.props.insertField(item, this.props.group?._id, 0),
@@ -46,6 +48,7 @@ export class FieldList extends React.PureComponent<IProps> {
                     getId={(item) => item.name}
                     itemTemplate={(item) => (
                         <ProfileFieldTemplate
+                            vocabularies={customVocabularies}
                             group={this.props.group}
                             selectedField={this.props.selectedField}
                             systemRequiredFields={this.props.systemRequiredFields}

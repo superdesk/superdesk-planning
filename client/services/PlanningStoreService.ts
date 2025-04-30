@@ -1,9 +1,10 @@
-import {isNil, zipObject, get, isEmpty} from 'lodash';
+import {isNil, zipObject, get} from 'lodash';
 import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
 import {planningApi} from '../superdeskApi';
+import {isCustomVocabulary} from '../helpers';
 
 export class PlanningStoreService {
     constructor(
@@ -252,10 +253,7 @@ export class PlanningStoreService {
                         profiles: coverageProfiles,
                     },
                     forms: {profiles: {}},
-                    customVocabularies: this.metadata.cvs.filter((cv) =>
-                        !isEmpty(cv.service) &&
-                        isEmpty(cv.field_type)
-                    ),
+                    customVocabularies: this.metadata.cvs.filter(isCustomVocabulary),
                     userDesks: userDesks,
                     exportTemplates: get(exportTemplates, '_items', []),
                 };

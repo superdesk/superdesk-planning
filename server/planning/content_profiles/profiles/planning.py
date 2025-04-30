@@ -103,11 +103,6 @@ DEFAULT_PLANNING_PROFILE = {
             "group": "details",
             "index": 3,
         },
-        "custom_vocabularies": {
-            "enabled": False,
-            "group": "details",
-            "index": 4,
-        },
         "urgency": {
             "enabled": True,
             "group": "details",

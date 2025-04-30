@@ -3,9 +3,8 @@ import {
     ISubjectCode,
     IDropdownConfigManualSource,
 } from 'superdesk-api';
-import {gettext} from 'core/utils';
 import {IFieldDefinition, IFieldStorageAdapter} from './interfaces';
-import {planningApi} from '../../../superdeskApi';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 
 function getStorageAdapterCommon<T extends IPlanningItem | IEventItem>(): IFieldStorageAdapter<T> {
     const storageAdapterCommon: IFieldStorageAdapter<T> = {
@@ -43,7 +42,7 @@ export function getSubjectField(): IFieldDefinition {
 
             const fieldV2: IAuthoringFieldV2 = {
                 id: 'subject',
-                name: gettext('Subject'),
+                name: superdeskApi.localization.gettext('Subject'),
                 fieldType: 'dropdown',
                 fieldConfig: fieldConfig,
             };

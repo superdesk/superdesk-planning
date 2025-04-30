@@ -1,6 +1,8 @@
 import moment from 'moment';
 import {GENERIC_ITEM_ACTIONS} from './constants';
 import {IDateTime, IItemAction} from './interfaces';
+import {IVocabulary} from 'superdesk-api';
+import {isEmpty} from 'lodash';
 
 export function isItemAction(
     x: IItemAction | typeof GENERIC_ITEM_ACTIONS.DIVIDER | typeof GENERIC_ITEM_ACTIONS.LABEL,
@@ -16,4 +18,8 @@ export function isMenuDivider(
 
 export function isSameDay(startingDate: IDateTime, endingDate: IDateTime): boolean {
     return moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY');
+}
+
+export function isCustomVocabulary(vocabulary: IVocabulary) {
+    return !isEmpty(vocabulary.service) && isEmpty(vocabulary.field_type);
 }

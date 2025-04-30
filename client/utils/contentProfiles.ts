@@ -10,7 +10,7 @@ import {
     IEditorFormGroup,
     ICoverageContentProfile,
 } from '../interfaces';
-import {superdeskApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 import {getUserInterfaceLanguageFromCV} from './users';
@@ -62,9 +62,10 @@ export function getGroupFieldsSorted(
     profile: IEditorProfile,
     groupId?: IEditorProfileGroup['_id']
 ): Array<IProfileFieldEntry> {
+    const fieldsForGroup = getEnabledProfileGroupFields(profile, groupId);
     const fields = (groupId == null ?
         getEnabledProfileFields(profile) :
-        getEnabledProfileGroupFields(profile, groupId)
+        fieldsForGroup
     ).sort(
         (a, b) => a.field.index - b.field.index
     );
@@ -81,11 +82,55 @@ export function getUnusedProfileFields(
     profile: IEditorProfile,
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
+    // Temporary FIXME: Will be removed once we add support for CVs as fields in coverage profiles
+    if (profile.name === 'coverage') {
+        const fieldsFromProfile = getProfileFields(profile);
+
+        return orderBy(
+            fieldsFromProfile
+                .filter((field) => (includeGroupCheck && field.field.group == null) || !field.field.enabled),
+            superdeskApi.helpers.nameof<IProfileFieldEntry>('name')
+        );
+    }
+
+    const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
+    const vocabularyIds = customVocabularies.map((x) => x._id);
+    const vocabularyFields: Array<IProfileFieldEntry> = customVocabularies
+        .map((x, i) => ({
+            field: {
+                enabled: false,
+                group: undefined,
+                index: i,
+            },
+            name: x._id,
+            schema: {
+                type: 'custom_vocabulary',
+                required: false,
+            }
+        }));
+
+    const fieldsFromProfile = getProfileFields(profile);
+    const usedVocabularies = fieldsFromProfile.filter(
+        (fieldEntry) =>
+            fieldEntry.schema?.type === 'custom_vocabulary'
+            && vocabularyIds.includes(fieldEntry.name)
+            && fieldEntry.field.enabled
+    );
+    const unusedVocabularies = vocabularyFields.filter((field) =>
+        field.schema?.type === 'custom_vocabulary'
+        && !usedVocabularies.some((usedFieldEntry) => usedFieldEntry.name === field.name)
+    );
+
     return orderBy(
-        getProfileFields(profile).filter(
-            (item) => (includeGroupCheck && item.field.group == null) || !item.field.enabled
-        ),
-        'name'
+        fieldsFromProfile
+            .filter((field) => {
+                const isUnused = (includeGroupCheck && field.field.group == null) || !field.field.enabled;
+                const isVocabulary = field.schema?.type === 'custom_vocabulary' || vocabularyIds.includes(field.name);
+
+                return isUnused && !isVocabulary;
+            })
+            .concat(unusedVocabularies),
+        superdeskApi.helpers.nameof<IProfileFieldEntry>('name')
     );
 }
 
@@ -206,8 +251,6 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Associated Event');
     case 'coverages':
         return gettext('Coverages');
-    case 'custom_vocabularies':
-        return gettext('Custom Vocabularies');
     case 'headline':
         return gettext('Headline');
     case 'g2_content_type':

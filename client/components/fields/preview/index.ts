@@ -1,5 +1,5 @@
 import {superdeskApi} from '../../../superdeskApi';
-import {IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
+import {IPlanningCoverageItem} from '../../../interfaces';
 
 import {IPreviewHocOptions, previewHoc} from './base/PreviewHoc';
 import {PreviewSimpleListItem} from './base/PreviewSimpleListItem';

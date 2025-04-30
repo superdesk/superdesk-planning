@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IArticle, IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabulary, IVocabularyItem} from 'superdesk-api';
 import {
     IAssignmentItem,
     IEditorFieldProps,
@@ -54,6 +54,7 @@ interface IExtensionBridge {
             EditorFieldCoverages: React.ComponentType<IPropsEditorFieldCoverages>;
             EditorFieldEventRecurringRules: React.ComponentType<IEditorFieldEventRecurringRulesProps>;
             EditorFieldEventSchedule: React.ComponentType<IEventScheduleFieldProps>;
+            EditorFieldCV: React.ComponentType<IEditorFieldProps>;
         },
     }
     ui: {
@@ -72,6 +73,7 @@ interface IExtensionBridge {
                 fallbackField?: string
             ): string;
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
+            isCustomVocabulary(vocabulary: IVocabulary): boolean;
         };
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;
@@ -82,7 +84,7 @@ interface IExtensionBridge {
     fields: {
         registerEditorField<ComponentProps extends IEditorFieldProps, StateProps extends {}>(
             field: string,
-            Component: React.ComponentClass<ComponentProps>,
+            Component: React.ComponentType<ComponentProps>,
             props?: (currentProps: ComponentProps & StateProps) => Partial<ComponentProps & StateProps>,
             mapStateToProps?: (state: IPlanningAppState) => Partial<ComponentProps & StateProps>,
             forwardRef?: boolean
