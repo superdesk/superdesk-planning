@@ -195,8 +195,8 @@ class EventsPostService(AsyncBaseService):
                 updates["actioned_date"] = None
 
         event_id = event[ID_FIELD]
-        updated_event = await events_service.update(event_id, updates)
-        event.update(updated_event.to_dict())
+        await events_service.system_update(event_id, updates, update_etag=True)
+        event.update(updates)
 
         # enqueue the event
         # these fields are set for enqueue process to work. otherwise not needed
@@ -213,14 +213,13 @@ class EventsPostService(AsyncBaseService):
         if len(plannings) > 0:
             failed_planning_ids = await self.post_related_plannings(plannings, new_post_state)
 
-        return updated_event.to_dict(), failed_planning_ids
+        return event, failed_planning_ids
 
     async def publish_event(self, event, version):
         # check and remove private contacts while posting event, only public contact will be visible
         event["event_contact_info"] = [try_cast_object_id(contact["_id"]) for contact in get_contacts_from_item(event)]
 
         """Enqueue the items for publish"""
-        # TODO-ASYNC - Change to async when `published_planning` is converted to async
         version_id = await get_resource_service("published_planning").post_async(
             [
                 {
@@ -240,7 +239,6 @@ class EventsPostService(AsyncBaseService):
     async def post_related_plannings(self, plannings, new_post_state):
         from planning.planning.planning_spike import process_spike_planning_item
 
-        # TODO-ASYNC - Change to async when `planning_post` is converted to async
         planning_post_service = get_resource_service("planning_post")
         docs = []
         failed_planning_ids = []

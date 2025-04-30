@@ -113,7 +113,6 @@ INSTALLED_APPS.extend(
         "apps.highlights",
         "apps.products",
         "apps.publish",
-        "apps.publish.enqueue",
         "apps.publish.formatters",
         "apps.content_filters",
         "apps.content_types",

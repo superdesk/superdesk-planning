@@ -70,14 +70,13 @@ class PlanningPostService(AsyncBaseService):
                 abort(412)
 
             if kwargs.get("related_planning"):
-                pass
-                # self.validate_related_item(plan)
+                await self.validate_related_item(plan)
 
             self.validate_post_state(doc["pubstatus"])
 
-            # TODO-ASYNC: verify if this has to be ported to async
-            # if event and doc["pubstatus"] == POST_STATE.USABLE:
-            #     self.post_associated_event(event)
+            if doc["pubstatus"] == POST_STATE.USABLE:
+                for related_event in related_events:
+                    await self.post_associated_event(related_event)
 
             await self.post_planning(plan, doc["pubstatus"], assignments_to_delete, **kwargs)
             ids.append(doc["planning"])
