@@ -151,7 +151,7 @@ class AssignmentsCompleteService(AsyncBaseService):
         target_user = original.get("assigned_to", {}).get("assignor_user")
         if target_user is None:
             target_user = original.get("assigned_to", {}).get("assignor_desk")
-        PlanningNotifications().notify_assignment(
+        await PlanningNotifications().notify_assignment(
             target_user=target_user,
             message="assignment_fulfilled_msg",
             assignee=assignee,

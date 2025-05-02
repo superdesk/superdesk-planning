@@ -36,4 +36,5 @@ class PlanningService(ProdApiService):
             add_related_event_links(doc, doc)
             assignment_ids = get_assignment_ids_from_planning(doc)
             if len(assignment_ids):
+                # TODO-ASYNC[archive]: Prefix this line with ``await `` after ProdAPI base service is upgraded
                 doc[LINKS]["assignments"] = construct_assignment_links(assignment_ids)

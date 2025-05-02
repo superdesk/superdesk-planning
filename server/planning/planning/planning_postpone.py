@@ -31,7 +31,7 @@ async def postpone_coverage(updates: dict[str, Any], coverage: dict[str, Any]):
         if assignment:
             slugline = assignment.get("planning", {}).get("slugline", "")
             coverage_type = assignment.get("planning", {}).get("g2_content_type", "")
-            PlanningNotifications().notify_assignment(
+            await PlanningNotifications().notify_assignment(
                 coverage_status=assignment.get("assigned_to", {}).get("state"),
                 target_user=assignment.get("assigned_to", {}).get("user"),
                 target_desk=(

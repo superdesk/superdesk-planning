@@ -48,6 +48,7 @@ from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from superdesk.utc import get_date, utcnow
 from superdesk.users.services import current_user_has_privilege
+from superdesk.publish_async.utils import get_next_sequence_number
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 
@@ -252,14 +253,13 @@ class EventsService(AsyncBaseService):
     def on_locked_event(self, doc, user_id):
         self._enhance_event_item(doc)
 
-    @staticmethod
-    def set_ingest_provider_sequence(item, provider):
+    async def set_ingest_provider_sequence_async(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
 
         :param item: object to which ingest_provider_sequence to be set
         :param provider: ingest_provider object, used to build the key name of sequence
         """
-        sequence_number = get_resource_service("sequences").get_next_sequence_number(
+        sequence_number = await get_next_sequence_number(
             key_name="ingest_providers_{_id}".format(_id=provider[ID_FIELD]),
             max_seq_number=get_app_config("MAX_VALUE_OF_INGEST_SEQUENCE"),
         )

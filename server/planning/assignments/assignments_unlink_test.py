@@ -103,7 +103,7 @@ class AssignmentUnlinkTestCase(TestCase):
             self.assertEqual(delivery_item.get("planning_id"), "plan1")
             self.assertEqual(delivery_item.get("coverage_id"), "cov1")
 
-            archive_item = archive_service.find_one(req=None, _id="item1")
+            archive_item = await archive_service.find_one_async(req=None, _id="item1")
             self.assertEqual(archive_item.get("assignment_id"), ObjectId("5b20652a1d41c812e24aa49e"))
 
             assignment = await assignment_service.find_one_async(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))

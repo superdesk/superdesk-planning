@@ -42,7 +42,7 @@ class PlanningNotifications:
     Class that wraps the mechanics of notifications from the planning module.
     """
 
-    def notify_assignment(
+    async def notify_assignment(
         self,
         coverage_status=None,
         target_user=None,
@@ -89,7 +89,7 @@ class PlanningNotifications:
         )
 
         if target_desk is None and target_user is not None:
-            add_activity(
+            await add_activity(
                 ACTIVITY_UPDATE,
                 can_push_notification=can_push_notification,
                 resource="assignments",
@@ -110,7 +110,7 @@ class PlanningNotifications:
             for member in members:
                 if get_user() and str(member.get("user", "")) == str(get_user().get(ID_FIELD)):
                     continue
-                add_activity(
+                await add_activity(
                     ACTIVITY_UPDATE,
                     can_push_notification=can_push_notification,
                     resource="assignments",

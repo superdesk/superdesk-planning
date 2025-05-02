@@ -47,7 +47,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
             assignment = await assignments_service.find_one_async(req=None, _id=doc.pop("assignment_id"))
             await assignments_service.validate_assignment_action(assignment)
             actioned_item_id = doc.pop("item_id")
-            actioned_item = production.find_one(req=None, _id=actioned_item_id)
+            actioned_item = await production.find_one_async(req=None, _id=actioned_item_id)
             if not actioned_item:
                 actioned_item = archived.find_one(req=None, _id=actioned_item_id)
                 actioned_item_id = actioned_item.get("item_id")
@@ -60,7 +60,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
             for item in related_items:
                 # For all items, update news item for unlinking
                 assignment_id = item.get("assignment_id")
-                update_assignment_on_link_unlink(None, item, published_updated_items)
+                await update_assignment_on_link_unlink(None, item, published_updated_items)
                 ids.append(item[ID_FIELD])
                 updated_items.append(item)
                 push_notification(
@@ -97,7 +97,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
 
                     if not cancel:
                         user = get_user()
-                        PlanningNotifications().notify_assignment(
+                        await PlanningNotifications().notify_assignment(
                             target_desk=actioned_item.get("task").get("desk"),
                             message="assignment_spiked_unlinked_msg",
                             actioning_user=user.get("display_name", user.get("username", "Unknown")),
@@ -143,7 +143,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
                     "Assignment is locked by you in another session. Cannot unlink assignment and content."
                 )
 
-        item = get_resource_service("archive").find_one(req=None, _id=doc.get("item_id"))
+        item = await get_resource_service("archive").find_one_async(req=None, _id=doc.get("item_id"))
 
         # try looking in the archived content
         if not item:

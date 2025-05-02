@@ -51,7 +51,7 @@ class AssignmentLinkTestCase(TestCase):
             self.assertEqual(delivery_item.get("planning_id"), "plan1")
             self.assertEqual(delivery_item.get("coverage_id"), "cov1")
 
-            archive_item = get_resource_service("archive").find_one(req=None, _id="item1")
+            archive_item = await get_resource_service("archive").find_one_async(req=None, _id="item1")
             self.assertEqual(archive_item.get("assignment_id"), ObjectId(assignment_id))
 
             assignment = await get_resource_service("assignments").find_one_async(req=None, _id=ObjectId(assignment_id))

@@ -11,10 +11,10 @@
 from typing import List
 from bson import ObjectId
 from eve.utils import ParsedRequest
-from eve_elastic.elastic import ElasticCursor
 
 from superdesk.core import json
 from superdesk.resource_fields import ID_FIELD
+from superdesk.eve_async import ElasticAsyncEveCursor
 from superdesk import get_resource_service
 
 from prod_api.items import ItemsResource
@@ -41,7 +41,7 @@ def construct_content_link(content):
     }
 
 
-def construct_assignment_links(assignment_ids: List[ObjectId]):
+async def construct_assignment_links(assignment_ids: List[ObjectId]):
     req = ParsedRequest()
     req.args = {
         "source": json.dumps(
@@ -54,7 +54,9 @@ def construct_assignment_links(assignment_ids: List[ObjectId]):
     }
     req.sort = '[("planning.scheduled", 1)]'
     assignments = get_resource_service("assignments").get(req=req, lookup=None)
-    content_items = {content["assignment_id"]: content for content in get_news_items_for_assignments(assignment_ids)}
+    content_items = {
+        content["assignment_id"]: content async for content in await get_news_items_for_assignments(assignment_ids)
+    }
 
     links = []
     for assignment in assignments:
@@ -73,15 +75,15 @@ def construct_assignment_links(assignment_ids: List[ObjectId]):
     return links
 
 
-def get_news_item_for_assignment(assignment_id: ObjectId) -> ElasticCursor:
+async def get_news_item_for_assignment(assignment_id: ObjectId) -> ElasticAsyncEveCursor:
     req = ParsedRequest()
     req.args = {
         "source": json.dumps({"query": {"bool": {"must": {"term": {"assignment_id": str(assignment_id)}}}}}),
     }
-    return get_resource_service("archive").get(req=req, lookup=None)
+    return await get_resource_service("archive").get_async(req=req, lookup=None)
 
 
-def get_news_items_for_assignments(assignment_ids: List[ObjectId]) -> ElasticCursor:
+async def get_news_items_for_assignments(assignment_ids: List[ObjectId]) -> ElasticAsyncEveCursor:
     req = ParsedRequest()
     req.args = {
         "source": json.dumps(
@@ -94,7 +96,7 @@ def get_news_items_for_assignments(assignment_ids: List[ObjectId]) -> ElasticCur
             }
         ),
     }
-    return get_resource_service("archive").get(req=req, lookup=None)
+    return await get_resource_service("archive").get_async(req=req, lookup=None)
 
 
 def get_assignment_ids_from_planning(item):

@@ -79,7 +79,9 @@ class AssignmentsLockService(AsyncBaseService):
             raise SuperdeskApiError.badRequestError(message="Assignment workflow state error.")
 
         if item.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
-            archive_item = get_resource_service("archive").find_one(req=None, assignment_id=item.get(ID_FIELD))
+            archive_item = await get_resource_service("archive").find_one_async(
+                req=None, assignment_id=item.get(ID_FIELD)
+            )
             if archive_item and archive_item.get("lock_user") and archive_item["lock_user"] != user_id:
                 # archive item it locked by another user
                 raise SuperdeskApiError.badRequestError(message="Archive item is locked by another user.")
@@ -107,15 +109,17 @@ class AssignmentsUnlockService(AsyncBaseService):
         resource_service = get_resource_service("assignments")
         item = await resource_service.find_one_async(req=None, _id=item_id)
 
-        if not self.is_assignment_locked_by_user(item, user_id):
+        if not await self.is_assignment_locked_by_user(item, user_id):
             updated_item = lock_service.unlock(item, user_id, session_id, "assignments")
             return _update_returned_document(docs[0], updated_item)
 
         return _update_returned_document(docs[0], item)
 
-    def is_assignment_locked_by_user(self, item, user_id):
+    async def is_assignment_locked_by_user(self, item, user_id):
         if item.get("assigned_to").get("state") == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
-            archive_item = get_resource_service("archive").find_one(req=None, assignment_id=item.get(ID_FIELD))
+            archive_item = await get_resource_service("archive").find_one_async(
+                req=None, assignment_id=item.get(ID_FIELD)
+            )
             if archive_item and archive_item.get("lock_user") and archive_item["lock_user"] == user_id:
                 return True
 

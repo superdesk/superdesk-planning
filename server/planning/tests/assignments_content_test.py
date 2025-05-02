@@ -52,5 +52,5 @@ class AssignmentsContentServiceTest(TestCase):
             ids = await get_resource_service("assignments_content").post_async(
                 [{"assignment_id": "as1", "template_name": "test_template"}]
             )
-            item = get_resource_service("archive").find_one(req=None, _id=ids[0])
+            item = await get_resource_service("archive").find_one_async(req=None, _id=ids[0])
         self.assertEqual(item["genre"], [{"name": "Analysis", "qcode": "Analysis"}])

@@ -584,7 +584,7 @@ def get_related_items(item, assignment=None):
         return list(archive_list.values())
 
 
-def update_assignment_on_link_unlink(assignment_id, item, published_updated=None):
+async def update_assignment_on_link_unlink(assignment_id, item, published_updated=None):
     if published_updated is None:
         published_updated = []
 
@@ -601,14 +601,16 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated=None
         and not item.get("_type") == "archived"
     ):
         # This will also update corrected, killed version of the published item
-        get_resource_service("published").update_published_items(item[ID_FIELD], "assignment_id", assignment_id)
+        await get_resource_service("published").update_published_items(item[ID_FIELD], "assignment_id", assignment_id)
 
         published_updated.append(item.get(ID_FIELD))
 
     if item.get("_type") == "archived":
         get_resource_service("archived").system_update(ObjectId(item[ID_FIELD]), {"assignment_id": assignment_id}, item)
     else:
-        get_resource_service("archive").system_update(item[ID_FIELD], {"assignment_id": assignment_id}, item)
+        await get_resource_service("archive").system_update_async(
+            item[ID_FIELD], {"assignment_id": assignment_id}, item
+        )
 
 
 def planning_link_updates_to_coverage():

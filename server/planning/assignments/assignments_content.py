@@ -179,8 +179,10 @@ class AssignmentsContentService(AsyncBaseService):
 
                 # create a rewrite
                 request.view_args["original_id"] = archive_item.get(ID_FIELD)
-                ids = get_resource_service("archive_rewrite").post([{"desk_id": str(item.get("task").get("desk"))}])
-                item = archive_service.find_one(_id=ids[0], req=None)
+                ids = await get_resource_service("archive_rewrite").post_async(
+                    [{"desk_id": str(item.get("task").get("desk"))}]
+                )
+                item = await archive_service.find_one_async(_id=ids[0], req=None)
                 item["task"]["user"] = get_user_id()
 
                 # link the rewrite
@@ -195,7 +197,7 @@ class AssignmentsContentService(AsyncBaseService):
                 )
             else:
                 # create content
-                item = create_item_from_template(item, FIELDS_TO_OVERRIDE, translations)
+                item = await create_item_from_template(item, FIELDS_TO_OVERRIDE, translations)
 
                 # create delivery references
                 await get_resource_service("delivery").post_async(
@@ -235,7 +237,7 @@ class AssignmentsContentService(AsyncBaseService):
                     req=None, _id=str(item.get("task").get("user"))
                 )
                 assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
-                PlanningNotifications().notify_assignment(
+                await PlanningNotifications().notify_assignment(
                     target_desk=None,
                     target_user=assignor,
                     message="assignment_commenced_msg",
