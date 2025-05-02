@@ -197,7 +197,7 @@ def _enhance_assigned_provider(coverage, item, assigned_to):
         item["text_assignees"].append(assigned_to["coverage_provider"]["name"])
 
 
-def enhance_coverage(planning, item, users, desks, text_users, text_desks):
+async def enhance_coverage(planning, item, users, desks, text_users, text_desks):
     for c in planning.get("coverages") or []:
         is_text = c.get("planning", {}).get("g2_content_type", "") == "text"
         completed = (c.get("assigned_to") or {}).get("state") == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
@@ -218,22 +218,21 @@ def enhance_coverage(planning, item, users, desks, text_users, text_desks):
         # Get abstract from related text item if coverage is 'complete'
         if is_text:
             if completed:
-                results = list(
-                    get_resource_service("archive").get_from_mongo(
-                        req=None,
-                        lookup={
-                            "assignment_id": ObjectId(c["assigned_to"]["assignment_id"]),
-                            "state": {"$in": ["published", "corrected"]},
-                            "pubstatus": "usable",
-                            "rewrite_of": None,
-                        },
-                    )
+                results = await get_resource_service("archive").get_from_mongo_async(
+                    req=None,
+                    lookup={
+                        "assignment_id": ObjectId(c["assigned_to"]["assignment_id"]),
+                        "state": {"$in": ["published", "corrected"]},
+                        "pubstatus": "usable",
+                        "rewrite_of": None,
+                    },
                 )
-                if len(results) > 0:
+                archive_item = await results.next()
+                if archive_item:
                     item["published_archive_items"].append(
                         {
-                            "archive_text": get_first_paragraph_text(results[0].get("abstract")) or "",
-                            "archive_slugline": results[0].get("slugline") or "",
+                            "archive_text": get_first_paragraph_text(archive_item.get("abstract")) or "",
+                            "archive_slugline": archive_item.get("slugline") or "",
                         }
                     )
             elif c.get("news_coverage_status", {}).get("qcode") == "ncostat:int":
@@ -269,10 +268,10 @@ async def generate_text_item(items, template_name, resource_type):
         desks = []
 
         if item["type"] == "planning":
-            enhance_coverage(item, item, users, desks, text_users, text_desks)
+            await enhance_coverage(item, item, users, desks, text_users, text_desks)
         else:
             for p in item.get("plannings") or []:
-                enhance_coverage(p, item, users, desks, text_users, text_desks)
+                await enhance_coverage(p, item, users, desks, text_users, text_desks)
 
         cursor_users = await get_resource_service("users").find_async(where={"_id": {"$in": users}})
         users = await cursor_users.to_list()
@@ -403,7 +402,7 @@ class PlanningArticleExportService(AsyncBaseService):
                 else:
                     item[key] = val
 
-            item = create_item_from_template(item, fields_to_override)
+            item = await create_item_from_template(item, fields_to_override)
             doc.update(item)
             ids.append(doc["_id"])
         return ids

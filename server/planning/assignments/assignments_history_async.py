@@ -25,7 +25,7 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
     resource_name = "assignments_history"
 
     async def _save_history(self, item, update: dict[str, Any], operation: str | None = None):
-        user = self.get_user_id()
+        user_id = await self.get_user_id()
         # confirmation could be from external fulfillment, so set the user to the assignor
         if (
             operation
@@ -33,23 +33,23 @@ class AssignmentsHistoryAsyncService(HistoryAsyncService[AssignmentsHistoryResou
                 AssignmentHistoryActions.CONFIRM.value,
                 AssignmentHistoryActions.START_WORKING.value,
             ]
-            and self.get_user_id() is None
+            and user_id is None
         ):
             assigned_to = update.get("assigned_to")
             if assigned_to is not None:
-                user = update.get(
+                user_id = update.get(
                     "proxy_user",
                     assigned_to.get("assignor_user", assigned_to.get("assignor_desk")),
                 )
         # If external accept set the user to the assigned user
-        if operation == AssignmentHistoryActions.ACCEPTED.value and self.get_user_id() is None:
+        if operation == AssignmentHistoryActions.ACCEPTED.value and user_id is None:
             assigned_to = item.get("assigned_to", {})
-            user = assigned_to.get("user")
-            update["assigned_to"] = {"user": user}
+            user_id = assigned_to.get("user")
+            update["assigned_to"] = {"user": user_id}
 
         history = {
             "assignment_id": item[ID_FIELD],
-            "user_id": user,
+            "user_id": user_id,
             "operation": operation,
             "update": update,
         }

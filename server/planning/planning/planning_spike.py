@@ -70,7 +70,7 @@ async def notify_draft_coverage_on_spike(coverage: dict[str, Any]):
         if assignment:
             slugline = assignment.get("planning", {}).get("slugline", "")
             coverage_type = assignment.get("planning", {}).get("g2_content_type", "")
-            PlanningNotifications().notify_assignment(
+            await PlanningNotifications().notify_assignment(
                 coverage_status=coverage.get("workflow_status"),
                 target_user=assignment.get("assigned_to", {}).get("user"),
                 target_desk=(

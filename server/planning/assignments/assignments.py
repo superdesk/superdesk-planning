@@ -503,7 +503,7 @@ class AssignmentsService(AsyncBaseService):
             if original.get("assigned_to"):
                 # it is being reassigned by the original assignee, notify the new assignee
                 if original.get("assigned_to", {}).get("user", "") == str(user.get(ID_FIELD, None)):
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         target_user=assigned_to.get("user"),
                         message="assignment_reassigned_1_msg",
                         meta_message=meta_msg,
@@ -522,7 +522,7 @@ class AssignmentsService(AsyncBaseService):
                     )
                     # notify the desk
                     if assigned_to.get("desk"):
-                        PlanningNotifications().notify_assignment(
+                        await PlanningNotifications().notify_assignment(
                             target_desk=assigned_to.get("desk"),
                             message="assignment_reassigned_3_msg",
                             meta_message=meta_msg,
@@ -555,7 +555,7 @@ class AssignmentsService(AsyncBaseService):
                             req=None, _id=assigned_from.get("user")
                         )
                         old_assignee = assigned_from_user.get("display_name") if assigned_from_user else ""
-                        PlanningNotifications().notify_assignment(
+                        await PlanningNotifications().notify_assignment(
                             target_desk=assigned_to.get("desk"),
                             target_desk2=original.get("assigned_to").get("desk"),
                             message="assignment_reassigned_2_msg",
@@ -580,7 +580,7 @@ class AssignmentsService(AsyncBaseService):
                         )
                     else:
                         # it is being reassigned by someone else so notify both the new assignee and the old
-                        PlanningNotifications().notify_assignment(
+                        await PlanningNotifications().notify_assignment(
                             target_user=original.get("assigned_to").get("user"),
                             target_desk=(
                                 original.get("assigned_to").get("desk")
@@ -611,7 +611,7 @@ class AssignmentsService(AsyncBaseService):
                             req=None, _id=assigned_from.get("user")
                         )
                         old_assignee = assigned_from_user.get("display_name") if assigned_from_user else None
-                        PlanningNotifications().notify_assignment(
+                        await PlanningNotifications().notify_assignment(
                             target_user=assigned_to.get("user"),
                             message="assignment_reassigned_4_msg",
                             meta_message=meta_msg,
@@ -634,7 +634,7 @@ class AssignmentsService(AsyncBaseService):
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
                 if str(user.get(ID_FIELD, None)) != assigned_to.get("user", "") or get_notify_self_on_assignment():
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         target_user=assigned_to.get("user"),
                         message="assignment_assigned_msg",
                         meta_message=meta_msg,
@@ -667,7 +667,7 @@ class AssignmentsService(AsyncBaseService):
                 )
                 desk_from_name = assigned_from_desk.get("name") if assigned_from_desk else "Unknown"
                 if original.get("assigned_to", {}).get("user", "") == str(user.get(ID_FIELD, None)):
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         target_desk=assigned_to.get("desk"),
                         message="assignment_to_desk_msg",
                         meta_message="assignment_details_email",
@@ -688,7 +688,7 @@ class AssignmentsService(AsyncBaseService):
                         event_date_time=fomatted_event_date,
                     )
                 else:
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         target_desk=assigned_to.get("desk"),
                         target_desk2=original.get("assigned_to").get("desk"),
                         message="assignment_submitted_msg",
@@ -709,7 +709,7 @@ class AssignmentsService(AsyncBaseService):
                     )
             else:
                 assign_type = "reassigned" if original.get("assigned_to") else "assigned"
-                PlanningNotifications().notify_assignment(
+                await PlanningNotifications().notify_assignment(
                     target_desk=assigned_to.get("desk"),
                     message="assignment_to_desk_msg",
                     meta_message="assignment_details_email",
@@ -752,7 +752,7 @@ class AssignmentsService(AsyncBaseService):
 
         desk = await get_resource_service("desks").find_one_async(req=None, _id=assigned_to.get("desk"))
         if event_cancellation:
-            PlanningNotifications().notify_assignment(
+            await PlanningNotifications().notify_assignment(
                 target_user=assigned_to.get("user"),
                 target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
                 message="assignment_event_cancelled_msg",
@@ -761,7 +761,7 @@ class AssignmentsService(AsyncBaseService):
                 contact_id=assigned_to.get("contact"),
             )
             return
-        PlanningNotifications().notify_assignment(
+        await PlanningNotifications().notify_assignment(
             target_user=assigned_to.get("user"),
             target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
             message="assignment_cancelled_desk_msg",
@@ -805,7 +805,7 @@ class AssignmentsService(AsyncBaseService):
             )
             assignee_name = contact.get("first_name") + " " + contact.get("last_name")
 
-        PlanningNotifications().notify_assignment(
+        await PlanningNotifications().notify_assignment(
             target_user=target_user,
             slugline=slugline,
             coverage_type=coverage_type,
@@ -833,7 +833,7 @@ class AssignmentsService(AsyncBaseService):
                 ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
             ]:
                 # unlink the archive item from assignment
-                archive_item = get_resource_service("archive").find_one(
+                archive_item = await get_resource_service("archive").find_one_async(
                     req=None, assignment_id=original_assignment.get(ID_FIELD)
                 )
                 if archive_item and archive_item.get("assignment_id"):
@@ -989,7 +989,7 @@ class AssignmentsService(AsyncBaseService):
                 target_user = assignment.get("assigned_to", {}).get("assignor_desk")
 
                 if not original.get("rewrite_of"):
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         target_user=target_user,
                         message="assignment_complete_msg",
                         assignee=assignee,
@@ -1008,7 +1008,7 @@ class AssignmentsService(AsyncBaseService):
                 lock_service = get_component(LockService)
                 lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
 
-    def on_events_updated(self, updates: dict[str, Any], original: EventResourceModel):
+    async def on_events_updated(self, updates: dict[str, Any], original: EventResourceModel):
         """Send assignment notifications if any relevant Event metadata has changed"""
 
         event = deepcopy(original.to_dict())
@@ -1041,7 +1041,7 @@ class AssignmentsService(AsyncBaseService):
                 slugline = (coverage.get("planning") or {}).get("slugline") or ""
                 coverage_type = (coverage.get("planning") or {}).get("g2_content_type") or ""
 
-                PlanningNotifications().notify_assignment(
+                await PlanningNotifications().notify_assignment(
                     coverage_status=(coverage.get("assigned_to") or {}).get("state"),
                     target_user=assigned_to.get("user"),
                     target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
@@ -1066,8 +1066,8 @@ class AssignmentsService(AsyncBaseService):
         assignment_link_service = get_resource_service("assignments_link")
 
         for doc in items:
-            item = archive_service.find_one(req=None, _id=doc.get(ID_FIELD))
-            original_item = archive_service.find_one(req=None, _id=item.get("rewrite_of"))
+            item = await archive_service.find_one_async(req=None, _id=doc.get(ID_FIELD))
+            original_item = await archive_service.find_one_async(req=None, _id=item.get("rewrite_of"))
 
             # Skip items not linked to an Assignment/Coverage
             if not original_item.get("assignment_id"):
@@ -1121,7 +1121,7 @@ class AssignmentsService(AsyncBaseService):
         # Because this is in response to a Resource level DELETE, we need to get the
         # item ID from the request args, then retrieve the item using that ID
         item_id = request.view_args["original_id"]
-        doc = get_resource_service("archive").find_one(req=None, _id=item_id)
+        doc = await get_resource_service("archive").find_one_async(req=None, _id=item_id)
 
         if not doc.get("assignment_id"):
             return
@@ -1169,7 +1169,7 @@ class AssignmentsService(AsyncBaseService):
         assignment = await self._get_assignment_from_archive_item({}, item)
         if assignment and (
             not item.get("rewrite_of")
-            or get_resource_service("archive").find(where={"assignment_id": assignment[ID_FIELD]}).count() <= 1
+            or await get_resource_service("archive").count_async({"assignment_id": assignment[ID_FIELD]}) <= 1
         ):
             lock_service = get_component(LockService)
             lock_service.lock(assignment, user_id, get_auth()["_id"], "content_edit", "assignments")
@@ -1256,11 +1256,11 @@ class AssignmentsService(AsyncBaseService):
         # assignment_id from it and remove the delivery record
         # Then send a notification that the content has been updated
         related_items = []
-        archive_item = archive_service.find_one(req=None, assignment_id=assignment_id)
+        archive_item = await archive_service.find_one_async(req=None, assignment_id=assignment_id)
         if archive_item:
             related_items = get_related_items(archive_item, doc)
             for item in related_items:
-                update_assignment_on_link_unlink(None, item)
+                await update_assignment_on_link_unlink(None, item)
                 push_notification(
                     "assignments:removed",
                     item=item[ID_FIELD] if item else None,
@@ -1297,7 +1297,7 @@ class AssignmentsService(AsyncBaseService):
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed
-        archive_item = get_resource_service("archive").find_one(req=None, assignment_id=doc.get(ID_FIELD))
+        archive_item = await get_resource_service("archive").find_one_async(req=None, assignment_id=doc.get(ID_FIELD))
         if updated_planning:
             push_notification(
                 "assignments:removed",

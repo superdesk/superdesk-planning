@@ -32,13 +32,14 @@ class AssignmentsService(ProdApiService):
     def _process_fetched_object(self, doc: Assignment):
         super()._process_fetched_object(doc)
 
-        content_items = get_news_item_for_assignment(doc[ID_FIELD])
         if doc.get(LINKS):
             doc[LINKS]["planning"] = construct_planning_link(doc["planning_item"])
             _add_related_event_links(doc, doc["planning_item"])
 
-            if content_items.count():
-                doc[LINKS]["content"] = [construct_content_link(item) for item in get_docs(content_items.hits)]
+            # TODO-ASYNC[archive]: Uncomment these next 3 lines after ProdAPI base service is upgraded
+            # content_items = await get_news_item_for_assignment(doc[ID_FIELD])
+            # if await content_items.count():
+            #     doc[LINKS]["content"] = [construct_content_link(item) for item in get_docs(content_items.hits)]
 
 
 def on_fetched_resource_archive(docs):

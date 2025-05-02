@@ -34,6 +34,7 @@ from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
+from superdesk.publish_async.utils import get_next_sequence_number
 from apps.archive.common import get_user, get_auth, update_dates_for
 
 from planning.errors import AssignmentApiError
@@ -274,14 +275,13 @@ class PlanningService(AsyncBaseService):
     def should_update(self, old_item, new_item, provider):
         return True
 
-    @staticmethod
-    def set_ingest_provider_sequence(item, provider):
+    async def set_ingest_provider_sequence_async(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
 
         :param item: object to which ingest_provider_sequence to be set
         :param provider: ingest_provider object, used to build the key name of sequence
         """
-        sequence_number = get_resource_service("sequences").get_next_sequence_number(
+        sequence_number = await get_next_sequence_number(
             key_name="ingest_providers_{_id}".format(_id=provider[ID_FIELD]),
             max_seq_number=get_app_config("MAX_VALUE_OF_INGEST_SEQUENCE"),
         )
@@ -753,9 +753,9 @@ class PlanningService(AsyncBaseService):
             if not original_coverage:
                 continue
 
-            if (original_coverage.get("flags") or {}).get("no_content_linking") != (coverage.get("flags") or {}).get(
-                "no_content_linking"
-            ) and coverage.get("workflow_status") != WORKFLOW_STATE.DRAFT:
+            if (original_coverage.get("flags") or {}).get("no_content_linking", False) != (
+                coverage.get("flags") or {}
+            ).get("no_content_linking", False) and coverage.get("workflow_status") != WORKFLOW_STATE.DRAFT:
                 raise SuperdeskApiError.badRequestError(
                     "Cannot edit content linking flag of a coverage already in workflow"
                 )
@@ -791,7 +791,7 @@ class PlanningService(AsyncBaseService):
                         "desk", None
                     )
 
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         coverage_status=coverage.get("workflow_status"),
                         target_desk=target_desk if target_user is None else None,
                         target_user=target_user,
@@ -811,7 +811,7 @@ class PlanningService(AsyncBaseService):
                     target_desk = coverage.get("assigned_to", original_coverage.get("assigned_to", {})).get(
                         "desk", None
                     )
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         coverage_status=coverage.get("workflow_status"),
                         target_desk=target_desk if target_user is None else None,
                         target_user=target_user,
@@ -1102,7 +1102,7 @@ class PlanningService(AsyncBaseService):
             if planning_updates.get("internal_note") and planning_original.get("internal_note") != planning_updates.get(
                 "internal_note"
             ):
-                PlanningNotifications().notify_assignment(
+                await PlanningNotifications().notify_assignment(
                     coverage_status=updates.get("workflow_status"),
                     target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
                     target_user=assigned_to.get("user"),
@@ -1128,7 +1128,7 @@ class PlanningService(AsyncBaseService):
                 )
 
             if self.is_xmp_updated(updates, original):
-                PlanningNotifications().notify_assignment(
+                await PlanningNotifications().notify_assignment(
                     coverage_status=updates.get("workflow_status"),
                     target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
                     target_user=assigned_to.get("user"),
@@ -1261,7 +1261,7 @@ class PlanningService(AsyncBaseService):
 
         for s in coverage_item.get("scheduled_updates"):
             assigned_to = s.get("assigned_to")
-            PlanningNotifications().notify_assignment(
+            await PlanningNotifications().notify_assignment(
                 coverage_status=s.get("workflow_status"),
                 target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
                 target_user=assigned_to.get("user"),
@@ -1273,7 +1273,7 @@ class PlanningService(AsyncBaseService):
             s["workflow_status"] = WORKFLOW_STATE.DRAFT
 
         assigned_to = assignment_item.get("assigned_to")
-        PlanningNotifications().notify_assignment(
+        await PlanningNotifications().notify_assignment(
             coverage_status=coverage_item.get("workflow_status"),
             target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
             target_user=assigned_to.get("user"),

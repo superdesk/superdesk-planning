@@ -45,7 +45,7 @@ class AssignmentsLinkService(AsyncBaseService):
                 req=None, _id=doc.pop("assignment_id")
             )
             item_id = doc.pop("item_id")
-            actioned_item = production.find_one(req=None, _id=item_id)
+            actioned_item = await production.find_one_async(req=None, _id=item_id)
             related_items = get_related_items(actioned_item)
             ids = await self.link_archive_items_to_assignments(assignment, related_items, actioned_item, doc)
 
@@ -91,7 +91,7 @@ class AssignmentsLinkService(AsyncBaseService):
 
                 if not doc.get("skip_archive_update", False):
                     # Update archive/published collection with assignment linking
-                    update_assignment_on_link_unlink(assignment[ID_FIELD], item, published_updated_items)
+                    await update_assignment_on_link_unlink(assignment[ID_FIELD], item, published_updated_items)
 
                 ids.append(item.get(ID_FIELD))
                 items.append(item)
@@ -152,7 +152,7 @@ class AssignmentsLinkService(AsyncBaseService):
         if not assignment:
             raise SuperdeskApiError.badRequestError("Assignment not found.")
 
-        item = get_resource_service("archive").find_one(req=None, _id=doc.get("item_id"))
+        item = await get_resource_service("archive").find_one_async(req=None, _id=doc.get("item_id"))
 
         if not item:
             raise SuperdeskApiError.badRequestError("Content item not found.")

@@ -720,7 +720,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                     target_user = coverage.assigned_to.user or original_coverage.assigned_to.user
                     target_desk = coverage.assigned_to.desk or original_coverage.assigned_to.desk
 
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         coverage_status=coverage.workflow_status,
                         target_desk=target_desk if target_user is None else None,
                         target_user=target_user,
@@ -738,7 +738,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                     target_user = coverage.assigned_to.user or original_coverage.assigned_to.user
                     target_desk = coverage.assigned_to.desk or original_coverage.assigned_to.desk
 
-                    PlanningNotifications().notify_assignment(
+                    await PlanningNotifications().notify_assignment(
                         coverage_status=coverage.workflow_status,
                         target_desk=target_desk if target_user is None else None,
                         target_user=target_user,
@@ -1003,7 +1003,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
             self._set_updates_from_planning(
                 assignment_updates, planning, original_planning, planning_updates, translated_name, translated_value
             )
-            self._notify_desk_users_if_needed(
+            await self._notify_desk_users_if_needed(
                 planning, original_planning, planning_updates, coverage_updates, assigned_to
             )
 
@@ -1012,7 +1012,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
                 assignment_service.system_update(ObjectId(assignment_id), assignment_updates, original_assignment)
 
             if self.is_xmp_updated(coverage_updates, original_coverage):
-                PlanningNotifications().notify_assignment(
+                await PlanningNotifications().notify_assignment(
                     coverage_status=coverage_updates.get("workflow_status"),
                     target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
                     target_user=assigned_to.get("user"),
@@ -1184,7 +1184,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         return False
 
     @staticmethod
-    def _notify_desk_users_if_needed(
+    async def _notify_desk_users_if_needed(
         planning: PlanningResourceModel,
         original_planning: PlanningResourceModel,
         planning_updates: dict[str, Any],
@@ -1198,7 +1198,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
         if planning_updates.get("internal_note") and original_planning.internal_note != planning_updates.get(
             "internal_note"
         ):
-            PlanningNotifications().notify_assignment(
+            await PlanningNotifications().notify_assignment(
                 coverage_status=coverage_updates.get("workflow_status"),
                 target_desk=assigned_to.get("desk") if assigned_to.get("user") is None else None,
                 target_user=assigned_to.get("user"),

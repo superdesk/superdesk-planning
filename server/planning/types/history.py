@@ -19,4 +19,4 @@ class EventsHistoryResourceModel(HistoryResourceModel):
 
 
 class AssignmentsHistoryResourceModel(HistoryResourceModel):
-    assignment_id: Annotated[fields.Keyword, validate_data_relation_async("assignments")]
+    assignment_id: Annotated[fields.ObjectId, validate_data_relation_async("assignments")]
