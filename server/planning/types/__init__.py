@@ -14,7 +14,7 @@ from datetime import datetime
 from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentProfile  # noqa
 
 from .base import BasePlanningModel
-from .common import PlanningSchedule
+from .common import PlanningSchedule, PlanningCoverage, CoverageAssignedTo
 from .delivery import DeliveryResourceModel
 from .event import EventResourceModel
 from .history import (
@@ -24,7 +24,7 @@ from .history import (
     AssignmentsHistoryResourceModel,
 )
 from .planning import PlanningResourceModel
-from .assignment import AssignmentResourceModel
+from .assignment import AssignmentResourceModel, CoverageProvider
 from .published import PublishedPlanningModel
 from .enums import (
     PostStates,
@@ -54,9 +54,12 @@ __all__ = [
     "PlanningResourceModel",
     "PlanningHistoryResourceModel",
     "AssignmentResourceModel",
+    "CoverageProvider",
     "PublishedPlanningModel",
     "PlanningTypesResourceModel",
     "PlanningSchedule",
+    "PlanningCoverage",
+    "CoverageAssignedTo",
     "PostStates",
     "UpdateMethods",
     "WorkflowState",

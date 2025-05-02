@@ -1,0 +1,57 @@
+from pydantic import Field
+
+from superdesk.core.resources import fields, Dataclass
+from planning.types import (
+    PlanningResourceModel,
+    PlanningCoverage,
+    CoverageProvider,
+    DeliveryResourceModel,
+    PLANNING_EVENT_LINK_METHOD,
+)
+from .common import MatchingProduct
+
+
+class AgendaItem(Dataclass):
+    _id: fields.ObjectId
+    name: str
+
+
+class RelatedEvent(Dataclass):
+    uri: fields.Keyword
+    name: str
+    literal: fields.Keyword
+    rel: PLANNING_EVENT_LINK_METHOD
+
+
+class CoverageContactInfo(Dataclass):
+    first_name: str
+    last_name: str
+
+
+class CoverageAssignedUser(Dataclass):
+    first_name: str
+    last_name: str
+    display_name: str
+    email: str | None = None
+
+
+class CoverageAssignedDesk(Dataclass):
+    name: str
+    email: str | None = None
+
+
+class PlanningCoverageItem(PlanningCoverage):
+    workflow_status: fields.Keyword | None = None
+    coverage_provider: CoverageProvider | None = None
+    coverage_provider_contact_info: CoverageContactInfo | None = None
+    assigned_user: CoverageAssignedUser | None = None
+    assigned_desk: CoverageAssignedDesk | None = None
+    deliveries: list[DeliveryResourceModel] | None = None
+
+
+class ContentAPIPlanningResourceModel(PlanningResourceModel):
+    agendas: list[AgendaItem] = Field(default_factory=list)
+    products: list[MatchingProduct] | None = None
+    events: list[RelatedEvent] | None = None
+    coverages: list[PlanningCoverageItem] = Field(default_factory=list)
+    event_item: str | None = None
