@@ -131,6 +131,7 @@ coverage_schema = {
         "schema": {"no_content_linking": {"type": "boolean", "default": False}},
     },
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
+    "subject": {"type": "list"},
     "scheduled_updates": {
         "type": "list",
         "schema": {

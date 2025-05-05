@@ -167,6 +167,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
 
         fields.forEach((item, index) => {
             profileCloned.editor[item.name] = {...item.field};
+            profileCloned.schema[item.name] = {...item.schema};
             profileCloned.editor[item.name].index = index;
         });
 
