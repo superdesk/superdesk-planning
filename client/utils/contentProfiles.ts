@@ -78,6 +78,8 @@ export function getGroupFieldsSorted(
     return fields;
 }
 
+export const COVERAGE_VOCABULARIES = ['news_coverage_status', 'g2_content_type'];
+
 export function getUnusedProfileFields(
     profile: IEditorProfile,
     includeGroupCheck: boolean = true
@@ -105,10 +107,13 @@ export function getUnusedProfileFields(
             && vocabularyIds.includes(fieldEntry.name)
             && fieldEntry.field.enabled
     );
-    const unusedVocabularies = vocabularyFields.filter((field) =>
-        field.schema?.type === 'custom_vocabulary'
-        && !usedVocabularies.some((usedFieldEntry) => usedFieldEntry.name === field.name)
-    );
+    const unusedVocabularies = vocabularyFields.filter((field) => {
+        const isCustomVocabulary = field.schema?.type === 'custom_vocabulary';
+        const isUnused = !usedVocabularies.some((usedFieldEntry) => usedFieldEntry.name === field.name);
+        const isCoverageVocabulary = COVERAGE_VOCABULARIES.includes(field.name);
+
+        return isCustomVocabulary && isUnused && !isCoverageVocabulary;
+    });
 
     return orderBy(
         fieldsFromProfile

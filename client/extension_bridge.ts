@@ -39,6 +39,7 @@ import {EditorFieldEventRecurringRules} from './components/fields/editor/EventRe
 import {IEventScheduleFieldProps} from './components/fields/editor/EventSchedule.interface';
 import {EditorFieldEventSchedule} from './components/fields/editor/EventSchedule';
 import {EditorFieldCV} from './components/fields/editor/CustomCV';
+import {COVERAGE_VOCABULARIES} from './utils/contentProfiles';
 import {isCustomVocabulary} from './helpers';
 import {appConfig} from 'appConfig';
 
@@ -91,6 +92,7 @@ interface IExtensionBridge {
             ): string;
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
             isCustomVocabulary(vocabulary: IVocabulary): boolean;
+            COVERAGE_VOCABULARIES: Array<string>;
         };
 
         components: {
@@ -147,6 +149,7 @@ export const extensionBridge: IExtensionBridge = {
             getVocabularyItemFieldTranslated: getVocabularyItemFieldTranslated,
             isContentLinkToCoverageAllowed: isContentLinkToCoverageAllowed,
             isCustomVocabulary: isCustomVocabulary,
+            COVERAGE_VOCABULARIES: COVERAGE_VOCABULARIES,
         },
         components: {
             EditorFieldVocabulary,
