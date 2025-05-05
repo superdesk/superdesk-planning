@@ -66,10 +66,10 @@ export const validateItem = ({
         /*
         * Custom fields validation
         */
-        if (profile.schema) {
+        if (profile?.schema) {
             const vocabularyLabels = new Map(vocabularies.getCustomVocabularies().map((x) => [x._id, x.display_name]));
 
-            Object.keys(profile.schema).filter((fieldId) => {
+            Object.keys(profile?.schema ?? []).filter((fieldId) => {
                 const hasNoDefinedValidator = !validators[profileName][fieldId] && profile.schema[fieldId] != null;
 
                 return hasNoDefinedValidator;
