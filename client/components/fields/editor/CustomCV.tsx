@@ -62,7 +62,6 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
                     onChange={(vals) => {
                         const restOfItems = (item.subject ?? []).filter((x) => x.scheme !== cv._id);
 
-                        debugger;
                         onChange(
                             'subject',
                             [...restOfItems, ...vals],
