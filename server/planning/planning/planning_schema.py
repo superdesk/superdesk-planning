@@ -15,6 +15,7 @@ from eve.utils import config
 
 from superdesk.resource import Resource, not_analyzed, string_with_analyzer
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
+from planning.content_profiles.profiles.fields import subjectField
 
 from planning.common import (
     WORKFLOW_STATE_SCHEMA,
@@ -131,7 +132,7 @@ coverage_schema = {
         "schema": {"no_content_linking": {"type": "boolean", "default": False}},
     },
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
-    "subject": {"type": "list"},
+    "subject": {"type": "list", "schema": subjectField.schema["schema"]},
     "scheduled_updates": {
         "type": "list",
         "schema": {
