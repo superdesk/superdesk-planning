@@ -5,10 +5,11 @@ import {WORKSPACE, WORKFLOW_STATE, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
-import {validateField, validators} from './index';
+import {getSubject, validateField, validators} from './index';
 import {IPlanningCoverageItem} from 'interfaces';
 import {planningApi} from '../superdeskApi';
 import {getCoverageFields} from '../api/editor/item_planning';
+import {vocabularies} from '../api/vocabularies';
 
 const validatePlanningScheduleDate = ({getState, field, value, errors, messages, diff, item}) => {
     // Only validate the schedule if it has changed
@@ -67,7 +68,7 @@ interface IValidateCoverages {
 export const validateCoverages = ({
     dispatch,
     getState,
-    value,
+    value: coverages,
     errors,
     messages,
     diff,
@@ -82,19 +83,20 @@ export const validateCoverages = ({
         }
     };
 
-    if (Array.isArray(value) === false) {
+    if (Array.isArray(coverages) === false) {
         handleErrors();
         return;
     }
 
-    value.forEach((coverage, index) => {
+    coverages.forEach((coverage, index) => {
         const originalCoverage = getItemInArrayById(
             get(item, 'coverages') || [],
             get(coverage, 'coverage_id'),
             'coverage_id'
         );
-
         const coverageProfile = getCoverageFields(coverage.planning.g2_content_type).profile;
+
+        validateCoverageVocabularyFields(coverageProfile, errors, messages, diff.coverages[index]);
 
         Object.entries(validators.coverage).forEach(([key, val]) => {
             const coverageErrors = {};
@@ -129,6 +131,29 @@ export const validateCoverages = ({
     });
 
     handleErrors();
+};
+
+export const validateCoverageVocabularyFields = (coverageProfile, errors, messages, diff) => {
+    const vocabularyLabels = new Map(vocabularies.getCustomVocabularies().map((x) => [x._id, x.display_name]));
+
+    Object.keys(coverageProfile.schema).filter((fieldId) => {
+        const hasNoDefinedValidator = !validators['coverage'][fieldId];
+        const isCustomVocabulary = coverageProfile.schema[fieldId].type === 'custom_vocabulary';
+
+        return hasNoDefinedValidator && isCustomVocabulary;
+    })
+        .forEach((fieldId) => {
+            const subjectIsInvalid = coverageProfile.schema[fieldId].required
+                ? isEmpty(getSubject(diff, fieldId))
+                : false;
+
+            if (subjectIsInvalid) {
+                errors[fieldId] = gettext('This field is required');
+                messages.push(gettext('{{ key }} is a required field', {key: vocabularyLabels.get(fieldId)}));
+            } else {
+                errors[fieldId] = null;
+            }
+        });
 };
 
 const validateCoverageScheduleDate = ({
