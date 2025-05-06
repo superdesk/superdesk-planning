@@ -171,7 +171,7 @@ async def get_user_updated_keys(event_id: str) -> set[str]:
 class EventsService(AsyncBaseService):
     """Service class for the events model."""
 
-    def post_in_mongo(self, docs, **kwargs):
+    async def post_in_mongo(self, docs, **kwargs):
         """Post an ingested item(s)"""
 
         for doc in docs:
@@ -179,10 +179,10 @@ class EventsService(AsyncBaseService):
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
 
-        self.on_create(docs)
+        await self.on_create_async(docs)
         resolve_document_etag(docs, self.datasource)
-        ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
-        self.on_created(docs)
+        ids = await self.backend.create_in_mongo_async(self.datasource, docs, **kwargs)
+        await self.on_created_async(docs)
         return ids
 
     async def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
@@ -199,7 +199,7 @@ class EventsService(AsyncBaseService):
 
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
-        response = self.backend.update_in_mongo(self.datasource, _id, document, original)
+        response = await self.backend.update_in_mongo_async(self.datasource, _id, document, original)
         self.on_updated(document, original, from_ingest=True)
         return response
 
@@ -327,10 +327,6 @@ class EventsService(AsyncBaseService):
                 # And set the Planning Item from the original
                 # (generate_recurring_events removes this field)
                 event["_planning_item"] = planning_item
-
-            if event["state"] == "ingested":
-                events_history = EventsHistoryAsyncService()
-                await events_history.on_item_created([event])
 
             if planning_item:
                 await self._link_to_planning(event)
@@ -477,6 +473,10 @@ class EventsService(AsyncBaseService):
 
         for doc in docs:
             event_id = str(doc.get(ID_FIELD))
+
+            if doc.get("state") == "ingested":
+                await history_service.on_item_created([doc])
+
             # If we duplicated this event, update the history
             if doc.get("duplicate_from"):
                 parent_id = doc["duplicate_from"]
