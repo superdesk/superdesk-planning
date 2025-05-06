@@ -68,7 +68,7 @@ async def get_items(ids, resource_type):
     items = await get_resource_service("events_planning_search").search_repos(
         resource_type, {"item_ids": ",".join(ids_string), "only_future": False}
     )
-    items = sorted([item async for item in items], key=lambda i: ids_string.index(str(i.get("_id"))))
+    items = sorted([item for item in items], key=lambda i: ids_string.index(str(i.get("_id"))))
 
     events_service = EventsAsyncService()
     for item in items:
@@ -334,9 +334,9 @@ async def generate_text_item(items, template_name, resource_type):
 
     for key, value in template.items():
         if value.endswith(".html"):
-            article[key.replace("_template", "")] = render_template(value, items=items, agendas=agendas)
+            article[key.replace("_template", "")] = await render_template(value, items=items, agendas=agendas)
         else:
-            article[key] = render_template_string(value, items=items, agendas=agendas)
+            article[key] = await render_template_string(value, items=items, agendas=agendas)
 
     return article
 
