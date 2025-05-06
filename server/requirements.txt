@@ -21,4 +21,4 @@ behave==1.2.6
 
 -e .
 # Install in editable state so we get feature fixtures
--e git+https://github.com/petrjasek/superdesk-core.git@availability-api#egg=superdesk-core
+-e git+https://github.com/superdesk/superdesk-core.git@feature/availability#egg=superdesk-core
