@@ -93,6 +93,15 @@ Feature: Events Post
             "update": {"state": "scheduled"}
         }]}
         """
+        When we get "user_metrics"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {"name": "posted_events", "value": 1}
+            ]
+        }
+        """
 
     @auth
     @notification

@@ -276,6 +276,15 @@ Feature: Events
                 }
             ]}
         """
+        When we get "user_metrics"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {"name": "posted_events", "value": 1}
+            ]
+        }
+        """
         When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
@@ -310,6 +319,15 @@ Feature: Events
                 "update": {"pubstatus": "cancelled"}
                 }
             ]}
+        """
+        When we get "user_metrics"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {"name": "posted_events", "value": 1}
+            ]
+        }
         """
 
     @auth
