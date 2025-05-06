@@ -100,7 +100,7 @@ logger = logging.getLogger(__name__)
 class PlanningService(AsyncBaseService):
     """Service class for the planning model."""
 
-    def post_in_mongo(self, docs, **kwargs):
+    async def post_in_mongo(self, docs, **kwargs):
         """Post an ingested item(s)"""
 
         for doc in docs:
@@ -108,20 +108,20 @@ class PlanningService(AsyncBaseService):
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
 
-        self.on_create(docs)
+        await self.on_create_async(docs)
         resolve_document_etag(docs, self.datasource)
-        ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
-        self.on_created(docs)
+        ids = await self.backend.create_in_mongo_async(self.datasource, docs, **kwargs)
+        await self.on_created_async(docs)
         for doc in docs:
             planning_ingested.send(self, item=doc)
         return ids
 
-    def patch_in_mongo(self, id, document, original):
+    async def patch_in_mongo(self, id, document, original):
         """Patch an ingested item onto an existing item locally"""
         prepare_ingested_item_for_storage(document)
         update_ingest_on_patch(document, original)
-        response = self.backend.update_in_mongo(self.datasource, id, document, original)
-        self.on_updated(document, original, from_ingest=True)
+        response = await self.backend.update_in_mongo_async(self.datasource, id, document, original)
+        await self.on_updated_async(document, original, from_ingest=True)
         planning_ingested.send(self, item=document, original=original)
         return response
 
