@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, DateTimeField, BooleanField, TextField
+from .fields import subjectField, BaseSchema, DateTimeField, BooleanField, TextField
 
 
 class CoverageSchema(BaseSchema):
@@ -27,6 +27,7 @@ class CoverageSchema(BaseSchema):
     news_coverage_status = schema.ListField()
     scheduled = DateTimeField(required=True)
     slugline = schema.StringField()
+    subject = subjectField
     xmp_file = schema.DictField()
     no_content_linking = BooleanField()
     scheduled_updates = schema.ListField()
@@ -72,6 +73,7 @@ DEFAULT_COVERAGE_PROFILE = {
             "enabled": True,
             "index": 9,
         },
+        "subject": {"enabled": False},
         # Fields disabled by default
         "contact_info": {"enabled": False},
         "language": {"enabled": False},

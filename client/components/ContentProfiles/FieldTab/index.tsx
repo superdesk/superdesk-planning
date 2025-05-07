@@ -201,6 +201,12 @@ export class FieldTab extends React.Component<IProps, IState> {
 
                 this.props.updateFields([{
                     ...item,
+
+                    // If field is custom_vocabulary, schema should also be removed, on field remove
+                    // otherwise if required is set to true UI issues will occur.
+                    // We check for schema.type === 'custom_vocabulary' because some field names might have ids
+                    // of a custom vocabulary, while registered as static fields
+                    schema: item.schema.type === 'custom_vocabulary' ? undefined : item.schema,
                     field: {
                         ...item.field,
                         enabled: false,

@@ -36,10 +36,15 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
                     value={(item.subject ?? []).filter((x) => x.scheme === cv._id)}
                     label={gettext(cv.display_name)}
                     required={this.props.schema.required}
+
+                    // map to specific properties so backend schema check doesn't fail
                     getOptions={() => superdeskApi.utilities.arrayToTree(
                             cv.items.map((cvItem) => ({
-                                ...cvItem,
+                                name: cvItem.name,
+                                qcode: cvItem.qcode,
                                 scheme: cv._id,
+                                parent: cvItem.parent,
+                                service: cvItem.service,
                             })) as Array<ISubject>,
                             ({qcode}) => qcode.toString(),
                             ({parent}) => parent?.toString(),

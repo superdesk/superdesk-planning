@@ -114,8 +114,6 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
     return Promise.resolve();
 }
 
-const COVERAGE_VOCABULARIES = ['news_coverage_status', 'g2_content_type'];
-
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
@@ -278,7 +276,10 @@ const extension: IExtension = {
         const vocabularies = superdesk.entities.vocabulary
             .getAll()
             .toArray()
-            .filter((x) => !COVERAGE_VOCABULARIES.includes(x._id) && extensionBridge.ui.utils.isCustomVocabulary(x));
+            .filter((x) =>
+                !extensionBridge.ui.utils.COVERAGE_VOCABULARIES.includes(x._id)
+                && extensionBridge.ui.utils.isCustomVocabulary(x),
+            );
 
         vocabularies.forEach((vocab) => {
             registerEditorField(

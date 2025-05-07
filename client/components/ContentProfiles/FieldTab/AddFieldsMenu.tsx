@@ -19,6 +19,7 @@ export default class AddFieldsMenu extends React.PureComponent<IProps, any> {
 
         return (
             <TreeMenu
+                key={options.length}
                 data-test-id="menu"
                 getId={(field) => field.name}
                 optionTemplate={(item) => item.schema?.type === 'custom_vocabulary' ? (

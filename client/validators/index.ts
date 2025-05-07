@@ -7,6 +7,8 @@ import {default as eventValidators} from './events';
 import {default as planningValidators} from './planning';
 import {formProfile} from './profile';
 import {validateAssignment} from './assignments';
+import {getFieldNameTranslated} from '../utils/contentProfiles';
+import {vocabularies} from '../api/vocabularies';
 
 export {eventValidators, formProfile, validateAssignment};
 
@@ -52,7 +54,6 @@ export const validateItem = ({
 }) => (
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
-
         const getValue = (key) => (
             key !== 'dates' ? get(diff, key) : {
                 ...get(diff, key),
@@ -60,49 +61,58 @@ export const validateItem = ({
                 _endTime: diff._endTime,
             }
         );
+        const profile = profiles[profileName];
 
-        const profile = get(profiles, profileName);
+        /*
+        * Custom fields validation
+        */
+        if (profile?.schema) {
+            const vocabularyLabels = new Map(vocabularies.getCustomVocabularies().map((x) => [x._id, x.display_name]));
 
-        if (get(profile, 'schema')) {
-            // validate custom fields
-            Object.keys(profile.schema)
-                .filter((key) => (
-                    !validators[profileName][key] &&
-                    profile.schema[key] != null)
-                )
-                .forEach((key) => {
-                    const schema = profile.schema[key];
+            Object.keys(profile?.schema ?? []).filter((fieldId) => {
+                const hasNoDefinedValidator = !validators[profileName][fieldId] && profile.schema[fieldId] != null;
 
-                    switch (true) {
-                    case schema.required:
-                        if (
-                            ((
-                                schema.type !== 'integer' &&
-                                isEmpty(diff[key])
-                            ) ||
-                            (
-                                schema.type === 'integer' &&
-                                diff[key] == null
-                            )) &&
-                            isEmpty(getSubject(diff, key)) &&
-                            fieldsToValidate == null ||
-                            (
-                                Array.isArray(fieldsToValidate) &&
-                                fieldsToValidate.includes(key)
-                            )
-                        ) {
-                            errors[key] = gettext('This field is required');
-                            messages.push(gettext('{{ key }} is a required field', {key: key.toUpperCase()}));
-                        } else if (errors[key]) {
-                            errors[key] = null;
-                        }
-                        break;
+                return hasNoDefinedValidator;
+            })
+                .forEach((fieldId) => {
+                    const fieldSchema = profile.schema[fieldId];
+                    const isNotIntegerAndEmpty = fieldSchema.type !== 'integer' && isEmpty(diff[fieldId]);
+                    const isIntegerAndEmpty = fieldSchema.type === 'integer' && diff[fieldId] == null;
+                    const isValidSubject = isEmpty(getSubject(diff, fieldId)) && fieldsToValidate == null || (
+                        Array.isArray(fieldsToValidate) &&
+                        fieldsToValidate.includes(fieldId)
+                    );
+
+                    if (
+                        fieldSchema.required
+                        && (isNotIntegerAndEmpty || isIntegerAndEmpty)
+                        && isValidSubject
+                    ) {
+                        errors[fieldId] = gettext('This field is required');
+
+                        // Pass a field label matching field label in the editor UI
+                        const fieldLabel = (() => {
+                            if (fieldSchema?.type === 'custom_vocabulary') {
+                                return vocabularyLabels.get(fieldId);
+                            }
+
+                            return getFieldNameTranslated(fieldId);
+                        })();
+
+                        messages.push(gettext('{{ key }} is a required field', {key: fieldLabel}));
+                    } else if (errors[fieldId]) {
+                        errors[fieldId] = null;
                     }
                 });
         }
 
-        return (fields || Object.keys(
-            ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])).forEach((key) => (
+        const fieldsCleaned = fields || Object.keys(
+            ignoreDateValidation
+                ? omit(validators[profileName], 'dates')
+                : validators[profileName],
+        );
+
+        fieldsCleaned.forEach((key) => {
             validateField({
                 dispatch: dispatch,
                 getState: getState,
@@ -113,8 +123,8 @@ export const validateItem = ({
                 errors: errors,
                 messages: messages,
                 diff: diff,
-            })
-        ));
+            });
+        });
     }
 );
 
@@ -182,7 +192,7 @@ export const validators = {
     },
 };
 
-function getSubject(item, scheme) {
-    return get(item, 'subject', [])
+export function getSubject(item, scheme) {
+    return (item?.subject ?? [])
         .filter((subject) => scheme != null ? subject.scheme === scheme : isEmpty(subject.scheme));
 }
