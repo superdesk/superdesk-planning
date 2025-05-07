@@ -54,7 +54,8 @@ class PlanningPrepopulateService(AsyncBaseService):
             service = get_resource_service(doc.get('resource'))
             for item in doc.get('items') or []:
                 current_app.data.mongo._mongotize(item, resource)
-                ids.extend(
-                    service.post([item])
-                )
+                if hasattr(service, 'post_async'):
+                    ids.extend(await service.post_async([item]))
+                else:
+                    ids.extend(service.post([item]))
         return ids

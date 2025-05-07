@@ -40,7 +40,7 @@ export function resetApp(profile) {
         uri: '/prepopulate',
         method: 'POST',
         timeout: 40000,
-        json: {profile: profile},
+        json: {profile: profile, remove_first: true},
         retryOnStatusCodeFailure: true,
     });
 }
