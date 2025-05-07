@@ -6,7 +6,7 @@ import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
 import {getSubject, validateField, validators} from './index';
-import {IPlanningCoverageItem} from 'interfaces';
+import {ICoverageContentProfile, IPlanningCoverageItem} from 'interfaces';
 import {planningApi} from '../superdeskApi';
 import {getCoverageFields} from '../api/editor/item_planning';
 import {vocabularies} from '../api/vocabularies';
@@ -74,7 +74,7 @@ export const validateCoverages = ({
     diff,
     item,
 }: IValidateCoverages) => {
-    const error = {};
+    const error: Dictionary<string, string> = {};
     const handleErrors = () => {
         if (!isEqual(error, {})) {
             errors.coverages = error;
@@ -133,7 +133,12 @@ export const validateCoverages = ({
     handleErrors();
 };
 
-export const validateCoverageVocabularyFields = (coverageProfile, errors, messages, diff) => {
+export const validateCoverageVocabularyFields = (
+    coverageProfile: ICoverageContentProfile,
+    errors: Dictionary<string, string>,
+    messages: Array<string>,
+    diff: IPlanningCoverageItem,
+): void => {
     const vocabularyLabels = new Map(vocabularies.getCustomVocabularies().map((x) => [x._id, x.display_name]));
 
     Object.keys(coverageProfile.schema).filter((fieldId) => {
