@@ -17,6 +17,7 @@ import logging
 from bson import ObjectId
 from icalendar import Calendar, Event
 from eve.utils import ParsedRequest
+from quart_babel import lazy_gettext
 
 import superdesk
 from superdesk.eve_async.service import AsyncBaseService
@@ -396,6 +397,7 @@ class AssignmentsService(AsyncBaseService):
 
         coverage_type = updates.get("planning", original.get("planning", {})).get("g2_content_type", "")
         slugline = updates.get("planning", original.get("planning", {})).get("slugline", "with no slugline")
+        coverage_status = updates.get("planning", original.get("planning", {})).get("news_coverage_status", {}) or {}
 
         client_url = get_app_config("CLIENT_URL")
 
@@ -496,6 +498,12 @@ class AssignmentsService(AsyncBaseService):
             else None
         )
 
+        if event_item and event_item.get("related_items"):
+            coverage_language = assignment.get("planning", {}).get("language")
+            event_item["related_items"] = [
+                article for article in event_item["related_items"] if article.get("language") == coverage_language
+            ]
+
         # The assignment is to an external contact or a user
         if assigned_to.get("contact") or assigned_to.get("user"):
             # If it is a reassignment
@@ -508,6 +516,7 @@ class AssignmentsService(AsyncBaseService):
                         message="assignment_reassigned_1_msg",
                         meta_message=meta_msg,
                         coverage_type=get_coverage_type_name(coverage_type),
+                        news_coverage_status=coverage_status.get("label", ""),
                         slugline=slugline,
                         desk=desk_name,
                         client_url=client_url,
@@ -558,9 +567,11 @@ class AssignmentsService(AsyncBaseService):
                         await PlanningNotifications().notify_assignment(
                             target_desk=assigned_to.get("desk"),
                             target_desk2=original.get("assigned_to").get("desk"),
+                            target_user=assigned_to.get("user"),
                             message="assignment_reassigned_2_msg",
                             meta_message=meta_msg,
                             coverage_type=get_coverage_type_name(coverage_type),
+                            news_coverage_status=coverage_status.get("label", ""),
                             slugline=slugline,
                             assignee=assignee,
                             desk=desk_name,
@@ -590,6 +601,7 @@ class AssignmentsService(AsyncBaseService):
                             message="assignment_reassigned_3_msg",
                             meta_message=meta_msg,
                             coverage_type=get_coverage_type_name(coverage_type),
+                            news_coverage_status=coverage_status.get("label", ""),
                             slugline=slugline,
                             assignee=assignee,
                             client_url=client_url,
@@ -616,6 +628,7 @@ class AssignmentsService(AsyncBaseService):
                             message="assignment_reassigned_4_msg",
                             meta_message=meta_msg,
                             coverage_type=get_coverage_type_name(coverage_type),
+                            news_coverage_status=coverage_status.get("label", ""),
                             slugline=slugline,
                             assignor=user.get("display_name", ""),
                             old_assignee=" from " + old_assignee if old_assignee else "",
@@ -639,13 +652,14 @@ class AssignmentsService(AsyncBaseService):
                         message="assignment_assigned_msg",
                         meta_message=meta_msg,
                         coverage_type=get_coverage_type_name(coverage_type),
+                        news_coverage_status=coverage_status.get("label", ""),
                         slugline=slugline,
                         client_url=client_url,
                         assignment_id=assignment_id,
                         assignor=(
-                            "by " + user.get("display_name", "")
+                            lazy_gettext("by ") + user.get("display_name", "")
                             if str(user.get(ID_FIELD, None)) != assigned_to.get("user", "")
-                            else "to yourself"
+                            else lazy_gettext("to yourself")
                         ),
                         assignment=assignment,
                         event=event_item,
@@ -672,6 +686,7 @@ class AssignmentsService(AsyncBaseService):
                         message="assignment_to_desk_msg",
                         meta_message="assignment_details_email",
                         coverage_type=get_coverage_type_name(coverage_type),
+                        news_coverage_status=coverage_status.get("label", ""),
                         slugline=slugline,
                         assign_type="reassigned",
                         client_url=client_url,
@@ -694,6 +709,7 @@ class AssignmentsService(AsyncBaseService):
                         message="assignment_submitted_msg",
                         meta_message="assignment_details_email",
                         coverage_type=get_coverage_type_name(coverage_type),
+                        news_coverage_status=coverage_status.get("label", ""),
                         slugline=slugline,
                         desk=desk_name,
                         client_url=client_url,
@@ -714,6 +730,7 @@ class AssignmentsService(AsyncBaseService):
                     message="assignment_to_desk_msg",
                     meta_message="assignment_details_email",
                     coverage_type=get_coverage_type_name(coverage_type),
+                    news_coverage_status=coverage_status.get("label", ""),
                     slugline=slugline,
                     assign_type=assign_type,
                     client_url=client_url,
@@ -750,6 +767,7 @@ class AssignmentsService(AsyncBaseService):
         slugline = assignment.get("planning").get("slugline", "")
         coverage_type = assignment.get("planning").get("g2_content_type", "")
 
+        news_coverage_status = assignment.get("planning").get("news_coverage_status", {})
         desk = await get_resource_service("desks").find_one_async(req=None, _id=assigned_to.get("desk"))
         if event_cancellation:
             await PlanningNotifications().notify_assignment(
@@ -758,6 +776,7 @@ class AssignmentsService(AsyncBaseService):
                 message="assignment_event_cancelled_msg",
                 slugline=slugline,
                 coverage_type=get_coverage_type_name(coverage_type),
+                news_coverage_status=news_coverage_status.get("label", ""),
                 contact_id=assigned_to.get("contact"),
             )
             return
@@ -765,15 +784,16 @@ class AssignmentsService(AsyncBaseService):
             target_user=assigned_to.get("user"),
             target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
             message="assignment_cancelled_desk_msg",
-            user=(
-                user.get("display_name", "Unknown")
+            user=str(
+                user.get("display_name", lazy_gettext("Unknown"))
                 if str(user.get(ID_FIELD, None)) != assigned_to.get("user")
-                else "You"
+                else lazy_gettext("You")
             ),
             omit_user=True,
             slugline=slugline,
             desk=desk.get("name"),
             coverage_type=get_coverage_type_name(coverage_type),
+            news_coverage_status=news_coverage_status.get("label", ""),
             assignment_id=assignment.get(ID_FIELD),
             contact_id=assigned_to.get("contact"),
         )
@@ -792,6 +812,7 @@ class AssignmentsService(AsyncBaseService):
 
         slugline = assignment.get("planning").get("slugline", "")
         coverage_type = assignment.get("planning").get("g2_content_type", "")
+        news_coverage_status = assignment.get("planning").get("news_coverage_status", {})
         target_user = assigned_to.get("assignor_user")
 
         assignee_name = ""
@@ -812,6 +833,7 @@ class AssignmentsService(AsyncBaseService):
             message="assignment_accepted_msg",
             user=assignee_name,
             omit_user=True,
+            news_coverage_status=news_coverage_status.get("label", ""),
         )
 
     async def cancel_assignment(self, original_assignment, coverage, event_cancellation=False, event_reschedule=False):

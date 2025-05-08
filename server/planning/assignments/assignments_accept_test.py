@@ -20,8 +20,8 @@ class AssignmentAcceptTestCase(TestCase):
         assignment_id = "5b20652a1d41c812e24aa49e"
 
         users = [
-            {"_id": ObjectId(), "display_name": "Name McName Face", "username": "username_1"},
-            {"_id": ObjectId(), "username": "username_2"},
+            {"_id": ObjectId(), "username": "foo", "display_name": "Name McName Face"},
+            {"_id": ObjectId(), "username": "bar"},
         ]
 
         assignment = {
@@ -48,6 +48,7 @@ class AssignmentAcceptTestCase(TestCase):
                 activity.get("data"),
                 {
                     "coverage_type": "picture",
+                    "news_coverage_status": "",
                     "user": "Name McName Face",
                     "omit_user": True,
                     "slugline": "Accept Test",

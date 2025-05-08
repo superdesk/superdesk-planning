@@ -74,7 +74,10 @@ events_schema = {
     "registration_details": {"type": "string"},
     "invitation_details": {"type": "string"},
     "accreditation_info": {"type": "string"},
-    "accreditation_deadline": {"type": "datetime"},
+    "accreditation_deadline": {
+        "type": "datetime",
+        "nullable": True,
+    },
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},
     "anpa_category": {
@@ -124,8 +127,8 @@ events_schema = {
                 "nullable": True,
             },
             "end_tz": {"type": "string", "nullable": True},
-            "all_day": {"type": "boolean"},
-            "no_end_time": {"type": "boolean"},
+            "all_day": {"type": "boolean", "nullable": True},
+            "no_end_time": {"type": "boolean", "nullable": True},
             "duration": {"type": "string", "nullable": True},
             "confirmation": {"type": "string", "nullable": True},
             "recurring_date": {

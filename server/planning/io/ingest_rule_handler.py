@@ -19,7 +19,7 @@ from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
 from apps.rules.rule_handlers import RoutingRuleHandler, register_routing_rule_handler
 
-from planning.common import POST_STATE, update_post_item
+from planning.common import POST_STATE, update_post_item, WORKFLOW_STATE
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +74,9 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
 
         if updates is not None:
             ingest_item.update(updates)
-        elif attributes.get("autopost", False):
-            await self.process_autopost(ingest_item)
+
+        if attributes.get("autopost", False):
+            await self.process_autopost(ingest_item, updates)
 
     def _is_original_posted(self, ingest_item: Dict[str, Any]):
         service = get_resource_service("events" if ingest_item[ITEM_TYPE] == CONTENT_TYPE.EVENT else "planning")
@@ -168,7 +169,7 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
         updates["_etag"] = updated_item["_etag"]
         return updates
 
-    async def process_autopost(self, ingest_item: Dict[str, Any]):
+    async def process_autopost(self, ingest_item: dict[str, Any], updates: dict | None):
         """Automatically post this item"""
         if self._is_original_posted(ingest_item):
             # No need to autopost this item
@@ -176,15 +177,24 @@ class PlanningRoutingRuleHandler(RoutingRuleHandler):
             # And any updates from ingest should automatically re-post this item
             return
 
-        item_id = ingest_item.get(ID_FIELD)
-        await update_post_item(
+        if not updates:
+            updates = {}
+
+        updates.update(
             {
-                "pubstatus": ingest_item.get("ingest_pubstatus") or POST_STATE.USABLE,
+                "pubstatus": get_pubstatus(ingest_item),
                 "_etag": ingest_item.get("_etag"),
-            },
-            ingest_item,
+            }
         )
+
+        item_id = ingest_item.get(ID_FIELD)
+        await update_post_item(updates, ingest_item)
         logger.info(f"Posted item {item_id}")
+
+
+def get_pubstatus(ingest_item: Dict[str, Any]) -> str:
+    """Get the pubstatus from the ingest item"""
+    return ingest_item.get("ingest_pubstatus") or POST_STATE.USABLE
 
 
 register_routing_rule_handler(PlanningRoutingRuleHandler())

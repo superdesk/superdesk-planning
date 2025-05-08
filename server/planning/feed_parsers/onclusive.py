@@ -147,7 +147,7 @@ class OnclusiveFeedParser(FeedParser):
                 start=self.datetime(event["startDate"], "00:00:00"),
                 end=self.datetime(event["endDate"], "00:00:00"),
                 all_day=True,
-                no_end_time=False,
+                no_end_time=True,
             )
 
     def parse_timezone(self, start_date, event):

@@ -97,7 +97,7 @@ class EventsMLFeedParserTestCase(TestCase):
     async def test_content(self):
         async with self.app.app_context():
             self._load_fixture("events_ml_259625.xml")
-            self._add_cvs()
+            await self._add_cvs()
             item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
 
             self.assertEqual(item[GUID_FIELD], "urn:newsml:stt.fi:20220705:259625")
@@ -184,7 +184,7 @@ class EventsMLFeedParserTestCase(TestCase):
                     start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                     end=datetime(2022, 7, 5, 23, 59, 59, tzinfo=utc),
                     all_day=True,
-                    no_end_time=False,
+                    no_end_time=True,
                     tz=None,
                 ),
             )
@@ -197,14 +197,14 @@ class EventsMLFeedParserTestCase(TestCase):
                     start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                     end=datetime(2022, 7, 7, 23, 59, 59, tzinfo=utc),
                     all_day=True,
-                    no_end_time=False,
+                    no_end_time=True,
                     tz=None,
                 ),
             )
 
     async def test_editor_3_fields(self):
         self._load_fixture("events_ml_259625.xml")
-        self._add_cvs()
+        await self._add_cvs()
         url = "https://www.eurooppamarkkinat.fi/"
         link = f'<a href="{url}" target="_blank">{url}</a>'
 
@@ -259,7 +259,7 @@ class EventsMLFeedParserTestCase(TestCase):
         async with self.app.app_context():
             service = get_resource_service("events")
             self._load_fixture("events_ml_259625.xml")
-            self._add_cvs()
+            await self._add_cvs()
             source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
             provider = {
                 "_id": "abcd",
@@ -296,7 +296,7 @@ class EventsMLFeedParserTestCase(TestCase):
             published_service = get_resource_service("published_planning")
 
             self._load_fixture("events_ml_259625.xml")
-            self._add_cvs()
+            await self._add_cvs()
             original_source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
             source = deepcopy(original_source)
             provider = {
@@ -349,7 +349,7 @@ class EventsMLFeedParserTestCase(TestCase):
     async def test_parse_dates(self):
         async with self.app.app_context():
             self._load_fixture("events_ml_259270.xml")
-            self._add_cvs()
+            await self._add_cvs()
             source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
             dates = source["dates"]
             self.assertTrue(dates["all_day"])

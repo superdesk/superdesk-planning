@@ -1261,14 +1261,14 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
                 event.dates.tz
             );
         }
-    } else {
-        if (event.dates?.start != null && moment.isMoment(event.dates.start)) {
-            event.dates.start = event.dates.start.toISOString();
-        }
+    }
 
-        if (event.dates?.end != null && moment.isMoment(event.dates.end)) {
-            event.dates.end = event.dates.end.toISOString();
-        }
+    if (event.dates?.start != null && moment.isMoment(event.dates.start)) {
+        event.dates.start = event.dates.start.toISOString();
+    }
+
+    if (event.dates?.end != null && moment.isMoment(event.dates.end)) {
+        event.dates.end = event.dates.end.toISOString();
     }
 
     return event;
