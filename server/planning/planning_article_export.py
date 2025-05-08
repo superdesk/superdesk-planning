@@ -68,7 +68,7 @@ async def get_items(ids, resource_type):
     items = await get_resource_service("events_planning_search").search_repos(
         resource_type, {"item_ids": ",".join(ids_string), "only_future": False}
     )
-    items = sorted([item for item in items], key=lambda i: ids_string.index(str(i.get("_id"))))
+    items = sorted([item async for item in items], key=lambda i: ids_string.index(str(i.get("_id"))))
 
     events_service = EventsAsyncService()
     for item in items:

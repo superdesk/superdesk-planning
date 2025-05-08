@@ -151,7 +151,7 @@ class ExportScheduledFilters:
         await get_resource_service("planning_article_export").post_async(
             [
                 {
-                    "items": [item["_id"] for item in items],
+                    "items": [item["_id"] async for item in items],
                     "desk": schedule.get("desk"),
                     "template": schedule.get("template"),
                     "article_template": schedule.get("article_template"),
