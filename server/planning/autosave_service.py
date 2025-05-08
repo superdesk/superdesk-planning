@@ -18,7 +18,12 @@ class AutosaveAsyncService(AsyncResourceService):
 
         await super().on_delete(doc)
 
-        if doc.type == "event":
+        # TODO-ASYNC: We should also delete Planning files on autosave delete as well
+        # This can include:
+        # * files
+        # * coverages.planning.files
+        # * coverages.planning.xmp_file
+        if doc.item_type == "event" and doc.files:
             events_service = EventsAsyncService()
             await events_service.delete_event_files({}, doc.files)
 

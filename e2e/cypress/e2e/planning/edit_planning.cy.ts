@@ -1,6 +1,7 @@
 import moment from 'moment';
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT} from '../../support/common';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue, CLIENT_FORMAT, addItems} from '../../support/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../../support/planning';
+import {setupPlanningPublishing} from '../../fixtures/publish_config';
 
 describe('Planning.Planning: edit metadata', () => {
     const editor = new PlanningEditor();
@@ -10,7 +11,7 @@ describe('Planning.Planning: edit metadata', () => {
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
-
+        setupPlanningPublishing();
         login();
 
         waitForPageLoad.planning();
@@ -120,7 +121,6 @@ describe('Planning.Planning: edit metadata', () => {
         editor.waitForAutosave();
         editor.waitTillOpen();
         editor.postButton.should('exist');
-
 
         editor.type({
             'flags.marked_for_not_publication': true,

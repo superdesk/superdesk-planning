@@ -11,6 +11,7 @@
 from copy import deepcopy
 import logging
 
+from superdesk import get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
@@ -21,7 +22,6 @@ from planning.item_lock import LockService
 from apps.common.components.utils import get_component
 from planning.common import update_returned_document
 from planning.events.events_schema import events_schema
-from planning.types import EventResourceModel
 
 
 CUSTOM_HATEOAS_EVENTS = {"self": {"title": "Events", "href": "/events/{_id}"}}
@@ -48,18 +48,14 @@ class EventsLockService(AsyncBaseService):
         build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][ID_FIELD]))
 
     async def lock_item(self, item_id, action, doc):
-        events_service = EventResourceModel.get_service()
-
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
         lock_action = action
         lock_service = get_component(LockService)
-
-        item = await events_service.find_by_id_raw(item_id)
-        assert item is not None, "Expected item to be a dict, got None"
+        item = await get_resource_service("events").find_one_async(req=None, _id=item_id)
 
         await lock_service.validate_relationship_locks(item, "events")
-        updated_item = lock_service.lock(item, user_id, session_id, lock_action, "events")
+        updated_item = await lock_service.lock(item, user_id, session_id, lock_action, "events")
 
         return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_EVENTS)
 
@@ -82,14 +78,10 @@ class EventsUnlockService(AsyncBaseService):
         build_custom_hateoas(CUSTOM_HATEOAS_EVENTS, docs[0], _id=str(docs[0][ID_FIELD]))
 
     async def unlock_item(self, item_id, doc):
-        events_service = EventResourceModel.get_service()
-
         user_id = get_user(required=True)["_id"]
         session_id = get_auth()["_id"]
         lock_service = get_component(LockService)
-
-        item = await events_service.find_by_id_raw(item_id)
-        assert item is not None, "Expected item to be a dict, got None"
-
-        updated_item = lock_service.unlock(item, user_id, session_id, "events")
+        resource_service = get_resource_service("events")
+        item = await resource_service.find_one_async(req=None, _id=item_id)
+        updated_item = await lock_service.unlock(item, user_id, session_id, "events")
         return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_EVENTS)

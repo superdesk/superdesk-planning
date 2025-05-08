@@ -407,9 +407,10 @@ def get_coverage_type_name(qcode):
 
 async def remove_autosave_on_spike(item):
     if item.get("lock_action") == "edit":
-        autosave_service = PlanningAutosaveResourceModel.get_service()
         if item.get("type") == "event":
             autosave_service = EventAutosaveResourceModel.get_service()
+        else:
+            autosave_service = PlanningAutosaveResourceModel.get_service()
 
         await autosave_service.delete_many(lookup={"_id": item.get(ID_FIELD)})
 

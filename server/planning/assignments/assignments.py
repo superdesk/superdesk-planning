@@ -179,7 +179,7 @@ class AssignmentsService(AsyncBaseService):
             self.notify("assignments:created", doc, {})
 
             if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                get_resource_service("planning").set_xmp_file_info(doc)
+                await get_resource_service("planning").set_xmp_file_info(doc)
                 await self.send_assignment_notification(doc, {})
 
     def set_assignment(self, updates, original=None):
@@ -1249,8 +1249,8 @@ class AssignmentsService(AsyncBaseService):
 
         # Make sure the content linked to assignment (if) is also not locked
         # This is needed when the planing item is being unposted/spiked
-        archive_items = self.get_archive_items_for_assignment(doc)
-        for archive_item in archive_items:
+        archive_items = await self.get_archive_items_for_assignment(doc)
+        async for archive_item in archive_items:
             if archive_item.get("lock_user") and not is_locked_in_this_session(archive_item):
                 raise SuperdeskApiError.forbiddenError(message="Associated archive item is locked")
 
