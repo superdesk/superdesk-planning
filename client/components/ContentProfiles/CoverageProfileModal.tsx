@@ -8,13 +8,15 @@ import {
     IEditorProfile,
 } from '../../interfaces';
 import {superdeskApi, planningApi} from '../../superdeskApi';
-import {getErrorMessage} from '../../utils';
+import {getErrorMessage, planningUtils} from '../../utils';
+import {contentTypes} from '../../selectors/general';
 import {Button, Modal, RadioButtonGroup, Spacer} from 'superdesk-ui-framework/react';
+import {getLanguages} from '../../selectors/vocabs';
+import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {FieldTab} from './FieldTab';
 import './style.scss';
-import {getLanguages} from '../../selectors/vocabs';
-import {validateAndNotifyForRequiredFields} from './utils';
 import {COVERAGE_SYSTEM_REQUIRED_FIELDS} from '../../api/utils/constants';
+import {validateAndNotifyForRequiredFields} from './utils';
 import {updateCoverageProfiles} from '../../actions/coverages';
 import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
 
@@ -31,18 +33,6 @@ interface IState {
 interface IProps {
     closeModal(): void;
 }
-
-const allCoverageTypesObject: {[key in ICoverageType]: 1} = {
-    text: 1,
-    picture: 1,
-    video: 1,
-    audio: 1,
-    infographics: 1,
-    liveBlog: 1,
-    liveVideo: 1,
-};
-
-export const ALL_COVERAGE_TYPES: Array<ICoverageType> = Object.keys(allCoverageTypesObject) as Array<ICoverageType>;
 
 export class CoverageProfilesModal extends React.Component<IProps, IState> {
     constructor(props) {
@@ -202,37 +192,16 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const {selectedType} = this.state;
-        const propsMap: Record<ICoverageType, {label: string; icon: string;}> = {
-            text: {
-                label: gettext('Text'),
-                icon: 'text',
-            },
-            picture: {
-                label: gettext('Picture'),
-                icon: 'picture',
-            },
-            video: {
-                label: gettext('Video'),
-                icon: 'video'
-            },
-            audio: {
-                label: gettext('Audio'),
-                icon: 'audio'
-            },
-            infographics: {
-                label: gettext('Infographics'),
-                icon: 'file',
-            },
-            liveBlog: {
-                label: gettext('Live Blog'),
-                icon: 'video',
-            },
-            liveVideo: {
-                label: gettext('Live Video'),
-                icon: 'post',
-            },
-        };
+        const coverageContentTypes: Array<{value: string; label: string; icon: string}> =
+            (contentTypes(planningApi.redux.store.getState()))
+                .map((item) => ({
+                    value: item.qcode,
+                    label: getVocabularyItemFieldTranslated(item, superdeskApi.helpers.nameof('name'), 'en'),
+
+                    // remove 'icon-' string because RadioButtonGroup icon prop for each option expects just icon name
+                    // function not changed because it's originally used in other places
+                    icon: planningUtils.getCoverageIcon(item['content item type'] || item.qcode).replace('icon-', ''),
+                }));
 
         return (
             <Modal
@@ -272,11 +241,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                             onChange={(nextType: ICoverageType) => {
                                 this.switchProfileType(nextType);
                             }}
-                            options={ALL_COVERAGE_TYPES.map((type) => ({
-                                label: propsMap[type].label,
-                                icon: propsMap[type].icon,
-                                value: type,
-                            }))}
+                            options={coverageContentTypes}
                             group={{
                                 orientation: 'vertical',
                             }}
