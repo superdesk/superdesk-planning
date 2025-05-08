@@ -89,7 +89,7 @@ describe('eventValidators', () => {
         });
 
         it('fails if timezone is not defined', () => {
-            event.dates.tz = null;
+            event.dates.tz = undefined;
             testValidate(eventValidators.validateDates, 'dates',
                 {
                     dates: {tz: 'This field is required'},

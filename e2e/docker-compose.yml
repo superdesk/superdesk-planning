@@ -54,7 +54,7 @@ services:
             - ELASTICSEARCH_INDEX=superdesk_e2e
             - CELERY_BROKER_URL=redis://redis:6379/1
             - REDIS_URL=redis://redis:6379/1
-            - DEFAULT_TIMEZONE=Europe/Prague
+            - DEFAULT_TIMEZONE=Australia/Sydney
             - SECRET_KEY=e2e
 
 networks:

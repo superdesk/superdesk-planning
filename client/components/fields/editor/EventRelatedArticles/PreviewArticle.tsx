@@ -32,15 +32,17 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
 
     componentDidMount(): void {
         const {getLabelNameResolver} = superdeskApi.entities.article;
-        const {getCustomFieldVocabularies} = superdeskApi.entities.vocabulary;
 
         getLabelNameResolver().then((getLabel: (fieldId: string) => string) => {
-            const customFieldVocabularies = getCustomFieldVocabularies();
+            const allVocabulariesMap = superdeskApi.entities.vocabulary.getAll();
+            const allVocabulariesArray = allVocabulariesMap.valueSeq().toArray();
+
+            const customVocabularies = allVocabulariesArray;
 
             this.getLabel = getLabel;
 
             this.setState({
-                customFieldVocabularies: customFieldVocabularies,
+                customFieldVocabularies: customVocabularies,
                 loading: false,
             });
         });
@@ -61,6 +63,16 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
         );
         const headlineField = extractedFields['headline'];
         const bodyField = extractedFields['body_html'];
+        const subjects = this.props.item.subject || [];
+        const groupedTags = subjects.reduce((acc, tag) => {
+            const scheme = tag.scheme || 'unknown';
+
+            if (!acc[scheme]) {
+                acc[scheme] = [];
+            }
+            acc[scheme].push(tag);
+            return acc;
+        }, {} as {[scheme: string]: Array<any>});
 
         return (
             <div style={{width: '100%'}} className="preview-content">
@@ -93,8 +105,36 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
                                             <PreviewFieldType field={field} language={this.props.item.language} />
                                         </div>
                                     </div>
-                                ))
-                        }
+                                ))}
+
+                        {Object.entries(groupedTags).map(([scheme, tags]) => {
+                            const vocab = this.state.customFieldVocabularies.find((v) => v._id === scheme);
+
+                            if (!vocab?.display_name) {
+                                return null;
+                            }
+
+                            return (
+                                <div key={scheme} className="tr">
+                                    <div className="td sd-padding-b--0-5">
+                                        <span className="form-label">{vocab.display_name}</span>
+                                    </div>
+                                    <div className="td sd-padding-b--0-5 sd-padding-l--4">
+                                        <div className="subject-tags-container">
+                                            {tags.map((item) => (
+                                                <span
+                                                    key={item.qcode}
+                                                    className="small-tag"
+                                                    style={{marginInlineEnd: '4px'}}
+                                                >
+                                                    {item.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                     <ContentDivider />
                     {

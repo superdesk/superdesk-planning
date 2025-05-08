@@ -229,3 +229,29 @@ class IngestRuleHandlerTestCase(TestCase):
 
     def get_event_history(self):
         return list(self.app.data.find_all("events_history"))
+
+    def test_autopost_with_calendars(self):
+        event = self.event_items[0].copy()
+        events_service = get_resource_service("events")
+        events_service.post_in_mongo([event])
+
+        self.app.data.insert(
+            "vocabularies",
+            [
+                {
+                    "_id": "event_calendars",
+                    "items": self.calendars,
+                }
+            ],
+        )
+
+        calendars_rule = {"actions": {"extra": {"autopost": True, "calendars": ["sports"]}}}
+        self.handler.apply_rule(calendars_rule, event, {})
+
+        history = self.get_event_history()
+        assert len(history) == 2
+        assert history[-1]["operation"] == "post"
+
+        original = events_service.find_one(req=None, _id=event["_id"])
+        assert original["pubstatus"] == "usable"
+        assert original["state"] == "scheduled"

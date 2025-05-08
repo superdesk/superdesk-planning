@@ -5,7 +5,7 @@ from bson import ObjectId
 
 
 class AssignmentsTestCase(TestCase):
-    users = [{"_id": ObjectId(), "username": "username_a1"}, {"_id": ObjectId(), "username": "username_a2"}]
+    users = [{"_id": ObjectId(), "username": "u1"}, {"_id": ObjectId(), "username": "u2"}]
 
     auth = [
         {"_id": ObjectId(), "user": users[0]["_id"]},

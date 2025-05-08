@@ -17,6 +17,10 @@ interface IProps extends IEditorFieldProps {
     hideTime?: boolean;
 }
 
+
+/**
+ * @deprecated use EditorFieldDateTimeUIFramework from client/components/fields/editor/base/dateTimeUIFramework.tsx
+ */
 export class EditorFieldDateTime extends React.PureComponent<IProps> {
     node: HTMLInputElement;
 
@@ -45,8 +49,15 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
     render() {
         const field = this.props.field;
         const value = get(this.props.item, field, this.props.defaultValue);
-        const momentValue = value != null ? moment(value) : undefined;
         const error = get(this.props.errors ?? {}, field);
+
+        let momentValue : moment.Moment;
+
+        if (value != null) {
+            momentValue = this.props.allDay ? moment.utc(value) : moment(value);
+        } else {
+            momentValue = undefined;
+        }
 
         return (
             <DateTimeInput
