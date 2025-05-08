@@ -18,6 +18,7 @@ from bson import ObjectId
 from icalendar import Calendar, Event
 from eve.utils import config, ParsedRequest
 from flask import request, json, current_app as app
+from flask_babel import lazy_gettext
 
 import superdesk
 from superdesk import get_resource_service
@@ -69,9 +70,6 @@ from planning.common import (
     planning_auto_assign_to_workflow,
     get_config_assignment_manual_reassignment_only,
 )
-from icalendar import Calendar, Event
-from flask_babel import lazy_gettext
-from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
