@@ -195,7 +195,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                     value: item.qcode,
                     label: getVocabularyItemFieldTranslated(
                         item,
-                        superdeskApi.helpers.nameof('name'),
+                        superdeskApi.helpers.nameof<typeof item>('name'),
                         planningApi.contentProfiles.getDefaultLanguage(this.state.originalProfile)
                     ),
 
