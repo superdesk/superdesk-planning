@@ -2360,7 +2360,9 @@ export interface IPlanningAPI {
             getFields(profile: IPlanningContentProfile): Array<keyof IEventOrPlanningItem>;
             getConfig(contentType: string): IProfileMultilingualDetails;
         };
-        getDefaultLanguage(profile: IPlanningContentProfile): IVocabularyItem['qcode'];
+        getDefaultLanguage(
+            profile: IPlanningContentProfile | Partial<ICoverageContentProfile>,
+        ): IVocabularyItem['qcode'];
         getDefaultValues(profile: IPlanningContentProfile): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem>;
         patch(
             original: IPlanningContentProfile,

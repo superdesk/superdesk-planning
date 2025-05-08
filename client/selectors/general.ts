@@ -1,7 +1,7 @@
 import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
 
-import {IAgenda, IPlanningAppState} from '../interfaces';
+import {IAgenda, IG2ContentType, IPlanningAppState} from '../interfaces';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
 import {ITEM_TYPE, COVERAGES, ASSIGNMENTS} from '../constants/index';
 
@@ -14,7 +14,7 @@ export const newsCoverageStatus = (state) => get(state, 'vocabularies.newscovera
 export const regions = (state) => get(state, 'vocabularies.regions', []);
 export const countries = (state) => get(state, 'vocabularies.countries', []);
 
-export const contentTypes = (state) => get(state, 'vocabularies.g2_content_type', []);
+export const contentTypes = (state: any): Array<IG2ContentType> => state?.vocabularies.g2_content_type ?? [];
 export const preferredVocabularies = (state) => get(state, 'session.userPreferences.cvs:preferred_items.value');
 
 export const currentDeskId = (state) => get(state, 'workspace.currentDeskId', null);

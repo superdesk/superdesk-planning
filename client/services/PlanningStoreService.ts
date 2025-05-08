@@ -299,7 +299,7 @@ export class PlanningStoreService {
             .then((voc) => {
                 this.store.dispatch({
                     type: 'RECEIVE_VOCABULARIES',
-                    payload: voc._items,
+                    payload: voc,
                 });
             });
     }

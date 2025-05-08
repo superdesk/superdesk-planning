@@ -87,6 +87,12 @@ class CoverageAddAdvancedModalComponent extends React.Component<IProps, IState> 
         const {value, contentTypes, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
         const savedCoverages = value
+
+            // if there was a savedCoverage but later the coverage type got removed/disabled from
+            // g2_content_type vocabulary do not try to render it
+            .filter((coverage) =>
+                contentTypes.find((type) => type.qcode === coverage.planning.g2_content_type) != null,
+            )
             .map((coverage) => {
                 const contentType = contentTypes.find(
                     (type) => type.qcode === coverage.planning.g2_content_type
