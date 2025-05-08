@@ -151,11 +151,6 @@ describe('Planning.Workqueue', () => {
 
         // Close the last item
         workqueue.closeItem(0);
-        // TODO-ASYNC: This Ignore|Cancel|Save dialog should not appear here, as the item should not have changed
-        modal.waitTillOpen(30000);
-        modal.getFooterButton('Ignore')
-            .should('exist')
-            .click();
         workqueue.expectItemCount(0);
         list.item(1)
             .find('.sd-list-item__border--locked')

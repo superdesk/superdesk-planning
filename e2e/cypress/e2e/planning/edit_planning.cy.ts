@@ -46,8 +46,7 @@ describe('Planning.Planning: edit metadata', () => {
 
         list.expectEmpty();
         editor.expectItemType();
-        // TODO: Fix workqueue items not appearing when creating a new planning item
-        // workqueue.expectTitle(0, 'Untitled*');
+        workqueue.expectTitle(0, 'Untitled*');
 
         editor.openAllToggleBoxes();
         editor.type(plan);
@@ -56,7 +55,7 @@ describe('Planning.Planning: edit metadata', () => {
         editor.expectCoverages(coverages);
         editor.waitForAutosave();
 
-        // workqueue.expectTitle(0, 'slugline of the planning*');
+        workqueue.expectTitle(0, 'slugline of the planning*');
         editor.createButton
             .should('exist')
             .click();
@@ -104,7 +103,7 @@ describe('Planning.Planning: edit metadata', () => {
 
         list.expectEmpty();
         editor.expectItemType();
-        // workqueue.expectTitle(0, 'Untitled*');
+        workqueue.expectTitle(0, 'Untitled*');
 
         editor.openAllToggleBoxes();
         editor.type(plan);
