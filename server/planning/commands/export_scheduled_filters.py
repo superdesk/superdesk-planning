@@ -68,11 +68,11 @@ class ExportScheduledFilters:
     async def process_filters(self, filters, now_local, now_utc):
         event_planning_filters_service = EventsPlanningFiltersAsyncService()
 
-        if not await filters.count():
+        if len(filters) == 0:
             logger.info("No enabled filter schedules found, not continuing")
             return
 
-        async for search_filter in filters:
+        for search_filter in filters:
             for schedule in search_filter.get("schedules") or []:
                 try:
                     await self.export_filter(search_filter, schedule, now_local, now_utc)
@@ -100,7 +100,8 @@ class ExportScheduledFilters:
 
     async def get_filters_with_schedules(self):
         event_planning_filters_service = EventsPlanningFiltersAsyncService()
-        return await event_planning_filters_service.search(lookup={"schedules": {"$exists": True, "$ne": []}})
+        filters = await event_planning_filters_service.search(lookup={"schedules": {"$exists": True, "$ne": []}})
+        return await filters.to_list_raw()
 
     def should_export(self, schedule, now_local):
         last_sent = None
@@ -150,7 +151,7 @@ class ExportScheduledFilters:
         await get_resource_service("planning_article_export").post_async(
             [
                 {
-                    "items": [item["_id"] for item in items],
+                    "items": [item["_id"] async for item in items],
                     "desk": schedule.get("desk"),
                     "template": schedule.get("template"),
                     "article_template": schedule.get("article_template"),

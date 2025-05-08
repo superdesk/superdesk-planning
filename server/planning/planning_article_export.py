@@ -334,9 +334,9 @@ async def generate_text_item(items, template_name, resource_type):
 
     for key, value in template.items():
         if value.endswith(".html"):
-            article[key.replace("_template", "")] = render_template(value, items=items, agendas=agendas)
+            article[key.replace("_template", "")] = await render_template(value, items=items, agendas=agendas)
         else:
-            article[key] = render_template_string(value, items=items, agendas=agendas)
+            article[key] = await render_template_string(value, items=items, agendas=agendas)
 
     return article
 

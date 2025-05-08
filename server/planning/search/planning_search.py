@@ -34,6 +34,10 @@ class PlanningSearchService(AsyncBaseService):
     def elastic(self):
         return get_current_app().data.elastic
 
+    @property
+    def elastic_async(self):
+        return get_current_app().data.elastic_async
+
     def _get_query(self, req):
         """Get elastic query."""
         args = getattr(req, "args", {})
@@ -72,10 +76,10 @@ class PlanningSearchService(AsyncBaseService):
         schema.update(get_app_config("DOMAIN")[resource].get("schema", {}))
         return get_dates(schema)
 
-    def _format_docs(self, docs):
+    async def _format_docs(self, cursor):
         date_fields = {}
 
-        for doc in docs:
+        async for doc in cursor:
             resource = "events" if doc["type"] == "event" else doc["type"]
 
             if not date_fields.get(resource):
@@ -122,9 +126,9 @@ class PlanningSearchService(AsyncBaseService):
 
         elastic = EventResourceModel.get_service().elastic
         hits = await elastic.search(fix_query(query), indexes, projection)
-        docs = self.elastic._parse_hits(hits, types[0])
+        cursor = self.elastic_async._parse_hits_async(hits, types[0])
 
-        self._format_docs(docs)
+        await self._format_docs(cursor)
 
         # to avoid call on_fetched_resource callback from some internal resource
         on_fetched_resource = True
@@ -139,14 +143,14 @@ class PlanningSearchService(AsyncBaseService):
                 response = {
                     ITEMS: [
                         doc
-                        for doc in docs
+                        async for doc in cursor
                         if doc["type"] == resource or (resource == "events" and doc["type"] == "event")
                     ]
                 }
                 await getattr(app, "on_fetched_resource").call_async(resource, response)
                 await getattr(app, "on_fetched_resource_%s" % resource).call_async(response)
 
-        return docs
+        return cursor
 
 
 class PlanningSearchResource(superdesk.Resource):
