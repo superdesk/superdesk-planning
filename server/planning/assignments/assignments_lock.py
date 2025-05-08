@@ -60,7 +60,7 @@ class AssignmentsLockService(AsyncBaseService):
         item = await get_resource_service("assignments").find_one_async(req=None, _id=item_id)
 
         await self.validate(item, user_id)
-        updated_item = lock_service.lock(item, user_id, session_id, lock_action, "assignments")
+        updated_item = await lock_service.lock(item, user_id, session_id, lock_action, "assignments")
 
         return _update_returned_document(docs[0], updated_item)
 
@@ -110,7 +110,7 @@ class AssignmentsUnlockService(AsyncBaseService):
         item = await resource_service.find_one_async(req=None, _id=item_id)
 
         if not await self.is_assignment_locked_by_user(item, user_id):
-            updated_item = lock_service.unlock(item, user_id, session_id, "assignments")
+            updated_item = await lock_service.unlock(item, user_id, session_id, "assignments")
             return _update_returned_document(docs[0], updated_item)
 
         return _update_returned_document(docs[0], item)
