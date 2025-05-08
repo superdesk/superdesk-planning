@@ -69,7 +69,9 @@ from planning.common import (
     planning_auto_assign_to_workflow,
     get_config_assignment_manual_reassignment_only,
 )
-
+from icalendar import Calendar, Event
+from flask_babel import lazy_gettext
+from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from planning.common import format_address, get_assginment_name
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
@@ -567,6 +569,7 @@ class AssignmentsService(superdesk.Service):
                         PlanningNotifications().notify_assignment(
                             target_desk=assigned_to.get("desk"),
                             target_desk2=original.get("assigned_to").get("desk"),
+                            target_user=assigned_to.get("user"),
                             message="assignment_reassigned_2_msg",
                             meta_message=meta_msg,
                             coverage_type=get_coverage_type_name(coverage_type),
@@ -592,9 +595,11 @@ class AssignmentsService(superdesk.Service):
                         # it is being reassigned by someone else so notify both the new assignee and the old
                         PlanningNotifications().notify_assignment(
                             target_user=original.get("assigned_to").get("user"),
-                            target_desk=original.get("assigned_to").get("desk")
-                            if original.get("assigned_to").get("user") is None
-                            else None,
+                            target_desk=(
+                                original.get("assigned_to").get("desk")
+                                if original.get("assigned_to").get("user") is None
+                                else None
+                            ),
                             message="assignment_reassigned_3_msg",
                             meta_message=meta_msg,
                             coverage_type=get_coverage_type_name(coverage_type),
@@ -655,9 +660,11 @@ class AssignmentsService(superdesk.Service):
                         slugline=slugline,
                         client_url=client_url,
                         assignment_id=assignment_id,
-                        assignor="by " + user.get("display_name", "")
-                        if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user", "")
-                        else "to yourself",
+                        assignor=(
+                            lazy_gettext("by ") + user.get("display_name", "")
+                            if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user", "")
+                            else lazy_gettext("to yourself")
+                        ),
                         assignment=assignment,
                         event=event_item,
                         omit_user=True,
@@ -784,9 +791,11 @@ class AssignmentsService(superdesk.Service):
             target_user=assigned_to.get("user"),
             target_desk=assigned_to.get("desk") if not assigned_to.get("user") else None,
             message="assignment_cancelled_desk_msg",
-            user=user.get("display_name", "Unknown")
-            if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user")
-            else "You",
+            user=str(
+                user.get("display_name", lazy_gettext("Unknown"))
+                if str(user.get(config.ID_FIELD, None)) != assigned_to.get("user")
+                else lazy_gettext("You")
+            ),
             omit_user=True,
             slugline=slugline,
             desk=desk.get("name"),
