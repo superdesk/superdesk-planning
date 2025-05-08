@@ -11,7 +11,6 @@ import {superdeskApi, planningApi} from '../../superdeskApi';
 import {getErrorMessage, planningUtils} from '../../utils';
 import {contentTypes} from '../../selectors/general';
 import {Button, Modal, RadioButtonGroup, Spacer} from 'superdesk-ui-framework/react';
-import {getLanguages} from '../../selectors/vocabs';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {FieldTab} from './FieldTab';
 import './style.scss';
@@ -23,7 +22,6 @@ import {coverageProfiles, oldProfile} from '../../selectors/coverageProfiles';
 interface IState {
     saving: boolean;
     dirty: boolean;
-    languages: Array<IG2ContentType>;
     originalProfile: Partial<ICoverageContentProfile>;
     profile: Partial<ICoverageContentProfile> & IEditorProfile;
     selectedType: ICoverageType;
@@ -48,7 +46,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             dirty: false,
             profile: defaultProfile,
             originalProfile: defaultProfile,
-            languages: getLanguages(state),
             selectedType: 'text',
             allProfiles: allProfiles,
         };
@@ -196,7 +193,11 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             (contentTypes(planningApi.redux.store.getState()))
                 .map((item) => ({
                     value: item.qcode,
-                    label: getVocabularyItemFieldTranslated(item, superdeskApi.helpers.nameof('name'), 'en'),
+                    label: getVocabularyItemFieldTranslated(
+                        item,
+                        superdeskApi.helpers.nameof('name'),
+                        planningApi.contentProfiles.getDefaultLanguage(this.state.originalProfile)
+                    ),
 
                     // remove 'icon-' string because RadioButtonGroup icon prop for each option expects just icon name
                     // function not changed because it's originally used in other places
