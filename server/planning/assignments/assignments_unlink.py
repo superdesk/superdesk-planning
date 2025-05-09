@@ -52,8 +52,8 @@ class AssignmentsUnlinkService(AsyncBaseService):
                 actioned_item = archived.find_one(req=None, _id=actioned_item_id)
                 actioned_item_id = actioned_item.get("item_id")
 
-            coverage = get_coverage_for_assignment(assignment)
-            related_items = get_related_items(
+            coverage = await get_coverage_for_assignment(assignment)
+            related_items = await get_related_items(
                 actioned_item,
                 assignment if coverage and len(coverage.get("scheduled_updates")) <= 0 else None,
             )
@@ -79,11 +79,13 @@ class AssignmentsUnlinkService(AsyncBaseService):
             doc.update(actioned_item)
 
             assignments = await self.get_all_assignments_for_coverage(assignment.get("coverage_item"))
-            for a in assignments:
+            async for a in assignments:
                 # Update all assignments in the coverage including scheduled_updates
                 updates = {"assigned_to": deepcopy(a.get("assigned_to"))}
                 archive_items = await assignments_service.get_archive_items_for_assignment(a)
-                other_linked_items = [a for a in archive_items if str(a.get(ID_FIELD)) != str(actioned_item[ID_FIELD])]
+                other_linked_items = [
+                    a async for a in archive_items if str(a.get(ID_FIELD)) != str(actioned_item[ID_FIELD])
+                ]
                 if len(other_linked_items) <= 0:
                     updates["assigned_to"]["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                     await assignments_service.patch_async(a.get(ID_FIELD), updates)

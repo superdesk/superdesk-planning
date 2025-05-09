@@ -134,14 +134,14 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
 
         return embedded_planning_lists
 
-    def _synchronise_associated_plannings(
+    async def _synchronise_associated_plannings(
         self, embedded_planning_list: list[tuple[EventResourceModel, list[EmbeddedPlanning]]]
     ):
         """
         Synchronise/process the given associated Planning item(s)
         """
         for event, embedded_planning in embedded_planning_list:
-            sync_event_metadata_with_planning_items(None, event.to_dict(), embedded_planning)
+            await sync_event_metadata_with_planning_items(None, event.to_dict(), embedded_planning)
 
     async def create(self, docs: list[EventResourceModel]) -> list[EventResourceModel]:
         """
@@ -155,7 +155,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         await self.prepare_events_data(docs)
         new_events = await super().create(docs)
 
-        self._synchronise_associated_plannings(embedded_planning_list)
+        await self._synchronise_associated_plannings(embedded_planning_list)
 
         return new_events
 
@@ -326,7 +326,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         await super().update(event_id, updates, etag)
 
         # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
-        sync_event_metadata_with_planning_items(original_event.to_dict(), updates, embedded_planning)
+        await sync_event_metadata_with_planning_items(original_event.to_dict(), updates, embedded_planning)
 
     async def on_updated(self, updates: dict[str, Any], original: EventResourceModel, from_ingest: bool = False):
         # if this Event was converted to a recurring series
@@ -681,7 +681,7 @@ class EventsAsyncService(BasePlanningAsyncService[EventResourceModel]):
         # create the new events
         embedded_planning_list = self._extract_embedded_planning(generated_events)
         await super().create(generated_events)
-        self._synchronise_associated_plannings(embedded_planning_list)
+        await self._synchronise_associated_plannings(embedded_planning_list)
 
         # signal's listener will generate these events' history
         await signals.events_created.send(generated_events)

@@ -352,7 +352,7 @@ class EventsService(AsyncBaseService):
 
         if len(embedded_planning_lists):
             for event, embedded_planning in embedded_planning_lists:
-                sync_event_metadata_with_planning_items(None, event, embedded_planning)
+                await sync_event_metadata_with_planning_items(None, event, embedded_planning)
 
         return ids
 
@@ -526,7 +526,7 @@ class EventsService(AsyncBaseService):
         item = self.backend.update(self.datasource, id, updates, original)
 
         # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
-        sync_event_metadata_with_planning_items(original, updates, embedded_planning)
+        await sync_event_metadata_with_planning_items(original, updates, embedded_planning)
 
         return item
 
@@ -732,7 +732,7 @@ class EventsService(AsyncBaseService):
             new_updates.pop("embedded_planning", None)
             self.patch(event_id, new_updates)
             app = get_current_app().as_any()
-            app.on_updated_events(new_updates, {"_id": event_id})
+            await app.on_updated_events.call_async(new_updates, {"_id": event_id})
 
         # And finally push a notification to connected clients
         push_notification(
@@ -799,9 +799,9 @@ class EventsService(AsyncBaseService):
             remove_lock_information(item=updates)
 
         # Create the new events and generate their history
-        self.create(generated_events)
+        await self.create_async(generated_events)
         app = get_current_app().as_any()
-        app.on_inserted_events(generated_events)
+        await app.on_inserted_events.call_async(generated_events)
         return generated_events
 
     @staticmethod
@@ -840,9 +840,9 @@ class EventsService(AsyncBaseService):
         planning_service.validate_on_update(updates, planning_item, get_user())
         await planning_service.system_update_async(plan_id, updates, planning_item)
         app = get_current_app().as_any()
-        app.on_updated_planning(updates, planning_item)
+        await app.on_updated_planning.call_async(updates, planning_item)
 
-    def get_expired_items(self, expiry_datetime, spiked_events_only=False):
+    async def get_expired_items(self, expiry_datetime, spiked_events_only=False):
         """Get the expired items
 
         Where end date is in the past
@@ -863,25 +863,26 @@ class EventsService(AsyncBaseService):
         while total_received + get_max_recurrent_events() < 10000:  # 10k is max elastic limit
             query["from"] = total_received
 
-            results = self.search(query)
+            results = await self.search_async(query)
 
             # If the total_events has not been set, then this is the first query
             # In which case we need to store the total hits from the search
             if total_events < 0:
-                total_events = results.count()
+                total_events = await results.count()
 
                 # If the search doesn't contain any results, return here
                 if total_events < 1:
                     break
 
             # If the last query doesn't contain any results, return here
-            if not len(results.docs):
+            items = await results.to_list()
+            if not len(items):
                 break
 
-            total_received += len(results.docs)
+            total_received += len(items)
 
             # Yield the results for iteration by the callee
-            yield list(results.docs)
+            yield items
 
     async def delete_event_files(self, updates, original):
         files = [f for f in original.get("files", []) if f not in (updates or {}).get("files", [])]

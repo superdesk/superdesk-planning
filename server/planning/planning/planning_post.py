@@ -181,7 +181,7 @@ class PlanningPostService(AsyncBaseService):
 
     async def publish_planning(self, plan, version):
         # Check and remove private contacts while posting planning, only public contact will be visible
-        public_contact_ids = [str(contact["_id"]) for contact in get_contacts_from_item(plan)]
+        public_contact_ids = [str(contact["_id"]) async for contact in await get_contacts_from_item(plan)]
         for coverage in plan.get("coverages") or []:
             if (coverage.get("planning") or {}).get("contact_info"):
                 if str(coverage["planning"]["contact_info"]) not in public_contact_ids:

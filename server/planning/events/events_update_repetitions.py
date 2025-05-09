@@ -81,7 +81,7 @@ async def delete_event(event: dict[str, Any], updated_rule: dict[str, Any]):
     else:
         await events_service.delete_many(lookup={"_id": event[ID_FIELD]})
         app = get_current_app().as_any()
-        app.on_deleted_item_events(event)
+        await app.on_deleted_item_events.call_async(event)
 
 
 def create_event(date, updates: dict[str, Any], original: dict[str, Any], time_delta):

@@ -21,6 +21,7 @@ from .common import (
     get_sort_field,
     get_sort_order,
     search_text_field,
+    FilterFunctionType,
 )
 
 
@@ -327,7 +328,7 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
     query.sort.append({field: {"order": order}})
 
 
-EVENT_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+EVENT_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_events,
     search_slugline,
     search_reference,

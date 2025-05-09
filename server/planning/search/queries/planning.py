@@ -25,6 +25,7 @@ from .common import (
     get_sort_field,
     get_sort_order,
     search_text_field,
+    FilterFunctionType,
 )
 
 
@@ -340,7 +341,7 @@ def search_coverage_assignment_status(params: Dict[str, Any], query: elastic.Ela
             )
 
 
-PLANNING_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+PLANNING_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_planning,
     search_agendas,
     search_no_agenda_assigned,

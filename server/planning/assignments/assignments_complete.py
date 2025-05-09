@@ -59,7 +59,7 @@ class AssignmentsCompleteService(AsyncBaseService):
 
         if text_assignment:
             if original.get("scheduled_update_id"):
-                coverage = get_coverage_for_assignment(original)
+                coverage = await get_coverage_for_assignment(original)
                 cov_assigned_to = coverage.get("assigned_to")
                 if cov_assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
                     raise SuperdeskApiError.forbiddenError(

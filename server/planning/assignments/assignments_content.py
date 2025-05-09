@@ -172,7 +172,7 @@ class AssignmentsContentService(AsyncBaseService):
 
             if assignment.get("scheduled_update_id"):
                 # get the latest archive item to be updated
-                archive_item = self.get_latest_news_item_for_coverage(assignment)
+                archive_item = await self.get_latest_news_item_for_coverage(assignment)
 
                 if not archive_item:
                     raise SuperdeskApiError.badRequestError("Archive item not found to create a rewrite.")
@@ -254,24 +254,23 @@ class AssignmentsContentService(AsyncBaseService):
 
         return ids
 
-    def get_latest_news_item_for_coverage(self, assignment):
-        coverage = get_coverage_for_assignment(assignment)
-        previous_items = []
-
+    async def get_latest_news_item_for_coverage(self, assignment):
+        coverage = await get_coverage_for_assignment(assignment)
         assignment_id = (coverage.get("assigned_to") or {}).get("assignment_id")
+
         if len(coverage.get("scheduled_updates")) == 0:
-            previous_items = get_archive_items_for_assignment(assignment_id)
+            previous_items = await get_archive_items_for_assignment(assignment_id)
         else:
-            previous_items = get_archive_items_for_assignment(assignment_id)
+            previous_items = await get_archive_items_for_assignment(assignment_id)
             for s in coverage.get("scheduled_updates"):
-                new_items = get_archive_items_for_assignment((s.get("assigned_to") or {}).get("assignment_id"))
-                if len(new_items) > 0:
+                new_items = await get_archive_items_for_assignment((s.get("assigned_to") or {}).get("assignment_id"))
+                if await new_items.count() > 0:
                     previous_items = new_items
 
-        if len(previous_items) > 0:
-            return previous_items[0]
-
-        return None
+        try:
+            return await previous_items.next()
+        except StopAsyncIteration:
+            return None
 
     async def _validate(self, doc):
         """Validate the doc for content creation"""
@@ -295,7 +294,7 @@ class AssignmentsContentService(AsyncBaseService):
         # Handle schedule_updates validation
         if assignment.get("scheduled_update_id"):
             # Make sure all previous content is linked
-            coverage = get_coverage_for_assignment(assignment)
+            coverage = await get_coverage_for_assignment(assignment)
 
             allowed_states = [
                 ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
