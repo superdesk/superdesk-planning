@@ -1,26 +1,23 @@
-import pytz
-
 from typing import Any
 
 import pytz
 import arrow
-from pytest import mark
 from copy import deepcopy
 from bson import ObjectId
 from mock import Mock, patch
 from datetime import datetime, timedelta
 
-from planning.planning import PlanningAsyncService
 from planning.types.common import RelatedEvent
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
+from superdesk.flask import g
+from superdesk.tests import utils as test_utils, fixtures
 
-from planning.tests import TestCase
+from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import format_address, POST_STATE
 from planning.item_lock import LockService
 from planning.events.events import generate_recurring_dates
 from planning.types import PlanningRelatedEventLink
-from planning.events.events_service import EventsAsyncService
 from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_update_time import process_update_time
@@ -32,7 +29,11 @@ from .events import is_event_updated
 class EventsBaseTestCase(TestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        self.events_service = EventsAsyncService()
+        self.events_service = get_resource_service("events")
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await planning_fixtures.publish_config.configure_planning_publishing()
 
 
 class EventTestCase(EventsBaseTestCase):
@@ -132,7 +133,7 @@ class EventTestCase(EventsBaseTestCase):
         generated_events = generate_recurring_events(10)
         self.app.data.insert("events", generated_events)
 
-        selected = await self.events_service.find_one_raw(name="Event 5")
+        selected = await self.events_service.find_one_async(req=None, name="Event 5")
         self.assertEquals("Event 5", selected["name"])
 
         (historic, past, future) = await get_recurring_timeline(selected)
@@ -158,7 +159,7 @@ class EventTestCase(EventsBaseTestCase):
             expected_time += timedelta(days=1)
 
     async def test_create_cancelled_event(self):
-        await self.events_service.create(
+        await self.events_service.post_async(
             [
                 {
                     "guid": "test",
@@ -172,9 +173,9 @@ class EventTestCase(EventsBaseTestCase):
             ]
         )
 
-        event = await self.events_service.find_one(guid="test")
+        event = await self.events_service.find_one_async(req=None, guid="test")
         assert event is not None
-        assert event.pubstatus == "cancelled"
+        assert event["pubstatus"] == "cancelled"
 
 
 class EventLocationFormatAddress(EventsBaseTestCase):
@@ -230,8 +231,8 @@ class EventLocationFormatAddress(EventsBaseTestCase):
 
 class EventPlanningSchedule(EventsBaseTestCase):
     async def _get_all_events_raw(self) -> list[dict[str, Any]]:
-        events_cursor = await self.events_service.find({})
-        return await events_cursor.to_list_raw()
+        events_cursor = await self.events_service.find_async({})
+        return await events_cursor.to_list()
 
     def assertPlanningSchedule(self, events, event_count):
         self.assertEqual(len(events), event_count)
@@ -257,7 +258,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
             },
         }
 
-        await self.events_service.create([event])
+        await self.events_service.post_async([event])
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
@@ -278,7 +279,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         }
 
         # create recurring events
-        await self.events_service.create([event])
+        await self.events_service.post_async([event])
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
@@ -312,7 +313,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=3)
 
         res = await process_reschedule_event({"dates": schedule}, events[0], False)
-        rescheduled_event = await self.events_service.find_by_id_raw(events[0].get("_id"))
+        rescheduled_event = await self.events_service.find_one_async(req=None, _id=events[0].get("_id"))
         self.assertNotEqual(rescheduled_event["dates"]["start"], schedule["start"].isoformat())
 
         events = await self._get_all_events_raw()
@@ -334,7 +335,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
             },
         }
 
-        await self.events_service.create([event])
+        await self.events_service.post_async([event])
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
@@ -374,7 +375,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
             },
         }
 
-        await self.events_service.create([event])
+        await self.events_service.post_async([event])
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
@@ -386,9 +387,9 @@ class EventPlanningSchedule(EventsBaseTestCase):
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 5)
 
-    @patch("planning.events.events.get_user")
-    async def test_planning_schedule_convert_to_recurring(self, get_user_mock):
-        get_user_mock.return_value = {"_id": "None"}
+    # @patch("planning.events.events.get_user")
+    async def test_planning_schedule_convert_to_recurring(self):
+        # get_user_mock.return_value = {"_id": "None"}
         event = {
             "name": "Friday Club",
             "dates": {
@@ -398,13 +399,12 @@ class EventPlanningSchedule(EventsBaseTestCase):
             },
         }
 
-        await self.events_service.create([event])
+        await self.events_service.post_async([event])
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 1)
 
-        # TODO-ASYNC: adjust when `LockService` is async as it uses `get_resource_service` dynamically
         lock_service = LockService(self.app)
-        locked_event = lock_service.lock(events[0], None, ObjectId(), "convert_recurring", "events")
+        locked_event = await lock_service.lock(events[0], g.user["_id"], ObjectId(), "convert_recurring", "events")
         self.assertEqual(locked_event.get("lock_action"), "convert_recurring")
 
         schedule = deepcopy(events[0].get("dates"))
@@ -417,7 +417,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
             "end_repeat_mode": "count",
         }
 
-        await self.events_service.update(events[0].get("_id"), {"dates": schedule})
+        await self.events_service.patch_async(events[0].get("_id"), {"dates": schedule})
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
 
@@ -443,7 +443,7 @@ def generate_recurring_events(num_events):
 
 class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
     async def test_planning_item_is_published_with_events(self):
-        planning_service = PlanningAsyncService()
+        planning_service = get_resource_service("planning")
         event = {
             "type": "event",
             "_id": "123",
@@ -466,7 +466,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "name": "Demo ",
             "update_method": "single",
         }
-        new_events = await self.events_service.create([event])
+        new_events = await self.events_service.post_async([event])
         planning = {
             "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
             "name": "Demo 1",
@@ -477,7 +477,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "agendas": [],
             "languages": ["en"],
             "user": "12234553",
-            "related_events": [PlanningRelatedEventLink(_id=new_events[0].id, link_type="primary")],
+            "related_events": [PlanningRelatedEventLink(_id=new_events[0], link_type="primary")],
             "coverages": [
                 {
                     "coverage_id": "urn:newsml:localhost:5000:2023-09-08T17:40:56.290922:e264a179-5b1a-4b52-b73b-332660848cae",
@@ -497,7 +497,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ],
         }
-        new_plannings = await planning_service.create([planning])
+        new_plannings = await planning_service.post_async([planning])
         schema = {
             "language": {
                 "languages": ["en", "de"],
@@ -526,20 +526,20 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
         )
         now = utcnow()
         await get_resource_service("events_post").post_async(
-            [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            [{"event": new_events[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 
-        event_item = await self.events_service.find_by_id_raw(new_events[0].id)
+        event_item = await self.events_service.find_one_async(req=None, _id=new_events[0])
         self.assertEqual(len([event_item]), 1)
         self.assertEqual(event_item.get("state"), "scheduled")
 
-        planning_item = await planning_service.find_by_id_raw(new_plannings[0].id)
+        planning_item = await planning_service.find_one_async(req=None, _id=new_plannings[0])
         self.assertEqual(len([planning_item]), 1)
         self.assertEqual(planning_item.get("state"), "scheduled")
         assert now <= arrow.get(planning_item.get("versionposted")).datetime < now + timedelta(seconds=5)
 
     async def test_new_planning_is_published_when_adding_to_published_event(self):
-        planning_service = PlanningAsyncService()
+        planning_service = get_resource_service("planning")
 
         self.app.data.insert(
             "planning_types",
@@ -552,7 +552,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ],
         )
-        new_events = await self.events_service.create(
+        new_events = await self.events_service.post_async(
             [
                 {
                     "type": "event",
@@ -572,33 +572,31 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             ]
         )
         await get_resource_service("events_post").post_async(
-            [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            [{"event": new_events[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
-        new_plannings = await planning_service.create(
+        new_plannings = await planning_service.post_async(
             [
                 {
                     "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                     "name": "Demo 1",
                     "type": "planning",
-                    "related_events": [RelatedEvent(id=new_events[0].id, link_type="primary")],
+                    "related_events": [RelatedEvent(id=new_events[0], link_type="primary")],
                 }
             ]
         )
 
-        event_item = await self.events_service.find_by_id_raw(new_events[0].id)
+        event_item = await self.events_service.find_one_async(req=None, _id=new_events[0])
         self.assertIsNotNone(event_item)
         self.assertEqual(event_item["pubstatus"], POST_STATE.USABLE)
 
-        planning_item = await planning_service.find_by_id_raw(new_plannings[0].id)
+        planning_item = await planning_service.find_one_async(req=None, _id=new_plannings[0])
         self.assertIsNotNone(planning_item)
 
         # TODO-ASYNC: fix once `events_post` is migrated
-        # self.assertEqual(planning_item["pubstatus"], POST_STATE.USABLE)
+        self.assertEqual(planning_item["pubstatus"], POST_STATE.USABLE)
 
-    # TODO-ASYNC: figure out
-    @mark.skip(reason="Fails with an async unrelated error")
     async def test_related_planning_item_fields_validation_on_post(self):
-        planning_service = PlanningAsyncService()
+        planning_service = get_resource_service("planning")
         event = {
             "type": "event",
             "_id": "1234",
@@ -621,7 +619,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "name": "Demo ",
             "update_method": "single",
         }
-        new_events = await self.events_service.create([event])
+        new_events = await self.events_service.post_async([event])
         planning = {
             "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
             "name": "Demo 1",
@@ -631,7 +629,13 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             "slugline": "slug",
             "agendas": [],
             "languages": ["en"],
-            "event_item": new_events[0].id,
+            "event_item": new_events[0],
+            "related_events": [
+                {
+                    "_id": new_events[0],
+                    "link_type": "primary",
+                }
+            ],
             "coverages": [
                 {
                     "coverage_id": "urn:newsmle264a179-5b1a-4b52-b73b-332660848cae",
@@ -639,6 +643,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                         "scheduled": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                         "g2_content_type": "text",
                         "language": "en",
+                        "genre": "None",
                     },
                     "news_coverage_status": {
                         "qcode": "ncostat:int",
@@ -651,8 +656,8 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                 }
             ],
         }
-        new_plannings = await planning_service.create([planning])
-        self.app.data.insert(
+        new_plannings = await planning_service.post_async([planning])
+        await test_utils.post_items(
             "planning_types",
             [
                 {
@@ -674,13 +679,13 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
             ],
         )
         await get_resource_service("events_post").post_async(
-            [{"event": new_events[0].id, "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
+            [{"event": new_events[0], "pubstatus": "usable", "update_method": "single", "failed_planning_ids": []}]
         )
 
-        event_item = await self.events_service.find_by_id_raw(new_events[0].id)
+        event_item = await self.events_service.find_one_async(req=None, _id=new_events[0])
         self.assertEqual(len([event_item]), 1)
         self.assertEqual(event_item.get("state"), "scheduled")
 
-        planning_item = await planning_service.find_by_id_raw(new_plannings[0].id)
+        planning_item = await planning_service.find_one_async(req=None, _id=new_plannings[0])
         self.assertEqual(len([planning_item]), 1)
         self.assertEqual(planning_item.get("state"), "scheduled")

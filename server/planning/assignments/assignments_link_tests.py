@@ -1,262 +1,106 @@
-from planning.tests import TestCase
-from superdesk import get_resource_service
 from bson import ObjectId
 
+from superdesk.flask import g
+from superdesk.tests import utils as test_utils, fixtures
+from planning.tests import TestCase, fixtures as planning_fixtures
 
-assignment_id = "5b20652a1d41c812e24aa49e"
-USER_ID = ObjectId("5d385f31fe985ec67a0ca583")
+
+class BaseAssignmentLinkTestCase(TestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await test_utils.post_items("stages", fixtures.stages.all_stages())
+
+        self.article = fixtures.articles.article_1()
+        self.article.update(
+            {
+                "state": "in_progress",
+                "event_id": fixtures.articles.ARTICLE_1_ID,
+            }
+        )
+        self.article.pop("operation", None)
+        await test_utils.post_items("archive", [self.article])
 
 
-class AssignmentLinkTestCase(TestCase):
+class AssignmentLinkTestCase(BaseAssignmentLinkTestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("planning", [planning_fixtures.planning.plan1()])
+        self.assignment = await planning_fixtures.planning.get_plan1_assignment()
+        await test_utils.post_items(
+            "assignments_link",
+            [{"assignment_id": self.assignment["_id"], "item_id": fixtures.articles.ARTICLE_1_ID, "reassign": True}],
+        )
+
     async def test_delivery_record(self):
-        async with self.app.app_context():
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId(assignment_id),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": "test",
-                            "desk": "test",
-                        },
-                    }
-                ],
-            )
+        deliveries = await test_utils.find_many("delivery", lookup={"assignment_id": ObjectId(self.assignment["_id"])})
+        self.assertEqual(len(deliveries), 1)
 
-            await get_resource_service("assignments_link").post_async(
-                [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
-            )
+        self.assertEqual(deliveries[0].get("item_id"), fixtures.articles.ARTICLE_1_ID)
+        self.assertEqual(deliveries[0].get("assignment_id"), ObjectId(self.assignment["_id"]))
+        self.assertEqual(deliveries[0].get("planning_id"), "plan1")
+        self.assertEqual(deliveries[0].get("coverage_id"), "cov1")
 
-            delivery_item = await get_resource_service("delivery").find_one_async(req=None, item_id="item1")
+        archive_item = await test_utils.find_by_id("archive", fixtures.articles.ARTICLE_1_ID)
+        self.assertEqual(archive_item.get("assignment_id"), ObjectId(self.assignment["_id"]))
 
-            self.assertEqual(delivery_item.get("item_id"), "item1")
-            self.assertEqual(delivery_item.get("assignment_id"), ObjectId(assignment_id))
-            self.assertEqual(delivery_item.get("planning_id"), "plan1")
-            self.assertEqual(delivery_item.get("coverage_id"), "cov1")
-
-            archive_item = await get_resource_service("archive").find_one_async(req=None, _id="item1")
-            self.assertEqual(archive_item.get("assignment_id"), ObjectId(assignment_id))
-
-            assignment = await get_resource_service("assignments").find_one_async(req=None, _id=ObjectId(assignment_id))
-            self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
+        assignment = await test_utils.find_by_id("assignments", self.assignment["_id"])
+        self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
 
     async def test_updates_creates_new_record(self):
-        async with self.app.app_context():
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId(assignment_id),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": USER_ID,
-                            "desk": "test",
-                        },
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "users",
-                [
-                    {
-                        "_id": USER_ID,
-                        "username": "admin",
-                        "password": "blabla",
-                        "email": "admin@example.com",
-                        "user_type": "administrator",
-                        "is_active": True,
-                        "needs_activation": False,
-                        "is_author": True,
-                        "is_enabled": True,
-                        "display_name": "John Smith",
-                        "sign_off": "ADM",
-                        "first_name": "John",
-                        "last_name": "Smith",
-                        "role": ObjectId("5d542206c04280bc6d6157f9"),
-                    }
-                ],
-            )
+        deliveries = await test_utils.find_many("delivery", lookup={"assignment_id": ObjectId(self.assignment["_id"])})
+        self.assertEqual(len(deliveries), 1)
 
-            await get_resource_service("assignments_link").post_async(
-                [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
-            )
+        article = fixtures.articles.article_1()
+        article.update(
+            {
+                "_id": "rewrite_item1",
+                "rewrite_of": fixtures.articles.ARTICLE_1_ID,
+                "event_id": fixtures.articles.ARTICLE_1_ID,
+            }
+        )
+        await test_utils.post_items("archive", [article])
+        await test_utils.post_items(
+            "assignments_link",
+            [{"assignment_id": self.assignment["_id"], "item_id": "rewrite_item1", "reassign": True}],
+        )
 
-            deliveries = await get_resource_service("delivery").get_async(
-                req=None, lookup={"assignment_id": ObjectId(assignment_id)}
-            )
-            self.assertEqual(await deliveries.count(), 1)
-
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "rewrite_item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "rewrite_of": "item1",
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            await get_resource_service("assignments_link").post_async(
-                [
-                    {
-                        "assignment_id": assignment_id,
-                        "item_id": "rewrite_item1",
-                        "reassign": True,
-                    }
-                ]
-            )
-
-            deliveries = await get_resource_service("delivery").get_async(
-                req=None, lookup={"assignment_id": ObjectId(assignment_id)}
-            )
-            self.assertEqual(await deliveries.count(), 2)
+        deliveries = await test_utils.find_many("delivery", lookup={"assignment_id": ObjectId(self.assignment["_id"])})
+        self.assertEqual(len(deliveries), 2)
 
     async def test_captures_item_state(self):
-        async with self.app.app_context():
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId(assignment_id),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": "test",
-                            "desk": "test",
-                        },
-                    }
-                ],
-            )
+        deliveries = await test_utils.find_many("delivery", lookup={"assignment_id": ObjectId(self.assignment["_id"])})
+        self.assertEqual(len(deliveries), 1)
+        self.assertEqual(deliveries[0].get("item_state"), "in_progress")
 
-            await get_resource_service("assignments_link").post_async(
-                [{"assignment_id": assignment_id, "item_id": "item1", "reassign": True}]
-            )
 
-            deliveries = await get_resource_service("delivery").get_async(
-                req=None, lookup={"assignment_id": ObjectId(assignment_id)}
-            )
-            self.assertEqual(await deliveries.count(), 1)
-            self.assertEqual(deliveries[0].get("item_state"), "in_progress")
+class AssignmentLinkUpdatesTestCase(BaseAssignmentLinkTestCase):
+    app_config = {
+        **TestCase.app_config,
+        "PLANNING_LINK_UPDATES_TO_COVERAGES": True,
+    }
 
     async def test_previous_unlinked_content_gets_linked_when_update_is_linked(self):
-        async with self.app.app_context():
-            self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "event_id": "item1",
-                    }
-                ],
-            )
+        deliveries = await test_utils.find_many("delivery", lookup={"item_id": self.article["_id"]})
+        self.assertEqual(len(deliveries), 0)
 
-            deliveries = await get_resource_service("delivery").get_async(
-                req=None, lookup={"assignment_id": ObjectId(assignment_id)}
-            )
-            self.assertEqual(await deliveries.count(), 0)
-
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "rewrite_item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "rewrite_of": "item1",
-                        "event_id": "item1",
-                    }
-                ],
-            )
-
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId(assignment_id),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": "test",
-                            "desk": "test",
-                        },
-                    }
-                ],
-            )
-
-            await get_resource_service("assignments_link").post_async(
-                [
-                    {
-                        "assignment_id": assignment_id,
-                        "item_id": "rewrite_item1",
-                        "reassign": True,
-                    }
-                ]
-            )
-
-            deliveries = await get_resource_service("delivery").get_async(
-                req=None, lookup={"assignment_id": ObjectId(assignment_id)}
-            )
-            self.assertEqual(await deliveries.count(), 2)
+        article = fixtures.articles.article_1()
+        article.update(
+            {
+                "_id": "rewrite_item1",
+                "state": "in_progress",
+                "rewrite_of": fixtures.articles.ARTICLE_1_ID,
+                "event_id": fixtures.articles.ARTICLE_1_ID,
+            }
+        )
+        article.pop("operation", None)
+        await test_utils.post_items("archive", [article])
+        await test_utils.post_items("planning", [planning_fixtures.planning.plan1()])
+        assignment = await planning_fixtures.planning.get_plan1_assignment()
+        await test_utils.post_items(
+            "assignments_link", [{"assignment_id": assignment["_id"], "item_id": "rewrite_item1", "reassign": True}]
+        )
+        deliveries = await test_utils.find_many("delivery", lookup={"assignment_id": ObjectId(assignment["_id"])})
+        self.assertEqual(len(deliveries), 2)
