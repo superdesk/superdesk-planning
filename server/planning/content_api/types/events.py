@@ -1,7 +1,9 @@
 from superdesk.core.resources import fields, Dataclass
 from planning.types import EventResourceModel
 from pydantic import Field
+from typing import Annotated
 from .common import MatchingProduct
+from superdesk.core.resources.validators import validate_data_relation_async
 
 
 class ItemFile(Dataclass):
@@ -54,3 +56,4 @@ class ContentAPIEventResource(EventResourceModel):
     products: list[MatchingProduct] | None = None
     event_contact_info: list[ContactsResource] = Field(default_factory=list)
     files: list[ItemFile] = Field(default_factory=list)
+    subscribers: Annotated[list[fields.ObjectId], validate_data_relation_async("subscribers")]

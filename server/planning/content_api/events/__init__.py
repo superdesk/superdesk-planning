@@ -8,7 +8,47 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.flask import g
+from eve.utils import ParsedRequest
 from superdesk.core.module import Module
-from .event import content_api_event_resource_config
+from superdesk.core.web import EndpointGroup
+from werkzeug.datastructures import MultiDict
+from superdesk.core.types import Request, Response
+from .event import content_api_event_resource_config, ContentAPIEventService
 
-module = Module("planning.content_api.events", resources=[content_api_event_resource_config])
+event_endpoints = EndpointGroup("events_capi", __name__)
+
+
+@event_endpoints.endpoint("event", methods=["GET"])
+async def get_event_list(args, params, request: Request) -> Response:
+    service = ContentAPIEventService()
+    req = ParsedRequest()
+    req.args = MultiDict()
+
+    lookup = {"subscribers": g.get("user")}
+
+    result = await service.get(req, lookup)
+    return Response(result)
+
+
+@event_endpoints.endpoint("event/<string:item_id>", methods=["GET"])
+async def get_event_item(args, params, request: Request) -> Response:
+    service = ContentAPIEventService()
+    req = ParsedRequest()
+    req.args = MultiDict()
+
+    item_id = request.get_view_args("item_id")
+    if not item_id:
+        return Response({"error": "Item ID is required"})
+
+    lookup = {"_id": item_id, "subscribers": g.get("user")}
+
+    item = await service.find_one(req, **lookup)
+    if not item:
+        return Response({"error": "Not found"})
+    return Response(item)
+
+
+module = Module(
+    "planning.content_api.events", resources=[content_api_event_resource_config], endpoints=[event_endpoints]
+)
