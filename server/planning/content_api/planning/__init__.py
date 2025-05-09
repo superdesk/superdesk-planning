@@ -8,7 +8,45 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.flask import g
+from eve.utils import ParsedRequest
 from superdesk.core.module import Module
-from .planning import content_api_planning_resource_config
+from superdesk.core.web import EndpointGroup
+from werkzeug.datastructures import MultiDict
+from superdesk.core.types import Request, Response
+from .planning import content_api_planning_resource_config, ContentAPIPlanningService
 
-module = Module("planning.content_api.planning", resources=[content_api_planning_resource_config])
+
+planning_endpoints = EndpointGroup("planning_capi", __name__)
+
+
+@planning_endpoints.endpoint("planning", methods=["GET"])
+async def get_planning_list(args, params, request: Request) -> Response:
+    service = ContentAPIPlanningService()
+    req = ParsedRequest()
+    req.args = MultiDict()
+    lookup = {"subscribers": g.get("user")}
+    result = await service.get(req, lookup)
+    return Response(result)
+
+
+@planning_endpoints.endpoint("planning/<string:item_id>", methods=["GET"])
+async def get_planning_item(args, params, request: Request) -> Response:
+    service = ContentAPIPlanningService()
+    req = ParsedRequest()
+    req.args = MultiDict()
+    item_id = request.get_view_args("item_id")
+    if not item_id:
+        return Response({"error": "Item ID is required"})
+
+    lookup = {"_id": item_id, "subscribers": g.get("user")}
+
+    item = await service.find_one(req, **lookup)
+    if not item:
+        return Response({"error": "Not found"})
+    return Response(item)
+
+
+module = Module(
+    "planning.content_api.planning", resources=[content_api_planning_resource_config], endpoints=[planning_endpoints]
+)

@@ -1,5 +1,5 @@
 from pydantic import Field
-
+from typing import Annotated
 from superdesk.core.resources import fields, Dataclass
 from planning.types import (
     PlanningResourceModel,
@@ -9,6 +9,7 @@ from planning.types import (
     PLANNING_EVENT_LINK_METHOD,
 )
 from .common import MatchingProduct
+from superdesk.core.resources.validators import validate_data_relation_async
 
 
 class AgendaItem(Dataclass):
@@ -55,3 +56,4 @@ class ContentAPIPlanningResourceModel(PlanningResourceModel):
     events: list[RelatedEvent] | None = None
     coverages: list[PlanningCoverageItem] = Field(default_factory=list)
     event_item: str | None = None
+    subscribers: Annotated[list[fields.ObjectId], validate_data_relation_async("subscribers")]
