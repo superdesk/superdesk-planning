@@ -447,6 +447,7 @@ async def enqueue_planning_item(id):
                 item_type=item[ITEM_TYPE],
                 operation=ITEM_PUBLISH,
                 published_state=item[ITEM_STATE],
+                publish_to_content_api=True,
             )
         )
 

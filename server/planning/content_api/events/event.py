@@ -21,7 +21,15 @@ from superdesk.core.resources.service import AsyncResourceService
 
 
 class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
-    pass
+    async def publish_async(self, item, subscribers=None) -> None:
+        event_id = item.get("_id")
+        original = await self.find_by_id(event_id)
+
+        if original:
+            await self.update(event_id, item)
+        else:
+            doc = ContentAPIEventResource.from_dict(item)
+            await self.create([doc])
 
 
 content_api_event_resource_config: ResourceConfig = ResourceConfig(

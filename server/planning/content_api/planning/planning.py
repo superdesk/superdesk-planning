@@ -16,18 +16,26 @@ from superdesk.core.resources import (
     RestEndpointConfig,
 )
 
-from planning.content_api.types.planning import ContentAPIPlanningResourceModel
+from planning.content_api.types.planning import ContentAPIPlanningResource
 from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 from superdesk.core.resources.service import AsyncResourceService
 
 
-class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceModel]):
-    pass
+class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]):
+    async def publish_async(self, item, subscribers=None) -> None:
+        planning_id = item.get("_id")
+        original = await self.find_by_id(planning_id)
+
+        if original:
+            await self.update(planning_id, item)
+        else:
+            doc = ContentAPIPlanningResource.from_dict(item)
+            await self.create([doc])
 
 
 content_api_planning_resource_config: ResourceConfig = ResourceConfig(
     name="planning_capi",
-    data_class=ContentAPIPlanningResourceModel,
+    data_class=ContentAPIPlanningResource,
     service=ContentAPIPlanningService,
     mongo=MongoResourceConfig(
         prefix=MONGO_PREFIX,
