@@ -203,7 +203,7 @@ class PlanningService(AsyncBaseService):
 
     async def on_created_async(self, docs):
         session_id = get_auth().get("_id")
-        post_planning_with_event = is_post_planning_with_event_enabled()
+        post_planning_with_event = await is_post_planning_with_event_enabled()
         for doc in docs:
             plan_id = str(doc.get(ID_FIELD))
             push_notification(

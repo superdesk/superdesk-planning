@@ -374,11 +374,13 @@ async def construct_query(
     query = elastic.ElasticQuery()
 
     if repo == "events":
-        query.multilingual_fields = get_multilingual_fields("event")
+        query.multilingual_fields = await get_multilingual_fields("event")
     elif repo == "planning":
-        query.multilingual_fields = get_multilingual_fields("planning")
+        query.multilingual_fields = await get_multilingual_fields("planning")
     else:
-        query.multilingual_fields = get_multilingual_fields("event").union(get_multilingual_fields("planning"))
+        query.multilingual_fields = (await get_multilingual_fields("event")).union(
+            await get_multilingual_fields("planning")
+        )
 
     for search_filter in filters:
         response = search_filter(params, query)

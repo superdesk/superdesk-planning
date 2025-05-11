@@ -245,7 +245,7 @@ class EventsPostService(AsyncBaseService):
         docs = []
         failed_planning_ids = []
         if new_post_state != POST_STATE.CANCELLED:
-            if is_post_planning_with_event_enabled():
+            if await is_post_planning_with_event_enabled():
                 docs = [
                     {
                         "planning": planning[ID_FIELD],
@@ -262,7 +262,7 @@ class EventsPostService(AsyncBaseService):
                     except Exception as e:
                         failed_planning_ids.append({"_id": doc["planning"], "error": getattr(e, "description", str(e))})
             return failed_planning_ids
-        elif not is_cancel_planning_with_event_enabled():
+        elif not await is_cancel_planning_with_event_enabled():
             return
 
         for planning in plannings:

@@ -51,7 +51,7 @@ async def sync_event_metadata_with_planning_items(
         for obj in embedded_planning
     ]
 
-    profiles = AllContentProfileData()
+    profiles = await AllContentProfileData.get()
 
     if original is None:
         original = {}

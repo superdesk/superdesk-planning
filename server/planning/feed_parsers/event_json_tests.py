@@ -50,7 +50,7 @@ class EventJsonFeedParserTestCase(TestCase):
                     ],
                 )
 
-            events = EventJsonFeedParser().parse(self.sample_json)
+            events = await EventJsonFeedParser().parse(self.sample_json)
 
             # ignore fields like files as per the ACs in SDNTB-682
             self.assertNotIn("files", events[0])

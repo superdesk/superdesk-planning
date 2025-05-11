@@ -10,13 +10,13 @@
 
 import logging
 
+from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from planning.common import set_original_creator, format_address
-from planning.events import EventsAsyncService
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,9 @@ class LocationsService(AsyncBaseService):
         if lookup:
             location = await self.find_one_async(req=None, _id=lookup.get(ID_FIELD))
             if location:
-                events_count = await EventsAsyncService().count({"location.qcode": str(location.guid)})
+                events_count = await get_resource_service("events").count_async(
+                    {"location.qcode": str(location["guid"])}
+                )
                 if events_count > 0:
                     # patch the unique name in case the location get recreated
                     await self.patch_async(

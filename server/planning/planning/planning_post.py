@@ -59,7 +59,7 @@ class PlanningPostService(AsyncBaseService):
     async def create_async(self, docs, **kwargs):
         ids = []
         assignments_to_delete = []
-        cancel_plan_with_event_enabled = is_cancel_planning_with_event_enabled()
+        cancel_plan_with_event_enabled = await is_cancel_planning_with_event_enabled()
         for doc in docs:
             plan = await get_resource_service("planning").find_one_async(req=None, _id=doc["planning"])
             related_events = get_related_event_items_for_planning(plan, "primary")
