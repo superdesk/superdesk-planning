@@ -33,6 +33,8 @@ interface IProps {
 }
 
 export class CoverageProfilesModal extends React.Component<IProps, IState> {
+    availableCoverageTypes: Array<{value: ICoverageType; label: string; icon: string}>;
+
     constructor(props) {
         super(props);
 
@@ -41,12 +43,26 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
         const newlyCreatedProfile = allProfiles.find((x) => x.content_type === 'text');
         const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(oldProfile(state), '_id');
 
+        this.availableCoverageTypes = (contentTypes(planningApi.redux.store.getState()))
+            .map((item) => ({
+                value: item.qcode as ICoverageType,
+                label: getVocabularyItemFieldTranslated(
+                    item,
+                    superdeskApi.helpers.nameof<typeof item>('name'),
+                    planningApi.contentProfiles.getDefaultLanguage(defaultProfile)
+                ),
+
+                // remove 'icon-' string because RadioButtonGroup icon prop for each option expects just icon name
+                // function not changed because it's originally used in other places
+                icon: planningUtils.getCoverageIcon(item['content item type'] || item.qcode).replace('icon-', ''),
+            }));
+
         this.state = {
             saving: false,
             dirty: false,
             profile: defaultProfile,
             originalProfile: defaultProfile,
-            selectedType: 'text',
+            selectedType: this.availableCoverageTypes?.[0]?.value ?? 'text',
             allProfiles: allProfiles,
         };
 
@@ -189,20 +205,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const coverageContentTypes: Array<{value: string; label: string; icon: string}> =
-            (contentTypes(planningApi.redux.store.getState()))
-                .map((item) => ({
-                    value: item.qcode,
-                    label: getVocabularyItemFieldTranslated(
-                        item,
-                        superdeskApi.helpers.nameof<typeof item>('name'),
-                        planningApi.contentProfiles.getDefaultLanguage(this.state.originalProfile)
-                    ),
-
-                    // remove 'icon-' string because RadioButtonGroup icon prop for each option expects just icon name
-                    // function not changed because it's originally used in other places
-                    icon: planningUtils.getCoverageIcon(item['content item type'] || item.qcode).replace('icon-', ''),
-                }));
 
         return (
             <Modal
@@ -242,7 +244,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                             onChange={(nextType: ICoverageType) => {
                                 this.switchProfileType(nextType);
                             }}
-                            options={coverageContentTypes}
+                            options={this.availableCoverageTypes}
                             group={{
                                 orientation: 'vertical',
                             }}
