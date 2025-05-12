@@ -1,4 +1,4 @@
-# -*- coding: utf-8; -*-
+# -- coding: utf-8; --
 #
 # This file is part of Superdesk.
 #
@@ -15,13 +15,19 @@ from typing import Set, Optional
 from eve.utils import ParsedRequest
 from werkzeug.datastructures import MultiDict
 from superdesk.datalayer import InvalidSearchString
-from content_api.errors import BadParameterValueError, UnexpectedParameterError
+from content_api.errors import BadParameterValueError
 from bson import ObjectId
 from bson.errors import InvalidId
 from superdesk.core.resources import ResourceConfig, MongoIndexOptions, MongoResourceConfig, ElasticResourceConfig
 from planning.content_api.types.planning import ContentAPIPlanningResourceModel
 from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 from superdesk.core.resources.service import AsyncResourceService
+from planning.content_api.utils import (
+    check_for_unknown_params,
+    set_fields_filter,
+    set_default_sort,
+    set_search_field,
+)
 
 
 class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceModel]):
@@ -53,8 +59,11 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceM
             req = ParsedRequest()
 
         allowed_params = {"include_fields", "exclude_fields"}
-        self._check_for_unknown_params(req, whitelist=allowed_params, allow_filtering=False)
-        self._set_fields_filter(req)
+        check_for_unknown_params(req, whitelist=allowed_params, allow_filtering=False)
+        set_fields_filter(req)
+
+        # Apply subscriber filter
+        lookup["subscribers"] = g.get("user")
 
         item_id = lookup.pop("_id", None)
         if not item_id:
@@ -79,13 +88,13 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceM
         internal_req.args = MultiDict()
         orig_request_params = getattr(req, "args", MultiDict())
 
-        self._check_for_unknown_params(req, whitelist=self.allowed_params)
-        self._set_search_field(internal_req.args, orig_request_params)
-        self._set_fields_filter(internal_req)
+        check_for_unknown_params(req, whitelist=self.allowed_params)
+        set_search_field(internal_req.args, orig_request_params)
+        set_fields_filter(internal_req)
 
         # Apply subscriber filter
         lookup["subscribers"] = g.get("user")
-        self._set_default_sort(internal_req)
+        set_default_sort(internal_req, self.default_sort)
 
         try:
             items = []
@@ -94,38 +103,6 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceM
             return {"_items": items}
         except InvalidSearchString:
             raise BadParameterValueError("invalid search text")
-
-    def _check_for_unknown_params(self, req, whitelist, allow_filtering=True):
-        """Validate request parameters."""
-        if not req.args:
-            return
-
-        for param in req.args:
-            if param not in whitelist and not (allow_filtering and param.startswith("filter")):
-                raise UnexpectedParameterError(f"Unexpected parameter: {param}")
-
-    def _set_fields_filter(self, req):
-        """Set fields projection based on include/exclude parameters."""
-        if req.args:
-            if "include_fields" in req.args:
-                req.projection = json.loads(req.args["include_fields"])
-            if "exclude_fields" in req.args:
-                if not hasattr(req, "projection"):
-                    req.projection = {}
-                for field in json.loads(req.args["exclude_fields"]):
-                    req.projection[field] = 0
-
-    def _set_default_sort(self, req):
-        """Apply default sorting if not specified."""
-        if not req.sort:
-            req.sort = json.dumps(self.default_sort)
-
-    def _set_search_field(self, args, orig_args):
-        """Configure search parameters."""
-        if "q" in orig_args:
-            args["q"] = orig_args["q"]
-        if "default_operator" in orig_args:
-            args["default_operator"] = orig_args["default_operator"]
 
 
 content_api_planning_resource_config: ResourceConfig = ResourceConfig(
