@@ -15,21 +15,32 @@ from superdesk.core.resources import (
     ElasticResourceConfig,
     RestEndpointConfig,
 )
-from content_api import MONGO_PREFIX, ELASTIC_PREFIX
-from planning.content_api.types.events import ContentAPIEventResource
 from superdesk.core.resources.service import AsyncResourceService
+
+from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from planning.output_formatters import JsonEventFormatter
+from planning.content_api.types.events import ContentAPIEventResource
 
 
 class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
+    """Service for publishing events to the content API"""
+
+    formatter = JsonEventFormatter()
+
     async def publish_async(self, item, subscribers=None) -> None:
+        """
+        Uses the `JsonEventFormatter` to format the event and publish it to the content API.
+        If the event already exists, it will be updated, otherwise it will be created.
+        """
+
+        formatted_item = await self.formatter._format_item(item)
         event_id = item.get("_id")
         original = await self.find_by_id(event_id)
 
         if original:
-            await self.update(event_id, item)
+            await self.update(event_id, formatted_item)
         else:
-            doc = ContentAPIEventResource.from_dict(item)
-            await self.create([doc])
+            await self.create([formatted_item])
 
 
 content_api_event_resource_config: ResourceConfig = ResourceConfig(
