@@ -7,6 +7,7 @@ describe('Search.Filters: creating search filters', () => {
     const searchFilters = new SearchFilters();
 
     beforeEach(() => {
+        addItems('agenda', [AGENDAS.sports, AGENDAS.politics]);
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         login();
         waitForPageLoad.planning();

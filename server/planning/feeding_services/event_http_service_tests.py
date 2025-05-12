@@ -18,5 +18,6 @@ class EventHTTPFeedingServiceTestCase(TestCase):
                     + "raw/539d2911052f5d03713811ebe19ca594391d6b80/event.ics",
                 },
             }
-            events = list(service.update(provider, {}))
+
+            events = [event async for event in await service.update(provider, {})]
             self.assertEqual(len(events), 1)

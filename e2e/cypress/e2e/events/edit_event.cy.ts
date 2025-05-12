@@ -3,6 +3,7 @@ import {cloneDeep} from 'lodash';
 import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal, addItems, CLIENT_FORMAT} from '../../support/common';
 import {EventEditor, PlanningList} from '../../support/planning';
 import {createEventFor, TEST_EVENTS} from '../../fixtures/events';
+import {setupPlanningPublishing} from '../../fixtures/publish_config';
 import moment from 'moment';
 
 const list = new PlanningList();
@@ -66,6 +67,7 @@ describe('Planning.Events: edit metadata', () => {
     });
 
     it('can create a Recurring Event', () => {
+        setupPlanningPublishing();
         list.expectEmpty();
         editor.expectItemType();
 
@@ -127,6 +129,7 @@ describe('Planning.Events: edit metadata', () => {
     });
 
     it('SDESK-5982: Post updates the initial values', () => {
+        setupPlanningPublishing();
         // Enter minimum Event metadata
         editor.expectItemType();
         editor.type({

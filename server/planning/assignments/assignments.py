@@ -326,7 +326,7 @@ class AssignmentsService(AsyncBaseService):
             and updates.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.CANCELLED
         ):
             app = get_current_app().as_any()
-            app.on_updated_assignments(updates, original)
+            await app.on_updated_assignments.call_async(updates, original)
         return rtn
 
     def is_assignment_modified(self, updates, original):
@@ -1280,7 +1280,7 @@ class AssignmentsService(AsyncBaseService):
         related_items = []
         archive_item = await archive_service.find_one_async(req=None, assignment_id=assignment_id)
         if archive_item:
-            related_items = get_related_items(archive_item, doc)
+            related_items = await get_related_items(archive_item, doc)
             for item in related_items:
                 await update_assignment_on_link_unlink(None, item)
                 push_notification(

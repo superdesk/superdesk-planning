@@ -1,10 +1,17 @@
 from flask import request
-from planning.tests import TestCase
+
+from superdesk.tests import utils as test_utils, fixtures
+from superdesk.flask import g
+
+from planning.tests import TestCase, fixtures as planning_fixtures
 from planning.common import update_post_item
 
 
 class IngestCancelledTestCase(TestCase):
     async def test_ingest_cancelled_event(self):
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await planning_fixtures.publish_config.configure_planning_publishing()
         assert not request, request
 
         assignments = [
@@ -29,8 +36,7 @@ class IngestCancelledTestCase(TestCase):
 
         self.app.data.insert("planning", [planning])
 
-        async with self.app.app_context():
-            await update_post_item({"pubstatus": "cancelled"}, planning)
+        await update_post_item({"pubstatus": "cancelled"}, planning)
 
         cursor, count = self.app.data.find("assignments", req=None, lookup={})
         assert count == 0

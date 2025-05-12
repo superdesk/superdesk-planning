@@ -60,7 +60,7 @@ class EventsPlanningService(AsyncBaseService):
         else:
             return self.default_page_size
 
-    def _construct_search_query(
+    async def _construct_search_query(
         self, repo: str, params: Dict[str, Any], search_filter: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
         if repo == "events":
@@ -70,7 +70,7 @@ class EventsPlanningService(AsyncBaseService):
         else:
             filters = COMBINED_SEARCH_FILTERS
 
-        return construct_search_query(repo, filters, params, search_filter)
+        return await construct_search_query(repo, filters, params, search_filter)
 
     def _get_whitelist(self, repo):
         if repo == "events":
@@ -208,7 +208,7 @@ class EventsPlanningService(AsyncBaseService):
         repo = params.get("repo", "combined")
         search_filter = await self._get_search_filter(repo, params)
         self._check_for_unknown_params(params, search_filter, self._get_whitelist(repo))
-        query = self._construct_search_query(repo, params, search_filter)
+        query = await self._construct_search_query(repo, params, search_filter)
 
         if repo == "events" or repo == "event":
             return await self._search_events(req, params, query, search_filter)
