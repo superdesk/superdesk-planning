@@ -29,6 +29,7 @@ from planning.content_api.utils import (
     set_search_field,
 )
 
+
 class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
     allowed_params = {
         "start_date",
@@ -101,6 +102,7 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
             return {"_items": items}
         except InvalidSearchString:
             raise BadParameterValueError("invalid search text")
+
 
 content_api_event_resource_config: ResourceConfig = ResourceConfig(
     name="events_capi",
