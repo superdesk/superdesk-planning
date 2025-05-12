@@ -7,7 +7,7 @@ from .agendas_async_service import generate_planning_info
 
 class AgendasRestEndpoints(ResourceRestEndpoints):
     async def on_fetched(self, request: Request, docs: RestGetResponse) -> None:
-        await generate_planning_info(docs.get(ITEMS))
+        await generate_planning_info(docs.get(ITEMS) or [])
 
     async def on_fetched_item(self, request: Request, doc: dict) -> None:
         await generate_planning_info([doc])

@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 from dateutil.tz import tzoffset
 from pytz import utc
 from copy import deepcopy
+from bson import ObjectId
 
 from superdesk import get_resource_service
+from superdesk.flask import g
 from superdesk.etree import etree
 from superdesk.metadata.item import (
     ITEM_TYPE,
@@ -14,6 +16,7 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.io.commands.update_ingest import ingest_item
+from superdesk.tests import utils as test_utils, fixtures
 
 from planning.feed_parsers.events_ml import EventsMLParser
 from planning.common import POST_STATE
@@ -21,6 +24,11 @@ from planning.tests import TestCase
 
 
 class EventsMLFeedParserTestCase(TestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+
     def _load_fixture(self, filename: str):
         dirname = path.dirname(path.realpath(__file__))
         fixture = path.normpath(path.join(dirname, "fixtures", filename))
@@ -98,7 +106,7 @@ class EventsMLFeedParserTestCase(TestCase):
         async with self.app.app_context():
             self._load_fixture("events_ml_259625.xml")
             await self._add_cvs()
-            item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+            item = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
 
             self.assertEqual(item[GUID_FIELD], "urn:newsml:stt.fi:20220705:259625")
             self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
@@ -209,7 +217,7 @@ class EventsMLFeedParserTestCase(TestCase):
         link = f'<a href="{url}" target="_blank">{url}</a>'
 
         # Test with default fields configured as multi-line text
-        item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        item = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
         self.assertFalse(item["definition_short"].startswith("<p>"))
         self.assertIn(url, item["definition_short"])
         self.assertNotIn(link, item["definition_short"])
@@ -246,7 +254,7 @@ class EventsMLFeedParserTestCase(TestCase):
                     }
                 ],
             )
-        item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        item = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
 
         self.assertTrue(item["definition_short"].startswith("<p>"))
         self.assertIn(url, item["definition_short"])
@@ -260,9 +268,9 @@ class EventsMLFeedParserTestCase(TestCase):
             service = get_resource_service("events")
             self._load_fixture("events_ml_259625.xml")
             await self._add_cvs()
-            source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+            source = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
             provider = {
-                "_id": "abcd",
+                "_id": ObjectId(),
                 "source": "sf",
                 "name": "EventsML Ingest",
             }
@@ -297,10 +305,10 @@ class EventsMLFeedParserTestCase(TestCase):
 
             self._load_fixture("events_ml_259625.xml")
             await self._add_cvs()
-            original_source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+            original_source = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
             source = deepcopy(original_source)
             provider = {
-                "_id": "abcd",
+                "_id": ObjectId(),
                 "source": "sf",
                 "name": "EventsML Ingest",
             }
@@ -309,7 +317,7 @@ class EventsMLFeedParserTestCase(TestCase):
             await ingest_item(source, provider=provider, feeding_service={})
 
             # Publish the Event
-            service.patch(
+            await service.patch_async(
                 source["guid"],
                 {
                     "pubstatus": POST_STATE.USABLE,
@@ -318,7 +326,7 @@ class EventsMLFeedParserTestCase(TestCase):
             )
 
             # Make sure the Event has been added to the ``published_planning`` collection
-            self.assertEqual(await published_service.get_async(req=None, lookup={"item_id": source["guid"]}).count(), 1)
+            self.assertEqual(await published_service.count_async({"item_id": source["guid"]}), 1)
             dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
             self.assertEqual(dest["state"], CONTENT_STATE.SCHEDULED)
             self.assertEqual(dest["pubstatus"], POST_STATE.USABLE)
@@ -350,7 +358,7 @@ class EventsMLFeedParserTestCase(TestCase):
         async with self.app.app_context():
             self._load_fixture("events_ml_259270.xml")
             await self._add_cvs()
-            source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+            source = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
             dates = source["dates"]
             self.assertTrue(dates["all_day"])
             self.assertEqual(datetime(2022, 11, 10, tzinfo=utc), dates["start"])

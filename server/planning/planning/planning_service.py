@@ -653,7 +653,7 @@ class PlanningAsyncService(BasePlanningAsyncService[PlanningResourceModel]):
 
             if not coverage_id or is_temporal_coverage or coverage_id not in original_coverage_ids:
                 if "duplicate" in coverage_id or coverage.original_coverage_id:
-                    coverage.planning.xmp_file = self.duplicate_xmp_file(coverage.to_dict())
+                    coverage.planning.xmp_file = await self.duplicate_xmp_file(coverage.to_dict())
 
                 # coverage to be created
                 if not coverage_id or is_temporal_coverage:

@@ -25,7 +25,7 @@ class PlanningArgs(BaseModel):
     auth=[required_privilege_rule("planning_planning_spike")],
 )
 async def spike_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = await PlanningAsyncService().find_by_id_raw(args.planning_id)
+    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Planning Item not found")
 
@@ -42,7 +42,7 @@ async def spike_planning_item(args: PlanningArgs, params: None, request: Request
     auth=[required_privilege_rule("planning_planning_unspike")],
 )
 async def unspike_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = await PlanningAsyncService().find_by_id_raw(args.planning_id)
+    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Planning Item not found")
 
@@ -59,7 +59,7 @@ async def unspike_planning_item(args: PlanningArgs, params: None, request: Reque
     auth=[required_privilege_rule("planning_planning_management")],
 )
 async def duplicate_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = await PlanningAsyncService().find_by_id_raw(args.planning_id)
+    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Planning Item not found")
 
@@ -75,7 +75,7 @@ async def duplicate_planning_item(args: PlanningArgs, params: None, request: Req
     auth=[required_privilege_rule("planning_planning_management")],
 )
 async def postpone_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = await PlanningAsyncService().find_by_id_raw(args.planning_id)
+    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Planning Item not found")
 

@@ -1,6 +1,7 @@
 import {setup, addItems, login, waitForPageLoad, Modal} from '../../support/common';
 import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, PlanningEditor, PlanningPreview} from '../../support/planning';
+import {setupPlanningPublishing} from '../../fixtures/publish_config';
 import {getMenuItem} from '../../support/common/ui/actionMenu';
 import moment from 'moment';
 
@@ -13,6 +14,7 @@ describe('Planning.Planning: cancel planning item', () => {
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
+        setupPlanningPublishing();
         addItems('planning', [{
             slugline: 'Test Planning Item',
             planning_date: moment().format('yy-MM-DD') + TIME_STRINGS[0],

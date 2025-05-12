@@ -21,14 +21,14 @@ from werkzeug.datastructures import MultiDict
 from quart_babel import gettext
 
 from superdesk.types import PublishRequest
-from superdesk.publish_async.commands import publish_item
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD, VERSION
 from superdesk.resource import not_analyzed, build_custom_hateoas
+from superdesk.publish_async.commands import publish_item
 from superdesk import get_resource_service, logger
+from superdesk.eve_async import AsyncEveCursor
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
 from superdesk.utc import utcnow
-from superdesk.celery_app import celery
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 from apps.publish.content.common import ITEM_PUBLISH
@@ -40,7 +40,6 @@ from planning.types import (
     Event,
     EventAutosaveResourceModel,
     PlanningAutosaveResourceModel,
-    PlanningTypesResourceModel,
 )
 
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
@@ -534,7 +533,7 @@ def set_actioned_date_to_event(updates, original):
             updates["actioned_date"] = original["dates"]["start"]
 
 
-def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True):
+async def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True) -> AsyncEveCursor:
     if not assignment_id:
         return []
 
@@ -543,16 +542,16 @@ def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True)
     must_not = [{"term": {"state": "spiked"}}]
     must = [{"term": {"assignment_id": str(assignment_id)}}, {"term": {"type": "text"}}]
 
-    query = {"query": {"filtered": {"filter": {"bool": {"must": must, "must_not": must_not}}}}}
+    query: dict = {"query": {"filtered": {"filter": {"bool": {"must": must, "must_not": must_not}}}}}
     query["sort"] = [{"rewrite_sequence": "desc" if descending_rewrite_seq else "asc"}]
     query["size"] = 200
 
     req.args["source"] = json.dumps(query)
     req.args["repo"] = "archive,published,archived"
-    return list(get_resource_service("search").get(req, None))
+    return await get_resource_service("search").get_async(req, None)
 
 
-def get_related_items(item, assignment=None):
+async def get_related_items(item, assignment=None):
     # If linking updates is not configured, return just this item
     if not planning_link_updates_to_coverage():
         return [item]
@@ -571,10 +570,10 @@ def get_related_items(item, assignment=None):
 
     req.args["source"] = json.dumps(query)
     req.args["repo"] = "archive,published,archived"
-    items_list = get_resource_service("search").get(req, None)
+    items_list = await get_resource_service("search").get_async(req, None)
 
     archive_list = {}
-    for i in items_list:
+    async for i in items_list:
         # If item is published, get archive item or the item itself
         if i.get(ID_FIELD) not in archive_list:
             archive_list[i.get(ID_FIELD)] = i.get("archive_item") or i
@@ -608,7 +607,9 @@ async def update_assignment_on_link_unlink(assignment_id, item, published_update
         published_updated.append(item.get(ID_FIELD))
 
     if item.get("_type") == "archived":
-        get_resource_service("archived").system_update(ObjectId(item[ID_FIELD]), {"assignment_id": assignment_id}, item)
+        await get_resource_service("archived").system_update_async(
+            ObjectId(item[ID_FIELD]), {"assignment_id": assignment_id}, item
+        )
     else:
         await get_resource_service("archive").system_update_async(
             item[ID_FIELD], {"assignment_id": assignment_id}, item
@@ -643,11 +644,10 @@ async def is_valid_event_planning_reason(updates, original):
     item_type = original.get(ITEM_TYPE)
 
     # get the validator based on the item_type and lock_action
-    planning_types_service = PlanningTypesResourceModel.get_service()
-    planning_type = await planning_types_service.find_one(name=f"{item_type}_{lock_action}")
-    validator = planning_type.to_dict() if planning_type is not None else {}
+    planning_types_service = get_resource_service("planning_types")
+    validator = await planning_types_service.find_one_async(req=None, name=f"{item_type}_{lock_action}")
 
-    if not validator.get("schema"):
+    if not validator or not validator.get("schema"):
         return True
 
     reason_mapping = validator.get("schema", {}).get("reason") or {}
@@ -656,7 +656,7 @@ async def is_valid_event_planning_reason(updates, original):
     return True
 
 
-def get_contacts_from_item(item):
+async def get_contacts_from_item(item):
     contact_ids = []
 
     if item.get("event_contact_info"):
@@ -671,8 +671,7 @@ def get_contacts_from_item(item):
                 contact_ids.append(str(coverage["planning"]["contact_info"]))
 
     query = {"query": {"bool": {"must": [{"terms": {"_id": contact_ids}}, {"term": {"public": "true"}}]}}}
-    contacts = get_resource_service("contacts").search(query)
-    return list(contacts)
+    return await get_resource_service("contacts").search_async(query)
 
 
 def get_next_assignment_status(assignment, next_state):
@@ -712,8 +711,8 @@ def get_delivery_publish_time(updates, original=None):
     return schdl_stngs.get("utc_publish_schedule") or updates.get("firstpublished") or original.get("firstpublished")
 
 
-def get_coverage_for_assignment(assignment):
-    planning_item = get_resource_service("planning").find_one(req=None, _id=assignment.get("planning_item"))
+async def get_coverage_for_assignment(assignment):
+    planning_item = await get_resource_service("planning").find_one_async(req=None, _id=assignment.get("planning_item"))
     return next(
         (c for c in (planning_item or {}).get("coverages", []) if c["coverage_id"] == assignment["coverage_item"]),
         None,

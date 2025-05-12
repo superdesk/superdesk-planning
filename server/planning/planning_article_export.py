@@ -248,7 +248,7 @@ async def enhance_coverage(planning, item, users, desks, text_users, text_desks)
                 else:
                     text_desks.append({"desk": desk, "slugline": (c.get("planning", {})).get("slugline", "")})
 
-    item["contacts"] = get_contacts_from_item(item)
+    item["contacts"] = await (await get_contacts_from_item(item)).to_list()
 
 
 async def generate_text_item(items, template_name, resource_type):
@@ -429,7 +429,7 @@ class PlanningArticleExportService(AsyncBaseService):
                 )
 
             item["contacts"] = []
-            for contact in get_contacts_from_item(item):
+            async for contact in await get_contacts_from_item(item):
                 contact_info = ["{0} {1}".format(contact.get("first_name"), contact.get("last_name"))]
                 phone = None
                 if contact.get("job_title"):

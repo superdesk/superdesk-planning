@@ -28,7 +28,7 @@ class EventsArgs(BaseModel):
     auth=[required_privilege_rule("planning_event_management")],
 )
 async def update_time(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    original = (await EventsAsyncService().find_by_id(args.event_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Event not found")
 
@@ -54,7 +54,7 @@ async def update_time(args: EventsArgs, params: None, request: Request) -> Respo
     auth=[required_privilege_rule("planning_event_spike")],
 )
 async def spike_event(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    original = (await EventsAsyncService().find_by_id(args.event_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Event not found")
 
@@ -71,7 +71,7 @@ async def spike_event(args: EventsArgs, params: None, request: Request) -> Respo
     auth=[required_privilege_rule("planning_event_unspike")],
 )
 async def unspike_event(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    original = (await EventsAsyncService().find_by_id(args.event_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Event not found")
 
@@ -88,7 +88,7 @@ async def unspike_event(args: EventsArgs, params: None, request: Request) -> Res
     auth=[required_privilege_rule("planning_event_management")],
 )
 async def postpone_event(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    original = (await EventsAsyncService().find_by_id(args.event_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Event not found")
 
@@ -105,7 +105,7 @@ async def postpone_event(args: EventsArgs, params: None, request: Request) -> Re
     auth=[required_privilege_rule("planning_event_management")],
 )
 async def cancel_event(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    original = (await EventsAsyncService().find_by_id(args.event_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Event not found")
 
@@ -122,7 +122,7 @@ async def cancel_event(args: EventsArgs, params: None, request: Request) -> Resp
     auth=[required_privilege_rule("planning_event_management")],
 )
 async def reschedule_event(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    original = (await EventsAsyncService().find_by_id(args.event_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Event not found")
 
@@ -139,7 +139,7 @@ async def reschedule_event(args: EventsArgs, params: None, request: Request) -> 
     auth=[required_privilege_rule("planning_event_management")],
 )
 async def update_repetitions(args: EventsArgs, params: None, request: Request) -> Response:
-    original = await EventsAsyncService().find_by_id_raw(args.event_id)
+    original = (await EventsAsyncService().find_by_id(args.event_id)).to_dict(context={"use_objectid": True})
     if not original:
         await request.abort(404, "Event not found")
 

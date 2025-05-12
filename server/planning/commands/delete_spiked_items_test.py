@@ -9,14 +9,16 @@
 # at https://www.sourcefabric.org/superdesk/license
 from pytest import mark
 
-from .delete_spiked_items import delete_spiked_items_handler
-from planning.tests import TestCase
-from superdesk.utc import utcnow
 from datetime import timedelta
+
+from superdesk import get_resource_service
+from superdesk.utc import utcnow
+from superdesk.flask import g
+from superdesk.tests import utils as test_utils, fixtures
+
+from planning.tests import TestCase
 from planning.common import WORKFLOW_STATE
-from planning.events import EventsAsyncService
-from planning.planning import PlanningAsyncService
-from planning.assignments import AssignmentsAsyncService
+from .delete_spiked_items import delete_spiked_items_handler
 
 now = utcnow()
 yesterday = now - timedelta(hours=48)
@@ -37,13 +39,13 @@ active = {
         "workflow_status": "draft",
         "news_coverage_status": {"qcode": "ncostat:int"},
         "planning": {"scheduled": now},
-        "assigned_to": {"desk": "d1", "state": "draft", "assignment_id": "a1"},
+        "assigned_to": {"desk": "d1", "state": "draft"},
     },
     "assignment_d2": {
         "workflow_status": "draft",
         "news_coverage_status": {"qcode": "ncostat:int"},
         "planning": {"scheduled": now},
-        "assigned_to": {"desk": "d2", "state": "draft", "assignment_id": "a2"},
+        "assigned_to": {"desk": "d2", "state": "draft"},
     },
 }
 
@@ -58,18 +60,18 @@ expired = {
         "workflow_status": "draft",
         "news_coverage_status": {"qcode": "ncostat:int"},
         "planning": {"scheduled": yesterday},
-        "assigned_to": {"desk": "d1", "state": "draft", "assignment_id": "a3"},
+        "assigned_to": {"desk": "d1", "state": "draft"},
     },
     "assignment_d2": {
         "workflow_status": "draft",
         "news_coverage_status": {"qcode": "ncostat:int"},
         "planning": {"scheduled": yesterday},
-        "assigned_to": {"desk": "d2", "state": "draft", "assignment_id": "a4"},
+        "assigned_to": {"desk": "d2", "state": "draft"},
     },
 }
 
 
-class DeleteSpikedItemsTest(TestCase):
+class BaseDeleteSpikedItemsTest(TestCase):
     app_config = {
         **TestCase.app_config.copy(),
         # Expire items that are scheduled more than 24 hours from now
@@ -79,17 +81,23 @@ class DeleteSpikedItemsTest(TestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
-        self.event_service = EventsAsyncService()
-        self.planning_service = PlanningAsyncService()
-        self.assignment_service = AssignmentsAsyncService()
+        self.event_service = get_resource_service("events")
+        self.planning_service = get_resource_service("planning")
+        self.assignment_service = get_resource_service("assignments")
 
-        self.setup_test_user()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("desks", fixtures.desks.all_desks())
+
+    async def insert(self, item_type, items):
+        service = self.event_service if item_type == "events" else self.planning_service
+        await service.post_async(items)
 
     async def assertDeleteOperation(self, item_type, ids, not_deleted=False):
         service = self.event_service if item_type == "events" else self.planning_service
 
         for item_id in ids:
-            item = await service.find_one(guid=item_id, req=None)
+            item = await service.find_one_async(guid=item_id, req=None)
             if not_deleted:
                 self.assertIsNotNone(item)
             else:
@@ -97,68 +105,18 @@ class DeleteSpikedItemsTest(TestCase):
 
     async def assertAssignmentDeleted(self, assignment_ids, not_deleted=False):
         for assignment_id in assignment_ids:
-            assignment = await self.assignment_service.find_one(guid=assignment_id, req=None)
+            assignment = await self.assignment_service.find_one_async(_id=assignment_id, req=None)
             if not_deleted:
                 self.assertIsNotNone(assignment)
             else:
                 self.assertIsNone(assignment)
 
-    async def insert(self, item_type, items):
-        service = self.event_service if item_type == "events" else self.planning_service
-        await service.create(items)
-
     async def get_assignments_count(self):
-        results = await self.assignment_service.find({"_id": {"$exists": 1}}, use_mongo=True)
+        results = await self.assignment_service.find_async({"_id": {"$exists": 1}})
         return await results.count()
 
-    async def test_delete_spike_disabled(self):
-        self.app.config.update({"PLANNING_DELETE_SPIKED_MINUTES": 0})
 
-        await self.insert(
-            "events",
-            [
-                {"guid": "e1", **active["event"]},
-                {"guid": "e2", **active["overnightEvent"]},
-                {"guid": "e3", **expired["event"]},
-            ],
-        )
-        await self.insert(
-            "planning",
-            [
-                {"guid": "p1", **active["plan"], "coverages": []},
-                {"guid": "p2", **active["plan"], "coverages": [active["coverage"]]},
-                {
-                    "guid": "p3",
-                    **active["plan"],
-                    "coverages": [expired["coverage"]],
-                },
-                {
-                    "guid": "p4",
-                    **active["plan"],
-                    "coverages": [active["coverage"], expired["coverage"]],
-                },
-                {"guid": "p5", **expired["plan"], "coverages": []},
-                {
-                    "guid": "p6",
-                    **expired["plan"],
-                    "coverages": [active["coverage"]],
-                },
-                {
-                    "guid": "p7",
-                    **expired["plan"],
-                    "coverages": [expired["coverage"]],
-                },
-                {
-                    "guid": "p8",
-                    **expired["plan"],
-                    "coverages": [active["coverage"], expired["coverage"]],
-                },
-            ],
-        )
-        await delete_spiked_items_handler()
-        await self.assertDeleteOperation("events", ["e1", "e2", "e3"], not_deleted=True)
-        await self.assertDeleteOperation("planning", ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"], not_deleted=True)
-
+class DeleteSpikedItemsTest(BaseDeleteSpikedItemsTest):
     async def test_event(self):
         await self.insert(
             "events",
@@ -222,8 +180,6 @@ class DeleteSpikedItemsTest(TestCase):
         await delete_spiked_items_handler()
         await self.assertDeleteOperation("events", ["e1", "e2"])
 
-    # TODO-ASYNC: Remove this skip once planning service is updated (with coverage/schedule details)
-    @mark.skip("TODO-ASYNC")
     async def test_planning(self):
         await self.insert(
             "planning",
@@ -262,8 +218,6 @@ class DeleteSpikedItemsTest(TestCase):
         await self.assertDeleteOperation("planning", ["p1", "p2", "p3", "p4", "p6", "p8"], not_deleted=True)
         await self.assertDeleteOperation("planning", ["p5", "p7"])
 
-    # TODO-ASYNC: Remove this skip once planning service is updated (with assignment management)
-    @mark.skip("TODO-ASYNC")
     async def test_planning_assignment_deletion(self):
         self.app.data.insert("desks", [{"_id": "d1", "name": "d1"}, {"_id": "d2", "name": "d2"}])
         await self.insert(
@@ -295,7 +249,7 @@ class DeleteSpikedItemsTest(TestCase):
         # Map plannings to assignments
         assignments = {}
         for plan_id in ["p1", "p2", "p3", "p4"]:
-            planning = await self.planning_service.find_one_raw(guid=plan_id, req=None)
+            planning = await self.planning_service.find_one_async(req=None, guid=plan_id)
             if planning:
                 assignments[plan_id] = planning["coverages"][0]["assigned_to"]["assignment_id"]
 
@@ -303,12 +257,66 @@ class DeleteSpikedItemsTest(TestCase):
         await delete_spiked_items_handler()
 
         await self.assertDeleteOperation("planning", ["p1", "p2", "p3"], not_deleted=True)
+        print(assignments)
         await self.assertAssignmentDeleted(
             [assignments["p1"], assignments["p2"], assignments["p3"]],
             not_deleted=True,
         )
 
-        await self.assertDeleteOperation("planning", ["p4"], not_deleted=True)
-        await self.assertAssignmentDeleted([assignments["p4"]], not_deleted=True)
+        await self.assertDeleteOperation("planning", ["p4"])
+        await self.assertAssignmentDeleted([assignments["p4"]])
 
         self.assertEqual(await self.get_assignments_count(), 3)
+
+
+class DisabledDeleteSpikedItemsTest(BaseDeleteSpikedItemsTest):
+    app_config = {
+        **BaseDeleteSpikedItemsTest.app_config,
+        "PLANNING_DELETE_SPIKED_MINUTES": 0,
+    }
+
+    async def test_delete_spike_disabled(self):
+        await self.insert(
+            "events",
+            [
+                {"guid": "e1", **active["event"]},
+                {"guid": "e2", **active["overnightEvent"]},
+                {"guid": "e3", **expired["event"]},
+            ],
+        )
+        await self.insert(
+            "planning",
+            [
+                {"guid": "p1", **active["plan"], "coverages": []},
+                {"guid": "p2", **active["plan"], "coverages": [active["coverage"]]},
+                {
+                    "guid": "p3",
+                    **active["plan"],
+                    "coverages": [expired["coverage"]],
+                },
+                {
+                    "guid": "p4",
+                    **active["plan"],
+                    "coverages": [active["coverage"], expired["coverage"]],
+                },
+                {"guid": "p5", **expired["plan"], "coverages": []},
+                {
+                    "guid": "p6",
+                    **expired["plan"],
+                    "coverages": [active["coverage"]],
+                },
+                {
+                    "guid": "p7",
+                    **expired["plan"],
+                    "coverages": [expired["coverage"]],
+                },
+                {
+                    "guid": "p8",
+                    **expired["plan"],
+                    "coverages": [active["coverage"], expired["coverage"]],
+                },
+            ],
+        )
+        await delete_spiked_items_handler()
+        await self.assertDeleteOperation("events", ["e1", "e2", "e3"], not_deleted=True)
+        await self.assertDeleteOperation("planning", ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"], not_deleted=True)

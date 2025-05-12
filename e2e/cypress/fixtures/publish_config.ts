@@ -16,6 +16,13 @@ export const FILTER_CONDITIONS = {
         operator: 'eq',
         value: 'planning',
     },
+    planning_featured: {
+        _id: '181c3d1ed5f6a3c287de2f82',
+        name: 'Featured Planning',
+        field: 'type',
+        operator: 'eq',
+        value: 'planning_featured',
+    },
 };
 
 export const CONTENT_FILTERS = {
@@ -28,6 +35,11 @@ export const CONTENT_FILTERS = {
         _id: '281c3d1ed5f6a3c287de2f81',
         name: 'Planning Content Filter',
         content_filter: [{expression: {fc: [FILTER_CONDITIONS.planning._id]}}],
+    },
+    featured_planning: {
+        _id: '281c3d1ed5f6a3c287de2f82',
+        name: 'Featured Planning Content Filter',
+        content_filter: [{expression: {fc: [FILTER_CONDITIONS.planning_featured._id]}}],
     },
 };
 
@@ -47,6 +59,15 @@ export const PRODUCTS = {
         product_type: 'both',
         content_filter: {
             filter_id: CONTENT_FILTERS.planning._id,
+            filter_type: 'permitting',
+        },
+    },
+    featured_planning: {
+        _id: '381c3d1ed5f6a3c287de2f82',
+        name: 'Featured Planning Publish Product',
+        product_type: 'both',
+        content_filter: {
+            filter_id: CONTENT_FILTERS.featured_planning._id,
             filter_type: 'permitting',
         },
     },
@@ -77,6 +98,20 @@ export const SUBSCRIBERS = {
         destinations: [{
             name: 'Planning files',
             format: 'json_planning',
+            delivery_type: 'File',
+            config: {file_path: '/tmp/', file_extension: 'json'},
+        }],
+    },
+    featured_planning: {
+        _id: '481c3d1ed5f6a3c287de2f82',
+        name: 'Featured Planning Subscribers',
+        email: 'test@test.com',
+        is_active: true,
+        subscriber_type: 'all',
+        products: [PRODUCTS.featured_planning._id],
+        destinations: [{
+            name: 'Featured Planning files',
+            format: 'json_planning_featured',
             delivery_type: 'File',
             config: {file_path: '/tmp/', file_extension: 'json'},
         }],

@@ -30,5 +30,7 @@ def parse_duration(value: str) -> datetime.timedelta:
     raise ValueError(f"Could not parse duration string {value!r}")
 
 
-def upgrade_rich_text_fields(item: Dict[str, Any], resource: str):
-    item.update({field: plain_text_to_html(item[field]) for field in get_editor3_fields(resource) if item.get(field)})
+async def upgrade_rich_text_fields(item: Dict[str, Any], resource: str):
+    item.update(
+        {field: plain_text_to_html(item[field]) for field in await get_editor3_fields(resource) if item.get(field)}
+    )

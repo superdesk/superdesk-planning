@@ -63,7 +63,7 @@ class ContentProfilesTestCase(TestCase):
                 ],
             )
 
-            fields = get_multilingual_fields("event")
+            fields = await get_multilingual_fields("event")
             self.assertIn("name", fields)
             self.assertIn("slugline", fields)
             self.assertIn("definition_short", fields)
@@ -77,7 +77,7 @@ class ContentProfilesTestCase(TestCase):
                 self.app.data.find_one("planning_types", req=None, _id="event"),
             )
 
-            fields = get_multilingual_fields("event")
+            fields = await get_multilingual_fields("event")
             self.assertNotIn("name", fields)
             self.assertNotIn("slugline", fields)
             self.assertNotIn("definition_short", fields)
@@ -110,7 +110,7 @@ class ContentProfilesTestCase(TestCase):
                 ],
             )
 
-            data = ContentProfileData("event")
+            data = await ContentProfileData.get("event")
             self.assertTrue(data.profile["_id"] == data.profile["name"] == "event")
             self.assertTrue(data.is_multilingual)
             self.assertEqual(data.multilingual_fields, {"name", "slugline", "definition_short"})

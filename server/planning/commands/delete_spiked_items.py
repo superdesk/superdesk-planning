@@ -11,6 +11,7 @@
 from datetime import timedelta
 from contextvars import ContextVar
 
+from superdesk import get_resource_service
 from superdesk.core import get_app_config
 from superdesk.resource_fields import ID_FIELD
 from superdesk.logging import logger
@@ -18,10 +19,7 @@ from superdesk.utc import utcnow
 from superdesk.celery_task_utils import get_lock_id
 from superdesk.lock import lock, unlock, remove_locks
 from planning.common import WORKFLOW_STATE
-from planning.events import EventsAsyncService
 from planning.events.events_utils import get_recurring_timeline
-from planning.planning import PlanningAsyncService
-from planning.assignments import AssignmentsAsyncService
 from .async_cli import planning_cli
 
 
@@ -80,7 +78,7 @@ async def delete_spiked_items_handler():
 async def delete_spiked_events(expiry_datetime):
     log_msg = log_msg_context.get()
     logger.info(f"{log_msg} Starting to delete spiked events")
-    events_service = EventsAsyncService()
+    events_service = get_resource_service("events")
 
     events_deleted = set()
     series_to_delete = dict()
@@ -97,12 +95,12 @@ async def delete_spiked_events(expiry_datetime):
             if spiked:
                 series_to_delete[event["recurrence_id"]] = events
         else:
-            await events_service.delete_many(lookup={"_id": event_id})
+            await events_service.delete_async(lookup={"_id": event_id})
             events_deleted.add(event_id)
 
     # Delete recurring series
     for recurrence_id, events in series_to_delete.items():
-        await events_service.delete_many(lookup={"recurrence_id": recurrence_id})
+        await events_service.delete_async(lookup={"recurrence_id": recurrence_id})
         events_deleted.add([event["_id"] for event in events])
 
     logger.info(f"{log_msg} {len(events_deleted)} Events deleted: {list(events_deleted)}")
@@ -131,7 +129,7 @@ async def is_series_expired_and_spiked(event, expiry_datetime):
 async def delete_spiked_planning(expiry_datetime):
     log_msg = log_msg_context.get()
     logger.info(f"{log_msg} Starting to delete spiked planning items")
-    planning_service = PlanningAsyncService()
+    planning_service = get_resource_service("planning")
 
     # Obtain the full list of Planning items that we're to process first
     # As subsequent queries will change the list of returnd items
@@ -150,13 +148,13 @@ async def delete_spiked_planning(expiry_datetime):
                 assignments_to_delete.append(assignment_id)
 
         # Now, delete the planning item
-        await planning_service.delete_many(lookup={"_id": plan_id})
+        await planning_service.delete_async(lookup={"_id": plan_id})
         plans_deleted.add(plan_id)
 
     # Delete assignments
-    assignment_service = AssignmentsAsyncService()
+    assignment_service = get_resource_service("assignments")
     for assign_id in assignments_to_delete:
-        await assignment_service.delete_many(lookup={"_id": assign_id})
+        await assignment_service.delete_async(lookup={"_id": assign_id})
         assignments_deleted.add(assign_id)
 
     logger.info(f"{log_msg} {len(assignments_deleted)} Assignments deleted: {list(assignments_deleted)}")
