@@ -15,6 +15,21 @@ from eve.utils import ParsedRequest
 from content_api.errors import UnexpectedParameterError
 
 
+ALLOWED_PARAMS: Set[str] = {
+    "start_date",
+    "end_date",
+    "include_fields",
+    "exclude_fields",
+    "max_results",
+    "page",
+    "where",
+    "q",
+    "default_operator",
+}
+
+DEFAULT_SORT = [("versioncreated", -1)]
+
+
 def check_for_unknown_params(req: ParsedRequest, whitelist: Set[str], allow_filtering: bool = True) -> None:
     """Validate request parameters against allowed whitelist."""
     if not req.args:

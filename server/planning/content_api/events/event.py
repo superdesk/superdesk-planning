@@ -23,6 +23,8 @@ from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 from planning.content_api.types.events import ContentAPIEventResource
 from superdesk.core.resources.service import AsyncResourceService
 from planning.content_api.utils import (
+    ALLOWED_PARAMS,
+    DEFAULT_SORT,
     check_for_unknown_params,
     set_fields_filter,
     set_default_sort,
@@ -31,28 +33,6 @@ from planning.content_api.utils import (
 
 
 class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
-    allowed_params = {
-        "start_date",
-        "end_date",
-        "include_fields",
-        "exclude_fields",
-        "max_results",
-        "page",
-        "where",
-        "q",
-        "default_operator",
-    }
-
-    default_sort = [("versioncreated", -1)]
-
-    excluded_fields_from_response: Set[str] = {
-        "_etag",
-        "_created",
-        "_updated",
-        "subscribers",
-        "_current_version",
-        "_latest_version",
-    }
 
     async def find_one(self, req: Optional[ParsedRequest] = None, **lookup):
         if req is None:
@@ -86,15 +66,15 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
 
         internal_req = ParsedRequest() if req is None else deepcopy(req)
         internal_req.args = MultiDict()
-        orig_request_params = getattr(req, "args", MultiDict())
+        orig_request_params = MultiDict(getattr(req, "args", {}))
 
-        check_for_unknown_params(req, whitelist=self.allowed_params)
+        check_for_unknown_params(req, whitelist=ALLOWED_PARAMS)
         set_search_field(internal_req.args, orig_request_params)
         set_fields_filter(internal_req)
 
         # Apply subscriber filter
         lookup["subscribers"] = g.get("user")
-        set_default_sort(internal_req, self.default_sort)
+        set_default_sort(internal_req, DEFAULT_SORT)
         try:
             items = []
             async for item in super().get_all(lookup):
