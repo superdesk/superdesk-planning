@@ -1,8 +1,15 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import {DATE_FORMATS} from '../../constants';
 import {TextInput} from '../UI/Form';
+
+interface AbsoluteDateProps extends React.HTMLAttributes<HTMLElement> {
+    date?: string;
+    noDateString?: string;
+    className?: string;
+    asTextInput?: boolean;
+    toBeConfirmed?: boolean;
+}
 
 /**
  * Display absolute date in <time> element
@@ -15,7 +22,7 @@ import {TextInput} from '../UI/Form';
  * param {string} noDateString - string to display if the date is not valid
  * param {string} className - The CSS class names to use in the parent time element
  */
-export const AbsoluteDate = ({
+export const AbsoluteDate: React.FC<AbsoluteDateProps> = ({
     date,
     noDateString = '',
     className,
@@ -51,21 +58,13 @@ export const AbsoluteDate = ({
         }
     }
 
-    return !asTextInput ? (
-        <time className={className} dateTime={timeStr}>
-            <span>{spanStr}</span>
-        </time>
-    ) : (
-        <TextInput className={className} value={spanStr} {...props} />
-    );
-};
+    if (!asTextInput) {
+        return (
+            <time className={className} dateTime={timeStr}>
+                <span>{spanStr}</span>
+            </time>
+        );
+    }
 
-AbsoluteDate.propTypes = {
-    date: PropTypes.string,
-    noDateString: PropTypes.string,
-    className: PropTypes.string,
-    asTextInput: PropTypes.bool,
-    toBeConfirmed: PropTypes.bool,
+    return <TextInput className={className} value={spanStr} {...props} />;
 };
-
-AbsoluteDate.defaultProps = {asTextInput: false};
