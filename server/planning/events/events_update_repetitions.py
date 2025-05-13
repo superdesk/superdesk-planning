@@ -36,7 +36,7 @@ from planning.events.events_utils import (
     generate_recurring_dates,
 )
 from planning.events.events_cancel import cancel_single_event, validate_states
-from planning.types import EventResourceModel, EventsHistoryResourceModel
+from planning.types import EventsHistoryResourceModel
 from planning.item_lock import LOCK_ACTION
 from planning.utils import event_has_planning_items
 
@@ -49,7 +49,7 @@ def update_rules(event: dict[str, Any], updated_rules: dict[str, Any]):
 
 
 async def cancel_event(event: dict[str, Any], updated_rule: dict[str, Any]):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
 
     # If the Event is not in a valid state to Cancel, then we simply ignore this Event
     if not validate_states(event):
@@ -59,7 +59,7 @@ async def cancel_event(event: dict[str, Any], updated_rule: dict[str, Any]):
     await cancel_single_event(updates, event)
 
     event_id = event[ID_FIELD]
-    await events_service.system_update(event_id, updates)
+    await events_service.system_update_async(event_id, updates, event)
     await signals.event_cancel.send(updates, {"_id": event_id})
 
     # If the event was posted we need to post the cancellation
@@ -74,12 +74,12 @@ async def cancel_event(event: dict[str, Any], updated_rule: dict[str, Any]):
 
 
 async def delete_event(event: dict[str, Any], updated_rule: dict[str, Any]):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
 
     if event.get("pubstatus", None) is not None or event_has_planning_items(event[ID_FIELD], "primary"):
         await cancel_event(event, updated_rule)
     else:
-        await events_service.delete_many(lookup={"_id": event[ID_FIELD]})
+        await events_service.delete_action_async(lookup={"_id": event[ID_FIELD]})
         app = get_current_app().as_any()
         await app.on_deleted_item_events.call_async(event)
 
@@ -108,13 +108,13 @@ def create_event(date, updates: dict[str, Any], original: dict[str, Any], time_d
 
 
 async def update_event(updated_rule: dict[str, Any], original: dict[str, Any]):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     events_history_service = EventsHistoryResourceModel.get_service()
 
     event_id = original[ID_FIELD]
     updates = update_rules(original, updated_rule)
     set_planning_schedule(updates)
-    await events_service.system_update(event_id, updates)
+    await events_service.system_update_async(event_id, updates, original)
     await events_history_service.on_update_repetitions(
         updates,
         event_id,
@@ -129,7 +129,6 @@ async def get_internal_series(original: dict[str, Any]) -> list:
 
     events = []
     async for event in get_series(query, sort, max_results):
-        event = event.to_dict()
         event["dates"]["start"] = event["dates"]["start"]
         event["dates"]["end"] = event["dates"]["end"]
         events.append(event)
@@ -138,7 +137,7 @@ async def get_internal_series(original: dict[str, Any]) -> list:
 
 
 async def update_event_repetitions(updates: dict[str, Any], original: dict[str, Any]):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     events_history_service = EventsHistoryResourceModel.get_service()
     remove_lock_information(updates)
 
@@ -193,7 +192,7 @@ async def update_event_repetitions(updates: dict[str, Any], original: dict[str, 
 
     # Now iterate over the new events and create them
     if new_events:
-        await events_service.create(new_events)
+        await events_service.create_async(new_events)
         for event in new_events:
             await events_history_service.on_update_repetitions(event, event[ID_FIELD], "update_repetitions_create")
 
@@ -223,7 +222,7 @@ async def process_update_repetitions(
     :param require_lock: Whether to enforce lock removal (default True).
     :return: The updated event document.
     """
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     ACTION = "update_repetitions"
 
     # Perform pre update event actions
@@ -231,7 +230,7 @@ async def process_update_repetitions(
 
     await update_event_repetitions(updates, original)
 
-    updated_repetitions_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    updated_repetitions_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert updated_repetitions_event is not None, "Expected updated_repetitions_event to be a dict, got None"
 
     # Perform post update actions

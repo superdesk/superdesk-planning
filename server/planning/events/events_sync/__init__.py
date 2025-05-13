@@ -20,7 +20,7 @@ from planning.utils import get_related_planning_for_events
 from planning.content_profiles.utils import AllContentProfileData
 from planning.common import get_config_event_fields_to_sync_with_planning
 from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
-from planning.types.event import EmbeddedPlanning as EmbeddedPlanningModel, EventResourceModel
+from planning.types.event import EmbeddedPlanning as EmbeddedPlanningModel
 
 from .common import VocabsSyncData, SyncItemData, SyncData
 from .embedded_planning import (
