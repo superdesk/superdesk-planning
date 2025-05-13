@@ -70,7 +70,7 @@ class EventsPostService(EventsBaseService):
                 and doc.get("pubstatus") == POST_STATE.USABLE
                 and event.get("original_creator")
             ):
-                user_metrics.incr("posted_events", event["original_creator"])
+                user_metrics.incr("published_events", event["original_creator"])
 
             if update_method == UPDATE_SINGLE:
                 event_id, planning_ids = self._post_single_event(doc, event)
@@ -129,12 +129,12 @@ class EventsPostService(EventsBaseService):
             update_method = UPDATE_FUTURE
 
         if update_method == UPDATE_FUTURE:
-            posted_events = [original] + future
+            published_events = [original] + future
         else:
-            posted_events = historic + past + [original] + future
+            published_events = historic + past + [original] + future
 
         # First we want to validate that all events can be posted
-        for event in posted_events:
+        for event in published_events:
             self.validate_post_state(post_to_state)
             self.validate_item(event)
 
@@ -143,7 +143,7 @@ class EventsPostService(EventsBaseService):
         ids = []
         items = []
         failed_planning_ids = []
-        for event in posted_events:
+        for event in published_events:
             updated_event, failed_planning_ids = self.post_event(event, post_to_state, doc.get("repost_on_update"))
             ids.append(event[config.ID_FIELD])
             items.append({"id": event[config.ID_FIELD], "etag": updated_event["_etag"]})

@@ -281,7 +281,7 @@ Feature: Events
         """
         {
             "_items": [
-                {"name": "posted_events", "value": 1}
+                {"name": "published_events", "value": 1}
             ]
         }
         """
@@ -325,7 +325,7 @@ Feature: Events
         """
         {
             "_items": [
-                {"name": "posted_events", "value": 1}
+                {"name": "published_events", "value": 1}
             ]
         }
         """

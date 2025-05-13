@@ -98,7 +98,7 @@ Feature: Events Post
         """
         {
             "_items": [
-                {"name": "posted_events", "value": 1}
+                {"name": "published_events", "value": 1}
             ]
         }
         """
