@@ -93,7 +93,10 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
         set_fields_filter(internal_req)
 
         # Apply subscriber filter
-        lookup = {"subscribers": g.get("user")["_id"]}
+        user = g.get("user")
+        if user and "_id" in user:
+            lookup["subscribers"] = user["_id"]
+
         set_default_sort(internal_req, DEFAULT_SORT)
         try:
             items = []

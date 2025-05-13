@@ -28,15 +28,6 @@ from planning.content_api.utils import (
     set_default_sort,
     set_search_field,
 )
-from superdesk.core.resources import (
-    ResourceConfig,
-    MongoIndexOptions,
-    MongoResourceConfig,
-    ElasticResourceConfig,
-)
-from superdesk.core.resources.service import AsyncResourceService
-
-from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 from planning.output_formatters import JsonPlanningFormatter
 from planning.content_api.types.planning import ContentAPIPlanningResource
 
@@ -99,7 +90,9 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]
         set_fields_filter(internal_req)
 
         # Apply subscriber filter
-        lookup = {"subscribers": g.get("user")["_id"]}
+        user = g.get("user")
+        if user and "_id" in user:
+            lookup["subscribers"] = user["_id"]
         set_default_sort(internal_req, DEFAULT_SORT)
 
         try:
