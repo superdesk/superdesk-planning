@@ -1,14 +1,14 @@
 from pydantic import BaseModel
 
-from planning.planning import PlanningAsyncService
+from superdesk import get_resource_service
+from superdesk.core.auth.privilege_rules import required_privilege_rule
+from superdesk.core.web import EndpointGroup
+from superdesk.core.types import Request, Response
+
 from planning.planning.planning_spike import process_spike_planning_item, process_unspike_planning_item
 from planning.planning.planning_duplicate import process_planning_item_duplicate
 from planning.planning.planning_postpone import process_postpone_planning_item
 from planning.utils import get_json_or_400_async
-
-from superdesk.core.auth.privilege_rules import required_privilege_rule
-from superdesk.core.web import EndpointGroup
-from superdesk.core.types import Request, Response
 
 
 planning_endpoint_group: EndpointGroup = EndpointGroup("planning", __name__)
@@ -25,7 +25,7 @@ class PlanningArgs(BaseModel):
     auth=[required_privilege_rule("planning_planning_spike")],
 )
 async def spike_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
+    original = await get_resource_service("planning").find_one_async(req=None, _id=args.planning_id)
     if not original:
         await request.abort(404, "Planning Item not found")
 
@@ -42,7 +42,7 @@ async def spike_planning_item(args: PlanningArgs, params: None, request: Request
     auth=[required_privilege_rule("planning_planning_unspike")],
 )
 async def unspike_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
+    original = await get_resource_service("planning").find_one_async(req=None, _id=args.planning_id)
     if not original:
         await request.abort(404, "Planning Item not found")
 
@@ -59,7 +59,7 @@ async def unspike_planning_item(args: PlanningArgs, params: None, request: Reque
     auth=[required_privilege_rule("planning_planning_management")],
 )
 async def duplicate_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
+    original = await get_resource_service("planning").find_one_async(req=None, _id=args.planning_id)
     if not original:
         await request.abort(404, "Planning Item not found")
 
@@ -75,7 +75,7 @@ async def duplicate_planning_item(args: PlanningArgs, params: None, request: Req
     auth=[required_privilege_rule("planning_planning_management")],
 )
 async def postpone_planning_item(args: PlanningArgs, params: None, request: Request) -> Response:
-    original = (await PlanningAsyncService().find_by_id(args.planning_id)).to_dict(context={"use_objectid": True})
+    original = await get_resource_service("planning").find_one_async(req=None, _id=args.planning_id)
     if not original:
         await request.abort(404, "Planning Item not found")
 

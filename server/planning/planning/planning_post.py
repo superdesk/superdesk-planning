@@ -135,7 +135,7 @@ class PlanningPostService(AsyncBaseService):
         if event:
             update_method = UPDATE_ALL if event.get("recurrence_id") else UPDATE_SINGLE
             if event and event.get("pubstatus") is None:
-                get_resource_service("events_post").post_async(
+                await get_resource_service("events_post").post_async(
                     [
                         {
                             "event": event[config.ID_FIELD],
