@@ -20,6 +20,7 @@ from datetime import timedelta, datetime
 from werkzeug.datastructures import MultiDict
 from quart_babel import gettext
 
+from superdesk.types import PublishRequest
 from superdesk.core import get_app_config, get_current_app
 from superdesk.resource_fields import ID_FIELD, VERSION
 from superdesk.resource import not_analyzed, build_custom_hateoas
@@ -39,7 +40,6 @@ from planning.types import (
     Event,
     EventAutosaveResourceModel,
     PlanningAutosaveResourceModel,
-    PlanningTypesResourceModel,
 )
 
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
@@ -440,11 +440,14 @@ async def enqueue_planning_item(id):
     if planning_version:
         item = planning_version.get("published_item")
         publish_response = await publish_item(
-            item,
-            item_id=item[ID_FIELD],
-            item_type=item[ITEM_TYPE],
-            operation=ITEM_PUBLISH,
-            published_state=item.get(ITEM_STATE) or "published",
+            PublishRequest(
+                item=item,
+                item_id=item[ID_FIELD],
+                item_type=item[ITEM_TYPE],
+                operation=ITEM_PUBLISH,
+                published_state=item[ITEM_STATE],
+                publish_to_content_api=True,
+            )
         )
 
         if not publish_response.routed:

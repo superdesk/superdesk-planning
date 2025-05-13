@@ -99,7 +99,6 @@ class EmbeddedPlanningCoverage:
     priority: int | None = None
 
 
-@dataclass
 class EmbeddedPlanning(Dataclass):
     planning_id: Annotated[str | None, validate_data_relation_async("planning")] = None
     update_method: Annotated[UpdateMethods, fields.keyword_mapping()] | None = None
