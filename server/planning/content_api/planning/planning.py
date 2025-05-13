@@ -33,7 +33,6 @@ from planning.content_api.utils import (
 
 
 class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceModel]):
-
     async def find_one(self, req: Optional[ParsedRequest] = None, **lookup):
         if req is None:
             req = ParsedRequest()
@@ -73,7 +72,7 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceM
         set_fields_filter(internal_req)
 
         # Apply subscriber filter
-        lookup["subscribers"] = g.get("user")
+        lookup = {"subscribers": g.get("user")["_id"]}
         set_default_sort(internal_req, DEFAULT_SORT)
 
         try:
