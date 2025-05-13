@@ -67,7 +67,7 @@ class IcsTwoFeedParser(FileFeedParser):
         cal = Calendar.from_ical(content)
         return self.parse(cal, provider)
 
-    def parse(self, cal, provider=None):
+    async def parse(self, cal, provider=None):
         try:
             items = []
 
