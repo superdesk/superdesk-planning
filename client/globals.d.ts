@@ -187,7 +187,7 @@ declare module 'superdesk-api' {
             default_create_planning_series_with_event_series?: boolean;
             event_related_item_search_provider_name?: string;
 
-            // Controls whether date only input is rendered in the editor
+            // Controls whether planning should have date only
             all_day?: boolean;
         };
 
