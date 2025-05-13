@@ -22,6 +22,9 @@ const TABS = {
 };
 
 export class AssignmentPreviewComponent extends React.Component {
+    tools: Array<{icon: string; onClick: any; title: any;}>;
+    tabs: Array<any>;
+
     constructor(props) {
         super(props);
         this.state = {tab: TABS.ASSIGNMENT};
@@ -31,7 +34,7 @@ export class AssignmentPreviewComponent extends React.Component {
         this.onUnlock = this.onUnlock.bind(this);
 
         this.tools = [{
-            icon: 'icon-close-small',
+            icon: 'close-small',
             onClick: props.closePanel,
             title: gettext(TOOLTIPS.close),
         }];
@@ -116,7 +119,6 @@ export class AssignmentPreviewComponent extends React.Component {
                                     gettext('Assignment locked')
                                 }
                                 showUnlock={lockAction !== 'content_edit'}
-                                withLoggedInfo={true}
                                 onUnlock={this.onUnlock}
                             />
                         </div>
