@@ -334,7 +334,7 @@ async def merge_subject(item, planning):
         return
     subject = item.setdefault("subject", [])
     vocabularies = []
-    async for vocabulary in get_resource_service("vocabularies").get_from_mongo_async(
+    async for vocabulary in await get_resource_service("vocabularies").get_from_mongo_async(
         req=None, lookup={"selection_type": "single selection"}, projection={"_id": 1}
     ):
         vocabularies.append(vocabulary)
