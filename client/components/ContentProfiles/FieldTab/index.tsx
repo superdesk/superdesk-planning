@@ -20,6 +20,7 @@ import {
 
 import {FieldList} from './FieldList';
 import {FieldEditor} from './FieldEditor';
+import {arrayInsertAtIndex} from '@sourcefabric/common';
 
 interface IProps {
     profile: IEditorProfile;
@@ -154,34 +155,36 @@ export class FieldTab extends React.Component<IProps, IState> {
     }
 
     updateFieldOrder(fields: Array<IProfileFieldEntry>) {
-        fields.forEach((item, index) => {
-            item.field.index = index;
-        });
-
         this.props.updateFields(fields);
     }
 
-    insertField(itemToAdd: IProfileFieldEntry, groupId: IEditorProfileGroup['_id'] | undefined, index: number) {
+    insertField(
+        fieldToAdd: IProfileFieldEntry,
+        groupId: IEditorProfileGroup['_id'] | undefined,
+        index: number,
+    ) {
         const fields = this.props.groupFields ?
             getEnabledProfileGroupFields(this.props.profile, groupId) :
             getEnabledProfileFields(this.props.profile);
 
-        fields.push({
-            ...itemToAdd,
-            field: {
-                ...itemToAdd.field,
-                enabled: true,
-                group: groupId,
-                index: index,
+        const withNewField = arrayInsertAtIndex(
+            fields,
+            {
+                ...fieldToAdd,
+                field: {
+                    ...fieldToAdd.field,
+                    enabled: true,
+                    group: groupId,
+                    index: index,
+                },
             },
-        });
+            index,
+        );
 
-        fields.sort((a, b) => a.field.index - b.field.index);
-        fields.forEach((item, index) => {
-            item.field.index = index;
-        });
 
-        this.props.updateFields(fields);
+        withNewField.sort((a, b) => a.field.index - b.field.index);
+
+        this.props.updateFields(withNewField);
     }
 
     removeField(item: IProfileFieldEntry) {
