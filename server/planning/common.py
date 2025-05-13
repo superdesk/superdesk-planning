@@ -39,7 +39,6 @@ from planning.types import (
     Event,
     EventAutosaveResourceModel,
     PlanningAutosaveResourceModel,
-    PlanningTypesResourceModel,
 )
 
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
@@ -445,6 +444,7 @@ async def enqueue_planning_item(id):
             item_type=item[ITEM_TYPE],
             operation=ITEM_PUBLISH,
             published_state=item.get(ITEM_STATE) or "published",
+            publish_to_content_api=True
         )
 
         if not publish_response.routed:

@@ -49,7 +49,7 @@ class PlanningCoverageItem(PlanningCoverage):
     deliveries: list[DeliveryResourceModel] | None = None
 
 
-class ContentAPIPlanningResourceModel(PlanningResourceModel):
+class ContentAPIPlanningResource(PlanningResourceModel):
     agendas: list[AgendaItem] = Field(default_factory=list)
     products: list[MatchingProduct] | None = None
     events: list[RelatedEvent] | None = None
