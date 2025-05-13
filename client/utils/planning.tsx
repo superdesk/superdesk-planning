@@ -23,6 +23,7 @@ import {
     IPlanningRelatedEventLinkType,
     IItemAction,
     ICoverageType,
+    IAssignmentItem,
 } from '../interfaces';
 
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
@@ -1854,8 +1855,8 @@ function getPlanningFiles(planning: IPlanningItem): IPlanningItem['files'] {
     return filesToFetch;
 }
 
-function showXMPFileUIControl(coverage: IPlanningCoverageItem): boolean {
-    return get(coverage, 'planning.g2_content_type') === 'picture' && (
+function showXMPFileUIControl(item: IAssignmentItem | IPlanningCoverageItem): boolean {
+    return get(item, 'planning.g2_content_type') === 'picture' && (
         appConfig.planning_use_xmp_for_pic_assignments ||
         appConfig.planning_use_xmp_for_pic_slugline
     );

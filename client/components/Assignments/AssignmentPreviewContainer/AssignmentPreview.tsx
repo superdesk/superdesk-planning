@@ -41,14 +41,12 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
         } = this.props;
 
         const planning: Partial<ICoveragePlanningDetails> = assignment?.planning ?? {};
-        const contactId = get(assignment, 'assigned_to.contact') ?
-            assignment.assigned_to.contact :
-            get(planning, 'contact_info');
+        const contactId = assignment?.assigned_to?.contact ?? planning?.contact_info;
         const showXMPFiles = planningUtils.showXMPFileUIControl(assignment);
 
         return (
             <div>
-                {contactId == null ? null : (
+                {contactId != null && (
                     <Row label={assignmentUtils.getContactLabel(assignment)}>
                         <ContactsPreviewList
                             contactIds={[contactId]}
