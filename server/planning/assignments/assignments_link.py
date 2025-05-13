@@ -46,7 +46,7 @@ class AssignmentsLinkService(AsyncBaseService):
             )
             item_id = doc.pop("item_id")
             actioned_item = await production.find_one_async(req=None, _id=item_id)
-            related_items = get_related_items(actioned_item)
+            related_items = await get_related_items(actioned_item)
             ids = await self.link_archive_items_to_assignments(assignment, related_items, actioned_item, doc)
 
         return ids
@@ -135,7 +135,7 @@ class AssignmentsLinkService(AsyncBaseService):
                 and not need_complete
             ):
                 # publishing planning item
-                assignments_service.publish_planning(assignment["planning_item"])
+                await assignments_service.publish_planning(assignment["planning_item"])
 
         # Send notifications
         push_content_notification(items)
@@ -187,14 +187,14 @@ class AssignmentsLinkService(AsyncBaseService):
             if assignment.get("scheduled_update_id"):
                 raise SuperdeskApiError.badRequestError("Only updates can be linked to a scheduled update assignment")
 
-        coverage = get_coverage_for_assignment(assignment)
+        coverage = await get_coverage_for_assignment(assignment)
         allowed_states = [
             ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
             ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
         ]
         if (
             coverage
-            and len(coverage.get("scheduled_updates")) > 0
+            and len(coverage.get("scheduled_updates") or []) > 0
             and str(assignment["_id"]) != str((coverage.get("assigned_to") or {}).get("assignment_id"))
         ):
             if (coverage.get("assigned_to") or {}).get("state") not in allowed_states:

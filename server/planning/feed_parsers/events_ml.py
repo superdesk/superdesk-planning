@@ -76,7 +76,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
     def get_item_id(self, tree: Element) -> str:
         return tree.attrib["guid"]
 
-    def parse(self, tree: Element, provider=None):
+    async def parse(self, tree: Element, provider=None):
         self.root = tree
         self.set_missing_voc_policy()
 
@@ -93,8 +93,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
             self.parse_item_meta(tree, item)
             self.parse_content_meta(tree, item)
             self.parse_concept(tree, item)
-            self.parse_event_details(tree, item)
-            utils.upgrade_rich_text_fields(item, "event")
+            await self.parse_event_details(tree, item)
+            await utils.upgrade_rich_text_fields(item, "event")
             return [item]
 
         except Exception as ex:
@@ -187,14 +187,14 @@ class EventsMLParser(NewsMLTwoFeedParser):
 
         return value
 
-    def parse_event_details(self, tree, item):
+    async def parse_event_details(self, tree, item):
         """Parse eventDetails tag"""
         concept = tree.find(self.qname("concept"))
         event_details = concept.find(self.qname("eventDetails"))
 
         self.parse_event_schedule(event_details.find(self.qname("dates")), item)
         self.parse_content_subject(event_details, item)
-        self.parse_registration_details(event_details, item)
+        await self.parse_registration_details(event_details, item)
 
     def parse_event_schedule(self, dates, item):
         default_timezone = get_app_config("DEFAULT_TIMEZONE")
@@ -238,8 +238,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
         item["dates"]["all_day"] = all_day
         item["dates"]["no_end_time"] = (all_day or no_end_time) is True
 
-    def parse_registration_details(self, event_details, item):
-        event_type = get_planning_schema("event")
+    async def parse_registration_details(self, event_details, item):
+        event_type = await get_planning_schema("event")
 
         if not is_field_enabled("registration_details", event_type):
             return

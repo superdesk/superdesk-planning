@@ -312,7 +312,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
     # Now iterate over the new events and create them
     if new_events:
         await events_service.create(new_events)
-        app.on_inserted_events(new_events)
+        await app.on_inserted_events.call_async(new_events)
 
     for event in deleted_events.values():
         event_plans = get_related_planning_for_events([event[ID_FIELD]], "primary")
@@ -333,7 +333,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
             # This event has no Planning items, therefor we can safely
             # delete this event
             await events_service.delete_many(lookup={"_id": event[ID_FIELD]})
-            app.on_deleted_item_events(event)
+            await app.on_deleted_item_events.call_async(event)
 
             if is_original:
                 updates["_deleted"] = True

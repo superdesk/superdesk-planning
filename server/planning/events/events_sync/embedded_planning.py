@@ -33,7 +33,7 @@ from .common import VocabsSyncData, get_enabled_subjects
 logger = logging.getLogger(__name__)
 
 
-def create_new_plannings_from_embedded_planning(
+async def create_new_plannings_from_embedded_planning(
     event: Event,
     event_translations: Dict[str, Dict[str, str]],
     embedded_planning: List[EmbeddedPlanningDict],
@@ -138,7 +138,7 @@ def create_new_plannings_from_embedded_planning(
         new_plannings.append(new_planning)
 
     if len(new_plannings):
-        get_resource_service("planning").post(new_plannings)
+        await get_resource_service("planning").post_async(new_plannings)
 
 
 def create_new_coverage_from_event_and_planning(

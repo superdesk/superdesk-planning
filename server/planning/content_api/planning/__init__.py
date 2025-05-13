@@ -50,7 +50,3 @@ async def get_planning_item(args, params, request: Request) -> Response:
         return Response({"error": "Not found"})
     return Response(item)
 
-
-module = Module(
-    "planning.content_api.planning", resources=[content_api_planning_resource_config], endpoints=[planning_endpoints]
-)

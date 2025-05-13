@@ -52,7 +52,3 @@ async def get_event_item(args, params, request: Request) -> Response:
         return Response({"error": "Not found"})
     return Response(item)
 
-
-module = Module(
-    "planning.content_api.events", resources=[content_api_event_resource_config], endpoints=[event_endpoints]
-)

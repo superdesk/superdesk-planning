@@ -75,7 +75,7 @@ class EventsPostService(AsyncBaseService):
             if not event:
                 abort(412)
 
-            update_method = get_update_method(event, doc)
+            update_method = get_update_method(doc, event)
 
             if update_method == UPDATE_SINGLE:
                 event_id, planning_ids = await self._post_single_event(doc, event)
@@ -217,7 +217,9 @@ class EventsPostService(AsyncBaseService):
 
     async def publish_event(self, event, version):
         # check and remove private contacts while posting event, only public contact will be visible
-        event["event_contact_info"] = [try_cast_object_id(contact["_id"]) for contact in get_contacts_from_item(event)]
+        event["event_contact_info"] = [
+            try_cast_object_id(contact["_id"]) async for contact in await get_contacts_from_item(event)
+        ]
 
         """Enqueue the items for publish"""
         version_id = await get_resource_service("published_planning").post_async(
@@ -243,7 +245,7 @@ class EventsPostService(AsyncBaseService):
         docs = []
         failed_planning_ids = []
         if new_post_state != POST_STATE.CANCELLED:
-            if is_post_planning_with_event_enabled():
+            if await is_post_planning_with_event_enabled():
                 docs = [
                     {
                         "planning": planning[ID_FIELD],
@@ -260,7 +262,7 @@ class EventsPostService(AsyncBaseService):
                     except Exception as e:
                         failed_planning_ids.append({"_id": doc["planning"], "error": getattr(e, "description", str(e))})
             return failed_planning_ids
-        elif not is_cancel_planning_with_event_enabled():
+        elif not await is_cancel_planning_with_event_enabled():
             return
 
         for planning in plannings:

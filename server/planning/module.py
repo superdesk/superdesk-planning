@@ -10,6 +10,12 @@ from apps.item_lock.components.item_lock import LOCK_SESSION, LOCK_USER
 
 from planning.types import AgendasResourceModel
 from planning.agendas_async import agendas_resource_config
+from planning.content_api import (
+    content_api_event_resource_config,
+    content_api_planning_resource_config,
+)
+from planning.content_api.events import event_endpoints
+from planning.content_api.planning import planning_endpoints
 from planning.events import events_resource_config, events_history_resource_config, events_autosave_resource_config
 from planning.events.events_autosave_service import EventsAutosaveAsyncService
 from planning.planning import (
@@ -75,7 +81,7 @@ def init_planning(app: SuperdeskAsyncApp):
 module = Module(
     "planning",
     init=init_planning,
-    endpoints=[planning_locks_endpoint, planning_endpoint_group, events_endpoints_group, planning_download_endpoint],
+    endpoints=[planning_locks_endpoint, planning_endpoint_group, events_endpoints_group, planning_download_endpoint, event_endpoints, planning_endpoints],
     resources=[
         events_resource_config,
         planning_resource_config,
@@ -92,6 +98,9 @@ module = Module(
         locations_resource_config,
         events_planning_filters_resource_config,
         assignments_history_resource_config,
+        # content_api resources and services so they are available
+        content_api_event_resource_config,
+        content_api_planning_resource_config,
     ],
     privileges=events_planning_filters_privileges,
 )

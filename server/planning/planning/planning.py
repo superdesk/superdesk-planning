@@ -203,7 +203,7 @@ class PlanningService(AsyncBaseService):
 
     async def on_created_async(self, docs):
         session_id = get_auth().get("_id")
-        post_planning_with_event = is_post_planning_with_event_enabled()
+        post_planning_with_event = await is_post_planning_with_event_enabled()
         for doc in docs:
             plan_id = str(doc.get(ID_FIELD))
             push_notification(
@@ -305,7 +305,7 @@ class PlanningService(AsyncBaseService):
         self.set_planning_schedule(updates, original)
 
         if update_method and update_method != UPDATE_SINGLE:
-            self._update_recurring_planning_items(updates, original, update_method)
+            await self._update_recurring_planning_items(updates, original, update_method)
 
     async def validate_on_update(self, updates, original, user):
         lock_user = original.get("lock_user", None)
@@ -1391,7 +1391,7 @@ class PlanningService(AsyncBaseService):
                     user=user_id,
                 )
 
-    def get_expired_items(self, expiry_datetime, spiked_planning_only=False):
+    async def get_expired_items(self, expiry_datetime, spiked_planning_only=False):
         """Get the expired items
 
         Where planning_date is in the past
@@ -1440,27 +1440,28 @@ class PlanningService(AsyncBaseService):
         while True:
             query["from"] = total_received
 
-            results = self.search(query)
+            results = await self.search_async(query)
 
             # If the total_items has not been set, then this is the first query
             # In which case we need to store the total hits from the search
             if total_items < 0:
-                total_items = results.count()
+                total_items = await results.count()
 
                 # If the search doesn't contain any results, return here
                 if total_items < 1:
                     break
 
             # If the last query doesn't contain any results, return here
-            if not len(results.docs):
+            items = await results.to_list()
+            if not len(items):
                 break
 
-            total_received += len(results.docs)
+            total_received += len(items)
 
             # Yield the results for iteration by the callee
-            yield list(results.docs)
+            yield items
 
-    def on_event_converted_to_recurring(self, updates, original):
+    async def on_event_converted_to_recurring(self, updates, original):
         event_id = original[ID_FIELD]
         for item in get_related_planning_for_events([original[ID_FIELD]]):
             related_events = get_related_event_links_for_planning(item)
@@ -1470,7 +1471,7 @@ class PlanningService(AsyncBaseService):
                 if event["_id"] == event_id:
                     event["recurrence_id"] = updates["recurrence_id"]
                     break
-            self.patch(
+            await self.patch_async(
                 item[ID_FIELD],
                 {
                     "recurrence_id": updates["recurrence_id"],
@@ -1637,7 +1638,7 @@ class PlanningService(AsyncBaseService):
         planning_file_ids = await get_resource_service("planning_files").post_async([{"media": media_id}])
         coverage["planning"]["xmp_file"] = planning_file_ids[0]
 
-    def _update_recurring_planning_items(self, updates, original, update_method):
+    async def _update_recurring_planning_items(self, updates, original, update_method):
         SKIP_PLANNING_FIELDS = {
             "_id",
             "guid",
@@ -1756,8 +1757,8 @@ class PlanningService(AsyncBaseService):
 
                     plan_updates["coverages"].append(new_coverage)
 
-            self.patch(plan["_id"], plan_updates)
-            app.on_updated_planning(plan_updates, {"_id": plan["_id"]})
+            await self.patch_async(plan["_id"], plan_updates)
+            await app.on_updated_planning.call_async(plan_updates, {"_id": plan["_id"]})
 
     def _iter_recurring_plannings_to_update(self, updates, original, update_method):
         selected_start = updates.get("planning_date") or original.get("planning_date")

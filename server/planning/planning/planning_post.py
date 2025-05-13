@@ -59,7 +59,7 @@ class PlanningPostService(AsyncBaseService):
     async def create_async(self, docs, **kwargs):
         ids = []
         assignments_to_delete = []
-        cancel_plan_with_event_enabled = is_cancel_planning_with_event_enabled()
+        cancel_plan_with_event_enabled = await is_cancel_planning_with_event_enabled()
         for doc in docs:
             plan = await get_resource_service("planning").find_one_async(req=None, _id=doc["planning"])
             related_events = get_related_event_items_for_planning(plan, "primary")
@@ -181,7 +181,7 @@ class PlanningPostService(AsyncBaseService):
 
     async def publish_planning(self, plan, version):
         # Check and remove private contacts while posting planning, only public contact will be visible
-        public_contact_ids = [str(contact["_id"]) for contact in get_contacts_from_item(plan)]
+        public_contact_ids = [str(contact["_id"]) async for contact in await get_contacts_from_item(plan)]
         for coverage in plan.get("coverages") or []:
             if (coverage.get("planning") or {}).get("contact_info"):
                 if str(coverage["planning"]["contact_info"]) not in public_contact_ids:

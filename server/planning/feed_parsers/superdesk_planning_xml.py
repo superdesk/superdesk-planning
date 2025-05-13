@@ -77,7 +77,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
     def get_item_id(self, tree: Element) -> str:
         return tree.attrib["guid"]
 
-    def parse(self, tree: Element, provider=None):
+    async def parse(self, tree: Element, provider=None):
         self.root = tree
         self.set_missing_voc_policy()
         planning_service = get_resource_service("planning")
@@ -85,12 +85,12 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         try:
             guid = self.get_item_id(tree)
             original: Optional[Planning] = planning_service.find_one(req=None, _id=guid)
-            item = self.parse_item(tree, original)
+            item = await self.parse_item(tree, original)
             return [item] if item is not None else []
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
 
-    def parse_item(self, tree: Element, original: Optional[Planning]) -> Optional[Planning]:
+    async def parse_item(self, tree: Element, original: Optional[Planning]) -> Optional[Planning]:
         guid = (original or {}).get("_id") or self.get_item_id(tree)
         item = {
             GUID_FIELD: guid,
@@ -104,9 +104,9 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         self.parse_news_coverage_set(tree, item, original)
         self.parse_news_coverage_status(tree, item)
 
-        upgrade_rich_text_fields(item, "planning")
+        await upgrade_rich_text_fields(item, "planning")
         for coverage in item.get("coverages") or []:
-            upgrade_rich_text_fields(coverage.get("planning") or {}, "coverage")
+            await upgrade_rich_text_fields(coverage.get("planning") or {}, "coverage")
 
         return item
 

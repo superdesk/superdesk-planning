@@ -8,10 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import json
 from copy import deepcopy
 from superdesk.flask import g
-from typing import Set, Optional
+from typing import Optional
 from eve.utils import ParsedRequest
 from werkzeug.datastructures import MultiDict
 from superdesk.datalayer import InvalidSearchString
@@ -19,7 +18,6 @@ from content_api.errors import BadParameterValueError
 from bson import ObjectId
 from bson.errors import InvalidId
 from superdesk.core.resources import ResourceConfig, MongoIndexOptions, MongoResourceConfig, ElasticResourceConfig
-from planning.content_api.types.planning import ContentAPIPlanningResourceModel
 from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 from superdesk.core.resources.service import AsyncResourceService
 from planning.content_api.utils import (
@@ -30,9 +28,38 @@ from planning.content_api.utils import (
     set_default_sort,
     set_search_field,
 )
+from superdesk.core.resources import (
+    ResourceConfig,
+    MongoIndexOptions,
+    MongoResourceConfig,
+    ElasticResourceConfig,
+)
+from superdesk.core.resources.service import AsyncResourceService
+
+from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from planning.output_formatters import JsonPlanningFormatter
+from planning.content_api.types.planning import ContentAPIPlanningResource
 
 
-class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceModel]):
+class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]):
+    """Service for publishing planning items to the content API"""
+
+    formatter = JsonPlanningFormatter()
+
+    async def publish_async(self, item, subscribers=None) -> None:
+        """
+        Uses the `JsonPlanningFormatter` to format the planning item and publish it to the content API.
+        If the planning item already exists, it will be updated, otherwise it will be created.
+        """
+
+        formatted_item = await self.formatter._format_item(item)
+        planning_id = item.get("_id")
+        original = await self.find_by_id(planning_id)
+        if original:
+            await self.update(planning_id, formatted_item)
+        else:
+            await self.create([formatted_item])
+
     async def find_one(self, req: Optional[ParsedRequest] = None, **lookup):
         if req is None:
             req = ParsedRequest()
@@ -86,7 +113,7 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResourceM
 
 content_api_planning_resource_config: ResourceConfig = ResourceConfig(
     name="planning_capi",
-    data_class=ContentAPIPlanningResourceModel,
+    data_class=ContentAPIPlanningResource,
     service=ContentAPIPlanningService,
     mongo=MongoResourceConfig(
         prefix=MONGO_PREFIX,

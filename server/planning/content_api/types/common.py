@@ -1,8 +1,8 @@
+from typing import Annotated
 from superdesk.core.resources import fields, Dataclass
-from planning.types import EventResourceModel
-from pydantic import Field
+from superdesk.core.resources.validators import validate_data_relation_async
 
 
 class MatchingProduct(Dataclass):
-    code: fields.Keyword
+    code: Annotated[fields.ObjectId, validate_data_relation_async("products")]
     name: str

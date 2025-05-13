@@ -8,7 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import json
 from copy import deepcopy
 from bson import ObjectId
 from superdesk.flask import g
@@ -19,9 +18,12 @@ from werkzeug.datastructures import MultiDict
 from superdesk.datalayer import InvalidSearchString
 from content_api.errors import BadParameterValueError
 from superdesk.core.resources import ResourceConfig, MongoResourceConfig, MongoIndexOptions, ElasticResourceConfig
-from content_api import MONGO_PREFIX, ELASTIC_PREFIX
-from planning.content_api.types.events import ContentAPIEventResource
+
 from superdesk.core.resources.service import AsyncResourceService
+
+from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from planning.output_formatters import JsonEventFormatter
+from planning.content_api.types.events import ContentAPIEventResource
 from planning.content_api.utils import (
     ALLOWED_PARAMS,
     DEFAULT_SORT,
@@ -33,6 +35,25 @@ from planning.content_api.utils import (
 
 
 class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
+    """Service for publishing events to the content API"""
+
+    formatter = JsonEventFormatter()
+
+    async def publish_async(self, item, subscribers=None) -> None:
+        """
+        Uses the `JsonEventFormatter` to format the event and publish it to the content API.
+        If the event already exists, it will be updated, otherwise it will be created.
+        """
+
+        formatted_item = await self.formatter._format_item(item)
+        event_id = item.get("_id")
+        original = await self.find_by_id(event_id)
+
+        if original:
+            await self.update(event_id, formatted_item)
+        else:
+            await self.create([formatted_item])
+
     async def find_one(self, req: Optional[ParsedRequest] = None, **lookup):
         if req is None:
             req = ParsedRequest()

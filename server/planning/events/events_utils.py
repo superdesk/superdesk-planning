@@ -149,9 +149,10 @@ def get_events_embedded_planning(event: dict[str, Any] | EventResourceModel) -> 
         EmbeddedPlanning(
             planning_id=planning.planning_id,
             update_method=planning.update_method or UpdateMethods.SINGLE,
-            coverages={_get_coverage_id(coverage): coverage for coverage in planning.coverages},
+            coverages={_get_coverage_id(coverage): coverage for coverage in planning.coverages.values()},
         )
-        for planning in event.embedded_planning
+        for planning in event.embedded_planning or []
+        if planning.coverages
     ]
 
 

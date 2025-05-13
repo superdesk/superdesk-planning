@@ -73,7 +73,7 @@ def search_coverage_assigned_user(params: Dict[str, Any], query: elastic.Elastic
     planning.search_coverage_assigned_user(params, query)
 
 
-COMBINED_SEARCH_FILTERS: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]] = [
+COMBINED_SEARCH_FILTERS: list[common.FilterFunctionType] = [
     search_not_common_fields,
     search_sluglines,
     search_calendars_and_agendas,
