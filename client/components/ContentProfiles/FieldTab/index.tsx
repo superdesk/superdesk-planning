@@ -20,6 +20,7 @@ import {
 
 import {FieldList} from './FieldList';
 import {FieldEditor} from './FieldEditor';
+import {arrayInsertAtIndex} from '@sourcefabric/common';
 
 interface IProps {
     profile: IEditorProfile;
@@ -166,9 +167,8 @@ export class FieldTab extends React.Component<IProps, IState> {
             getEnabledProfileGroupFields(this.props.profile, groupId) :
             getEnabledProfileFields(this.props.profile);
 
-        fields.splice(
-            index,
-            0,
+        const withNewField = arrayInsertAtIndex(
+            fields,
             {
                 ...fieldToAdd,
                 field: {
@@ -178,11 +178,13 @@ export class FieldTab extends React.Component<IProps, IState> {
                     index: index,
                 },
             },
+            index,
         );
 
-        fields.sort((a, b) => a.field.index - b.field.index);
 
-        this.props.updateFields(fields);
+        withNewField.sort((a, b) => a.field.index - b.field.index);
+
+        this.props.updateFields(withNewField);
     }
 
     removeField(item: IProfileFieldEntry) {
