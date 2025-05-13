@@ -18,7 +18,7 @@ export const getPlanningDate = (): IFieldDefinition => {
                 id: id,
                 name: gettext('Planning Date'),
 
-                // time picker must not be displayed for all day events
+                // time picker must not be displayed for all day planning
                 fieldType: appConfig.planning.all_day ? 'date' : 'datetime-v2',
 
                 fieldConfig: {
