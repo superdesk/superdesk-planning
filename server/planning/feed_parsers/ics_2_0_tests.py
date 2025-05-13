@@ -4,7 +4,7 @@ import os
 from icalendar import Calendar
 from planning.tests import TestCase
 from datetime import datetime, timezone
-import mock
+from unittest import mock
 from pytz import timezone as pytimezone
 
 
@@ -38,41 +38,38 @@ class IcsTwoFeedParserTestCase(TestCase):
         self.assertEqual(True, IcsTwoFeedParser().can_parse(self.calendar))
 
     async def test_event_ical_feed_parser_parse(self):
-        async with self.app.app_context():
-            events = IcsTwoFeedParser().parse(self.calendar)
-            self.assertTrue(len(events) >= 2)
+        events = await IcsTwoFeedParser().parse(self.calendar)
+        self.assertTrue(len(events) >= 2)
 
     @mock.patch("planning.feed_parsers.ics_2_0.utcnow", mock_utcnow)
     async def test_parl_ical(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         calendar = open(os.path.join(dir_path, "parl_cal.ics"))
         self.calendar = Calendar.from_ical(calendar.read())
-        async with self.app.app_context():
-            events = IcsTwoFeedParser().parse(self.calendar)
-            self.assertTrue(len(events) >= 2)
-            self.assertEqual(
-                events[0].get("dates").get("start"),
-                datetime(2018, 3, 1, 23, tzinfo=timezone.utc),
-            )
-            self.assertEqual(
-                events[0].get("dates").get("end"),
-                datetime(2018, 3, 2, 22, 59, 59, 0, tzinfo=timezone.utc),
-            )
+        events = await IcsTwoFeedParser().parse(self.calendar)
+        self.assertTrue(len(events) >= 2)
+        self.assertEqual(
+            events[0].get("dates").get("start"),
+            datetime(2018, 3, 1, 23, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            events[0].get("dates").get("end"),
+            datetime(2018, 3, 2, 22, 59, 59, 0, tzinfo=timezone.utc),
+        )
 
     @mock.patch("planning.feed_parsers.ics_2_0.utcnow", mock_utcnow)
     async def test_aus_timezone_parl_ical(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         calendar = open(os.path.join(dir_path, "parl_cal.ics"))
         self.calendar = Calendar.from_ical(calendar.read())
-        async with self.app.app_context():
-            self.app.config["DEFAULT_TIMEZONE"] = "Australia/Sydney"
-            events = IcsTwoFeedParser().parse(self.calendar)
-            self.assertTrue(len(events) >= 2)
-            self.assertEqual(
-                events[0].get("dates").get("start"),
-                datetime(2018, 3, 1, 13, tzinfo=timezone.utc),
-            )
-            self.assertEqual(
-                events[0].get("dates").get("end"),
-                datetime(2018, 3, 2, 12, 59, 59, 0, tzinfo=timezone.utc),
-            )
+        with mock.patch.dict(self.app.config, {"DEFAULT_TIMEZONE": "Australia/Sydney"}):
+            events = await IcsTwoFeedParser().parse(self.calendar)
+        self.assertTrue(len(events) >= 2)
+        self.assertEqual(
+            events[0].get("dates").get("start"),
+            datetime(2018, 3, 1, 13, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            events[0].get("dates").get("end"),
+            datetime(2018, 3, 2, 12, 59, 59, 0, tzinfo=timezone.utc),
+        )
