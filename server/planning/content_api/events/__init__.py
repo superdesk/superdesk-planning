@@ -17,29 +17,17 @@ from superdesk.core.web import EndpointGroup
 from werkzeug.datastructures import MultiDict
 from superdesk.core.types import Request, Response
 from .event import content_api_event_resource_config, ContentAPIEventService
-from planning.content_api.utils import ALLOWED_PARAMS
+from planning.content_api.utils import ALLOWED_PARAMS, APIListParams
 
 event_endpoints = EndpointGroup("events_capi", __name__)
 
 
-class EventListParams(BaseModel):
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    include_fields: Optional[str] = None
-    exclude_fields: Optional[str] = None
-    max_results: Optional[str] = None
-    page: Optional[str] = None
-    where: Optional[str] = None
-    q: Optional[str] = None
-    default_operator: Optional[str] = None
-
-
 @event_endpoints.endpoint("event", methods=["GET"])
-async def get_event_list(args: None, params: EventListParams, request: Request) -> Response:
+async def get_event_list(args: None, params: APIListParams, request: Request) -> Response:
     service = ContentAPIEventService()
     req = ParsedRequest()
     req.args = MultiDict(
-        {param: getattr(params, param) for param in ALLOWED_PARAMS if getattr(params, param) is not None}
+        {param: getattr(params, param, None) for param in ALLOWED_PARAMS if getattr(params, param, None) is not None}
     )
     lookup = {"subscribers": g.get("user")}
 

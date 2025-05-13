@@ -10,9 +10,22 @@
 
 import json
 from typing import Set
+from pydantic import BaseModel
 from werkzeug.datastructures import MultiDict
 from eve.utils import ParsedRequest
 from content_api.errors import UnexpectedParameterError
+
+
+class APIListParams(BaseModel):
+    start_date: str | None = None
+    end_date: str | None = None
+    include_fields: str | None = None
+    exclude_fields: str | None = None
+    max_results: str | None = None
+    page: str | None = None
+    where: str | None = None
+    q: str | None = None
+    default_operator: str | None = None
 
 
 ALLOWED_PARAMS: Set[str] = {
