@@ -1,6 +1,6 @@
 from bson import ObjectId
 
-from superdesk.tests import utils as test_utils
+from superdesk.tests import utils as test_utils, fixtures
 
 
 def filter_conditions() -> dict[str, dict]:
@@ -145,3 +145,10 @@ async def configure_planning_publishing() -> None:
     await test_utils.post_items("content_filters", list(content_filters().values()))
     await test_utils.post_items("products", list(products().values()))
     await test_utils.post_items("subscribers", list(subscribers().values()))
+
+
+async def configure_content_publishing() -> None:
+    await test_utils.post_items("filter_conditions", [fixtures.filter_conditions.filter_condition_text()])
+    await test_utils.post_items("content_filters", [fixtures.content_filters.content_filter_text()])
+    await test_utils.post_items("products", [fixtures.products.text_product()])
+    await test_utils.post_items("subscribers", [fixtures.subscribers.text_subscriber()])

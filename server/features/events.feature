@@ -211,6 +211,7 @@ Feature: Events
     @auth
     @notification
     Scenario: Track post history for event
+        When we configure planning for publishing
         Given empty "users"
         Given "contacts"
         """
@@ -480,6 +481,7 @@ Feature: Events
     @auth
     @notification
     Scenario: Posted event modified will re-post the event
+        When we configure planning for publishing
         When we post to "events" with success
         """
         [{
