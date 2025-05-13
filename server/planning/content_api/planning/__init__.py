@@ -7,24 +7,40 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-
+from typing import Optional
 from superdesk.flask import g
+from pydantic import BaseModel
 from eve.utils import ParsedRequest
 from superdesk.core.module import Module
 from superdesk.core.web import EndpointGroup
 from werkzeug.datastructures import MultiDict
 from superdesk.core.types import Request, Response
 from .planning import content_api_planning_resource_config, ContentAPIPlanningService
+from planning.content_api.utils import ALLOWED_PARAMS
 
 
 planning_endpoints = EndpointGroup("planning_capi", __name__)
 
 
+class PlanningListParams(BaseModel):
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    include_fields: Optional[str] = None
+    exclude_fields: Optional[str] = None
+    max_results: Optional[str] = None
+    page: Optional[str] = None
+    where: Optional[str] = None
+    q: Optional[str] = None
+    default_operator: Optional[str] = None
+
+
 @planning_endpoints.endpoint("planning", methods=["GET"])
-async def get_planning_list(args, params, request: Request) -> Response:
+async def get_planning_list(args, params: PlanningListParams, request: Request) -> Response:
     service = ContentAPIPlanningService()
     req = ParsedRequest()
-    req.args = MultiDict()
+    req.args = MultiDict(
+        {param: getattr(params, param) for param in ALLOWED_PARAMS if getattr(params, param) is not None}
+    )
     lookup = {"subscribers": g.get("user")}
     result = await service.get(req, lookup)
     return Response(result)
