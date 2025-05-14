@@ -6,7 +6,7 @@ import moment from 'moment';
 
 import {assignmentUtils, planningUtils, gettext, stringUtils} from '../../../utils';
 
-import {Item, Column, Row} from '../../UI/List';
+import {Column} from '../../UI/List';
 import {ContentBlock, ContentBlockInner, Tools} from '../../UI/SidePanel';
 import {
     AbsoluteDate,
@@ -15,10 +15,11 @@ import {
     Datetime,
     AuditInformation,
     ItemActionsMenu,
-    Label,
 } from '../../';
 import {UserAvatar} from '../../../components/UserAvatar';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
+import {IconButton, Label, Spacer, Tooltip} from 'superdesk-ui-framework/react';
+import {superdeskApi} from '../../../superdeskApi';
 
 export const AssignmentPreviewHeader = ({
     assignment,
@@ -70,105 +71,109 @@ export const AssignmentPreviewHeader = ({
                 }
             </ContentBlock>
             <Tools className="AssignmentPreview__toolbar" topTools={true}>
-                <div>
-                    <Item noBg={true} noHover={true}>
-                        {
-                            hideAvatar === true ? null : (
-                                <Column border={false}>
-                                    <UserAvatar
-                                        user={assignedUser}
-                                        size="large"
-                                    />
-                                </Column>
-                            )
-                        }
+                <Spacer h gap="4" justifyContent="start" noWrap>
+                    {hideAvatar !== true && (
                         <Column border={false}>
-                            <Row margin={false}>
-                                <span className="sd-list-item__normal">
-                                    {gettext('Desk:')}
-                                </span>
-                                <span className="sd-list-item__strong">
-                                    {assignedDeskName}
-                                </span>
-                            </Row>
-                            <Row margin={false}>
-                                <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                    {deskAssignor && (
-                                        <span>
-                                            {gettext('Assigned by {{name}}', {name: deskAssignorName})},
-                                            &nbsp;<Datetime date={assignedDateDesk} />
-                                        </span>
-                                    )}
-                                </span>
-                            </Row>
-                            <Row margin={false}>
-                                <span className="sd-list-item__normal">
-                                    {gettext('Assigned:')}
-                                </span>
-                                <span className="sd-list-item__strong">
-                                    {assignedUserName}
-                                </span>
-                            </Row>
-                            <Row margin={false}>
-                                <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                    {userAssignor && (
-                                        <span>
-                                            {gettext('Assigned by {{name}}', {name: userAssignorName})},
-                                            &nbsp;<Datetime date={assignedDateUser} />
-                                        </span>
-                                    )}
-                                </span>
-                            </Row>
-                            {coverageProvider && (
-                                <Row margin={false}>
-                                    <span className="sd-list-item__normal">
-                                        {gettext('Coverage Provider:')}
-                                    </span>
-                                    <span className="sd-list-item__strong">
-                                        {coverageProvider}
-                                    </span>
-                                </Row>
-                            )}
-                            <Row marginTop={true}>
-                                <span className="sd-list-item__normal">
-                                    {gettext('Due:')}
-                                </span>
-                                <AbsoluteDate
-                                    date={moment(planningSchedule).format()}
-                                    noDateString={gettext('\'not scheduled yet\'')}
-                                    toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)}
-                                />
-                            </Row>
-                            <Row marginTop={true}>
-                                <span
-                                    data-sd-tooltip={
-                                        gettext('Type: {{type}}', {
-                                            type: stringUtils.firstCharUpperCase(
-                                                get(planning, 'g2_content_type', '').replace('_', ' ')),
-                                        })
-                                    }
-                                    data-flow="right"
-                                >
-                                    <i
-                                        className={classNames('sd-list-item__inline-icon',
-                                            coverageIcon)}
-                                    />
-                                </span>
-                                <PriorityLabel
-                                    item={assignment}
-                                    priorities={priorities}
-                                    tooltipFlow="right"
-                                    inline={true}
-                                />
-                                <StateLabel
-                                    item={assignedTo}
-                                    inline={true}
-                                />
-                                {isAccepted && <Label iconType="highlight" text={gettext('Accepted')} /> }
-                            </Row>
+                            <UserAvatar
+                                user={assignedUser}
+                                size="large"
+                            />
                         </Column>
-                    </Item>
-                </div>
+                    )}
+                    <Spacer v gap="4" noWrap>
+                        <Spacer gap="4" h justifyContent="start" noWrap>
+                            {gettext('Id: {{id}}', {id: assignment._id})}
+                            <IconButton
+                                size="small"
+                                icon="copy"
+                                ariaValue={gettext('Copy assignment Id')}
+                                onClick={() => {
+                                    navigator.clipboard.writeText(assignment._id);
+                                    superdeskApi.ui.notify.success(gettext('Copied to clipboard'));
+                                }}
+                            />
+                        </Spacer>
+                        <Spacer h gap="4" justifyContent="start" noWrap>
+                            <span className="sd-list-item__normal">
+                                {gettext('Desk:')}
+                            </span>
+                            <span className="sd-list-item__strong">
+                                {assignedDeskName}
+                            </span>
+                        </Spacer>
+                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                            {deskAssignor && (
+                                <span>
+                                    {gettext('Assigned by {{name}}', {name: deskAssignorName})},
+                                            &nbsp;<Datetime date={assignedDateDesk} />
+                                </span>
+                            )}
+                        </span>
+                        <Spacer h gap="4" justifyContent="start" noWrap>
+                            <span className="sd-list-item__normal">
+                                {gettext('Assigned:')}
+                            </span>
+                            <span className="sd-list-item__strong">
+                                {assignedUserName}
+                            </span>
+                        </Spacer>
+
+                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                            {userAssignor && (
+                                <span>
+                                    {gettext('Assigned by {{name}}', {name: userAssignorName})} &nbsp;
+                                    <Datetime date={assignedDateUser} />
+                                </span>
+                            )}
+                        </span>
+
+                        {coverageProvider && (
+                            <Spacer h gap="4" justifyContent="start" noWrap>
+                                <span className="sd-list-item__normal">
+                                    {gettext('Coverage Provider:')}
+                                </span>
+                                <span className="sd-list-item__strong">
+                                    {coverageProvider}
+                                </span>
+                            </Spacer>
+                        )}
+                        <Spacer h gap="4" justifyContent="start" noWrap>
+                            <span className="sd-list-item__normal">
+                                {gettext('Due:')}
+                            </span>
+                            <AbsoluteDate
+                                date={moment(planningSchedule).format()}
+                                noDateString={gettext('\'not scheduled yet\'')}
+                                toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)}
+                            />
+                        </Spacer>
+                        <Spacer h gap="4" alignItems="start" justifyContent="start" noWrap>
+                            <Tooltip
+                                text={gettext('Type: {{type}}', {
+                                    type: stringUtils.firstCharUpperCase(
+                                        get(planning, 'g2_content_type', '').replace('_', ' ')),
+                                })}
+                                flow="right"
+                            >
+                                <i
+                                    className={classNames('sd-list-item__inline-icon',
+                                        coverageIcon)}
+                                />
+                            </Tooltip>
+                            <PriorityLabel
+                                item={assignment}
+                                priorities={priorities}
+                                tooltipFlow="right"
+                                inline={true}
+                            />
+                            <StateLabel
+                                item={assignedTo}
+                                inline={true}
+                            />
+                            {isAccepted && <Label type="highlight" text={gettext('Accepted')} /> }
+                        </Spacer>
+                    </Spacer>
+                </Spacer>
             </Tools>
         </div>
     );
