@@ -14,6 +14,7 @@ import {SidePanel, Header, Tools, Content} from '../../components/UI/SidePanel';
 import {LockContainer} from '../../components/';
 import {ArchivePreview} from '../../components/Archive';
 import {AssignmentPreviewContainer, AssignmentHistory} from '../../components/Assignments';
+import {IPreviewTab, IPreviewTool} from '../../interfaces';
 
 const TABS = {
     ASSIGNMENT: 0,
@@ -22,8 +23,8 @@ const TABS = {
 };
 
 export class AssignmentPreviewComponent extends React.Component {
-    tools: Array<{icon: string; onClick: any; title: any;}>;
-    tabs: Array<any>;
+    tools: Array<IPreviewTool>;
+    tabs: Array<IPreviewTab>;
 
     constructor(props) {
         super(props);
