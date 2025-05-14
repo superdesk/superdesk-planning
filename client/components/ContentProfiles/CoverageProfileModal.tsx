@@ -40,8 +40,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
 
         const state = planningApi.redux.store.getState();
         const allProfiles = coverageProfiles(state);
-        const newlyCreatedProfile = allProfiles.find((x) => x.content_type === 'text');
-        const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(oldProfile(state), '_id');
 
         this.availableCoverageTypes = (contentTypes(planningApi.redux.store.getState()))
             .map((item) => ({
@@ -57,12 +55,16 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 icon: planningUtils.getCoverageIcon(item['content item type'] || item.qcode).replace('icon-', ''),
             }));
 
+        const selectedType = this.availableCoverageTypes?.[0]?.value ?? 'text';
+        const newlyCreatedProfile = allProfiles.find((x) => x.content_type === selectedType);
+        const defaultProfile = newlyCreatedProfile ? newlyCreatedProfile : omit(oldProfile(state), '_id');
+
         this.state = {
             saving: false,
             dirty: false,
             profile: defaultProfile,
             originalProfile: defaultProfile,
-            selectedType: this.availableCoverageTypes?.[0]?.value ?? 'text',
+            selectedType: selectedType,
             allProfiles: allProfiles,
         };
 
@@ -112,6 +114,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             return;
         }
 
+        debugger;
         planningApi.contentProfiles.coverages.patch(
             this.state.originalProfile,
             {
