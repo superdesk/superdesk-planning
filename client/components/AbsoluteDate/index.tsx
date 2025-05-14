@@ -4,24 +4,22 @@ import {DATE_FORMATS} from '../../constants';
 import {TextInput} from '../UI/Form';
 
 interface AbsoluteDateProps extends React.HTMLAttributes<HTMLElement> {
+    // datetime string in utc
     date?: string;
+
+    // string to display if the date is not valid
     noDateString?: string;
+
+    // The CSS class names to use in the parent time element
     className?: string;
+
+    // show text input instead of time
     asTextInput?: boolean;
+
+    // show to be confirmed text
     toBeConfirmed?: boolean;
 }
 
-/**
- * Display absolute date in <time> element
- *
- * Usage:
- * <AbsoluteDate date={historyItem._created} />
- *
- * Params:
- * param {object} date - datetime string in utc
- * param {string} noDateString - string to display if the date is not valid
- * param {string} className - The CSS class names to use in the parent time element
- */
 export const AbsoluteDate: React.FC<AbsoluteDateProps> = ({
     date,
     noDateString = '',

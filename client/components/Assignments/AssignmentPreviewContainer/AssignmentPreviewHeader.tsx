@@ -82,7 +82,7 @@ export const AssignmentPreviewHeader = ({
                     )}
                     <Spacer v gap="4" noWrap>
                         <Spacer gap="4" h justifyContent="start" noWrap>
-                            {gettext('Id: {{ assignmentId}}', {assignmentId: assignment._id})}
+                            {gettext('Id: {{id}}', {id: assignment._id})}
                             <IconButton
                                 size="small"
                                 icon="copy"
