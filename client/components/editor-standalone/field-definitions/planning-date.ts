@@ -1,3 +1,4 @@
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from './interfaces';
 import {IAuthoringFieldV2, IDateTimeFieldConfig} from 'superdesk-api';
@@ -16,7 +17,10 @@ export const getPlanningDate = (): IFieldDefinition => {
             const field: IAuthoringFieldV2 = {
                 id: id,
                 name: gettext('Planning Date'),
-                fieldType: 'datetime-v2',
+
+                // time picker must not be displayed for all day planning
+                fieldType: appConfig.planning.all_day ? 'date' : 'datetime-v2',
+
                 fieldConfig: {
                     ...config,
                     required: required,
@@ -42,10 +46,19 @@ export const getPlanningDate = (): IFieldDefinition => {
                     return val;
                 }
             },
-            storeValue: (item, operationalValue: Date) => {
+            storeValue: (item, operationalValue: Date | string) => {
+                if (operationalValue == null) {
+                    return {...item, planning_date: null};
+                }
+
+                // If field type is date, operational value is ISO string date
+                const dateValue = operationalValue instanceof Date
+                    ? operationalValue
+                    : new Date(operationalValue);
+
                 return {
                     ...item,
-                    planning_date: operationalValue == null ? null : operationalValue.toISOString(),
+                    planning_date: dateValue.toISOString(),
                 };
             },
         },
