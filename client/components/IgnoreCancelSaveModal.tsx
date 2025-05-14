@@ -82,7 +82,10 @@ export class IgnoreCancelSaveModalComponent extends React.Component<IProps, ISta
                     />
                 </div>
             );
-        } else if (this.props.modalProps.item.type === 'event') {
+        } else if (
+            this.props.modalProps.item.type === 'event'
+            && this.props.modalProps.item.recurrence_id != null
+        ) {
             return (
                 <UpdateRecurringEventsForm
                     original={this.props.modalProps.item}
