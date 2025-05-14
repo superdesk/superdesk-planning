@@ -10,7 +10,7 @@
 
 from copy import deepcopy
 from superdesk.flask import g
-from typing import Optional
+from typing import Optional, Any
 from eve.utils import ParsedRequest
 from werkzeug.datastructures import MultiDict
 from superdesk.datalayer import InvalidSearchString
@@ -83,7 +83,7 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]
 
         internal_req = ParsedRequest() if req is None else deepcopy(req)
         internal_req.args = MultiDict()
-        orig_request_params = MultiDict(getattr(req, "args", {}))
+        orig_request_params: MultiDict[str, Any] = MultiDict(getattr(req, "args", {}))
 
         check_for_unknown_params(req, whitelist=ALLOWED_PARAMS)
         set_search_field(internal_req.args, orig_request_params)

@@ -51,4 +51,3 @@ async def get_event_item(args, params, request: Request) -> Response:
     if not item:
         return Response({"error": "Not found"})
     return Response(item)
-

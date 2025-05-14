@@ -11,9 +11,9 @@
 from copy import deepcopy
 from bson import ObjectId
 from superdesk.flask import g
-from typing import Set, Optional
 from bson.errors import InvalidId
 from eve.utils import ParsedRequest
+from typing import Set, Optional, Any
 from werkzeug.datastructures import MultiDict
 from superdesk.datalayer import InvalidSearchString
 from content_api.errors import BadParameterValueError
@@ -86,8 +86,7 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
 
         internal_req = ParsedRequest() if req is None else deepcopy(req)
         internal_req.args = MultiDict()
-        orig_request_params = MultiDict(getattr(req, "args", {}))
-
+        orig_request_params: MultiDict[str, Any] = MultiDict(getattr(req, "args", {}))
         check_for_unknown_params(req, whitelist=ALLOWED_PARAMS)
         set_search_field(internal_req.args, orig_request_params)
         set_fields_filter(internal_req)
