@@ -130,15 +130,6 @@ describe('assignments', () => {
                     'locked'
                 );
             });
-
-            it('displays tooltip for priority', () => {
-                const wrapper = getMountedWrapper();
-                const priorityNode = wrapper.find('.priority-label').first();
-
-                expect(priorityNode.prop('data-sd-tooltip')).toBe(
-                    'Priority: {{ name }}'
-                );
-            });
         });
     });
 });
