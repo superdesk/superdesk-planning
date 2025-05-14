@@ -143,9 +143,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
         except AttributeError:
             pass
 
-    def get_default_event_duration(self):
-        # TODO-ASYNC[PlanningTypesAsyncService] - Update to use PlanningTypesAsyncService when class is updated to async
-        profile = get_resource_service("planning_types").find_one(req=None, name="event") or {}
+    async def get_default_event_duration(self):
+        profile = (await get_resource_service("planning_types").find_one_async(req=None, name="event")) or {}
         return ((profile.get("editor") or {}).get("dates") or {}).get("default_duration_on_change", 1)
 
     def parse_concept(self, tree, item):
@@ -192,11 +191,11 @@ class EventsMLParser(NewsMLTwoFeedParser):
         concept = tree.find(self.qname("concept"))
         event_details = concept.find(self.qname("eventDetails"))
 
-        self.parse_event_schedule(event_details.find(self.qname("dates")), item)
+        await self.parse_event_schedule(event_details.find(self.qname("dates")), item)
         self.parse_content_subject(event_details, item)
         await self.parse_registration_details(event_details, item)
 
-    def parse_event_schedule(self, dates, item):
+    async def parse_event_schedule(self, dates, item):
         default_timezone = get_app_config("DEFAULT_TIMEZONE")
         start_date_source = dates.find(self.qname("start")).text
         start_date_str = self.get_datetime_str(start_date_source, "00:00:00", default_timezone)
@@ -227,7 +226,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
             if is_start_local_midnight and all_day:
                 end_date = start_date.replace(hour=23, minute=59, second=59)
             else:
-                end_date = start_date + timedelta(hours=self.get_default_event_duration())
+                end_date = start_date + timedelta(hours=await self.get_default_event_duration())
 
         item["dates"] = dict(
             start=start_date.astimezone(pytz.utc),

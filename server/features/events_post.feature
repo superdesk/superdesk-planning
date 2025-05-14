@@ -1,4 +1,6 @@
 Feature: Events Post
+    Background: Initial setup
+        When we configure planning for publishing
 
     @auth
     @notification
@@ -297,7 +299,7 @@ Feature: Events Post
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#"}]
         }
         """
         Then we get OK response
@@ -439,7 +441,7 @@ Feature: Events Post
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#"}]
         }
         """
         Then we get OK response
@@ -580,7 +582,7 @@ Feature: Events Post
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#"}]
         }
         """
         Then we get OK response
@@ -740,7 +742,7 @@ Feature: Events Post
         When we get "/planning/plan1"
         Then we get existing resource
         """
-        {"event_item": "#events._id#"}
+        {"related_events": [{"_id": "#events._id#", "link_type": "primary"}]}
         """
         When we post to "/events/post"
         """
@@ -763,7 +765,9 @@ Feature: Events Post
                 {
                     "item_id": "#planning._id#",
                     "published_item": {
-                        "event_item": "#events._id#"
+                        "related_events": [
+                            {"_id": "#events._id#", "link_type": "primary"}
+                        ]
                     }
                 },
                 {
@@ -799,7 +803,7 @@ Feature: Events Post
             "headline": "test headline1",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }
         """
         Then we get OK response
@@ -866,7 +870,7 @@ Feature: Events Post
             "headline": "test headline1",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }
         """
         Then we get OK response
@@ -947,7 +951,7 @@ Feature: Events Post
             "headline": "test headline1",
             "slugline": "test slugline",
             "planning_date": "2016-01-02",
-            "event_item": "#events._id#"
+            "related_events": [{"_id": "#events._id#", "link_type": "primary"}]
         }
         """
         Then we get OK response
@@ -1238,7 +1242,7 @@ Feature: Events Post
         "headline": "test headline",
         "guid": "123",
         "planning_date": "2029-11-22",
-        "event_item": "#EVENT1._id#"
+        "related_events": [{"_id": "#EVENT1._id#", "link_type": "primary"}]
     }]
     """
     Then we get OK response

@@ -227,7 +227,11 @@ async def enhance_coverage(planning, item, users, desks, text_users, text_desks)
                         "rewrite_of": None,
                     },
                 )
-                archive_item = await results.next()
+                try:
+                    archive_item = await results.next()
+                except StopAsyncIteration:
+                    archive_item = None
+
                 if archive_item:
                     item["published_archive_items"].append(
                         {

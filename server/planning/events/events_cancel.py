@@ -18,7 +18,7 @@ from planning.events.events_utils import (
     pre_update_event_actions,
 )
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
-from planning.types import EventResourceModel, EventsHistoryResourceModel
+from planning.types import EventsHistoryResourceModel
 from superdesk.resource_fields import ID_FIELD
 from superdesk.flask import request
 from superdesk import get_resource_service
@@ -34,12 +34,13 @@ from planning.common import (
     set_actioned_date_to_event,
 )
 from planning.utils import get_related_planning_for_events
+from planning import signals
 
 
 async def patch_related_event_as_cancelled(
     updates: dict[str, Any], original: dict[str, Any], notifications: list[dict[str, Any]]
 ):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     events_history_service = EventsHistoryResourceModel.get_service()
 
     if not validate_states(original):
@@ -49,8 +50,8 @@ async def patch_related_event_as_cancelled(
     id = original[ID_FIELD]
     updates["skip_on_update"] = True
 
-    await events_service.update(id, updates)
-    updated_event = await events_service.find_by_id_raw(id)
+    await events_service.patch_async(id, updates)
+    updated_event = await events_service.find_one_async(req=None, _id=id)
     assert updated_event is not None, "Expected updated_event to be a dict, got None"
     await events_history_service.on_cancel(updated_event, original)
 
@@ -147,7 +148,7 @@ async def process_cancel_event(updates: dict[str, Any], original: dict[str, Any]
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     ACTION = "cancel"
 
     # Perform pre update event actions
@@ -169,8 +170,9 @@ async def process_cancel_event(updates: dict[str, Any], original: dict[str, Any]
 
     # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.update(event_id, updates)
-    canceled_event = await events_service.find_by_id_raw(event_id)
+    await events_service.patch_async(event_id, updates)
+    await signals.event_cancel.send(updates, original)
+    canceled_event = await events_service.find_one_async(req=None, _id=event_id)
     assert canceled_event is not None, "Expected canceled_event to be a dict, got None"
 
     user = get_user(required=True).get(ID_FIELD, "")

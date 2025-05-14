@@ -5,8 +5,9 @@ from superdesk.core.resources.validators import validate_data_relation_async
 
 
 class HistoryResourceModel(ResourceModelWithObjectId):
-    user_id: Annotated[fields.ObjectId, validate_data_relation_async("users")]
     operation: str
+    # ``user_id`` can be ``None`` if the history item is created by the system (such as from an ingest)
+    user_id: Annotated[fields.ObjectId | None, validate_data_relation_async("users")] = None
     update: dict[str, Any] | None = None
 
 

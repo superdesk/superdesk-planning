@@ -161,7 +161,7 @@ async def get_user_updated_keys(event_id: str) -> set[str]:
     updates = await history_service.get_by_id(event_id)
     updated_keys: set[str] = set()
     for update in updates:
-        if not update.get("user_id"):
+        if update.get("operation") == "ingested" or not update.get("user_id"):
             continue
         if update.get("update"):
             updated_keys.update(update["update"].keys())
@@ -188,8 +188,6 @@ class EventsService(AsyncBaseService):
     async def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
         """Patch an ingested item onto an existing item locally"""
         prepare_ingested_item_for_storage(document)
-        events_history = EventsHistoryAsyncService()
-        await events_history.on_item_updated(document, original, "ingested")
 
         content_fields = get_current_app().config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
         updated_keys = await get_user_updated_keys(_id)
@@ -199,8 +197,12 @@ class EventsService(AsyncBaseService):
 
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
+
+        events_history = EventsHistoryAsyncService()
+        await events_history.on_item_updated(document, original, "ingested")
+
         response = await self.backend.update_in_mongo_async(self.datasource, _id, document, original)
-        self.on_updated(document, original, from_ingest=True)
+        await self.on_updated_async(document, original, from_ingest=True)
         return response
 
     def is_new_version(self, new_item, old_item):
@@ -559,7 +561,6 @@ class EventsService(AsyncBaseService):
         str_user_id = str(user.get(ID_FIELD)) if user_id else None
 
         if lock_user and str(lock_user) != str_user_id:
-            print(lock_user, str_user_id)
             raise SuperdeskApiError.forbiddenError("The item was locked by another user")
 
         # If only the `recurring_rule` was provided, then fill in the rest from the original
@@ -837,7 +838,7 @@ class EventsService(AsyncBaseService):
             if not planning_item.get("recurrence_id") and link_type == "primary":
                 updates["recurrence_id"] = event["recurrence_id"]
 
-        planning_service.validate_on_update(updates, planning_item, get_user())
+        await planning_service.validate_on_update(updates, planning_item, get_user())
         await planning_service.system_update_async(plan_id, updates, planning_item)
         app = get_current_app().as_any()
         await app.on_updated_planning.call_async(updates, planning_item)
@@ -890,7 +891,7 @@ class EventsService(AsyncBaseService):
         for file in files:
             events_using_file = await self.find_async(where={"files": file})
             if await events_using_file.count() == 0:
-                await files_service.delete_action(lookup={"_id": file})
+                await files_service.delete_action_async(lookup={"_id": file})
 
     def should_update(self, old_item, new_item, provider):
         return old_item is None or not any(

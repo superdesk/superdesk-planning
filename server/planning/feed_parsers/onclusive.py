@@ -50,7 +50,7 @@ class OnclusiveFeedParser(FeedParser):
         except Exception:
             return False
 
-    def parse(self, content, provider=None):
+    async def parse(self, content, provider=None):
         all_events = []
         for event in content:
             logger.info(
@@ -74,7 +74,7 @@ class OnclusiveFeedParser(FeedParser):
                 self.parse_location(event, item)
                 self.parse_event_details(event, item)
                 self.parse_category(event, item)
-                self.parse_contact_info(event, item)
+                await self.parse_contact_info(event, item)
                 self.set_expiry(item, provider)
                 all_events.append(item)
             except EmbargoedException:
@@ -259,7 +259,7 @@ class OnclusiveFeedParser(FeedParser):
             return local_to_utc(timezone, parsed)
         return parsed.replace(tzinfo=pytz.utc)
 
-    def parse_contact_info(self, event, item):
+    async def parse_contact_info(self, event, item):
         for contact_info in event.get("pressContacts"):
             item.setdefault("event_contact_info", [])
             contact_uri = "onclusive:{}".format(contact_info["pressContactID"])
@@ -290,7 +290,7 @@ class OnclusiveFeedParser(FeedParser):
                 data["first_name"] = first
                 data["last_name"] = last
 
-            existing_contact = get_resource_service("contacts").find_one(req=None, uri=contact_uri)
+            existing_contact = await get_resource_service("contacts").find_one_async(req=None, uri=contact_uri)
             if existing_contact is None:
                 data.update(
                     {
@@ -298,11 +298,12 @@ class OnclusiveFeedParser(FeedParser):
                         "public": True,
                     }
                 )
-                get_resource_service("contacts").post([data])
+                await get_resource_service("contacts").post_async([data])
                 item["event_contact_info"].append(bson.ObjectId(data["_id"]))
             else:
+                print(existing_contact)
                 existing_contact_id = bson.ObjectId(existing_contact["_id"])
-                get_resource_service("contacts").patch(existing_contact_id, data)
+                await get_resource_service("contacts").patch_async(existing_contact_id, data)
                 item["event_contact_info"].append(existing_contact_id)
 
     def set_expiry(self, event, provider) -> None:

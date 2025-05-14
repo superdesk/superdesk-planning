@@ -30,7 +30,7 @@ from planning.common import (
 
 from planning.validate import validate_docs
 from planning.events.events_utils import get_recurring_timeline, get_update_method
-from planning.types import EventResourceModel, EventsHistoryResourceModel
+from planning.types import EventsHistoryResourceModel
 from planning.utils import try_cast_object_id, get_related_planning_for_events
 from planning.content_profiles.utils import is_post_planning_with_event_enabled, is_cancel_planning_with_event_enabled
 
@@ -65,11 +65,11 @@ class EventsPostResource(EventsResource):
 
 class EventsPostService(AsyncBaseService):
     async def create_async(self, docs, **kwargs):
-        events_service = EventResourceModel.get_service()
+        events_service = get_resource_service("events")
 
         ids = []
         for doc in docs:
-            event = await events_service.find_by_id_raw(doc["event"])
+            event = await events_service.find_one_async(req=None, _id=doc["event"])
             doc["failed_planning_ids"] = []
 
             if not event:
@@ -174,7 +174,7 @@ class EventsPostService(AsyncBaseService):
         return ids, failed_planning_ids
 
     async def post_event(self, event, new_post_state, repost):
-        events_service = EventResourceModel.get_service()
+        events_service = get_resource_service("events")
         events_history_service = EventsHistoryResourceModel.get_service()
 
         # update the event with new state
@@ -195,7 +195,7 @@ class EventsPostService(AsyncBaseService):
                 updates["actioned_date"] = None
 
         event_id = event[ID_FIELD]
-        await events_service.system_update(event_id, updates, update_etag=True)
+        await events_service.update_async(event_id, updates, event)
         event.update(updates)
 
         # enqueue the event

@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import Any
 
+from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
@@ -94,7 +95,7 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     :param original: The original planning document.
     :return: The updated planning document.
     """
-    planning_service = PlanningAsyncService()
+    planning_service = get_resource_service("planning")
 
     if original.get("pubstatus") or original.get("state") not in [
         WORKFLOW_STATE.INGESTED,
@@ -125,8 +126,8 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     await remove_autosave_on_spike(original)
 
     planning_item_id = original[ID_FIELD]
-    await planning_service.system_update(planning_item_id, updates)
-    spiked_planning_item = await planning_service.find_by_id_raw(planning_item_id)
+    await planning_service.system_update_async(planning_item_id, updates, original)
+    spiked_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
     assert spiked_planning_item is not None, "Expected spiked_planning to be a dict, got None"
 
     push_notification(

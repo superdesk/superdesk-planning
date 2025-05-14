@@ -40,6 +40,7 @@ from superdesk.utc import utcnow, utc_to_local
 from superdesk import get_resource_service, etree
 from superdesk.io.feed_parsers import XMLFeedParser
 from wooper.assertions import assert_equal
+from planning.tests import fixtures as planning_fixtures
 
 
 def get_local_end_of_day(context, day=None, timezone=None):
@@ -124,7 +125,7 @@ async def step_impl_we_delete_event_file(context):
 @when('we spike {resource} "{item_id}"')
 @async_run_until_complete
 async def step_impl_when_spike_resource(context, resource, item_id):
-    data = context.text or {}
+    data = json.loads(context.text or "{}")
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
@@ -134,15 +135,13 @@ async def step_impl_when_spike_resource(context, resource, item_id):
     res = await get_res(item_url, context)
     headers = if_match(context, res.get("_etag"))
 
-    context.response = await context.client.patch(
-        get_prefixed_url(context.app, spike_url), data=json.dumps(data), headers=headers
-    )
+    context.response = await context.client.patch(get_prefixed_url(context.app, spike_url), json=data, headers=headers)
 
 
 @when('we unspike {resource} "{item_id}"')
 @async_run_until_complete
 async def step_impl_when_unspike_resource(context, resource, item_id):
-    data = context.text or {}
+    data = json.loads(context.text or "{}")
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
@@ -153,14 +152,14 @@ async def step_impl_when_unspike_resource(context, resource, item_id):
     headers = if_match(context, res.get("_etag"))
 
     context.response = await context.client.patch(
-        get_prefixed_url(context.app, unspike_url), data=json.dumps(data), headers=headers
+        get_prefixed_url(context.app, unspike_url), json=data, headers=headers
     )
 
 
 @when('we perform {action} on {resource} "{item_id}"')
 @async_run_until_complete
 async def step_imp_when_action_resource(context, action, resource, item_id):
-    data = context.text or {}
+    data = json.loads(context.text or "{}")
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
@@ -170,9 +169,7 @@ async def step_imp_when_action_resource(context, action, resource, item_id):
     res = await get_res(item_url, context)
     headers = if_match(context, res.get("_etag"))
 
-    context.response = await context.client.patch(
-        get_prefixed_url(context.app, action_url), data=json.dumps(data), headers=headers
-    )
+    context.response = await context.client.patch(get_prefixed_url(context.app, action_url), json=data, headers=headers)
 
 
 @then('we get text in "{field}"')
@@ -363,7 +360,7 @@ def then_get_transmitted_item(context, path):
 @when('we fetch events from "{provider_name}" ingest "{guid}"')
 @async_run_until_complete
 async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
-    with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
         ingest_provider_service = get_resource_service("ingest_providers")
         provider = ingest_provider_service.find_one(name=provider_name, req=None)
 
@@ -373,9 +370,9 @@ async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
         if isinstance(feeding_parser, XMLFeedParser):
             with open(file_path, "rb") as f:
                 xml_string = etree.etree.fromstring(f.read())
-                parsed = feeding_parser.parse(xml_string, provider)
+                parsed = await feeding_parser.parse(xml_string, provider)
         else:
-            parsed = feeding_parser.parse(file_path, provider)
+            parsed = await feeding_parser.parse(file_path, provider)
 
         items = [parsed] if not isinstance(parsed, list) else parsed
 
@@ -386,8 +383,8 @@ async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
         failed = await context.ingest_items(items, provider, provider_service)
         assert len(failed) == 0, failed
 
-        provider = ingest_provider_service.find_one(name=provider_name, req=None)
-        ingest_provider_service.system_update(provider["_id"], {LAST_ITEM_UPDATE: utcnow()}, provider)
+        provider = await ingest_provider_service.find_one_async(name=provider_name, req=None)
+        await ingest_provider_service.system_update_async(provider["_id"], {LAST_ITEM_UPDATE: utcnow()}, provider)
 
         for item in items:
             set_placeholder(context, "{}.{}".format(provider_name, item["guid"]), item["_id"])
@@ -396,7 +393,7 @@ async def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
 @when('we duplicate event "{event_id}"')
 @async_run_until_complete
 async def step_impl_when_we_duplicate_event(context, event_id):
-    with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
         events_service = get_resource_service("events")
         original_event = await events_service.find_one_async(req=None, _id=event_id)
         duplicate_event = deepcopy(original_event)
@@ -519,3 +516,17 @@ async def create_autosave_from_context_item(context, resource, name):
     context.response = await context.client.post(
         get_prefixed_url(context.app, f"/{resource}_autosave"), data=json.dumps(item), headers=context.headers
     )
+
+
+@when("we configure planning for publishing")
+@async_run_until_complete
+async def step_impl_configure_planning_subscribers(context):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+        await planning_fixtures.publish_config.configure_planning_publishing()
+
+
+@when("we configure content for publishing")
+@async_run_until_complete
+async def step_impl_configure_content_subscribers(context):
+    async with context.app.test_request_context(context.app.config["URL_PREFIX"]):
+        await planning_fixtures.publish_config.configure_content_publishing()

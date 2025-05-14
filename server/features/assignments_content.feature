@@ -397,7 +397,8 @@ Feature: Assignment content
     @auth
     @notification
     Scenario: Coverage should be linked if scheduled update is going to be linked
-    Given empty "planning"
+        When we configure content for publishing
+        And we configure planning for publishing
         When we post to "planning"
         """
         [{
@@ -661,7 +662,6 @@ Feature: Assignment content
         "subject":[{"qcode": "17004000", "name": "Statistics"}],
         "slugline": "test",
         "body_html": "Test Document body",
-        "target_subscribers": [{"_id": "#subscribers._id#"}],
         "dateline": {
           "located" : {
               "country" : "Afghanistan",
@@ -1262,7 +1262,8 @@ Feature: Assignment content
     @notification
     @link_updates
     Scenario: Start working on scheduled update picks up the latest update of the story
-    Given empty "planning"
+        When we configure content for publishing
+        And we configure planning for publishing
         When we post to "planning"
         """
         [{

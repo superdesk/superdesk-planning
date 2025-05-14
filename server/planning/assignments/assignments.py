@@ -486,7 +486,7 @@ class AssignmentsService(AsyncBaseService):
             ical.add_component(event)
 
             # Add the ICS object to the assignment
-            assignment["planning"]["ics_data"] = ical.to_ical()
+            assignment["planning"]["ics_data"] = ical.to_ical().decode("utf-8")
 
         # get formatted contacts and event date time for email templates
         formatted_contacts = get_formatted_contacts(event_item) if event_item else []

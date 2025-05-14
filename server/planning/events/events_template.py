@@ -11,6 +11,7 @@
 import logging
 from eve.utils import ParsedRequest
 
+from superdesk import get_resource_service
 from superdesk.core import get_current_app
 from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource
@@ -20,7 +21,6 @@ from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from superdesk.utils import ListCursor
 from planning.common import DUPLICATE_EVENT_IGNORED_FIELDS
-from planning.types import EventResourceModel
 from apps.archive.common import get_user
 from .events_schema import events_schema
 
@@ -165,8 +165,7 @@ class EventsTemplateService(AsyncBaseService):
 
     @staticmethod
     async def _get_event(_id):
-        event_service = EventResourceModel.get_service()
-        return await event_service.find_by_id_raw(_id)
+        return await get_resource_service("events").find_one_async(req=None, _id=_id)
 
     async def _fill_event_template(self, doc):
         event = await self._get_event(doc["based_on_event"])

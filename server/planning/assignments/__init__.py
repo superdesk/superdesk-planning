@@ -97,6 +97,8 @@ def init_app(app):
     assignments_history_service = AssignmentsHistoryAsyncService()
     signals.assignments_updated.connect(assignments_history_service.on_item_updated)
     signals.assignments_deleted.connect(assignments_history_service.on_item_deleted)
+    app.on_updated_assignments += assignments_history_service.on_item_updated
+    app.on_deleted_item_assignments += assignments_history_service.on_item_deleted
 
     delivery_service = DeliveryService("delivery", backend=superdesk.get_backend())
     DeliveryResource("delivery", app=app, service=delivery_service)

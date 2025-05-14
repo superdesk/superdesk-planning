@@ -10,17 +10,16 @@
 
 import logging
 
-import superdesk
+from superdesk import Resource, get_resource_service
 from superdesk.core import get_current_app
 from superdesk.errors import SuperdeskApiError
 from superdesk.eve_async.service import AsyncBaseService
 
-from planning.types import EventResourceModel
 
 logger = logging.getLogger(__name__)
 
 
-class EventsFilesResource(superdesk.Resource):
+class EventsFilesResource(Resource):
     schema = {
         "media": {"type": "media"},
         "mimetype": {"type": "string"},
@@ -68,6 +67,5 @@ class EventsFilesService(AsyncBaseService):
                 doc["media"]["name"] = doc["media"]["name"].split("/")[1]
 
     async def on_delete_async(self, doc):
-        events_service = EventResourceModel.get_service()
-        if await events_service.count({"files": doc.get("_id")}) > 0:
+        if await get_resource_service("events").count_async({"files": doc.get("_id")}) > 0:
             raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other events.")

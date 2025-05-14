@@ -3,6 +3,7 @@ import logging
 from bson import ObjectId
 from typing import Any
 
+from superdesk import get_resource_service
 from apps.archive.common import get_user, get_auth
 from superdesk.errors import SuperdeskApiError
 from superdesk.flask import request
@@ -28,7 +29,7 @@ def get_coverage_by_id(
 async def delete_assignments_for_coverages(coverages: list[dict[str, Any]], notify: bool = True) -> None:
     failed_assignments = []
     deleted_assignments = []
-    assignment_service = AssignmentResourceModel.get_service()
+    assignment_service = get_resource_service("assignments")
 
     for coverage in coverages:
         assign_id = coverage.get("assigned_to", {}).get("assignment_id", None)
@@ -36,7 +37,7 @@ async def delete_assignments_for_coverages(coverages: list[dict[str, Any]], noti
             continue
         assign_planning = coverage.get("planning", {})
         try:
-            await assignment_service.delete_many(lookup={"_id": assign_id})
+            await assignment_service.delete_action_async(lookup={"_id": assign_id})
             deleted_assignments.append(
                 {
                     "id": assign_id,
@@ -62,9 +63,9 @@ async def delete_assignments_for_coverages(coverages: list[dict[str, Any]], noti
                 }
             )
             # Mark the assignment to be deleted.
-            original_assigment = await assignment_service.find_by_id_raw(assign_id)
+            original_assigment = await assignment_service.find_one_async(req=None, _id=assign_id)
             if original_assigment:
-                await assignment_service.system_update(ObjectId(assign_id), {"_to_delete": True})
+                await assignment_service.system_update_async(ObjectId(assign_id), {"_to_delete": True})
 
     if request:
         session_id = get_auth().get("_id")

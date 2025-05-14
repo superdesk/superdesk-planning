@@ -8,13 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import pytest
 from bson import ObjectId
 from datetime import datetime
+
 from superdesk import get_resource_service
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE
+from superdesk.flask import g
+from superdesk.tests import utils as test_utils, fixtures
+
+from planning.tests import TestCase, fixtures as planning_fixtures
 from .ingest_rule_handler import PlanningRoutingRuleHandler
-from planning.tests import TestCase
 
 
 TEST_RULE = {
@@ -81,6 +84,10 @@ class IngestRuleHandlerTestCase(TestCase):
 
     async def asyncSetUp(self):
         await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await planning_fixtures.publish_config.configure_planning_publishing()
         self.handler = PlanningRoutingRuleHandler()
 
     async def test_can_handle_content(self):
@@ -89,151 +96,139 @@ class IngestRuleHandlerTestCase(TestCase):
         self.assertFalse(await self.handler.can_handle({}, {ITEM_TYPE: CONTENT_TYPE.TEXT}, {}))
 
     async def test_adds_event_calendars(self):
-        async with self.app.app_context():
-            self.app.data.insert(
-                "vocabularies",
-                [
-                    {
-                        "_id": "event_calendars",
-                        "items": self.calendars,
-                    }
-                ],
-            )
-            event = self.event_items[0]
-            self.app.data.insert("events", [event])
-            original = self.app.data.find_one("events", req=None, _id=event["_id"])
+        self.app.data.insert(
+            "vocabularies",
+            [
+                {
+                    "_id": "event_calendars",
+                    "items": self.calendars,
+                }
+            ],
+        )
+        event = self.event_items[0]
+        self.app.data.insert("events", [event])
+        original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
-            await self.handler.apply_rule(
-                {"actions": {"extra": {"calendars": [self.calendars[0]["qcode"]]}}}, event, {}
-            )
+        await self.handler.apply_rule({"actions": {"extra": {"calendars": [self.calendars[0]["qcode"]]}}}, event, {})
 
-            updated = self.app.data.find_one("events", req=None, _id=event["_id"])
-            self.assertNotEqual(original["_etag"], updated["_etag"])
+        updated = self.app.data.find_one("events", req=None, _id=event["_id"])
+        self.assertNotEqual(original["_etag"], updated["_etag"])
 
-            calendars = [calendar["qcode"] for calendar in updated["calendars"]]
-            self.assertEqual(len(calendars), 1)
-            self.assertEqual(calendars[0], "sports")
+        calendars = [calendar["qcode"] for calendar in updated["calendars"]]
+        self.assertEqual(len(calendars), 1)
+        self.assertEqual(calendars[0], "sports")
 
     async def test_skips_disabled_and_existing_calendars(self):
-        async with self.app.app_context():
-            self.app.data.insert(
-                "vocabularies",
-                [
-                    {
-                        "_id": "event_calendars",
-                        "items": self.calendars,
-                    }
-                ],
-            )
-            event = self.event_items[1]
-            self.app.data.insert("events", [event])
-            original = self.app.data.find_one("events", req=None, _id=event["_id"])
+        self.app.data.insert(
+            "vocabularies",
+            [
+                {
+                    "_id": "event_calendars",
+                    "items": self.calendars,
+                }
+            ],
+        )
+        event = self.event_items[1]
+        self.app.data.insert("events", [event])
+        original = self.app.data.find_one("events", req=None, _id=event["_id"])
 
-            await self.handler.apply_rule(
-                {"actions": {"extra": {"calendars": [self.calendars[0]["qcode"], self.calendars[1]["qcode"]]}}},
-                event,
-                {},
-            )
+        await self.handler.apply_rule(
+            {"actions": {"extra": {"calendars": [self.calendars[0]["qcode"], self.calendars[1]["qcode"]]}}},
+            event,
+            {},
+        )
 
-            updated = self.app.data.find_one("events", req=None, _id=event["_id"])
-            self.assertEqual(original["_etag"], updated["_etag"])
+        updated = self.app.data.find_one("events", req=None, _id=event["_id"])
+        self.assertEqual(original["_etag"], updated["_etag"])
 
-            calendars = [calendar["qcode"] for calendar in updated["calendars"]]
-            self.assertEqual(len(calendars), 1)
-            self.assertEqual(calendars[0], "sports")
+        calendars = [calendar["qcode"] for calendar in updated["calendars"]]
+        self.assertEqual(len(calendars), 1)
+        self.assertEqual(calendars[0], "sports")
 
     async def test_adds_planning_agendas(self):
-        async with self.app.app_context():
-            self.app.data.insert("agenda", self.agendas)
-            plan = self.planning_items[0]
-            self.app.data.insert("planning", [plan])
-            original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
+        self.app.data.insert("agenda", self.agendas)
+        plan = self.planning_items[0]
+        self.app.data.insert("planning", [plan])
+        original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
-            await self.handler.apply_rule({"actions": {"extra": {"agendas": [self.agendas[0]["_id"]]}}}, plan, {})
+        await self.handler.apply_rule({"actions": {"extra": {"agendas": [self.agendas[0]["_id"]]}}}, plan, {})
 
-            updated = self.app.data.find_one("planning", req=None, _id=plan["_id"])
-            self.assertNotEqual(original["_etag"], updated["_etag"])
+        updated = self.app.data.find_one("planning", req=None, _id=plan["_id"])
+        self.assertNotEqual(original["_etag"], updated["_etag"])
 
-            self.assertEqual(len(updated["agendas"]), 1)
-            self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
+        self.assertEqual(len(updated["agendas"]), 1)
+        self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
 
     async def test_skips_disabled_and_existing_agendas(self):
-        async with self.app.app_context():
-            self.app.data.insert("agenda", self.agendas)
-            plan = self.planning_items[1]
-            self.app.data.insert("planning", [plan])
-            original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
+        self.app.data.insert("agenda", self.agendas)
+        plan = self.planning_items[1]
+        self.app.data.insert("planning", [plan])
+        original = self.app.data.find_one("planning", req=None, _id=plan["_id"])
 
-            await self.handler.apply_rule(
-                {"actions": {"extra": {"agendas": [self.agendas[0]["_id"], self.agendas[1]["_id"]]}}}, plan, {}
-            )
+        await self.handler.apply_rule(
+            {"actions": {"extra": {"agendas": [self.agendas[0]["_id"], self.agendas[1]["_id"]]}}}, plan, {}
+        )
 
-            updated = self.app.data.find_one("planning", req=None, _id=plan["_id"])
-            self.assertEqual(original["_etag"], updated["_etag"])
+        updated = self.app.data.find_one("planning", req=None, _id=plan["_id"])
+        self.assertEqual(original["_etag"], updated["_etag"])
 
-            self.assertEqual(len(updated["agendas"]), 1)
-            self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
+        self.assertEqual(len(updated["agendas"]), 1)
+        self.assertEqual(updated["agendas"][0], self.agendas[0]["_id"])
 
-    # TODO-ASYNC: convert these 3 tests below to async
-    @pytest.mark.skip(reason="Convert to async and understand the logic so they pass properly")
-    def test_autopost(self):
+    async def test_autopost(self):
         event = self.event_items[0].copy()
-        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         events_service = get_resource_service("events")
-        events_service.post_in_mongo([event])
+        await events_service.post_in_mongo([event])
 
         history = self.get_event_history()
         assert len(history) == 1
         assert history[0]["operation"] == "ingested"
 
-        self.handler.apply_rule(AUTOPOST_RULE, event, {})
+        await self.handler.apply_rule(AUTOPOST_RULE, event, {})
 
         history = self.get_event_history()
         assert len(history) == 2
         assert history[-1]["operation"] == "post"
 
-        original = events_service.find_one(req=None, _id=event["_id"])
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
         assert original["pubstatus"] == "usable"
 
         event["pubstatus"] = "cancelled"
         event["versioncreated"] = datetime.now()
-        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
-        events_service.patch_in_mongo(event["_id"], event, original)
+        await events_service.patch_in_mongo(event["_id"], event, original)
 
-        self.handler.apply_rule(AUTOPOST_RULE, event, {})
+        await self.handler.apply_rule(AUTOPOST_RULE, event, {})
 
         history = self.get_event_history()
         assert len(history) == 4
         assert history[-2]["operation"] == "ingested"
         assert history[-1]["operation"] == "post"
 
-        original = events_service.find_one(req=None, _id=event["_id"])
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
         assert original["pubstatus"] == "cancelled"
 
-    @pytest.mark.skip(reason="Convert to async and understand the logic so they pass properly")
-    def test_autopost_cancelled(self):
+    async def test_autopost_cancelled(self):
         event = self.event_items[0].copy()
         event["pubstatus"] = "cancelled"
-        # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
         events_service = get_resource_service("events")
-        events_service.post_in_mongo([event])
+        await events_service.post_in_mongo([event])
 
-        self.handler.apply_rule(AUTOPOST_RULE, event, {})
+        await self.handler.apply_rule(AUTOPOST_RULE, event, {})
 
         history = self.get_event_history()
         assert len(history) == 2
         assert history[-1]["operation"] == "post"
 
-        original = events_service.find_one(req=None, _id=event["_id"])
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
         assert original["pubstatus"] == "cancelled"
 
     def get_event_history(self):
         return list(self.app.data.find_all("events_history"))
 
-    def test_autopost_with_calendars(self):
+    async def test_autopost_with_calendars(self):
         event = self.event_items[0].copy()
         events_service = get_resource_service("events")
-        events_service.post_in_mongo([event])
+        await events_service.post_in_mongo([event])
 
         self.app.data.insert(
             "vocabularies",
@@ -246,12 +241,12 @@ class IngestRuleHandlerTestCase(TestCase):
         )
 
         calendars_rule = {"actions": {"extra": {"autopost": True, "calendars": ["sports"]}}}
-        self.handler.apply_rule(calendars_rule, event, {})
+        await self.handler.apply_rule(calendars_rule, event, {})
 
         history = self.get_event_history()
         assert len(history) == 2
         assert history[-1]["operation"] == "post"
 
-        original = events_service.find_one(req=None, _id=event["_id"])
+        original = await events_service.find_one_async(req=None, _id=event["_id"])
         assert original["pubstatus"] == "usable"
         assert original["state"] == "scheduled"

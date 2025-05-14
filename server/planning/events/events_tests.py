@@ -289,7 +289,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
 
         res = await process_reschedule_event({"dates": schedule}, events[0], False)
-        self.assertEqual(res["dates"]["start"], schedule["start"].isoformat())
+        self.assertEqual(res["dates"]["start"], schedule["start"])
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
@@ -314,7 +314,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
 
         res = await process_reschedule_event({"dates": schedule}, events[0], False)
         rescheduled_event = await self.events_service.find_one_async(req=None, _id=events[0].get("_id"))
-        self.assertNotEqual(rescheduled_event["dates"]["start"], schedule["start"].isoformat())
+        self.assertNotEqual(rescheduled_event["dates"]["start"], schedule["start"])
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 4)
@@ -344,7 +344,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
 
         res = await process_update_time({"dates": schedule, "update_method": "all"}, events[0], False)
-        self.assertEqual(res["dates"]["start"], schedule["start"].isoformat())
+        self.assertEqual(res["dates"]["start"], schedule["start"])
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
@@ -354,7 +354,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule["end"] = datetime(2099, 11, 21, 21, 00, 00, tzinfo=pytz.UTC) + timedelta(hours=2)
 
         res = await process_update_time({"dates": schedule, "update_method": "single"}, events[0], False)
-        self.assertEqual(res["dates"]["start"], schedule["start"].isoformat())
+        self.assertEqual(res["dates"]["start"], schedule["start"])
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 3)
@@ -382,7 +382,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         schedule = deepcopy(event["dates"])
         schedule["recurring_rule"]["count"] = 5
 
-        await process_update_repetitions({"dates": schedule}, events[0])
+        await process_update_repetitions({"dates": schedule}, events[0], require_lock=False)
 
         events = await self._get_all_events_raw()
         self.assertPlanningSchedule(events, 5)
@@ -580,7 +580,7 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
                     "planning_date": datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC),
                     "name": "Demo 1",
                     "type": "planning",
-                    "related_events": [RelatedEvent(id=new_events[0], link_type="primary")],
+                    "related_events": [RelatedEvent(id=new_events[0], link_type="primary").to_dict()],
                 }
             ]
         )

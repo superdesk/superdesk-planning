@@ -11,6 +11,7 @@
 from copy import deepcopy
 from typing import Any
 
+from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
@@ -30,7 +31,6 @@ from planning.events.events_utils import (
     pre_update_event_actions,
 )
 from planning.planning.planning_postpone import process_postpone_planning_item
-from planning.types.event import EventResourceModel
 from planning.utils import get_related_planning_for_events
 
 
@@ -56,7 +56,7 @@ async def postpone_single_event(updates: dict[str, Any], original: dict[str, Any
 
 
 async def postpone_recurring_event(updates: dict[str, Any], original: dict[str, Any], update_method: str):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     historic, past, future = await get_recurring_timeline(original)
 
     # Determine if the selected event is the first one, if so then
@@ -77,7 +77,7 @@ async def postpone_recurring_event(updates: dict[str, Any], original: dict[str, 
         # Mark the Event as being Postponed
         await postpone_event_plannings(new_updates, event)
         new_updates["skip_on_update"] = True
-        await events_service.update(event[ID_FIELD], new_updates)
+        await events_service.patch_async(event[ID_FIELD], new_updates, original)
 
     await postpone_event_plannings(updates, original)
 
@@ -90,7 +90,7 @@ async def process_postpone_event(updates: dict[str, Any], original: dict[str, An
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     ACTION = "postpone"
 
     # Perform pre update event actions
@@ -112,8 +112,8 @@ async def process_postpone_event(updates: dict[str, Any], original: dict[str, An
 
     # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.update(event_id, updates)
-    postponed_event = await events_service.find_by_id_raw(event_id)
+    await events_service.patch_async(event_id, updates)
+    postponed_event = await events_service.find_one_async(req=None, _id=event_id)
     assert postponed_event is not None, "Expected postponed_event to be a dict, got None"
 
     user = get_user(required=True).get(ID_FIELD, "")
