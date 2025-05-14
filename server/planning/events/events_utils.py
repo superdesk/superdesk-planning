@@ -5,10 +5,12 @@ import pytz
 from datetime import date, datetime
 from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY, MO, TU, WE, TH, FR, SA, SU
 from typing import AsyncGenerator, Any, Generator, Tuple, Literal, cast
+from eve.utils import ParsedRequest
 
 from apps.archive.common import get_auth
 from apps.auth import get_user_id
 
+from superdesk import get_resource_service, json
 from superdesk.core.types import SortParam, SortListParam
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
@@ -156,15 +158,18 @@ def get_events_embedded_planning(event: dict[str, Any] | EventResourceModel) -> 
     ]
 
 
-async def get_series(
-    query: dict, sort: SortParam | None = None, max_results: int = 25
-) -> AsyncGenerator[EventResourceModel, None]:
-    events_service = EventResourceModel.get_service()
+async def get_series(query: dict, sort: str | None = None, max_results: int = 25) -> AsyncGenerator[dict, None]:
+    events_service = get_resource_service("events")
     page = 1
 
     while True:
         # Get the results from mongo
-        results = await events_service.find(req=query, page=page, max_results=max_results, sort=sort, use_mongo=True)
+        req = ParsedRequest()
+        req.sort = sort
+        req.where = json.dumps(query)
+        req.max_results = max_results
+        req.page = page
+        results = await events_service.get_from_mongo_async(req=req, lookup=None)
 
         docs = await results.to_list()
         if not docs:
@@ -212,7 +217,7 @@ async def get_recurring_timeline(
     if excluded_states:
         query["$and"].append({"state": {"$nin": excluded_states}})
 
-    sort: SortListParam = [("dates.start", 1)]
+    sort = '[("dates.start", 1)]'
     max_results = get_max_recurrent_events()
     selected_start = selected.get("dates", {}).get("start", utcnow())
 
@@ -233,14 +238,18 @@ async def get_recurring_timeline(
     future = []
 
     async for event in get_series(query, sort, max_results):
-        end = event.dates.end if event.dates else None
-        start = event.dates.start if event.dates else None
-        if end and end < utcnow():
-            historic.append(event.to_dict())
-        elif start and start < selected_start:
-            past.append(event.to_dict())
-        elif start and start > selected_start:
-            future.append(event.to_dict())
+        event["dates"]["end"] = event["dates"]["end"]
+        event["dates"]["start"] = event["dates"]["start"]
+        for sched in event.get("_planning_schedule", []):
+            sched["scheduled"] = sched["scheduled"]
+        end = event["dates"]["end"]
+        start = event["dates"]["start"]
+        if end < utcnow():
+            historic.append(event)
+        elif start < selected_start:
+            past.append(event)
+        elif start > selected_start:
+            future.append(event)
 
     return historic, past, future
 
@@ -279,7 +288,7 @@ async def validate_event_action(
     Generic validation for event actions that can be called outside normal resource/service model
     Based off validate() from old event_base_service
     """
-    event_service = EventResourceModel.get_service()
+    event_service = get_resource_service("events")
 
     if not original:
         raise SuperdeskApiError.notFoundError()
@@ -309,7 +318,7 @@ async def validate_event_action(
                 message="The lock must be for the `{}` action".format(ACTION.lower().replace("_", " "))
             )
 
-    event_service.validate_event(updates, EventResourceModel(**original))
+    event_service.validate_event(updates, original)
 
 
 async def post_update_event_actions(

@@ -169,7 +169,7 @@ class LockService(BaseComponent):
         items = await item_service.find_async(
             where={LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
         )
-        if items.count() > 0:
+        if await items.count() > 0:
             await item_service.delete_action_async(lookup={})
 
     async def unlock_session_for_resource(self, user_id, session_id, is_last_session, resource):

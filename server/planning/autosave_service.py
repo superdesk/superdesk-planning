@@ -1,6 +1,8 @@
-from planning.types import EventAutosaveResourceModel, PlanningAutosaveResourceModel
+from superdesk import get_resource_service
 from superdesk.core.resources import AsyncResourceService
 from superdesk.errors import SuperdeskApiError
+
+from planning.types import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 
 
 class AutosaveAsyncService(AsyncResourceService):
@@ -14,8 +16,6 @@ class AutosaveAsyncService(AsyncResourceService):
             doc.expired = False
 
     async def on_delete(self, doc: EventAutosaveResourceModel | PlanningAutosaveResourceModel):
-        from planning.events.events_service import EventsAsyncService
-
         await super().on_delete(doc)
 
         # TODO-ASYNC: We should also delete Planning files on autosave delete as well
@@ -24,8 +24,7 @@ class AutosaveAsyncService(AsyncResourceService):
         # * coverages.planning.files
         # * coverages.planning.xmp_file
         if doc.item_type == "event" and doc.files:
-            events_service = EventsAsyncService()
-            await events_service.delete_event_files({}, doc.files)
+            await get_resource_service("events").delete_event_files({}, doc.to_dict())
 
     @staticmethod
     def _validate(doc: EventAutosaveResourceModel | PlanningAutosaveResourceModel):

@@ -4,6 +4,7 @@ from datetime import date, datetime
 
 from superdesk.utc import local_to_utc, utc_to_local
 from superdesk.resource_fields import ID_FIELD
+from superdesk import get_resource_service
 
 from planning import signals
 from planning.common import (
@@ -18,7 +19,7 @@ from planning.events.events_utils import (
     post_update_event_actions,
     pre_update_event_actions,
 )
-from planning.types import PlanningSchedule, EventResourceModel
+from planning.types import PlanningSchedule
 
 
 async def update_single_event(updates: dict[str, Any]):
@@ -26,11 +27,11 @@ async def update_single_event(updates: dict[str, Any]):
     remove_lock_information(updates)
 
     # Set '_planning_schedule' on the Event item
-    updates["_planning_schedule"] = [PlanningSchedule(scheduled=updates["dates"].get("start"))]
+    updates["_planning_schedule"] = [PlanningSchedule(scheduled=updates["dates"].get("start")).to_dict()]
 
 
 async def update_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     historic, past, future = await get_recurring_timeline(original)
 
     # Determine if the selected event is the first one, if so then
@@ -65,7 +66,8 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
         new_updates = {"dates": deepcopy(event["dates"])} if event.get(ID_FIELD) != original.get(ID_FIELD) else updates
 
         # Calculate midnight in local time for this occurrence
-        event["dates"]["start"] = datetime.fromisoformat(event["dates"]["start"])
+        if isinstance(event["dates"]["start"], str):
+            event["dates"]["start"] = datetime.fromisoformat(event["dates"]["start"])
         start_of_day_local = utc_to_local(timezone, event["dates"]["start"]).replace(hour=0, minute=0, second=0)
 
         # Then convert midnight in local time to UTC
@@ -82,11 +84,11 @@ async def update_recurring_events(updates: dict[str, Any], original: dict[str, A
             new_updates[TO_BE_CONFIRMED_FIELD] = False
 
         # Set '_planning_schedule' on the Event item
-        new_updates["_planning_schedule"] = [PlanningSchedule(scheduled=new_updates["dates"].get("start"))]
+        new_updates["_planning_schedule"] = [PlanningSchedule(scheduled=new_updates["dates"].get("start")).to_dict()]
 
         if event.get(ID_FIELD) != original.get(ID_FIELD):
             new_updates["skip_on_update"] = True
-            await events_service.update(event[ID_FIELD], new_updates)
+            await events_service.patch_async(event[ID_FIELD], new_updates)
             await signals.event_time_updated.send(new_updates, {"_id": event[ID_FIELD]})
 
 
@@ -101,7 +103,7 @@ async def process_update_time(
     :param require_lock: Whether to enforce lock removal (default True).
     :return: The updated event document.
     """
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     ACTION = "update_time"
 
     # Perform pre update event actions
@@ -120,12 +122,12 @@ async def process_update_time(
     updates.pop("skip_on_update", None)
 
     # Update the original event in the database
-    await events_service.update(original[ID_FIELD], updates)
+    await events_service.patch_async(original[ID_FIELD], updates)
 
     # Perform post update actions
     await post_update_event_actions(updates, original, ACTION)
 
-    updated_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    updated_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert updated_event is not None, "Expected updated_event to be a dict, got None"
 
     return updated_event

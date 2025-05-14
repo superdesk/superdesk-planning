@@ -85,4 +85,4 @@ async def before_scenario_async(context, scenario):
         async with context.app.app_context():
             cmd = AppPopulateCommand()
             filename = path.join(path.abspath(path.dirname("features/steps/fixtures/")), "vocabularies.json")
-            cmd.run(filename)
+            await cmd.run(filename)

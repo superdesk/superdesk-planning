@@ -1,5 +1,6 @@
 from typing import Any
 
+from superdesk import get_resource_service
 from apps.auth import get_auth, get_user
 
 from planning import signals
@@ -22,14 +23,11 @@ from planning.events.events_utils import (
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from planning.planning.planning_spike import process_spike_planning_item
 from planning.types.assignment import AssignmentResourceModel
-from planning.types.event import EventResourceModel
-from planning.types.planning import PlanningResourceModel
 from planning.utils import (
     event_has_planning_items,
     get_first_related_event_id_for_planning,
     get_related_planning_for_events,
 )
-from superdesk.core.types import SearchRequest
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 from superdesk.resource_fields import ID_FIELD
@@ -115,26 +113,20 @@ def validate_spike_event(event: dict[str, Any]) -> None:
 
 
 async def validate_recurring_event(original: dict[str, Any], recurrence_id: str) -> list:
-    events_service = EventResourceModel.get_service()
-    planning_service = PlanningResourceModel.get_service()
-    search_request = SearchRequest(where={"recurrence_id": recurrence_id})
+    events_service = get_resource_service("events")
+    planning_service = get_resource_service("planning")
     events_with_plans = []
 
     validate_event_states(original)
 
-    events = await events_service.find(search_request)
-    events_list = await events.to_list_raw()
-    plannings = await planning_service.find(search_request)
-    planning_list = await plannings.to_list_raw()
-
-    for event in events_list:
+    async for event in await events_service.find_async({"recurrence_id": recurrence_id}):
         if event[ID_FIELD] == original[ID_FIELD]:
             continue
 
         if event.get(LOCK_USER) or event.get(LOCK_SESSION):
             raise SuperdeskApiError.forbiddenError(message="Spike failed. An event in the series is locked.")
 
-    for planning in planning_list:
+    async for planning in await planning_service.find_async({"recurrence_id": recurrence_id}):
         if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
             raise SuperdeskApiError.forbiddenError(message="Spike failed. A related planning item is locked.")
 
@@ -157,7 +149,7 @@ async def unspike_single_event(updates: dict[str, Any], original: dict[str, Any]
 
 
 async def spike_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str) -> None:
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
 
     # Ensure that no other Event or Planning item is currently locked
     events_with_plans = await validate_recurring_event(original, original["recurrence_id"])
@@ -185,8 +177,8 @@ async def spike_recurring_events(updates: dict[str, Any], original: dict[str, An
 
         new_updates = {"skip_on_update": True}
         spike_event(new_updates, event)
-        await events_service.update(event[ID_FIELD], new_updates)
-        item = await events_service.find_by_id_raw(event[ID_FIELD])
+        await events_service.patch_async(event[ID_FIELD], new_updates)
+        item = await events_service.find_one_async(req=None, _id=event[ID_FIELD])
         await signals.event_spiked.send(new_updates, event)
 
         if item:
@@ -202,7 +194,7 @@ async def spike_recurring_events(updates: dict[str, Any], original: dict[str, An
 
 
 async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, Any], update_method: str) -> None:
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
 
     historic, past, future = await get_recurring_timeline(original, spiked=True)
     remove_lock_information(updates)
@@ -225,8 +217,8 @@ async def unspike_recurring_events(updates: dict[str, Any], original: dict[str, 
 
         new_updates = {"skip_on_update": True}
         unspike_event(new_updates, event)
-        await events_service.update(event[ID_FIELD], new_updates)
-        item = await events_service.find_by_id_raw(event[ID_FIELD])
+        await events_service.patch_async(event[ID_FIELD], new_updates)
+        item = await events_service.find_one_async(req=None, _id=event[ID_FIELD])
         await signals.event_unspiked.send(new_updates, event)
 
         notifications.append(
@@ -248,7 +240,7 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     ACTION = "spiked"
 
     # Perform pre update event actions
@@ -269,8 +261,8 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     updates.pop("skip_on_update", None)
 
     # Update the original event in the database
-    await events_service.update(original[ID_FIELD], updates)
-    spiked_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    await events_service.patch_async(original[ID_FIELD], updates)
+    spiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert spiked_event is not None, "Expected spiked_event to be a dict, got None"
 
     user_id = get_user().get(ID_FIELD, "")
@@ -298,7 +290,7 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     :param original: The original event document.
     :return: The updated event document.
     """
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     ACTION = "unspiked"
 
     # Perform pre update event actions
@@ -316,8 +308,8 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     unspiked_items = updates.pop("_unspiked_items", [])
 
     # Update the original event in the database
-    await events_service.update(original[ID_FIELD], updates)
-    unspiked_event = await events_service.find_by_id_raw(original[ID_FIELD])
+    await events_service.patch_async(original[ID_FIELD], updates)
+    unspiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert unspiked_event is not None, "Expected unspiked_event to be a dict, got None"
 
     user_id = get_user().get(ID_FIELD, "")

@@ -34,7 +34,7 @@ from planning.events.events_utils import (
     generate_recurring_dates,
 )
 from planning.planning.planning_history_async_service import PlanningHistoryAsyncService
-from planning.types import EventResourceModel, EventsHistoryResourceModel
+from planning.types import EventsHistoryResourceModel
 from planning.utils import get_related_planning_for_events, event_has_planning_items
 
 from superdesk.core import get_current_app
@@ -96,7 +96,7 @@ async def reschedule_event_plannings(original: dict[str, Any], reason: str, plan
 
 
 async def duplicate_event(updates: dict[str, Any], original: dict[str, Any]):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     events_history_service = EventsHistoryResourceModel.get_service()
 
     new_event = deepcopy(original)
@@ -115,11 +115,9 @@ async def duplicate_event(updates: dict[str, Any], original: dict[str, Any]):
     set_original_creator(new_event)
     set_planning_schedule(new_event)
 
-    events_created = await events_service.create([EventResourceModel(**new_event)])
-    created_event = events_created[0].to_dict()
-    assert created_event is not None, "Expected created_event to be a dict, got None"
+    await events_service.post_async([new_event])
     await events_history_service.on_reschedule_from(new_event)
-    return created_event
+    return new_event
 
 
 async def reschedule_single_event(updates: dict[str, Any], original: dict[str, Any]):
@@ -151,7 +149,7 @@ async def reschedule_single_event(updates: dict[str, Any], original: dict[str, A
 
 
 async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str, Any], update_method: str):
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     remove_lock_information(updates)
 
     rules_changed = updates["dates"]["recurring_rule"] != original["dates"]["recurring_rule"]
@@ -273,7 +271,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                     set_planning_schedule(new_updates)
 
                 # And finally update the Event, and Reschedule associated Planning items
-                await events_service.update(event[ID_FIELD], new_updates)
+                await events_service.patch_async(event[ID_FIELD], new_updates)
                 await reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
                 await signals.event_reschedule.send(new_updates, {"_id": event[ID_FIELD]})
 
@@ -311,7 +309,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
 
     # Now iterate over the new events and create them
     if new_events:
-        await events_service.create(new_events)
+        await events_service.post_async(new_events)
         await app.on_inserted_events.call_async(new_events)
 
     for event in deleted_events.values():
@@ -325,14 +323,14 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 # all Planning items
                 new_updates = {"skip_on_update": True, "reason": reason}
                 mark_event_rescheduled(new_updates, reason)
-                await events_service.update(event[ID_FIELD], new_updates)
+                await events_service.patch_async(event[ID_FIELD], new_updates)
 
             if len(event_plans) > 0:
                 await reschedule_event_plannings(original, reason, event_plans)
         else:
             # This event has no Planning items, therefor we can safely
             # delete this event
-            await events_service.delete_many(lookup={"_id": event[ID_FIELD]})
+            await events_service.delete_action(lookup={"_id": event[ID_FIELD]})
             await app.on_deleted_item_events.call_async(event)
 
             if is_original:
@@ -350,7 +348,7 @@ async def process_reschedule_event(
     :param require_lock: Whether to enforce lock removal (default True).
     :return: The updated event document.
     """
-    events_service = EventResourceModel.get_service()
+    events_service = get_resource_service("events")
     ACTION = "reschedule"
 
     # Perform pre update event actions
@@ -370,8 +368,8 @@ async def process_reschedule_event(
 
     # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.update(event_id, updates)
-    rescheduled_event = await events_service.find_by_id_raw(event_id)
+    await events_service.patch_async(event_id, updates)
+    rescheduled_event = await events_service.find_one_async(req=None, _id=event_id)
     assert rescheduled_event is not None, "Expected rescheduled_event to be a dict, got None"
 
     # Perform post update actions

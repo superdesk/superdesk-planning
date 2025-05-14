@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class PublishedPlanningService(AsyncBaseService):
-    def _resolve_embedded_item(self, doc, req):
+    async def _resolve_embedded_item(self, doc, req):
         """Resolve embedded fields
 
         :param dict doc: document to resolved embedded fields
@@ -37,13 +37,13 @@ class PublishedPlanningService(AsyncBaseService):
         if doc.get("type") == "event":
             # get the embedded fields from events resources
             fields = resolve_embedded_fields(EventsResource.endpoint_name, req) or []
-            resolve_embedded_documents(doc.get("published_item"), EventsResource.endpoint_name, fields)
+            await resolve_embedded_documents(doc.get("published_item"), EventsResource.endpoint_name, fields)
         elif doc.get("type") == "planning":
             fields = resolve_embedded_fields(PlanningResource.endpoint_name, req) or []
-            resolve_embedded_documents(doc.get("published_item"), PlanningResource.endpoint_name, fields)
+            await resolve_embedded_documents(doc.get("published_item"), PlanningResource.endpoint_name, fields)
         elif doc.get("type") == "planning_featured":
             fields = resolve_embedded_fields(PlanningFeaturedResourceModel.model_resource_name, req) or []
-            resolve_embedded_documents(
+            await resolve_embedded_documents(
                 doc.get("published_item"),
                 PlanningFeaturedResourceModel.model_resource_name,
                 fields,
@@ -54,7 +54,7 @@ class PublishedPlanningService(AsyncBaseService):
         if req and req.embedded:
             documents = []
             async for doc in cursor:
-                self._resolve_embedded_item(doc, req)
+                await self._resolve_embedded_item(doc, req)
                 documents.append(doc)
 
             cursor = AsyncListCursor(docs=documents)

@@ -335,10 +335,8 @@ class PlanningService(AsyncBaseService):
             if not agenda:
                 raise SuperdeskApiError.forbiddenError("Agenda '{}' does not exist".format(agenda_id))
 
-            if not agenda.get("is_enabled", False) and (
-                original is None or agenda_id not in original.get("agendas", [])
-            ):
-                raise SuperdeskApiError.forbiddenError("Agenda '{}' is not enabled".format(agenda.get("name")))
+            if not agenda.is_enabled and (original is None or agenda_id not in original.get("agendas", [])):
+                raise SuperdeskApiError.forbiddenError("Agenda '{}' is not enabled".format(agenda.name))
 
         # Remove duplicate agendas
         if len(updates.get("agendas", [])) > 0:
@@ -1206,7 +1204,7 @@ class PlanningService(AsyncBaseService):
                 )
 
             if assignment:
-                assignment_service.cancel_assignment(assignment, coverage, event_cancellation, event_reschedule)
+                await assignment_service.cancel_assignment(assignment, coverage, event_cancellation, event_reschedule)
 
     async def duplicate_coverage_for_article_rewrite(self, planning_id, coverage_id, updates):
         planning = await self.find_one_async(req=None, _id=planning_id)
