@@ -78,7 +78,7 @@ export const validateItem = ({
                     const fieldSchema = profile.schema[fieldId];
                     const isNotIntegerAndEmpty = fieldSchema.type !== 'integer' && isEmpty(diff[fieldId]);
                     const isIntegerAndEmpty = fieldSchema.type === 'integer' && diff[fieldId] == null;
-                    const isValidSubject = isEmpty(getSubject(diff, fieldId)) && fieldsToValidate == null || (
+                    const isValidSubject = isEmpty(getVocabularyItemsForScheme(diff, fieldId)) && fieldsToValidate == null || (
                         Array.isArray(fieldsToValidate) &&
                         fieldsToValidate.includes(fieldId)
                     );
@@ -192,7 +192,7 @@ export const validators = {
     },
 };
 
-export function getSubject(item, scheme) {
+export function getVocabularyItemsForScheme(item, scheme) {
     return (item?.subject ?? [])
         .filter((subject) => scheme != null ? subject.scheme === scheme : isEmpty(subject.scheme));
 }

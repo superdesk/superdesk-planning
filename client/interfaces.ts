@@ -650,7 +650,7 @@ export interface IPlanningCoverageItem {
     versioncreated: string;
     add_coverage_to_workflow: boolean;
     profile?: string; // coverage profile id
-
+    subject?: Array<IVocabularyItem>;
     planning: ICoveragePlanningDetails;
 
     news_coverage_status: IPlanningNewsCoverageStatus;

@@ -5,7 +5,7 @@ import {WORKSPACE, WORKFLOW_STATE, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 import {gettext, getItemInArrayById} from '../utils';
 
-import {getSubject, validateField, validators} from './index';
+import {getVocabularyItemsForScheme, validateField, validators} from './index';
 import {ICoverageContentProfile, IPlanningCoverageItem} from 'interfaces';
 import {planningApi} from '../superdeskApi';
 import {getCoverageFields} from '../api/editor/item_planning';
@@ -98,6 +98,17 @@ export const validateCoverages = ({
 
         validateCoverageVocabularyFields(coverageProfile, errors, messages, diff.coverages[index]);
 
+        const isValidSubject = coverageProfile.schema['subject'].required
+            ? !isEmpty((diff.coverages[index].subject ?? []).filter((x) => x.scheme == null))
+            : true;
+
+        if (!isValidSubject) {
+            set(error, `${index}.subject`, gettext('Field is required'));
+            messages.push(gettext('Subject is a required field'));
+        } else {
+            delete error?.[index]?.['subject'];
+        }
+
         Object.entries(validators.coverage).forEach(([key, val]) => {
             const coverageErrors = {};
             const keyName = ['news_coverage_status', 'scheduled_updates'].includes(key) ? key : `planning.${key}`;
@@ -124,7 +135,7 @@ export const validateCoverages = ({
                 diff: diff,
             });
 
-            if (get(coverageErrors, key)) {
+            if (coverageErrors?.[key] !== null) {
                 set(error, `${index}.${keyName}`, coverageErrors[key]);
             }
         });
@@ -148,11 +159,11 @@ export const validateCoverageVocabularyFields = (
         return hasNoDefinedValidator && isCustomVocabulary;
     })
         .forEach((fieldId) => {
-            const subjectIsInvalid = coverageProfile.schema[fieldId].required
-                ? isEmpty(getSubject(diff, fieldId))
+            const isInvalid = coverageProfile.schema[fieldId].required
+                ? isEmpty(getVocabularyItemsForScheme(diff, fieldId))
                 : false;
 
-            if (subjectIsInvalid) {
+            if (isInvalid) {
                 errors[fieldId] = gettext('This field is required');
                 messages.push(gettext('{{ key }} is a required field', {key: vocabularyLabels.get(fieldId)}));
             } else {
