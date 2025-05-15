@@ -114,7 +114,6 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
             return;
         }
 
-        debugger;
         planningApi.contentProfiles.coverages.patch(
             this.state.originalProfile,
             {
