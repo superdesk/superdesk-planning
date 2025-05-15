@@ -1617,6 +1617,19 @@ export type IEventsPlanningField =
     | 'subjects'
     | 'state';
 
+export interface IPreviewTool {
+    icon: string;
+    onClick: (event?: React.MouseEvent<HTMLElement>) => void;
+    title: string;
+}
+
+export interface IPreviewTab {
+    label: string;
+    render: any;
+    enabled: boolean;
+    tabProps?: any;
+}
+
 export interface IEventsPlanningContentPanelProps {
     filter?: Partial<ISearchFilter>;
     onClose(): void;
