@@ -80,12 +80,7 @@ def init_planning(app: SuperdeskAsyncApp):
 module = Module(
     "planning",
     init=init_planning,
-    endpoints=[
-        planning_locks_endpoint,
-        planning_endpoint_group,
-        events_endpoints_group,
-        planning_download_endpoint,
-    ],
+    endpoints=[planning_locks_endpoint, planning_endpoint_group, events_endpoints_group, planning_download_endpoint],
     resources=[
         events_resource_config,
         planning_resource_config,
