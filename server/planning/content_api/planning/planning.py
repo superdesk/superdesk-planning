@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk.core.resources import ResourceConfig, MongoIndexOptions, MongoResourceConfig, ElasticResourceConfig
-from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from planning.content_api.utils import MONGO_PREFIX
 from superdesk.core.resources.service import AsyncResourceService
 from planning.output_formatters import JsonPlanningFormatter
 from planning.content_api.types.planning import ContentAPIPlanningResource
@@ -49,5 +49,5 @@ content_api_planning_resource_config: ResourceConfig = ResourceConfig(
             ),
         ],
     ),
-    elastic=ElasticResourceConfig(prefix=ELASTIC_PREFIX),
+    elastic=ElasticResourceConfig(),
 )

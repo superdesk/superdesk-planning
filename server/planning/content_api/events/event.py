@@ -12,7 +12,7 @@ from superdesk.core.resources import ResourceConfig, MongoResourceConfig, MongoI
 
 from superdesk.core.resources.service import AsyncResourceService
 
-from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from planning.content_api.utils import MONGO_PREFIX
 from planning.output_formatters import JsonEventFormatter
 from planning.content_api.types.events import ContentAPIEventResource
 
@@ -56,5 +56,5 @@ content_api_event_resource_config: ResourceConfig = ResourceConfig(
             MongoIndexOptions(name="template", keys=[("template", 1)], unique=False),
         ],
     ),
-    elastic=ElasticResourceConfig(prefix=ELASTIC_PREFIX),
+    elastic=ElasticResourceConfig(),
 )

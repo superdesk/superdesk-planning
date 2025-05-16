@@ -8,8 +8,10 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+import json
 from typing import Set
 from pydantic import BaseModel
+from superdesk.core.types import SearchRequest, SearchArgs
 
 
 class PlanningCAPIParams(BaseModel):
@@ -22,6 +24,35 @@ class PlanningCAPIParams(BaseModel):
     where: str | None = None
     q: str | None = None
     default_operator: str | None = None
+
+    def to_search_request(self) -> SearchRequest:
+        where_dict = {}
+        if self.where:
+            try:
+                where_dict = json.loads(self.where) if isinstance(self.where, str) else self.where
+            except Exception:
+                pass
+
+        args: SearchArgs = {}
+        if self.q:
+            args["q"] = self.q
+        if self.default_operator:
+            args["default_operator"] = self.default_operator
+        if self.include_fields:
+            args["filters"] = [{"_include": self.include_fields.split(",")}]
+        if self.exclude_fields:
+            args.setdefault("filters", []).append({"_exclude": self.exclude_fields.split(",")})
+        if self.start_date:
+            args.setdefault("filters", []).append({"start_date": self.start_date})
+        if self.end_date:
+            args.setdefault("filters", []).append({"end_date": self.end_date})
+
+        return SearchRequest(
+            args=args,
+            where=where_dict,
+            page=int(self.page) if self.page else 1,
+            max_results=int(self.max_results) if self.max_results else 25,
+        )
 
 
 ALLOWED_PARAMS: Set[str] = {
@@ -36,4 +67,5 @@ ALLOWED_PARAMS: Set[str] = {
     "default_operator",
 }
 
-DEFAULT_SORT = [("versioncreated", -1)]
+
+MONGO_PREFIX = "CONTENTAPI_MONGO"

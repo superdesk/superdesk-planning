@@ -47,6 +47,9 @@ jobs:
       - name: Behave
         working-directory: ./server
         run: behave --format progress2 --logging-level=ERROR
+      - name: Behave (Planning Content API)
+        working-directory: ./server/
+        run: behave --format progress2 --logging-level=ERROR features/planning_content_api
 
   prodapi:
     runs-on: ubuntu-latest

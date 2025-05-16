@@ -27,25 +27,13 @@ async def get_event_list(args: None, params: PlanningCAPIParams, request: Reques
     if user and "_id" in user:
         lookup["subscribers"] = user["_id"]
 
-    where = dict(params.where) if isinstance(params.where, dict) else {}
-    where.update(lookup)
+    search_request = params.to_search_request()
+    if search_request.args is None:
+        search_request.args = {}
+    search_request.args.update(lookup)
 
-    search_request = SearchRequest(
-        q=params.q,
-        default_operator=params.default_operator,
-        include_fields=params.include_fields,
-        exclude_fields=params.exclude_fields,
-        start_date=params.start_date,
-        end_date=params.end_date,
-        where=where,
-        page=int(params.page) if params.page else 1,
-        max_results=int(params.max_results) if params.max_results else 25,
-    )
     cursor = await service.find(req=search_request)
-
-    items = []
-    async for item in cursor:
-        items.append(item.dict())
+    items = [item.dict() async for item in cursor]
     return {"_items": items}
 
 

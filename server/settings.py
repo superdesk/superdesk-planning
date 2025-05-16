@@ -69,7 +69,7 @@ LDAP_USER_ATTRIBUTES = json.loads(
 
 INSTALLED_APPS = ["planning"]
 
-MODULES.append("planning")
+MODULES.extend(["planning", "planning.content_api"])
 
 RENDITIONS = {
     "picture": {
