@@ -13,7 +13,6 @@ from superdesk.core.resources import (
     MongoIndexOptions,
     MongoResourceConfig,
     ElasticResourceConfig,
-    RestEndpointConfig,
 )
 from superdesk.core.resources.service import AsyncResourceService
 
@@ -58,9 +57,4 @@ content_api_planning_resource_config: ResourceConfig = ResourceConfig(
         ],
     ),
     elastic=ElasticResourceConfig(prefix=ELASTIC_PREFIX),
-    rest_endpoints=RestEndpointConfig(
-        resource_methods=["GET"],
-        item_methods=["GET"],
-        enable_cors=True,
-    ),
 )

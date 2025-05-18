@@ -444,7 +444,7 @@ async def enqueue_planning_item(id):
             item_type=item[ITEM_TYPE],
             operation=ITEM_PUBLISH,
             published_state=item.get(ITEM_STATE) or "published",
-            publish_to_content_api=True
+            publish_to_content_api=True,
         )
 
         if not publish_response.routed:
