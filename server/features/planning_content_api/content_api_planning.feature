@@ -1,7 +1,7 @@
 Feature: Planning Content API
     @auth
     Scenario: Get all planning items
-        Given "products"
+        Given content api resource "products"
         """
         [
             {
@@ -11,7 +11,7 @@ Feature: Planning Content API
             }
         ]
         """
-        Given "subscribers"
+        Given content api resource "subscribers"
         """
         [
             {
@@ -36,7 +36,7 @@ Feature: Planning Content API
             }
         ]
         """
-        Given "planning_capi"
+        Given content api resource "planning_capi"
         """
         [
             {

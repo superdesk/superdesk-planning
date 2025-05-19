@@ -98,9 +98,8 @@ module = Module(
         events_planning_filters_resource_config,
         assignments_history_resource_config,
         # content_api resources and services so they are available
-        # TODO-Investigate :- if we add these configs here, we got already resgistered error
-        # content_api_event_resource_config,
-        # content_api_planning_resource_config,
+        content_api_event_resource_config,
+        content_api_planning_resource_config,
     ],
     privileges=events_planning_filters_privileges,
 )

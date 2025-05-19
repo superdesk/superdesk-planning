@@ -1,17 +1,17 @@
 Feature: Content API Event Resource
     @auth
     Scenario: Get all planning items
-        Given "products"
+        Given content api resource "products"
         """
         [
             {
-                "name": "prod-1",
+                "name": "prod-1s",
                 "codes": "abc,xyz",
                 "product_type": "both"
             }
         ]
         """
-        Given "subscribers"
+        Given content api resource "subscribers"
         """
         [
             {
@@ -36,7 +36,7 @@ Feature: Content API Event Resource
             }
         ]
         """
-        Given "events_capi"
+        Given content api resource "events_capi"
         """
         [
             {
