@@ -31,9 +31,11 @@ logger = logging.getLogger(__name__)
 
 
 def before_all(context):
+    TEST_MODULES = CORE_MODULES
+    TEST_MODULES.append("planning.content_api") 
     config = {
         "ELASTICSEARCH_FORCE_REFRESH": True,
-        "MODULES": CORE_MODULES,
+        "MODULES": TEST_MODULES,
     }
 
     LOG_CONFIG_FILE = env("LOG_CONFIG_FILE", "../e2e/server/logging_config.yml")
