@@ -13,17 +13,18 @@ locations_resource_config: ResourceConfig = ResourceConfig(
     name="locations",
     data_class=LocationResourceModel,
     service=LocationsAsyncService,
-    elastic=ElasticResourceConfig(),
-    rest_endpoints=RestEndpointConfig(
-        item_methods=["GET", "PATCH", "PUT", "DELETE"],
-        resource_methods=["GET", "POST"],
-        endpoints_class=LocationsRestEndpoints,
-        auth=http_method_privilege_based_rules(
-            {
-                "POST": "planning",
-                "PATCH": "planning_locations_management",
-                "DELETE": "planning_locations_management",
-            }
-        ),
-    ),
+    # TODO-ASYNC: Use eve resource for elastic mapping - as this one is not working there
+    elastic=ElasticResourceConfig(auto_create_index=False),
+    # rest_endpoints=RestEndpointConfig(
+    #     item_methods=["GET", "PATCH", "PUT", "DELETE"],
+    #     resource_methods=["GET", "POST"],
+    #     endpoints_class=LocationsRestEndpoints,
+    #     auth=http_method_privilege_based_rules(
+    #         {
+    #             "POST": "planning",
+    #             "PATCH": "planning_locations_management",
+    #             "DELETE": "planning_locations_management",
+    #         }
+    #     ),
+    # ),
 )

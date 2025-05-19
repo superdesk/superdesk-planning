@@ -8,11 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk.core.resources import ResourceConfig, MongoIndexOptions, MongoResourceConfig, ElasticResourceConfig
-from planning.content_api.utils import MONGO_PREFIX
+from superdesk.core.resources import (
+    ResourceConfig,
+    MongoIndexOptions,
+    MongoResourceConfig,
+    ElasticResourceConfig,
+)
 from superdesk.core.resources.service import AsyncResourceService
 from planning.output_formatters import JsonPlanningFormatter
 from planning.content_api.types.planning import ContentAPIPlanningResource
+from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 
 
 class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]):
@@ -49,5 +54,5 @@ content_api_planning_resource_config: ResourceConfig = ResourceConfig(
             ),
         ],
     ),
-    elastic=ElasticResourceConfig(),
+    elastic=ElasticResourceConfig(prefix=ELASTIC_PREFIX),
 )

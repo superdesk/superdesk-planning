@@ -177,4 +177,4 @@ class LocationsResource(Resource):
     }
 
     merge_nested_documents = True
-    internal_resource = True
+    # internal_resource = True

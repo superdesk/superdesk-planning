@@ -22,5 +22,4 @@ published_resource_config = ResourceConfig(
             ),
         ],
     ),
-    elastic=ElasticResourceConfig(),
 )

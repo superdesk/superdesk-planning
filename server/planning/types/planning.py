@@ -15,7 +15,7 @@ from .common import (
     CoverageAssignedTo,
     LockFieldsMixin,
     PlanningSchedule,
-    RelatedEvent,
+    RelatedEvents,
     SlugLineField,
     SubjectListType,
     PlanningCoverage,
@@ -48,7 +48,7 @@ class PlanningResourceModel(BasePlanningModel, LockFieldsMixin):
 
     # Agenda Item details
     agendas: list[Annotated[fields.ObjectId, validate_data_relation_async("agenda")]] = Field(default_factory=list)
-    related_events: list[RelatedEvent] = Field(default_factory=list)
+    related_events: RelatedEvents = None
     recurrence_id: fields.Keyword | None = None
     planning_recurrence_id: fields.Keyword | None = None
 
