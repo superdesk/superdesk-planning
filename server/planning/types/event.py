@@ -20,6 +20,7 @@ from .common import (
     SubjectListType,
     SlugLineField,
     TimeToBeConfirmedType,
+    RelatedEvents,
 )
 
 
@@ -56,20 +57,6 @@ CoveragesIndex = Annotated[
                 }
             },
         },
-    ),
-]
-
-RelatedEvents = Annotated[
-    list[dict[str, Any]],
-    fields.elastic_mapping(
-        {
-            "type": "nested",
-            "properties": {
-                "_id": "keyword",
-                "recurrence_id": "keyword",
-                "link_type": "keyword",
-            },
-        }
     ),
 ]
 # HACK: end
@@ -255,7 +242,7 @@ class EventResourceModel(BasePlanningModel, LockFieldsMixin):
     # we can send a query to both Event & Planning index without modifying the query.
     # Otherwise elastic will raise an exception stating the field doesn't exist on the index
     coverages: CoveragesIndex | None = None
-    related_events: RelatedEvents | None = None
+    related_events: RelatedEvents = None
     # HACK: end. We'll try to move these hacks somewhere else
 
     extra: Annotated[dict[str, Any], fields.dynamic_mapping()] = Field(default_factory=dict)

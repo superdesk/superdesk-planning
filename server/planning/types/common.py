@@ -133,7 +133,10 @@ class Place:
 class RelatedEvent(Dataclass):
     id: Annotated[fields.Keyword, validate_data_relation_async("events")] = Field(alias="_id")
     recurrence_id: fields.Keyword | None = None
-    link_type: LinkType | None = None
+    link_type: Annotated[LinkType | None, fields.keyword_mapping()] = None
+
+
+RelatedEvents = Annotated[list[RelatedEvent] | None, fields.nested_list()]
 
 
 @dataclass
