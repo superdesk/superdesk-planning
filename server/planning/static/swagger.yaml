@@ -20,10 +20,15 @@ paths:
       summary: List all events
       description: Returns a list of events with optional filtering
       parameters:
-        - $ref: '#/components/parameters/start'
-        - $ref: '#/components/parameters/limit'
-        - $ref: '#/components/parameters/sort'
-        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/start_date'
+        - $ref: '#/components/parameters/end_date'
+        - $ref: '#/components/parameters/include_fields'
+        - $ref: '#/components/parameters/exclude_fields'
+        - $ref: '#/components/parameters/max_results'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/where'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/default_operator'
       responses:
         '200':
           description: A list of events
@@ -54,10 +59,15 @@ paths:
       summary: List all planning items
       description: Returns a list of planning items with optional filtering
       parameters:
-        - $ref: '#/components/parameters/start'
-        - $ref: '#/components/parameters/limit'
-        - $ref: '#/components/parameters/sort'
-        - $ref: '#/components/parameters/filter'
+        - $ref: '#/components/parameters/start_date'
+        - $ref: '#/components/parameters/end_date'
+        - $ref: '#/components/parameters/include_fields'
+        - $ref: '#/components/parameters/exclude_fields'
+        - $ref: '#/components/parameters/max_results'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/where'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/default_operator'
       responses:
         '200':
           description: A list of planning items
@@ -90,34 +100,64 @@ components:
       required: true
       schema:
         type: string
-    start:
-      name: start
+    start_date:
+      name: start_date
       in: query
-      description: Start index for pagination
-      schema:
-        type: integer
-        default: 0
-    limit:
-      name: limit
-      in: query
-      description: Maximum number of items to return
-      schema:
-        type: integer
-        default: 25
-    sort:
-      name: sort
-      in: query
-      description: Sort criteria in the format `field:direction`
+      description: Start date for filtering events
       schema:
         type: string
-        example: "dates.start:asc"
-    filter:
-      name: filter
+        format: date
+    end_date:
+      name: end_date
       in: query
-      description: Filter criteria as JSON string
+      description: End date for filtering events
       schema:
         type: string
-        example: '{"dates.start":{"$gte":"2023-01-01"}}'
+        format: date
+    include_fields:
+      name: include_fields
+      in: query
+      description: Fields to include in the response
+      schema:
+        type: string
+    exclude_fields:
+      name: exclude_fields
+      in: query
+      description: Fields to exclude from the response
+      schema:
+        type: string
+    max_results:
+      name: max_results
+      in: query
+      description: Maximum number of results to return
+      schema:
+        type: string
+    page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: string
+    where:
+      name: where
+      in: query
+      description: Filter criteria
+      schema:
+        type: string
+    q:
+      name: q
+      in: query
+      description: Search query
+      schema:
+        type: string
+    default_operator:
+      name: default_operator
+      in: query
+      description: Default operator for search queries
+      schema:
+        type: string
+        enum: [AND, OR]
+        default: AND
 
   schemas:
     # Event-related schemas
@@ -126,7 +166,6 @@ components:
       properties:
         _id:
           type: string
-          format: objectid
           description: Unique identifier for the event
         _created:
           type: string
@@ -283,7 +322,6 @@ components:
       properties:
         _id:
           type: string
-          format: objectid
           description: Unique identifier for the planning item
         _created:
           type: string
