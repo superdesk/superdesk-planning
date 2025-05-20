@@ -78,10 +78,9 @@ export const validateItem = ({
                     const fieldSchema = profile.schema[fieldId];
                     const isNotIntegerAndEmpty = fieldSchema.type !== 'integer' && isEmpty(diff[fieldId]);
                     const isIntegerAndEmpty = fieldSchema.type === 'integer' && diff[fieldId] == null;
-                    const isValidSubject = isEmpty(getVocabularyItemsForScheme(diff, fieldId)) && fieldsToValidate == null || (
-                        Array.isArray(fieldsToValidate) &&
-                        fieldsToValidate.includes(fieldId)
-                    );
+                    const isValidSubject = isEmpty(getVocabularyItemsForScheme(diff, fieldId))
+                        && fieldsToValidate == null
+                        || (Array.isArray(fieldsToValidate) && fieldsToValidate.includes(fieldId));
 
                     if (
                         fieldSchema.required
