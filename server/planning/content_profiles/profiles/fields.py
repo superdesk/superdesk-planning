@@ -118,7 +118,7 @@ subjectField = schema.ListField(
             "qcode": {},
             "scheme": {
                 "type": "string",
-                "required": False,
+                "required": True,
                 "nullable": True,
             },
             "service": {"nullable": True},
