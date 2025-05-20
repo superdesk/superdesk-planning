@@ -18,6 +18,7 @@ pytest
 pytest-env
 black~=23.0
 behave==1.2.6
+aioresponses
 
 superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@async
 
