@@ -44,9 +44,13 @@ export class SelectMetaTermsInput extends React.Component {
         const {value, field, onChange} = this.props;
 
         if (term.scheme || term.qcode) {
+            const updatedValue = value.filter(({scheme, qcode}) =>
+                !((term.scheme ?? null) === scheme && term.qcode === qcode),
+            );
+
             onChange(
                 field,
-                value.filter(({scheme, qcode}) => !(term.scheme === scheme && term.qcode === qcode))
+                updatedValue,
             );
         } else {
             // Delete by index
@@ -158,7 +162,10 @@ export class SelectMetaTermsInput extends React.Component {
                         onCancel={this.toggleOpenSelectPopup}
                         target="sd-line-input__plus-btn"
                         onChange={(opt) => {
-                            this.onChange(opt);
+                            this.onChange({
+                                ...opt,
+                                scheme: opt.scheme ?? null,
+                            });
                             this.toggleOpenSelectPopup();
                         }}
                         labelKey={labelKey}
