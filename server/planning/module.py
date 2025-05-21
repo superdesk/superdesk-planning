@@ -33,6 +33,7 @@ from planning.assignments import (
 from planning.locations import locations_resource_config
 from planning.published import published_resource_config
 from planning.content_profiles import planning_types_resource_config
+from planning.content_api.content_api_docs import content_api_docs_endpoints
 from planning.assignments import assignments_resource_config, delivery_resource_config
 from planning.search import (
     connect_signals_listeners,
@@ -79,7 +80,13 @@ def init_planning(app: SuperdeskAsyncApp):
 module = Module(
     "planning",
     init=init_planning,
-    endpoints=[planning_locks_endpoint, planning_endpoint_group, events_endpoints_group, planning_download_endpoint],
+    endpoints=[
+        planning_locks_endpoint,
+        planning_endpoint_group,
+        events_endpoints_group,
+        planning_download_endpoint,
+        content_api_docs_endpoints,
+    ],
     resources=[
         events_resource_config,
         planning_resource_config,
