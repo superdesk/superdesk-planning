@@ -1,26 +1,26 @@
 Feature: Content API Event Resource
-    @auth
-    Scenario: Get all planning items
-        Given content api resource "products"
+    Scenario: Get all Event items
+        Given "products"
         """
         [
-            {
-                "name": "prod-1s",
+            {   
+                "_id": "5b20652a1d41c812e24aa59e",
+                "name": "prod-1",
                 "codes": "abc,xyz",
                 "product_type": "both"
             }
         ]
         """
-        Given content api resource "subscribers"
+        Given "subscribers"
         """
         [
             {
-                "_id": "#user._id#",
+                "_id": "5b20652a1d41c812e24aa49e",
                 "name": "Public API",
                 "subscriber_type": "digital",
                 "email": "public_api@test.com",
                 "is_active": true,
-                "products": ["#products._id#"],
+                "products": ["5b20652a1d41c812e24aa59e"],
                 "destinations": [
                     {
                         "delivery_type": "http_push",
@@ -36,7 +36,7 @@ Feature: Content API Event Resource
             }
         ]
         """
-        Given content api resource "events_capi"
+        Given "events_capi"
         """
         [
             {
@@ -47,7 +47,7 @@ Feature: Content API Event Resource
                     "start": "2025-05-12T08:00:00+0000",
                     "end": "2025-05-12T10:00:00+0000"
                 },
-                "subscribers": ["#user._id#"]
+                "subscribers": ["5b20652a1d41c812e24aa49e"]
             },
             {
                 "name": "Test Event 2",
@@ -57,7 +57,7 @@ Feature: Content API Event Resource
                     "start": "2025-05-12T11:00:00+0000",
                     "end": "2025-05-12T12:30:00+0000"
                 },
-                "subscribers": ["#user._id#"]
+                "subscribers": ["5b20652a1d41c812e24aa49e"]
             }
         ]
         """
@@ -75,7 +75,7 @@ Feature: Content API Event Resource
                             "start": "2025-05-12T08:00:00+0000",
                             "end": "2025-05-12T10:00:00+0000"
                         },
-                        "subscribers": ["#user._id#"]
+                        "subscribers": [5b20652a1d41c812e24aa49e]
                     },
                     {
                         "name": "Test Event 2",
@@ -85,7 +85,7 @@ Feature: Content API Event Resource
                             "start": "2025-05-12T11:00:00+0000",
                             "end": "2025-05-12T12:30:00+0000"
                         },
-                        "subscribers": ["#user._id#"]
+                        "subscribers": [5b20652a1d41c812e24aa49e]
                     }
                 ]
             }

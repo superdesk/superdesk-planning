@@ -46,7 +46,7 @@ jobs:
         run: ./scripts/ci-start-services.sh
       - name: Behave
         working-directory: ./server
-        run: behave --format progress2 --logging-level=ERROR
+        run: behave --format progress2 --logging-level=ERROR --exclude features/planning_content_api
       - name: Behave (Planning Content API)
         working-directory: ./server/
         run: behave --format progress2 --logging-level=ERROR features/planning_content_api

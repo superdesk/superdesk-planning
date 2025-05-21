@@ -1,26 +1,26 @@
 Feature: Planning Content API
-    @auth
     Scenario: Get all planning items
-        Given content api resource "products"
+        Given "products"
         """
         [
-            {
+            {   
+                "_id": "5b20652a1d41c812e24aa59e",
                 "name": "prod-1",
                 "codes": "abc,xyz",
                 "product_type": "both"
             }
         ]
         """
-        Given content api resource "subscribers"
+        Given "subscribers"
         """
         [
             {
-                "_id": "#user._id#",
+                "_id": "5b20652a1d41c812e24aa49e",
                 "name": "Public API",
                 "subscriber_type": "digital",
                 "email": "public_api@test.com",
                 "is_active": true,
-                "products": ["#products._id#"],
+                "products": ["5b20652a1d41c812e24aa59e"],
                 "destinations": [
                     {
                         "delivery_type": "http_push",
@@ -36,7 +36,7 @@ Feature: Planning Content API
             }
         ]
         """
-        Given content api resource "planning_capi"
+        Given "planning_capi"
         """
         [
             {
