@@ -130,3 +130,34 @@ Feature: Planning Content API
         """
         {"_id": "plan2"}
         """
+
+    @auth
+    Scenario: Search parameters on /planning endpoint
+        When we set capi auth token to "#subscriber_token_1._id#"
+        # Test start_date and end_date filter (planning_date should match)
+        When we get capi "/planning?start_date=2042-01-01&end_date=2042-01-01"
+        Then we get list with 1 items
+        """
+        {"_items": [{"slugline": "test-planning-1"}]}
+        """
+
+        When we get capi "/planning?start_date=2042-01-02&end_date=2042-01-02"
+        Then we get list with 1 items
+        """
+        {"_items": [{"slugline": "test-planning-2"}]}
+        """
+
+        # Test q search
+        When we get capi "/planning?q=test-planning-1"
+        Then we get list with 1 items
+        """
+        {"_items": [{"slugline": "test-planning-1"}]}
+        """
+
+        # Test include_fields
+        When we get capi "/planning?include_fields=slugline"
+        Then we get list with 2 items
+
+        # Test exclude_fields
+        When we get capi "/planning?exclude_fields=anpa_category"
+        Then we get list with 2 items
