@@ -151,7 +151,7 @@ Feature: Events Content API
 
     @auth
     Scenario: Search parameters on /events endpoint
-        Given we set capi auth token to "#subscriber_token_1._id#"
+        When we set capi auth token to "#subscriber_token_1._id#"
         # Test start_date and end_date filter (dates.start should match)
         When we get capi "/events?start_date=2042-01-01&end_date=2042-01-01"
         Then we get list with 1 items
