@@ -4,6 +4,7 @@ import {IEditorFieldProps} from '../../../../interfaces';
 import {get} from 'lodash';
 import {DateTimePicker} from 'superdesk-ui-framework/react';
 import {appConfig} from 'appConfig';
+import {format} from 'date-fns';
 
 interface IProps extends IEditorFieldProps {
     canClear?: boolean;
@@ -44,6 +45,7 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
         return (
             <div style={{paddingBlockEnd: 20}}>
                 <DateTimePicker
+                    valueType="object"
                     label={this.props.label}
                     ref={(el) => {
                         this.node = el;
@@ -55,10 +57,17 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
                     error={error}
                     disabled={this.props.disabled}
                     dateFormat={appConfig.planning.dateformat}
-                    value={value == undefined ? null : new Date(value)}
+                    value={
+                        value == undefined
+                            ? null
+                            : {
+                                date: format(new Date(value), 'yyyy-MM-dd'),
+                                time: format(new Date(value), 'HH:mm'),
+                            }
+                    }
                     required={this.props.schema?.required}
                     onChange={(value) => {
-                        this.onChange(this.props.field, value);
+                        this.onChange(this.props.field, new Date(`${value.date} ${value.time}`));
                     }}
                 />
             </div>
