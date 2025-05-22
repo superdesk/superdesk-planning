@@ -36,6 +36,15 @@ Feature: Content API Event Resource
             }
         ]
         """
+        Given "subscriber_token"
+        """
+        [{
+            "_id": "1KgzQRbLzzAnIluNUQ3daxOymtBssiNpLPwayD0wa9SMKFIP0oJ20A==",
+            "expiry_days": 364,
+            "subscriber": "5b20652a1d41c812e24aa49e"
+        }]
+        """
+        When we set capi auth token to "1KgzQRbLzzAnIluNUQ3daxOymtBssiNpLPwayD0wa9SMKFIP0oJ20A=="
         Given "events_capi"
         """
         [
@@ -61,7 +70,7 @@ Feature: Content API Event Resource
             }
         ]
         """
-        When we get "/event"
+        When we get capi "/event"
         Then we get OK response
         Then we get existing resource
             """
@@ -75,7 +84,7 @@ Feature: Content API Event Resource
                             "start": "2025-05-12T08:00:00+0000",
                             "end": "2025-05-12T10:00:00+0000"
                         },
-                        "subscribers": [5b20652a1d41c812e24aa49e]
+                        "subscribers": ["5b20652a1d41c812e24aa49e"]
                     },
                     {
                         "name": "Test Event 2",
@@ -85,12 +94,12 @@ Feature: Content API Event Resource
                             "start": "2025-05-12T11:00:00+0000",
                             "end": "2025-05-12T12:30:00+0000"
                         },
-                        "subscribers": [5b20652a1d41c812e24aa49e]
+                        "subscribers": ["5b20652a1d41c812e24aa49e"]
                     }
                 ]
             }
             """
-        When we get "/event/#event.0._id#"
+        When we get capi "/event/#event.0._id#"
         Then we get OK response
         Then we get existing resource
             """

@@ -8,9 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk.flask import g
+from bson import ObjectId
+
 from superdesk.core.web import EndpointGroup
-from superdesk.core.types import SearchRequest
 from superdesk.core.types import Request, Response
 from .event import ContentAPIEventService
 from planning.content_api.utils import PlanningCAPIParams
@@ -21,20 +21,22 @@ event_endpoints = EndpointGroup("events_capi", __name__)
 @event_endpoints.endpoint("event", methods=["GET"])
 async def get_event_list(args: None, params: PlanningCAPIParams, request: Request) -> Response:
     service = ContentAPIEventService()
-
-    lookup = {}
-    user = g.get("user")
-    if user and "_id" in user:
-        lookup["subscribers"] = user["_id"]
-
+    token_id = request.storage.request.get("user")
     search_request = params.to_search_request()
-    if search_request.args is None:
-        search_request.args = {}
-    search_request.args.update(lookup)
-
+    search_request.args["source"] = {
+        "query": {"bool": {"must": [{"term": {"subscribers": ObjectId(token_id)}}]}}
+    }
     cursor = await service.find(req=search_request)
-    items = [item.dict() async for item in cursor]
-    return {"_items": items}
+
+    items = [item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False) async for item in cursor]
+    return Response({
+        "_items": items,
+        "_meta": {
+            "page": search_request.page,
+            "max_results": search_request.max_results,
+            "total": len(items),
+        },
+    })
 
 
 @event_endpoints.endpoint("event/<string:item_id>", methods=["GET"])
@@ -43,10 +45,11 @@ async def get_event_item(args, params, request: Request) -> Response:
     item_id = request.get_view_args("item_id")
 
     if not item_id:
-        return Response({"error": "Item ID is required"}, status=400)
+        return await request.abort(404)
 
-    items = await service.find_by_ids([item_id])
-    if not items:
-        return Response({"error": "Not found"}, status=404)
+    item = await service.find_by_id(item_id)
+    token_id = request.storage.request.get("user")
+    if not item or ObjectId(token_id) not in item.subscribers:
+        return await request.abort(404)
 
-    return Response(items[0].dict())
+    return Response(item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False))

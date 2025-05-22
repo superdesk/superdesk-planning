@@ -8,9 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk.flask import g
+from bson import ObjectId
+
 from superdesk.core.web import EndpointGroup
-from superdesk.core.types import SearchRequest
 from superdesk.core.types import Request, Response
 from .planning import ContentAPIPlanningService
 from planning.content_api.utils import PlanningCAPIParams
@@ -22,31 +22,23 @@ planning_endpoints = EndpointGroup("planning_capi", __name__)
 @planning_endpoints.endpoint("planning", methods=["GET"])
 async def get_planning_list(args, params: PlanningCAPIParams, request: Request) -> Response:
     service = ContentAPIPlanningService()
-    lookup = {}
-    user = g.get("user")
-    if user and "_id" in user:
-        lookup["subscribers"] = user["_id"]
-
-    where = dict(params.where) if isinstance(params.where, dict) else {}
-    where.update(lookup)
-
-    search_request = SearchRequest(
-        q=params.q,
-        default_operator=params.default_operator,
-        include_fields=params.include_fields,
-        exclude_fields=params.exclude_fields,
-        start_date=params.start_date,
-        end_date=params.end_date,
-        where=where,
-        page=int(params.page) if params.page else 1,
-        max_results=int(params.max_results) if params.max_results else 25,
-    )
+    token_id = request.storage.request.get("user")
+    search_request = params.to_search_request()
+    search_request.args["source"] = {
+        "query": {"bool": {"must": [{"term": {"subscribers": ObjectId(token_id)}}]}}
+    }
     cursor = await service.find(req=search_request)
 
-    items = []
-    async for item in cursor:
-        items.append(item.dict())
-    return {"_items": items}
+    items = [item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False) async for item in cursor]
+
+    return Response({
+        "_items": items,
+        "_meta": {
+            "page": search_request.page,
+            "max_results": search_request.max_results,
+            "total": len(items),
+        },
+    })
 
 
 @planning_endpoints.endpoint("planning/<string:item_id>", methods=["GET"])
@@ -55,10 +47,11 @@ async def get_planning_item(args, params, request: Request) -> Response:
     item_id = request.get_view_args("item_id")
 
     if not item_id:
-        return Response({"error": "Item ID is required"}, status=400)
+        return await request.abort(404)
 
-    items = await service.find_by_ids([item_id])
-    if not items:
-        return Response({"error": "Not found"}, status=404)
+    item = await service.find_by_id(item_id)
+    token_id = request.storage.request.get("user")
+    if not item or ObjectId(token_id) not in item.subscribers:
+        return await request.abort(404)
 
-    return Response(items[0].dict())
+    return Response(item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False))

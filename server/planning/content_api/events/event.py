@@ -32,6 +32,7 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
         If the event already exists, it will be updated, otherwise it will be created.
         """
 
+        item["subscribers"] = [subscriber["_id"] for subscriber in subscribers or []]
         formatted_item = await self.formatter._format_item(item)
         event_id = item.get("_id")
         original = await self.find_by_id(event_id)

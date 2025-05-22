@@ -31,6 +31,7 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]
         If the planning item already exists, it will be updated, otherwise it will be created.
         """
 
+        item["subscribers"] = [subscriber["_id"] for subscriber in subscribers or []]
         formatted_item = await self.formatter._format_item(item)
         planning_id = item.get("_id")
         original = await self.find_by_id(planning_id)
