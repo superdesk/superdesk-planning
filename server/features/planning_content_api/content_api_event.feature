@@ -48,10 +48,8 @@ Feature: Events Content API
         ]
         """
 
-    @auth
-    Scenario: Get Event items with subscriber access control
         # Create test events
-        When we post to "event"
+        When we post to "events"
         """
         [{
             "guid": "event1",
@@ -61,19 +59,20 @@ Feature: Events Content API
             "dates": {
                 "start": "2042-01-01T10:00:00+0000",
                 "end": "2042-01-01T12:00:00+0000"
-            },
-            "subscribers": ["#subscribers_0._id#", "#subscribers_1._id#"]
+            }
         }]
         """
-        And we post to "/event/post"
+        Then we get OK response
+        When we post to "/events/post"
         """
         {
-            "event": "#event._id#",
-            "etag": "#event._etag#",
+            "event": "#events._id#",
+            "etag": "#events._etag#",
             "pubstatus": "usable"
         }
         """
-        When we post to "event"
+        Then we get OK response
+        When we post to "events"
         """
         [{
             "guid": "event2",
@@ -83,29 +82,40 @@ Feature: Events Content API
             "dates": {
                 "start": "2042-01-02T09:00:00+0000",
                 "end": "2042-01-02T11:00:00+0000"
-            },
-            "subscribers": ["#subscribers_1._id#"]
+            }
         }]
         """
-        And we post to "/event/post"
+        Then we get OK response
+        When we post to "/events/post"
         """
         {
-            "event": "#event._id#",
-            "etag": "#event._etag#",
+            "event": "#events._id#",
+            "etag": "#events._etag#",
             "pubstatus": "usable"
         }
         """
+        Then we get OK response
+
+    @auth
+    Scenario: Event subscriber permissions
+        # Test endpoints when not authenticated
+        When we get capi "/events"
+        Then we get error 403
+        When we get capi "/events/event1"
+        Then we get error 403
+        When we get capi "/events/event2"
+        Then we get error 403
 
         # Test Sports Subscriber (should only see sports event)
         When we set capi auth token to "#subscriber_token_0._id#"
-        When we get capi "/event"
+        When we get capi "/events"
         Then we get list with 1 items
         """
         {"_items": [
             {"_id": "event1"}
         ]}
         """
-        When we get capi "/event/event1"
+        When we get capi "/events/event1"
         Then we get existing resource
         """
         {
@@ -115,12 +125,12 @@ Feature: Events Content API
             "anpa_category": [{"name": "Sports", "qcode": "sports"}]
         }
         """
-        When we get capi "/event/event2"
+        When we get capi "/events/event2"
         Then we get error 404
 
         # Test Subscriber with access to all content
         When we set capi auth token to "#subscriber_token_1._id#"
-        When we get capi "/event"
+        When we get capi "/events"
         Then we get list with 2 items
         """
         {"_items": [
@@ -128,7 +138,7 @@ Feature: Events Content API
             {"_id": "event2"}
         ]}
         """
-        When we get capi "/event/event1"
+        When we get capi "/events/event1"
         Then we get existing resource
         """
         {
@@ -138,7 +148,7 @@ Feature: Events Content API
             "anpa_category": [{"name": "Sports", "qcode": "sports"}]
         }
         """
-        When we get capi "/event/event2"
+        When we get capi "/events/event2"
         Then we get existing resource
         """
         {
@@ -150,33 +160,68 @@ Feature: Events Content API
         """
 
     @auth
-    Scenario: Search parameters on /events endpoint
+    Scenario: Search Event dates
         When we set capi auth token to "#subscriber_token_1._id#"
         # Test start_date and end_date filter (dates.start should match)
         When we get capi "/events?start_date=2042-01-01&end_date=2042-01-01"
         Then we get list with 1 items
         """
-        {"_items": [{"slugline": "test-event-1"}]}
+        {"_items": [{"slugline": "sports-event"}]}
         """
 
         When we get capi "/events?start_date=2042-01-02&end_date=2042-01-02"
         Then we get list with 1 items
         """
-        {"_items": [{"slugline": "test-event-2"}]}
+        {"_items": [{"slugline": "finance-event"}]}
         """
 
+    @auth
+    Scenario: Event filter search
+        When we set capi auth token to "#subscriber_token_1._id#"
         # Test q search
-        When we get capi "/events?q=test-event-1"
+        When we get capi "/events?q=sports-event"
         Then we get list with 1 items
         """
-        {"_items": [{"slugline": "test-event-1"}]}
+        {"_items": [{"slugline": "sports-event"}]}
         """
 
+    @auth
+    Scenario: Event field projection
+        When we set capi auth token to "#subscriber_token_1._id#"
         # Test include_fields
         When we get capi "/events?include_fields=slugline"
         Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "event1", "slugline": "sports-event", "anpa_category": "__no_value__"},
+            {"_id": "event2", "slugline": "finance-event", "anpa_category": "__no_value__"}
+        ]}
+        """
 
-        # Test exclude_fields
-        When we get capi "/events?exclude_fields=anpa_category"
+        # Test exclude_fields        When we get capi "/events?exclude_fields=anpa_category"
         Then we get list with 2 items
+        """
+        {"_items": [
+            {"_id": "event1", "slugline": "sports-event", "anpa_category": "__no_value__"},
+            {"_id": "event2", "slugline": "finance-event", "anpa_category": "__no_value__"}
+        ]}
+        """
 
+    @auth
+    Scenario: Event page params
+        When we set capi auth token to "#subscriber_token_1._id#"
+        When we get capi "/events?max_results=1"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event1"}]}
+        """
+        When we get capi "/events?max_results=1&page=1"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event1"}]}
+        """
+        When we get capi "/events?max_results=1&page=2"
+        Then we get list with 1 items
+        """
+        {"_items": [{"_id": "event2"}]}
+        """
