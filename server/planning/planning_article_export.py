@@ -6,7 +6,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from dateutil import tz
+from dateutil import tz, parser
 from bson import ObjectId
 
 from superdesk.core import get_app_config
@@ -309,7 +309,9 @@ async def generate_text_item(items, template_name, resource_type):
         if item.get("dates") or (item.get("event") or {}).get("dates"):
             default_timezone = get_app_config("DEFAULT_TIMEZONE")
             dates = item.get("dates") or item.get("event").get("dates")
-            item["schedule"] = utc_to_local(default_timezone, dates.get("start"))
+            start = dates.get("start")
+            utc_dt = parser.parse(start) if isinstance(start, str) else start
+            item["schedule"] = utc_to_local(default_timezone, utc_dt)
             if get_timezone_offset(default_timezone, utcnow()) != get_timezone_offset(dates.get("tz"), utcnow()):
                 item["schedule"] = "{} ({})".format(item["schedule"].strftime("%H%M"), item["schedule"].tzname())
             else:

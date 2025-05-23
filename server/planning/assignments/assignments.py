@@ -117,7 +117,7 @@ class AssignmentsService(AsyncBaseService):
 
     async def _enhance_assignments(self, docs):
         """Populate `item_ids` with ids for all linked Archive items for an Assignment"""
-        items = await (await self.get_archive_items_for_assignments([str(doc.get(ID_FIELD)) for doc in docs])).to_list()
+        items = await self.get_archive_items_for_assignments([str(doc.get(ID_FIELD)) for doc in docs])
         for doc in docs:
             ids = [str(item.get("_id")) for item in items if str(item.get("assignment_id")) == str(doc.get("_id"))]
             if len(ids):
@@ -1250,7 +1250,7 @@ class AssignmentsService(AsyncBaseService):
         # Make sure the content linked to assignment (if) is also not locked
         # This is needed when the planing item is being unposted/spiked
         archive_items = await self.get_archive_items_for_assignment(doc)
-        async for archive_item in archive_items:
+        for archive_item in archive_items:
             if archive_item.get("lock_user") and not is_locked_in_this_session(archive_item):
                 raise SuperdeskApiError.forbiddenError(message="Associated archive item is locked")
 

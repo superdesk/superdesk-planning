@@ -5,7 +5,7 @@ Feature: Assignments Locking
         Given "assignments"
         """
         [{
-            "_id": "a123",
+            "_id": "507f1f77bcf86cd799439011",
             "planning_item": "plan1",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
@@ -15,12 +15,12 @@ Feature: Assignments Locking
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "cancelled"
             }
         }]
         """
-        When we post to "/assignments/a123/lock"
+        When we post to "/assignments/507f1f77bcf86cd799439011/lock"
         """
         {"lock_action": "edit"}
         """
@@ -34,7 +34,7 @@ Feature: Assignments Locking
         Given "assignments"
         """
         [{
-            "_id": "a123",
+            "_id": "507f1f77bcf86cd799439011",
             "planning_item": "plan1",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
@@ -44,19 +44,19 @@ Feature: Assignments Locking
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
         }]
         """
-        When we post to "/assignments/a123/lock"
+        When we post to "/assignments/507f1f77bcf86cd799439011/lock"
         """
         {"lock_action": "edit"}
         """
         Then we get existing resource
         """
         {
-            "_id": "a123",
+            "_id": "507f1f77bcf86cd799439011",
             "lock_user": "#CONTEXT_USER_ID#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
@@ -66,11 +66,11 @@ Feature: Assignments Locking
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             },
             "_links": {
-                "self": {"href": "/assignments/a123"}
+                "self": {"href": "/assignments/507f1f77bcf86cd799439011"}
             }
         }
         """
@@ -149,7 +149,7 @@ Feature: Assignments Locking
         Given "assignments"
         """
         [{
-            "_id": "a123",
+            "_id": "507f1f77bcf86cd799439011",
             "planning_item": "plan1",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
@@ -159,19 +159,19 @@ Feature: Assignments Locking
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
         }]
         """
-        When we post to "/assignments/a123/lock"
+        When we post to "/assignments/507f1f77bcf86cd799439011/lock"
         """
         {"lock_action": "edit"}
         """
         Then we get existing resource
         """
         {
-            "_id": "a123",
+            "_id": "507f1f77bcf86cd799439011",
             "lock_user": "#CONTEXT_USER_ID#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
@@ -181,22 +181,22 @@ Feature: Assignments Locking
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             },
             "_links": {
-                "self": {"href": "/assignments/a123"}
+                "self": {"href": "/assignments/507f1f77bcf86cd799439011"}
             }
         }
         """
-        When we post to "/assignments/a123/unlock"
+        When we post to "/assignments/507f1f77bcf86cd799439011/unlock"
         """
         {}
         """
         Then we get existing resource
         """
         {
-            "_id": "a123",
+            "_id": "507f1f77bcf86cd799439011",
             "lock_user": null,
             "planning": {
                 "ednote": "test coverage, I want 250 words",
@@ -206,11 +206,11 @@ Feature: Assignments Locking
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             },
             "_links": {
-                "self": {"href": "/assignments/a123"}
+                "self": {"href": "/assignments/507f1f77bcf86cd799439011"}
             }
         }
         """

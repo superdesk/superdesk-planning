@@ -175,7 +175,8 @@ async def step_imp_when_action_resource(context, action, resource, item_id):
 @then('we get text in "{field}"')
 @async_run_until_complete
 async def then_we_get_text_in_response_field(context, field):
-    response = await get_json_data(context.response)[field]
+    data = await get_json_data(context.response)
+    response = data[field]
 
     # Remove blank lines to make testing easier
     response_text = "\n".join([line for line in response.split("\n") if len(line)])
