@@ -12,7 +12,9 @@ from .types.planning import ContentAPIPlanningResource
 
 from .events.event import ContentAPIEventService, content_api_event_resource_config
 from .planning.planning import ContentAPIPlanningService, content_api_planning_resource_config
-
+from superdesk.core.module import Module
+from .events import event_endpoints
+from .planning import planning_endpoints
 
 __all__ = [
     "ContentAPIEventService",
@@ -22,3 +24,9 @@ __all__ = [
     "content_api_event_resource_config",
     "content_api_planning_resource_config",
 ]
+
+module = Module(
+    "planning.content_api",
+    resources=[content_api_event_resource_config, content_api_planning_resource_config],
+    endpoints=[event_endpoints, planning_endpoints],
+)

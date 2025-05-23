@@ -32,7 +32,9 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
         If the event already exists, it will be updated, otherwise it will be created.
         """
 
+        item["subscribers"] = [subscriber["_id"] for subscriber in subscribers or []]
         formatted_item = await self.formatter._format_item(item)
+        formatted_item["_planning_schedule"] = [{"scheduled": formatted_item["dates"]["start"]}]
         event_id = item.get("_id")
         original = await self.find_by_id(event_id)
 
@@ -46,8 +48,7 @@ content_api_event_resource_config: ResourceConfig = ResourceConfig(
     name="events_capi",
     data_class=ContentAPIEventResource,
     service=ContentAPIEventService,
-    default_sort=[("versioncreated", -1)],
-    versioning=False,
+    default_sort=[("dates.start", 1)],
     mongo=MongoResourceConfig(
         prefix=MONGO_PREFIX,
         indexes=[
