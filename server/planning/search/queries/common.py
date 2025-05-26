@@ -35,6 +35,14 @@ FilterFunctionType = (
 )
 
 
+def is_in_datetime_format(value: str, datetime_format: str) -> bool:
+    try:
+        datetime.strptime(value, datetime_format)
+        return True
+    except ValueError:
+        return False
+
+
 def get_date_params(params: Dict[str, Any]):
     date_filter = (params.get("date_filter") or "").strip().lower()
     time_zone = params.get("time_zone")
@@ -43,10 +51,12 @@ def get_date_params(params: Dict[str, Any]):
         start_date = params.get("start_date")
         if start_date:
             if isinstance(start_date, str):
-                if not start_date.endswith("+0000"):
+                if is_in_datetime_format(start_date, "%Y-%m-%d"):
+                    params["start_date"] += "T00:00:00+0000"
+                elif is_in_datetime_format(start_date, "%Y-%m-%dT%H:%M:%S"):
                     params["start_date"] += "+0000"
-                    start_date = params["start_date"]
 
+                start_date = params["start_date"]
                 str_to_date(params["start_date"])  # validating if date can be parsed
             elif isinstance(start_date, datetime):
                 start_date = date_to_str(start_date)
@@ -58,9 +68,12 @@ def get_date_params(params: Dict[str, Any]):
         end_date = params.get("end_date")
         if end_date:
             if isinstance(end_date, str):
-                if not end_date.endswith("+0000"):
+                if is_in_datetime_format(end_date, "%Y-%m-%d"):
+                    params["end_date"] += "T23:59:59+0000"
+                elif is_in_datetime_format(end_date, "%Y-%m-%dT%H:%M:%S"):
                     params["end_date"] += "+0000"
-                    end_date = params["end_date"]
+
+                end_date = params["end_date"]
                 str_to_date(params["end_date"])  # validating if date can be parsed
             elif isinstance(end_date, datetime):
                 end_date = date_to_str(end_date)

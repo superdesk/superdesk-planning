@@ -1,4 +1,4 @@
-# -*- coding: utf-8; -*-
+# -- coding: utf-8; --
 #
 # This file is part of Superdesk.
 #
@@ -15,10 +15,10 @@ from superdesk.core.resources import (
     ElasticResourceConfig,
 )
 from superdesk.core.resources.service import AsyncResourceService
-
-from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from superdesk import get_resource_service
 from planning.output_formatters import JsonPlanningFormatter
 from planning.content_api.types.planning import ContentAPIPlanningResource
+from content_api import MONGO_PREFIX, ELASTIC_PREFIX
 
 
 class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]):
@@ -32,10 +32,11 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]
         If the planning item already exists, it will be updated, otherwise it will be created.
         """
 
+        item["subscribers"] = [subscriber["_id"] for subscriber in subscribers or []]
         formatted_item = await self.formatter._format_item(item)
+        get_resource_service("planning").set_planning_schedule(formatted_item)
         planning_id = item.get("_id")
         original = await self.find_by_id(planning_id)
-
         if original:
             await self.update(planning_id, formatted_item)
         else:
@@ -46,6 +47,7 @@ content_api_planning_resource_config: ResourceConfig = ResourceConfig(
     name="planning_capi",
     data_class=ContentAPIPlanningResource,
     service=ContentAPIPlanningService,
+    default_sort=[("_planning_schedule.scheduled", 1)],
     mongo=MongoResourceConfig(
         prefix=MONGO_PREFIX,
         indexes=[

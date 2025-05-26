@@ -14,6 +14,7 @@ from planning.content_api import (
     content_api_event_resource_config,
     content_api_planning_resource_config,
 )
+
 from planning.events import events_resource_config, events_history_resource_config, events_autosave_resource_config
 from planning.events.events_autosave_service import EventsAutosaveAsyncService
 from planning.planning import (
