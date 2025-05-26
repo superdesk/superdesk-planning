@@ -34,7 +34,7 @@ Feature: Duplicate Planning
             ]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/123/duplicate" with success
         """
         [{}]
         """
@@ -154,7 +154,7 @@ Feature: Duplicate Planning
         When we post to "planning" with success
         """
         [{
-            "guid": "123",
+            "guid": "124",
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
@@ -167,7 +167,7 @@ Feature: Duplicate Planning
         {"user_type": "user", "privileges": {"planning_planning_management": 0, "users": 1}}
         """
         Then we get OK response
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/124/duplicate"
         """
         [{}]
         """
@@ -177,7 +177,7 @@ Feature: Duplicate Planning
         {"user_type": "user", "privileges": {"planning_planning_management": 1}}
         """
         Then we get OK response
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/124/duplicate" with success
         """
         [{}]
         """
@@ -189,7 +189,7 @@ Feature: Duplicate Planning
         When we post to "planning" with success
         """
         [{
-            "guid": "123",
+            "guid": "125",
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
@@ -218,17 +218,17 @@ Feature: Duplicate Planning
             ]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/125/duplicate" with success
         """
         [{}]
         """
         Then we get OK response
-        When we get "/planning/123"
+        When we get "/planning/125"
         Then we get existing resource
         """
         {
-            "_id": "123",
-            "guid": "123",
+            "_id": "125",
+            "guid": "125",
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
@@ -284,13 +284,26 @@ Feature: Duplicate Planning
         When we post to "planning" with success
         """
         [{
-            "guid": "123",
+            "guid": "126",
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
         Then we get OK response
+        When we post to "/products" with success
+        """
+        { "name": "prod-1", "codes": "abc", "product_type": "both" }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+        "name": "News1", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "email": "test@email.com",
+        "is_active": true,
+        "codes": "abc",
+        "destinations": [{ "name": "planning", "format": "json_planning", "delivery_type": "File", "config": { "file_path": "/tmp" } }]
+        }
+        """
         When we post to "/planning/post"
         """
         {
@@ -300,7 +313,7 @@ Feature: Duplicate Planning
         }
         """
         Then we get OK response
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/126/duplicate" with success
         """
         [{}]
         """
@@ -311,7 +324,7 @@ Feature: Duplicate Planning
         {"_items": [
             {
                 "operation": "create",
-                "planning_id": "123",
+                "planning_id": "126",
                 "update": {
                     "headline": "test headline",
                     "slugline": "test slugline"
@@ -319,11 +332,11 @@ Feature: Duplicate Planning
             },
             {
                 "operation": "post",
-                "planning_id": "123"
+                "planning_id": "126"
             },
             {
                 "operation": "duplicate",
-                "planning_id": "123",
+                "planning_id": "126",
                 "update": {"duplicate_id": "#duplicate._id#"}
             },
             {
@@ -364,7 +377,7 @@ Feature: Duplicate Planning
 
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -404,7 +417,7 @@ Feature: Duplicate Planning
             "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -452,7 +465,7 @@ Feature: Duplicate Planning
             "expired": true
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -520,7 +533,7 @@ Feature: Duplicate Planning
             ]
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -591,7 +604,7 @@ Feature: Duplicate Planning
             ]
         }]
         """
-        When we post to "/planning/plan1/duplicate"
+        When we post to "/planning/plan1/duplicate" with success
         """
         [{}]
         """
@@ -674,7 +687,7 @@ Feature: Duplicate Planning
             "related_events": [{"_id": "123", "link_type": "primary"}]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/123/duplicate" with success
         """
         [{}]
         """
@@ -756,7 +769,7 @@ Feature: Duplicate Planning
             "related_events": [{"_id": "123", "link_type": "primary"}]
         }
         """
-        When we post to "/planning/123/duplicate"
+        When we post to "/planning/123/duplicate" with success
         """
         [{}]
         """

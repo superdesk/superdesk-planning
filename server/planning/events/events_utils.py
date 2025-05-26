@@ -1,5 +1,6 @@
 import arrow
 import re
+from dateutil import parser
 import pytz
 
 from datetime import date, datetime
@@ -87,6 +88,8 @@ def generate_recurring_dates(
             pass
         start = start.astimezone(tz).replace(tzinfo=None)
         if until:
+            if isinstance(until, str):
+                until = parser.isoparse(until)
             until = until.astimezone(tz).replace(tzinfo=None)
 
     if frequency == "DAILY":

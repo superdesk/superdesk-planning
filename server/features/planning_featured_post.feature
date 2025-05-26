@@ -1,4 +1,3 @@
-# Created by superdesk at 7/27/18
 Feature: Post Featured Planning
 
     @auth
@@ -55,6 +54,24 @@ Feature: Post Featured Planning
             "tz": "Australia/Sydney",
             "items": ["#planning._id#"]
         }]
+        """
+        When we post to "/products" with success
+        """
+        { "name": "prod-1", "codes": "abc", "product_type": "both" }
+        """
+
+        And we post to "/subscribers" with success
+        """
+        {
+        "name": "Featured Planning Subscriber", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "is_active": true,
+        "codes": "abc",
+        "destinations": [{
+            "name": "planning_featured",
+            "format": "json_planning_featured",
+            "delivery_type": "File",
+            "config": { "file_path": "/tmp" }
+        }]
+        }
         """
         When we patch "/planning_featured/#planning_featured._id#"
         """

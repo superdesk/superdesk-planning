@@ -96,6 +96,10 @@ Feature: Events Spike
         }
         """
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get error 403
         When we patch "/users/#CONTEXT_USER_ID#"
@@ -110,8 +114,16 @@ Feature: Events Spike
         }
         """
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "unspiked"}
+        """
         When we unspike events "#events._id#"
         Then we get error 403
         When we patch "/users/#CONTEXT_USER_ID#"
@@ -125,6 +137,10 @@ Feature: Events Spike
         }
         """
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "unspiked"}
+        """
         When we unspike events "#events._id#"
         Then we get OK response
 
@@ -169,6 +185,10 @@ Feature: Events Spike
                 "state": "draft"
             }]}
         """
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get error 400
         """
@@ -193,6 +213,10 @@ Feature: Events Spike
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "session123"
         }]
+        """
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
         """
         When we spike events "#events._id#"
         Then we get OK response
@@ -265,6 +289,10 @@ Feature: Events Spike
         """
         {"lock_action": "edit"}
         """
+        When we post to "/events/#EVENT1._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -286,6 +314,10 @@ Feature: Events Spike
         """
         {"lock_action": "edit"}
         """
+        When we post to "/events/#EVENT1._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -303,6 +335,10 @@ Feature: Events Spike
         {}
         """
         Then we get OK response
+        When we post to "/events/#EVENT1._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -348,6 +384,10 @@ Feature: Events Spike
         {"event": "#EVENT4._id#", "etag": "#EVENT4._etag#", "pubstatus": "usable"}
         """
         Then we get OK response
+        When we post to "/events/#EVENT1._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -406,20 +446,36 @@ Feature: Events Spike
             "state": "spiked"
         }]
         """
+        When we post to "/events/#event1._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "event1"
         Then we get error 400
         """
         {"_issues": {"validator exception": "400: Spike failed. Posted Events cannot be spiked."}}
+        """
+        When we post to "/events/#event3._id#/lock"
+        """
+        {"lock_action": "spiked"}
         """
         When we spike events "event3"
         Then we get error 400
         """
         {"_issues": {"validator exception": "400: Spike failed. Rescheduled Events cannot be spiked."}}
         """
+        When we post to "/events/#event4._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "event4"
         Then we get error 400
         """
         {"_issues": {"validator exception": "400: Spike failed. Rescheduled Events cannot be spiked."}}
+        """
+        When we post to "/events/#event5._id#/lock"
+        """
+        {"lock_action": "spiked"}
         """
         When we spike events "event5"
         Then we get error 400
@@ -499,6 +555,10 @@ Feature: Events Spike
         """
         Then we get OK response
         Then we store "RESCHEDULED" from last rescheduled item
+        When we post to "/events/#EVENT5._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#EVENT5._id#"
         Then we get OK response
         When we post to "/planning" with success
@@ -516,6 +576,10 @@ Feature: Events Spike
         When we perform cancel on events "#EVENT6._id#"
         Then we get OK response
         When we reset notifications
+        When we post to "/events/#EVENT1._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -698,6 +762,10 @@ Feature: Events Spike
         }
         """
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get error 400
         When we post to "/planning/#planning._id#/unlock"
@@ -705,6 +773,10 @@ Feature: Events Spike
         {}
         """
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get OK response
         When we get "events/#events._id#"
@@ -795,6 +867,10 @@ Feature: Events Spike
         }]
         """
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get OK response
         When we get "events/#events._id#"
@@ -941,6 +1017,10 @@ Feature: Events Spike
         {"assignment_id": "#assignmentId#"}
         """
         Then we get OK response
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get OK response
         When we get "events/#events._id#"
@@ -1057,6 +1137,10 @@ Feature: Events Spike
         """
         {"lock_user": "#users._id#"}
         """
+        When we post to "/events/#events._id#/lock"
+        """
+        {"lock_action": "spiked"}
+        """
         When we spike events "#events._id#"
         Then we get OK response
         And we get notifications
@@ -1113,6 +1197,10 @@ Feature: Events Spike
             "lock_action": "edit",
             "lock_time": "#DATE#"
         }]
+        """
+        When we post to "/events/#event1._id#/lock"
+        """
+        {"lock_action": "spiked"}
         """
         When we spike events "event1"
         Then we get OK response

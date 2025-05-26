@@ -19,6 +19,7 @@ import itertools
 from copy import deepcopy
 from typing import Dict, Any, Optional, List, Tuple
 from datetime import timedelta, datetime, timedelta
+from dateutil import parser
 
 from eve.methods.common import resolve_document_etag
 from eve.utils import date_to_str
@@ -440,7 +441,22 @@ class EventsService(AsyncBaseService):
         if not event.get("dates"):
             return
 
-        event_duration = event.get("dates").get("end") - event.get("dates").get("start")
+        dates = event.get("dates")
+        if not dates:
+            return
+
+        start = dates.get("start")
+        end = dates.get("end")
+
+        if not start or not end:
+            return
+
+        # Parse dates
+        start = parser.parse(start) if isinstance(start, str) else start
+        end = parser.parse(end) if isinstance(end, str) else end
+
+        event_duration = end - start
+
         if event_duration.days > max_duration:
             raise SuperdeskApiError(message="Event duration is greater than {} days.".format(max_duration))
 
@@ -1029,7 +1045,12 @@ def setRecurringMode(event):
 def overwrite_event_expiry_date(event):
     if "expiry" in event:
         expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
-        event["expiry"] = event["dates"]["end"] + timedelta(minutes=expiry_minutes or 0)
+        end = event.get("dates", {}).get("end")
+        if isinstance(end, str):
+            end = parser.isoparse(end)
+
+        if end:
+            event["expiry"] = end + timedelta(minutes=expiry_minutes or 0)
 
 
 def generate_recurring_events(event, recurrence_id=None):
