@@ -7,11 +7,11 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-
 import os
 from quart import send_file, abort
 from superdesk.core.web import EndpointGroup
 from superdesk.flask import render_template
+from superdesk.core.types import Request
 
 content_api_docs_endpoints = EndpointGroup("content_api_docs", __name__)
 
@@ -22,10 +22,10 @@ async def content_api_docs():
 
 
 @content_api_docs_endpoints.endpoint("/planning-static/<path:filename>", auth=False)
-async def planning_static_file(filename):
-    # Determine base static directory
-    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static"))
-    file_path = os.path.abspath(os.path.join(base_path, filename))
+async def planning_static_file(args, params, request: Request):
+    filename = request.get_view_args("filename")
+    base_path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "static"))
+    file_path = os.path.join(base_path, filename)
 
     if not file_path.startswith(base_path):
         return abort(403)
