@@ -6,6 +6,8 @@ import {DateTimePicker} from 'superdesk-ui-framework/react';
 import {appConfig} from 'appConfig';
 import {format} from 'date-fns';
 
+const DATE_ONLY_LENGTH = 10;
+
 interface IProps extends IEditorFieldProps {
     canClear?: boolean;
     showToBeConfirmed?: boolean;
@@ -27,7 +29,7 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
         this.onChange = this.onChange.bind(this);
     }
 
-    onChange(field: string, value: Date) {
+    onChange(field: string, value: string) {
         // `field` is appended with `.date` or `.time` depending on what changed
         // Not all usages of this component requires this, so use `this.props.field` instead
         if (this.props.singleValue === true) {
@@ -58,16 +60,23 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
                     disabled={this.props.disabled}
                     dateFormat={appConfig.planning.dateformat}
                     value={
-                        value == undefined
-                            ? null
-                            : {
+                        value != null
+                            ? {
                                 date: format(new Date(value), 'yyyy-MM-dd'),
-                                time: format(new Date(value), 'HH:mm'),
+                                // if true, that means value is a date-only ISO string without time part
+                                time: value.length === DATE_ONLY_LENGTH
+                                    ? undefined
+                                    : format(new Date(value), 'HH:mm'),
                             }
+                            : {}
                     }
                     required={this.props.schema?.required}
                     onChange={(value) => {
-                        this.onChange(this.props.field, new Date(`${value.date} ${value.time}`));
+                        const dateTimeString = value.time != null
+                            ? new Date(`${value.date} ${value.time}`).toISOString()
+                            : value.date;
+
+                        this.onChange(this.props.field, dateTimeString);
                     }}
                 />
             </div>
