@@ -145,7 +145,8 @@ class PlanningValidateService(Service):
         return get_resource_service("planning_types").find_one(req=None, name=doc[ITEM_TYPE])
 
     def _get_validator_schema(self, validator, validate_on_post):
-        """Get schema for a given validator, excluding fields with None values,
+        """
+        Get schema for a given validator, excluding fields with None values,
         and only include fields that are in enabled_fields.
         """
 
