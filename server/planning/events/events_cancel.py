@@ -152,7 +152,7 @@ async def process_cancel_event(updates: dict[str, Any], original: dict[str, Any]
     ACTION = "cancel"
 
     # Perform pre update event actions
-    await pre_update_event_actions(updates, original, ACTION)
+    await pre_update_event_actions(updates, original, ACTION, False)
 
     # Determin update method
     update_method = get_update_method(updates, original)

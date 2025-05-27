@@ -15,10 +15,6 @@ Feature: Events Unspike
             }
         }]
         """
-        When we post to "/events/#events._id#/lock" with success
-        """
-        {"lock_action": "unspiked"}
-        """
         When we unspike events "#events._id#"
         Then we get OK response
         And we get notifications
@@ -80,10 +76,6 @@ Feature: Events Unspike
         And we store "EVENT2" with 2 item
         And we store "EVENT3" with 3 item
         And we store "EVENT4" with 4 item
-        When we post to "/events/#EVENT1._id#/lock" with success
-        """
-        {"lock_action": "spiked"}
-        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -98,10 +90,6 @@ Feature: Events Unspike
             {"_id": "#EVENT3._id#", "state": "spiked", "revert_state": "draft"},
             {"_id": "#EVENT4._id#", "state": "spiked", "revert_state": "draft"}
         ]}
-        """
-        When we post to "/events/#EVENT2._id#/lock" with success
-        """
-        {"lock_action": "unspiked"}
         """
         When we unspike events "#EVENT2._id#"
         """
@@ -160,10 +148,6 @@ Feature: Events Unspike
         And we store "EVENT2" with 2 item
         And we store "EVENT3" with 3 item
         And we store "EVENT4" with 4 item
-        When we post to "/events/#EVENT1._id#/lock" with success
-        """
-        {"lock_action": "spiked"}
-        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -178,10 +162,6 @@ Feature: Events Unspike
             {"_id": "#EVENT3._id#", "state": "spiked", "revert_state": "draft"},
             {"_id": "#EVENT4._id#", "state": "spiked", "revert_state": "draft"}
         ]}
-        """
-        When we post to "/events/#EVENT2._id#/lock" with success
-        """
-        {"lock_action": "unspiked"}
         """
         When we unspike events "#EVENT2._id#"
         """
@@ -264,10 +244,6 @@ Feature: Events Unspike
         And we store "EVENT2" with 2 item
         And we store "EVENT3" with 3 item
         And we store "EVENT4" with 4 item
-        When we post to "/events/#EVENT1._id#/lock" with success
-        """
-        {"lock_action": "spiked"}
-        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -282,10 +258,6 @@ Feature: Events Unspike
             {"_id": "#EVENT3._id#", "state": "spiked", "revert_state": "draft"},
             {"_id": "#EVENT4._id#", "state": "spiked", "revert_state": "draft"}
         ]}
-        """
-        When we post to "/events/#EVENT3._id#/lock" with success
-        """
-        {"lock_action": "unspiked"}
         """
         When we unspike events "#EVENT3._id#"
         """
@@ -358,10 +330,6 @@ Feature: Events Unspike
         """
         When we perform cancel on events "#EVENT4._id#"
         Then we get OK response
-        When we post to "/events/#EVENT1._id#/lock" with success
-        """
-        {"lock_action": "spiked"}
-        """
         When we spike events "#EVENT1._id#"
         """
         {"update_method": "all"}
@@ -377,10 +345,6 @@ Feature: Events Unspike
             {"_id": "#EVENT4._id#", "state": "spiked", "revert_state": "cancelled"},
             {"_id": "#EVENT5._id#", "state": "spiked", "revert_state": "draft"}
         ]}
-        """
-        When we post to "/events/#EVENT2._id#/lock" with success
-        """
-        {"lock_action": "unspiked"}
         """
         When we unspike events "#EVENT2._id#"
         """

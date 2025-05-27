@@ -3,7 +3,7 @@ Feature: Search Events and Planning
         Given "agenda"
         """
             [
-                {"name": "sports", "_id": "68345becf63aa4e3993ff94d", "is_enabled": true},
+                {"name": "sports", "_id": "sports", "is_enabled": true},
                 {"name": "finance", "_id": "finance", "is_enabled": true},
                 {"name": "entertainment", "_id": "entertainment", "is_enabled": true}
             ]
@@ -100,7 +100,7 @@ Feature: Search Events and Planning
                 "headline": "test headline",
                 "slugline": "slug123",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "agendas": ["68345becf63aa4e3993ff94d"]
+                "agendas": ["#agenda_0._id#"]
             }
         ]
         """

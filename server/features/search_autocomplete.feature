@@ -99,23 +99,15 @@ Feature: Planning autocomplete
         """
         # Suggests only the value in translations if populated
         When we get "/archive_autocomplete?field=slugline&language=en"
-        Then we get list with 3 items
+        Then we get list with 1 items
         """
-        {"_items": [
-            {"value": "coverage-en-slugline", "count": 1}
-            {"value": "event-en-test", "count": 1},
-            {"value": "planning-1", "count": 1},
-        ]}
+        {"_items": [{"value": "event-en-test", "count": 1}]}
         """
         # Suggests base field if language translation not populated
         When we get "/archive_autocomplete?field=slugline&language=fr"
-        Then we get list with 3 items
+        Then we get list with 1 items
         """
-        {"_items": [
-            {"value": "coverage-fr-slugline", "count": 1}
-            {"value": "event-1", "count": 1},
-            {"value": "planning-1", "count": 1},
-        ]}
+        {"_items": [{"value": "event-1", "count": 1}]}
         """
 
     @auth

@@ -3,9 +3,9 @@ Feature: Planning Search
         Given "agenda"
         """
             [
-                {"name": "sports", "_id": "5f4e7eac8f8b9c001f1e1e01", "is_enabled": true},
-                {"name": "finance", "_id": "6834561d4a4b17d23a588473", "is_enabled": true},
-                {"name": "entertainment", "_id": "6834562865f43e3033821426", "is_enabled": true}
+                {"name": "sports", "_id": "sports", "is_enabled": true},
+                {"name": "finance", "_id": "finance", "is_enabled": true},
+                {"name": "entertainment", "_id": "entertainment", "is_enabled": true}
             ]
         """
         And "events"
@@ -79,7 +79,7 @@ Feature: Planning Search
                 "slugline": "slug123",
                 "name": "name123",
                 "planning_date": "2016-01-01T12:00:00+0000",
-                "agendas": ["5f4e7eac8f8b9c001f1e1e01"],
+                "agendas": ["#agenda_0._id#"],
                 "subject": [{"qcode": "test qcode 1", "name": "test name"}],
                 "coverages": [
                     {
@@ -125,7 +125,7 @@ Feature: Planning Search
                 "related_events": [{"_id": "event_456", "link_type": "primary", "recurrence_id": "recur1"}],
                 "recurrence_id": "recur1",
                 "planning_date": "2016-01-03T14:00:00+0000",
-                "agendas": ["6834561d4a4b17d23a588473"],
+                "agendas": ["#agenda_1._id#"],
                 "subject": [{"qcode": "test qcode 2", "name": "test name"}],
                 "coverages": [
                     {
@@ -150,7 +150,7 @@ Feature: Planning Search
                 "related_events": [{"_id": "event_456", "link_type": "primary", "recurrence_id": "recur1"}],
                 "recurrence_id": "recur1",
                 "planning_date": "2016-01-04T14:00:00+0000",
-                "agendas": ["6834562865f43e3033821426"],
+                "agendas": ["#agenda_2._id#"],
                 "anpa_category": [
                     {"name": "Overseas Sport", "qcode": "s"},
                     {"name": "International News", "qcode": "i"}
@@ -166,7 +166,7 @@ Feature: Planning Search
                 "name": "name345",
                 "related_events": [{"_id": "event_786", "link_type": "primary"}],
                 "planning_date": "2016-01-05T14:00:00+0000",
-                "agendas": ["5f4e7eac8f8b9c001f1e1e01", "6834561d4a4b17d23a588473"],
+                "agendas": ["#agenda_0._id#", "#agenda_1._id#"],
                 "language": "fr-CA",
                 "place": [
                     {
@@ -188,7 +188,7 @@ Feature: Planning Search
                 "slugline": "slug789",
                 "name": "name678",
                 "planning_date": "2016-01-06T14:00:00+0000",
-                "agendas": ["6834562865f43e3033821426"]
+                "agendas": ["#agenda_2._id#"]
             }
         ]
         """
@@ -316,7 +316,7 @@ Feature: Planning Search
 
     @auth
     Scenario: Search by planning specific parameters
-        When we get "/events_planning_search?repo=planning&only_future=false&agendas=5f4e7eac8f8b9c001f1e1e01,6834561d4a4b17d23a588473"
+        When we get "/events_planning_search?repo=planning&only_future=false&agendas=sports,finance"
         Then we get list with 3 items
         """
         {"_items": [
