@@ -10,6 +10,7 @@ package_data = {
         "*.mo",
         "data_updates/*.py",
         "data_updates/*.js",
+        "static/*.yaml",
     ]
 }
 
