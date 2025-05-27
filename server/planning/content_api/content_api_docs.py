@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 import os
-from quart import send_file, abort
+from quart import abort, send_from_directory
 from superdesk.core.web import EndpointGroup
 from superdesk.flask import render_template
 from superdesk.core.types import Request
@@ -25,13 +25,8 @@ async def content_api_docs():
 async def api_planning_static_file(args, params, request: Request):
     filename = request.get_view_args("filename")
     base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static"))
-    requested_path = os.path.abspath(os.path.join(base_path, filename))
 
-    # Security check: ensure the file stays within base_path
-    if not requested_path.startswith(base_path + os.sep) or not filename.endswith(".yaml"):
-        return abort(403)
-
-    if not os.path.exists(requested_path):
+    try:
+        return await send_from_directory(base_path, filename)
+    except FileNotFoundError:
         return abort(404)
-
-    return await send_file(requested_path)
