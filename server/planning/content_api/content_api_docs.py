@@ -21,16 +21,17 @@ async def content_api_docs():
     return await render_template("content_apidocs.html")
 
 
-@content_api_docs_endpoints.endpoint("/planning-static/<path:filename>", auth=False)
-async def planning_static_file(args, params, request: Request):
+@content_api_docs_endpoints.endpoint("/api-planning-static/<path:filename>", auth=False)
+async def api_planning_static_file(args, params, request: Request):
     filename = request.get_view_args("filename")
-    base_path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "static"))
-    file_path = os.path.join(base_path, filename)
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static"))
+    requested_path = os.path.abspath(os.path.join(base_path, filename))
 
-    if not file_path.startswith(base_path):
+    # Security check: ensure the file stays within base_path
+    if not requested_path.startswith(base_path + os.sep) or not filename.endswith(".yaml"):
         return abort(403)
 
-    if not os.path.exists(file_path):
+    if not os.path.exists(requested_path):
         return abort(404)
 
-    return await send_file(file_path)
+    return await send_file(requested_path)
