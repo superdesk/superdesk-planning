@@ -66,12 +66,15 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         };
     }
 
-    function getRelatedPlanningDomRef(planId: IPlanningItem['_id']): RefObject<HTMLDivElement> {
-        const embeddedEditorRef = planningApi.editor(type)
-            .dom.fields.related_plannings?.current as {relatedItemRefs: Array<RelatedPlanningItem>};
+    function getRelatedPlanningDomRef(planId: IPlanningItem['_id']): RefObject<RelatedPlanningItem> {
+        const editor = planningApi.editor(type);
+        const field = `planning-item--${planId}`;
 
-        return Object.values(embeddedEditorRef.relatedItemRefs ?? [])
-            .find((x) => x.props.item._id === planId).containerNode;
+        if (editor.dom.fields[field] == null) {
+            editor.dom.fields[field] = createRef();
+        }
+
+        return editor.dom.fields[field];
     }
 
     function addPlanningItem(
