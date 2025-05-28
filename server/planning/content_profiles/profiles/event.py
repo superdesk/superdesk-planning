@@ -31,6 +31,7 @@ class EventSchema(BaseSchema):
     language = LanguageField()
     links = schema.ListField()
     location = schema.StringField()
+    location_details = TextField(field_type="multi_line")
     name = TextField(required=True, field_type="single_line")
     occur_status = schema.DictField()
     occur_status.schema["schema"] = {
@@ -124,10 +125,15 @@ DEFAULT_EVENT_PROFILE = {
             "group": "location",
             "index": 1,
         },
-        "event_contact_info": {
+        "location_details": {
             "enabled": True,
             "group": "location",
             "index": 2,
+        },
+        "event_contact_info": {
+            "enabled": True,
+            "group": "location",
+            "index": 3,
         },
         # Details group
         "anpa_category": {
