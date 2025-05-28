@@ -280,6 +280,13 @@ const multilingualFieldOptions: {[key: string]: IPreviewHocOptions} = {
         props: () => ({label: superdeskApi.localization.gettext('Priority:')}),
         getValue: getPreviewString,
     },
+    location_details: {
+        props: () => ({
+            label: superdeskApi.localization.gettext('Location Details:'),
+            convertNewlineToBreak: true,
+        }),
+        getValue: getPreviewString,
+    },
 };
 
 let FIELD_TO_PREVIEW_COMPONENT: {[key: string]: any} = {};

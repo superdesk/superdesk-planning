@@ -290,6 +290,7 @@ const PREVIEW_GROUPS: IPreviewGroups = {
             'calendars',
             'place',
             'location',
+            'location_details',
             'event_contact_info',
             'related_items',
         ],

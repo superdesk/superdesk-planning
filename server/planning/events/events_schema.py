@@ -226,6 +226,11 @@ events_schema = {
         },
         "nullable": True,
     },
+    # Additional Location details
+    "location_details": {
+        "type": "string",
+        "nullable": True,
+    },
     "participant": {
         "type": "list",
         "mapping": {"properties": {"qcode": not_analyzed, "name": not_analyzed}},

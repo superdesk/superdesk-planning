@@ -13,6 +13,17 @@ import {EditorFieldEventRelatedItems} from '../editor/EventRelatedArticles/Edito
 import {EditorFieldTreeSelect, IEditorFieldTreeSelectProps} from '../editor/base/treeSelect';
 
 registerEditorField(
+    'location_details',
+    EditorFieldMultilingualText,
+    () => ({
+        label: superdeskApi.localization.gettext('Location Details'),
+        field: 'location_details',
+    }),
+    null,
+    true
+);
+
+registerEditorField(
     'definition_long',
     EditorFieldMultilingualText,
     () => ({
