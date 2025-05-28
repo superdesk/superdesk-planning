@@ -124,6 +124,11 @@ export class TimeInput extends React.Component {
     handleInputBlur() {
         const {viewValue, invalid} = this.state;
 
+        if (viewValue === '') {
+            this.onChange(viewValue);
+            return;
+        }
+
         if (invalid) {
             const isValidHour = (n) => (parseInt(n, 10) >= 0 && parseInt(n, 10) < 24);
             const isValidMinute = (n) => (parseInt(n, 10) >= 0 && parseInt(n, 10) <= 59);
