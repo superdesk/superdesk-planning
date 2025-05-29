@@ -67,10 +67,15 @@ Feature: Event Content Profiles
                 "group": "location",
                 "index": 1
             },
-            "event_contact_info": {
+            "location_details": {
                 "enabled": true,
                 "group": "location",
                 "index": 2
+            },
+            "event_contact_info": {
+                "enabled": true,
+                "group": "location",
+                "index": 3
             },
 
             "anpa_category": {
@@ -163,6 +168,10 @@ Feature: Event Content Profiles
                 "type": "list"
             },
             "location": {
+                "required": false,
+                "type": "string"
+            },
+            "location_details": {
                 "required": false,
                 "type": "string"
             },
