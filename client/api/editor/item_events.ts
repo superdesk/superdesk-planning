@@ -71,7 +71,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             .dom.fields.related_plannings?.current as {relatedItemRefs: Array<RelatedPlanningItem>};
 
         return Object.values(embeddedEditorRef.relatedItemRefs ?? [])
-            .find((x) => x.props.item._id === planId).containerNode;
+            .find((x) => x.props.item._id === planId)?.containerNode;
     }
 
     function addPlanningItem(
@@ -128,7 +128,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
                     if (options?.scrollIntoViewAndFocus ?? true) {
                         const node = getRelatedPlanningDomRef(newPlanningItem._id);
 
-                        if (node.current != null) {
+                        if (node?.current != null) {
                             node.current.scrollIntoView();
                             editor.form.waitForScroll().then(() => {
                                 node.current.focus();
@@ -152,7 +152,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
             .then(() => {
                 const lastPlan = plans[plans.length - 1];
 
-                getRelatedPlanningDomRef(lastPlan?._id).current?.scrollIntoView();
+                getRelatedPlanningDomRef(lastPlan?._id)?.current?.scrollIntoView?.();
             });
     }
 
@@ -181,7 +181,7 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
         return editor.form.changeField('associated_plannings', plans)
             .then(() => {
                 if (scrollOnChange) {
-                    getRelatedPlanningDomRef(original._id).current?.scrollIntoView();
+                    getRelatedPlanningDomRef(original._id)?.current?.scrollIntoView?.();
                 }
             });
     }
