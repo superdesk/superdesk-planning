@@ -222,6 +222,7 @@ events_schema = {
                 "geo": {"type": "string"},
                 "location": {"type": "geo_point"},
                 "translations": {"enabled": False},  # explicitly disable
+                "location_details": {"type": "string"},
             },
         },
         "nullable": True,
