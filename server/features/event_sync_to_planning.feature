@@ -205,10 +205,21 @@ Feature: Sync Event metadata To Planning
         """
         {"embedded_planning": [{
             "planning_id": "#PLAN1._id#",
-            "coverages": [{
-                "coverage_id": "#COVERAGE1_ID#",
-                "slugline": "coverage-1-slugline-1"
-            }, {"coverage_id": "#COVERAGE2_ID#"}]
+            "coverages": [
+                {
+                    "coverage_id": "#COVERAGE1_ID#",
+                    "slugline": "coverage-1-slugline-1",
+                    "scheduled": "2029-11-21T15:00:00+0000",
+                    "g2_content_type": "text",
+                    "news_coverage_status": { "qcode": "ncostat:int" }
+                },
+                {
+                    "coverage_id": "#COVERAGE2_ID#",
+                    "scheduled": "2029-11-21T16:00:00+0000",
+                    "g2_content_type": "text",
+                    "news_coverage_status": { "qcode": "ncostat:onreq" }
+                }
+            ]
         }]}
         """
         Then we get OK response

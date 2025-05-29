@@ -13,7 +13,6 @@ from superdesk.tests.environment import (
     before_step,
 )
 from content_api.app import get_app
-from content_api.app.settings import MODULES
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ def before_feature(context, feature):
 
 
 async def setup_apps(context, feature):
-    config = update_config({"MODULES": MODULES + ["planning.content_api"]}, auto_add_apps=False)
+    config = update_config({}, auto_add_apps=False)
     context.capi = get_app(config)
     context.capi.test_client_class = TestClient
     context.capi_client = context.capi.test_client()

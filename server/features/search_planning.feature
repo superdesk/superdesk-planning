@@ -79,7 +79,7 @@ Feature: Planning Search
                 "slugline": "slug123",
                 "name": "name123",
                 "planning_date": "2016-01-01T12:00:00+0000",
-                "agendas": ["sports"],
+                "agendas": ["#agenda_0._id#"],
                 "subject": [{"qcode": "test qcode 1", "name": "test name"}],
                 "coverages": [
                     {
@@ -117,7 +117,7 @@ Feature: Planning Search
             {
                 "guid": "planning_3",
                 "item_class": "item class value",
-                "state": "published",
+                "state": "active",
                 "pubstatus": "usable",
                 "headline": "test headline",
                 "slugline": "slug456",
@@ -125,7 +125,7 @@ Feature: Planning Search
                 "related_events": [{"_id": "event_456", "link_type": "primary", "recurrence_id": "recur1"}],
                 "recurrence_id": "recur1",
                 "planning_date": "2016-01-03T14:00:00+0000",
-                "agendas": ["finance"],
+                "agendas": ["#agenda_1._id#"],
                 "subject": [{"qcode": "test qcode 2", "name": "test name"}],
                 "coverages": [
                     {
@@ -150,7 +150,7 @@ Feature: Planning Search
                 "related_events": [{"_id": "event_456", "link_type": "primary", "recurrence_id": "recur1"}],
                 "recurrence_id": "recur1",
                 "planning_date": "2016-01-04T14:00:00+0000",
-                "agendas": ["entertainment"],
+                "agendas": ["#agenda_2._id#"],
                 "anpa_category": [
                     {"name": "Overseas Sport", "qcode": "s"},
                     {"name": "International News", "qcode": "i"}
@@ -166,7 +166,7 @@ Feature: Planning Search
                 "name": "name345",
                 "related_events": [{"_id": "event_786", "link_type": "primary"}],
                 "planning_date": "2016-01-05T14:00:00+0000",
-                "agendas": ["sports", "finance"],
+                "agendas": ["#agenda_0._id#", "#agenda_1._id#"],
                 "language": "fr-CA",
                 "place": [
                     {
@@ -178,7 +178,7 @@ Feature: Planning Search
                         "country": ""
                     }
                 ],
-                "lock_session": "ident1"
+                "lock_session": "683459ee32f5061cba2138b0"
             },
             {
                 "guid": "planning_6",
@@ -188,7 +188,7 @@ Feature: Planning Search
                 "slugline": "slug789",
                 "name": "name678",
                 "planning_date": "2016-01-06T14:00:00+0000",
-                "agendas": ["entertainment"]
+                "agendas": ["#agenda_2._id#"]
             }
         ]
         """

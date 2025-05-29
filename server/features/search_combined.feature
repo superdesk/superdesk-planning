@@ -75,7 +75,7 @@ Feature: Search Events and Planning
                     "unique_id": "786",
                     "unique_name": "name",
                     "name": "event 786",
-                    "state": "published",
+                    "state": "active",
                     "pubstatus": "usable",
                     "slugline": "test3 slugline",
                     "definition_short": "short value",
@@ -87,7 +87,7 @@ Feature: Search Events and Planning
                         "end": "2016-01-03T00:00:00+0000"
                     },
                     "subject": [{"qcode": "test qcode 2", "name": "test name"}],
-                    "lock_session": "ident1"
+                    "lock_session": "5f4e7eac8f8b9c001f1e1e01"
                 }
             ]
             """
@@ -100,7 +100,7 @@ Feature: Search Events and Planning
                 "headline": "test headline",
                 "slugline": "slug123",
                 "planning_date": "2016-01-02T12:00:00+0000",
-                "agendas": ["sports"]
+                "agendas": ["#agenda_0._id#"]
             }
         ]
         """

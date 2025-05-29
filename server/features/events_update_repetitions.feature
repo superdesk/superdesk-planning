@@ -36,6 +36,23 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
         """
+        When we post to "/products" with success
+        """
+        { "name": "prod-rec", "codes": "abc", "product_type": "both" }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+        "name": "News1", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "is_active": true, "email": "test@email.com",
+        "codes": "abc",
+        "destinations": [{
+            "name": "events",
+            "format": "json_event",
+            "delivery_type": "File",
+            "config": { "file_path": "/tmp" }
+        }]
+        }
+        """
         When we post to "/events/post"
         """
             {"event": "#EVENT1._id#", "etag": "#EVENT1._etag#", "pubstatus": "usable", "update_method": "all"}
@@ -955,6 +972,23 @@ Feature: Events Update Repetitions
         Then we store "EVENT7" with 7 item
         Then we store "EVENT8" with 8 item
         When we get "/events"
+        When we post to "/products" with success
+        """
+        { "name": "prod-rec", "codes": "abc", "product_type": "both" }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+        "name": "News1", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "is_active": true, "email": "test@email.com",
+        "codes": "abc",
+        "destinations": [{
+            "name": "events",
+            "format": "json_event",
+            "delivery_type": "File",
+            "config": { "file_path": "/tmp" }
+        }]
+        }
+        """
         When we post to "/events/post"
         """
         {"event": "#EVENT3._id#", "etag": "#EVENT3._etag#", "pubstatus": "usable"}
@@ -1306,6 +1340,23 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT3._id#", "recurrence_id": "#EVENT1.recurrence_id#"},
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
+        """
+        When we post to "/products" with success
+        """
+        { "name": "prod-rec", "codes": "abc", "product_type": "both" }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+        "name": "News1", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "is_active": true, "email": "test@email.com",
+        "codes": "abc",
+        "destinations": [{
+            "name": "events",
+            "format": "json_event",
+            "delivery_type": "File",
+            "config": { "file_path": "/tmp" }
+        }]
+        }
         """
         When we post to "/events/post"
         """

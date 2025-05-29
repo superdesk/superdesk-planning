@@ -77,7 +77,7 @@ async def postpone_recurring_event(updates: dict[str, Any], original: dict[str, 
         # Mark the Event as being Postponed
         await postpone_event_plannings(new_updates, event)
         new_updates["skip_on_update"] = True
-        await events_service.patch_async(event[ID_FIELD], new_updates, original)
+        await events_service.patch_async(event[ID_FIELD], new_updates)
 
     await postpone_event_plannings(updates, original)
 
