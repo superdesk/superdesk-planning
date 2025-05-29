@@ -3,6 +3,7 @@ import {superdeskApi} from '../../../superdeskApi';
 import {GeoLookupInput} from '../../GeoLookupInput';
 import {Row} from '../../UI/Form';
 import {IEditorFieldLocationProps} from './Location.interface';
+import {EditorFieldText} from './base/text.tsx';
 
 export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocationProps> {
     render() {
@@ -10,17 +11,27 @@ export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocatio
         const field = this.props.field ?? 'location';
 
         return (
-            <Row testId={this.props.testId}>
-                <GeoLookupInput
-                    {...this.props}
-                    field={field}
-                    label={this.props.label ?? gettext('Location')}
-                    value={this.props.item[field] ?? this.props.defaultValue}
-                    disableSearch={!this.props.enableExternalSearch}
-                    disableAddLocation={this.props.disableAddLocation}
-                    readOnly={this.props.disabled}
-                />
-            </Row>
+            <div>
+                <Row testId={this.props.testId}>
+                    <GeoLookupInput
+                        {...this.props}
+                        field={field}
+                        label={this.props.label ?? gettext('Location')}
+                        value={this.props.item[field] ?? this.props.defaultValue}
+                        disableSearch={!this.props.enableExternalSearch}
+                        disableAddLocation={this.props.disableAddLocation}
+                        readOnly={this.props.disabled}
+                    />
+                </Row>
+                <Row>
+                    <EditorFieldText
+                        {...this.props}
+                        field={'location.location_details'}
+                        label={gettext('Location Details')}
+                        value={this.props.item[field]?.location_details ?? ''}
+                    />
+                </Row>
+            </div>
         );
     }
 }
