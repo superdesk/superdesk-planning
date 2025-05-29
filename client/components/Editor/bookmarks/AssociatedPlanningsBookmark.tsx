@@ -32,7 +32,7 @@ export class AssociatedPlanningsBookmark extends React.Component<IProps, IState>
         const editor = planningApi.editor(this.props.editorType);
         const node = editor.item.events.getRelatedPlanningDomRef(plan._id);
 
-        if (node.current != null) {
+        if (node?.current != null) {
             node.current.scrollIntoView();
             editor.form
                 .waitForScroll()
