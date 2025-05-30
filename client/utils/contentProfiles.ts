@@ -78,7 +78,7 @@ export function getGroupFieldsSorted(
     return fields;
 }
 
-export const COVERAGE_VOCABULARIES = ['news_coverage_status', 'g2_content_type'];
+export const COVERAGE_VOCABULARIES = ['news_coverage_status', 'g2_content_type', 'genre'];
 
 export function getUnusedProfileFields(
     profile: IEditorProfile,
