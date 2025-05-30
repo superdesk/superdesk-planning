@@ -26,7 +26,7 @@ export class EditorFieldLocation extends React.PureComponent<IEditorFieldLocatio
                 <Row>
                     <EditorFieldText
                         {...this.props}
-                        field={'location.location_details'}
+                        field={'location.details'}
                         label={gettext('Location Details')}
                         value={this.props.item[field]?.location_details ?? ''}
                     />

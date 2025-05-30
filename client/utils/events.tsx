@@ -1559,6 +1559,21 @@ function convertCoverageToEventEmbedded(coverage: IPlanningCoverageItem): IEmbed
     };
 }
 
+/**
+ * Normalize the location `details` field to a single string.
+ * Handles both arrays and strings for compatibility.
+ *
+ * @param {string | Array<string> | undefined} details - The details field to normalize
+ * @returns {string} A single normalized string
+ */
+function normalizeLocationDetails(details?: string | Array<string>): string {
+    if (Array.isArray(details)) {
+        return details.filter(Boolean).join(', ');
+    }
+
+    return typeof details === 'string' ? details : '';
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -1608,6 +1623,7 @@ const self = {
     convertCoverageToEventEmbedded,
     addSomeEventsAsRelatedToPlanningEditor,
     addRelatedEvents,
+    normalizeLocationDetails,
 };
 
 export default self;
