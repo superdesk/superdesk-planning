@@ -170,7 +170,7 @@ async def process_cancel_event(updates: dict[str, Any], original: dict[str, Any]
 
     # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.patch_async(event_id, updates)
+    await events_service.update_async(event_id, updates, original)
     await signals.event_cancel.send(updates, original)
     canceled_event = await events_service.find_one_async(req=None, _id=event_id)
     assert canceled_event is not None, "Expected canceled_event to be a dict, got None"

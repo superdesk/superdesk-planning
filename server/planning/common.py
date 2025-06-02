@@ -448,7 +448,13 @@ async def enqueue_planning_item(id):
         )
 
         if not publish_response.routed:
-            raise SuperdeskApiError.badRequestError(message=gettext("Failed to publish the item"))
+            if not len(publish_response.matched_products) and not len(publish_response.matched_api_products):
+                error_message = gettext("Item didn't match any Products")
+            elif not len(publish_response.subscribers) and not len(publish_response.content_api_subscribers):
+                error_message = gettext("Item not published to any Subscribers")
+            else:
+                error_message = gettext("Failed to route item")
+            logger.warning(error_message, extra=publish_response.to_dict())
     else:
         logger.error("Failed to retrieve planning item from planning versions with id: {}".format(id))
 

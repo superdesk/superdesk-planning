@@ -91,7 +91,7 @@ def init_app(app):
     signals.event_postponed.connect(events_history_async_service.on_postpone)
     signals.event_cancel.connect(events_history_async_service.on_cancel)
     signals.event_reschedule.connect(events_history_async_service.on_reschedule)
-    signals.event_reschedule.connect(events_history_async_service.on_reschedule)
+    signals.event_rescheduled.connect(events_history_async_service.on_reschedule)
 
     app.on_updated_events += events_history_service.on_item_updated
 

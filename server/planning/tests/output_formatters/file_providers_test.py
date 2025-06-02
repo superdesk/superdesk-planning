@@ -57,6 +57,7 @@ class FileProvidersTestCase(TestCase):
             TransmitterFileEntry(
                 media="event_file",
                 mimetype="text/csv",
+                resource="events_files",
             )
         ],
         "type": "event",
@@ -68,6 +69,7 @@ class FileProvidersTestCase(TestCase):
             TransmitterFileEntry(
                 media="plan_file",
                 mimetype="text/csv",
+                resource="planning_files",
             )
         ],
         "type": "planning",
@@ -116,11 +118,10 @@ class FileProvidersTestCase(TestCase):
     @mock.patch("superdesk.publish.transmitters.http_push.get_app_config", return_value=(5, 30))
     @mock.patch("superdesk.publish.transmitters.http_push.requests.Session.send", return_value=CreatedResponse)
     @mock.patch("requests.get", return_value=NotFoundResponse)
-    def test_push_event_files(self, get_mock, send_mock, mock_config, get_mock_app):
-        # app_mock = get_mock_app()
+    async def test_push_event_files(self, get_mock, send_mock, mock_config, get_mock_app):
         dest = {"config": {"assets_url": "http://example.com", "secret_token": "foo"}}
         service = HTTPPushService()
-        service._copy_published_media_files(self.event_item, dest)
+        await service._copy_published_media_files(self.event_item, dest)
         get_mock_app().media.get.assert_called_with("event_file", resource="events_files")
         get_mock.assert_called_with("http://example.com/event_file", timeout=(5, 30))
         send_mock.assert_called_once_with(mock.ANY, timeout=(5, 30))
@@ -140,14 +141,11 @@ class FileProvidersTestCase(TestCase):
     @mock.patch("superdesk.publish.transmitters.http_push.get_app_config", return_value=(5, 30))
     @mock.patch("superdesk.publish.transmitters.http_push.requests.Session.send", return_value=CreatedResponse)
     @mock.patch("requests.get", return_value=NotFoundResponse)
-    def test_push_planning_files(self, get_mock, send_mock, mock_config, get_mock_app):
-        # app_mock.config = {}
-        # app_mock.media.get.return_value = TestPlanningMedia(b"bin")
+    async def test_push_planning_files(self, get_mock, send_mock, mock_config, get_mock_app):
         app_mock = get_mock_app()
-        # mock_app.media = MockMedia()
         dest = {"config": {"assets_url": "http://example.com", "secret_token": "foo"}}
         service = HTTPPushService()
-        service._copy_published_media_files(self.plan_item, dest)
+        await service._copy_published_media_files(self.plan_item, dest)
         app_mock.media.get.assert_called_with("plan_file", resource="planning_files")
         get_mock.assert_called_with("http://example.com/plan_file", timeout=(5, 30))
         send_mock.assert_called_once_with(mock.ANY, timeout=(5, 30))
