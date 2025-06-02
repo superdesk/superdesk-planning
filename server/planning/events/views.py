@@ -1,8 +1,8 @@
 from pydantic import BaseModel
+from eve_elastic.elastic import parse_date
 
 from planning.events.events_cancel import process_cancel_event
 from planning.events.events_reschedule import process_reschedule_event
-from planning.events.events_service import EventsAsyncService
 from planning.events.events_update_repetitions import process_update_repetitions
 from planning.events.events_update_time import process_update_time
 from planning.events.events_spike import process_spike_event, process_unspike_event
@@ -128,6 +128,12 @@ async def reschedule_event(args: EventsArgs, params: None, request: Request) -> 
         await request.abort(404, "Event not found")
 
     updates = await get_json_or_400_async(request)
+
+    # Make sure date-time strings are converted to datetime instances
+    # Using Eve-Elastic's ``parse_date`` because it handles many different date/time formats
+    updates["dates"]["start"] = parse_date(updates["dates"]["start"])
+    updates["dates"]["end"] = parse_date(updates["dates"]["end"])
+
     rescheduled_event = await process_reschedule_event(updates, original)
 
     return Response(rescheduled_event)

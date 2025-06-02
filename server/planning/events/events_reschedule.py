@@ -115,7 +115,7 @@ async def duplicate_event(updates: dict[str, Any], original: dict[str, Any]):
     set_original_creator(new_event)
     set_planning_schedule(new_event)
 
-    await events_service.post_async([new_event])
+    await events_service.create_async([new_event])
     await events_history_service.on_reschedule_from(new_event)
     return new_event
 
@@ -309,7 +309,7 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
 
     # Now iterate over the new events and create them
     if new_events:
-        await events_service.post_async(new_events)
+        await events_service.create_async(new_events)
         await app.on_inserted_events.call_async(new_events)
 
     for event in deleted_events.values():
@@ -323,14 +323,14 @@ async def reschedule_recurring_event(updates: dict[str, Any], original: dict[str
                 # all Planning items
                 new_updates = {"skip_on_update": True, "reason": reason}
                 mark_event_rescheduled(new_updates, reason)
-                await events_service.patch_async(event[ID_FIELD], new_updates)
+                await events_service.update_async(event[ID_FIELD], new_updates, event)
 
             if len(event_plans) > 0:
                 await reschedule_event_plannings(original, reason, event_plans)
         else:
             # This event has no Planning items, therefor we can safely
             # delete this event
-            await events_service.delete_action(lookup={"_id": event[ID_FIELD]})
+            await events_service.delete_action_async(lookup={"_id": event[ID_FIELD]})
             await app.on_deleted_item_events.call_async(event)
 
             if is_original:
@@ -368,7 +368,8 @@ async def process_reschedule_event(
 
     # Update the original event in the database
     event_id = original[ID_FIELD]
-    await events_service.patch_async(event_id, updates)
+    await events_service.update_async(event_id, updates, original)
+    await signals.event_rescheduled.send(updates, original)
     rescheduled_event = await events_service.find_one_async(req=None, _id=event_id)
     assert rescheduled_event is not None, "Expected rescheduled_event to be a dict, got None"
 

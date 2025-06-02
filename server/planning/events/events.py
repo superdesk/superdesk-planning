@@ -458,7 +458,9 @@ class EventsService(AsyncBaseService):
         event_duration = end - start
 
         if event_duration.days > max_duration:
-            raise SuperdeskApiError(message="Event duration is greater than {} days.".format(max_duration))
+            raise SuperdeskApiError.badRequestError(
+                message="Event duration is greater than {} days.".format(max_duration)
+            )
 
     @staticmethod
     def _validate_template(updates, original):

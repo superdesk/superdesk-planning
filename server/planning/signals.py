@@ -67,6 +67,7 @@ event_cancel = AsyncSignal[dict, dict]("events:cancel")
 
 #: Signal for when an Event is rescheduled
 event_reschedule = AsyncSignal[dict, dict]("events:reschedule")
+event_rescheduled = AsyncSignal[dict, dict]("events:rescheduled")
 
 #: Signal for when an Assignment is updated
 assignments_updated = AsyncSignal[dict, dict]("assignments:updated")

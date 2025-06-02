@@ -231,7 +231,7 @@ class EventLocationFormatAddress(EventsBaseTestCase):
 
 class EventPlanningSchedule(EventsBaseTestCase):
     async def _get_all_events_raw(self) -> list[dict[str, Any]]:
-        events_cursor = await self.events_service.find_async({})
+        events_cursor = await self.events_service.get_async(req=None, lookup=None)
         return await events_cursor.to_list()
 
     def assertPlanningSchedule(self, events, event_count):
@@ -286,7 +286,7 @@ class EventPlanningSchedule(EventsBaseTestCase):
         # reschedule recurring event before posting
         schedule = deepcopy(events[0].get("dates"))
         schedule["start"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
-        schedule["end"] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
+        schedule["end"] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC) + timedelta(days=5)
 
         res = await process_reschedule_event({"dates": schedule}, events[0], False)
         self.assertEqual(res["dates"]["start"], schedule["start"])

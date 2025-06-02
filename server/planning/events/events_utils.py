@@ -300,7 +300,7 @@ async def validate_event_action(
         raise SuperdeskApiError.badRequestError(message="Reason is required field.")
 
     if original.get("state") == WORKFLOW_STATE.CANCELLED:
-        raise SuperdeskApiError.forbiddenError(message="Aborted. Event is already cancelled")
+        raise SuperdeskApiError.badRequestError(message="Aborted. Event is already cancelled")
 
     if require_lock:
         user_id = get_user_id()
@@ -311,13 +311,13 @@ async def validate_event_action(
         lock_action = original.get(LOCK_ACTION, None)
 
         if not lock_user:
-            raise SuperdeskApiError.forbiddenError(message="The event must be locked")
+            raise SuperdeskApiError.badRequestError(message="The event must be locked")
         elif str(lock_user) != str(user_id):
-            raise SuperdeskApiError.forbiddenError(message="The event is locked by another user")
+            raise SuperdeskApiError.badRequestError(message="The event is locked by another user")
         elif str(lock_session) != str(session_id):
-            raise SuperdeskApiError.forbiddenError(message="The event is locked by you in another session")
+            raise SuperdeskApiError.badRequestError(message="The event is locked by you in another session")
         elif str(lock_action) != ACTION:
-            raise SuperdeskApiError.forbiddenError(
+            raise SuperdeskApiError.badRequestError(
                 message="The lock must be for the `{}` action".format(ACTION.lower().replace("_", " "))
             )
 

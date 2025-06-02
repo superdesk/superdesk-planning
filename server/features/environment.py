@@ -15,9 +15,10 @@ from os import path
 from copy import copy
 
 from apps.prepopulate.app_populate import AppPopulateCommand
+from superdesk.core import AsyncSignal
 from superdesk.tests.environment import (
     setup_before_all,
-    before_feature,
+    before_feature_async as setup_before_feature_async,
     before_scenario_async as setup_before_scenario,
     before_step,
     after_scenario,
@@ -26,6 +27,7 @@ from superdesk.default_settings import MODULES as CORE_MODULES
 
 from app import get_app
 from settings import INSTALLED_APPS, env, MODULES
+from planning import signals as planning_signals
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +65,15 @@ def before_scenario(context, scenario):
     run_async_task(before_scenario_async(context, scenario))
 
 
+def before_feature(context, feature):
+    run_async_task(before_feature_async(context, feature))
+
+
+async def before_feature_async(context, feature):
+    clear_signals()
+    await setup_before_feature_async(context, feature)
+
+
 async def before_scenario_async(context, scenario):
     # Update app config based on scenario tags
     current_app = context.app
@@ -86,3 +97,9 @@ async def before_scenario_async(context, scenario):
             cmd = AppPopulateCommand()
             filename = path.join(path.abspath(path.dirname("features/steps/fixtures/")), "vocabularies.json")
             await cmd.run(filename)
+
+
+def clear_signals():
+    signal_instances = [getattr(planning_signals, attr_name) for attr_name in dir(planning_signals) if isinstance(getattr(planning_signals, attr_name), AsyncSignal)]
+    for signal_instance in signal_instances:
+        signal_instance.clear_listeners()
