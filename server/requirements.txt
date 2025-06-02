@@ -20,6 +20,6 @@ black~=23.0
 behave==1.2.6
 aioresponses
 
-superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@async
-
 -e .
+# Install in editable state so we get feature fixtures
+-e git+https://github.com/superdesk/superdesk-core.git@async#egg=superdesk-core
