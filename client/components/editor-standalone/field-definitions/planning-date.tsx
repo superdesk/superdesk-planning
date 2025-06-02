@@ -1,7 +1,9 @@
+import React from 'react';
 import {appConfig} from 'superdesk-core/scripts/appConfig';
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from './interfaces';
 import {IAuthoringFieldV2, IDateTimeFieldConfig} from 'superdesk-api';
+import {TimeHeader} from './field-components/time-header-common';
 
 export const getPlanningDate = (): IFieldDefinition => {
     const {gettext} = superdeskApi.localization;
@@ -12,6 +14,10 @@ export const getPlanningDate = (): IFieldDefinition => {
         getField: ({id, required}) => {
             const config: IDateTimeFieldConfig = {
                 allowSeconds: false,
+                // eslint-disable-next-line react/display-name
+                getTimeHeaderTemplate: (value, onChange) => (
+                    <TimeHeader value={value} onChange={onChange} />
+                ),
             };
 
             const field: IAuthoringFieldV2 = {

@@ -1,6 +1,8 @@
+import React from 'react';
 import {superdeskApi} from '../../../superdeskApi';
 import {IFieldDefinition} from './interfaces';
 import {IAuthoringFieldV2, IDateTimeFieldConfig} from 'superdesk-api';
+import {TimeHeader} from './field-components/time-header-common';
 
 export const getAccreditationDeadline = (): IFieldDefinition => {
     const {gettext} = superdeskApi.localization;
@@ -11,6 +13,10 @@ export const getAccreditationDeadline = (): IFieldDefinition => {
         getField: ({id, required}) => {
             const config: IDateTimeFieldConfig = {
                 allowSeconds: false,
+                // eslint-disable-next-line react/display-name
+                getTimeHeaderTemplate: (value, onChange) => (
+                    <TimeHeader value= {value} onChange={onChange} />
+                ),
             };
 
             const field: IAuthoringFieldV2 = {
@@ -30,7 +36,7 @@ export const getAccreditationDeadline = (): IFieldDefinition => {
          * Make compatible accepting a moment date as an input.
          * Will output a native Date.
          */
-        storageAdapterPlanning: {
+        storageAdapterEvent: {
             retrieveStoredValue: (item, fieldId) => {
                 const val = item[fieldId];
 
