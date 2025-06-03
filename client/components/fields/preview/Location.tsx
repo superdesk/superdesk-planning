@@ -6,6 +6,7 @@ import {IListFieldProps, ILocation} from '../../../interfaces';
 
 import {PreviewFormItem} from './base/PreviewFormItem';
 import {Location} from '../../Location';
+import {eventUtils} from '../../../utils';
 
 export class PreviewFieldLocation extends React.PureComponent<IListFieldProps> {
     render() {
@@ -24,16 +25,10 @@ export class PreviewFieldLocation extends React.PureComponent<IListFieldProps> {
                             name={location?.name}
                             address={location?.formatted_address}
                             multiLine={true}
-                            details={location?.details?.[0]}
+                            details={eventUtils.normalizeLocationDetails(location?.details)}
                         />
                     </div>
                 </PreviewFormItem>
-                <PreviewFormItem
-                    label={superdeskApi.localization.gettext('Location Details')}
-                    value={location?.location_details}
-                    light={true}
-                    {...this.props}
-                />
             </div>
         );
     }
