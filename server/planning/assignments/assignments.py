@@ -314,7 +314,7 @@ class AssignmentsService(AsyncBaseService):
         return False
 
     async def system_update_async(self, id, updates, original, **kwargs):
-        rtn = super().system_update(id, updates, original, **kwargs)
+        rtn = await super().system_update_async(id, updates, original, **kwargs)
         if self.is_assignment_being_activated(updates, original):
             doc = deepcopy(original)
             doc.update(updates)

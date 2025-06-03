@@ -122,7 +122,7 @@ async def process_update_time(
     updates.pop("skip_on_update", None)
 
     # Update the original event in the database
-    await events_service.patch_async(original[ID_FIELD], updates)
+    await events_service.update_async(original[ID_FIELD], updates, original)
 
     # Perform post update actions
     await post_update_event_actions(updates, original, ACTION)

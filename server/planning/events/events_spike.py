@@ -48,7 +48,7 @@ async def post_spike_event_actions(original: dict[str, Any]) -> None:
     # If there were any failures in removing assignments
     # Send those notifications here
     if len(spiked_items) > 0:
-        query = {"query": {"filtered": {"filter": {"bool": {"must": {"terms": {"planning_item": spiked_items}}}}}}}
+        query = {"query": {"bool": {"must": {"terms": {"planning_item": spiked_items}}}}}
         results = await assignments_service.search(query)
         assignments = await results.to_list_raw()
 
@@ -261,13 +261,16 @@ async def process_spike_event(updates: dict[str, Any], original: dict[str, Any])
     updates.pop("skip_on_update", None)
 
     # Update the original event in the database
-    await events_service.patch_async(original[ID_FIELD], updates)
+    await events_service.update_async(original[ID_FIELD], updates, original)
+    await signals.event_spiked.send(updates, original)
     spiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert spiked_event is not None, "Expected spiked_event to be a dict, got None"
 
     user_id = get_user().get(ID_FIELD, "")
-    if not user_id:
-        spiked_items.append({"id": id, "etag": spiked_event["_etag"], "revert_state": spiked_event["revert_state"]})
+    if user_id:
+        spiked_items.append(
+            {"id": spiked_event[ID_FIELD], "etag": spiked_event["_etag"], "revert_state": spiked_event["revert_state"]}
+        )
         push_notification(
             "events:spiked",
             item=str(original[ID_FIELD]),
@@ -308,13 +311,16 @@ async def process_unspike_event(updates: dict[str, Any], original: dict[str, Any
     unspiked_items = updates.pop("_unspiked_items", [])
 
     # Update the original event in the database
-    await events_service.patch_async(original[ID_FIELD], updates)
+    await events_service.update_async(original[ID_FIELD], updates, original)
+    await signals.event_unspiked.send(updates, original)
     unspiked_event = await events_service.find_one_async(req=None, _id=original[ID_FIELD])
     assert unspiked_event is not None, "Expected unspiked_event to be a dict, got None"
 
     user_id = get_user().get(ID_FIELD, "")
-    if not user_id:
-        unspiked_items.append({"id": id, "etag": unspiked_event["_etag"], "state": unspiked_event[ITEM_STATE]})
+    if user_id:
+        unspiked_items.append(
+            {"id": unspiked_event[ID_FIELD], "etag": unspiked_event["_etag"], "state": unspiked_event[ITEM_STATE]}
+        )
         push_notification(
             "events:unspiked",
             item=str(original[ID_FIELD]),

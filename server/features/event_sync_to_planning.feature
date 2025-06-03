@@ -211,13 +211,13 @@ Feature: Sync Event metadata To Planning
                     "slugline": "coverage-1-slugline-1",
                     "scheduled": "2029-11-21T15:00:00+0000",
                     "g2_content_type": "text",
-                    "news_coverage_status": { "qcode": "ncostat:int" }
+                    "news_coverage_status": "ncostat:int"
                 },
                 {
                     "coverage_id": "#COVERAGE2_ID#",
                     "scheduled": "2029-11-21T16:00:00+0000",
                     "g2_content_type": "text",
-                    "news_coverage_status": { "qcode": "ncostat:onreq" }
+                    "news_coverage_status": "ncostat:onreq"
                 }
             ]
         }]}

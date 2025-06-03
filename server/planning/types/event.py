@@ -1,6 +1,6 @@
 from pydantic import Field
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, TypedDict
 
 
 from superdesk.utc import utcnow
@@ -84,6 +84,7 @@ class EmbeddedPlanningCoverage:
     ednote: str | None = None
     internal_note: str | None = None
     priority: int | None = None
+    coverage_provider: dict | None = None
 
 
 class EmbeddedPlanning(Dataclass):
