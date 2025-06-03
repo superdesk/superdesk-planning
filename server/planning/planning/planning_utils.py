@@ -65,7 +65,9 @@ async def delete_assignments_for_coverages(coverages: list[dict[str, Any]], noti
             # Mark the assignment to be deleted.
             original_assigment = await assignment_service.find_one_async(req=None, _id=assign_id)
             if original_assigment:
-                await assignment_service.system_update_async(ObjectId(assign_id), {"_to_delete": True})
+                await assignment_service.system_update_async(
+                    ObjectId(assign_id), {"_to_delete": True}, original_assigment
+                )
 
     if request:
         session_id = get_auth().get("_id")

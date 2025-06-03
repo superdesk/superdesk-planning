@@ -17,7 +17,7 @@ import logging
 import itertools
 
 from copy import deepcopy
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List
 from datetime import timedelta, datetime, timedelta
 from dateutil import parser
 
@@ -56,8 +56,13 @@ from apps.archive.common import get_auth, update_dates_for
 from planning.events.events_reschedule import reschedule_single_event
 from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_history_async_service import EventsHistoryAsyncService
-from planning.types import EmbeddedCoverageItem, Event, PlanningRelatedEventLink, PLANNING_RELATED_EVENT_LINK_TYPE
-from planning.types.event import EmbeddedPlanning
+from planning.types import (
+    EmbeddedCoverageItem,
+    Event,
+    PlanningRelatedEventLink,
+    PLANNING_RELATED_EVENT_LINK_TYPE,
+    EmbeddedPlanningDict,
+)
 from planning.common import (
     TEMP_ID_PREFIX,
     UPDATE_SINGLE,
@@ -116,14 +121,14 @@ CONTENT_FIELDS = {
 
 
 # TODO-ASYNC: this method was migrated to events_utils and it uses pydantic models instead
-def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
+def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanningDict]:
     def get_coverage_id(coverage: EmbeddedCoverageItem) -> str:
         if not coverage.get("coverage_id"):
             coverage["coverage_id"] = TEMP_ID_PREFIX + "-" + generate_guid(type=GUID_NEWSML)
         return coverage["coverage_id"]
 
     return [
-        EmbeddedPlanning(
+        EmbeddedPlanningDict(
             planning_id=planning.get("planning_id"),
             update_method=planning.get("update_method") or "single",
             coverages={get_coverage_id(coverage): coverage for coverage in planning.get("coverages") or []},
@@ -345,7 +350,7 @@ class EventsService(AsyncBaseService):
         And then uses them to synchronise/process the associated Planning item(s)
         """
 
-        embedded_planning_lists: List[Tuple[Event, List[EmbeddedPlanning]]] = []
+        embedded_planning_lists: list[tuple[Event, list[EmbeddedPlanningDict]]] = []
         for event in docs:
             emb_planning = get_events_embedded_planning(event)
             if len(emb_planning):
@@ -602,7 +607,7 @@ class EventsService(AsyncBaseService):
         # If this Event was converted to a recurring series
         # Then update all associated Planning items with the recurrence_id
         if updates.get("recurrence_id") and not original.get("recurrence_id"):
-            get_resource_service("planning").on_event_converted_to_recurring(updates, original)
+            await get_resource_service("planning").on_event_converted_to_recurring(updates, original)
 
         if not updates.get("duplicate_to"):
             posted = await update_post_item(updates, original)

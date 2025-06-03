@@ -1143,7 +1143,7 @@ Feature: Events Update Repetitions
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Not a series of recurring events"}, "_status": "ERR"}
+        {"_message": "Not a series of recurring events", "_status": "ERR"}
         """
 
     @auth
@@ -1185,7 +1185,7 @@ Feature: Events Update Repetitions
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: New recurring rules not provided"}, "_status": "ERR"}
+        {"_message": "New recurring rules not provided", "_status": "ERR"}
         """
         When we perform update_repetitions on events "#EVENT1._id#"
         """
@@ -1193,7 +1193,7 @@ Feature: Events Update Repetitions
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: New recurring rules not provided"}, "_status": "ERR"}
+        {"_message": "New recurring rules not provided", "_status": "ERR"}
         """
 
     @auth
@@ -1204,6 +1204,7 @@ Feature: Events Update Repetitions
         [{
             "_id": "event1",
             "guid": "event1",
+            "recurrence_id": "event1",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -1212,6 +1213,7 @@ Feature: Events Update Repetitions
         }, {
             "_id": "event2",
             "guid": "event2",
+            "recurrence_id": "event2",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -1224,6 +1226,7 @@ Feature: Events Update Repetitions
         }, {
             "_id": "event3",
             "guid": "event3",
+            "recurrence_id": "event3",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -1236,6 +1239,7 @@ Feature: Events Update Repetitions
         }, {
             "_id": "event4",
             "guid": "event4",
+            "recurrence_id": "event4",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -1253,13 +1257,19 @@ Feature: Events Update Repetitions
             "dates": {
                 "start": "2029-11-21T02:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
-                "tz": "Australia/Sydney"
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
             }
         }
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        {"_message": "The event must be locked", "_status": "ERR"}
         """
         When we perform update_repetitions on events "event2"
         """
@@ -1267,13 +1277,19 @@ Feature: Events Update Repetitions
             "dates": {
                 "start": "2029-11-21T02:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
-                "tz": "Australia/Sydney"
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
             }
         }
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        {"_message": "The event is locked by you in another session", "_status": "ERR"}
         """
         When we perform update_repetitions on events "event3"
         """
@@ -1281,13 +1297,19 @@ Feature: Events Update Repetitions
             "dates": {
                 "start": "2029-11-21T02:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
-                "tz": "Australia/Sydney"
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
             }
         }
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        {"_message": "The event is locked by another user", "_status": "ERR"}
         """
         When we perform update_repetitions on events "event4"
         """
@@ -1295,13 +1317,19 @@ Feature: Events Update Repetitions
             "dates": {
                 "start": "2029-11-21T02:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
-                "tz": "Australia/Sydney"
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
             }
         }
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The lock must be for the `update repetitions` action"}, "_status": "ERR"}
+        {"_message": "The lock must be for the `update repetitions` action", "_status": "ERR"}
         """
 
 

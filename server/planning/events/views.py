@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from quart_babel import gettext
 from eve_elastic.elastic import parse_date
 
 from planning.events.events_cancel import process_cancel_event
@@ -13,6 +14,7 @@ from superdesk.core.auth.privilege_rules import required_privilege_rule
 from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
 
 
 events_endpoints_group: EndpointGroup = EndpointGroup("events", __name__)
@@ -20,6 +22,20 @@ events_endpoints_group: EndpointGroup = EndpointGroup("events", __name__)
 
 class EventsArgs(BaseModel):
     event_id: str
+
+
+def _set_item_datetimes(data: dict) -> None:
+    """Convert strings to datetime instance where applicable.
+
+    Uses Eve-Elastic's ``parse_date`` because it handles many different date/time formats
+    """
+
+    if data["dates"].get("start"):
+        data["dates"]["start"] = parse_date(data["dates"]["start"])
+    if data["dates"].get("end"):
+        data["dates"]["end"] = parse_date(data["dates"]["end"])
+    if data["dates"].get("recurring_rule") and data["dates"]["recurring_rule"].get("until"):
+        data["dates"]["recurring_rule"]["until"] = parse_date(data["dates"]["recurring_rule"]["until"])
 
 
 @events_endpoints_group.endpoint(
@@ -43,6 +59,7 @@ async def update_time(args: EventsArgs, params: None, request: Request) -> Respo
     elif not updates["dates"].get("end"):
         await request.abort(400, "No end time was provided")
 
+    _set_item_datetimes(updates)
     updated_event = await process_update_time(updates, original)
 
     return Response(updated_event)
@@ -128,12 +145,7 @@ async def reschedule_event(args: EventsArgs, params: None, request: Request) -> 
         await request.abort(404, "Event not found")
 
     updates = await get_json_or_400_async(request)
-
-    # Make sure date-time strings are converted to datetime instances
-    # Using Eve-Elastic's ``parse_date`` because it handles many different date/time formats
-    updates["dates"]["start"] = parse_date(updates["dates"]["start"])
-    updates["dates"]["end"] = parse_date(updates["dates"]["end"])
-
+    _set_item_datetimes(updates)
     rescheduled_event = await process_reschedule_event(updates, original)
 
     return Response(rescheduled_event)
@@ -154,10 +166,11 @@ async def update_repetitions(args: EventsArgs, params: None, request: Request) -
 
     # Validate the data from the request
     if not updates.get("dates", {}).get("recurring_rule"):
-        await request.abort(400, "New recurring rules not provided")
+        raise SuperdeskApiError.badRequestError(gettext("New recurring rules not provided"))
     elif not original.get("recurrence_id"):
-        await request.abort(400, "Not a series of recurring events")
+        raise SuperdeskApiError.badRequestError(gettext("Not a series of recurring events"))
 
+    _set_item_datetimes(updates)
     updated_repetitions_event = await process_update_repetitions(updates, original)
 
     return Response(updated_repetitions_event)

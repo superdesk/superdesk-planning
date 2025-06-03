@@ -285,7 +285,7 @@ class EventsPostService(AsyncBaseService):
 
         # unpost all required planning items
         if len(docs) > 0:
-            planning_post_service.post(docs)
+            await planning_post_service.post_async(docs)
 
     @staticmethod
     def _get_post_state(event, new_post_state):
