@@ -39,7 +39,7 @@ describe('<EventMetadata />', () => {
 
         const eventDateText = eventUtils.getDateStringForEvent(event, false, true, false);
 
-        expect(metaDataTexts.length).toBe(6);
+        expect(metaDataTexts.length).toBe(5);
         expect(content.find('[data-test-id="field-name"] > p').text()).toBe('name1');
         expect(content.find('[data-test-id="field-dates"] > p').text()).toBe(eventDateText);
         expect(content.find('[data-test-id="field-occur_status"] > p').text()).toBe('Planned, occurs certainly');
