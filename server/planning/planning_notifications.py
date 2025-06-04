@@ -382,7 +382,7 @@ async def _send_user_email(user_id, contact_id, source, meta_message, data):
             name = get_assginment_name(data.get("assignment"))
             attachments.append(Attachment(filename=name, content_type="text/calendar", data=ics))
 
-    send_email(
+    await send_email(
         subject=data["subject"],
         sender=admins[0],
         recipients=[email_address],
