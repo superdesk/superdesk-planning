@@ -121,12 +121,17 @@ class PlanningSearchService(AsyncBaseService):
         """Run the query against events and planning indexes"""
         query = self._get_query(req)
         types = self._get_types(req)
-        indexes = self.get_indexes_for_search(types)
-        projection = self.get_projection(req)
+        fields = self._get_projected_fields(req)
 
-        elastic = EventResourceModel.get_service().elastic
-        hits = await elastic.search(fix_query(query), indexes, projection)
-        cursor = self.elastic_async._parse_hits_async(hits, types[0])
+        params = {}
+        if fields:
+            # If projections are provided, make sure `type` is always included
+            if "type" not in fields:
+                fields += ",type"
+
+            params["_source"] = fields
+
+        cursor = await self.elastic_async.search(query, types, params)
 
         await self._format_docs(cursor)
 
