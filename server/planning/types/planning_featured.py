@@ -40,7 +40,6 @@ class PlanningFeaturedResourceModel(BasePlanningModel):
         elif isinstance(values["date"], str):
             values["date"] = parse_date(values["date"])
 
-        # print(values)
         date = utc_to_local(values["tz"], values["date"])
         values["_id"] = date.strftime(ID_DATE_FORMAT)
         return values
