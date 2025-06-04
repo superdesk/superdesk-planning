@@ -1028,7 +1028,7 @@ class AssignmentsService(AsyncBaseService):
             user_id = assignment_update_data.get("item_user_id")
             if assignment.get(LOCK_SESSION) and user_id:
                 lock_service = get_component(LockService)
-                lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
+                await lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
 
     async def on_events_updated(self, updates: dict[str, Any], original: EventResourceModel):
         """Send assignment notifications if any relevant Event metadata has changed"""
@@ -1194,13 +1194,13 @@ class AssignmentsService(AsyncBaseService):
             or await get_resource_service("archive").count_async({"assignment_id": assignment[ID_FIELD]}) <= 1
         ):
             lock_service = get_component(LockService)
-            lock_service.lock(assignment, user_id, get_auth()["_id"], "content_edit", "assignments")
+            await lock_service.lock(assignment, user_id, get_auth()["_id"], "content_edit", "assignments")
 
     async def sync_assignment_unlock(self, item, user_id):
         assignment = await self._get_assignment_from_archive_item({}, item)
         if assignment and assignment.get(LOCK_USER) and assignment.get(LOCK_ACTION) == "content_edit":
             lock_service = get_component(LockService)
-            lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
+            await lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
 
     def can_edit(self, item, user_id):
         # Check privileges
