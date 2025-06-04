@@ -432,7 +432,7 @@ def then_set_assignment_manual_reassignment_only(context):
 def then_set_use_xmp_for_pic_assignments(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS"] = True
 
 
@@ -440,7 +440,7 @@ def then_set_use_xmp_for_pic_assignments(context):
 def then_set_xmp_assignment_mapping(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS"] = True
     context.app.config["PLANNING_XMP_ASSIGNMENT_MAPPING"] = {
         "xpath": "//x:xmpmeta/rdf:RDF/rdf:Description",
@@ -457,7 +457,7 @@ def then_set_xmp_assignment_mapping(context):
 def then_set_xmp_slugline_mapping(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_SLUGLINE"] = True
     context.app.config["PLANNING_XMP_SLUGLINE_MAPPING"] = {
         "xpath": "//x:xmpmeta/rdf:RDF/rdf:Description/dc:title/rdf:Alt/rdf:li",
@@ -474,7 +474,7 @@ def then_set_xmp_slugline_mapping(context):
 def then_set_use_xmp_for_pic_slugline(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + "/steps/fixtures"
-    context.app.settings["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config["BEHAVE_TESTS_FIXTURES_PATH"] = BEHAVE_TESTS_FIXTURES_PATH
     context.app.config["PLANNING_USE_XMP_FOR_PIC_SLUGLINE"] = True
 
 

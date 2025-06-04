@@ -642,6 +642,7 @@ Feature: Planning Search
 
     @auth
     Scenario: Users can only see their planning items without the planning_global_filters privilege
+        Given empty "planning"
         Given "planning"
         """
         [{

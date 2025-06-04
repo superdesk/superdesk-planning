@@ -55,15 +55,19 @@ Feature: Post Featured Planning
             "items": ["#planning._id#"]
         }]
         """
+        Then we get OK response
         When we post to "/products" with success
         """
-        { "name": "prod-1", "codes": "abc", "product_type": "both" }
+        {"name": "prod-1", "codes": "abc", "product_type": "both"}
         """
 
         And we post to "/subscribers" with success
         """
         {
-        "name": "Featured Planning Subscriber", "media_type": "media", "subscriber_type": "digital", "products": ["#products._id#"], "is_active": true,
+        "name": "Featured Planning Subscriber", "media_type": "media", "subscriber_type": "digital",
+        "products": ["#products._id#"],
+        "is_active": true,
+        "email": "test@test.com",
         "codes": "abc",
         "destinations": [{
             "name": "planning_featured",

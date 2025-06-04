@@ -120,6 +120,8 @@ Feature: Search Events and Planning
 
     @auth
     Scenario: Users can only see their events without the planning_global_filters privilege
+        Given empty "events"
+        And empty "planning"
         Given "events"
         """
         [{

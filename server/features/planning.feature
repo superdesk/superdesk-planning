@@ -517,24 +517,6 @@ Feature: Planning
     @notification
     @vocabulary
     Scenario: Cancel specific coverage
-        Given "vocabularies"
-        """
-        [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-        }]
-        """
         When we post to "planning" with success
         """
         [{
@@ -628,24 +610,6 @@ Feature: Planning
         Given "users"
         """
         [{"_id": "507f191e810c19729de871eb", "name":"testfoo", "email":"foo@122d.com", "username":"johnfoo"}]
-        """
-        Given "vocabularies"
-        """
-        [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-        }]
         """
         When we post to "/planning"
         """
@@ -1535,56 +1499,59 @@ Feature: Planning
         [{"_id": "desk_123", "name": "Politic Desk",
          "members": [{"user": "#CONTEXT_USER_ID#"}]}]
         """
-        Given "assignments"
-        """
-        [{
-          "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-          "planning_item": "123",
-          "planning": {
-              "ednote": "test coverage, I want 250 words",
-              "headline": "test headline",
-              "slugline": "test slugline",
-              "g2_content_type" : "text",
-              "scheduled": "2029-11-21T14:00:00.000Z"
-          },
-          "assigned_to": {
-              "desk": "desk_123",
-              "user": "#CONTEXT_USER_ID#",
-              "state": "assigned"
-          }
-        }]
-        """
         When we post to "planning" with success
         """
         [{
-          "guid": "123",
-          "headline": "test headline",
-          "slugline": "test slugline",
-          "state": "scheduled",
-          "pubstatus": "usable",
-          "internal_note": "Thanks for all the ",
-          "coverages": [
-              {
-                  "coverage_id": "cov_123",
-                  "planning": {
-                      "ednote": "test coverage, 250 words",
-                      "headline": "test headline",
-                      "slugline": "test slugline",
-                      "scheduled": "2029-11-21T14:00:00.000Z",
-                      "g2_content_type": "text",
-                      "internal_note": "Harmless"
-                  },
-                  "assigned_to": {
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "internal_note": "Thanks for all the ",
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z",
+                        "g2_content_type": "text",
+                        "internal_note": "Harmless"
+                    },
+                    "assigned_to": {
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
-                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
                         "state": "assigned"
-                  },
-                  "workflow_status": "active"
-              }
-          ],
-          "planning_date": "2016-01-02"
+                    },
+                    "workflow_status": "active"
+                }
+            ],
+            "planning_date": "2016-01-02"
         }]
+        """
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we reset notifications
+        When we get "/assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning_item": "123",
+            "coverage_item": "#firstcoverage#",
+            "planning": {
+                "ednote": "test coverage, 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "scheduled": "2029-11-21T14:00:00+0000",
+                "g2_content_type": "text",
+                "internal_note": "Harmless"
+            },
+            "assigned_to": {
+                "desk": "desk_123",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }
         """
         When we patch "/planning/#planning._id#"
         """
@@ -1592,7 +1559,7 @@ Feature: Planning
           "internal_note": "Thanks for all the fish",
           "coverages": [
               {
-                  "coverage_id": "cov_123",
+                  "coverage_id": "#firstcoverage#",
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "headline": "test headline",
@@ -1604,7 +1571,7 @@ Feature: Planning
                   "assigned_to": {
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
-                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+                        "assignment_id": "#firstassignment#",
                         "state": "assigned"
                   },
                   "workflow_status": "active"
@@ -3335,24 +3302,6 @@ Feature: Planning
         Given "desks"
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
-        """
-        Given "vocabularies"
-        """
-        [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-        }]
         """
         Given empty "planning"
         When we post to "planning"
