@@ -121,7 +121,7 @@ class AssignmentsCompleteService(AsyncBaseService):
         item = await self.backend.update_async(self.datasource, id, updates, original)
 
         # publish the planning item
-        assignments_service.publish_planning(original["planning_item"])
+        await assignments_service.publish_planning(original["planning_item"])
 
         # Save history if user initiates complete
         assignments_history_service = AssignmentsHistoryAsyncService()
