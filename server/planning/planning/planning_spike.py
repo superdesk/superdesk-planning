@@ -8,6 +8,7 @@ from superdesk.errors import SuperdeskApiError
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth
 
+from planning import signals
 from planning.assignments import AssignmentsAsyncService
 from planning.common import (
     ITEM_EXPIRY,
@@ -18,9 +19,7 @@ from planning.common import (
     remove_autosave_on_spike,
     remove_lock_information,
 )
-from planning.events import EventsAsyncService
 from planning.item_lock import LOCK_USER
-from planning.planning import PlanningAsyncService
 from planning.planning.planning_utils import delete_assignments_for_coverages
 from planning.planning_notifications import PlanningNotifications
 from planning.utils import get_related_event_ids_for_planning, get_first_related_event_id_for_planning
@@ -42,7 +41,7 @@ def post_update_planning_item_actions(updates: dict[str, Any], original: dict[st
 
 async def post_planning_item_spike_actions(updates: dict[str, Any], original: dict[str, Any]):
     post_update_planning_item_actions(updates, original)
-    events_service = EventsAsyncService()
+    events_service = get_resource_service("events")
 
     # Delete assignments in workflow
     assignments_to_delete = []
@@ -55,7 +54,7 @@ async def post_planning_item_spike_actions(updates: dict[str, Any], original: di
     first_event_id = get_first_related_event_id_for_planning(original, "primary")
 
     if first_event_id:
-        event = await events_service.find_by_id_raw(first_event_id)
+        event = await events_service.find_one_async(req=None, _id=first_event_id)
         notify_user_on_failed_assignment_deletes = not event or event.get("state") != WORKFLOW_STATE.SPIKED
 
     await delete_assignments_for_coverages(assignments_to_delete, notify_user_on_failed_assignment_deletes)
@@ -126,7 +125,8 @@ async def process_spike_planning_item(updates: dict[str, Any], original: dict[st
     await remove_autosave_on_spike(original)
 
     planning_item_id = original[ID_FIELD]
-    await planning_service.system_update_async(planning_item_id, updates, original)
+    await planning_service.update_async(planning_item_id, updates, original)
+    await signals.planning_spiked.send(updates, original)
     spiked_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
     assert spiked_planning_item is not None, "Expected spiked_planning to be a dict, got None"
 
@@ -157,12 +157,12 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
     :param original: The original planning document.
     :return: The updated planning document.
     """
-    planning_service = PlanningAsyncService()
-    events_service = EventsAsyncService()
+    planning_service = get_resource_service("planning")
+    events_service = get_resource_service("events")
 
     first_event_id = get_first_related_event_id_for_planning(original, "primary")
     if first_event_id:
-        event = await events_service.find_by_id_raw(first_event_id)
+        event = await events_service.find_one_async(req=None, _id=first_event_id)
         if event and event.get("state") == WORKFLOW_STATE.SPIKED:
             raise SuperdeskApiError.badRequestError(message="Unspike failed. Associated event is spiked.")
 
@@ -172,8 +172,9 @@ async def process_unspike_planning_item(updates: dict[str, Any], original: dict[
     remove_lock_information(updates)
 
     planning_item_id = original[ID_FIELD]
-    await planning_service.system_update(planning_item_id, updates)
-    unspiked_planning_item = await planning_service.find_by_id_raw(planning_item_id)
+    await planning_service.update_async(planning_item_id, updates, original)
+    await signals.planning_unspiked.send(updates, original)
+    unspiked_planning_item = await planning_service.find_one_async(req=None, _id=planning_item_id)
     assert unspiked_planning_item is not None, "Expected unspiked_planning to be a dict, got None"
 
     push_notification(

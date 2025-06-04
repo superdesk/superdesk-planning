@@ -140,7 +140,7 @@ class EventsPostService(AsyncBaseService):
         # First we want to validate that all events can be posted
         for event in posted_events:
             self.validate_post_state(post_to_state)
-            # self.validate_item(event)
+            await self.validate_item(event)
 
         # Next we perform the actual post
         updated_event = None

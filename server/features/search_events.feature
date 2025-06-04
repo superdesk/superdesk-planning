@@ -315,6 +315,7 @@ Feature: Event Search
 
     @auth
     Scenario: Users can only see their events without the planning_global_filters privilege
+        Given empty "events"
         Given "events"
         """
         [{

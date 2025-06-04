@@ -14,6 +14,7 @@ import logging
 from os import path
 from copy import copy
 
+from superdesk import get_resource_service
 from apps.prepopulate.app_populate import AppPopulateCommand
 from superdesk.tests.environment import (
     setup_before_all,
@@ -40,6 +41,14 @@ def before_all(context):
         "INSTALLED_APPS": INSTALLED_APPS,
         "ELASTICSEARCH_FORCE_REFRESH": True,
         "MODULES": TEST_MODULES,
+        "PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS": False,
+        "PLANNING_USE_XMP_FOR_PIC_SLUGLINE": False,
+        "PLANNING_XMP_SLUGLINE_MAPPING": "",
+        "PLANNING_XMP_ASSIGNMENT_MAPPING": "",
+        "PLANNING_LINK_UPDATES_TO_COVERAGES": False,
+        "PLANNING_ALLOW_SCHEDULED_UPDATES": True,
+        "PLANNING_AUTO_ASSIGN_TO_WORKFLOW": False,
+        "ASSIGNMENT_MANUAL_REASSIGNMENT_ONLY": False,
     }
 
     LOG_CONFIG_FILE = env("LOG_CONFIG_FILE", "../e2e/server/logging_config.yml")
@@ -75,25 +84,38 @@ async def before_feature_async(context, feature):
 
 
 async def before_scenario_async(context, scenario):
+    await setup_before_scenario(context, scenario)
+
     # Update app config based on scenario tags
     current_app = context.app
     if "link_updates" in scenario.tags:
         current_app.config["PLANNING_LINK_UPDATES_TO_COVERAGES"] = True
-    else:
-        current_app.config["PLANNING_LINK_UPDATES_TO_COVERAGES"] = False
+    _update_signals_for_link_coverage_updates_setting(current_app)
 
     if "no_scheduled_updates" in scenario.tags:
         current_app.config["PLANNING_ALLOW_SCHEDULED_UPDATES"] = False
-    else:
-        current_app.config["PLANNING_ALLOW_SCHEDULED_UPDATES"] = True
 
     if "skipped" in scenario.tags:
         scenario.mark_skipped()
-
-    await setup_before_scenario(context, scenario)
 
     if "planning_cvs" in scenario.tags:
         async with context.app.app_context():
             cmd = AppPopulateCommand()
             filename = path.join(path.abspath(path.dirname("features/steps/fixtures/")), "vocabularies.json")
             await cmd.run(filename)
+
+
+def _update_signals_for_link_coverage_updates_setting(app):
+    # Update signals based on ``PLANNING_LINK_UPDATES_TO_COVERAGES`` config
+    # As these signals are connected on ``planning.init_app`` which happens on before_feature stage
+    assignments_publish_service = get_resource_service("assignments")
+    app.on_inserted_archive_rewrite -= assignments_publish_service.create_delivery_for_content_update
+    app.on_deleted_resource_archive_rewrite -= (
+        assignments_publish_service.unlink_assignment_on_delete_archive_rewrite
+    )
+
+    if app.config.get("PLANNING_LINK_UPDATES_TO_COVERAGES"):
+        app.on_inserted_archive_rewrite += assignments_publish_service.create_delivery_for_content_update
+        app.on_deleted_resource_archive_rewrite += (
+            assignments_publish_service.unlink_assignment_on_delete_archive_rewrite
+        )

@@ -13,6 +13,7 @@ from copy import deepcopy
 from typing import Any
 
 from superdesk.core import get_app_config
+from superdesk import get_resource_service
 from superdesk.resource_fields import ID_FIELD
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -25,15 +26,14 @@ from planning.common import (
     get_coverage_status_from_cv,
     get_config_planning_duplicate_retain_assignee_details,
 )
-from planning.planning import PlanningAsyncService, PlanningHistoryAsyncService
-from planning.types.planning import PlanningResourceModel
+from planning.planning import PlanningHistoryAsyncService
 from planning.utils import get_related_event_links_for_planning, get_related_event_items_for_planning
 
 
 logger = logging.getLogger(__name__)
 
 
-def duplicate_planning_item(original: dict[str, Any]) -> PlanningResourceModel:
+def duplicate_planning_item(original: dict[str, Any]) -> dict:
     new_plan = deepcopy(original)
     related_events = get_related_event_links_for_planning(original)
 
@@ -97,7 +97,7 @@ def duplicate_planning_item(original: dict[str, Any]) -> PlanningResourceModel:
         if not get_config_planning_duplicate_retain_assignee_details():
             cov.pop("assigned_to", None)
 
-    return PlanningResourceModel(**new_plan)
+    return new_plan
 
 
 async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> dict[str, Any]:
@@ -107,18 +107,17 @@ async def process_planning_item_duplicate(parent_plan: dict[str, Any]) -> dict[s
     :param original: The original planning item.
     :return: List of new planning item guid.
     """
-    planning_service = PlanningAsyncService()
+    planning_service = get_resource_service("planning")
     history_service = PlanningHistoryAsyncService()
 
     parent_id = parent_plan[ID_FIELD]
     new_plan = duplicate_planning_item(parent_plan)
-    new_plan_dict = new_plan.to_dict()
 
-    await planning_service.on_create([new_plan])
-    await planning_service.create([new_plan])
+    await planning_service.on_create_async([new_plan])
+    await planning_service.create_async([new_plan])
 
-    await history_service.on_duplicate(parent_plan, new_plan_dict)
-    await history_service.on_duplicate_from(new_plan_dict, parent_id)
-    await planning_service.on_duplicated(new_plan_dict, parent_id)
+    await history_service.on_duplicate(parent_plan, new_plan)
+    await history_service.on_duplicate_from(new_plan, parent_id)
+    await planning_service.on_duplicated(new_plan, parent_id)
 
-    return new_plan_dict
+    return new_plan

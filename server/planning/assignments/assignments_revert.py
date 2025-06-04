@@ -76,7 +76,7 @@ class AssignmentsRevertService(AsyncBaseService):
         )
 
         # publish the planning item
-        get_resource_service("assignments").publish_planning(original.get("planning_item"))
+        await get_resource_service("assignments").publish_planning(original.get("planning_item"))
 
         # External (slack/browser pop-up) notifications
         assignments_service = get_resource_service("assignments")

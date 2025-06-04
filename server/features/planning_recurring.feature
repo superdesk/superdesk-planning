@@ -282,14 +282,14 @@ Feature: Recurring Events & Planning
                             "slugline": "test text slugline v3",
                             "scheduled": "2024-11-22T17:00:00+0000",
                             "g2_content_type": "text",
-                            "news_coverage_status": {"qcode": "ncostat:int"}
+                            "news_coverage_status": "ncostat:int"
                         },
                         {
                             "coverage_id": "#PIC_COVERAGE_2_ID#",
                             "slugline": "test pic slugline v3",
                             "scheduled": "2024-11-22T18:00:00+0000",
                             "g2_content_type": "picture",
-                            "news_coverage_status": {"qcode": "ncostat:int"}
+                            "news_coverage_status": "ncostat:int"
                         }
                     ]
                 }
@@ -603,14 +603,14 @@ Feature: Recurring Events & Planning
                             "slugline": "test text slugline v3",
                             "scheduled": "2024-11-22T17:00:00+0000",
                             "g2_content_type": "text",
-                            "news_coverage_status": {"qcode": "ncostat:int"}
+                            "news_coverage_status": "ncostat:int"
                         },
                         {
                             "coverage_id": "#PIC_COVERAGE_3_ID#",
                             "slugline": "test pic slugline v3",
                             "scheduled": "2024-11-22T18:00:00+0000",
                             "g2_content_type": "picture",
-                            "news_coverage_status": {"qcode": "ncostat:int"}
+                            "news_coverage_status": "ncostat:int"
                         },
                         {
                             "coverage_id": "6834696421f83fc293588ae9",
