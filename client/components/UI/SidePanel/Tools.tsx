@@ -15,7 +15,7 @@ interface IToolsProps {
     topTools?: boolean;
 }
 
-export const Tools = ({
+export const Tools: React.FC<IToolsProps> = ({
     className,
     tools = [],
     children,
