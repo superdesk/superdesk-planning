@@ -65,6 +65,7 @@ async def duplicate_planning_item(args: PlanningArgs, params: None, request: Req
 
     duplicated_planning_item = await process_planning_item_duplicate(original)
 
+    duplicated_planning_item["_status"] = "OK"
     return Response(duplicated_planning_item)
 
 
