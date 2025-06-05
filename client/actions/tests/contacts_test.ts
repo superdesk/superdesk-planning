@@ -32,24 +32,8 @@ describe('actions.contacts', () => {
                 .then(() => {
                     expect(services.api('contacts').query.callCount).toBe(1);
                     expect(services.api('contacts').query.args[0]).toEqual([{
-                        source: {
-                            query: {
-                                bool: {
-                                    must: [{
-                                        query_string: {
-                                            fields: [],
-                                            query: 'bob*',
-                                            default_operator: 'AND',
-                                        },
-                                    }],
-                                    should: [
-                                        {term: {is_active: true}},
-                                        {term: {public: true}},
-                                    ],
-                                },
-                            },
-                        },
-                        sort: '[("first_name.keyword", 1)]',
+                        q: 'bob',
+                        contact_type: '',
                         max_results: 200,
                         page: 1,
                     }]);
@@ -66,24 +50,8 @@ describe('actions.contacts', () => {
                 .then(() => {
                     expect(services.api('contacts').query.callCount).toBe(1);
                     expect(services.api('contacts').query.args[0]).toEqual([{
-                        source: {
-                            query: {
-                                bool: {
-                                    must: [{
-                                        query_string: {
-                                            fields: ['organisation'],
-                                            query: 'bob*',
-                                            default_operator: 'AND',
-                                        },
-                                    }],
-                                    should: [
-                                        {term: {is_active: true}},
-                                        {term: {public: true}},
-                                    ],
-                                },
-                            },
-                        },
-                        sort: '[("first_name.keyword", 1)]',
+                        q: 'bob',
+                        contact_type: '',
                         max_results: 200,
                         page: 1,
                     }]);
@@ -100,26 +68,8 @@ describe('actions.contacts', () => {
                 .then(() => {
                     expect(services.api('contacts').query.callCount).toBe(1);
                     expect(services.api('contacts').query.args[0]).toEqual([{
-                        source: {
-                            query: {
-                                bool: {
-                                    must: [{
-                                        query_string: {
-                                            fields: [],
-                                            query: 'bob*',
-                                            default_operator: 'AND',
-                                        },
-                                    }, {
-                                        term: {contact_type: 'stringer'},
-                                    }],
-                                    should: [
-                                        {term: {is_active: true}},
-                                        {term: {public: true}},
-                                    ],
-                                },
-                            },
-                        },
-                        sort: '[("first_name.keyword", 1)]',
+                        q: 'bob',
+                        contact_type: 'stringer',
                         max_results: 200,
                         page: 1,
                     }]);
