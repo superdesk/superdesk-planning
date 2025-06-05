@@ -1,5 +1,7 @@
 import {superdeskApi} from '../superdeskApi';
 
+export const editPlanningParam = 'editPlanningItem';
+
 export const ASSIGNMENTS = {
     ACTIONS: {
         RECEIVED_ASSIGNMENTS: 'RECEIVED_ASSIGNMENTS',
@@ -43,6 +45,11 @@ export const ASSIGNMENTS = {
             label: 'Start Working',
             icon: 'icon-external',
             actionName: 'onStartWorkingOnAssignment',
+        },
+        EDIT_PLANNING: {
+            label: 'Edit Planning Item',
+            icon: 'icon-calendar',
+            actionName: 'onEditPlanningItem',
         },
         REASSIGN: {
             label: 'Reassign',

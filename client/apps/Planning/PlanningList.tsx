@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {indexOf} from 'lodash';
+import {filter, indexOf} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
 import {
@@ -28,6 +28,8 @@ import {ITEM_TYPE} from '../../constants';
 
 import {ListPanel} from '../../components/Main';
 import {PlanningListSubNav} from './PlanningListSubNav';
+import {planningApi} from '../../superdeskApi';
+import {getPlanningItemToEdit} from '../../utils/assignments';
 
 interface IProps {
     groups: Array<{
@@ -126,6 +128,16 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
         super(props);
 
         this.handleItemSelection = this.handleItemSelection.bind(this);
+    }
+
+    componentDidMount() {
+        const planningItemId = getPlanningItemToEdit();
+
+        if (planningItemId) {
+            planningApi.planning.getById(planningItemId, true).then((item) => {
+                this.props.edit(item);
+            });
+        }
     }
 
     handleItemSelection(item: IEventOrPlanningItem, value: boolean, shiftKey: boolean, name: string) {

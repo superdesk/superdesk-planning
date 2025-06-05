@@ -11,6 +11,7 @@ import {
     IContactItem,
     IG2ContentType,
     ILockedItems,
+    IPlanningItem,
     IPrivileges,
     ISession
 } from '../../../interfaces';
@@ -45,6 +46,7 @@ interface IProps {
     completeAssignment(assignment: IAssignmentItem): void;
     editAssignmentPriority(assignment: IAssignmentItem): void;
     startWorking(assignment: IAssignmentItem): void;
+    editPlanning(planningItemId: IPlanningItem['_id']): void;
     removeAssignment(assignment: IAssignmentItem): void;
     revertAssignment(assignment: IAssignmentItem): void;
 }
@@ -241,12 +243,17 @@ export class AssignmentItem extends React.Component<IProps, IState> {
             removeAssignment,
             revertAssignment,
             hideItemActions,
+            editPlanning,
         } = this.props;
 
         const itemActionsCallBack = {
             [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: startWorking.bind(
                 null,
                 assignment
+            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: editPlanning.bind(
+                null,
+                assignment.planning_item,
             ),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(
                 null,

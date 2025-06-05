@@ -29,6 +29,8 @@ import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventMetadata} from '../../Events';
 import {PreviewFieldRelatedArticles} from '../../fields/preview/RelatedArticles';
+import {editPlanningInNewTab} from '../../../utils/assignments';
+
 
 interface IOwnProps {
     hideAvatar?: boolean;
@@ -50,6 +52,7 @@ interface IStateProps {
     lockedItems: ILockedItems;
     currentWorkspace: 'ASSIGNMENTS' | 'AUTHORING' | 'AUTHORING_WIDGET';
     contentTypes: Array<IG2ContentType>;
+    editPlanning: (assignmentId: IAssignmentItem['_id']) => void;
     files: Array<IFile>;
 }
 
@@ -94,6 +97,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
             openArchivePreview,
             revertAssignment,
             contentTypes,
+            editPlanning,
         } = this.props;
 
         if (hideItemActions) {
@@ -102,6 +106,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
 
         const itemActionsCallBack = {
             [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: startWorking.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: editPlanning.bind(null, assignment.planning_item),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: editAssignmentPriority.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName]: completeAssignment.bind(null, assignment),
@@ -255,6 +260,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
+    editPlanning: editPlanningInNewTab,
     startWorking: (assignment) => dispatch(actions.assignments.ui.startWorking(assignment)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),

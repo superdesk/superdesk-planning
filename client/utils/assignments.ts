@@ -10,6 +10,7 @@ import {
     ILockedItems,
     IG2ContentType,
     IItemAction,
+    IPlanningItem,
 } from '../interfaces';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
@@ -18,10 +19,12 @@ import * as selectors from '../selectors';
 import {gettext, planningUtils, lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
 import {getUserInterfaceLanguageFromCV} from './users';
 import {getVocabularyItemFieldTranslated} from './vocabularies';
+import {editPlanningParam} from '../constants/assignments';
+import {superdeskApi} from '../superdeskApi';
 
 const isNotLockRestricted = (assignment, session, lockedItems) => (
     !get(assignment, 'lock_user') ||
-        lockUtils.isItemLockedInThisSession(assignment, session, lockedItems)
+    lockUtils.isItemLockedInThisSession(assignment, session, lockedItems)
 );
 
 const isTextAssignment = (assignment, contentTypes = []) => {
@@ -62,14 +65,14 @@ function canRemoveAssignment(
 
 const canStartWorking = (assignment, session, privileges, contentTypes) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
-        !get(assignment, 'lock_user') &&
-        self.isTextAssignment(assignment, contentTypes) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-        (
-            !get(assignment, 'assigned_to.user') ||
-            assignment.assigned_to.user === get(session, 'identity._id')
-        ) &&
-        !isAssignedToProvider(assignment)
+    !get(assignment, 'lock_user') &&
+    self.isTextAssignment(assignment, contentTypes) &&
+    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+    (
+        !get(assignment, 'assigned_to.user') ||
+        assignment.assigned_to.user === get(session, 'identity._id')
+    ) &&
+    !isAssignedToProvider(assignment)
 );
 
 function canFulfilAssignment(
@@ -143,11 +146,11 @@ const assignmentHasContent = (assignment) => (
 
 const isDue = (assignment) => (
     get(assignment, 'planning.scheduled') &&
-        moment().isAfter(moment(assignment.planning.scheduled)) &&
-        [
-            ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
-            ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
-        ].indexOf(get(assignment, 'assigned_to.state')) < 0
+    moment().isAfter(moment(assignment.planning.scheduled)) &&
+    [
+        ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
+        ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
+    ].indexOf(get(assignment, 'assigned_to.state')) < 0
 );
 
 const isAssignedToProvider = (assignment) => (
@@ -181,6 +184,14 @@ function getAssignmentActions(
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
                         callback: callBacks[callBackName].bind(null, assignment),
+                    });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING,
+                        callback: callBacks[callBackName].bind(null, assignment.planning_item),
                     });
             break;
 
@@ -281,7 +292,7 @@ function getAssignmentItemActions(
 
     actions.forEach((action) => {
         if (actionsValidator[action.actionName] &&
-                !actionsValidator[action.actionName]()) {
+            !actionsValidator[action.actionName]()) {
             return;
         }
 
@@ -332,7 +343,7 @@ const isAssignmentLocked = (assignment, locks) =>
 
 const isAssignmentLockRestricted = (assignment, session, locks) =>
     isAssignmentLocked(assignment, locks) &&
-        !lockUtils.isItemLockedInThisSession(assignment, session, locks);
+    !lockUtils.isItemLockedInThisSession(assignment, session, locks);
 
 const getAssignmentInfo = (assignment, users, desks) => {
     const assignedTo = get(assignment, 'assigned_to');
@@ -430,6 +441,12 @@ export function getAssignmentTypeInfo(assignment: IAssignmentItem, contentTypes:
 
     return {tooltip, className};
 }
+
+export const editPlanningInNewTab = (planningItemId: IPlanningItem['_id']) => {
+    window.open(window.origin + `/#/planning?${editPlanningParam}=${planningItemId}`, '_blank').focus();
+};
+
+export const getPlanningItemToEdit = () => superdeskApi.browser.location.urlParams.getString(editPlanningParam);
 
 // eslint-disable-next-line consistent-this
 const self = {

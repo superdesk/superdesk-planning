@@ -13,6 +13,7 @@ import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
 import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
+import {editPlanningInNewTab} from '../../utils/assignments';
 import moment from 'moment';
 
 const focusElement = throttle((element: HTMLElement) => {
@@ -231,6 +232,7 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                 assignment={assignment}
                 onClick={this.props.preview.bind(this, assignment)}
                 onDoubleClick={onDoubleClick}
+                editPlanning={editPlanningInNewTab}
                 assignedUser={assignedUser}
                 isCurrentUser={isCurrentUser}
                 lockedItems={this.props.lockedItems}
