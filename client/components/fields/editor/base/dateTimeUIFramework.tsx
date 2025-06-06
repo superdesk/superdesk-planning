@@ -71,6 +71,7 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
                             : {}
                     }
                     required={this.props.schema?.required}
+                    timeRequiresDate
                     onChange={(value) => {
                         const dateTimeString = value.time != null
                             ? new Date(`${value.date} ${value.time}`).toISOString()
