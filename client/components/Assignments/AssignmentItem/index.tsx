@@ -18,7 +18,7 @@ import {
 
 import {assignmentUtils, planningUtils} from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
-import {getAssignmentTypeInfo} from '../../../utils/assignments';
+import {editPlanningInNewTab, getAssignmentTypeInfo} from '../../../utils/assignments';
 
 import {Menu} from 'superdesk-ui-framework/react';
 import {UserAvatarWithMargin} from '../../../components/UserAvatar';
@@ -46,7 +46,6 @@ interface IProps {
     completeAssignment(assignment: IAssignmentItem): void;
     editAssignmentPriority(assignment: IAssignmentItem): void;
     startWorking(assignment: IAssignmentItem): void;
-    editPlanning(planningItemId: IPlanningItem['_id']): void;
     removeAssignment(assignment: IAssignmentItem): void;
     revertAssignment(assignment: IAssignmentItem): void;
 }
@@ -186,7 +185,6 @@ export class AssignmentItem extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
         const {
             assignedUser,
-            isCurrentUser,
             assignment,
             contacts,
         } = this.props;
@@ -243,7 +241,6 @@ export class AssignmentItem extends React.Component<IProps, IState> {
             removeAssignment,
             revertAssignment,
             hideItemActions,
-            editPlanning,
         } = this.props;
 
         const itemActionsCallBack = {
@@ -251,10 +248,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
                 null,
                 assignment
             ),
-            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: editPlanning.bind(
-                null,
-                assignment.planning_item,
-            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: editPlanningInNewTab(assignment.planning_item),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(
                 null,
                 assignment

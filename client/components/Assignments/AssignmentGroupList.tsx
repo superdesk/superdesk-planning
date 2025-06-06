@@ -232,7 +232,6 @@ class AssignmentGroupListComponent extends React.Component<IProps, IState> {
                 assignment={assignment}
                 onClick={this.props.preview.bind(this, assignment)}
                 onDoubleClick={onDoubleClick}
-                editPlanning={editPlanningInNewTab}
                 assignedUser={assignedUser}
                 isCurrentUser={isCurrentUser}
                 lockedItems={this.props.lockedItems}
