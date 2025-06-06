@@ -46,7 +46,8 @@ Feature: Events
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
                 "location": [{"qcode": "test qcaode", "name": "test name"}],
-                "event_contact_info": ["#contacts._id#"]
+                "event_contact_info": ["#contacts._id#"],
+                "accreditation_deadline": "2025-05-05"
             }
         ]
         """
@@ -74,7 +75,8 @@ Feature: Events
                 "definition_long": "long value",
                 "location": [{"qcode": "test qcaode", "name": "test name", "formatted_address": ""}],
                 "firstcreated": "__now__",
-                "versioncreated": "__now__"
+                "versioncreated": "__now__",
+                "accreditation_deadline": "2025-05-05"
             }]}
         """
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"lte":"2015-01-01T00:00:00.000Z"}}}}"

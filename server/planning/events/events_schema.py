@@ -78,8 +78,9 @@ events_schema = {
     "invitation_details": {"type": "string"},
     "accreditation_info": {"type": "string"},
     "accreditation_deadline": {
-        "type": "datetime",
+        "type": "string",
         "nullable": True,
+        "mapping": {"type": "date"},
     },
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},

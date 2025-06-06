@@ -202,8 +202,6 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
         .then((response) => {
             const events = modifySaveResponseForClient(response);
 
-            events[0].associated_plannings = updates.associated_plannings;
-
             return planningApi.planning.searchGetAll({
                 recurrence_id: events[0].recurrence_id,
                 event_item: events[0].recurrence_id != null ? null : events.map((event) => event._id),
@@ -213,6 +211,7 @@ function update(original: IEventItem, updates: Partial<IEventItem>): Promise<Arr
                 // Make sure to update the Redux Store with the latest Planning items
                 // So that the Editor can set the state with these latest items
                 planningApi.redux.store.dispatch<any>(planningApis.receivePlannings(planningItems));
+                events[0].associated_plannings = planningItems;
 
                 return events;
             });

@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import {superdeskApi} from '../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
+import {Tooltip} from 'superdesk-ui-framework';
 
 interface IProps {
     item: {
@@ -16,9 +17,9 @@ interface IProps {
             name?: {[key: string]: string};
         };
     }>;
-    tooltipFlow: 'up' | 'right' | 'down' | 'left';
+    tooltipFlow: 'top' | 'right' | 'down' | 'left';
     inline: boolean;
-    className: string;
+    className?: string;
 }
 
 export class PriorityLabel extends React.PureComponent<IProps> {
@@ -29,7 +30,7 @@ export class PriorityLabel extends React.PureComponent<IProps> {
             priorities,
             tooltipFlow = 'right',
             inline,
-            className,
+            className = '',
         } = this.props;
 
         if (item.priority == null) {
@@ -57,11 +58,13 @@ export class PriorityLabel extends React.PureComponent<IProps> {
                     {'sd-list-item__inline-icon': inline},
                     className
                 )}
-                data-sd-tooltip={tooltip}
-                data-flow={tooltipFlow}
             >
-                <span className="a11y-only">{tooltip}</span>
-                {priority.qcode}
+                <Tooltip
+                    text={tooltip}
+                    flow={tooltipFlow}
+                >
+                    {priority.qcode}
+                </Tooltip>
             </span>
         );
     }
