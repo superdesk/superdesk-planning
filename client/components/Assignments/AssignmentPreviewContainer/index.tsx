@@ -29,6 +29,8 @@ import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventMetadata} from '../../Events';
 import {PreviewFieldRelatedArticles} from '../../fields/preview/RelatedArticles';
+import {editPlanningInNewTab} from '../../../utils/assignments';
+
 
 interface IOwnProps {
     hideAvatar?: boolean;
@@ -102,6 +104,8 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
 
         const itemActionsCallBack = {
             [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: startWorking.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: editPlanningInNewTab
+                .bind(null, assignment.planning_item),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: editAssignmentPriority.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName]: completeAssignment.bind(null, assignment),

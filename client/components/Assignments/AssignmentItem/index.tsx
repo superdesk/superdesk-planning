@@ -17,7 +17,7 @@ import {
 
 import {assignmentUtils, planningUtils} from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
-import {getAssignmentTypeInfo} from '../../../utils/assignments';
+import {editPlanningInNewTab, getAssignmentTypeInfo} from '../../../utils/assignments';
 
 import {Menu} from 'superdesk-ui-framework/react';
 import {UserAvatarWithMargin} from '../../../components/UserAvatar';
@@ -184,7 +184,6 @@ export class AssignmentItem extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
         const {
             assignedUser,
-            isCurrentUser,
             assignment,
             contacts,
         } = this.props;
@@ -248,6 +247,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
                 null,
                 assignment
             ),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: editPlanningInNewTab(assignment.planning_item),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(
                 null,
                 assignment
