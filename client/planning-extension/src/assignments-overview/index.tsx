@@ -76,9 +76,13 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                 )}
             >
                 {
-                    (data) => {
-                        const assignments = data._items;
-                        const itemsCount = data._meta.total;
+                    (res) => {
+                        if (res.loading) {
+                            return null;
+                        }
+
+                        const assignments = res.data._items;
+                        const itemsCount = res.data._meta.total;
                         const grouped = groupBy(assignments, (item) => item.assigned_to.desk);
 
                         superdesk.dispatchEvent(
