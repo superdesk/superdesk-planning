@@ -75,7 +75,7 @@ export class EditorFieldDateTimeUIFramework extends React.PureComponent<IProps> 
                     onChange={(value) => {
                         const dateTimeString = value.time != null
                             ? new Date(`${value.date} ${value.time}`).toISOString()
-                            : value.date;
+                            : value.date ?? null;
 
                         this.onChange(this.props.field, dateTimeString);
                     }}
