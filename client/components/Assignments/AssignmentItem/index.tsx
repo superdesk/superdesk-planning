@@ -11,7 +11,6 @@ import {
     IContactItem,
     IG2ContentType,
     ILockedItems,
-    IPlanningItem,
     IPrivileges,
     ISession
 } from '../../../interfaces';

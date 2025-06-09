@@ -13,7 +13,6 @@ import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
 import {ListItemLoader} from 'superdesk-ui-framework/react/components/ListItemLoader';
-import {editPlanningInNewTab} from '../../utils/assignments';
 import moment from 'moment';
 
 const focusElement = throttle((element: HTMLElement) => {

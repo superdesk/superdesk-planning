@@ -88,8 +88,8 @@ function canFulfilAssignment(
 
 const isAssignmentInEditableState = (assignment) => (
     (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-        ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
-    get(assignment, 'assigned_to.state')))
+    ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
+        get(assignment, 'assigned_to.state')))
 );
 
 function canCompleteAssignment(
@@ -179,32 +179,32 @@ function getAssignmentActions(
 
     Object.keys(callBacks).forEach((callBackName) => {
         switch (callBackName) {
-        case ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
-            break;
+                break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING,
                         callback: callBacks[callBackName].bind(null, assignment.planning_item),
                     });
-            break;
+                break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
-            break;
+                break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                         callback: callBacks[callBackName].bind(null, assignment),
@@ -212,48 +212,48 @@ function getAssignmentActions(
                             gettext('Mark as completed') :
                             ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label,
                     });
-            break;
+                break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
-            break;
+                break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
-            break;
+                break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
-            break;
+                break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
-            break;
+                break;
 
 
-        case ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName:
-            callBacks[callBackName] &&
+            case ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName:
+                callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
                         callback: callBacks[callBackName].bind(null, assignment),
                     });
-            break;
+                break;
         }
     });
 
@@ -446,7 +446,7 @@ export const editPlanningInNewTab = (planningItemId: IPlanningItem['_id']) => {
     window.open(window.origin + `/#/planning?${editPlanningParam}=${planningItemId}`, '_blank').focus();
 };
 
-export const getPlanningItemToEdit = () => superdeskApi.browser.location.urlParams.getString(editPlanningParam);
+export const getPlanningItemToEdit = (): string => superdeskApi.browser.location.urlParams.getString(editPlanningParam);
 
 // eslint-disable-next-line consistent-this
 const self = {
