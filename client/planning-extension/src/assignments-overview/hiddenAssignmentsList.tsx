@@ -41,8 +41,12 @@ export class AssignmentsCountTracker extends React.PureComponent<{}, {loading: t
                 query={getAssignmentsQuery(currentUser._id, [ASSIGNMENT_STATE.ASSIGNED])}
             >
                 {
-                    (data) => {
-                        const itemsCount = data._meta.total;
+                    (res) => {
+                        if (res.loading) {
+                            return null;
+                        }
+
+                        const itemsCount = res.data._meta.total;
 
                         superdesk.dispatchEvent(
                             'menuItemBadgeValueChange',
