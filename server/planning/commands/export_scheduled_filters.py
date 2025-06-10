@@ -143,7 +143,7 @@ class ExportScheduledFilters:
             search_filter["_id"], projections=["_id"], args={"start_of_week": start_of_week}
         )
 
-        if not items.count():
+        if not await items.count():
             search_filter_id = search_filter["_id"]
             logger.info(f"No items found for filter {search_filter_id}")
             return
