@@ -113,6 +113,12 @@ export function getDateTimeValue(value?: string): string | null {
         return null;
     }
 
+    const isDateOnly = value.trim().length === 10;
+
+    if (isDateOnly) {
+        return moment(value).format(appConfig.planning.dateformat);
+    }
+
     return moment(value).format(
         appConfig.planning.dateformat +
         ' ' +
