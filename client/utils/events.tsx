@@ -1271,6 +1271,10 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
         event.dates.end = event.dates.end.toISOString();
     }
 
+    if (event.dates?.recurring_rule?.until != null && moment.isMoment(event.dates.recurring_rule.until)) {
+        event.dates.recurring_rule.until = event.dates.recurring_rule.until.toISOString();
+    }
+
     return event;
 }
 
