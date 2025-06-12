@@ -247,7 +247,7 @@ export class AssignmentItem extends React.Component<IProps, IState> {
                 null,
                 assignment
             ),
-            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: editPlanningInNewTab(assignment.planning_item),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PLANNING.actionName]: () => editPlanningInNewTab(assignment.planning_item),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(
                 null,
                 assignment
