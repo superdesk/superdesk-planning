@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField, DateTimeField
+from .fields import BaseSchema, subjectField, TextField, StringField, LanguageField, DateOptionalTimeField
 
 
 class EventSchema(BaseSchema):
@@ -51,7 +51,7 @@ class EventSchema(BaseSchema):
     registration_details = TextField(field_type="multi_line")
     invitation_details = TextField(field_type="multi_line")
     accreditation_info = TextField(field_type="single_line")
-    accreditation_deadline = DateTimeField()
+    accreditation_deadline = DateOptionalTimeField()
     priority = schema.IntegerField()
     related_items = schema.ListField()
 

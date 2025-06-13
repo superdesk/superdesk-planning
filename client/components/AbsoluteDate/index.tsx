@@ -27,7 +27,7 @@ export const AbsoluteDate: React.FC<AbsoluteDateProps> = ({
     asTextInput = false,
     toBeConfirmed,
     ...props
-}) => {
+}: AbsoluteDateProps) => {
     let momentDate = moment.utc(date);
     let timeStr = '';
     let spanStr = noDateString;

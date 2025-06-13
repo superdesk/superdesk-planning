@@ -32,15 +32,17 @@ export class PreviewArticle extends React.PureComponent<IProps, IState> {
 
     componentDidMount(): void {
         const {getLabelNameResolver} = superdeskApi.entities.article;
-        const {getCustomFieldVocabularies} = superdeskApi.entities.vocabulary;
 
         getLabelNameResolver().then((getLabel: (fieldId: string) => string) => {
-            const customFieldVocabularies = getCustomFieldVocabularies();
+            const allVocabulariesMap = superdeskApi.entities.vocabulary.getAll();
+            const allVocabulariesArray = allVocabulariesMap.valueSeq().toArray();
+
+            const customVocabularies = allVocabulariesArray;
 
             this.getLabel = getLabel;
 
             this.setState({
-                customFieldVocabularies: customFieldVocabularies,
+                customFieldVocabularies: customVocabularies,
                 loading: false,
             });
         });

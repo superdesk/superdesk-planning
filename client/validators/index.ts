@@ -7,10 +7,24 @@ import {default as eventValidators} from './events';
 import {default as planningValidators} from './planning';
 import {formProfile} from './profile';
 import {validateAssignment} from './assignments';
+import {IAssignmentOrPlanningItem, IFormProfileItem} from 'interfaces';
 import {getFieldNameTranslated} from '../utils/contentProfiles';
 import {vocabularies} from '../api/vocabularies';
 
 export {eventValidators, formProfile, validateAssignment};
+
+interface IValidateFieldProps {
+    dispatch: () => any;
+    getState: () => any;
+    profileName: string;
+    field: keyof IAssignmentOrPlanningItem;
+    value: any;
+    profile: IFormProfileItem;
+    errors: any;
+    messages: any;
+    diff: any;
+    item: any;
+}
 
 export const validateField = ({
     dispatch,
@@ -22,23 +36,27 @@ export const validateField = ({
     errors,
     messages,
     diff,
-}) => {
-    if (get(profile, `schema.${field}.validate_on_post`)) {
+    item,
+}: IValidateFieldProps) => {
+    if (profile?.schema?.[field]?.validate_on_post) {
         return;
     }
 
-    const funcs = get(validators[profileName], field, []) || [formProfile];
+    const validatorsForField = validators[profileName]?.[field] ?? [formProfile];
 
-    funcs.forEach((func) => func({
-        dispatch,
-        getState,
-        field,
-        value,
-        profile,
-        errors,
-        messages,
-        diff,
-    }));
+    validatorsForField.forEach((func) =>
+        func({
+            dispatch,
+            getState,
+            field,
+            value,
+            profile,
+            errors,
+            messages,
+            diff,
+            item,
+        }),
+    );
 };
 
 export const validateItem = ({
