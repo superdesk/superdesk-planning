@@ -19,7 +19,8 @@ import {onEventCapture} from '../../utils';
 
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
-import {Item, Column, Group} from '../UI/List';
+import {Column, Group} from '../UI/List';
+import {IPlanningExtensionConfigurationOptions} from '../../planning-extension/src/extension_configuration_options';
 import './style.scss';
 
 /**
@@ -326,6 +327,7 @@ export class ListPanel extends React.Component<IProps, IState> {
         } = this.props;
 
         let indexFrom = 0;
+        const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
 
         return (
             <React.Fragment>
@@ -375,7 +377,14 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-                                items: group.events,
+
+                                /**
+                                 * lodash `get` is used, so we can access the sort method from lodash
+                                 * and pass a scoring function to it. JS Array.prototype.sort is considered unreliable
+                                 */
+                                items: extensionConfig?.comparePlanningItems != null
+                                    ? group.events.sort(extensionConfig.comparePlanningItems)
+                                    : group.events,
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
                                 onAddCoverageClick: onAddCoverageClick,
