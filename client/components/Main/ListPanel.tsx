@@ -1,5 +1,5 @@
 import React from 'react';
-import {get} from 'lodash';
+import {get, memoize} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk, IUser} from 'superdesk-api';
@@ -375,6 +375,8 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 getChildId: getChildId,
                             };
 
+                            const memoizedSort = memoize(group.events.sort);
+
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
 
@@ -383,7 +385,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                                  * and pass a scoring function to it. JS Array.prototype.sort is considered unreliable
                                  */
                                 items: extensionConfig?.comparePlanningItems != null
-                                    ? group.events.sort(extensionConfig.comparePlanningItems)
+                                    ? memoizedSort(extensionConfig.comparePlanningItems)
                                     : group.events,
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
