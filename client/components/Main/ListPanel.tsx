@@ -328,6 +328,11 @@ export class ListPanel extends React.Component<IProps, IState> {
 
         let indexFrom = 0;
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
+        const memoizedSort = memoize((items) =>
+            extensionConfig?.comparePlanningItems != null
+                ? items.sort(extensionConfig.comparePlanningItems)
+                : items
+        );
 
         return (
             <React.Fragment>
@@ -375,13 +380,9 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 getChildId: getChildId,
                             };
 
-                            const memoizedSort = memoize(group.events.sort);
-
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-                                items: extensionConfig?.comparePlanningItems != null
-                                    ? memoizedSort(extensionConfig.comparePlanningItems)
-                                    : group.events,
+                                items: memoizedSort(group.events),
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
                                 onAddCoverageClick: onAddCoverageClick,
