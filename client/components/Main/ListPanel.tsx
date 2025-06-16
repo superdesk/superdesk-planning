@@ -379,11 +379,6 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-
-                                /**
-                                 * lodash `get` is used, so we can access the sort method from lodash
-                                 * and pass a scoring function to it. JS Array.prototype.sort is considered unreliable
-                                 */
                                 items: extensionConfig?.comparePlanningItems != null
                                     ? memoizedSort(extensionConfig.comparePlanningItems)
                                     : group.events,
