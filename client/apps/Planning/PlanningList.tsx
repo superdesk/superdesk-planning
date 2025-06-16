@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {filter, indexOf} from 'lodash';
+import {indexOf, MemoizedFunction} from 'lodash';
 
 import {IDesk, IUser} from 'superdesk-api';
 import {
@@ -74,6 +74,7 @@ interface IProps {
     showRelatedPlannings(item: IEventItem): void;
     loadMore(viewType: FILTER_TYPE): Promise<any>;
     filter(viewType: FILTER_TYPE): Promise<any>;
+    sortItems: ((items: Array<IEventOrPlanningItem>) => IEventOrPlanningItem[]) & MemoizedFunction;
 }
 
 const mapStateToProps = (state) => ({
@@ -160,6 +161,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             filter._id === this.props.currentSearch?.filter_id);
 
         const {
+            sortItems,
             groups,
             agendas,
             lockedItems,
@@ -197,6 +199,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             <React.Fragment>
                 <PlanningListSubNav />
                 <ListPanel
+                    sortItems={sortItems}
                     groups={groups}
                     onItemClick={openPreview}
                     onDoubleClick={edit}

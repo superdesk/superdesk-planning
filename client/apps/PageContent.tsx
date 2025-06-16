@@ -5,6 +5,10 @@ import {WorkqueueContainer, ModalsContainer} from '../components';
 import {PopupEditorPortal} from '../components/Main/ItemEditorModal';
 
 import './style.scss';
+import {memoize} from 'lodash';
+import {IPlanningExtensionConfigurationOptions} from 'planning-extension/src/extension_configuration_options';
+import {superdeskApi} from '../superdeskApi';
+import {IEventOrPlanningItem} from 'interfaces';
 
 export interface IBasePanelProps {
     toggleFilterPanel(): void;
@@ -119,6 +123,13 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
             'sd-page-content__content-block--30-slide'
         );
 
+        const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
+        const memoizedSort = memoize((items: Array<IEventOrPlanningItem>) =>
+                    extensionConfig?.comparePlanningItems != null
+                        ? items.sort(extensionConfig.comparePlanningItems)
+                        : items
+        );
+
         return (
             <div className={sectionClassName}>
                 <div className={mainClassName} aria-labelledby="planning-heading">
@@ -157,6 +168,7 @@ export class PageContent<T> extends React.Component<IProps<T>, IState> {
                                 <ListPanel
                                     previewOpen={previewOpen}
                                     toggleFilterPanel={this.toggleFilterPanel}
+                                    sortItems={memoizedSort}
                                     {...listProps}
                                 />
                             </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import {get, memoize} from 'lodash';
+import {get, MemoizedFunction} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk, IUser} from 'superdesk-api';
@@ -80,6 +80,7 @@ interface IProps {
     showRelatedPlannings(item: IEventItem): void;
     loadMore(viewType: FILTER_TYPE): Promise<any>;
     filter(viewType: FILTER_TYPE): Promise<any>;
+    sortItems: ((items: Array<IEventOrPlanningItem>) => IEventOrPlanningItem[]) & MemoizedFunction
 }
 
 interface IState {
@@ -327,12 +328,6 @@ export class ListPanel extends React.Component<IProps, IState> {
         } = this.props;
 
         let indexFrom = 0;
-        const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
-        const memoizedSort = memoize((items) =>
-            extensionConfig?.comparePlanningItems != null
-                ? items.sort(extensionConfig.comparePlanningItems)
-                : items
-        );
 
         return (
             <React.Fragment>
@@ -382,7 +377,7 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-                                items: memoizedSort(group.events),
+                                items: this.props.sortItems(group.events),
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
                                 onAddCoverageClick: onAddCoverageClick,
