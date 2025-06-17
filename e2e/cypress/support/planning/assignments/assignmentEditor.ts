@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 
 import {Modal} from '../../common/ui';
-import {SelectInput, UserSelectInput} from '../../common/inputs';
+import {CoverageUserSelectInput, SelectInput} from '../../common/inputs';
 
 /**
  * Wrapper class for Superdesk's Assignment popup editor
@@ -14,7 +14,7 @@ export class AssignmentEditor extends Modal {
         this.fields = {
             desk: new SelectInput(() => this.element, 'select[name="assigned_to.desk"]'),
             coverage_provider: new SelectInput(() => this.element, 'select[name="assigned_to.coverage_provider"]'),
-            user: new UserSelectInput(() => this.element, '[data-test-id="assigned_to.user"]'),
+            user: new CoverageUserSelectInput(() => this.element, '[data-test-id="assigned_to.user"]'),
         };
     }
 
