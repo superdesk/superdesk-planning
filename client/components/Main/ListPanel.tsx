@@ -1,5 +1,5 @@
 import React from 'react';
-import {get} from 'lodash';
+import {get, memoize, MemoizedFunction} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk, IUser} from 'superdesk-api';
@@ -19,7 +19,8 @@ import {onEventCapture} from '../../utils';
 
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
-import {Item, Column, Group} from '../UI/List';
+import {Column, Group} from '../UI/List';
+import {IPlanningExtensionConfigurationOptions} from '../../planning-extension/src/extension_configuration_options';
 import './style.scss';
 
 /**
@@ -97,6 +98,7 @@ interface IState {
 
 export class ListPanel extends React.Component<IProps, IState> {
     dom: {list?: any};
+    memoizedSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
 
     constructor(props) {
         super(props);
@@ -115,6 +117,14 @@ export class ListPanel extends React.Component<IProps, IState> {
         this.onItemClick = this.onItemClick.bind(this);
         this.navigateListWorker = this.navigateListWorker.bind(this);
         this.onItemActivate = this.onItemActivate.bind(this);
+
+        const extensionConfig: IPlanningExtensionConfigurationOptions = superdeskApi.getExtensionConfig();
+
+        this.memoizedSort = memoize((items) =>
+            extensionConfig?.comparePlanningItems != null
+                ? items.sort(extensionConfig.comparePlanningItems)
+                : items
+        );
     }
 
     componentWillReceiveProps(nextProps) {
@@ -375,7 +385,7 @@ export class ListPanel extends React.Component<IProps, IState> {
 
                             let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
-                                items: group.events,
+                                items: this.memoizedSort(group.events),
                                 onItemClick: this.onItemClick,
                                 onDoubleClick: onDoubleClick,
                                 onAddCoverageClick: onAddCoverageClick,
