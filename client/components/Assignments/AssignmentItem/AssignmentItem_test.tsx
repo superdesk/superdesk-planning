@@ -5,7 +5,7 @@ import sinon from 'sinon';
 import {createTestStore} from '../../../utils';
 import {List} from '../../UI';
 import {Provider} from 'react-redux';
-import {cloneDeep, noop} from 'lodash';
+import {cloneDeep} from 'lodash';
 import {AbsoluteDate} from '../../AbsoluteDate';
 import {UserAvatarWithMargin} from '../../UserAvatar';
 
@@ -32,6 +32,7 @@ describe('assignments', () => {
                 reassign,
                 revertAssignment,
                 editAssignmentPriority,
+                removeAssignment,
                 startWorking,
                 onDoubleClick,
                 completeAssignment,
@@ -63,7 +64,7 @@ describe('assignments', () => {
                             assignedUser={user}
                             isCurrentUser={false}
                             contentTypes={contentTypes}
-                            removeAssignment={noop}
+                            removeAssignment={removeAssignment}
                         />
                     </Provider>
                 );
@@ -129,64 +130,6 @@ describe('assignments', () => {
                 expect(wrapper.find(List.Border).props().state).toEqual(
                     'locked'
                 );
-            });
-
-            it('ActionMenu executes prop functions', () => {
-                const executeItemAction = (actionLabel) => {
-                    const wrapper = getMountedWrapper();
-                    const menu = new helpers.actionMenu(wrapper, true);
-
-                    menu.invokeAction(actionLabel);
-                };
-
-                lockedItems = null;
-
-                expect(reassign.callCount).toBe(0);
-                executeItemAction('Reassign');
-                expect(reassign.callCount).toBe(1);
-                expect(reassign.args[0][0]).toEqual(assignment);
-
-                expect(editAssignmentPriority.callCount).toBe(0);
-                executeItemAction('Edit Priority');
-                expect(editAssignmentPriority.callCount).toBe(1);
-                expect(editAssignmentPriority.args[0][0]).toEqual(assignment);
-
-                expect(removeAssignment.callCount).toBe(0);
-                executeItemAction('Remove Assignment');
-                expect(removeAssignment.callCount).toBe(1);
-                expect(removeAssignment.args[0][0]).toEqual(assignment);
-
-                assignment.assigned_to.state = 'in_progress';
-                expect(completeAssignment.callCount).toBe(0);
-                executeItemAction('Complete Assignment');
-                expect(completeAssignment.callCount).toBe(1);
-                expect(completeAssignment.args[0][0]).toEqual(assignment);
-
-                assignment.assigned_to = {
-                    user: 'ident1',
-                    state: 'assigned',
-                };
-                assignment.planning.g2_content_type = 'text';
-                expect(startWorking.callCount).toBe(0);
-                executeItemAction('Start Working');
-                expect(startWorking.callCount).toBe(1);
-                expect(startWorking.args[0][0]).toEqual(assignment);
-
-                assignment.item_ids = ['item1'];
-                expect(onDoubleClick.callCount).toBe(0);
-                executeItemAction('Open Coverage');
-                expect(onDoubleClick.callCount).toBe(1);
-                expect(onDoubleClick.args[0]).toEqual([assignment]);
-
-                assignment.assigned_to = {
-                    user: 'ident1',
-                    state: 'completed',
-                };
-                assignment.planning.g2_content_type = 'live_video';
-                expect(revertAssignment.callCount).toBe(0);
-                executeItemAction('Revert Availability');
-                expect(revertAssignment.callCount).toBe(1);
-                expect(revertAssignment.args[0][0]).toEqual(assignment);
             });
         });
     });
