@@ -94,14 +94,7 @@ describe('<AssignmentPreviewContainer />', () => {
             const topTools = wrapper.find('.side-panel__top-tools');
             const audit = wrapper.find('.AssignmentPreview__audit');
 
-            // Renders Content Type icon
-            // Cannot test data-sd-tooltip="Type: text"
-            // Our gettext mock simply returns the string
-            expect(topTools.contains(
-                <span data-sd-tooltip="Type: Text" data-flow="right">
-                    <i className="sd-list-item__inline-icon icon-text" />
-                </span>
-            )).toBe(true);
+            expect(topTools.contains(<i className="sd-list-item__inline-icon icon-text" />)).toBe(true);
 
             // Renders Assignment Priority
             expect(topTools.find('.priority-label--1').exists()).toBe(true);
@@ -116,8 +109,10 @@ describe('<AssignmentPreviewContainer />', () => {
             const menu = new helpers.actionMenu(audit);
 
             expect(menu.isAvailable()).toBe(true);
+
             menu.expectActions([
                 'Start Working',
+                'Edit Planning Item',
                 'Reassign',
                 'Edit Priority',
                 'Remove Assignment',

@@ -34,9 +34,7 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick, id, 
         </span>
     );
 
-    return onClick ?
-        <a onClick={onClick}>{label}</a> :
-        label;
+    return onClick ? <a onClick={onClick}>{label}</a> : label;
 };
 
 Label.propTypes = {

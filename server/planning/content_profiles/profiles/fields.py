@@ -27,6 +27,17 @@ class DateTimeField(schema.SchemaField):
         self.schema["required"] = required
 
 
+class DateOptionalTimeField(schema.SchemaField):
+    def __repr__(self):
+        return "string"
+
+    def __init__(self, required=False, schema=None):
+        """Initialize"""
+        super().__init__()
+        self.schema["type"] = "string"
+        self.schema["required"] = required
+
+
 class BooleanField(schema.SchemaField):
     """Boolean schema field"""
 
