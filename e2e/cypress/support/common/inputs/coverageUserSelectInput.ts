@@ -8,12 +8,12 @@ import {Popup} from '../ui';
 export class CoverageUserSelectInput extends Input {
     type(value) {
         cy.log('Common.SearchableSelectInput.type');
-        const popup = new Popup('.p-dropdown-panel');
+        const popup = new Popup('[data-test-id="tree-select-popover"]');
 
         this.element.click();
         popup.waitTillOpen();
 
-        popup.element.find('input')
+        popup.element.find('[data-test-id="filter-input"]')
             .type(value);
 
         popup.element.find('li')

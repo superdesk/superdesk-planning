@@ -17,6 +17,10 @@ interface IProps extends IEditorFieldProps {
     hideTime?: boolean;
 }
 
+
+/**
+ * @deprecated use EditorFieldDateTimeUIFramework from client/components/fields/editor/base/dateTimeUIFramework.tsx
+ */
 export class EditorFieldDateTime extends React.PureComponent<IProps> {
     node: HTMLInputElement;
 

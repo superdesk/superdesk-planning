@@ -36,6 +36,7 @@ export class AssignmentPreviewComponent extends React.Component {
 
         this.tools = [{
             icon: 'close-small',
+            icon: 'close-small',
             onClick: props.closePanel,
             title: gettext(TOOLTIPS.close),
         }];

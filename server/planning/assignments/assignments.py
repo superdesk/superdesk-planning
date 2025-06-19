@@ -18,6 +18,7 @@ from bson import ObjectId
 from icalendar import Calendar, Event
 from eve.utils import config, ParsedRequest
 from flask import request, json, current_app as app
+from flask_babel import lazy_gettext
 
 import superdesk
 from superdesk import get_resource_service

@@ -1,6 +1,13 @@
 import React from 'react';
 import classNames from 'classnames';
 
+interface IHeaderProps {
+    children?: React.ReactNode;
+    className?: string;
+    darkBlue?: boolean;
+    darker?: boolean;
+}
+
 interface IProps {
     children?: React.ReactNode;
     className?: string;

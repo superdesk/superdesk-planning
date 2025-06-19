@@ -47,6 +47,7 @@ export function getAvatarForCoverage(
     noIcon: boolean = false,
 ): Omit<IPropsAvatar, 'size'> | Omit<IPropsAvatarPlaceholder, 'size'> {
     const user = users.find((u) => u._id === coverage.assigned_to?.user);
+    const statusDotColor = planningUtils.getNewsCoverageStatusDotColor(coverage);
 
     const icon: {name: string; color: string} | undefined =
         noIcon === true || coverage.planning?.g2_content_type == null ? undefined : {
@@ -64,16 +65,16 @@ export function getAvatarForCoverage(
         };
 
     if (user == null) {
-        const placeholder: Omit<IPropsAvatarPlaceholder, 'size'> = {
-            kind: 'user-icon',
+        const placeholder: Omit<IPropsAvatar, 'size'> = {
+            initials: null,
+            imageUrl: null,
+            displayName: 'Unassigned',
             icon: icon,
-            tooltip: gettext('Unassigned'),
+            statusDot: statusDotColor != null ? {color: statusDotColor} : null,
         };
 
         return placeholder;
     } else {
-        const statusDotColor = planningUtils.getNewsCoverageStatusDotColor(coverage);
-
         const avatar: Omit<IPropsAvatar, 'size'> = {
             initials: getUserInitials(user.display_name),
             imageUrl: user.picture_url,

@@ -109,6 +109,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             menu.expectActions([
                 'Start Working',
+                'Edit Planning Item',
                 'Reassign',
                 'Edit Priority',
                 'Remove Assignment',
