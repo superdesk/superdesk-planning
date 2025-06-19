@@ -1,7 +1,14 @@
-import {get, cloneDeep, has, find, every, take, partition} from 'lodash';
+import {get, cloneDeep, has, find, every, take} from 'lodash';
 
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem, IEventTemplate} from '../../interfaces';
+import {
+    ISearchSpikeState,
+    IEventSearchParams,
+    IEventItem,
+    IPlanningItem,
+    IEventTemplate,
+    IEventUpdateMethod,
+} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import {
@@ -558,7 +565,7 @@ function updateLinkedPlanningsForEvent(
      * missing items will be linked, extra items unlinked
      */
     associatedPlannings: Array<IPlanningItem>,
-):Promise<Array<IPlanningItem>> {
+): Promise<Array<IPlanningItem>> {
     return planningApi.events.getLinkedPlanningItems(eventId).then((currentlyLinked) => {
         const currentLinkedIds = new Set(currentlyLinked.map((item) => item._id));
         const toLink: Array<IPlanningItem> = associatedPlannings
@@ -630,20 +637,31 @@ const save = (original, updates) => (
             promise = Promise.resolve({});
         }
 
-        return promise.then((originalEvent): any => {
+        return promise.then((originalEvent) => {
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
             const eventUpdates = eventUtils.getEventDiff(originalItem, updates);
 
-            eventUpdates.update_method = eventUpdates.update_method == null ?
-                EVENTS.UPDATE_METHODS[0].value :
-                eventUpdates.update_method?.value ?? eventUpdates.update_method;
+            eventUpdates.update_method = eventUpdates.update_method == null
+                ? EVENTS.UPDATE_METHODS[0].value as IEventUpdateMethod
+                : eventUpdates.update_method ?? eventUpdates.update_method;
 
-            const createOrUpdatePromise: Promise<Array<IEventItem>> = originalEvent?._id != null ?
-                planningApi.events.update(originalItem, eventUpdates) :
-                planningApi.events.create(eventUpdates);
+            const createOrUpdatePromise = originalEvent?._id != null
+                ? planningApi.events.update(originalItem, eventUpdates)
+                : planningApi.events.create(eventUpdates);
 
             return createOrUpdatePromise.then(([updatedEvent]: Array<IEventItem>) => {
-                const haveLinksChanged = updatedEvent?._id ? areEmbeddedItemsDirty(original, updatedEvent) : false;
+                const haveLinksChanged = updatedEvent?._id
+                    ? areEmbeddedItemsDirty(
+                        originalEvent,
+                        // `embedded_planning` is returned from server. In the UI we interact with associated_plannings.
+                        // to keep `areEmbeddedItemsDirty` reusable we convert the updatedEvent
+                        // to the expected input of the function
+                        {
+                            ...updatedEvent,
+                            associated_plannings: updatedEvent.embedded_planning.map((x) => ({_id: x.planning_id}))
+                        } satisfies IEventItem,
+                    )
+                    : false;
 
                 if (!haveLinksChanged) {
                     return [updatedEvent];
