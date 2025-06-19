@@ -1264,7 +1264,7 @@ function getPlanningByDate(
         };
         const primaryEventIds = getRelatedEventIdsForPlanning(plan, 'primary');
 
-        plan.event = primaryEventIds.length > 0 ?
+        plan.event = primaryEventIds.length > 0 && events ?
             events[primaryEventIds[0]] :
             undefined;
         plan.coverages.forEach((coverage) => {
