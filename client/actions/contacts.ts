@@ -10,33 +10,11 @@ import * as selectors from '../selectors';
  */
 const getContacts = (searchText, searchFields = [], contactType = '', page = 1) => (
     (dispatch, getState, {api}) => {
-        const bool = {
-            must: [],
-            should: [
-                {term: {is_active: true}},
-                {term: {public: true}},
-            ],
-        };
-
-        if (searchText) {
-            bool.must.push({
-                query_string: {
-                    fields: searchFields,
-                    query: searchText + '*',
-                    default_operator: 'AND',
-                },
-            });
-        }
-
-        if (contactType) {
-            bool.must.push({term: {contact_type: contactType}});
-        }
-
         dispatch({type: 'LOADING_CONTACTS'});
 
         return api('contacts').query({
-            source: {query: {bool: bool}},
-            sort: '[("first_name.keyword", 1)]',
+            q: searchText,
+            contact_type: contactType,
             max_results: 200,
             page: page,
         })

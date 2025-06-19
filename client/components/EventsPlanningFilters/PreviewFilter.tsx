@@ -37,11 +37,11 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                     </h3>
                     <SidePanel.Tools
                         tools={[{
-                            icon: 'icon-pencil',
+                            icon: 'pencil',
                             onClick: this.editFilter,
                             title: gettext('Edit'),
                         }, {
-                            icon: 'icon-close-small',
+                            icon: 'close-small',
                             onClick: this.props.onClose,
                             title: gettext('Close'),
                         }]}

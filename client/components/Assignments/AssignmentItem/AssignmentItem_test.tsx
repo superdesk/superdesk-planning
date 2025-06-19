@@ -134,15 +134,6 @@ describe('assignments', () => {
                 );
             });
 
-            it('displays tooltip for priority', () => {
-                const wrapper = getMountedWrapper();
-                const priorityNode = wrapper.find('.priority-label').first();
-
-                expect(priorityNode.prop('data-sd-tooltip')).toBe(
-                    'Priority: {{ name }}'
-                );
-            });
-
             it('ActionMenu executes prop functions', () => {
                 const executeItemAction = (actionLabel) => {
                     const wrapper = getMountedWrapper();

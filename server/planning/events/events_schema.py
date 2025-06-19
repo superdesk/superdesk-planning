@@ -55,6 +55,7 @@ events_schema = {
     "version_creator": metadata_schema["version_creator"],
     "firstcreated": metadata_schema["firstcreated"],
     "versioncreated": metadata_schema["versioncreated"],
+    "firstpublished": metadata_schema["firstpublished"],
     # Ingest Details
     "ingest_provider": metadata_schema["ingest_provider"],
     "source": metadata_schema["source"],
@@ -75,8 +76,9 @@ events_schema = {
     "invitation_details": {"type": "string"},
     "accreditation_info": {"type": "string"},
     "accreditation_deadline": {
-        "type": "datetime",
+        "type": "string",
         "nullable": True,
+        "mapping": {"type": "date"},
     },
     # Reference can be used to hold for example a court case reference number
     "reference": {"type": "string"},

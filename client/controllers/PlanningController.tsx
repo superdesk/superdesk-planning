@@ -7,7 +7,9 @@ import {WORKSPACE} from '../constants';
 import {PlanningApp} from '../apps';
 import eventsApi from '../actions/events/api';
 import {planningApi} from '../superdeskApi';
+import {Loader} from 'superdesk-ui-framework/react';
 
+export const PLANNING_CONTAINER_ID = 'sd-planning-react-container';
 
 export class PlanningController {
     constructor(
@@ -24,6 +26,7 @@ export class PlanningController {
         this.superdeskFlags = superdeskFlags;
 
         this.render = this.render.bind(this);
+        this.renderLoader = this.renderLoader.bind(this);
         this.loadWorkspace = this.loadWorkspace.bind(this);
         this.onDestroy = this.onDestroy.bind(this);
         this.onRouteChange = this.onRouteChange.bind(this);
@@ -37,6 +40,8 @@ export class PlanningController {
             authoring: superdeskFlags.flags.authoring,
         };
 
+        const unmountLoader = this.renderLoader();
+
         pageTitle.setUrl(gettext('Planning'));
 
         $scope.$on('$destroy', this.onDestroy);
@@ -44,7 +49,11 @@ export class PlanningController {
         $scope.$watch(() => superdeskFlags.flags.menu, this.onMenuChange);
 
         return sdPlanningStore.initWorkspace(WORKSPACE.PLANNING, this.loadWorkspace)
-            .then(this.render);
+            .then(() => {
+                unmountLoader();
+
+                return this.render();
+            });
     }
 
     onMenuChange(menuChanged) {
@@ -56,12 +65,25 @@ export class PlanningController {
         }
     }
 
+    renderLoader() {
+        ReactDOM.render(
+            <div id="planning-loader">
+                <Loader overlay />
+            </div>,
+            document.getElementById(PLANNING_CONTAINER_ID)
+        );
+
+        const loaderElement = document.getElementById('planning-loader');
+
+        return () => ReactDOM.unmountComponentAtNode(loaderElement);
+    }
+
     render() {
         ReactDOM.render(
             <Provider store={this.store}>
                 <PlanningApp />
             </Provider>,
-            document.getElementById('sd-planning-react-container')
+            document.getElementById(PLANNING_CONTAINER_ID)
         );
 
         this.rendered = true;
