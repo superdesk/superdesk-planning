@@ -658,7 +658,9 @@ const save = (original, updates) => (
                         // to the expected input of the function
                         {
                             ...updatedEvent,
-                            associated_plannings: updatedEvent.embedded_planning.map((x) => ({_id: x.planning_id}))
+                            associated_plannings: (updatedEvent.embedded_planning ?? []).map((x) =>
+                                ({_id: x.planning_id})
+                            ),
                         } satisfies IEventItem,
                     )
                     : false;
