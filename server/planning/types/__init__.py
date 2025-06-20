@@ -36,6 +36,7 @@ from .enums import (
     SearchScheduleFrequency,
     SearchWeekDay,
     SearchDateRange,
+    LinkType,
 )
 from .agendas import AgendasResourceModel
 from .planning_types import PlanningTypesResourceModel
