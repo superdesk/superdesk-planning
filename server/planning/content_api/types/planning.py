@@ -6,7 +6,7 @@ from planning.types import (
     PlanningCoverage,
     CoverageProvider,
     DeliveryResourceModel,
-    PLANNING_EVENT_LINK_METHOD,
+    LinkType,
 )
 from planning.types.common import SlugLineField, CoverageAssignedTo
 from .common import MatchingProduct
@@ -22,7 +22,7 @@ class RelatedEvent(Dataclass):
     uri: fields.Keyword
     name: str
     literal: fields.Keyword
-    rel: PLANNING_EVENT_LINK_METHOD
+    rel: LinkType
 
 
 class CoverageContactInfo(Dataclass):
