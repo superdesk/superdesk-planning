@@ -399,8 +399,8 @@ class JsonPlanningTestCase(TestCase):
             output_item = await self.format(item)
         coverage = output_item["coverages"][0]
         assert coverage["assigned_user"] == {
-            "first_name": None,
-            "last_name": None,
+            "first_name": "",
+            "last_name": "",
             "display_name": "John Doe",
             "email": "john@example.com",
         }

@@ -36,6 +36,9 @@ async def get_planning_list(args, params: PlanningParams, request: Request) -> R
     search_request = params.to_search_request(request)
     items = await (await service.find(req=search_request)).to_list_raw()
 
+    for item in items:
+        item.pop("subscribers", None)
+
     return Response(
         {
             "_items": items,
@@ -61,4 +64,7 @@ async def get_planning_item(args, params, request: Request) -> Response:
     if not item or ObjectId(token_id) not in item.subscribers:
         return await request.abort(404)
 
-    return Response(item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False))
+    item_dict = item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False)
+    item_dict.pop("subscribers", None)
+
+    return Response(item_dict)

@@ -112,13 +112,13 @@ class JsonPlanningFormatter(Formatter):
         events = []
         for event_ref in get_related_event_links_for_planning(item):
             # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
-            event = get_resource_service("events").find_one(req=None, _id=event_ref["_id"])
+            event = await get_resource_service("events").find_one_async(req=None, _id=event_ref["_id"])
             events.append(
                 {
                     "rel": event_ref["link_type"],
                     "uri": f"urn:event:{event_ref['_id']}",
                     "literal": event_ref["_id"],
-                    "name": event.get("name") if event else "",
+                    "name": (event.get("name") or "") if event else "",
                 }
             )
         output_item["events"] = events
@@ -235,8 +235,8 @@ class JsonPlanningFormatter(Formatter):
             user = get_resource_service("users").find_one(req=None, _id=coverage["assigned_to"]["user"])
             if user and not user.get("private"):
                 coverage["assigned_user"] = {
-                    "first_name": user.get("first_name"),
-                    "last_name": user.get("last_name"),
+                    "first_name": user.get("first_name") or "",
+                    "last_name": user.get("last_name") or "",
                     "display_name": user.get("display_name"),
                 }
 
