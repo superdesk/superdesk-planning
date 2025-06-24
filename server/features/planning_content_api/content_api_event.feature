@@ -1,52 +1,6 @@
 Feature: Events Content API
     Background: Setup publishing resources
-        Given "filter_conditions"
-        """
-        [
-            {"name": "Sports", "field": "anpa_category", "operator": "in", "value": "sports"},
-            {"name": "Finance", "field": "anpa_category", "operator": "in", "value": "finance"}
-        ]
-        """
-        And "content_filters"
-        """
-        [
-            {"name": "sports-only", "content_filter": [{"expression": {"fc": ["#filter_conditions_0._id#"]}}]},
-            {"name": "finance-only", "content_filter": [{"expression": {"fc": ["#filter_conditions_1._id#"]}}]}
-        ]
-        """
-        And "products"
-        """
-        [
-            {
-                "name": "sports", "codes": "sp1,sp2", "product_type": "both",
-                "content_filter": {"filter_id": "#content_filters_0._id#", "filter_type": "permitting"}
-            },
-            {
-                "name": "finance", "codes": "fn1,fn2", "product_type": "both",
-                "content_filter": {"filter_id": "#content_filters_1._id#", "filter_type": "permitting"}
-            }
-        ]
-        """
-        And "subscribers"
-        """
-        [
-            {
-                "name": "Sports Subscriber", "subscriber_type": "digital", "email": "sports_api@test.com",
-                "is_active": true, "api_products": ["#products_0._id#"]
-            },
-            {
-                "name": "All Subscriber", "subscriber_type": "digital", "email": "public_api@test.com",
-                "is_active": true, "api_products": ["#products_0._id#", "#products_1._id#"]
-            }
-        ]
-        """
-        And "subscriber_token"
-        """
-        [
-            {"subscriber": "#subscribers_0._id#", "expiry_days": 64},
-            {"subscriber": "#subscribers_1._id#", "expiry_days": 128}
-        ]
-        """
+        When we configure planning for publishing to capi
 
         # Create test events
         When we post to "events"
@@ -112,7 +66,7 @@ Feature: Events Content API
         Then we get list with 1 items
         """
         {"_items": [
-            {"_id": "event1"}
+            {"_id": "event1", "subscribers": "__no_value__"}
         ]}
         """
         When we get capi "/events/event1"
@@ -122,7 +76,8 @@ Feature: Events Content API
             "_id": "event1",
             "name": "Sports Event",
             "slugline": "sports-event",
-            "anpa_category": [{"name": "Sports", "qcode": "sports"}]
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "subscribers": "__no_value__"
         }
         """
         When we get capi "/events/event2"
@@ -134,8 +89,8 @@ Feature: Events Content API
         Then we get list with 2 items
         """
         {"_items": [
-            {"_id": "event1"},
-            {"_id": "event2"}
+            {"_id": "event1", "subscribers": "__no_value__"},
+            {"_id": "event2", "subscribers": "__no_value__"}
         ]}
         """
         When we get capi "/events/event1"
@@ -145,7 +100,8 @@ Feature: Events Content API
             "_id": "event1",
             "name": "Sports Event",
             "slugline": "sports-event",
-            "anpa_category": [{"name": "Sports", "qcode": "sports"}]
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "subscribers": "__no_value__"
         }
         """
         When we get capi "/events/event2"
@@ -155,7 +111,8 @@ Feature: Events Content API
             "_id": "event2",
             "name": "Finance Event",
             "slugline": "finance-event",
-            "anpa_category": [{"name": "Finance", "qcode": "finance"}]
+            "anpa_category": [{"name": "Finance", "qcode": "finance"}],
+            "subscribers": "__no_value__"
         }
         """
 
@@ -166,13 +123,13 @@ Feature: Events Content API
         When we get capi "/events?start_date=2042-01-01&end_date=2042-01-01"
         Then we get list with 1 items
         """
-        {"_items": [{"slugline": "sports-event"}]}
+        {"_items": [{"slugline": "sports-event", "subscribers": "__no_value__"}]}
         """
 
         When we get capi "/events?start_date=2042-01-02&end_date=2042-01-02"
         Then we get list with 1 items
         """
-        {"_items": [{"slugline": "finance-event"}]}
+        {"_items": [{"slugline": "finance-event", "subscribers": "__no_value__"}]}
         """
 
     @auth
@@ -182,7 +139,7 @@ Feature: Events Content API
         When we get capi "/events?q=sports-event"
         Then we get list with 1 items
         """
-        {"_items": [{"slugline": "sports-event"}]}
+        {"_items": [{"slugline": "sports-event", "subscribers": "__no_value__"}]}
         """
 
     @auth
@@ -193,17 +150,16 @@ Feature: Events Content API
         Then we get list with 2 items
         """
         {"_items": [
-            {"_id": "event1", "slugline": "sports-event", "anpa_category": "__no_value__"},
-            {"_id": "event2", "slugline": "finance-event", "anpa_category": "__no_value__"}
+            {"_id": "event1", "slugline": "sports-event", "anpa_category": "__no_value__", "subscribers": "__no_value__"},
+            {"_id": "event2", "slugline": "finance-event", "anpa_category": "__no_value__", "subscribers": "__no_value__"}
         ]}
         """
-
-        # Test exclude_fields        When we get capi "/events?exclude_fields=anpa_category"
+        When we get capi "/events?exclude_fields=anpa_category"
         Then we get list with 2 items
         """
         {"_items": [
-            {"_id": "event1", "slugline": "sports-event", "anpa_category": "__no_value__"},
-            {"_id": "event2", "slugline": "finance-event", "anpa_category": "__no_value__"}
+            {"_id": "event1", "slugline": "sports-event", "anpa_category": "__no_value__", "subscribers": "__no_value__"},
+            {"_id": "event2", "slugline": "finance-event", "anpa_category": "__no_value__", "subscribers": "__no_value__"}
         ]}
         """
 
@@ -213,15 +169,53 @@ Feature: Events Content API
         When we get capi "/events?max_results=1"
         Then we get list with 1 items
         """
-        {"_items": [{"_id": "event1"}]}
+        {"_items": [{"_id": "event1", "subscribers": "__no_value__"}]}
         """
         When we get capi "/events?max_results=1&page=1"
         Then we get list with 1 items
         """
-        {"_items": [{"_id": "event1"}]}
+        {"_items": [{"_id": "event1", "subscribers": "__no_value__"}]}
         """
         When we get capi "/events?max_results=1&page=2"
         Then we get list with 1 items
         """
-        {"_items": [{"_id": "event2"}]}
+        {"_items": [{"_id": "event2", "subscribers": "__no_value__"}]}
+        """
+
+    @auth
+    Scenario: Post an Event with a file attached
+        When we upload a file "bike.jpg" to "/events_files"
+        When we post to "events"
+        """
+        [{
+            "guid": "event3",
+            "name": "Sports Event with file attachment",
+            "slugline": "sports-event",
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "dates": {
+                "start": "2042-01-01T10:00:00+0000",
+                "end": "2042-01-01T12:00:00+0000"
+            },
+            "files": ["#events_files._id#"]
+        }]
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "event3",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we set capi auth token to "#subscriber_token_0._id#"
+        When we get capi "/events/event3"
+        Then we get existing resource
+        """
+        {
+            "_id": "event3",
+            "files": [{"name": "bike.jpg", "mimetype": "image/jpeg"}],
+            "subscribers": "__no_value__"
+        }
         """

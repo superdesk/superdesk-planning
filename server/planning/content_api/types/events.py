@@ -10,7 +10,7 @@ class ItemFile(Dataclass):
     media: fields.Keyword
     name: fields.TextWithKeyword
     length: int
-    mime_type: fields.Keyword
+    mimetype: fields.Keyword
 
 
 class ContactPhoneNumber(Dataclass):

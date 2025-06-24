@@ -42,6 +42,22 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]
         else:
             await self.create([formatted_item])
 
+        # Make sure the content items have the ``planning_id`` and ``coverage_id`` associated
+        # in case they were linked to a Planning/Coverage after the content was published
+        items_service = get_resource_service("capi_items_internal")
+        planning_id = formatted_item.get("_id")
+        for coverage in formatted_item.get("coverages") or []:
+            coverage_id = coverage.get("coverage_id")
+            for delivery in coverage.get("deliveries") or []:
+                item_id = delivery.get("item_id")
+                if not item_id:
+                    continue
+                content_item = items_service.find_one(req=None, _id=item_id)
+                if content_item and not content_item.get("planning_id"):
+                    items_service.system_update(
+                        item_id, {"planning_id": planning_id, "coverage_id": coverage_id}, content_item
+                    )
+
 
 content_api_planning_resource_config: ResourceConfig = ResourceConfig(
     name="planning_capi",
