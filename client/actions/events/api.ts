@@ -595,12 +595,12 @@ function updateLinkedPlanningsForEvent(
                     *    explicitly removed it from the event
                     * 2. The planning item does not still reference this event in `related_events`
                     *
-                    * This additional checks prevent accidentally removing links for items just saved with a new ID or the
-                    * unintended side effects in workflows like "Add as Event"
+                    * This additional checks prevent accidentally removing links for items just saved with a new
+                    * ID or the unintended side effects in workflows like "Add as Event"
                     */
 
                     const wasExplicitlyRemoved = !associatedPlannings.some(
-                        ({ _id }) => _id === item._id
+                        ({_id}) => _id === item._id
                     );
 
                     const isNotStillLinked = !(item.related_events ?? []).some(
