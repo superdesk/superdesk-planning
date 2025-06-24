@@ -1,4 +1,4 @@
-import {get, cloneDeep, pickBy, every, isEqual} from 'lodash';
+import {get, cloneDeep, pickBy, every, range} from 'lodash';
 import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
@@ -23,6 +23,7 @@ import {
 import main from '../main';
 import {planningParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {IRestApiResponse} from 'superdesk-api';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -115,13 +116,66 @@ function query(
                         return Promise.resolve(result);
                     }
 
-                    return Promise.resolve(response._items);
+                    return Promise.resolve(response);
                 } else {
                     return Promise.reject('Failed to retrieve items');
                 }
             }, (error) => Promise.reject(error))
     );
 }
+
+const handleItemsForLastFetchedDay = (
+    items: Array<IPlanningItem>,
+    params: IPlanningSearchParams = {},
+    total: number,
+    dispatch: any,
+): Promise<Array<IPlanningItem>> => {
+    if (items.length < 1) {
+        return Promise.resolve([]);
+    }
+
+    const itemsGrouped = planningUtils.getPlanningByDate(
+        items,
+        {},
+        params.advancedSearch.dates.start,
+        params.advancedSearch.dates.end,
+        params.timezoneOffset,
+    );
+
+    if (itemsGrouped.length === 1) {
+        const itemsForDate = itemsGrouped[0].events;
+        const pageToFetchUntil = Math.ceil(total / params.maxResults);
+
+        // end is incremented by 1, to include last page, start is
+        // incremented by 1 so we don't fetch for a page, we already have
+        const promises: Array<Promise<IRestApiResponse<IPlanningItem>>> =
+            range(params.page + 1, pageToFetchUntil + 1)
+                .map((page) =>
+                    dispatch(
+                        self.query(
+                            {
+                                ...params,
+                                page: page,
+                            },
+                            true,
+                        )
+                    ),
+                );
+
+        return Promise.all(promises).then((results) => [
+            ...itemsForDate,
+            ...results.flatMap((x) => x._items),
+        ]);
+    } else if (Object.keys(itemsGrouped).length > 1) {
+        const lastGroup = itemsGrouped[itemsGrouped.length - 1];
+
+        dispatch(storeLastDayGroup(lastGroup));
+
+        return Promise.resolve(
+            itemsGrouped.slice(0, itemsGrouped.length - 1).flatMap((x) => x.events),
+        );
+    }
+};
 
 /**
  * Action dispatcher for requesting a fetch of planning items
@@ -130,21 +184,33 @@ function query(
  * @param {object} params - Parameters used when fetching the planning items
  * @return Promise
  */
-const fetch = (params = {}) => (
-    (dispatch) => (
-        dispatch(self.query(params, true))
-            .then((items) => (
-                dispatch(self.fetchPlanningsEvents(items))
-                    .then(() => {
-                        dispatch(self.receivePlannings(items));
-                        return Promise.resolve(items);
-                    }, (error) => (Promise.reject(error)))
-            ), (error) => {
-                dispatch(self.receivePlannings([]));
-                return Promise.reject(error);
-            })
-    )
-);
+const fetch = (params: IPlanningSearchParams = {}) => ((dispatch) => (
+    dispatch(self.query(params, true))
+        .then((response) => handleItemsForLastFetchedDay(
+            response._items,
+            {
+                ...params,
+                maxResults: response._meta.max_results,
+                page: response._meta.page,
+            },
+            response._meta.total,
+            dispatch,
+        ))
+        .then((items) => (
+            dispatch(self.fetchPlanningsEvents(items))
+                .then(() => {
+                    dispatch(self.receivePlannings(items));
+
+                    return Promise.resolve(items);
+                })
+                .catch((error) => Promise.reject(error))
+        ))
+        .catch((error) => {
+            dispatch(self.receivePlannings([]));
+
+            return Promise.reject(error);
+        })
+));
 
 /**
  * Action Dispatcher to re-fetch the current list of planning
@@ -161,8 +227,8 @@ const refetch = (page = 1, plannings = []) => (
         };
 
         return dispatch(self.query(params, true))
-            .then((items) => {
-                plannings = plannings.concat(items); // eslint-disable-line no-param-reassign
+            .then((response) => {
+                plannings = plannings.concat(response._items); // eslint-disable-line no-param-reassign
                 page++; // eslint-disable-line no-param-reassign
                 if (get(prevParams, 'page', 1) >= page) {
                     return dispatch(self.refetch(page, plannings));
@@ -481,6 +547,15 @@ const receivePlannings = (plannings): any => (
         dispatch({
             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
             payload: plannings,
+        });
+    }
+);
+
+const storeLastDayGroup = (group): any => (
+    (dispatch) => {
+        dispatch({
+            type: PLANNING.ACTIONS.STORE_LAST_DAY_GROUP,
+            payload: {group},
         });
     }
 );

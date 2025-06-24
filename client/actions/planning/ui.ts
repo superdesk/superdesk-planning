@@ -125,11 +125,23 @@ const loadMore = () => (
 
         return dispatch(planningApis.fetch(params))
             .then((items) => {
+                const lastDayGroupItems = selectors.planning.lastDayGroup(getState());
+
                 if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
                     dispatch(self.requestPlannings(params));
                 }
-                dispatch(self.addToList(items.map((p) => p._id)));
-                return Promise.resolve(items);
+
+                const result: Array<IPlanningItem> = items;
+
+                if ((lastDayGroupItems?.events ?? []).length > 0) {
+                    // add items from group to stored planning items, so grouping works later
+                    dispatch(planningApis.receivePlannings(lastDayGroupItems.events));
+                    result.push(...lastDayGroupItems.events);
+                }
+
+                dispatch(self.addToList(result.map((x) => x._id)));
+
+                return Promise.resolve(result);
             });
     }
 );
@@ -278,8 +290,8 @@ const openFeaturedPlanningModal = () => (
         return planningApi.locks.lockFeaturedPlanning()
             .then(() => dispatch(showModal({
                 modalType: MODALS.FEATURED_STORIES,
-            })),
-            (error) => {
+            })))
+            .catch((error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to lock featured story action!'))
                 );
