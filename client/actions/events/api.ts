@@ -588,9 +588,26 @@ function updateLinkedPlanningsForEvent(
                      */
                     return false;
                 } else {
-                    const needToUnlink = associatedPlannings.find(({_id}) => _id === item._id) == null;
+                    /**
+                    * This block ensures we only unlink planning items when it's clearly safe and intentional i.e
+                    * after meeting the following conditions:
+                    * 1. The planning item is not listed in `associatedPlannings`, meaning the user
+                    *    explicitly removed it from the event
+                    * 2. The planning item does not still reference this event in `related_events`
+                    *
+                    * This additional checks prevent accidentally removing links for items just saved with a new ID or the
+                    * unintended side effects in workflows like "Add as Event"
+                    */
 
-                    return needToUnlink;
+                    const wasExplicitlyRemoved = !associatedPlannings.some(
+                        ({ _id }) => _id === item._id
+                    );
+
+                    const isNotStillLinked = !(item.related_events ?? []).some(
+                        (rel) => rel._id === eventId
+                    );
+
+                    return wasExplicitlyRemoved && isNotStillLinked;
                 }
             });
 
