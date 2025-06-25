@@ -81,7 +81,7 @@ describe('actions.planning.api', () => {
         it('api.spike returns Promise.reject on error', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject('Failed!')));
             return store.test(done, planningApi.spike(data.plannings[1]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => { /* no-op */}, (error) => {
                     expect(error).toBe('Failed!');
                     done();
                 })
@@ -107,7 +107,7 @@ describe('actions.planning.api', () => {
         it('api.unspike returns Promise.reject on error', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject('Failed!')));
             return store.test(done, planningApi.unspike(data.plannings[1]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => { /* no-op */}, (error) => {
                     expect(error).toBe('Failed!');
                     done();
                 })
@@ -121,7 +121,7 @@ describe('actions.planning.api', () => {
         });
 
         it('refetch', (done) => {
-            sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve(['item'])));
+            sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve({_items: ['item']})));
             store.initialState.main.filter = MAIN.FILTERS.PLANNING;
             store.initialState.main.search.PLANNING.lastRequestParams.page = 3;
 
@@ -170,7 +170,7 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApis.planning.search);
             sinon.stub(planningApis.planning, 'search').returns(Promise.reject('Failed!'));
             return store.test(done, planningApi.fetch())
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => { /* no-op */}, (error) => {
                     expect(error).toBe('Failed!');
                     expect(planningApi.query.callCount).toBe(1);
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(0);
@@ -191,9 +191,9 @@ describe('actions.planning.api', () => {
         it('returns if no linked events', (done) => (
             store.test(done, planningApi.fetchPlanningsEvents(data.plannings))
                 .then((items) => {
-                // When actions.events has been upgraded to use named exports like planning
-                // Then we can mock actions.events.silentlyFetchEventsById
-                // and check the callCount & args of that function
+                    // When actions.events has been upgraded to use named exports like planning
+                    // Then we can mock actions.events.silentlyFetchEventsById
+                    // and check the callCount & args of that function
                     expect(items).toEqual([]);
 
                     // The API should not have been called
@@ -414,7 +414,7 @@ describe('actions.planning.api', () => {
             );
 
             return store.test(done, planningApi.save(null, {_id: 'p3'}))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => { /* no-op */}, (error) => {
                     expect(error).toBe('Failed!');
 
                     expect(planningApi.fetchById.callCount).toBe(1);
@@ -437,7 +437,7 @@ describe('actions.planning.api', () => {
             services.api('planning').save = sinon.spy(() => (Promise.reject('Failed!')));
 
             return store.test(done, planningApi.save(planningItem))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => { /* no-op */}, (error) => {
                     expect(error).toBe('Failed!');
 
                     expect(services.api('planning').getById.callCount).toBe(0);
@@ -601,7 +601,7 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApis.planning.getById);
             sinon.stub(planningApis.planning, 'getById').returns(Promise.reject(errorMessage));
             store.test(done, planningApi.getPlanning(data.plannings[1]._id))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => { /* no-op */}, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();
@@ -628,7 +628,7 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApis.planning.search);
             sinon.stub(planningApis.planning, 'search').returns(Promise.reject(errorMessage));
             store.test(done, planningApi.loadPlanningByRecurrenceId('rec1'))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(() => { /* no-op */}, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 })

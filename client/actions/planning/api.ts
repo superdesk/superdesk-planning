@@ -183,6 +183,10 @@ const handleItemsForLastFetchedDay = (
 const fetch = (params: IPlanningSearchParams = {}) => ((dispatch) => (
     dispatch(self.query(params, true))
         .then((response) => {
+            if (response._meta == null) {
+                return response._items;
+            }
+
             return handleItemsForLastFetchedDay(
                 response._items,
                 {
