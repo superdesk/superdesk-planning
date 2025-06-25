@@ -24,6 +24,7 @@ import main from '../main';
 import {planningParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import {IRestApiResponse} from 'superdesk-api';
+import moment from 'moment';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -148,19 +149,14 @@ const handleItemsForLastFetchedDay = (
 
         // end is incremented by 1, to include last page, start is
         // incremented by 1 so we don't fetch for a page, we already have
-        const promises: Array<Promise<IRestApiResponse<IPlanningItem>>> =
-            range(params.page + 1, pageToFetchUntil + 1)
-                .map((page) =>
-                    dispatch(
-                        self.query(
-                            {
-                                ...params,
-                                page: page,
-                            },
-                            true,
-                        )
-                    ),
-                );
+        const allPages = range(params.page + 1, pageToFetchUntil + 1);
+
+        if (allPages.length < 1) {
+            return Promise.resolve(itemsForDate);
+        }
+
+        const promises: Array<Promise<IRestApiResponse<IPlanningItem>>> = allPages
+            .map((page) => dispatch(self.query({...params, page: page}, true)));
 
         return Promise.all(promises).then((results) => [
             ...itemsForDate,
@@ -186,16 +182,25 @@ const handleItemsForLastFetchedDay = (
  */
 const fetch = (params: IPlanningSearchParams = {}) => ((dispatch) => (
     dispatch(self.query(params, true))
-        .then((response) => handleItemsForLastFetchedDay(
-            response._items,
-            {
-                ...params,
-                maxResults: response._meta.max_results,
-                page: response._meta.page,
-            },
-            response._meta.total,
-            dispatch,
-        ))
+        .then((response) => {
+            return handleItemsForLastFetchedDay(
+                response._items,
+                {
+                    ...params,
+                    maxResults: response._meta.max_results,
+                    page: response._meta.page,
+                    advancedSearch: {
+                        ...params.advancedSearch,
+                        dates: {
+                            ...params.advancedSearch.dates,
+                            start: params.advancedSearch?.dates?.start ? params.advancedSearch.dates.start : moment(),
+                        },
+                    },
+                },
+                response._meta.total,
+                dispatch,
+            );
+        })
         .then((items) => (
             dispatch(self.fetchPlanningsEvents(items))
                 .then(() => {

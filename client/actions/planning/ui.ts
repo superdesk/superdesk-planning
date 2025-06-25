@@ -96,10 +96,11 @@ const addToList = (ids) => ({
 function fetchToList(params: IPlanningSearchParams) {
     return (dispatch) => {
         dispatch(self.requestPlannings(params));
+
         return dispatch(planningApis.fetch(params))
-            .then((items) => (dispatch(self.setInList(
-                items.map((p) => p._id)
-            ))));
+            .then((items) =>
+                dispatch(self.setInList(items.map((p) => p._id)))
+            );
     };
 }
 
