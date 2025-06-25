@@ -135,10 +135,9 @@ describe('Search.Planning: searching planning items', () => {
                 'start_date.date': '02/02/2045',
                 'end_date.date': '03/02/2045',
             },
-            expectedCount: 2,
+            expectedCount: 1,
             expectedText: [
                 'Plan Feb 2',
-                'Plan Feb 3',
             ],
             clearAfter: true,
         }, {
@@ -151,14 +150,14 @@ describe('Search.Planning: searching planning items', () => {
             expectedCount: 1,
             expectedText: ['Plan Tomorrow'],
             clearAfter: true,
-        }, 
-        // tomorrow can be next week too, needs fixing
-        // {
-        //     params: {date_filter: 'Next Week'},
-        //     expectedCount: 1,
-        //     expectedText: ['Plan Next Week'],
-        //     clearAfter: true,
-        // },
+        },
+            // tomorrow can be next week too, needs fixing
+            // {
+            //     params: {date_filter: 'Next Week'},
+            //     expectedCount: 1,
+            //     expectedText: ['Plan Next Week'],
+            //     clearAfter: true,
+            // },
         ]);
     });
 });

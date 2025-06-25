@@ -143,6 +143,10 @@ const handleItemsForLastFetchedDay = (
         params.timezoneOffset,
     );
 
+    if (itemsGrouped.length === 0) {
+        return Promise.resolve(items);
+    }
+
     if (itemsGrouped.length === 1) {
         const itemsForDate = itemsGrouped[0].events;
         const pageToFetchUntil = Math.ceil(total / params.maxResults);
@@ -198,6 +202,7 @@ const fetch = (params: IPlanningSearchParams = {}) => ((dispatch) => (
                         dates: {
                             ...params.advancedSearch.dates,
                             start: params.advancedSearch?.dates?.start ? params.advancedSearch.dates.start : moment(),
+                            end: params.advancedSearch?.dates?.end ? params.advancedSearch.dates.end : moment(),
                         },
                     },
                 },
