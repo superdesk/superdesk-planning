@@ -252,6 +252,7 @@ export class UpdateTimeComponent extends React.Component {
                         onToBeConfirmed={this.handleToBeConfirmed}
                         toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
                         showDate={true}
+                        fullWidth={false}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -275,6 +276,7 @@ export class UpdateTimeComponent extends React.Component {
                         onToBeConfirmed={this.handleToBeConfirmed}
                         toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
                         showDate={true}
+                        fullWidth={false}
                         {...fieldProps}
                     />
                 </FormRow>
