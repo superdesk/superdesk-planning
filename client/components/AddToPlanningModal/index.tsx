@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
-import {Modal} from 'superdesk-ui-framework/react';
+import {Modal} from '../index';
 import {Button} from '../UI';
 import {AddToPlanningApp} from '../../apps';
 
@@ -55,8 +55,9 @@ export class AddToPlanningComponent extends React.Component {
 
         return (
             <Modal
-                visible={true}
+                show={true}
                 onHide={actionInProgress ? null : handleCancel}
+                fill={true}
                 size="x-large"
                 contentPadding="none"
                 headerTemplate={(
