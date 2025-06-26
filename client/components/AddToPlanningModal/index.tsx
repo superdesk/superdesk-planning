@@ -58,28 +58,36 @@ export class AddToPlanningComponent extends React.Component {
                 show={true}
                 onHide={actionInProgress ? null : handleCancel}
                 fill={true}
-                size="x-large"
-                contentPadding="none"
-                headerTemplate={(
+            >
+                <Modal.Header>
                     <h3 className="modal__heading">
                         {gettext('Select an existing Planning Item or create a new one')}
                     </h3>
-                )}
-                footerTemplate={(
+                    {actionInProgress ? null : (
+                        <a className="icn-btn" onClick={handleCancel}>
+                            <i className="icon-close-small" />
+                        </a>
+                    )}
+                </Modal.Header>
+
+                <Modal.Body noPadding fullHeight noScroll>
+                    <div className="planning-app__modal AddToPlanning">
+                        <AddToPlanningApp
+                            addNewsItemToPlanning={newsItem}
+                            popupContainer={() => this.dom.popupContainer}
+                            onCancel={handleCancel}
+                        />
+                    </div>
+                </Modal.Body>
+
+                <Modal.Footer>
                     <Button
                         text={gettext('Ignore')}
                         disabled={actionInProgress}
                         onClick={handleCancel}
                     />
-                )}
-            >
-                <div className="planning-app__modal AddToPlanning">
-                    <AddToPlanningApp
-                        addNewsItemToPlanning={newsItem}
-                        popupContainer={() => this.dom.popupContainer}
-                        onCancel={handleCancel}
-                    />
-                </div>
+                </Modal.Footer>
+                <div ref={(node) => this.dom.popupContainer = node} />
             </Modal>
         );
     }
