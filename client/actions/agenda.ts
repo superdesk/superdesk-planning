@@ -1,12 +1,12 @@
 import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
-import moment, {Moment} from 'moment-timezone';
+import {Moment} from 'moment';
 
 import {IEventItem, IPlanningItem, IAgenda, IPlanningRelatedEventLink} from '../interfaces';
 import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext, planningUtils, timeUtils} from '../utils';
+import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
 import {convertStringFields} from '../utils/strings';
 import planningApis from '../actions/planning/api';
@@ -254,24 +254,11 @@ export function convertEventToPlanningItem(event: IEventItem): Partial<IPlanning
         eventLink.recurrence_id = event.recurrence_id;
     }
 
-    const isAllDay = event.dates?.all_day === true;
-    const timeZone = event.dates?.tz || timeUtils.localTimeZone();
-    const eventStart = event.dates?.start;
-    let planningDate: moment.MomentInput;
-
-    if (eventStart) {
-        const baseStart = moment.tz(eventStart, timeZone);
-
-        planningDate = isAllDay ? baseStart.startOf('day').utc() : baseStart.utc();
-    } else {
-        planningDate = event._sortDate;
-    }
-
     let newPlanningItem: Partial<IPlanningItem> = {
         ...defaultValues,
         type: 'planning',
         related_events: [eventLink],
-        planning_date: planningDate,
+        planning_date: event.dates?.start || event._sortDate,
         all_day: appConfig.planning.all_day === true,
         place: event.place || defaultPlace,
         subject: event.subject,
