@@ -1,6 +1,6 @@
 import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
-import {Moment} from 'moment';
+import moment, {Moment} from 'moment-timezone';
 
 import {IEventItem, IPlanningItem, IAgenda, IPlanningRelatedEventLink} from '../interfaces';
 import {planningApi} from '../superdeskApi';
