@@ -7,20 +7,18 @@ import {IEditorProfileGroup} from 'interfaces';
 
 interface IProps {
     group: IEditorProfileGroup;
-    groups: Array<IEditorProfileGroup>;
     selectedGroup?: IEditorProfileGroup;
     onClick(group: IEditorProfileGroup): void;
-    onSortChange(groups: Array<IEditorProfileGroup>): void;
     insertGroup(index: number): void;
     removeGroup(group: IEditorProfileGroup): void;
+    isLastGroup: boolean;
 }
 
 export default class GroupElementTemplate extends React.PureComponent<IProps, any> {
     render(): React.ReactNode {
         const {gettext} = superdeskApi.localization;
         const {querySelectorParent} = superdeskApi.utilities;
-        const {groups, group} = this.props;
-        const isLastGroup = group._id === groups[groups.length - 1]?._id;
+        const {group} = this.props;
 
         return (
             <List.Item
@@ -76,7 +74,7 @@ export default class GroupElementTemplate extends React.PureComponent<IProps, an
                         }}
                     />
                 </List.ActionMenu>
-                {!isLastGroup ? null : (
+                {!this.props.isLastGroup ? null : (
                     <div className="profile-item__add-btn profile-item__add-btn--bottom">
                         <Button
                             text={gettext('Add group after')}
