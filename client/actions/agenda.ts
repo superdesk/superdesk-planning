@@ -6,7 +6,7 @@ import {IEventItem, IPlanningItem, IAgenda, IPlanningRelatedEventLink} from '../
 import {planningApi} from '../superdeskApi';
 
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext, planningUtils} from '../utils';
+import {getErrorMessage, gettext, planningUtils, eventUtils} from '../utils';
 import {planning, showModal, main} from './index';
 import {convertStringFields} from '../utils/strings';
 import planningApis from '../actions/planning/api';
@@ -215,9 +215,12 @@ const addEventToCurrentAgenda = (
 
             promise = promise.then(() => (
                 Promise.all(
-                    eventsChunk.map((event) => (
-                        dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas))
-                    ))
+                    eventsChunk.map((event, idx) => {
+                        if (!event._sortDate && event.dates?.start) {
+                            event._sortDate = eventUtils.normalizeSortDate(event);
+                        }
+                        return dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas));
+                    })
                 )
                     .then((data) => data.forEach((p) => plannings.push(p)))
                     .then(() => {
