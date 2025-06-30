@@ -1614,7 +1614,6 @@ const self = {
     getEventDiff,
     convertCoverageToEventEmbedded,
     addSomeEventsAsRelatedToPlanningEditor,
-    getLocalStartDate,
     normalizeSortDate,
 };
 
