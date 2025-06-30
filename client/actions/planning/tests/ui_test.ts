@@ -105,7 +105,9 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApis.spike);
             sinon.stub(planningApis, 'spike').callsFake(() => (Promise.reject(errorMessage)));
             return store.test(done, planningUi.spike(data.plannings[1]))
-                .then(() => { /* no-op */}, (error) => {
+                .then(() => {
+                    /* no-op */
+                }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     // Notifies end user of failure
@@ -149,7 +151,9 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApis.unspike);
             sinon.stub(planningApis, 'unspike').callsFake(() => (Promise.reject(errorMessage)));
             return store.test(done, planningUi.unspike(data.plannings[1]))
-                .then(() => { /* no-op */}, (error) => {
+                .then(() => {
+                    /* no-op */
+                }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     // Notifies end user of failure
@@ -190,7 +194,9 @@ describe('actions.planning.ui', () => {
             );
 
             return store.test(done, planningUi.save(data.plannings[1], {}))
-                .then(() => { /* no-op */}, (error) => {
+                .then(() => {
+                    /* no-op */
+                }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();
@@ -316,7 +322,6 @@ describe('actions.planning.ui', () => {
                 expect(planningUi.requestPlannings.args[0]).toEqual([expectedParams]);
 
                 expect(planningApis.fetch.callCount).toBe(1);
-                console.log(planningApis.fetch.args[0], 'planningApis.fetch.args[0]');
                 expect(planningApis.fetch.args[0]).toEqual([expectedParams, undefined]);
 
                 expect(planningUi.addToList.callCount).toBe(1);
@@ -419,7 +424,9 @@ describe('actions.planning.ui', () => {
             sinon.stub(planningApis, 'save').callsFake(() => Promise.reject(errorMessage));
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0]))
-                .then(() => { /* no-op */}, () => {
+                .then(() => {
+                    /* no-op */
+                }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
@@ -438,7 +445,9 @@ describe('actions.planning.ui', () => {
             );
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0]))
-                .then(() => { /* no-op */}, () => {
+                .then(() => {
+                    /* no-op */
+                }, () => {
                     expect(services.notify.error.callCount).toBe(2);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
