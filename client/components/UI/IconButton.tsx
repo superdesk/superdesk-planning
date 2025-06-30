@@ -6,7 +6,6 @@ import {KEYCODES} from './constants';
 import {onEventCapture} from './utils';
 
 import {Icon} from './';
-import {Prop} from 'superdesk-ui-framework';
 
 /**
  * @ngdoc react
