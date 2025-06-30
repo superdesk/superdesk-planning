@@ -1153,7 +1153,7 @@ function getLocalEndDate(event: IEventItem): moment.Moment {
 
 function normalizeSortDate(event: IEventItem) {
     const localStart = getLocalStartDate(event);
-    
+
     return localStart.toISOString();
 }
 

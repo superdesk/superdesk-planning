@@ -1,5 +1,5 @@
 import sinon from 'sinon';
-import moment from "moment";
+import moment from 'moment';
 import * as actions from '../agenda';
 import {createTestStore, registerNotifications} from '../../utils';
 import {cloneDeep} from 'lodash';
@@ -340,7 +340,10 @@ describe('agenda', () => {
                                 related_events: [{
                                     _id: events[0]._id,
                                 }],
-                                planning_date: moment.tz(events[0].dates.start, events[0].dates.tz).utc().toISOString(),
+                                planning_date: moment
+                                    .tz(events[0].dates.start, events[0].dates.tz)
+                                    .utc()
+                                    .toISOString(),
                                 all_day: false,
                                 slugline: events[0].slugline,
                                 name: events[0].name,

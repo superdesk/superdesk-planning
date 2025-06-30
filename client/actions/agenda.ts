@@ -219,7 +219,7 @@ const addEventToCurrentAgenda = (
                         if (!event._sortDate && event.dates?.start) {
                             event._sortDate = eventUtils.normalizeSortDate(event);
                         }
-                        return dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas))
+                        return dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas));
                     })
                 )
                     .then((data) => data.forEach((p) => plannings.push(p)))
