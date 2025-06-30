@@ -178,7 +178,10 @@ const handleItemsForLastFetchedDay = (
  * @param {object} params - Parameters used when fetching the planning items
  * @return Promise
  */
-const fetch = (params: IPlanningSearchParams = {}, existingItems) => ((dispatch, getState) => (
+const fetch = (
+    params: IPlanningSearchParams = {},
+    existingItems: Array<IPlanningItem> = [],
+) => ((dispatch, getState) => (
     dispatch(self.query(params, true))
         .then((response) => {
             if (response._meta == null) {
@@ -201,7 +204,7 @@ const fetch = (params: IPlanningSearchParams = {}, existingItems) => ((dispatch,
             }
 
             return handleItemsForLastFetchedDay(
-                [...response._items, ...(existingItems ?? [])],
+                [...response._items, ...existingItems],
                 {
                     ...params,
                     maxResults: response._meta.max_results,
