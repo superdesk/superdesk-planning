@@ -21,8 +21,8 @@ import './style.scss';
  * @description Component to pick time in hours and minutes
  */
 export class TimeInput extends React.Component {
-    inputPadding: number;
-    iconPadding: number;
+    private inputPadding: number;
+    private iconPadding: number;
     constructor(props) {
         super(props);
         this.state = {
@@ -111,20 +111,26 @@ export class TimeInput extends React.Component {
             .isValid();
     }
 
+    componentDidUpdate(_prevProps, prevState) {
+        if (prevState.viewValue !== this.state.viewValue) {
+            this.updateInputWidth();
+        }
+    }
+
     validateTimeText(field, val) {
         if (!this.isValidInput(val)) {
             this.setState({
                 invalid: true,
                 viewValue: val,
                 showLocalValidation: false,
-            }, this.updateInputWidth);
+            });
         } else {
             this.setState({
                 invalid: false,
                 viewValue: val,
                 previousValidValue: val,
                 showLocalValidation: false,
-            }, this.updateInputWidth);
+            });
             this.onChange(val);
         }
     }
