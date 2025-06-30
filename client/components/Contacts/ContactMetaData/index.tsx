@@ -65,7 +65,8 @@ export class ContactMetaData extends React.PureComponent<IProps> {
                 contactActions.push(
                     <IconButton
                         icon="icon-pencil"
-                        aria-label={gettext('Edit Contact')}
+                        tooltip={gettext('Edit Contact')}
+                        tooltipDirection="left"
                         tabIndex={this.props.tabEnabled ? 0 : null}
                         onClick={this.editContact}
                     />
@@ -76,7 +77,8 @@ export class ContactMetaData extends React.PureComponent<IProps> {
                 contactActions.push(
                     <IconButton
                         icon="icon-trash"
-                        aria-label={gettext('Remove Contact')}
+                        tooltip={gettext('Remove Contact')}
+                        tooltipDirection="left"
                         tabIndex={this.props.tabEnabled ? 0 : null}
                         onClick={this.removeContact}
                     />

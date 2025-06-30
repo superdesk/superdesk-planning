@@ -6,6 +6,7 @@ import {KEYCODES} from './constants';
 import {onEventCapture} from './utils';
 
 import {Icon} from './';
+import {Prop} from 'superdesk-ui-framework';
 
 /**
  * @ngdoc react
@@ -24,6 +25,7 @@ const IconButton = ({
     label,
     tooltip,
     tooltipDirection,
+    ariaLabel,
     ...props
 }) => {
     const handleKeyDown = (event) => {
@@ -50,6 +52,7 @@ const IconButton = ({
             onKeyDown={enterKeyIsClick ? handleKeyDown : onKeyDown}
             data-sd-tooltip={tooltip}
             data-flow={tooltipDirection}
+            aria-label={ariaLabel || tooltip}
             {...props}
         >
             <Icon icon={icon} />
@@ -70,6 +73,7 @@ IconButton.propTypes = {
     label: PropTypes.string,
     tooltip: PropTypes.string,
     tooltipDirection: PropTypes.string,
+    ariaLabel: PropTypes.string,
 };
 
 IconButton.defaultProps = {
