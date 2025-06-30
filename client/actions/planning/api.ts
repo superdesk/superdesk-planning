@@ -188,6 +188,11 @@ const fetch = (
                 return response._items;
             }
 
+            // all items were returned from the first page
+            if (response._meta.total === (response._items ?? []).length) {
+                return response._items;
+            }
+
             const lastDayGroupItems = selectors.planning.lastDayGroup(getState())?.events ?? [];
             const itemsInList = selectors.planning.planIdsInList(getState());
             const storedPlannings = selectors.planning.storedPlannings(getState());
