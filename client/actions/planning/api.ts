@@ -191,6 +191,10 @@ const fetch = (params: IPlanningSearchParams = {}) => ((dispatch) => (
                 return response._items;
             }
 
+            if (response._meta.total === (response._items ?? []).length) {
+                return response._items;
+            }
+
             return handleItemsForLastFetchedDay(
                 response._items,
                 {

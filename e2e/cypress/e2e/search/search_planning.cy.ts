@@ -135,9 +135,10 @@ describe('Search.Planning: searching planning items', () => {
                 'start_date.date': '02/02/2045',
                 'end_date.date': '03/02/2045',
             },
-            expectedCount: 1,
+            expectedCount: 2,
             expectedText: [
                 'Plan Feb 2',
+                'Plan Feb 3',
             ],
             clearAfter: true,
         }, {
