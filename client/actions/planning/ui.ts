@@ -109,7 +109,7 @@ function fetchToList(params: IPlanningSearchParams) {
  * Uses planning.lastRequestParams from the redux store for the api query,
  * then adds the received Planning items to the Planning List
  */
-const loadMore = () => (
+const loadMore = (existingItems) => (
     (dispatch, getState) => {
         const previousParams = selectors.main.lastRequestParams(getState());
         const totalItems = selectors.main.planningTotalItems(getState());
@@ -124,7 +124,7 @@ const loadMore = () => (
             page: get(previousParams, 'page', 1) + 1,
         };
 
-        return dispatch(planningApis.fetch(params))
+        return dispatch(planningApis.fetch(params, existingItems))
             .then((items) => {
                 const lastDayGroupItems = selectors.planning.lastDayGroup(getState());
 

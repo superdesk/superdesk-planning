@@ -23,8 +23,8 @@ import {
 import main from '../main';
 import {planningParamsToSearchParams} from '../../utils/search';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
-import {IRestApiResponse} from 'superdesk-api';
 import moment from 'moment';
+import planningUi from './ui';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -130,13 +130,14 @@ const handleItemsForLastFetchedDay = (
     params: IPlanningSearchParams = {},
     total: number,
     dispatch: any,
+    lastGroupItems: Array<IPlanningItem>,
 ): Promise<Array<IPlanningItem>> => {
     if (items.length < 1) {
         return Promise.resolve([]);
     }
 
     const itemsGrouped = planningUtils.getPlanningByDate(
-        items,
+        [...items, ...lastGroupItems],
         {},
         params.advancedSearch.dates.start,
         params.advancedSearch.dates.end,
@@ -144,11 +145,8 @@ const handleItemsForLastFetchedDay = (
     );
 
     if (itemsGrouped.length === 0) {
-        return Promise.resolve(items);
-    }
-
-    if (itemsGrouped.length === 1) {
-        const itemsForDate = itemsGrouped[0].events;
+        return Promise.resolve([...items, ...lastGroupItems]);
+    } else if (itemsGrouped.length === 1 || params.page === 1) {
         const pageToFetchUntil = Math.ceil(total / params.maxResults);
 
         // end is incremented by 1, to include last page, start is
@@ -156,16 +154,12 @@ const handleItemsForLastFetchedDay = (
         const allPages = range(params.page + 1, pageToFetchUntil + 1);
 
         if (allPages.length < 1) {
-            return Promise.resolve(itemsForDate);
+            return Promise.resolve(itemsGrouped[0].events);
         }
 
-        const promises: Array<Promise<IRestApiResponse<IPlanningItem>>> = allPages
-            .map((page) => dispatch(self.query({...params, page: page}, true)));
+        dispatch(planningUi.loadMore(items));
 
-        return Promise.all(promises).then((results) => [
-            ...itemsForDate,
-            ...results.flatMap((x) => x._items),
-        ]);
+        return Promise.resolve([]);
     } else if (Object.keys(itemsGrouped).length > 1) {
         const lastGroup = itemsGrouped[itemsGrouped.length - 1];
 
@@ -184,19 +178,30 @@ const handleItemsForLastFetchedDay = (
  * @param {object} params - Parameters used when fetching the planning items
  * @return Promise
  */
-const fetch = (params: IPlanningSearchParams = {}) => ((dispatch) => (
+const fetch = (params: IPlanningSearchParams = {}, existingItems) => ((dispatch, getState) => (
     dispatch(self.query(params, true))
         .then((response) => {
             if (response._meta == null) {
                 return response._items;
             }
 
-            if (response._meta.total === (response._items ?? []).length) {
-                return response._items;
+            const lastDayGroupItems = selectors.planning.lastDayGroup(getState())?.events ?? [];
+            const itemsInList = selectors.planning.planIdsInList(getState());
+            const storedPlannings = selectors.planning.storedPlannings(getState());
+
+            // response._meta.total - total items for provided range
+            // all items for the query were already fetched
+            if (response._meta.total === itemsInList.length) {
+                dispatch(storeLastDayGroup([])); // group is being returned, so reset it
+
+                return [
+                    ...(itemsInList ?? []).map((id) => storedPlannings[id]),
+                    ...lastDayGroupItems,
+                ];
             }
 
             return handleItemsForLastFetchedDay(
-                response._items,
+                [...response._items, ...(existingItems ?? [])],
                 {
                     ...params,
                     maxResults: response._meta.max_results,
@@ -206,23 +211,24 @@ const fetch = (params: IPlanningSearchParams = {}) => ((dispatch) => (
                         dates: {
                             ...params.advancedSearch.dates,
                             start: params.advancedSearch?.dates?.start ? params.advancedSearch.dates.start : moment(),
-                            end: params.advancedSearch?.dates?.end ? params.advancedSearch.dates.end : moment(),
+                            end: params.advancedSearch?.dates?.end,
                         },
                     },
                 },
                 response._meta.total,
                 dispatch,
+                lastDayGroupItems,
             );
         })
-        .then((items) => (
-            dispatch(self.fetchPlanningsEvents(items))
+        .then((items) => {
+            return dispatch(self.fetchPlanningsEvents(items))
                 .then(() => {
                     dispatch(self.receivePlannings(items));
 
                     return Promise.resolve(items);
                 })
-                .catch((error) => Promise.reject(error))
-        ))
+                .catch((error) => Promise.reject(error));
+        })
         .catch((error) => {
             dispatch(self.receivePlannings([]));
 
