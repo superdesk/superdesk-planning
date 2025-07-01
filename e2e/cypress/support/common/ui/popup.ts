@@ -2,6 +2,8 @@
  * Wrapper class for Superdesk's Popup component
  */
 export class Popup {
+    selector: string;
+
     /**
      * Creates an instance of the Popup wrapper
      * @param {string} selector - The CSS selector to find the modal
@@ -24,8 +26,8 @@ export class Popup {
      */
     waitTillOpen(timeout = 4000) {
         cy.log('Common.UI.Popup.waitTillOpen');
-        cy.get(this.selector, {timeout: timeout})
-            .should('exist');
+        cy.get(this.selector).children({timeout: timeout})
+            .should('be.visible');
     }
 
     /**
