@@ -167,19 +167,28 @@ Feature: Planning Content API
 
         When we get capi "/planning?where=slugline==test-planning-1"
         When we get capi "/planning?max_results=1"
-        Then we get list with 1 items
+        Then we get existing resource
         """
-        {"_items": [{"_id": "plan1", "subscribers": "__no_value__"}]}
+        {
+            "_items": [{"_id": "plan1", "subscribers": "__no_value__"}],
+            "_meta": {"max_results": 1, "page": 1, "total": 2}
+        }
         """
         When we get capi "/planning?max_results=1&page=1"
-        Then we get list with 1 items
+        Then we get existing resource
         """
-        {"_items": [{"_id": "plan1", "subscribers": "__no_value__"}]}
+        {
+            "_items": [{"_id": "plan1", "subscribers": "__no_value__"}],
+            "_meta": {"max_results": 1, "page": 1, "total": 2}
+        }
         """
         When we get capi "/planning?max_results=1&page=2"
-        Then we get list with 1 items
+        Then we get existing resource
         """
-        {"_items": [{"_id": "plan2", "subscribers": "__no_value__"}]}
+        {
+            "_items": [{"_id": "plan2", "subscribers": "__no_value__"}],
+            "_meta": {"max_results": 1, "page": 2, "total": 2}
+        }
         """
 
     @auth
@@ -212,3 +221,107 @@ Feature: Planning Content API
         # Test exclude_fields
         When we get capi "/planning?exclude_fields=anpa_category"
         Then we get list with 2 items
+
+    @auth
+    Scenario: Test ContentAPIPlanningResource model
+        Given empty "planning_capi"
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "agenda"
+        """
+        [{"name": "sports", "is_enabled": true}]
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "guid": "full-plan-1",
+            "type": "planning",
+            "slugline": "test-full-planning-1",
+            "headline": "Testing Full Planning 1",
+            "name": "Full Test Plan 1",
+            "planning_date": "2042-01-01T05:00:00+0000",
+            "firstcreated": "2023-07-01T10:00:00+0000",
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "description_text": "Something about something being planned",
+            "agendas": ["#agenda._id#"],
+            "urgency": 4,
+            "coverages": [{
+                "coverage_id": "txt-cov-1",
+                "workflow_status": "draft",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text",
+                    "scheduled": "2042-01-01T07:00:00+0000",
+                    "genre": [{"name": "Article (news)", "qcode": "Article"}],
+                    "keyword": ["test", "keywords"],
+                    "language": "en",
+                    "workflow_status_reason": "some reason",
+                    "priority": 5
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "draft"
+                }
+            }]
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we set capi auth token to "#subscriber_token_1._id#"
+        # Test start_date and end_date filter (planning_date should match)
+        When we get capi "/planning"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "_id": "full-plan-1",
+            "subscribers": "__no_value__",
+            "type": "planning",
+            "products": [{"code": "__objectid__", "name": "sports"}],
+            "pubstatus": "usable",
+            "slugline": "test-full-planning-1",
+            "headline": "Testing Full Planning 1",
+            "name": "Full Test Plan 1",
+            "planning_date": "2042-01-01T05:00:00+0000",
+            "firstcreated": "2023-07-01T10:00:00+0000",
+            "versioncreated": "__now__",
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "description_text": "Something about something being planned",
+            "agendas": [{"_id": "#agenda._id#", "name": "sports"}],
+            "urgency": 4,
+            "coverages": [{
+                "coverage_id": "txt-cov-1",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "draft",
+                "planning": {
+                    "scheduled": "2042-01-01T07:00:00+0000",
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text",
+                    "genre": [{"name": "Article (news)", "qcode": "Article"}],
+                    "keyword": ["test", "keywords"],
+                    "language": "en",
+                    "workflow_status_reason": "some reason",
+                    "priority": 5
+                },
+                "assigned_to": "__no_value__",
+                "assigned_user": {"display_name": "test_user"},
+                "assigned_desk": {"name": "Sports"}
+            }]
+        }]}
+        """

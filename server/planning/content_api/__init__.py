@@ -7,14 +7,17 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-from .types.events import ContentAPIEventResource
-from .types.planning import ContentAPIPlanningResource
+from .types import ContentAPIEventResource, ContentAPIPlanningResource
 
-from .events.event import ContentAPIEventService, content_api_event_resource_config
-from .planning.planning import ContentAPIPlanningService, content_api_planning_resource_config
 from superdesk.core.module import Module
-from .events import event_endpoints
-from .planning import planning_endpoints
+
+from .resources import (
+    ContentAPIEventService,
+    ContentAPIPlanningService,
+    content_api_event_resource_config,
+    content_api_planning_resource_config,
+)
+from .views import event_endpoints, planning_endpoints
 
 __all__ = [
     "ContentAPIEventService",

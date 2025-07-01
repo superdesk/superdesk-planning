@@ -16,8 +16,8 @@ from superdesk.core.types import Request, Response
 
 from planning.types import SearchItemType
 
-from .planning import ContentAPIPlanningService
 from ..types import PlanningCAPIParams
+from ..resources import ContentAPIPlanningService
 
 
 planning_endpoints = EndpointGroup("planning_capi", __name__)
@@ -30,22 +30,38 @@ class PlanningParams(PlanningCAPIParams):
         return SearchItemType.PLANNING
 
 
+# TODO-PR: Make these Planning specific???
+EXCLUDE_FIELDS = {
+    "_created",
+    "created",
+    "_updated",
+    "updated",
+    "_etag",
+    "etag",
+    "_type",
+    "type",
+    "subscribers",
+    "_planning_schedule",
+    "planning_schedule",
+}
+
+
 @planning_endpoints.endpoint("planning", methods=["GET"])
 async def get_planning_list(args, params: PlanningParams, request: Request) -> Response:
     service = ContentAPIPlanningService()
     search_request = params.to_search_request(request)
-    items = await (await service.find(req=search_request)).to_list_raw()
-
-    for item in items:
-        item.pop("subscribers", None)
+    cursor = await service.find(req=search_request)
 
     return Response(
         {
-            "_items": items,
+            "_items": [
+                item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False, exclude=EXCLUDE_FIELDS)
+                async for item in cursor
+            ],
             "_meta": {
                 "page": search_request.page,
                 "max_results": search_request.max_results,
-                "total": len(items),
+                "total": await cursor.count(),
             },
         }
     )
