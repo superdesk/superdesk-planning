@@ -285,7 +285,7 @@ describe('actions.planning.ui', () => {
                 expect(planningUi.requestPlannings.callCount).toBe(0);
 
                 expect(planningApis.fetch.callCount).toBe(1);
-                expect(planningApis.fetch.args[0]).toEqual([expectedParams, undefined]);
+                expect(planningApis.fetch.args[0]).toEqual([expectedParams]);
 
                 expect(planningUi.addToList.callCount).toBe(1);
                 expect(planningUi.addToList.args[0]).toEqual([['p1', 'p2']]);
@@ -322,7 +322,7 @@ describe('actions.planning.ui', () => {
                 expect(planningUi.requestPlannings.args[0]).toEqual([expectedParams]);
 
                 expect(planningApis.fetch.callCount).toBe(1);
-                expect(planningApis.fetch.args[0]).toEqual([expectedParams, undefined]);
+                expect(planningApis.fetch.args[0]).toEqual([expectedParams]);
 
                 expect(planningUi.addToList.callCount).toBe(1);
 
