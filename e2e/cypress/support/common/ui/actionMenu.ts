@@ -66,8 +66,9 @@ export function getMenuItem(
     parent: Cypress.Chainable<JQuery<HTMLElement>>,
     ...actions // multiple arguments can be passed to get a nested item
 ) {
-    parent.get('[data-test-id="menu-button"]').click();
-    parent.get('[data-test-id="menu"]').should('be.visible');
+    parent.click();
+    parent.get('[data-test-id="menu-button"]', {timeout: 2000}).should('be.visible').click();
+    parent.get('[data-test-id="menu"]', {timeout: 2000}).should('be.visible');
 
     let item: Cypress.Chainable<JQuery<HTMLElement>>;
 

@@ -13,7 +13,8 @@ export class CoverageUserSelectInput extends Input {
         this.element.click();
         popup.waitTillOpen();
 
-        popup.element.find('[data-test-id="filter-input"]')
+        popup.element.find('[data-test-id="filter-input"]', {timeout: 2000})
+            .should('be.enabled')
             .type(value);
 
         popup.element.find('li')
