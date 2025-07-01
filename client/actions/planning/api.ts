@@ -1,4 +1,4 @@
-import {get, cloneDeep, pickBy, every, range} from 'lodash';
+import {get, cloneDeep, pickBy, every, range, uniq, uniqBy} from 'lodash';
 import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
@@ -137,10 +137,25 @@ const handleItemsForLastFetchedDay = (
     }
 
     const lastDayGroupItems = selectors.planning.lastDayGroup(getState()) ?? [];
+    const itemIdsInList = selectors.planning.planIdsInList(getState());
 
-    // all items were fetched, no need to fetch further
-    if (total === (items ?? []).length + (lastDayGroupItems ?? []).length) {
-        return Promise.resolve([...items, ...lastDayGroupItems]);
+    const hasFetchedTotalItems = total === (items ?? []).length + (lastDayGroupItems ?? []).length;
+    const hasLoadedAllItems = total === itemIdsInList.length;
+
+    if (hasFetchedTotalItems || hasLoadedAllItems) {
+        dispatch(storeLastDayGroup([]));
+
+        const storedPlannings = selectors.planning.storedPlannings(getState());
+        const listItems: Array<IPlanningItem> = (itemIdsInList ?? []).map((id) => storedPlannings[id]);
+
+        // listItems might contain some or all of items, get unique set of all
+        const allItems = uniqBy([
+            ...listItems,
+            ...items,
+            ...lastDayGroupItems
+        ], (item) => item._id);
+
+        return Promise.resolve(allItems);
     }
 
     const itemsGrouped = planningUtils.getPlanningByDate(
@@ -158,29 +173,11 @@ const handleItemsForLastFetchedDay = (
         // otherwise if the first group has 1 item, a second has 50 items, user
         // can end up in an invalid state where he can't trigger loadMore by scrolling
     } else if (itemsGrouped.length === 1 || params.page === 1) {
-        const pageToFetchUntil = Math.ceil(total / params.maxResults);
+        const lastPage = Math.ceil(total / params.maxResults);
 
-        // end is incremented by 1, to include last page, start is
-        // incremented by 1 so we don't fetch for a page, we already have
-        const allPages = range(params.page + 1, pageToFetchUntil + 1);
-
-        if (allPages.length < 1) {
+        // No pages left to fetch
+        if (params.page > lastPage + 1) {
             return Promise.resolve(itemsGrouped.flatMap((x) => x.events));
-        }
-
-        const itemsInList = selectors.planning.planIdsInList(getState());
-
-        // all items were already fetched from previous
-        // requests and are already stored in the list items.
-        // Mostly used for when switching range display - Day, Week, Month
-        if (total === itemsInList.length) {
-            dispatch(storeLastDayGroup([])); // group is being returned, so reset it
-            const storedPlannings = selectors.planning.storedPlannings(getState());
-
-            return Promise.resolve([
-                ...(itemsInList ?? []).map((id) => storedPlannings[id]),
-                ...lastDayGroupItems,
-            ]);
         }
 
         dispatch(storeLastDayGroup(items));
