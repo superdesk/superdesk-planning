@@ -130,6 +130,7 @@ const handleItemsForLastFetchedDay = (
     params: IPlanningSearchParams = {},
     total: number,
     dispatch: any,
+    getState: () => any,
     lastGroupItems: Array<IPlanningItem>,
 ): Promise<Array<IPlanningItem>> => {
     if (items.length < 1) {
@@ -159,6 +160,19 @@ const handleItemsForLastFetchedDay = (
 
         if (allPages.length < 1) {
             return Promise.resolve(itemsGrouped[0].events);
+        }
+
+        const itemsInList = selectors.planning.planIdsInList(getState());
+        const storedPlannings = selectors.planning.storedPlannings(getState());
+
+        // end of fetching recursion - all items for the are fetched
+        if (total === itemsInList.length) {
+            dispatch(storeLastDayGroup([])); // group is being returned, so reset it
+
+            return Promise.resolve([
+                ...(itemsInList ?? []).map((id) => storedPlannings[id]),
+                ...lastGroupItems,
+            ]);
         }
 
         dispatch(planningUi.loadMore(items));
@@ -198,19 +212,6 @@ const fetch = (
             }
 
             const lastDayGroupItems = selectors.planning.lastDayGroup(getState())?.events ?? [];
-            const itemsInList = selectors.planning.planIdsInList(getState());
-            const storedPlannings = selectors.planning.storedPlannings(getState());
-
-            // response._meta.total - total items for provided range
-            // all items for the query were already fetched
-            if (response._meta.total === itemsInList.length) {
-                dispatch(storeLastDayGroup([])); // group is being returned, so reset it
-
-                return [
-                    ...(itemsInList ?? []).map((id) => storedPlannings[id]),
-                    ...lastDayGroupItems,
-                ];
-            }
 
             return handleItemsForLastFetchedDay(
                 [...response._items, ...existingItems],
@@ -229,6 +230,7 @@ const fetch = (
                 },
                 response._meta.total,
                 dispatch,
+                getState,
                 lastDayGroupItems,
             );
         })
