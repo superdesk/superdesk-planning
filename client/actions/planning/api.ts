@@ -131,14 +131,20 @@ const handleItemsForLastFetchedDay = (
     total: number,
     dispatch: any,
     getState: () => any,
-    lastGroupItems: Array<IPlanningItem>,
 ): Promise<Array<IPlanningItem>> => {
     if (items.length < 1) {
         return Promise.resolve([]);
     }
 
+    const lastDayGroupItems = selectors.planning.lastDayGroup(getState()) ?? [];
+
+    // all items were fetched, no need to fetch further
+    if (total === (items ?? []).length + (lastDayGroupItems ?? []).length) {
+        return Promise.resolve([...items, ...lastDayGroupItems]);
+    }
+
     const itemsGrouped = planningUtils.getPlanningByDate(
-        [...items, ...lastGroupItems],
+        [...items, ...lastDayGroupItems],
         {},
         params.advancedSearch.dates.start,
         params.advancedSearch.dates.end,
@@ -146,7 +152,7 @@ const handleItemsForLastFetchedDay = (
     );
 
     if (itemsGrouped.length === 0) {
-        return Promise.resolve([...items, ...lastGroupItems]);
+        return Promise.resolve([...items, ...lastDayGroupItems]);
 
         // on initial page load we need to make sure items for all groups are loaded
         // otherwise if the first group has 1 item, a second has 50 items, user
@@ -159,29 +165,32 @@ const handleItemsForLastFetchedDay = (
         const allPages = range(params.page + 1, pageToFetchUntil + 1);
 
         if (allPages.length < 1) {
-            return Promise.resolve(itemsGrouped[0].events);
+            return Promise.resolve(itemsGrouped.flatMap((x) => x.events));
         }
 
         const itemsInList = selectors.planning.planIdsInList(getState());
-        const storedPlannings = selectors.planning.storedPlannings(getState());
 
-        // end of fetching recursion - all items for the are fetched
+        // all items were already fetched from previous
+        // requests and are already stored in the list items.
+        // Mostly used for when switching range display - Day, Week, Month
         if (total === itemsInList.length) {
             dispatch(storeLastDayGroup([])); // group is being returned, so reset it
+            const storedPlannings = selectors.planning.storedPlannings(getState());
 
             return Promise.resolve([
                 ...(itemsInList ?? []).map((id) => storedPlannings[id]),
-                ...lastGroupItems,
+                ...lastDayGroupItems,
             ]);
         }
 
-        dispatch(planningUi.loadMore(items));
+        dispatch(storeLastDayGroup(items));
+        dispatch(planningUi.loadMore());
 
         return Promise.resolve([]);
     } else if (Object.keys(itemsGrouped).length > 1) {
         const lastGroup = itemsGrouped[itemsGrouped.length - 1];
 
-        dispatch(storeLastDayGroup(lastGroup));
+        dispatch(storeLastDayGroup(lastGroup).events);
 
         return Promise.resolve(
             itemsGrouped.slice(0, itemsGrouped.length - 1).flatMap((x) => x.events),
@@ -196,25 +205,15 @@ const handleItemsForLastFetchedDay = (
  * @param {object} params - Parameters used when fetching the planning items
  * @return Promise
  */
-const fetch = (
-    params: IPlanningSearchParams = {},
-    existingItems: Array<IPlanningItem> = [],
-) => ((dispatch, getState) => (
+const fetch = (params: IPlanningSearchParams = {}) => ((dispatch, getState) => (
     dispatch(self.query(params, true))
         .then((response) => {
             if (response._meta == null) {
                 return response._items;
             }
 
-            // all items were returned from the first page
-            if (response._meta.total === (response._items ?? []).length) {
-                return response._items;
-            }
-
-            const lastDayGroupItems = selectors.planning.lastDayGroup(getState())?.events ?? [];
-
             return handleItemsForLastFetchedDay(
-                [...response._items, ...existingItems],
+                response._items,
                 {
                     ...params,
                     maxResults: response._meta.max_results,
@@ -231,7 +230,6 @@ const fetch = (
                 response._meta.total,
                 dispatch,
                 getState,
-                lastDayGroupItems,
             );
         })
         .then((items) => {

@@ -109,7 +109,7 @@ function fetchToList(params: IPlanningSearchParams) {
  * Uses planning.lastRequestParams from the redux store for the api query,
  * then adds the received Planning items to the Planning List
  */
-const loadMore = (existingItems?: Array<IPlanningItem>) => (
+const loadMore = () => (
     (dispatch, getState) => {
         const previousParams = selectors.main.lastRequestParams(getState());
         const totalItems = selectors.main.planningTotalItems(getState());
@@ -124,25 +124,15 @@ const loadMore = (existingItems?: Array<IPlanningItem>) => (
             page: get(previousParams, 'page', 1) + 1,
         };
 
-        return dispatch(planningApis.fetch(params, existingItems))
+        return dispatch(planningApis.fetch(params))
             .then((items) => {
-                const lastDayGroupItems = selectors.planning.lastDayGroup(getState());
-
                 if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
                     dispatch(self.requestPlannings(params));
                 }
 
-                const result: Array<IPlanningItem> = items;
+                dispatch(self.addToList(items.map((x) => x._id)));
 
-                if ((lastDayGroupItems?.events ?? []).length > 0) {
-                    // add items from group to stored planning items, so grouping works later
-                    dispatch(planningApis.receivePlannings(lastDayGroupItems.events));
-                    result.push(...lastDayGroupItems.events);
-                }
-
-                dispatch(self.addToList(result.map((x) => x._id)));
-
-                return Promise.resolve(result);
+                return Promise.resolve(items);
             });
     }
 );

@@ -23,7 +23,7 @@ export function storedPlannings(state: IPlanningAppState): {[key: string]: IPlan
     return state.planning?.plannings ?? {};
 }
 export const planIdsInList = (state) => get(state, 'planning.planningsInList', []);
-export const lastDayGroup: (state: any) => {date: string; events?: Array<IPlanningItem>} | null =
+export const lastDayGroup: (state: any) => Array<IPlanningItem> | null =
     (state) => state.planning?.lastDayGroup;
 export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
