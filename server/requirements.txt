@@ -23,4 +23,4 @@ aioresponses
 
 -e .
 # Install in editable state so we get feature fixtures
--e git+https://github.com/MarkLark86/superdesk-core.git@SDESK-7630-prod-api#egg=superdesk-core
+-e git+https://github.com/superdesk/superdesk-core.git@async#egg=superdesk-core
