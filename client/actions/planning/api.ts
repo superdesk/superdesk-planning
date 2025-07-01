@@ -146,6 +146,10 @@ const handleItemsForLastFetchedDay = (
 
     if (itemsGrouped.length === 0) {
         return Promise.resolve([...items, ...lastGroupItems]);
+
+        // on initial page load we need to make sure items for all groups are loaded
+        // otherwise if the first group has 1 item, a second has 50 items, user
+        // can end up in an invalid state where he can't trigger loadMore by scrolling
     } else if (itemsGrouped.length === 1 || params.page === 1) {
         const pageToFetchUntil = Math.ceil(total / params.maxResults);
 
