@@ -28,7 +28,7 @@ class PlanningService(ProdApiService):
         | excluded_lock_fields
     )
 
-    def _process_fetched_object(self, doc: Planning):
+    async def _process_fetched_object(self, doc: Planning):
         super()._process_fetched_object(doc)
         sync_assignment_details_to_coverages(doc)
 
@@ -36,5 +36,4 @@ class PlanningService(ProdApiService):
             add_related_event_links(doc, doc)
             assignment_ids = get_assignment_ids_from_planning(doc)
             if len(assignment_ids):
-                # TODO-ASYNC[archive]: Prefix this line with ``await `` after ProdAPI base service is upgraded
-                doc[LINKS]["assignments"] = construct_assignment_links(assignment_ids)
+                doc[LINKS]["assignments"] = await construct_assignment_links(assignment_ids)
