@@ -1151,6 +1151,12 @@ function getLocalEndDate(event: IEventItem): moment.Moment {
     return moment(event.dates.end);
 }
 
+function normalizeSortDate(event: IEventItem) {
+    const localStart = getLocalStartDate(event);
+
+    return localStart.toISOString();
+}
+
 function modifyForClient(event: IEventItem): IEventItem; // overload
 
 // eslint-disable-next-line no-redeclare
@@ -1608,6 +1614,7 @@ const self = {
     getEventDiff,
     convertCoverageToEventEmbedded,
     addSomeEventsAsRelatedToPlanningEditor,
+    normalizeSortDate,
 };
 
 export default self;

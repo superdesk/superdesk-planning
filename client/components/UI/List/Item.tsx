@@ -13,6 +13,8 @@ interface IProps {
     tabIndex?: number;
     draggable?: boolean;
     testId?: string;
+    zIndex?: number;
+    flexRow?: boolean;
 
     onClick?(event: React.MouseEvent<HTMLLIElement>): void;
     onMouseEnter?(): void;
@@ -49,6 +51,18 @@ export class Item extends React.PureComponent<IProps> {
             testId,
         } = this.props;
 
+        let styles: React.CSSProperties = {};
+
+        if (this.props.flexRow) {
+            styles.display = 'flex';
+            styles.flexDirection = 'row';
+            styles.justifyContent = 'center';
+        }
+
+        if (this.props.zIndex) {
+            styles.zIndex = this.props.zIndex;
+        }
+
         return (
             <li
                 data-test-id={testId}
@@ -65,6 +79,7 @@ export class Item extends React.PureComponent<IProps> {
                         'sd-list-item--draggable': draggable,
                     }
                 )}
+                style={styles}
                 onClick={onClick}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
