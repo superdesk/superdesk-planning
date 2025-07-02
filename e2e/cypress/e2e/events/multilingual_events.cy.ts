@@ -25,8 +25,7 @@ describe('Planning.Events: multilingual functionality', () => {
         manageProfiles.selectTab(1);
         manageProfiles.expectSelectedTab('Event Fields');
 
-        cy.wait(1000);
-
+        cy.wait(250);
         // Enable the standard `Language` field
         manageProfiles.openAddFieldMenu(3);
         manageProfiles.addField('Language');
@@ -123,7 +122,7 @@ describe('Planning.Events: multilingual functionality', () => {
         manageProfiles.show('event');
         manageProfiles.selectTab(1);
 
-        cy.wait(1000);
+        cy.wait(250);
         manageProfiles.openAddFieldMenu(3);
         manageProfiles.addField('Language');
         manageProfiles.getFooterButton('Save').click();
