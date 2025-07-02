@@ -126,13 +126,12 @@ export class GroupList extends React.PureComponent<IProps> {
                 <WithSortable
                     items={this.props.groups}
                     getId={(item) => item._id}
-                    itemTemplate={(item) => (
+                    itemTemplate={({item}) => (
                         <GroupElementTemplate
-                            group={item.item}
-                            groups={this.props.groups}
-                            insertGroup={this.props.insertGroup}
+                            group={item}
                             onClick={this.props.onClick}
-                            onSortChange={this.props.onSortChange}
+                            isLastGroup={item._id === this.props.groups[this.props.groups.length - 1]?._id}
+                            insertGroup={this.props.insertGroup}
                             removeGroup={this.props.removeGroup}
                         />
                     )}
