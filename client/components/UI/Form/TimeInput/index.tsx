@@ -36,7 +36,6 @@ export class TimeInput extends React.Component {
         this.dom = {
             inputField: null,
             hiddenSpan: null,
-            inputWrapper: null,
             iconWrapper: null,
         };
 
@@ -244,14 +243,14 @@ export class TimeInput extends React.Component {
     }
 
     updateInputWidth() {
-        if ((this.props.fullWidth === false) && this.dom.hiddenSpan && this.dom.inputField && this.dom.inputWrapper) {
-            const width = this.dom.hiddenSpan.offsetWidth
-                + this.inputPadding
-                + this.dom.iconWrapper.offsetWidth
-                + this.iconPadding;
+        if ((this.props.fullWidth === false) && this.dom.hiddenSpan && this.dom.inputField) {
+            const characterCount = this.state.viewValue.length;
 
-            this.dom.inputField.style.width = `${width}px`;
-            this.dom.inputWrapper.style.width = `${width}px`;
+            const additionalPixelWidth = this.inputPadding
+            + this.dom.iconWrapper.offsetWidth
+            + this.iconPadding;
+
+            this.dom.inputField.style.width = `calc(${characterCount}ch + ${additionalPixelWidth}px)`;
         } else {
             return null;
         }
@@ -312,8 +311,11 @@ export class TimeInput extends React.Component {
             >
                 <Label text={label} />
                 <div
-                    style={{position: 'relative', paddingBlock: '1.8rem'}}
-                    ref={(ref) => this.dom.inputWrapper = ref}
+                    style={{
+                        position: 'relative',
+                        paddingBlock: '1.8rem',
+                        display: 'inline-flex',
+                    }}
                 >
                     <IconButton
                         className="sd-line-input__icon-right"
