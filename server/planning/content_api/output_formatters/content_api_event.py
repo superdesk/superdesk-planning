@@ -1,6 +1,7 @@
 from planning.types import PlanningSchedule
 from planning.output_formatters.json_event import JsonEventFormatter
-from planning.output_formatters.utils import format_base_content_api_item
+
+from ..utils import format_base_content_api_item
 
 
 class ContentApiEventFormatter(JsonEventFormatter):
@@ -15,18 +16,11 @@ class ContentApiEventFormatter(JsonEventFormatter):
     include_files = None
 
     async def _format_item(self, item: dict, subscribers: list[dict] | None = None) -> dict:
-        item = await super()._format_item(item)
-        item.update(
-            {
-                "subscribers": [subscriber["_id"] for subscriber in subscribers or []],
-                "planning_schedule": [PlanningSchedule(scheduled=item["dates"]["start"])],
-            }
-        )
-        return await self._get_resource_instance(item)
+        return await self._get_resource_instance(await super()._format_item(item), subscribers)
 
-    async def _get_resource_instance(self, item: dict) -> dict:
+    async def _get_resource_instance(self, item: dict, subscribers: list[dict] | None) -> dict:
         return dict(
-            **await format_base_content_api_item(item),
+            **await format_base_content_api_item(item, subscribers),
             definition_short=item.get("definition_short"),
             definition_long=item.get("definition_long"),
             registration_details=item.get("registration_details"),
@@ -41,4 +35,5 @@ class ContentApiEventFormatter(JsonEventFormatter):
             event_contact_info=item["event_contact_info"],
             calendars=item.get("calendars"),
             related_items=item.get("related_items"),
+            _planning_schedule=[PlanningSchedule(scheduled=item["dates"]["start"])],
         )

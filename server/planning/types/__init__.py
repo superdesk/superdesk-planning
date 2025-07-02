@@ -54,6 +54,7 @@ from .planning_featured import PlanningFeaturedResourceModel
 from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
+from . import ninjs3
 
 
 __all__ = [
@@ -96,6 +97,7 @@ __all__ = [
     "LocationResourceModel",
     "EventPlanningFilter",
     "AssignmentsHistoryResourceModel",
+    "ninjs3",
 ]
 
 

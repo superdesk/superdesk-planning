@@ -38,8 +38,7 @@ class JsonPlanningFormatter(BaseJsonFormatter):
         self.format_type = "json_planning"
 
     # fields to be removed from the planning item
-    # TODO-PR?: Allow nested path within the one string of fields to remove
-    remove_fields = (
+    remove_fields: set[str] | None = {
         "lock_time",
         "lock_action",
         "lock_session",
@@ -51,7 +50,7 @@ class JsonPlanningFormatter(BaseJsonFormatter):
         "_planning_schedule",
         "files",
         "_updates_schedule",
-    )
+    }
 
     # fields to be removed from coverage
     remove_coverage_fields = (
@@ -62,7 +61,7 @@ class JsonPlanningFormatter(BaseJsonFormatter):
     )
     remove_coverage_planning_fields = ("contact_info", "files", "xmp_file")
 
-    async def _format_item(self, item):
+    async def _format_item(self, item, subscribers: list[dict] | None = None):
         """Format the item to json planning"""
         await super()._format_item(item)
         for coverage in item.get("coverages", []):

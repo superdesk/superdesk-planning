@@ -18,6 +18,7 @@ from planning.types import SearchItemType
 
 from ..types import PlanningCAPIParams
 from ..resources import ContentAPIPlanningService
+from ..utils import convert_cursor_to_response_items, convert_capi_item_to_response_instance
 
 
 planning_endpoints = EndpointGroup("planning_capi", __name__)
@@ -30,22 +31,6 @@ class PlanningParams(PlanningCAPIParams):
         return SearchItemType.PLANNING
 
 
-# TODO-PR: Make these Planning specific???
-EXCLUDE_FIELDS = {
-    "_created",
-    "created",
-    "_updated",
-    "updated",
-    "_etag",
-    "etag",
-    "_type",
-    "type",
-    "subscribers",
-    "_planning_schedule",
-    "planning_schedule",
-}
-
-
 @planning_endpoints.endpoint("planning", methods=["GET"])
 async def get_planning_list(args, params: PlanningParams, request: Request) -> Response:
     service = ContentAPIPlanningService()
@@ -54,10 +39,7 @@ async def get_planning_list(args, params: PlanningParams, request: Request) -> R
 
     return Response(
         {
-            "_items": [
-                item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False, exclude=EXCLUDE_FIELDS)
-                async for item in cursor
-            ],
+            "_items": await convert_cursor_to_response_items(cursor, params),
             "_meta": {
                 "page": search_request.page,
                 "max_results": search_request.max_results,
@@ -80,7 +62,4 @@ async def get_planning_item(args, params, request: Request) -> Response:
     if not item or ObjectId(token_id) not in item.subscribers:
         return await request.abort(404)
 
-    item_dict = item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False)
-    item_dict.pop("subscribers", None)
-
-    return Response(item_dict)
+    return Response(convert_capi_item_to_response_instance(item))

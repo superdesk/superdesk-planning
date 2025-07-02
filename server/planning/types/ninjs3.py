@@ -1,8 +1,7 @@
 from datetime import datetime
 from enum import Enum, unique
 
-from quart_babel import gettext
-from pydantic import model_validator, Field
+from pydantic import Field
 
 from superdesk.core.resources import BaseModel, Dataclass
 

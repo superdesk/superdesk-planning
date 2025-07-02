@@ -361,12 +361,12 @@ class JsonPlanningTestCase(TestCase):
             }
 
             self.app.data.insert("archive", [article])
-            deliveries, _ = formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
+            deliveries, _ = await formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
             self.assertNotEqual(deliveries[0]["item_id"], ingest_id)
 
             article = self.app.data.find_one("archive", req=None, _id=item_id)
             self.app.data.update("archive", item_id, {"auto_publish": True}, article)
-            deliveries, _ = formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
+            deliveries, _ = await formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
             self.assertEqual(deliveries[0]["item_id"], ingest_id)
 
             article = self.app.data.find_one("archive", req=None, _id=item_id)
@@ -375,7 +375,7 @@ class JsonPlanningTestCase(TestCase):
                 "extra": {"publish_ingest_id_as_guid": True},
             }
             self.app.data.update("archive", item_id, updates, article)
-            deliveries, _ = formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
+            deliveries, _ = await formatter._expand_delivery(deepcopy(self.item["coverages"][0]))
             self.assertEqual(deliveries[0]["item_id"], ingest_id)
 
     async def test_assigned_desk_user(self):

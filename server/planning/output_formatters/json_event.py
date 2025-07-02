@@ -21,7 +21,7 @@ class JsonEventFormatter(BaseJsonFormatter):
     type = "json_event"
     resource_type = "event"
 
-    remove_fields = {
+    remove_fields: set[str] | None = {
         "lock_time",
         "lock_action",
         "lock_session",
@@ -34,7 +34,7 @@ class JsonEventFormatter(BaseJsonFormatter):
         "_current_version",
     }
 
-    include_files = [("files", "events_files")]
+    include_files: list[tuple[str, str]] | None = [("files", "events_files")]
 
     def __init__(self):
         """
@@ -44,7 +44,7 @@ class JsonEventFormatter(BaseJsonFormatter):
         super().__init__()
         self.format_type = "json_event"
 
-    async def _format_item(self, item: dict) -> dict:
+    async def _format_item(self, item: dict, subscribers: list[dict] | None = None) -> dict:
         """Format the item to json event"""
         item = await super()._format_item(item)
         item["event_contact_info"] = await expand_contact_info(item.get("event_contact_info", []))

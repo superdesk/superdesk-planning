@@ -17,7 +17,7 @@ class BaseJsonFormatter(Formatter):
     format_type = "json"
     resource_type = "event"
     remove_fields: set[str] | None = None
-    translate_names: set[str] = ("subject", "anpa_category", "calendars")
+    translate_names: set[str] | None = {"subject", "anpa_category", "calendars"}
 
     # TODO-PR: Do we use None or bool as secondary type???
     include_files: list[tuple[str, str]] | None = None
@@ -43,7 +43,7 @@ class BaseJsonFormatter(Formatter):
             )
         ]
 
-    async def _format_item(self, item: dict) -> dict:
+    async def _format_item(self, item: dict, subscribers: list[dict] | None = None) -> dict:
         """Format the item to json planning"""
         if self.include_products:
             item["products"] = await get_matching_products(item)

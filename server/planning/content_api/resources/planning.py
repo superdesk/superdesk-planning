@@ -27,7 +27,7 @@ class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]
 
     formatter = ContentApiPlanningFormatter()
 
-    async def publish_async(self, item, subscribers=None) -> None:
+    async def publish_async(self, item: dict, subscribers: list[dict] | None = None) -> None:
         """
         Uses the `JsonPlanningFormatter` to format the planning item and publish it to the content API.
         If the planning item already exists, it will be updated, otherwise it will be created.
