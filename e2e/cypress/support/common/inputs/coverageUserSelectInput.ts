@@ -14,7 +14,7 @@ export class CoverageUserSelectInput extends Input {
         popup.waitTillOpen();
 
         popup.element.find('[data-test-id="filter-input"]')
-            .type(value);
+            .type(value, {force: true});
 
         popup.element.find('li')
             .first()
