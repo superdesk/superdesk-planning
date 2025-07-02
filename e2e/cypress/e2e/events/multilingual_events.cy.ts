@@ -18,12 +18,14 @@ describe('Planning.Events: multilingual functionality', () => {
         waitForPageLoad.planning();
     });
 
-    it('Can enable multilingual functionality', () => {
+    it.only('Can enable multilingual functionality', () => {
         // Show the `Manage event profiles` modal, and switch to the fields tab
         manageProfiles.show('event');
         manageProfiles.expectSelectedTab('Groups');
         manageProfiles.selectTab(1);
         manageProfiles.expectSelectedTab('Event Fields');
+
+        cy.wait(1000);
 
         // Enable the standard `Language` field
         manageProfiles.openAddFieldMenu(3);
