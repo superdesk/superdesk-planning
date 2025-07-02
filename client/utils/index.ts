@@ -880,12 +880,14 @@ export const itemsEqual = (nextItem, currentItem) => {
 
     get(lhs, 'coverages', []).forEach(
         (coverage) => {
+            delete coverage.planning._scheduledTime;
             formatDate(coverage, 'planning.scheduled');
         }
     );
 
     get(rhs, 'coverages', []).forEach(
         (coverage) => {
+            delete coverage.planning._scheduledTime;
             formatDate(coverage, 'planning.scheduled');
         }
     );
