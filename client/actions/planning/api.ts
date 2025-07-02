@@ -139,23 +139,16 @@ const handleItemsForLastFetchedDay = (
     const lastDayGroupItems = selectors.planning.lastDayGroup(getState()) ?? [];
     const itemIdsInList = selectors.planning.planIdsInList(getState());
 
-    const hasFetchedTotalItems = total === (items ?? []).length + (lastDayGroupItems ?? []).length;
-    const hasLoadedAllItems = total === itemIdsInList.length;
+    // all items in list view and items for the last group
+    const hasFetchedAllItems = total === (items.length + lastDayGroupItems.length + itemIdsInList.length);
 
-    if (hasFetchedTotalItems || hasLoadedAllItems) {
+    if (hasFetchedAllItems) {
         dispatch(storeLastDayGroup([]));
 
-        const storedPlannings = selectors.planning.storedPlannings(getState());
-        const listItems: Array<IPlanningItem> = (itemIdsInList ?? []).map((id) => storedPlannings[id]);
-
-        // listItems might contain some or all of items, get unique set of all
-        const allItems = uniqBy([
-            ...listItems,
+        return Promise.resolve([
             ...items,
             ...lastDayGroupItems
-        ], (item) => item._id);
-
-        return Promise.resolve(allItems);
+        ]);
     }
 
     const itemsGrouped = planningUtils.getPlanningByDate(
@@ -166,13 +159,10 @@ const handleItemsForLastFetchedDay = (
         params.timezoneOffset,
     );
 
-    if (itemsGrouped.length === 0) {
-        return Promise.resolve([...items, ...lastDayGroupItems]);
-
-        // on initial page load we need to make sure items for all groups are loaded
-        // otherwise if the first group has 1 item, a second has 50 items, user
-        // can end up in an invalid state where he can't trigger loadMore by scrolling
-    } else if (itemsGrouped.length === 1 || params.page === 1) {
+    // on initial page load we need to make sure items for all groups are loaded
+    // otherwise if the first group has 1 item, a second has 50 items, user
+    // can end up in an invalid state where he can't trigger loadMore by scrolling
+    if (itemsGrouped.length === 1 || params.page === 1) {
         const lastPage = Math.ceil(total / params.maxResults);
 
         // No pages left to fetch
@@ -180,14 +170,14 @@ const handleItemsForLastFetchedDay = (
             return Promise.resolve(itemsGrouped.flatMap((x) => x.events));
         }
 
-        dispatch(storeLastDayGroup(items));
+        dispatch(storeLastDayGroup([...items, ...lastDayGroupItems]));
         dispatch(planningUi.loadMore());
 
         return Promise.resolve([]);
     } else if (Object.keys(itemsGrouped).length > 1) {
         const lastGroup = itemsGrouped[itemsGrouped.length - 1];
 
-        dispatch(storeLastDayGroup(lastGroup).events);
+        dispatch(storeLastDayGroup(lastGroup.events));
 
         return Promise.resolve(
             itemsGrouped.slice(0, itemsGrouped.length - 1).flatMap((x) => x.events),
@@ -205,6 +195,7 @@ const handleItemsForLastFetchedDay = (
 const fetch = (params: IPlanningSearchParams = {}) => ((dispatch, getState) => (
     dispatch(self.query(params, true))
         .then((response) => {
+            // added for test cases
             if (response._meta == null) {
                 return response._items;
             }

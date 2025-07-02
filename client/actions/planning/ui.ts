@@ -97,6 +97,10 @@ function fetchToList(params: IPlanningSearchParams) {
     return (dispatch) => {
         dispatch(self.requestPlannings(params));
 
+        // reset list items, so handleItemsForLastFetchedDay
+        // can keep track of all fetched items
+        dispatch(self.clearList());
+
         return dispatch(planningApis.fetch(params))
             .then((items) =>
                 dispatch(self.setInList(items.map((p) => p._id)))
