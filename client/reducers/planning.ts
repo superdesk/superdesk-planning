@@ -51,12 +51,15 @@ const planningReducer = createReducer(initialState, {
         }
     ),
 
-    [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) =>
-        // return new state
-        ({
-            ...state,
-            plannings: planningUtils.modifyPlanningsBeingAdded(state, payload),
-        }),
+    [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) => ({
+        ...state,
+        plannings: planningUtils.modifyPlanningsBeingAdded(state, payload),
+    }),
+
+    [PLANNING.ACTIONS.STORE_LAST_DAY_GROUP]: (state, payload) => ({
+        ...state,
+        lastDayGroup: payload.group,
+    }),
 
     [PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY]: (state, payload) => ({
         ...state,
@@ -203,7 +206,7 @@ const planningReducer = createReducer(initialState, {
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => {
         // If the planning is not loaded, disregard this action
         if (!(payload.planning in state.plannings) ||
-                get(state.plannings[payload.planning], 'lock_action') !== ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action) {
+            get(state.plannings[payload.planning], 'lock_action') !== ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action) {
             return state;
         }
 

@@ -96,10 +96,15 @@ const addToList = (ids) => ({
 function fetchToList(params: IPlanningSearchParams) {
     return (dispatch) => {
         dispatch(self.requestPlannings(params));
+
+        // reset list items, so handleItemsForLastFetchedDay
+        // can keep track of all fetched items
+        dispatch(self.clearList());
+
         return dispatch(planningApis.fetch(params))
-            .then((items) => (dispatch(self.setInList(
-                items.map((p) => p._id)
-            ))));
+            .then((items) =>
+                dispatch(self.setInList(items.map((p) => p._id)))
+            );
     };
 }
 
@@ -128,7 +133,9 @@ const loadMore = () => (
                 if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
                     dispatch(self.requestPlannings(params));
                 }
-                dispatch(self.addToList(items.map((p) => p._id)));
+
+                dispatch(self.addToList(items.map((x) => x._id)));
+
                 return Promise.resolve(items);
             });
     }
@@ -278,8 +285,8 @@ const openFeaturedPlanningModal = () => (
         return planningApi.locks.lockFeaturedPlanning()
             .then(() => dispatch(showModal({
                 modalType: MODALS.FEATURED_STORIES,
-            })),
-            (error) => {
+            })))
+            .catch((error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to lock featured story action!'))
                 );
