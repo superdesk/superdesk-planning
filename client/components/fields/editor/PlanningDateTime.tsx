@@ -5,6 +5,7 @@ import {IEditorFieldProps, IPlanningItem} from '../../../interfaces';
 import {EditorFieldDateTime} from './base/dateTime';
 import {appConfig} from 'appConfig';
 import moment from 'moment';
+import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 interface IProps extends IEditorFieldProps {
     item: IPlanningItem;
@@ -26,10 +27,16 @@ export class EditorFieldPlanningDateTime extends React.PureComponent<IProps> {
         if (typeof fieldOrValues === 'string') {
             const updateValue = value?.isValid() ? this.formatValue(value) : null;
 
-            this.props.onChange({
+            const updatedFields: any = {
                 [fieldOrValues]: updateValue,
                 all_day: this.allDay,
-            });
+            };
+
+            if (updateValue !== null) {
+                updatedFields._time_to_be_confirmed = false;
+            }
+
+            this.props.onChange(updatedFields);
         } else {
             this.props.onChange(fieldOrValues);
         }
@@ -56,6 +63,9 @@ export class EditorFieldPlanningDateTime extends React.PureComponent<IProps> {
                 label={label ?? gettext('Planning Date')}
                 showToBeConfirmed={true}
                 toBeConfirmed={this.props.item?._time_to_be_confirmed == true}
+                onToBeConfirmed={() => {
+                    this.props.onChange({[TO_BE_CONFIRMED_FIELD]: true});
+                }}
                 singleValue={true}
                 allDay={this.allDay}
                 hideTime={this.allDay}
