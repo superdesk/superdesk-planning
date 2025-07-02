@@ -18,7 +18,7 @@ describe('Planning.Events: multilingual functionality', () => {
         waitForPageLoad.planning();
     });
 
-    it.only('Can enable multilingual functionality', () => {
+    it('Can enable multilingual functionality', () => {
         // Show the `Manage event profiles` modal, and switch to the fields tab
         manageProfiles.show('event');
         manageProfiles.expectSelectedTab('Groups');

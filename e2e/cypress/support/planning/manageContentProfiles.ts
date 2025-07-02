@@ -32,6 +32,7 @@ export class ManageContentProfiles extends Modal {
         this.element
             .find('.btn--icon-only-circle')
             .eq(index)
+            .should('exist')
             .click();
     }
 
