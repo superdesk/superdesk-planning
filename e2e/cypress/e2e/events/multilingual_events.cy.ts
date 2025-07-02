@@ -118,11 +118,12 @@ describe('Planning.Events: multilingual functionality', () => {
         });
     });
 
-    it('Can enable multilingual functionalitys', () => {
+    it('Can enable multilingual functionalities', () => {
         // Enable standard `Language` field
         manageProfiles.show('event');
         manageProfiles.selectTab(1);
 
+        cy.wait(1000);
         manageProfiles.openAddFieldMenu(3);
         manageProfiles.addField('Language');
         manageProfiles.getFooterButton('Save').click();
