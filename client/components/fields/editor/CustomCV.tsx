@@ -9,7 +9,6 @@ import {TreeSelect} from 'superdesk-ui-framework/react';
 
 export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
     render() {
-        const {gettext} = superdeskApi.localization;
         const {
             showErrors,
             errors,
@@ -22,6 +21,10 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
         } = this.props;
         const cv = superdeskApi.entities.vocabulary.getVocabulary(this.props.field);
 
+        if (cv.selection_type === 'do not show') {
+            return null;
+        }
+
         return (
             <Row
                 key={cv._id}
@@ -29,16 +32,21 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
                 data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
             >
                 <TreeSelect
-                    selectBranchWithChildren
+                    selectBranchWithChildren={
+                        cv.disable_entire_category_selection == null
+                            ? true
+                            : cv.disable_entire_category_selection
+                    }
                     sortable={true}
                     kind="synchronous"
-                    allowMultiple={true}
+                    allowMultiple={cv.selection_type === 'multi selection'}
                     value={(item.subject ?? []).filter((x) => x.scheme === cv._id)}
-                    label={gettext(cv.display_name)}
+                    label={cv.translations?.display_name?.[language] ?? cv.display_name}
                     required={this.props.schema.required}
 
                     // map to specific properties so backend schema check doesn't fail
-                    getOptions={() => superdeskApi.utilities.arrayToTree(
+                    getOptions={() =>
+                        superdeskApi.utilities.arrayToTree(
                             cv.items.map((cvItem) => ({
                                 name: cvItem.name,
                                 qcode: cvItem.qcode,
@@ -48,7 +56,8 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
                             })) as Array<ISubject>,
                             ({qcode}) => qcode.toString(),
                             ({parent}) => parent?.toString(),
-                    ).result}
+                        ).result
+                    }
                     getLabel={(item) => getVocabularyItemFieldTranslated(
                         item,
                         'name',
