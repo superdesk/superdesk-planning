@@ -67,6 +67,7 @@ window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
 
 window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const newElement = document.createElement('div');
+    document.body.appendChild(newElement);
     const jQueryElement = window.$(newElement);
     const rootScope = ng.get('$rootScope');
 
@@ -76,7 +77,7 @@ window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     rootScope.resolve = () => newElement.remove();
 
     new ctrl.AddToPlanningController(
-        jQueryElement,
+        newElement,
         rootScope,
         ng.get('sdPlanningStore'),
         ng.get('notify'),
