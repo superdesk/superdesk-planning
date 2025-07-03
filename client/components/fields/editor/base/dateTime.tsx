@@ -54,21 +54,7 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
         let momentValue : moment.Moment;
 
         if (value != null) {
-            if (this.props.allDay) {
-                /**
-                 * For all-day events, we shift the UTC value by +12 hours to ensure the date displays
-                 * correctly across different time zones.
-                 *
-                 * Without this adjustment, users in negative time zones (e.g., UTC-4) may see the date
-                 * appear as the *previous* day due to local time rendering of midnight UTC.
-                 *
-                 * This is a visual-only adjustment and does not affect the actual value saved,
-                 * which remains in UTC.
-                 */
-                momentValue = moment.utc(value).add(12, 'hours');
-            } else {
-                momentValue = moment(value);
-            }
+            momentValue = this.props.allDay ? moment.utc(value) : moment(value);
         } else {
             momentValue = undefined;
         }

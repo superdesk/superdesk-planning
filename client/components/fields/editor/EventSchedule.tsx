@@ -53,20 +53,20 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             changes['dates.all_day'] = true;
         }
 
-        if (startDate != null) {
-            value
-                .hour(startDate.hour())
-                .minute(startDate.minute())
-                .second(startDate.second());
-        } else {
-            value.hour(0)
-                .minute(0)
-                .second(0);
-        }
-
         if (this.props.item.dates?.all_day === true || changes['dates.all_day'] === true) {
-            value = localDateToUtc(value, this.props.item.dates?.tz);
+            value = safeLocalDateToUtc(value, this.props.item.dates?.tz);
             changes['dates.start'] = value;
+        } else {
+            if (startDate != null) {
+                value
+                    .hour(startDate.hour())
+                    .minute(startDate.minute())
+                    .second(startDate.second());
+            } else {
+                value.hour(0)
+                    .minute(0)
+                    .second(0);
+            }
         }
 
         if (endDate == null) {
@@ -84,7 +84,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             const changes = {
                 _startTime: null,
                 _endTime: null,
-                'dates.start': startDate ? localDateToUtc(startDate, this.props.item?.dates?.tz) : null,
+                'dates.start': startDate ? safeLocalDateToUtc(startDate, this.props.item?.dates?.tz) : null,
                 'dates.all_day': true,
                 'dates.no_end_time': true,
                 [TO_BE_CONFIRMED_FIELD]: false,
@@ -119,7 +119,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
 
         if (this.props.item.dates?.all_day === true || changes['dates.all_day'] === true ||
             this.props.item.dates?.no_end_time === true || changes['dates.no_end_time'] === true) {
-            changes['dates.end'] = localDateToUtc(value, this.props.item.dates?.tz);
+            changes['dates.end'] = safeLocalDateToUtc(value, this.props.item.dates?.tz);
         }
 
         if (!startDate) {
@@ -130,7 +130,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
 
         if (this.props.item.dates?.all_day === true || changes['dates.all_day'] === true ||
             this.props.item.dates?.no_end_time === true || changes['dates.no_end_time'] === true) {
-            changes['dates.end'] = localDateToUtc(value, this.props.item.dates?.tz);
+            changes['dates.end'] = safeLocalDateToUtc(value, this.props.item.dates?.tz);
         }
 
         this.props.onChange(changes);
@@ -141,7 +141,7 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
             const changes = {
                 _endTime: null,
                 'dates.end': this.props.item.dates?.end ?
-                    localDateToUtc(this.props.item.dates.end, this.props.item.dates.tz)
+                    safeLocalDateToUtc(this.props.item.dates.end, this.props.item.dates.tz)
                     : null,
                 'dates.no_end_time': true,
                 [TO_BE_CONFIRMED_FIELD]: false,
@@ -288,4 +288,21 @@ function localDateToUtc(date: moment.MomentInput, tz?: string): moment.Moment {
         moment.tz(date, tz).format('YYYY-MM-DD') :
         moment(date).format('YYYY-MM-DD')
     );
+}
+
+/**
+ * Safely converts a date-time to a UTC date-only moment (00:00:00Z).
+ *
+ * If the input is already at midnight UTC, returns it unchanged to avoid shifting
+ * the date backward in negative timezones. Otherwise, normalizes the date to 00:00 UTC.
+ */
+function safeLocalDateToUtc(date: moment.MomentInput, tz?: string): moment.Moment {
+    const m = moment(date);
+
+    if (m.isUTC() && m.isSame(m.clone().startOf('day'))) {
+        return m;
+    }
+
+    const formattedDate = moment(tz ? moment.tz(date, tz) : m).format('YYYY-MM-DD');
+    return moment.utc(formattedDate);
 }
