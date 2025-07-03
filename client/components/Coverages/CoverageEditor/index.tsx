@@ -117,7 +117,7 @@ function assignCoverageToDefaultDesk(coverage: DeepPartial<IPlanningCoverageItem
 }
 
 export class CoverageEditorComponent extends React.PureComponent<IProps> {
-    collapseBox: React.RefObject<CollapseBox>;
+    private collapseBox: React.RefObject<CollapseBox>;
 
     constructor(props) {
         super(props);
@@ -130,7 +130,7 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
         this.collapseBox.current?.scrollInView(true);
     }
 
-    onChange(field, value) {
+    private onChange(field, value) {
         let valueToUpdate = value;
 
         if (field.match(/^coverages\[/)) {
@@ -364,4 +364,7 @@ function mapStateToProps(state: IPlanningAppState): IReduxStateProps {
 
 export const CoverageEditor = connect(
     mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
 )(CoverageEditorComponent);
