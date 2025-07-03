@@ -187,7 +187,7 @@ export class TimeInput extends React.Component {
             this.setState({
                 invalid: false,
                 viewValue: (newValue.length === 4 ? ('0' + newValue) : newValue),
-            }, this.updateInputWidth);
+            });
         }
     }
 
@@ -227,7 +227,7 @@ export class TimeInput extends React.Component {
                     viewValue: newValue,
                     previousValidValue: newValue,
                     showLocalValidation: false,
-                }, this.updateInputWidth);
+                });
             }
             onChange(field, newMoment);
         }
