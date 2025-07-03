@@ -35,7 +35,6 @@ export class TimeInput extends React.Component {
 
         this.dom = {
             inputField: null,
-            hiddenSpan: null,
             iconWrapper: null,
         };
 
@@ -61,7 +60,7 @@ export class TimeInput extends React.Component {
                 previousValidValue: '',
                 invalid: false,
                 showLocalValidation: false,
-            }, this.updateInputWidth);
+            });
         } else {
             const val = nextProps.value && moment.isMoment(nextProps.value) ?
                 nextProps.value.format(appConfig.planning.timeformat) : '';
@@ -71,7 +70,7 @@ export class TimeInput extends React.Component {
                 previousValidValue: val,
                 invalid: false,
                 showLocalValidation: false,
-            }, this.updateInputWidth);
+            });
         }
     }
 
@@ -86,14 +85,6 @@ export class TimeInput extends React.Component {
             (value || '');
 
         this.setState({viewValue}, this.updateInputWidth);
-
-        if (this.dom.inputField) {
-            this.inputPadding = parseFloat(window.getComputedStyle(this.dom.inputField).paddingInline) * 2;
-        }
-
-        if (this.dom.iconWrapper) {
-            this.iconPadding = parseFloat(window.getComputedStyle(this.dom.iconWrapper).paddingInline) * 2;
-        }
     }
 
     toggleOpenTimePicker() {
@@ -242,8 +233,24 @@ export class TimeInput extends React.Component {
         }
     }
 
-    updateInputWidth() {
-        if ((this.props.fullWidth === false) && this.dom.hiddenSpan && this.dom.inputField) {
+    private updateInputWidth() {
+        if (this.dom.inputField) {
+            const computedStyle = window.getComputedStyle(this.dom.inputField);
+            const paddingStart = parseFloat(computedStyle.paddingInlineStart);
+            const paddingEnd = parseFloat(computedStyle.paddingInlineEnd);
+
+            this.inputPadding = paddingStart + paddingEnd;
+        }
+
+        if (this.dom.iconWrapper) {
+            const computedStyle = window.getComputedStyle(this.dom.iconWrapper);
+            const paddingStart = parseFloat(computedStyle.paddingInlineStart);
+            const paddingEnd = parseFloat(computedStyle.paddingInlineEnd);
+
+            this.iconPadding = paddingStart + paddingEnd;
+        }
+
+        if ((this.props.fullWidth === false) && this.dom.inputField) {
             const characterCount = this.state.viewValue.length;
 
             const additionalPixelWidth = this.inputPadding
@@ -307,14 +314,14 @@ export class TimeInput extends React.Component {
                 errors={errors}
                 message={message}
                 boxed={true}
-                className={fullWidth === false ? 'no-padding' : ''}
+                className={fullWidth === false ? 'no-padding' : undefined}
             >
                 <Label text={label} />
                 <div
                     style={{
                         position: 'relative',
                         paddingBlock: '1.8rem',
-                        display: 'inline-flex',
+                        ...(fullWidth === false && {display: 'inline-flex'}),
                     }}
                 >
                     <IconButton
@@ -325,19 +332,6 @@ export class TimeInput extends React.Component {
                         aria-label={gettext('Time picker')}
                         refNode={(ref) => this.dom.iconWrapper = ref}
                     />
-
-                    <span
-                        ref={(ref) => this.dom.hiddenSpan = ref}
-                        style={{
-                            position: 'absolute',
-                            visibility: 'hidden',
-                            height: 0,
-                            fontSize: '1.4rem',
-                            fontFamily: 'inherit',
-                        }}
-                    >
-                        {this.state.viewValue}
-                    </span>
 
                     <Input
                         style={{transition: 'none'}}
