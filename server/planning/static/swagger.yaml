@@ -167,17 +167,14 @@ components:
         _id:
           type: string
           description: Unique identifier for the event
-        _created:
+        firstcreated:
           type: string
           format: date-time
           description: Creation timestamp
-        _updated:
+        versioncreated:
           type: string
           format: date-time
           description: Last update timestamp
-        _etag:
-          type: string
-          description: Entity tag for concurrency control
         type:
           type: string
           enum: [event]
@@ -203,7 +200,7 @@ components:
         calendars:
           type: array
           items:
-            $ref: '#/components/schemas/KeywordQCodeName'
+            $ref: '#/components/schemas/CVItem'
           description: Calendars the event belongs to
         anpa_category:
           type: array
@@ -246,45 +243,78 @@ components:
           items:
             $ref: '#/components/schemas/EmbeddedPlanning'
           description: Embedded planning items
-        subscribers:
-          type: array
-          items:
-            type: string
-            format: objectid
-          description: Users subscribed to this event
         version:
           type: integer
           description: Version number of the event
+        definition_short:
+          type: string
+          description: Short description of the event
+        definition_long:
+          type: string
+        registration_details:
+          type: string
+          description: Details for event registration
+        invitation_details:
+          type: string
+          description: Details for event invitations
+        accreditation_info:
+          type: string
+          description: Information about event accreditation
+        accreditation_deadline:
+          type: string
+          oneOf:
+            - format: date
+            - format: date-time
+          description: Deadline for event accreditation
+        links:
+          type: array
+          items:
+            type: string
       required:
-        - subscribers
         - type
+
+    TruncatedDateTime:
+      type: string
+      anyOf:
+        - format: date
+        - format: date-time
+      description: A date and time, which can be truncated to just a date
+      example: 2023-10-01
 
     EventDates:
       type: object
       properties:
-        start:
+        startDate:
           type: string
           format: date-time
-          description: Start date/time of the event
-        end:
+          description: The date and time at which the event starts.
+        endDate:
           type: string
           format: date-time
-          description: End date/time of the event
-        tz:
+          description: The date and time at which the event ends.
+        expectedStartDate:
+          $ref: '#/components/schemas/TruncatedDateTime'
+          description: The approximate date (and optionally time) at which the event or coverage is expected to start.
+        expectedEndDate:
+          $ref: '#/components/schemas/TruncatedDateTime'
+          description: The approximate date (and optionally time) at which the event or coverage is expected to end.
+        timezone:
           type: string
           description: Timezone of the event
-        recurring_rule:
-          $ref: '#/components/schemas/RecurringRule'
-        ex_rule:
-          $ref: '#/components/schemas/ExRule'
-        no_end_time:
-          type: boolean
-          default: false
-          description: Whether the event has no specific end time
-        all_day:
-          type: boolean
-          default: false
-          description: Whether the event lasts all day
+        recurrence:
+          type: object
+          properties:
+            recurrenceRules:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecurringRule'
+      anyOf:
+        - oneOf: 
+            - required: [startDate]
+            - required: [expectedStartDate]
+        - oneOf:
+            - required: [endDate]
+            - required: [expectedEndDate]
 
     EventLocation:
       type: object
@@ -323,19 +353,17 @@ components:
         _id:
           type: string
           description: Unique identifier for the planning item
-        _created:
+        firstcreated:
           type: string
           format: date-time
           description: Creation timestamp
-        _updated:
+        versioncreated:
           type: string
           format: date-time
           description: Last update timestamp
-        _etag:
-          type: string
-          description: Entity tag for concurrency control
-        _type:
-          type: string
+        type:
+          enum:
+            - planning
           readOnly: true
           description: Type of the item
         planning_date:
@@ -394,10 +422,7 @@ components:
           items:
             $ref: '#/components/schemas/Place'
           description: Geographic places associated with the planning item
-        event_item:
-          type: string
-          description: Associated event ID
-        related_events:
+        events:
           type: array
           items:
             $ref: '#/components/schemas/RelatedEvent'
@@ -413,19 +438,12 @@ components:
         flags:
           $ref: '#/components/schemas/Flags'
           description: Various flags for the planning item
-        subscribers:
-          type: array
-          items:
-            type: string
-            format: objectid
-          description: Users subscribed to this planning item
         version:
           type: integer
           description: Version number of the planning item
       required:
         - planning_date
-        - subscribers
-        - _type
+        - type
 
     PlanningCoverageItem:
       type: object
@@ -648,7 +666,6 @@ components:
       required:
         - planning_id
         - assignment_id
-        - _type
 
     ScheduledUpdate:
       type: object
