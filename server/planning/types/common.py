@@ -297,3 +297,8 @@ class LockFieldsMixin:
     lock_time: datetime | None = None
     lock_session: Annotated[fields.ObjectId, validate_data_relation_async("users")] | None = None
     lock_action: fields.Keyword | None = None
+
+
+class MatchingProduct(Dataclass):
+    code: fields.ObjectId
+    name: str

@@ -16,25 +16,24 @@ from superdesk.core.resources import (
 )
 from superdesk.core.resources.service import AsyncResourceService
 from superdesk import get_resource_service
-from planning.output_formatters import JsonPlanningFormatter
-from planning.content_api.types.planning import ContentAPIPlanningResource
 from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+
+from ..types import ContentAPIPlanningResource
+from ..output_formatters import ContentApiPlanningFormatter
 
 
 class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]):
     """Service for publishing planning items to the content API"""
 
-    formatter = JsonPlanningFormatter()
+    formatter = ContentApiPlanningFormatter()
 
-    async def publish_async(self, item, subscribers=None) -> None:
+    async def publish_async(self, item: dict, subscribers: list[dict] | None = None) -> None:
         """
         Uses the `JsonPlanningFormatter` to format the planning item and publish it to the content API.
         If the planning item already exists, it will be updated, otherwise it will be created.
         """
 
-        item["subscribers"] = [subscriber["_id"] for subscriber in subscribers or []]
-        formatted_item = await self.formatter._format_item(item)
-        get_resource_service("planning").set_planning_schedule(formatted_item)
+        formatted_item = await self.formatter._format_item(item, subscribers)
         planning_id = item.get("_id")
         original = await self.find_by_id(planning_id)
         if original:

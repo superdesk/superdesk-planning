@@ -14,7 +14,17 @@ from datetime import datetime
 from .content_profiles import ContentFieldSchema, ContentFieldEditor, ContentProfile  # noqa
 
 from .base import BasePlanningModel
-from .common import PlanningSchedule, PlanningCoverage, CoverageAssignedTo
+from .common import (
+    PlanningSchedule,
+    PlanningCoverage,
+    CoverageAssignedTo,
+    SubjectListType,
+    SlugLineField,
+    Place,
+    NewsCoverageStatus,
+    MatchingProduct,
+    KeywordQCodeName,
+)
 from .delivery import DeliveryResourceModel
 from .event import EventResourceModel
 from .history import (
@@ -38,12 +48,13 @@ from .enums import (
     SearchDateRange,
     LinkType,
 )
-from .agendas import AgendasResourceModel
+from .agendas import AgendasResourceModel, AgendaItem
 from .planning_types import PlanningTypesResourceModel
 from .planning_featured import PlanningFeaturedResourceModel
 from .autosave import EventAutosaveResourceModel, PlanningAutosaveResourceModel
 from .locations import LocationResourceModel
 from .filters import EventPlanningFilter
+from . import ninjs3
 
 
 __all__ = [
@@ -61,6 +72,12 @@ __all__ = [
     "PlanningSchedule",
     "PlanningCoverage",
     "CoverageAssignedTo",
+    "SubjectListType",
+    "SlugLineField",
+    "Place",
+    "NewsCoverageStatus",
+    "MatchingProduct",
+    "KeywordQCodeName",
     "PostStates",
     "UpdateMethods",
     "WorkflowState",
@@ -73,12 +90,14 @@ __all__ = [
     "ContentProfile",
     "PlanningRelatedEventLink",
     "AgendasResourceModel",
+    "AgendaItem",
     "PlanningFeaturedResourceModel",
     "EventAutosaveResourceModel",
     "PlanningAutosaveResourceModel",
     "LocationResourceModel",
     "EventPlanningFilter",
     "AssignmentsHistoryResourceModel",
+    "ninjs3",
 ]
 
 

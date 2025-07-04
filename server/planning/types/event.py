@@ -24,12 +24,28 @@ from .common import (
 )
 
 
+class LocationAddress(Dataclass):
+    boundingbox: list[str] | None = None
+    city: str | None = None
+    state: str | None = None
+    country: str | None = None
+    line: str | None = None
+    locality: str | None = None
+    title: str | None = None
+    type: str | None = None
+    extra: dict | None = None
+
+
 class EventLocation(Dataclass):
     name: fields.TextWithKeyword
     qcode: fields.Keyword | None = None
     address: Annotated[dict[str, Any] | None, fields.dynamic_mapping()] = None
+    # address: LocationAddress | None = None
+    formatted_address: str | None = None
     geo: str | None = None
     location: fields.Geopoint | None = None
+    extra: dict | None = None
+    details: str | None = None
 
 
 # HACK: ``index``. Temporal place for this indexes workaround

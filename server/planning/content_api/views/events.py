@@ -14,12 +14,17 @@ from pydantic import computed_field
 from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 
-from planning.types import SearchItemType
+from planning.types import SearchItemType, ninjs3
 
-from .event import ContentAPIEventService
-from ..types import PlanningCAPIParams
+from ..types import PlanningCAPIParams, ContentAPIEventResource
+from ..resources import ContentAPIEventService
+from ..utils import convert_cursor_to_response_items, convert_capi_item_to_response_instance
 
 event_endpoints = EndpointGroup("events_capi", __name__)
+
+
+class ContentAPIEventResponse(ContentAPIEventResource):
+    dates: ninjs3.DatesObject
 
 
 class EventParams(PlanningCAPIParams):
@@ -33,18 +38,15 @@ class EventParams(PlanningCAPIParams):
 async def get_event_list(args: None, params: EventParams, request: Request) -> Response:
     service = ContentAPIEventService()
     search_request = params.to_search_request(request)
-    items = await (await service.find(req=search_request)).to_list_raw()
-
-    for item in items:
-        item.pop("subscribers", None)
+    cursor = await service.find(req=search_request)
 
     return Response(
         {
-            "_items": items,
+            "_items": await convert_cursor_to_response_items(cursor, params),
             "_meta": {
                 "page": search_request.page,
                 "max_results": search_request.max_results,
-                "total": len(items),
+                "total": await cursor.count(),
             },
         }
     )
@@ -63,7 +65,4 @@ async def get_event_item(args, params, request: Request) -> Response:
     if not item or ObjectId(token_id) not in item.subscribers:
         return await request.abort(404)
 
-    item_dict = item.to_dict(exclude_none=True, exclude_unset=False, exclude_defaults=False)
-    item_dict.pop("subscribers", None)
-
-    return Response(item_dict)
+    return Response(convert_capi_item_to_response_instance(item))

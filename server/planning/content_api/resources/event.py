@@ -17,14 +17,15 @@ from superdesk.core.resources import (
 from superdesk.core.resources.service import AsyncResourceService
 
 from content_api import MONGO_PREFIX, ELASTIC_PREFIX
-from planning.output_formatters import JsonEventFormatter
-from planning.content_api.types.events import ContentAPIEventResource
+
+from ..types import ContentAPIEventResource
+from ..output_formatters import ContentApiEventFormatter
 
 
 class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
     """Service for publishing events to the content API"""
 
-    formatter = JsonEventFormatter()
+    formatter = ContentApiEventFormatter()
 
     async def publish_async(self, item, subscribers=None) -> None:
         """
@@ -32,9 +33,7 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
         If the event already exists, it will be updated, otherwise it will be created.
         """
 
-        item["subscribers"] = [subscriber["_id"] for subscriber in subscribers or []]
-        formatted_item = await self.formatter._format_item(item)
-        formatted_item["_planning_schedule"] = [{"scheduled": formatted_item["dates"]["start"]}]
+        formatted_item = await self.formatter._format_item(item, subscribers)
         event_id = item.get("_id")
         original = await self.find_by_id(event_id)
 

@@ -8,7 +8,15 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from .common import BasePlanningContentAPIResource
 from .search import PlanningCAPIParams
+from .events import ContentAPIEventResource
+from .planning import ContentAPIPlanningResource
 
 
-__all__ = ["PlanningCAPIParams"]
+__all__ = [
+    "BasePlanningContentAPIResource",
+    "PlanningCAPIParams",
+    "ContentAPIEventResource",
+    "ContentAPIPlanningResource",
+]

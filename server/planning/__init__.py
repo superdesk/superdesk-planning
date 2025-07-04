@@ -64,6 +64,7 @@ import planning.feeding_services  # noqa
 import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 import planning.io  # noqa
+import planning.content_api.output_formatters  # noqa  - Included so ContentAPI formatters are registered
 from planning.search.planning_autocomplete import init_app as init_planning_autocomplete_app
 
 from .module import module  # noqa

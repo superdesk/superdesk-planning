@@ -8,41 +8,37 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from copy import deepcopy
-
 import superdesk
-from superdesk.core import json, get_app_config
+from superdesk.core import get_config
 from superdesk import get_resource_service
-from superdesk.publish.formatters import Formatter
-from superdesk.publish_async.utils import generate_sequence_number
-from superdesk.utils import json_serialize_datetime_objectId
-from superdesk.metadata.item import CONTENT_STATE
 from apps.archive.common import ARCHIVE
 
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
 from planning.utils import get_first_related_event_id_for_planning, get_related_event_links_for_planning
-from .utils import expand_contact_info, get_matching_products
-from .json_utils import translate_names
+
+from .utils import expand_contact_info
+from .json_base_formatter import BaseJsonFormatter
 
 
-class JsonPlanningFormatter(Formatter):
+class JsonPlanningFormatter(BaseJsonFormatter):
     """
     Simple json output formatter a sample output formatter for planning items
     """
 
     name = "JSON Planning"
     type = "json_planning"
+    resource_type = "planning"
+    include_files = None
 
     def __init__(self):
         """
         Set format type and no export or preview
         """
+        super().__init__()
         self.format_type = "json_planning"
-        self.can_preview = False
-        self.can_export = False
 
     # fields to be removed from the planning item
-    remove_fields = (
+    remove_fields: set[str] | None = {
         "lock_time",
         "lock_action",
         "lock_session",
@@ -54,7 +50,7 @@ class JsonPlanningFormatter(Formatter):
         "_planning_schedule",
         "files",
         "_updates_schedule",
-    )
+    }
 
     # fields to be removed from coverage
     remove_coverage_fields = (
@@ -65,30 +61,13 @@ class JsonPlanningFormatter(Formatter):
     )
     remove_coverage_planning_fields = ("contact_info", "files", "xmp_file")
 
-    def can_format(self, format_type, article):
-        if article.get("flags", {}).get("marked_for_not_publication", False):
-            return False
-        return format_type == self.format_type and article.get("type") == "planning"
-
-    async def format(self, item, subscriber, codes=None):
-        pub_seq_num = await generate_sequence_number(subscriber)
-        output_item = await self._format_item(item)
-        return [
-            (
-                pub_seq_num,
-                json.dumps(output_item, default=json_serialize_datetime_objectId),
-            )
-        ]
-
-    async def _format_item(self, item):
+    async def _format_item(self, item, subscribers: list[dict] | None = None):
         """Format the item to json planning"""
-        output_item = deepcopy(item)
-        for f in self.remove_fields:
-            output_item.pop(f, None)
-        for coverage in output_item.get("coverages", []):
-            self._expand_coverage_contacts(coverage)
+        await super()._format_item(item)
+        for coverage in item.get("coverages", []):
+            await self._expand_coverage_contacts(coverage)
 
-            deliveries, workflow_state = self._expand_delivery(coverage)
+            deliveries, workflow_state = await self._expand_delivery(coverage)
             if workflow_state:
                 coverage["workflow_status"] = self._get_coverage_workflow_state(workflow_state)
 
@@ -100,18 +79,14 @@ class JsonPlanningFormatter(Formatter):
                 if key in (coverage.get("planning") or {}):
                     coverage["planning"].pop(key, None)
 
-        output_item["agendas"] = self._expand_agendas(item)
-        output_item["products"] = await get_matching_products(item)
-
-        translate_names(output_item)
+        item["agendas"] = await self._expand_agendas(item)
 
         first_primary_event_id = get_first_related_event_id_for_planning(item, "primary")
         if first_primary_event_id:
-            output_item["event_item"] = first_primary_event_id
+            item["event_item"] = first_primary_event_id
 
         events = []
         for event_ref in get_related_event_links_for_planning(item):
-            # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
             event = await get_resource_service("events").find_one_async(req=None, _id=event_ref["_id"])
             events.append(
                 {
@@ -121,9 +96,9 @@ class JsonPlanningFormatter(Formatter):
                     "name": (event.get("name") or "") if event else "",
                 }
             )
-        output_item["events"] = events
+        item["events"] = events
 
-        return output_item
+        return item
 
     def _get_coverage_workflow_state(self, assignment_state):
         if assignment_state in {
@@ -134,7 +109,7 @@ class JsonPlanningFormatter(Formatter):
         else:
             return assignment_state
 
-    def _expand_agendas(self, item):
+    async def _expand_agendas(self, item):
         """
         Given an item it will scan any agendas, look them up and return the expanded values, if enabled
 
@@ -151,15 +126,14 @@ class JsonPlanningFormatter(Formatter):
         }
         expanded = []
         for agenda in item.get("agendas", []):
-            # TODO-ASYNC[AgendasAsyncService] - Convert this to async when function is updated to async
-            agenda_details = get_resource_service("agenda").find_one(req=None, _id=agenda)
+            agenda_details = await get_resource_service("agenda").find_one_async(req=None, _id=agenda)
             if agenda_details and agenda_details.get("is_enabled"):
                 for f in remove_agenda_fields:
                     agenda_details.pop(f, None)
                 expanded.append(agenda_details)
         return expanded
 
-    def _expand_delivery(self, coverage):
+    async def _expand_delivery(self, coverage):
         """Find any deliveries associated with the assignment
 
         :param assignment_id:
@@ -172,7 +146,7 @@ class JsonPlanningFormatter(Formatter):
         if not assignment_id:
             return [], None
 
-        assignment = superdesk.get_resource_service("assignments").find_one(req=None, _id=assignment_id)
+        assignment = await superdesk.get_resource_service("assignments").find_one_async(req=None, _id=assignment_id)
         if not assignment:
             return [], None
 
@@ -191,14 +165,18 @@ class JsonPlanningFormatter(Formatter):
             "assignment_id",
             "_etag",
         )
-        deliveries = list(delivery_service.get(req=None, lookup={"coverage_id": coverage.get("coverage_id")}))
+        deliveries = await (
+            await delivery_service.get_async(req=None, lookup={"coverage_id": coverage.get("coverage_id")})
+        ).to_list()
 
         # Get the associated article(s) linked to the coverage(s)
         query = {"$and": [{"_id": {"$in": [item["item_id"] for item in deliveries]}}]}
-        articles = {item["_id"]: item for item in get_resource_service(ARCHIVE).get_from_mongo(req=None, lookup=query)}
+        articles = {
+            item["_id"]: item
+            async for item in await get_resource_service(ARCHIVE).get_from_mongo_async(req=None, lookup=query)
+        }
 
         # Check to see if in this delivery chain, whether the item has been published at least once
-        item_never_published = True
         for delivery in deliveries:
             for f in remove_fields:
                 delivery.pop(f, None)
@@ -215,16 +193,13 @@ class JsonPlanningFormatter(Formatter):
             ):
                 delivery["item_id"] = article["ingest_id"]
 
-            if delivery.get("item_state") == CONTENT_STATE.PUBLISHED:
-                item_never_published = False
-
         return deliveries, assignment.get("assigned_to").get("state")
 
-    def _expand_coverage_contacts(self, coverage):
-        EXTENDED_INFO = bool(get_app_config("PLANNING_JSON_ASSIGNED_INFO_EXTENDED"))
+    async def _expand_coverage_contacts(self, coverage):
+        EXTENDED_INFO = get_config(bool, "PLANNING_JSON_ASSIGNED_INFO_EXTENDED", False)
 
         if (coverage.get("assigned_to") or {}).get("contact"):
-            expanded_contacts = expand_contact_info([coverage["assigned_to"]["contact"]])
+            expanded_contacts = await expand_contact_info([coverage["assigned_to"]["contact"]])
             if expanded_contacts:
                 coverage["coverage_provider_contact_info"] = {
                     "first_name": expanded_contacts[0]["first_name"],
