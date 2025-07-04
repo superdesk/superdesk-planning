@@ -55,7 +55,10 @@ export class EditorFieldDateTime extends React.PureComponent<IProps> {
 
         if (value != null) {
             if (this.props.allDay) {
-                momentValue = moment.tz(moment(value).format('YYYY-MM-DD'), this.props.remoteTimeZone || moment.tz.guess());
+                const dateStr = moment(value).format('YYYY-MM-DD');
+                const tz = this.props.remoteTimeZone || moment.tz.guess();
+
+                momentValue = moment.tz(dateStr, tz);
             } else {
                 momentValue = moment(value);
             }
