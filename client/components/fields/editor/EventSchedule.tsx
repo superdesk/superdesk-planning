@@ -67,9 +67,6 @@ export class EditorFieldEventSchedule extends React.PureComponent<IProps> {
         if (this.props.item.dates?.all_day === true || changes['dates.all_day'] === true) {
             value = localDateToUtc(value, this.props.item.dates?.tz);
             changes['dates.start'] = value;
-            console.log('[EditorFieldEventSchedule] after UTC conversion', {
-                value: value?.toISOString?.(),
-            });
         }
 
         if (endDate == null) {
