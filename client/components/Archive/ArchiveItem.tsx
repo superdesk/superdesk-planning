@@ -19,15 +19,13 @@ export const ArchiveItemComponent = ({item, priorities, urgencies, urgencyLabel}
         />
         <Column>
             <Row>
-                {urgencies.length > 0 && (
-                    <UrgencyLabel
-                        item={item}
-                        label={urgencyLabel}
-                        urgencies={urgencies}
-                        tooltipFlow="down"
-                        inline={true}
-                    />
-                )}
+                <UrgencyLabel
+                    item={item}
+                    label={urgencyLabel}
+                    urgencies={urgencies}
+                    tooltipFlow="down"
+                    inline={true}
+                />
                 <PriorityLabel
                     item={item}
                     priorities={priorities}

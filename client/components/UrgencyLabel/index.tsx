@@ -6,7 +6,7 @@ import {get} from 'lodash';
 export const UrgencyLabel = ({item, urgencies, label, tooltipFlow, className, inline}) => {
     const qcode = get(item, 'urgency', null);
 
-    if (!qcode) {
+    if (!qcode || urgencies.length < 1) {
         return null;
     }
 
