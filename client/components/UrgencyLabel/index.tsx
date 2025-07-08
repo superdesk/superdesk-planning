@@ -12,6 +12,10 @@ export const UrgencyLabel = ({item, urgencies, label, tooltipFlow, className, in
 
     const urgency = urgencies.find((u) => u.qcode === qcode);
 
+    if (!urgency) {
+        return null;
+    }
+
     return (
         <span
             className={classNames(
