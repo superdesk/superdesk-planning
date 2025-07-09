@@ -5,6 +5,7 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {Menu, Spacer, SpacerBlock} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../superdeskApi';
+import {appConfig} from 'appConfig';
 import {
     IPlanningListItemProps,
     LIST_VIEW_TYPE,
@@ -15,8 +16,6 @@ import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constan
 import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
-import Icon from '../UI/IconMix';
-import {EventDateTime} from '../Events';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 
 import {
@@ -181,7 +180,6 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             users,
             desks,
             showAddCoverage,
-            listFields,
             active,
             refNode,
             contentTypes,
@@ -201,7 +199,12 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         const event = get(item, 'event');
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
-        const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS)
+
+        const firstLineDefaults = ['slugline', 'internalnote', 'description'];
+        const secondLineDefaults = ['state', 'featured', 'agendas', 'coverages'];
+
+        const firstLine = appConfig.planning?.planning_list_item?.firstLine ?? firstLineDefaults;
+        const secondLine = (appConfig.planning?.planning_list_item?.secondLine ?? secondLineDefaults)
             .filter((fields) => isAgendaEnabled ? true : fields !== 'agendas');
 
         const {querySelectorParent} = superdeskApi.utilities;
@@ -251,8 +254,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 >
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(listFields, 'planning.primary_fields',
-                                PLANNING.LIST.PRIMARY_FIELDS), item, {}, language)}
+                            {renderFields(firstLine, item, {}, language)}
                         </span>
                     </Row>
 
@@ -265,7 +267,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                                     isHollow={true}
                                 />
                             )}
-                            {secondaryFields.includes('state') && renderFields('state', item) }
+                            {secondLine.includes('state') && renderFields('state', item) }
 
                             {eventUtils.isEventCompleted(event) && (
                                 <Label
@@ -274,10 +276,10 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                                     isHollow={true}
                                 />
                             )}
-                            {secondaryFields.includes('featured') &&
+                            {secondLine.includes('featured') &&
                                 renderFields('featured', item, {tooltipFlowDirection: 'right'})}
 
-                            {secondaryFields.includes('agendas') &&
+                            {secondLine.includes('agendas') &&
                                 renderFields('agendas', item, {
                                     fieldsProps: {
                                         agendas: {
@@ -335,7 +337,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                             })()}
                         </Spacer>
 
-                        {secondaryFields.includes('coverages') && renderFields('coverages', item, {
+                        {secondLine.includes('coverages') && renderFields('coverages', item, {
                             date,
                             users,
                             desks,

@@ -38,7 +38,19 @@ declare module 'superdesk-api' {
             autosave_timeout?: number;
             default_create_planning_series_with_event_series?: boolean;
             event_related_item_search_provider_name?: string;
+
+            // Controls whether planning should have date only
             all_day?: boolean;
+
+            planning_list_item?: {
+                firstLine: Array<string>;
+                secondLine?: Array<string>;
+            };
+
+            event_list_item?: {
+                firstLine: Array<string>;
+                secondLine?: Array<string>;
+            };
         };
 
         coverage?: {

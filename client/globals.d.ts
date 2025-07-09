@@ -189,6 +189,16 @@ declare module 'superdesk-api' {
 
             // Controls whether planning should have date only
             all_day?: boolean;
+
+            planning_list_item?: {
+                firstLine: Array<string>;
+                secondLine?: Array<string>;
+            };
+
+            event_list_item?: {
+                firstLine: Array<string>;
+                secondLine?: Array<string>;
+            };
         };
 
         coverage?: {

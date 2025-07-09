@@ -899,7 +899,6 @@ export interface IBaseListItemProps<T> {
     activeFilter: PLANNING_VIEW;
     multiSelectDisabled?: boolean;
     multiSelected: boolean;
-    listFields: any;
     active: boolean;
     listViewType: LIST_VIEW_TYPE;
     sortField: SORT_FIELD;
@@ -1117,12 +1116,6 @@ export interface IEditorProfile {
 
     // postSchema controls the validation of fields when posting.
     postSchema?: {[key: string]: IProfileSchemaType};
-
-    // list fields config
-    list?: {[key: string]: any};
-
-    // list fields when seeing events/planning when exporting or downloading
-    export_list?: Array<string>;
 
     // list of groups (and their translations) for grouping of fields in the Editor
     groups: {[key: string]: IEditorProfileGroup};

@@ -52,10 +52,6 @@ interface IProps {
     hideItemActions?: boolean;
     showAddCoverage?: boolean;
     calendars: Array<ICalendar>;
-    listFields?: {[key: string]: { // List fields from planning_types collection (i.e. Planning Profiles)
-        primary_fields?: Array<string>;
-        secondary_fields?: Array<string>;
-    }};
     isAllListItemsLoaded: boolean;
     previewId: IEventOrPlanningItem['_id'];
     contentTypes: Array<IG2ContentType>;
@@ -90,7 +86,6 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     calendars: selectors.events.calendars(state),
-    listFields: selectors.forms.listFields(state),
     isAllListItemsLoaded: selectors.main.isAllListItemsLoaded(state),
     previewId: selectors.main.previewId(state),
     contentTypes: selectors.general.contentTypes(state),
@@ -182,7 +177,6 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             itemActions,
             hideItemActions,
             showAddCoverage,
-            listFields,
             isAllListItemsLoaded,
             previewId,
             contentTypes,
@@ -220,7 +214,6 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     hideItemActions={hideItemActions}
                     showAddCoverage={showAddCoverage}
                     calendars={calendars}
-                    listFields={listFields}
                     isAllListItemsLoaded={isAllListItemsLoaded}
                     previewItem={previewId}
                     contentTypes={contentTypes}
