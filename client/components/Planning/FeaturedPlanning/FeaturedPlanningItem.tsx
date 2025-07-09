@@ -17,6 +17,7 @@ import {
     getItemWorkflowState,
 } from '../../../utils';
 
+// PR-TODO: does this need to be updated?
 export const FeaturedPlanningItem = ({
     item,
     lockedItems,

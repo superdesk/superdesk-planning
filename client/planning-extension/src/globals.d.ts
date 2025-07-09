@@ -43,13 +43,13 @@ declare module 'superdesk-api' {
             all_day?: boolean;
 
             planning_list_item?: {
-                firstLine: Array<string>;
-                secondLine?: Array<string>;
+                firstLine: Array<{fieldId: string; position?: 'start' | 'end'}>;
+                secondLine?: Array<{fieldId: string; position?: 'start' | 'end'}>;
             };
 
             event_list_item?: {
-                firstLine: Array<string>;
-                secondLine?: Array<string>;
+                firstLine: Array<{fieldId: string; position?: 'start' | 'end'}>;
+                secondLine?: Array<{fieldId: string; position?: 'start' | 'end'}>;
             };
         };
 

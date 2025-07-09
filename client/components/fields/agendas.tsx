@@ -3,19 +3,26 @@ import classNames from 'classnames';
 
 import {AgendaNameList} from '../Agendas';
 import {superdeskApi} from '../../superdeskApi';
-import {IAgenda} from 'interfaces';
+import {IAgenda, IFieldsProps} from 'interfaces';
 
-interface IProps {
+interface IProps extends IFieldsProps {
     fieldsProps: {
         agendas: {
-            agendas: IAgenda;
+            agendas: Array<IAgenda>;
+            noGrow: boolean;
         }
     };
-    noGrow: boolean;
 }
 
-export const agendas: FunctionComponent<IProps> = ({fieldsProps, noGrow}) => {
+export const agendas: FunctionComponent<IProps> = ({fieldsProps}) => {
     const {gettext} = superdeskApi.localization;
+
+    const agendas = fieldsProps?.agendas?.agendas;
+    const noGrow = fieldsProps?.agendas?.noGrow ?? false;
+
+    if (agendas == null) {
+        return null;
+    }
 
     return (
         <Fragment>
@@ -29,7 +36,7 @@ export const agendas: FunctionComponent<IProps> = ({fieldsProps, noGrow}) => {
                     }
                 )}
             >
-                <AgendaNameList agendas={fieldsProps?.agendas?.agendas} />
+                <AgendaNameList agendas={agendas} />
             </span>
         </Fragment>
     );

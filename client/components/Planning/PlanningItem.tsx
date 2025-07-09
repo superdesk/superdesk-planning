@@ -1,8 +1,8 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {get, isEqual} from 'lodash';
+import {get, isEqual, partition} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {Menu, Spacer, SpacerBlock} from 'superdesk-ui-framework/react';
+import {Menu, Spacer} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../superdeskApi';
 import {appConfig} from 'appConfig';
@@ -13,13 +13,11 @@ import {
 } from '../../interfaces';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
-import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 
 import {
-    eventUtils,
     planningUtils,
     lockUtils,
     onEventCapture,
@@ -32,6 +30,7 @@ import {
 import {renderFields} from '../fields';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
+import {ILineConfig} from 'globals';
 
 interface IState {
     hover: boolean;
@@ -194,18 +193,44 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             return null;
         }
 
-        const {gettext, gettextPlural} = superdeskApi.localization;
+        const {gettext} = superdeskApi.localization;
         const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
-        const event = get(item, 'event');
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
 
-        const firstLineDefaults = ['slugline', 'internalnote', 'description'];
-        const secondLineDefaults = ['state', 'featured', 'agendas', 'coverages'];
+        const firstLine: Array<ILineConfig> = appConfig.planning?.planning_list_item?.firstLine ?? firstLineDefaults;
+        const secondLine: Array<ILineConfig> =
+            (appConfig.planning?.planning_list_item?.secondLine ?? secondLineDefaults)
+                .filter((fields) => isAgendaEnabled ? true : fields !== 'agendas');
 
-        const firstLine = appConfig.planning?.planning_list_item?.firstLine ?? firstLineDefaults;
-        const secondLine = (appConfig.planning?.planning_list_item?.secondLine ?? secondLineDefaults)
-            .filter((fields) => isAgendaEnabled ? true : fields !== 'agendas');
+        const [firstLineStart, firstLineEnd] = partitionLineItems(firstLine);
+        const [secondLineStart, secondLineEnd] = partitionLineItems(secondLine);
+
+        const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+            fields,
+            item,
+            {
+                fieldsProps: {
+                    agendas: {
+                        agendas: planningUtils.getAgendaNames(item, agendas),
+                        noGrow: true,
+                    },
+                    related_events: {
+                        relatedEventsUI: this.props.relatedEventsUI,
+                    },
+                    coverages: {
+                        date,
+                        users,
+                        desks,
+                        activeFilter,
+                        contentTypes,
+                        contacts,
+                        filterLanguage,
+                    },
+                },
+            },
+            language,
+        );
 
         const {querySelectorParent} = superdeskApi.utilities;
         const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
@@ -252,105 +277,28 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     grow={true}
                     border={false}
                 >
-                    <Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(firstLine, item, {}, language)}
-                        </span>
-                    </Row>
-
-                    <Spacer h gap="8" justifyContent="space-between" noWrap>
-                        <Spacer h gap="8" justifyContent="start" noWrap>
-                            {isExpired && (
-                                <Label
-                                    text={gettext('Expired')}
-                                    iconType="alert"
-                                    isHollow={true}
-                                />
-                            )}
-                            {secondLine.includes('state') && renderFields('state', item) }
-
-                            {eventUtils.isEventCompleted(event) && (
-                                <Label
-                                    text={gettext('Event Completed')}
-                                    iconType="success"
-                                    isHollow={true}
-                                />
-                            )}
-                            {secondLine.includes('featured') &&
-                                renderFields('featured', item, {tooltipFlowDirection: 'right'})}
-
-                            {secondLine.includes('agendas') &&
-                                renderFields('agendas', item, {
-                                    fieldsProps: {
-                                        agendas: {
-                                            agendas: planningUtils.getAgendaNames(item, agendas),
-                                        },
-                                    },
-                                    noGrow: true,
-                                })}
-
-                            {(() => {
-                                const relatedEvents = this.props.item.related_events ?? [];
-                                const {relatedEventsUI} = this.props;
-
-                                if (relatedEvents.length < 1 || relatedEventsUI == null) {
-                                    return null;
-                                }
-
-                                return (
-                                    <a
-                                        className="sd-line-input__input--related-item-link"
-                                        onClick={(event) => {
-                                            event.stopPropagation();
-
-                                            relatedEventsUI.setVisibility(!relatedEventsUI.visible);
-                                        }}
-                                    >
-                                        <Spacer h gap="4" alignItems="center" noWrap>
-                                            <span
-                                                style={{
-                                                    paddingBlockStart: 1, // fixing icon alignment
-                                                }}
-                                            >
-                                                <i className="icon-event" />
-                                            </span>
-                                            <span>
-                                                {
-                                                    relatedEventsUI.visible
-                                                        ? gettextPlural(
-                                                            relatedEvents.length,
-                                                            'Hide 1 event',
-                                                            'Hide {{n}} events',
-                                                            {n: relatedEvents.length},
-                                                        )
-                                                        : gettextPlural(
-                                                            relatedEvents.length,
-                                                            'Show 1 event',
-                                                            'Show {{n}} events',
-                                                            {n: relatedEvents.length},
-                                                        )
-                                                }
-                                            </span>
-                                        </Spacer>
-                                    </a>
-                                );
-                            })()}
+                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(firstLineStart.map(({fieldId}) => fieldId))}
                         </Spacer>
 
-                        {secondLine.includes('coverages') && renderFields('coverages', item, {
-                            date,
-                            users,
-                            desks,
-                            activeFilter,
-                            contentTypes,
-                            contacts,
-                            filterLanguage,
-                        })}
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(firstLineEnd.map(({fieldId}) => fieldId))}
+                        </Spacer>
                     </Spacer>
 
-                    <SpacerBlock v gap="8" />
 
+                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(secondLineStart.map(({fieldId}) => fieldId))}
+                        </Spacer>
+
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(secondLineEnd.map(({fieldId}) => fieldId))}
+                        </Spacer>
+                    </Spacer>
                 </Column>
+
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
                     <CreatedUpdatedColumn
                         item={item}
@@ -387,5 +335,31 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         );
     }
 }
+
+const partitionLineItems = (items: Array<ILineConfig>) => partition(items, ({position = 'start'}) => {
+    if (position === 'start') {
+        return true;
+    } else if (position === 'end') {
+        return false;
+    } else {
+        return superdeskApi.helpers.assertNever(position);
+    }
+});
+
+const firstLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'description'},
+];
+
+const secondLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'expired'},
+    {fieldId: 'state'},
+    {fieldId: 'event_completed'},
+    {fieldId: 'featured'},
+    {fieldId: 'agendas'},
+    {fieldId: 'related_events'},
+    {fieldId: 'coverages', position: 'end'},
+];
 
 export const PlanningItem = connect()(PlanningItemComponent);

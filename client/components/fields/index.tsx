@@ -34,6 +34,9 @@ import {FIELD_TO_FORM_PREVIEW_COMPONENT, FIELD_TO_PREVIEW_COMPONENT} from './pre
 
 import {ToggleBox} from '../UI/ToggleBox';
 import './style.scss';
+import {expired} from './expired';
+import {event_completed} from './event_completed';
+import {related_events} from './related_events';
 
 let registeredFields = {};
 
@@ -417,6 +420,10 @@ registerField('description', description);
 registerField('definition_short', description);
 registerField('internalnote', internalnote);
 registerField('state', state);
+registerField('expired', expired);
+registerField('event_completed', event_completed);
+registerField('related_events', related_events);
+
 
 // Event related fields
 registerField('actionedState', actionedState);

@@ -1664,6 +1664,10 @@ export interface IContentTemplate extends IBaseRestApiResponse {
 export interface IFieldsProps {
     item: IEventOrPlanningItem;
     language?: string;
+    fieldsProps: {
+        // field specific props may be passed
+        [key: string]: any;
+    };
 }
 
 interface IMainStateSearch<T> {

@@ -153,6 +153,11 @@ interface ResizeObserverCallback {
     (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
 }
 
+export interface ILineConfig {
+    fieldId: string;
+    position?: 'start' | 'end';
+}
+
 // KEEP IN SYNC WITH client/planning-extension/src/globals.d.ts
 declare module 'superdesk-api' {
     interface ISuperdeskGlobalConfig {
@@ -191,13 +196,13 @@ declare module 'superdesk-api' {
             all_day?: boolean;
 
             planning_list_item?: {
-                firstLine: Array<string>;
-                secondLine?: Array<string>;
+                firstLine: Array<ILineConfig>;
+                secondLine?: Array<ILineConfig>;
             };
 
             event_list_item?: {
-                firstLine: Array<string>;
-                secondLine?: Array<string>;
+                firstLine: Array<ILineConfig>;
+                secondLine?: Array<ILineConfig>;
             };
         };
 
