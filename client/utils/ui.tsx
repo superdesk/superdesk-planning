@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Provider} from 'react-redux';
 import $ from 'jquery';
 import {planningApi} from '../superdeskApi';
-import {showModal} from '@superdesk/common';
+import {showModal} from '@sourcefabric/common';
 
 const scrollListItemIfNeeded = (selectedIndex, listRefElement) => {
     if (listRefElement.children.length > 0) {
