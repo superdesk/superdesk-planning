@@ -1,14 +1,13 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
-import {Menu} from 'superdesk-ui-framework/react';
+import {Menu, Spacer} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 import {appConfig} from 'appConfig';
 import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
 
 import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
-import {Label} from '../';
 import {Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
 import {
     eventUtils,
@@ -24,6 +23,8 @@ import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 import {EventDateTimeColumn} from './EventDateTimeColumn';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
+import {ILineConfig} from 'globals';
+import {partitionLineItems} from '../../helpers';
 
 interface IState {
     hover: boolean;
@@ -178,11 +179,54 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         const isExpired = isItemExpired(item);
 
-        const firstLineDefaults = ['slugline', 'internalnote', 'name'];
-        const secondLineDefaults = ['state', 'actionedState', 'calendars', 'location'];
+        const firstLineDefaults: Array<ILineConfig> = [
+            {fieldId: 'slugline'},
+            {fieldId: 'internalnote'},
+            {fieldId: 'name'},
+        ];
+
+        const secondLineDefaults: Array<ILineConfig> = [
+            {fieldId: 'expired'},
+            {fieldId: 'state'},
+            {fieldId: 'actionedState'},
+            {fieldId: 'event_completed'},
+            {fieldId: 'calendars'},
+            {fieldId: 'related_plannings'},
+            {fieldId: 'location'},
+        ];
+
+        const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+            fields,
+            item,
+            {
+                fieldsProps: {
+                    actionedState: {
+                        onClick: (e) => {
+                            onEventCapture(e);
+                            onItemClick({
+                                _id: item.reschedule_from,
+                                type: 'event',
+                            });
+                        },
+                    },
+                    calendars: {
+                        calendars: calendars,
+                        language: language,
+                    },
+                    related_plannings: {
+                        relatedEventsUI: this.props.relatedEventsUI,
+                        relatedPlanningsCount: this.props.relatedPlanningsCount,
+                    },
+                },
+            },
+            language,
+        );
 
         const firstLine = appConfig.planning?.event_list_item?.firstLine ?? firstLineDefaults;
         const secondLine = appConfig.planning?.event_list_item?.secondLine ?? secondLineDefaults;
+
+        const [firstLineStart, firstLineEnd] = partitionLineItems(firstLine);
+        const [secondLineStart, secondLineEnd] = partitionLineItems(secondLine);
 
         const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
@@ -229,87 +273,26 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     grow={true}
                     border={false}
                 >
-                    <Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(firstLine, item, {}, language)}
-                        </span>
-                    </Row>
+                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(firstLineStart.map(({fieldId}) => fieldId))}
+                        </Spacer>
 
-                    <Row>
-                        {isExpired && (
-                            <Label
-                                text={gettext('Expired')}
-                                iconType="alert"
-                                isHollow={true}
-                            />
-                        )}
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(firstLineEnd.map(({fieldId}) => fieldId))}
+                        </Spacer>
+                    </Spacer>
 
-                        {secondLine.includes('state') && renderFields('state', item)}
-                        {secondLine.includes('actionedState') &&
-                            renderFields('actionedState', item, {
-                                onClick: (e) => {
-                                    onEventCapture(e);
-                                    onItemClick({
-                                        _id: item.reschedule_from,
-                                        type: 'event',
-                                    });
-                                },
-                            })
-                        }
-                        {eventUtils.isEventCompleted(item) && (
-                            <Label
-                                text={gettext('Event Completed')}
-                                iconType="success"
-                                isHollow={true}
-                            />
-                        )}
-                        {secondLine.includes('calendars') && renderFields('calendars', item, {
-                            calendars: calendars,
-                        })}
 
-                        {secondLine.includes('files') && renderFields('files', item)}
+                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(secondLineStart.map(({fieldId}) => fieldId))}
+                        </Spacer>
 
-                        {(() => {
-                            const {relatedEventsUI} = this.props;
-
-                            if (!hasPlanning || relatedEventsUI == null) {
-                                return null;
-                            }
-
-                            const relatedPlanningText = relatedEventsUI.visible
-                                ? gettextPlural(
-                                    this.props.relatedPlanningsCount,
-                                    'Hide 1 planning item', 'Hide {{n}} planning items',
-                                    {n: this.props.relatedPlanningsCount},
-                                )
-                                : gettextPlural(
-                                    this.props.relatedPlanningsCount,
-                                    'Show 1 planning item', 'Show {{n}} planning items',
-                                    {n: this.props.relatedPlanningsCount},
-                                );
-
-                            return (
-                                <span
-                                    className="sd-overflow-ellipsis sd-list-item__element-lm-10"
-                                >
-                                    <a
-                                        className="sd-line-input__input--related-item-link"
-                                        onClick={(event) => {
-                                            event.stopPropagation();
-                                            relatedEventsUI.setVisibility(!relatedEventsUI.visible);
-                                        }}
-                                    >
-                                        <i className="icon-calendar" />
-                                        <span className="sd-margin-l--0-5">
-                                            {relatedPlanningText}
-                                        </span>
-                                    </a>
-                                </span>
-                            );
-                        })()}
-
-                        {secondLine.includes('location') && renderFields('location', item)}
-                    </Row>
+                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
+                            {renderFieldsWithProps(secondLineEnd.map(({fieldId}) => fieldId))}
+                        </Spacer>
+                    </Spacer>
                 </Column>
 
                 <EventDateTimeColumn

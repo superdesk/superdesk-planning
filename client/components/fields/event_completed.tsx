@@ -1,18 +1,23 @@
 import React from 'react';
 import {IFieldsProps} from '../../interfaces';
-import {eventUtils, isPlanning} from '../../utils';
+import {eventUtils, isEvent, isPlanning} from '../../utils';
 import {Label} from '../../components/Label';
 import {superdeskApi} from '../../superdeskApi';
+import {IEventItem} from 'globals';
 
 export const event_completed: React.ComponentType<IFieldsProps> = (props) => {
     const {item} = props;
     const {gettext} = superdeskApi.localization;
 
-    if (!isPlanning(item)) {
-        return null;
-    }
-
-    const event = item.event;
+    const event: IEventItem = (() => {
+        if (isPlanning(item)) {
+            return item.event;
+        } else if (isEvent(item)) {
+            return item;
+        } else {
+            return null;
+        }
+    })();
 
     if (event == null) {
         return null;

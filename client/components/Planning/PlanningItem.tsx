@@ -31,6 +31,7 @@ import {renderFields} from '../fields';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {ILineConfig} from 'globals';
+import {partitionLineItems} from '../../helpers';
 
 interface IState {
     hover: boolean;
@@ -335,16 +336,6 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         );
     }
 }
-
-const partitionLineItems = (items: Array<ILineConfig>) => partition(items, ({position = 'start'}) => {
-    if (position === 'start') {
-        return true;
-    } else if (position === 'end') {
-        return false;
-    } else {
-        return superdeskApi.helpers.assertNever(position);
-    }
-});
 
 const firstLineDefaults: Array<ILineConfig> = [
     {fieldId: 'slugline'},

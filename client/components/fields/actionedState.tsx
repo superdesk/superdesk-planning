@@ -1,9 +1,17 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {getItemActionedStateLabel} from '../../utils';
 import {Label} from '../';
+import {IFieldsProps} from 'interfaces';
 
-export const actionedState = ({item, ...props}) => {
+interface IProps extends IFieldsProps {
+    fieldsProps: {
+        actionedState: {
+            onClick(): void;
+        };
+    };
+}
+
+export const actionedState: React.FunctionComponent<IProps> = ({item, fieldsProps}) => {
     const itemActionedState = getItemActionedStateLabel(item);
 
     if (!itemActionedState) {
@@ -15,13 +23,7 @@ export const actionedState = ({item, ...props}) => {
             text={itemActionedState.label}
             iconType={itemActionedState.iconType}
             tooltip={itemActionedState.tooltip}
-            {...props}
+            onClick={fieldsProps?.actionedState?.onClick}
         />
     );
-};
-
-actionedState.propTypes = {
-    item: PropTypes.shape({
-        description_text: PropTypes.string,
-    }).isRequired,
 };

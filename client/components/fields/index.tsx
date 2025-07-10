@@ -37,6 +37,7 @@ import './style.scss';
 import {expired} from './expired';
 import {event_completed} from './event_completed';
 import {related_events} from './related_events';
+import {related_plannings} from './related_plannings';
 
 let registeredFields = {};
 
@@ -434,3 +435,4 @@ registerField('featured', FeatureLabel);
 registerField('agendas', agendas);
 registerField('coverages', coverages);
 registerField('reference', reference);
+registerField('related_plannings', related_plannings);

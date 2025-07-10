@@ -3,21 +3,23 @@
 import React, {Fragment} from 'react';
 import {get} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {ICalendar} from '../../interfaces';
+import {ICalendar, IFieldsProps} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 
-interface IProps {
-    item: any;
-    calendars: Array<ICalendar>;
-    field?: string;
-    language?: string;
+interface IProps extends IFieldsProps {
+    fieldsProps: {
+        calendars: {
+            language: string;
+            calendars: Array<ICalendar>;
+        };
+    };
 }
 
 export class calendars extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const field = this.props.field ?? 'calendars';
+        const field = 'calendars';
         const qcodes: Array<ICalendar['qcode']> = (get(this.props.item, field) || [])
             .map((calendar) => calendar.qcode);
         const calendars: Array<{
@@ -27,13 +29,13 @@ export class calendars extends React.PureComponent<IProps> {
             disabled: boolean,
         }> = [];
 
-        this.props.calendars
+        this.props.fieldsProps.calendars.calendars
             .filter((calendar) => qcodes.includes(calendar.qcode))
             .forEach((calendar) => {
                 const name = getVocabularyItemFieldTranslated(
                     calendar,
                     'name',
-                    this.props.language
+                    this.props.fieldsProps.calendars.language,
                 );
 
                 calendars.push({
