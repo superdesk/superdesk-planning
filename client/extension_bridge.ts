@@ -92,7 +92,7 @@ interface IExtensionBridge {
             ): string;
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
             isCustomVocabulary(vocabulary: IVocabulary): boolean;
-            COVERAGE_VOCABULARIES: Array<string>;
+            COVERAGE_VOCABULARIES: Set<string>;
         };
 
         components: {

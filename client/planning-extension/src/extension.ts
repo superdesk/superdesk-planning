@@ -277,7 +277,7 @@ const extension: IExtension = {
             .getAll()
             .toArray()
             .filter((x) =>
-                !extensionBridge.ui.utils.COVERAGE_VOCABULARIES.includes(x._id)
+                !extensionBridge.ui.utils.COVERAGE_VOCABULARIES.has(x._id)
                 && extensionBridge.ui.utils.isCustomVocabulary(x),
             );
 

@@ -122,7 +122,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'field.default_duration_on_change': {enabled: this.props.item.name === 'dates'},
             'schema.languages': {enabled: (this.props.item.name === 'language' && isMultilingual)},
             'schema.default_language': {enabled: (this.props.item.name === 'language' && isMultilingual)},
-            'schema.multilingual': {enabled: (
+            'schema.multilingual': {enabled: this.props.isProfileCoverage ? false : (
                 this.props.item.name === 'language' || (
                     this.props.item.schema?.type === 'string' &&
                     isMultilingual &&
