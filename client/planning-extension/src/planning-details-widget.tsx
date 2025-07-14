@@ -21,7 +21,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
         super(props);
 
         this.state = {
-            loading: !!props.article.assignment_id,
+            loading: props.article.assignment_id != null,
             planningId: null,
         };
     }
@@ -29,7 +29,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
     componentDidMount() {
         const {assignment_id} = this.props.article;
 
-        if (assignment_id) {
+        if (assignment_id != null) {
             extensionBridge.planning.getItemPlanningInfo({assignment_id})
                 .then((planning) => {
                     this.setState({
@@ -66,50 +66,10 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
     openPlanningEditor = () => {
         const {planningId} = this.state;
 
-        if (planningId) {
+        if (planningId != null) {
             editPlanningInNewTab(planningId);
         }
     };
-
-    renderActionsNotLinked() {
-        return (
-            <div className="sd-margin--2">
-                <Button
-                    text={gettext('Add to Planning')}
-                    icon="calendar-list"
-                    onClick={this.dispatchAddToPlanning}
-                    expand
-                />
-                <div className="sd-margin-t--1" />
-                <Button
-                    text={gettext('Fulfil Assignment')}
-                    icon="bolt"
-                    onClick={this.dispatchFulfilAssignment}
-                    expand
-                />
-            </div>
-        );
-    }
-
-    renderActionsLinked() {
-        return (
-            <div className="sd-margin--2">
-                <Button
-                    text={gettext('Edit Planning')}
-                    icon="edit"
-                    onClick={this.openPlanningEditor}
-                    expand
-                />
-                <div className="sd-margin-t--1" />
-                <Button
-                    text={gettext('Unlink as Coverage')}
-                    icon="cut"
-                    onClick={this.dispatchUnlinkCoverage}
-                    expand
-                />
-            </div>
-        );
-    }
 
     render() {
         const {assignment_id} = this.props.article;
@@ -132,13 +92,41 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
                 )}
                 body={(
                     <div>
-                        {assignment_id ? (
+                        {assignment_id != null ? (
                             <>
                                 <PlanningDetailsBody item={{assignment_id}} />
-                                {this.renderActionsLinked()}
+                                <div className="sd-margin--2">
+                                    <Button
+                                        text={gettext('Edit Planning')}
+                                        icon="edit"
+                                        onClick={this.openPlanningEditor}
+                                        expand
+                                    />
+                                    <div className="sd-margin-t--1" />
+                                    <Button
+                                        text={gettext('Unlink as Coverage')}
+                                        icon="cut"
+                                        onClick={this.dispatchUnlinkCoverage}
+                                        expand
+                                    />
+                                </div>
                             </>
                         ) : (
-                            this.renderActionsNotLinked()
+                            <div className="sd-margin--2">
+                                <Button
+                                    text={gettext('Add to Planning')}
+                                    icon="calendar-list"
+                                    onClick={this.dispatchAddToPlanning}
+                                    expand
+                                />
+                                <div className="sd-margin-t--1" />
+                                <Button
+                                    text={gettext('Fulfil Assignment')}
+                                    icon="bolt"
+                                    onClick={this.dispatchFulfilAssignment}
+                                    expand
+                                />
+                            </div>
                         )}
                     </div>
                 )}
