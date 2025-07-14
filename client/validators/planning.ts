@@ -98,7 +98,7 @@ export const validateCoverages = ({
 
         validateCoverageVocabularyFields(coverageProfile, errors, messages, diff.coverages[index]);
 
-        const isValidSubject = coverageProfile.schema['subject'].required
+        const isValidSubject = coverageProfile.schema['subject']?.required
             ? !isEmpty((diff.coverages[index].subject ?? []).filter((x) => x.scheme == null))
             : true;
 
