@@ -78,48 +78,73 @@ export function getGroupFieldsSorted(
     return fields;
 }
 
-export const COVERAGE_VOCABULARIES = ['news_coverage_status', 'g2_content_type', 'genre'];
+export const COVERAGE_VOCABULARIES = new Set([
+    'news_coverage_status',
+    'g2_content_type',
+    'genre',
+
+    /**
+     * coverage language field with id `language` uses languages vocabulary for values,
+     * so it doesn't make sense to register it again as a vocabulary field
+     */
+    'languages',
+
+    /**
+     * coverage language field id is `language`, so if user configures vocabulary with `language` id,
+     * they'll collide and a wrong field config will be applied.
+     */
+    'language',
+]);
 
 export function getUnusedProfileFields(
     profile: IEditorProfile,
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
-    const customVocabularies = planningApi.vocabularies.getCustomVocabularies();
-    const vocabularyIds = customVocabularies.map((x) => x._id);
+    const customVocabularies = planningApi.vocabularies.getCustomVocabularies()
+        .filter(({_id}) => COVERAGE_VOCABULARIES.has(_id) === false);
+    const vocabularyIds = new Set(customVocabularies.map(({_id}) => _id));
+
+    /*
+        Includes vocabularies configured in metadata settings, excluding
+        specific coverage fields that use a custom vocabulary as source.
+    */
     const vocabularyFields: Array<IProfileFieldEntry> = customVocabularies
-        .map((x, i) => ({
+        .map(({_id}, i) => ({
             field: {
                 enabled: false,
                 group: undefined,
                 index: i,
             },
-            name: x._id,
+            name: _id,
             schema: {
                 type: 'custom_vocabulary',
                 required: false,
             }
         }));
 
-    const fieldsFromProfile = getProfileFields(profile);
-    const usedVocabularies = fieldsFromProfile.filter(
-        (fieldEntry) =>
-            fieldEntry.schema?.type === 'custom_vocabulary'
-            && vocabularyIds.includes(fieldEntry.name)
-            && fieldEntry.field.enabled
+    const profileFields = getProfileFields(profile);
+
+    const usedVocabularies = new Set(
+        profileFields
+            .filter((fieldEntry) =>
+                fieldEntry.schema.type === 'custom_vocabulary'
+                && vocabularyIds.has(fieldEntry.name)
+                && fieldEntry.field.enabled
+            )
+            .map(({name}) => name),
     );
     const unusedVocabularies = vocabularyFields.filter((field) => {
-        const isCustomVocabulary = field.schema?.type === 'custom_vocabulary';
-        const isUnused = !usedVocabularies.some((usedFieldEntry) => usedFieldEntry.name === field.name);
-        const isCoverageVocabulary = COVERAGE_VOCABULARIES.includes(field.name);
+        const isCustomVocabulary = field.schema.type === 'custom_vocabulary';
+        const isUnused = !usedVocabularies.has(field.name);
 
-        return isCustomVocabulary && isUnused && !isCoverageVocabulary;
+        return isCustomVocabulary && isUnused;
     });
 
     return orderBy(
-        fieldsFromProfile
+        profileFields
             .filter((field) => {
                 const isUnused = (includeGroupCheck && field.field.group == null) || !field.field.enabled;
-                const isVocabulary = field.schema?.type === 'custom_vocabulary' || vocabularyIds.includes(field.name);
+                const isVocabulary = field.schema?.type === 'custom_vocabulary' || vocabularyIds.has(field.name);
 
                 return isUnused && !isVocabulary;
             })
