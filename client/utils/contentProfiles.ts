@@ -127,7 +127,7 @@ export function getUnusedProfileFields(
     const usedVocabularies = new Set(
         profileFields
             .filter((fieldEntry) =>
-                fieldEntry.schema.type === 'custom_vocabulary'
+                fieldEntry.schema?.type === 'custom_vocabulary'
                 && vocabularyIds.has(fieldEntry.name)
                 && fieldEntry.field.enabled
             )
