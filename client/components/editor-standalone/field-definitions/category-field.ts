@@ -33,7 +33,7 @@ export const getCategoriesField = (): IFieldDefinition => ({
 
         const field: IAuthoringFieldV2 = {
             id: id,
-            name: superdeskApi.localization.gettext('Categories'),
+            name: superdeskApi.localization.gettext('ANPA Category'),
             fieldType: 'dropdown',
             fieldConfig: fieldConfig,
         };
