@@ -1,4 +1,4 @@
-import {get, cloneDeep, pickBy, every, range, uniq, uniqBy} from 'lodash';
+import {get, cloneDeep, pickBy, every} from 'lodash';
 import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
