@@ -1,8 +1,8 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import {get, isEqual, partition} from 'lodash';
+import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {Menu, Spacer} from 'superdesk-ui-framework/react';
+import {Menu} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../superdeskApi';
 import {appConfig} from 'appConfig';
@@ -31,7 +31,7 @@ import {renderFields} from '../fields';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {ILineConfig} from 'globals';
-import {partitionLineItems} from '../../helpers';
+import {LineItems} from '../../components/UI/List/LineItems';
 
 interface IState {
     hover: boolean;
@@ -204,9 +204,6 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             (appConfig.planning?.planning_list_item?.secondLine ?? secondLineDefaults)
                 .filter((fields) => isAgendaEnabled ? true : fields !== 'agendas');
 
-        const [firstLineStart, firstLineEnd] = partitionLineItems(firstLine);
-        const [secondLineStart, secondLineEnd] = partitionLineItems(secondLine);
-
         const renderFieldsWithProps = (fields: Array<string>) => renderFields(
             fields,
             item,
@@ -274,30 +271,16 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     isPublic={isItemPosted(item) &&
                     getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
                 />
+
                 <Column
                     grow={true}
                     border={false}
                 >
-                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(firstLineStart.map(({fieldId}) => fieldId))}
-                        </Spacer>
-
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(firstLineEnd.map(({fieldId}) => fieldId))}
-                        </Spacer>
-                    </Spacer>
-
-
-                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(secondLineStart.map(({fieldId}) => fieldId))}
-                        </Spacer>
-
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(secondLineEnd.map(({fieldId}) => fieldId))}
-                        </Spacer>
-                    </Spacer>
+                    <LineItems
+                        firstLine={firstLine}
+                        secondLine={secondLine}
+                        renderFieldsWithProps={renderFieldsWithProps}
+                    />
                 </Column>
 
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (

@@ -49,9 +49,9 @@ export class calendars extends React.PureComponent<IProps> {
             });
 
         return (
-            <Fragment>
+            <div>
                 <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
-                {<span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-rm-10">
+                {<span className="sd-list-item__text-strong sd-list-item--element-rm-10">
                     {calendars.length > 0 ? (
                         <OverlayTrigger
                             placement="left"
@@ -85,7 +85,7 @@ export class calendars extends React.PureComponent<IProps> {
                         </span>
                     )}
                 </span>}
-            </Fragment>
+            </div>
         );
     }
 }

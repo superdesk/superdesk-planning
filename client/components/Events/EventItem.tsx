@@ -1,7 +1,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
-import {Menu, Spacer} from 'superdesk-ui-framework/react';
+import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 import {appConfig} from 'appConfig';
 import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
@@ -24,7 +24,7 @@ import {EventDateTimeColumn} from './EventDateTimeColumn';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {ILineConfig} from 'globals';
-import {partitionLineItems} from '../../helpers';
+import {LineItems} from '../../components/UI/List/LineItems';
 
 interface IState {
     hover: boolean;
@@ -179,22 +179,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         const isExpired = isItemExpired(item);
 
-        const firstLineDefaults: Array<ILineConfig> = [
-            {fieldId: 'slugline'},
-            {fieldId: 'internalnote'},
-            {fieldId: 'name'},
-        ];
-
-        const secondLineDefaults: Array<ILineConfig> = [
-            {fieldId: 'expired'},
-            {fieldId: 'state'},
-            {fieldId: 'actionedState'},
-            {fieldId: 'event_completed'},
-            {fieldId: 'calendars'},
-            {fieldId: 'related_plannings'},
-            {fieldId: 'location'},
-        ];
-
         const renderFieldsWithProps = (fields: Array<string>) => renderFields(
             fields,
             item,
@@ -224,9 +208,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         const firstLine = appConfig.planning?.event_list_item?.firstLine ?? firstLineDefaults;
         const secondLine = appConfig.planning?.event_list_item?.secondLine ?? secondLineDefaults;
-
-        const [firstLineStart, firstLineEnd] = partitionLineItems(firstLine);
-        const [secondLineStart, secondLineEnd] = partitionLineItems(secondLine);
 
         const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
@@ -273,26 +254,11 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     grow={true}
                     border={false}
                 >
-                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(firstLineStart.map(({fieldId}) => fieldId))}
-                        </Spacer>
-
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(firstLineEnd.map(({fieldId}) => fieldId))}
-                        </Spacer>
-                    </Spacer>
-
-
-                    <Spacer h gap="8" justifyContent="space-between" noWrap noGrow>
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(secondLineStart.map(({fieldId}) => fieldId))}
-                        </Spacer>
-
-                        <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                            {renderFieldsWithProps(secondLineEnd.map(({fieldId}) => fieldId))}
-                        </Spacer>
-                    </Spacer>
+                    <LineItems
+                        firstLine={firstLine}
+                        secondLine={secondLine}
+                        renderFieldsWithProps={renderFieldsWithProps}
+                    />
                 </Column>
 
                 <EventDateTimeColumn
@@ -319,3 +285,24 @@ class EventItemComponent extends React.Component<IProps, IState> {
 }
 
 export const EventItem = connect()(EventItemComponent);
+
+const firstLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'state'},
+    {fieldId: 'actionedState'},
+    {fieldId: 'name'},
+    {fieldId: 'calendars'},
+    {fieldId: 'state', position: 'end'},
+    {fieldId: 'related_plannings'},
+    {fieldId: 'location'},
+];
+
+const secondLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'expired'},
+    {fieldId: 'state'},
+    {fieldId: 'actionedState'},
+    {fieldId: 'event_completed'},
+    {fieldId: 'related_plannings'},
+    {fieldId: 'location'},
+];
