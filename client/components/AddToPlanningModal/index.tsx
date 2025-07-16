@@ -9,8 +9,16 @@ import {AddToPlanningApp} from '../../apps';
 import * as selectors from '../../selectors';
 import {gettext} from '../../utils';
 import {KEYCODES} from '../../constants';
+import {IArticle} from 'superdesk-api';
 
-export class AddToPlanningComponent extends React.Component {
+interface IProps {
+    handleHide(): void,
+    modalProps: {newsItem: IArticle, $scope: ng.IScope},
+    currentWorkspace?: string,
+    actionInProgress?: boolean,
+}
+
+export class AddToPlanningComponent extends React.Component<IProps> {
     constructor(props) {
         super(props);
 
@@ -83,16 +91,6 @@ export class AddToPlanningComponent extends React.Component {
         );
     }
 }
-
-AddToPlanningComponent.propTypes = {
-    handleHide: PropTypes.func.isRequired,
-    modalProps: PropTypes.shape({
-        newsItem: PropTypes.object,
-        $scope: PropTypes.object,
-    }),
-    currentWorkspace: PropTypes.string,
-    actionInProgress: PropTypes.bool,
-};
 
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.general.currentWorkspace(state),
