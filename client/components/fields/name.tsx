@@ -18,7 +18,7 @@ export const name = ({item, language}: IFieldsProps) => {
     const value = stringUtils.convertHtmlToPlainText(getTranslatedValue(language, item, 'name') ?? item.name);
 
     return (
-        <span className="sd-list-item__name" style={{...stylesForEllipsis, lineHeight: 1}}>
+        <span className="sd-list-item__name" style={{...stylesForEllipsis, lineHeight: '1lh'}}>
             {value}
         </span>
     );

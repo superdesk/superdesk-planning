@@ -21,7 +21,7 @@ export const slugline = ({item, language}: IFieldsProps) => {
     );
 
     return (
-        <span className="sd-list-item__slugline" style={{...stylesForEllipsis, lineHeight: 1}}>
+        <span className="sd-list-item__slugline" style={{...stylesForEllipsis, lineHeight: '1lh'}}>
             {value}
         </span>
     );
