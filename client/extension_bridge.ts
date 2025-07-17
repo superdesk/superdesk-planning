@@ -2,7 +2,7 @@ import React from 'react';
 
 import {IArticle, IVocabularyItem} from 'superdesk-api';
 
-import {getAssignmentTypeInfo} from './utils/assignments';
+import {getAssignmentTypeInfo, editPlanningInNewTab} from './utils/assignments';
 import {SluglineComponent} from './components/Assignments/AssignmentItem/fields/Slugline';
 import {DueDateComponent} from './components/Assignments/AssignmentItem/fields/DueDate';
 import {StateComponent} from './components/Assignments/AssignmentItem/fields/State';
@@ -35,6 +35,7 @@ interface IExtensionBridge {
     };
     planning: {
         getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
+        editPlanningInNewTab(planningItemId: IPlanningItem['_id']): void;
     },
     ui: {
         utils: {
@@ -87,6 +88,7 @@ export const extensionBridge: IExtensionBridge = {
     },
     planning: {
         getItemPlanningInfo,
+        editPlanningInNewTab,
     },
     ui: {
         utils: {

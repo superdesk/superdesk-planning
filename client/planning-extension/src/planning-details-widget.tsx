@@ -2,9 +2,8 @@ import * as React from 'react';
 import {IArticleSideWidgetComponentType} from 'superdesk-api';
 import {superdesk} from './superdesk';
 import {extensionBridge} from './extension_bridge';
-import {editPlanningInNewTab} from '../../utils/assignments';
 import {Button, Spinner} from 'superdesk-ui-framework/react';
-
+const {editPlanningInNewTab} = extensionBridge.planning;
 const {AuthoringWidgetLayout, AuthoringWidgetHeading} = superdesk.components;
 const {gettext} = superdesk.localization;
 
