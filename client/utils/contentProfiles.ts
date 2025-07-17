@@ -86,7 +86,7 @@ export const VOCABULARIES_TO_BE_EXCLUDED = new Set([
     /**
      * General vocabularies to be excluded:
      */
-    'subject',
+    'sttsubj',
 
     /**
      * Coverage specific vocabularies:
