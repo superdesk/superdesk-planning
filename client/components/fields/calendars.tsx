@@ -1,22 +1,22 @@
 /* eslint-disable react/no-multi-comp */
 
-import React, {Fragment} from 'react';
+import React from 'react';
+import {connect} from 'react-redux';
 import {get} from 'lodash';
+import {Spacer} from 'superdesk-ui-framework/react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {ICalendar, IFieldsProps} from '../../interfaces';
+import {ICalendar, IFieldsProps, IPlanningAppState} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+import * as selectors from '../../selectors';
 
-interface IProps extends IFieldsProps {
-    fieldsProps: {
-        calendars: {
-            language: string;
-            calendars: Array<ICalendar>;
-        };
-    };
+interface IReduxStateProps {
+    calendars: Array<ICalendar>;
 }
 
-export class calendars extends React.PureComponent<IProps> {
+type IProps = IFieldsProps & IReduxStateProps;
+
+class CalendarsComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
         const field = 'calendars';
@@ -29,13 +29,13 @@ export class calendars extends React.PureComponent<IProps> {
             disabled: boolean,
         }> = [];
 
-        this.props.fieldsProps.calendars.calendars
+        this.props.calendars
             .filter((calendar) => qcodes.includes(calendar.qcode))
             .forEach((calendar) => {
                 const name = getVocabularyItemFieldTranslated(
                     calendar,
                     'name',
-                    this.props.fieldsProps.calendars.language,
+                    this.props.language,
                 );
 
                 calendars.push({
@@ -49,7 +49,7 @@ export class calendars extends React.PureComponent<IProps> {
             });
 
         return (
-            <div>
+            <Spacer h gap="4" justifyContent="start" noWrap noGrow style={{whiteSpace: 'nowrap'}}>
                 <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
                 {<span className="sd-list-item__text-strong sd-list-item--element-rm-10">
                     {calendars.length > 0 ? (
@@ -85,7 +85,15 @@ export class calendars extends React.PureComponent<IProps> {
                         </span>
                     )}
                 </span>}
-            </div>
+            </Spacer>
         );
     }
 }
+
+const mapStateToProps = (state: IPlanningAppState) => ({
+    calendars: selectors.events.calendars(state),
+});
+
+export const calendars = connect(
+    mapStateToProps,
+)(CalendarsComponent);
