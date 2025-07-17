@@ -57,28 +57,33 @@ export const getCustomVocabularyFields = (profileType: 'event' | 'planning') => 
         for (const id of customVocabularyIds) {
             const vocabulary = allVocabularies.get(id);
 
-            result.push({
-                fieldId: id,
-                getField: ({required, id: _id}) => {
-                    const fieldConfig: IDropdownConfigVocabulary = {
-                        source: 'vocabulary',
-                        vocabularyId: id,
-                        multiple: true,
-                        required: required,
-                    };
+            if (vocabulary.selection_type !== 'do not show') {
+                result.push({
+                    fieldId: id,
+                    getField: ({required, id: _id}) => {
+                        const fieldConfig: IDropdownConfigVocabulary = {
+                            source: 'vocabulary',
+                            vocabularyId: _id,
+                            canSelectBranchWithChildren: vocabulary.disable_entire_category_selection == null
+                                ? true
+                                : vocabulary.disable_entire_category_selection,
+                            multiple: vocabulary.selection_type === 'multi selection',
+                            required: required,
+                        };
 
-                    const field: IAuthoringFieldV2 = {
-                        id: _id,
-                        name: vocabulary.display_name,
-                        fieldType: 'dropdown',
-                        fieldConfig: fieldConfig,
-                    };
+                        const field: IAuthoringFieldV2 = {
+                            id: _id,
+                            name: vocabulary.display_name,
+                            fieldType: 'dropdown',
+                            fieldConfig: fieldConfig,
+                        };
 
-                    return field;
-                },
-                storageAdapterPlanning: getStorageAdapterCommon(id, allVocabularies),
-                storageAdapterEvent: getStorageAdapterCommon(id, allVocabularies),
-            });
+                        return field;
+                    },
+                    storageAdapterPlanning: getStorageAdapterCommon(id, allVocabularies),
+                    storageAdapterEvent: getStorageAdapterCommon(id, allVocabularies),
+                });
+            }
         }
     }
 
