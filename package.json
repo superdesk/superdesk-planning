@@ -86,8 +86,5 @@
     "redux-thunk": "^2.3.0",
     "superdesk-ui-framework": "*",
     "typescript": "*"
-  },
-  "volta": {
-    "node": "14.21.3"
   }
 }
