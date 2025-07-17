@@ -125,7 +125,10 @@ describe('actions.planning.api', () => {
         });
 
         it('refetch', (done) => {
-            sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve({_items: ['item']})));
+            sinon.stub(planningApi, 'query').callsFake(() => Promise.resolve({
+                _meta: {total: 1, max_results: 50, page: 1},
+                _items: ['item'],
+            }));
             store.initialState.main.filter = MAIN.FILTERS.PLANNING;
             store.initialState.main.search.PLANNING.lastRequestParams.page = 3;
 

@@ -155,17 +155,20 @@ const refetch = () => (
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
+        dispatch(self.clearList());
+
         return dispatch(planningApis.refetch())
-            .then(
-                (items) => {
-                    dispatch(self.setInList(items.map((p) => p._id)));
-                    return Promise.resolve(items);
-                }, (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to update the planning list!')
-                    );
-                    return Promise.reject(error);
-                }
+            .then((items) => {
+                dispatch(self.setInList(items.map((p) => p._id)));
+
+                return Promise.resolve(items);
+            })
+            .catch((error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to update the planning list!')
+                );
+                return Promise.reject(error);
+            }
             );
     }
 );

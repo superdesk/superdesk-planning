@@ -1,4 +1,4 @@
-import {get, cloneDeep, pickBy, every, range, uniq, uniqBy} from 'lodash';
+import {get, cloneDeep, pickBy, every} from 'lodash';
 import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApi} from '../../superdeskApi';
@@ -244,23 +244,48 @@ const fetch = (params: IPlanningSearchParams = {}) => ((dispatch, getState) => (
 const refetch = (page = 1, plannings = []) => (
     (dispatch, getState) => {
         const prevParams = selectors.main.lastRequestParams(getState());
-
-        let params = {
+        const params = {
             ...prevParams,
             page,
         };
 
         return dispatch(self.query(params, true))
             .then((response) => {
-                plannings = plannings.concat(response._items); // eslint-disable-line no-param-reassign
-                page++; // eslint-disable-line no-param-reassign
-                if (get(prevParams, 'page', 1) >= page) {
-                    return dispatch(self.refetch(page, plannings));
+                return handleItemsForLastFetchedDay(
+                    response._items,
+                    {
+                        ...params,
+                        maxResults: response._meta.max_results,
+                        page: response._meta.page,
+                        advancedSearch: {
+                            ...params.advancedSearch,
+                            dates: {
+                                ...(params.advancedSearch?.dates ?? {}),
+                                start: params.advancedSearch?.dates?.start
+                                    ? params.advancedSearch.dates.start
+                                    : moment(),
+                                end: params.advancedSearch?.dates?.end,
+                            },
+                        },
+                    },
+                    response._meta.total,
+                    dispatch,
+                    getState,
+                );
+            })
+            .then((items) => {
+                const allPlanningItems = plannings.concat(items);
+                const nextPage = page + 1;
+
+                if ((prevParams?.page ?? 1) >= nextPage) {
+                    return dispatch(self.refetch(nextPage, allPlanningItems));
                 }
 
-                dispatch(self.receivePlannings(plannings));
-                return Promise.resolve(plannings);
-            }, (error) => (Promise.reject(error)));
+                dispatch(self.receivePlannings(allPlanningItems));
+
+                return Promise.resolve(allPlanningItems);
+            })
+            .catch((error) => Promise.reject(error));
     }
 );
 
