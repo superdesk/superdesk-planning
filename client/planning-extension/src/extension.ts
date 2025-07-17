@@ -241,7 +241,8 @@ const extension: IExtension = {
                         order: 12,
                         icon: 'tasks',
                         component: PlanningDetailsWidget,
-                        isAllowed: (item) => item.assignment_id != null,
+                        isAllowed: () =>
+                            superdesk.privileges.hasPrivilege('planning_planning_management'),
                         getBadge: (item) => { // KEEP IN SYNC WITH client/index.ts
                             if (item.assignment_id == null) {
                                 return Promise.resolve(null);
