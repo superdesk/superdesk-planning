@@ -1,29 +1,27 @@
 import React from 'react';
-import {getItemActionedStateLabel} from '../../utils';
 import {Label} from '../';
 import {IFieldsProps} from 'interfaces';
+import {planningApi, superdeskApi} from '../../superdeskApi';
+import * as actions from '../../actions';
+import {isEvent} from '../../utils';
 
-interface IProps extends IFieldsProps {
-    fieldsProps: {
-        actionedState: {
-            onClick(): void;
-        };
-    };
-}
+export const actionedState: React.FunctionComponent<IFieldsProps> = ({item, fieldsProps}) => {
+    const {gettext} = superdeskApi.localization;
 
-export const actionedState: React.FunctionComponent<IProps> = ({item, fieldsProps}) => {
-    const itemActionedState = getItemActionedStateLabel(item);
-
-    if (!itemActionedState) {
-        return null;
+    if (isEvent(item) && item.reschedule_from != null) {
+        return (
+            <Label
+                text={gettext('Rescheduled Event')}
+                iconType="primary"
+                tooltip={{text: gettext('View original event'), flow: 'right'}}
+                onClick={() => {
+                    planningApi.redux.store.dispatch(
+                        actions.main.openPreview({type: 'event', _id: item.reschedule_from}) as any,
+                    );
+                }}
+            />
+        );
     }
 
-    return (
-        <Label
-            text={itemActionedState.label}
-            iconType={itemActionedState.iconType}
-            tooltip={itemActionedState.tooltip}
-            onClick={fieldsProps?.actionedState?.onClick}
-        />
-    );
+    return null;
 };

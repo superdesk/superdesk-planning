@@ -3,19 +3,17 @@ import {connect} from 'react-redux';
 import {get} from 'lodash';
 import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
-import {appConfig} from 'appConfig';
 import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
 
 import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
-import {Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
+import {Border, Column, Item, ItemType, PubStatus} from '../UI/List';
 import {
     eventUtils,
     getItemWorkflowState,
     isItemDifferent,
     isItemExpired,
     isItemPosted,
-    onEventCapture,
     lockUtils,
 } from '../../utils';
 import {renderFields} from '../fields';
@@ -23,8 +21,8 @@ import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 import {EventDateTimeColumn} from './EventDateTimeColumn';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
-import {ILineConfig} from 'globals';
 import {LineItems} from '../../components/UI/List/LineItems';
+import {eventFirstLineConfig, eventSecondLineConfig} from '../../config';
 
 interface IState {
     hover: boolean;
@@ -146,7 +144,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {gettext, gettextPlural} = superdeskApi.localization;
         const {querySelectorParent} = superdeskApi.utilities;
 
         const {
@@ -155,7 +152,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
             lockedItems,
             activeFilter,
             onMultiSelectClick,
-            calendars,
             active,
             refNode,
             listViewType,
@@ -176,7 +172,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
             borderState = 'active';
         }
 
-
         const isExpired = isItemExpired(item);
 
         const renderFieldsWithProps = (fields: Array<string>) => renderFields(
@@ -184,19 +179,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
             item,
             {
                 fieldsProps: {
-                    actionedState: {
-                        onClick: (e) => {
-                            onEventCapture(e);
-                            onItemClick({
-                                _id: item.reschedule_from,
-                                type: 'event',
-                            });
-                        },
-                    },
-                    calendars: {
-                        calendars: calendars,
-                        language: language,
-                    },
                     related_plannings: {
                         relatedEventsUI: this.props.relatedEventsUI,
                         relatedPlanningsCount: this.props.relatedPlanningsCount,
@@ -205,9 +187,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
             },
             language,
         );
-
-        const firstLine = appConfig.planning?.event_list_item?.firstLine ?? firstLineDefaults;
-        const secondLine = appConfig.planning?.event_list_item?.secondLine ?? secondLineDefaults;
 
         const language = filterLanguage || item.language || getUserInterfaceLanguageFromCV();
 
@@ -255,8 +234,8 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     border={false}
                 >
                     <LineItems
-                        firstLine={firstLine}
-                        secondLine={secondLine}
+                        firstLine={eventFirstLineConfig}
+                        secondLine={eventSecondLineConfig}
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </Column>
@@ -285,24 +264,3 @@ class EventItemComponent extends React.Component<IProps, IState> {
 }
 
 export const EventItem = connect()(EventItemComponent);
-
-const firstLineDefaults: Array<ILineConfig> = [
-    {fieldId: 'slugline'},
-    {fieldId: 'internalnote'},
-    {fieldId: 'state'},
-    {fieldId: 'actionedState'},
-    {fieldId: 'name'},
-    {fieldId: 'calendars'},
-    {fieldId: 'state', position: 'end'},
-    {fieldId: 'related_plannings'},
-    {fieldId: 'location'},
-];
-
-const secondLineDefaults: Array<ILineConfig> = [
-    {fieldId: 'expired'},
-    {fieldId: 'state'},
-    {fieldId: 'actionedState'},
-    {fieldId: 'event_completed'},
-    {fieldId: 'related_plannings'},
-    {fieldId: 'location'},
-];

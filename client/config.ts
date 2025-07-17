@@ -2,6 +2,7 @@ import moment from 'moment-timezone';
 
 import {PLANNING_VIEW} from './interfaces';
 import {appConfig} from 'appConfig';
+import {ILineConfig} from 'globals';
 
 // Set the default values for Planning config entries
 
@@ -101,3 +102,27 @@ export function updateConfigAfterLoad() {
         appConfig.planning.autosave_timeout = 1500;
     }
 }
+
+
+const eventFirstLineConfigDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'name'},
+    {fieldId: 'calendars'},
+    {fieldId: 'location'},
+];
+
+const eventSecondLineConfigDefaults: Array<ILineConfig> = [
+    {fieldId: 'expired'},
+    {fieldId: 'state'},
+    {fieldId: 'actionedState'},
+    {fieldId: 'event_completed'},
+    {fieldId: 'related_plannings'},
+    {fieldId: 'location'},
+];
+
+export const eventFirstLineConfig: Array<ILineConfig> =
+    appConfig.planning?.event_list_item?.firstLine ?? eventFirstLineConfigDefaults;
+
+export const eventSecondLineConfig: Array<ILineConfig> =
+    appConfig.planning?.event_list_item?.secondLine ?? eventSecondLineConfigDefaults;
