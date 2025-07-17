@@ -38,7 +38,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
         this.unsubscribeFromUpdates();
     }
 
-    fetchPlanningInfo = (assignment_id: string) => {
+    private fetchPlanningInfo = (assignment_id: string) => {
         extensionBridge.planning.getItemPlanningInfo({assignment_id})
             .then((planning) => {
                 this.setState({
@@ -51,15 +51,15 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
             });
     };
 
-    subscribeToUpdates = () => {
+    private subscribeToUpdates = () => {
         window.addEventListener('planning:updated', this.onPlanningUpdated as EventListener);
     };
 
-    unsubscribeFromUpdates = () => {
+    private unsubscribeFromUpdates = () => {
         window.removeEventListener('planning:updated', this.onPlanningUpdated as EventListener);
     };
 
-    onPlanningUpdated = (event: Event) => {
+    private onPlanningUpdated = (event: Event) => {
         const customEvent = event as CustomEvent;
         const updatedId = customEvent?.detail?.item;
         const {planningId} = this.state;
@@ -73,19 +73,19 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
         }
     };
 
-    dispatchAddToPlanning = () => {
+    private dispatchAddToPlanning = () => {
         window.dispatchEvent(new CustomEvent('planning:addToPlanning', {
             detail: this.props.article,
         }));
     };
 
-    dispatchFulfilAssignment = () => {
+    private dispatchFulfilAssignment = () => {
         window.dispatchEvent(new CustomEvent('planning:fulfilassignment', {
             detail: {item: this.props.article},
         }));
     };
 
-    dispatchUnlinkCoverage = () => {
+    private dispatchUnlinkCoverage = () => {
         superdesk.entities.article.get(this.props.article._id).then((_item) => {
             window.dispatchEvent(new CustomEvent('planning:unlinkfromcoverage', {
                 detail: {item: _item},
@@ -93,7 +93,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
         });
     };
 
-    openPlanningEditor = () => {
+    private openPlanningEditor = () => {
         const {planningId} = this.state;
 
         if (planningId != null) {
