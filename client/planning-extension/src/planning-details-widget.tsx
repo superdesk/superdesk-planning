@@ -52,15 +52,16 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
     };
 
     subscribeToUpdates = () => {
-        (superdesk as any)?.events?.on?.('planning:updated', this.onPlanningUpdated);
+        window.addEventListener('planning:updated', this.onPlanningUpdated as EventListener);
     };
 
     unsubscribeFromUpdates = () => {
-        (superdesk as any)?.events?.off?.('planning:updated', this.onPlanningUpdated);
+        window.removeEventListener('planning:updated', this.onPlanningUpdated as EventListener);
     };
 
-    onPlanningUpdated = (event: CustomEvent) => {
-        const updatedId = event?.detail?.item;
+    onPlanningUpdated = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        const updatedId = customEvent?.detail?.item;
         const {planningId} = this.state;
 
         if (planningId && updatedId === planningId) {
