@@ -241,7 +241,10 @@ describe('actions.planning.ui', () => {
             () => (Promise.resolve(data.plannings))
         );
 
-        const params = store.initialState.planning.lastRequestParams;
+        const params = {
+            ...store.initialState.planning.lastRequestParams,
+            page: 1,
+        };
 
         store.test(done, planningUi.fetchToList(params))
             .then(() => {
@@ -282,7 +285,7 @@ describe('actions.planning.ui', () => {
 
         store.test(done, planningUi.loadMore())
             .then(() => {
-                expect(planningUi.requestPlannings.callCount).toBe(0);
+                expect(planningUi.requestPlannings.callCount).toBe(1);
 
                 expect(planningApis.fetch.callCount).toBe(1);
                 expect(planningApis.fetch.args[0]).toEqual([expectedParams]);

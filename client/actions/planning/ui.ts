@@ -4,7 +4,7 @@ import {IPlanningSearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import {showModal} from '../index';
-import planningApis from './api';
+import planningApis, {storeLastDayGroup} from './api';
 import main from '../main';
 import eventsUi from '../events/ui';
 import {ITEM_TYPE} from '../../constants';
@@ -95,16 +95,24 @@ const addToList = (ids) => ({
  */
 function fetchToList(params: IPlanningSearchParams) {
     return (dispatch) => {
-        dispatch(self.requestPlannings(params));
+        // Store params as previous, starting with page 1
+        dispatch(self.requestPlannings({...params, page: 1}));
 
         // reset list items, so handleItemsForLastFetchedDay
         // can keep track of all fetched items
         dispatch(self.clearList());
 
-        return dispatch(planningApis.fetch(params))
-            .then((items) =>
-                dispatch(self.setInList(items.map((p) => p._id)))
-            );
+        // reset lastDayGroupItems since this function is fetching for a new range,
+        // and previous items are irrelevant
+        dispatch(storeLastDayGroup([]));
+
+        // Always fetch starting from page 1.
+        // This is the first page for the given date range,
+        // otherwise results may be incomplete
+        return dispatch(planningApis.fetch({...params, page: 1}))
+            .then((items) => {
+                dispatch(self.setInList(items.map((p) => p._id)));
+            });
     };
 }
 
@@ -130,9 +138,9 @@ const loadMore = () => (
 
         return dispatch(planningApis.fetch(params))
             .then((items) => {
-                if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
-                    dispatch(self.requestPlannings(params));
-                }
+                // Save params queried with in lastRequestParams
+                // so we keep track of next page
+                dispatch(self.requestPlannings(params));
 
                 dispatch(self.addToList(items.map((x) => x._id)));
 
@@ -433,6 +441,9 @@ const save = (original, updates) => (
 /**
  * Action that states that there are Planning items currently loading
  * @param {object} params - Parameters used when querying for planning items
+ *
+ * Stores passed params as lastRequestParams, which are later used to build
+ * a query for next page
  */
 const requestPlannings = (params = {}) => ({
     type: MAIN.ACTIONS.REQUEST,

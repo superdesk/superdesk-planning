@@ -96,6 +96,8 @@ interface IState {
     navigateDown: boolean;
 }
 
+const END_OF_LIST_OFFSET = 100;
+
 export class ListPanel extends React.Component<IProps, IState> {
     dom: {list?: any};
     memoizedSort: ((items: Array<IEventOrPlanningItem>) => Array<IEventOrPlanningItem>) & MemoizedFunction;
@@ -275,10 +277,9 @@ export class ListPanel extends React.Component<IProps, IState> {
 
         const node = event.target;
 
-        // scroll event gets fired on hover of each item in the list.
-        // this.state.scrollTop is used to check if the scroll position has changed
-        if (node && node.scrollTop + node.offsetHeight + 100 >= node.scrollHeight &&
-            this.state.scrollTop < node.scrollTop) {
+
+        // Load more items if there's any if scroll position is 100px before end of the scrollable list
+        if (node.scrollHeight - node.scrollTop - node.clientHeight <= END_OF_LIST_OFFSET) {
             this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
 
             this.props.loadMore(this.props.activeFilter)

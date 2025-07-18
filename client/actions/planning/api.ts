@@ -600,7 +600,7 @@ const receivePlannings = (plannings): any => (
     }
 );
 
-const storeLastDayGroup = (group): any => (
+export const storeLastDayGroup = (group): any => (
     (dispatch) => {
         dispatch({
             type: PLANNING.ACTIONS.STORE_LAST_DAY_GROUP,
