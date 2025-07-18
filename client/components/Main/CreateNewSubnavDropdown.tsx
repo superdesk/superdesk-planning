@@ -8,7 +8,7 @@ import {PRIVILEGES} from '../../constants';
 import * as actions from '../../actions';
 import {eventTemplates, getRecentTemplatesSelector} from '../../selectors/events';
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
-import {showModal} from '@superdesk/common';
+import {showModal} from '@sourcefabric/common';
 import PlanningTemplatesModal from '../PlanningTemplatesModal/PlanningTemplatesModal';
 
 interface IProps {

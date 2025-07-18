@@ -7,7 +7,7 @@ import {superdeskApi} from '../../../../superdeskApi';
 import {cleanArticlesFields} from './utils';
 
 import {ButtonGroup, Button, Spacer} from 'superdesk-ui-framework/react';
-import {showModal} from '@superdesk/common';
+import {showModal} from '@sourcefabric/common';
 import {EventsRelatedArticlesModal} from './EventsRelatedArticlesModal';
 import {RelatedArticlesListComponent} from './RelatedArticlesListComponent';
 import {Row} from '../../../UI/Form';
