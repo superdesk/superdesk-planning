@@ -67,7 +67,7 @@ window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
 
 window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const newElement = document.createElement('div');
-    const jQueryElement = window.$(newElement);
+    document.body.appendChild(newElement);
     const rootScope = ng.get('$rootScope');
 
     newElement.className = 'modal__dialog ng-scope';
@@ -76,7 +76,7 @@ window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     rootScope.resolve = () => newElement.remove();
 
     new ctrl.AddToPlanningController(
-        jQueryElement,
+        newElement,
         rootScope,
         ng.get('sdPlanningStore'),
         ng.get('notify'),
