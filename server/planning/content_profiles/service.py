@@ -11,6 +11,7 @@
 from typing import Dict, Any
 from copy import deepcopy
 
+from superdesk import Service
 from superdesk.eve_async import AsyncBaseService, AsyncListCursor
 
 from planning.common import planning_link_updates_to_coverage, get_config_event_related_item_search_provider_name
@@ -117,5 +118,5 @@ class PlanningTypesService(AsyncBaseService):
             planning_type["schema"].pop("no_content_linking", None)
 
 
-class ContentProfilesService(superdesk.Service):
+class ContentProfilesService(Service):
     pass
