@@ -29,40 +29,71 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
         const {assignment_id} = this.props.article;
 
         if (assignment_id != null) {
-            extensionBridge.planning.getItemPlanningInfo({assignment_id})
-                .then((planning) => {
-                    this.setState({
-                        planningId: planning._id,
-                        loading: false,
-                    });
-                })
-                .catch(() => {
-                    this.setState({loading: false});
-                });
+            this.fetchPlanningInfo(assignment_id);
+            this.subscribeToUpdates();
         }
     }
 
-    dispatchAddToPlanning = () => {
+    componentWillUnmount() {
+        this.unsubscribeFromUpdates();
+    }
+
+    private fetchPlanningInfo = (assignment_id: string) => {
+        extensionBridge.planning.getItemPlanningInfo({assignment_id})
+            .then((planning) => {
+                this.setState({
+                    planningId: planning._id,
+                    loading: false,
+                });
+            })
+            .catch(() => {
+                this.setState({loading: false});
+            });
+    };
+
+    private subscribeToUpdates = () => {
+        window.addEventListener('planning:updated', this.onPlanningUpdated as EventListener);
+    };
+
+    private unsubscribeFromUpdates = () => {
+        window.removeEventListener('planning:updated', this.onPlanningUpdated as EventListener);
+    };
+
+    private onPlanningUpdated = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        const updatedId = customEvent?.detail?.item;
+        const {planningId} = this.state;
+
+        if (planningId && updatedId === planningId) {
+            const {assignment_id} = this.props.article;
+
+            if (assignment_id) {
+                this.fetchPlanningInfo(assignment_id);
+            }
+        }
+    };
+
+    private dispatchAddToPlanning = () => {
         window.dispatchEvent(new CustomEvent('planning:addToPlanning', {
-            detail: this.props.article
+            detail: this.props.article,
         }));
     };
 
-    dispatchFulfilAssignment = () => {
+    private dispatchFulfilAssignment = () => {
         window.dispatchEvent(new CustomEvent('planning:fulfilassignment', {
-            detail: {item: this.props.article}
+            detail: {item: this.props.article},
         }));
     };
 
-    dispatchUnlinkCoverage = () => {
+    private dispatchUnlinkCoverage = () => {
         superdesk.entities.article.get(this.props.article._id).then((_item) => {
             window.dispatchEvent(new CustomEvent('planning:unlinkfromcoverage', {
-                detail: {item: _item}
+                detail: {item: _item},
             }));
         });
     };
 
-    openPlanningEditor = () => {
+    private openPlanningEditor = () => {
         const {planningId} = this.state;
 
         if (planningId != null) {
