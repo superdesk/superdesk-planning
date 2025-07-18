@@ -121,20 +121,20 @@ def get_filtered_validator_schema(validator, validate_on_post: bool) -> dict:
     }
 
 
-async def get_validator(item: dict) -> Event | None:
+async def get_validator(item: dict, item_type: str) -> Event | None:
     """Get validators from planning types service."""
-    if item[ITEM_TYPE] == "coverage" and item["validate"].get("profile"):
-        profile = get_resource_service("coverage_profiles").find_one(req=None, _id=item["validate"]["profile"])
+    if item_type == "coverage" and item.get("profile"):
+        profile = get_resource_service("coverage_profiles").find_one(req=None, _id=item["profile"])
         if profile:
             return profile
 
-    validator = await PlanningTypesAsyncService().find_one(req=None, name=item[ITEM_TYPE])
+    validator = await PlanningTypesAsyncService().find_one(req=None, name=item_type)
 
     return validator.to_dict() if validator else None
 
 
 async def validate_doc(item: dict, item_type: str, validate_on_post: bool = False) -> list:
-    validator = await get_validator(item)
+    validator = await get_validator(item, item_type)
 
     if validator is None:
         logger.warn("Validator was not found for type:{}".format(item_type))
