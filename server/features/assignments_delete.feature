@@ -377,6 +377,7 @@ Feature: Assignments Delete
 
     @auth
     Scenario: No Lock validation passes if planning item is killed
+        When we configure planning for publishing
         When we post to "planning/#planning._id#/lock"
         """
         { "lock_action": "edit" }
@@ -773,7 +774,8 @@ Feature: Assignments Delete
     @notification @today
     @planning_cvs
     Scenario: Deleting an Assignment in schedule_updates chain will unlink all assignments content
-        Given empty "planning"
+        When we configure content for publishing
+        And we configure planning for publishing
         When we post to "planning"
         """
         [{
@@ -1037,7 +1039,6 @@ Feature: Assignments Delete
         "subject":[{"qcode": "17004000", "name": "Statistics"}],
         "slugline": "test",
         "body_html": "Test Document body",
-        "target_subscribers": [{"_id": "#subscribers._id#"}],
         "dateline": {
           "located" : {
               "country" : "Afghanistan",

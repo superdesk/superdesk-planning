@@ -10,12 +10,13 @@ package_data = {
         "*.mo",
         "data_updates/*.py",
         "data_updates/*.js",
+        "static/*.yaml",
     ]
 }
 
 setup(
     name="superdesk-planning",
-    version="2.9.0rc1",
+    version="3.0.0-dev.0",
     description=DESCRIPTION,
     long_description=DESCRIPTION,
     package_dir={"": "server"},

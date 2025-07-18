@@ -44,20 +44,20 @@ Feature: Events Autosave
             "_id": "event2",
             "slugline": "Test Event 2",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session2",
+            "lock_session": "2822e25fc5be08b7cdb27490",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "event3",
             "slugline": "Test Event 3",
-            "lock_user": "ident2",
-            "lock_session": "session3",
+            "lock_user": "3822e25fc5be08b7cdb27490",
+            "lock_session": "2822e25fc5be08b7cdb27491",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }]
         """
         Given I logout
-        When we login as user "foo" with password "bar" and user type "admin"
+        When we login as user "foo" with password "barword" and user type "admin"
         """
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """
@@ -129,20 +129,20 @@ Feature: Events Autosave
             "_id": "plan2",
             "slugline": "Test Plan 2",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session2",
+            "lock_session": "2822e25fc5be08b7cdb27490",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "plan3",
             "slugline": "Test Plan 3",
-            "lock_user": "ident2",
-            "lock_session": "session3",
+            "lock_user": "3822e25fc5be08b7cdb27490",
+            "lock_session": "2822e25fc5be08b7cdb27491",
             "lock_action": "edit",
             "lock_time": "2018-06-01T05:19:02+0000"
         }]
         """
         Given I logout
-        When we login as user "foo" with password "bar" and user type "admin"
+        When we login as user "foo" with password "barword" and user type "admin"
         """
         {"user_type": "user", "email": "foo.bar@foobar.org"}
         """

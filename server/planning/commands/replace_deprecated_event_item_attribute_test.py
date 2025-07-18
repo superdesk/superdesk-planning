@@ -21,8 +21,9 @@ now = utcnow()
 
 
 class ReplaceDeprecatedEventItemAttributeTest(TestCase):
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+
         self.command = ReplaceDeprecatedEventItemAttributeCommand()
         self.app.data.insert(
             "events",
@@ -54,43 +55,46 @@ class ReplaceDeprecatedEventItemAttributeTest(TestCase):
     def _get_planning_item(self, plan_id):
         return self.app.data.mongo.pymongo("planning").db["planning"].find_one({"_id": plan_id})
 
-    def test_get_items(self):
-        # Test original data
-        self.assertEqual([item["_id"] for item in self.command.get_items(True)], ["plan1"])
-        self.assertEqual([item["_id"] for item in self.command.get_items(False)], [])
+    async def test_get_items(self):
+        async with self.app.app_context():
+            # Test original data
+            self.assertEqual([item["_id"] for item in self.command.get_items(True)], ["plan1"])
+            self.assertEqual([item["_id"] for item in self.command.get_items(False)], [])
 
-        # Test after data upgrade
-        self.command.run(dry_run=False, revert=False)
-        self.assertEqual([item["_id"] for item in self.command.get_items(True)], [])
-        self.assertEqual([item["_id"] for item in self.command.get_items(False)], ["plan1"])
+            # Test after data upgrade
+            await self.command.run(dry_run=False, revert=False)
+            self.assertEqual([item["_id"] for item in self.command.get_items(True)], [])
+            self.assertEqual([item["_id"] for item in self.command.get_items(False)], ["plan1"])
 
-        # Test after data downgrade
-        self.command.run(dry_run=False, revert=True)
-        self.assertEqual([item["_id"] for item in self.command.get_items(True)], ["plan1"])
-        self.assertEqual([item["_id"] for item in self.command.get_items(False)], [])
+            # Test after data downgrade
+            await self.command.run(dry_run=False, revert=True)
+            self.assertEqual([item["_id"] for item in self.command.get_items(True)], ["plan1"])
+            self.assertEqual([item["_id"] for item in self.command.get_items(False)], [])
 
-    def test_dry_run(self):
-        # Upgrade data
-        self.command.run(dry_run=True, revert=False)
-        plan1 = self._get_planning_item("plan1")
-        self.assertEqual(plan1["event_item"], "event1")
-        self.assertIsNone(plan1.get("related_events"))
+    async def test_dry_run(self):
+        async with self.app.app_context():
+            # Upgrade data
+            await self.command.run(dry_run=True, revert=False)
+            plan1 = self._get_planning_item("plan1")
+            self.assertEqual(plan1["event_item"], "event1")
+            self.assertIsNone(plan1.get("related_events"))
 
-        # Downgrade data
-        self.command.run(dry_run=True, revert=True)
-        plan1 = self._get_planning_item("plan1")
-        self.assertEqual(plan1["event_item"], "event1")
-        self.assertIsNone(plan1.get("related_events"))
+            # Downgrade data
+            await self.command.run(dry_run=True, revert=True)
+            plan1 = self._get_planning_item("plan1")
+            self.assertEqual(plan1["event_item"], "event1")
+            self.assertIsNone(plan1.get("related_events"))
 
-    def test_upgrade_and_downgrade_planning(self):
-        # Upgrade data
-        self.command.run(dry_run=False, revert=False)
-        plan1 = self._get_planning_item("plan1")
-        self.assertIsNone(plan1["event_item"])
-        self.assertEqual(plan1["related_events"], [PlanningRelatedEventLink(_id="event1", link_type="primary")])
+    async def test_upgrade_and_downgrade_planning(self):
+        async with self.app.app_context():
+            # Upgrade data
+            await self.command.run(dry_run=False, revert=False)
+            plan1 = self._get_planning_item("plan1")
+            self.assertIsNone(plan1["event_item"])
+            self.assertEqual(plan1["related_events"], [PlanningRelatedEventLink(_id="event1", link_type="primary")])
 
-        # Downgrade data
-        self.command.run(dry_run=False, revert=True)
-        plan1 = self._get_planning_item("plan1")
-        self.assertEqual(plan1["event_item"], "event1")
-        self.assertEqual(plan1["related_events"], [])
+            # Downgrade data
+            await self.command.run(dry_run=False, revert=True)
+            plan1 = self._get_planning_item("plan1")
+            self.assertEqual(plan1["event_item"], "event1")
+            self.assertEqual(plan1["related_events"], [])

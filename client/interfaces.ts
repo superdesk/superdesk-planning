@@ -926,7 +926,7 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     users: Array<IUser>;
     desks: Array<IDesk>;
     filterLanguage?: string;
-    isAgendaEnabled?:boolean;
+    isAgendaEnabled?: boolean;
     // showUnlock?: boolean; // Is this used anymore?
     hideItemActions: boolean;
     showAddCoverage: boolean;
@@ -984,9 +984,10 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams;
     sortOrder?: SORT_ORDER;
     sortField?: SORT_FIELD;
-    source?:string;
-    coverage_user_id?:string;
-    coverage_assignment_status?:ICoverageAssigned['qcode'];
+    source?: string;
+    coverage_user_id?: string;
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
+    include_associated_planning: boolean;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -1008,7 +1009,7 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
     featured?: boolean;
     includeScheduledUpdates?: boolean;
     noAgendaAssigned?: boolean;
-    coverage_assignment_status?:ICoverageAssigned['qcode'];
+    coverage_assignment_status?: ICoverageAssigned['qcode'];
     advancedSearch?: ICommonAdvancedSearchParams & {
         featured?: boolean;
         g2_content_type?: IG2ContentType;
@@ -1017,7 +1018,7 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
     };
 }
 
-export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem>{
+export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         reference?: string;
     };
@@ -1421,7 +1422,7 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
-    coverage_user_id?:string;
+    coverage_user_id?: string;
     priority?: Array<number>;
 
     // Event Params
@@ -1473,7 +1474,7 @@ export interface ISearchAPIParams {
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
     source?: string;
-    coverage_user_id?:string;
+    coverage_user_id?: string;
     priority?: string;
 
     // Event Params
@@ -1494,7 +1495,7 @@ export interface ISearchAPIParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: string;
-    coverage_assignment_status?:ICoverageAssigned['qcode']
+    coverage_assignment_status?: ICoverageAssigned['qcode']
 
     // Pagination
     page?: number;

@@ -2,6 +2,7 @@ import {setup, login, waitForPageLoad, SubNavBar, addItems, CLIENT_FORMAT} from 
 import {TIME_STRINGS} from '../../support/utils/time';
 import {EventEditor, PlanningList} from '../../support/planning';
 import {EmbeddedCoverageEditor} from '../../support/planning/events/embeddedCoverageEditor';
+import {setupPlanningPublishing} from '../../fixtures/publish_config';
 import moment from 'moment';
 import {createEventFor} from '../../fixtures/events';
 
@@ -137,6 +138,7 @@ describe('Planning.Events: embedded coverage', () => {
     });
 
     it('SDESK-6022: planning items should stay after post/unpost', () => {
+        setupPlanningPublishing();
         addItems('events', [createEventFor.today({
             type: 'event',
             occur_status: {

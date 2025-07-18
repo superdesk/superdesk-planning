@@ -68,7 +68,6 @@ window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
 window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const newElement = document.createElement('div');
     document.body.appendChild(newElement);
-    const jQueryElement = window.$(newElement);
     const rootScope = ng.get('$rootScope');
 
     newElement.className = 'modal__dialog ng-scope';

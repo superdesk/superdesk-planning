@@ -1,0 +1,77 @@
+# -- coding: utf-8; --
+#
+# This file is part of Superdesk.
+#
+# Copyright 2025 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
+from superdesk.core.resources import (
+    ResourceConfig,
+    MongoIndexOptions,
+    MongoResourceConfig,
+    ElasticResourceConfig,
+)
+from superdesk.core.resources.service import AsyncResourceService
+from superdesk import get_resource_service
+from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+
+from ..types import ContentAPIPlanningResource
+from ..output_formatters import ContentApiPlanningFormatter
+
+
+class ContentAPIPlanningService(AsyncResourceService[ContentAPIPlanningResource]):
+    """Service for publishing planning items to the content API"""
+
+    formatter = ContentApiPlanningFormatter()
+
+    async def publish_async(self, item: dict, subscribers: list[dict] | None = None) -> None:
+        """
+        Uses the `JsonPlanningFormatter` to format the planning item and publish it to the content API.
+        If the planning item already exists, it will be updated, otherwise it will be created.
+        """
+
+        formatted_item = await self.formatter._format_item(item, subscribers)
+        planning_id = item.get("_id")
+        original = await self.find_by_id(planning_id)
+        if original:
+            await self.update(planning_id, formatted_item)
+        else:
+            await self.create([formatted_item])
+
+        # Make sure the content items have the ``planning_id`` and ``coverage_id`` associated
+        # in case they were linked to a Planning/Coverage after the content was published
+        items_service = get_resource_service("capi_items_internal")
+        planning_id = formatted_item.get("_id")
+        for coverage in formatted_item.get("coverages") or []:
+            coverage_id = coverage.get("coverage_id")
+            for delivery in coverage.get("deliveries") or []:
+                item_id = delivery.get("item_id")
+                if not item_id:
+                    continue
+                content_item = items_service.find_one(req=None, _id=item_id)
+                if content_item and not content_item.get("planning_id"):
+                    items_service.system_update(
+                        item_id, {"planning_id": planning_id, "coverage_id": coverage_id}, content_item
+                    )
+
+
+content_api_planning_resource_config: ResourceConfig = ResourceConfig(
+    name="planning_capi",
+    data_class=ContentAPIPlanningResource,
+    service=ContentAPIPlanningService,
+    default_sort=[("_planning_schedule.scheduled", 1)],
+    mongo=MongoResourceConfig(
+        prefix=MONGO_PREFIX,
+        indexes=[
+            MongoIndexOptions(
+                name="planning_recurrence_id",
+                keys=[("planning_recurrence_id", 1)],
+                unique=False,
+            ),
+        ],
+    ),
+    elastic=ElasticResourceConfig(prefix=ELASTIC_PREFIX),
+)

@@ -15,8 +15,8 @@ class EventJsonFeedParserTestCase(TestCase):
     def test_event_json_feed_parser_can_parse(self):
         self.assertEqual(True, EventJsonFeedParser().can_parse(self.sample_json))
 
-    def test_event_json_feed_parser_parse(self):
-        with self.app.app_context():
+    async def test_event_json_feed_parser_parse(self):
+        async with self.app.app_context():
             random_event = {
                 "is_active": True,
                 "name": "random123",
@@ -50,7 +50,7 @@ class EventJsonFeedParserTestCase(TestCase):
                     ],
                 )
 
-            events = EventJsonFeedParser().parse(self.sample_json)
+            events = await EventJsonFeedParser().parse(self.sample_json)
 
             # ignore fields like files as per the ACs in SDNTB-682
             self.assertNotIn("files", events[0])
@@ -66,12 +66,14 @@ class EventJsonFeedParserTestCase(TestCase):
                         )
 
             # check if locations and contacts are created.
-            location = get_resource_service("locations").find_one(req=None, _id="835d5175-a2bc-41ad-a906-baf3f2281a5c")
+            location = await get_resource_service("locations").find_one_async(
+                req=None, _id="835d5175-a2bc-41ad-a906-baf3f2281a5c"
+            )
             contact = get_resource_service("contacts").find_one(req=None, _id="5d67ccc2fdf5baac5c93745c")
 
             self.assertTrue(True, location)
             self.assertTrue(True, contact)
 
             # remove the locations and contacts added.
-            get_resource_service("locations").delete(location)
+            await get_resource_service("locations").delete_async(location)
             get_resource_service("contacts").delete(contact)

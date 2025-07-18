@@ -1,0 +1,934 @@
+openapi: 3.0.0
+info:
+  title: Content API
+  description: Combined API for managing Events and Planning items
+  version: 1.0.0
+servers:
+  - url: http://localhost:5400/
+    description: Development server
+
+tags:
+  - name: Events
+    description: Event management operations
+  - name: Planning
+    description: Planning item management operations
+
+paths:
+  /events:
+    get:
+      tags: [Events]
+      summary: List all events
+      description: Returns a list of events with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/start_date'
+        - $ref: '#/components/parameters/end_date'
+        - $ref: '#/components/parameters/include_fields'
+        - $ref: '#/components/parameters/exclude_fields'
+        - $ref: '#/components/parameters/max_results'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/where'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/default_operator'
+      responses:
+        '200':
+          description: A list of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+  /events/{id}:
+    get:
+      tags: [Events]
+      summary: Get a specific event
+      description: Returns the event with the specified ID
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: The requested event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+
+  /planning:
+    get:
+      tags: [Planning]
+      summary: List all planning items
+      description: Returns a list of planning items with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/start_date'
+        - $ref: '#/components/parameters/end_date'
+        - $ref: '#/components/parameters/include_fields'
+        - $ref: '#/components/parameters/exclude_fields'
+        - $ref: '#/components/parameters/max_results'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/where'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/default_operator'
+      responses:
+        '200':
+          description: A list of planning items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlanningItem'
+  /planning/{id}:
+    get:
+      tags: [Planning]
+      summary: Get a specific planning item
+      description: Returns the planning item with the specified ID
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: The requested planning item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanningItem'
+components:
+  parameters:
+    id:
+      name: id
+      in: path
+      description: ID of the resource
+      required: true
+      schema:
+        type: string
+    start_date:
+      name: start_date
+      in: query
+      description: Start date for filtering events
+      schema:
+        type: string
+        format: date
+    end_date:
+      name: end_date
+      in: query
+      description: End date for filtering events
+      schema:
+        type: string
+        format: date
+    include_fields:
+      name: include_fields
+      in: query
+      description: Fields to include in the response
+      schema:
+        type: string
+    exclude_fields:
+      name: exclude_fields
+      in: query
+      description: Fields to exclude from the response
+      schema:
+        type: string
+    max_results:
+      name: max_results
+      in: query
+      description: Maximum number of results to return
+      schema:
+        type: string
+    page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: string
+    where:
+      name: where
+      in: query
+      description: Filter criteria
+      schema:
+        type: string
+    q:
+      name: q
+      in: query
+      description: Search query
+      schema:
+        type: string
+    default_operator:
+      name: default_operator
+      in: query
+      description: Default operator for search queries
+      schema:
+        type: string
+        enum: [AND, OR]
+        default: AND
+
+  schemas:
+    # Event-related schemas
+    Event:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for the event
+        firstcreated:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        versioncreated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        type:
+          type: string
+          enum: [event]
+          default: event
+          description: Type of the item
+        name:
+          type: string
+          description: Name/title of the event
+        slugline:
+          type: string
+          description: Short identifier for the event
+        dates:
+          $ref: '#/components/schemas/EventDates'
+        location:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventLocation'
+          description: Locations associated with the event
+        occur_status:
+          $ref: '#/components/schemas/OccurStatus'
+        news_coverage_status:
+          $ref: '#/components/schemas/CoverageStatus'
+        calendars:
+          type: array
+          items:
+            $ref: '#/components/schemas/CVItem'
+          description: Calendars the event belongs to
+        anpa_category:
+          type: array
+          items:
+            $ref: '#/components/schemas/CVItem'
+          description: News categories for the event
+        subject:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subject'
+          description: Subjects/topics for the event
+        event_contact_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactsResource'
+          description: Contact information for the event
+        place:
+          type: array
+          items:
+            $ref: '#/components/schemas/Place'
+          description: Geographic places associated with the event
+        ednote:
+          type: string
+          description: Editorial note about the event
+        state:
+          $ref: '#/components/schemas/WorkflowState'
+          default: draft
+          description: Workflow state of the event
+        pubstatus:
+          $ref: '#/components/schemas/PostStates'
+          description: Publication status
+        coverages:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Coverages planned for this event
+        embedded_planning:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmbeddedPlanning'
+          description: Embedded planning items
+        version:
+          type: integer
+          description: Version number of the event
+        definition_short:
+          type: string
+          description: Short description of the event
+        definition_long:
+          type: string
+        registration_details:
+          type: string
+          description: Details for event registration
+        invitation_details:
+          type: string
+          description: Details for event invitations
+        accreditation_info:
+          type: string
+          description: Information about event accreditation
+        accreditation_deadline:
+          type: string
+          oneOf:
+            - format: date
+            - format: date-time
+          description: Deadline for event accreditation
+        links:
+          type: array
+          items:
+            type: string
+      required:
+        - type
+
+    TruncatedDateTime:
+      type: string
+      anyOf:
+        - format: date
+        - format: date-time
+      description: A date and time, which can be truncated to just a date
+      example: 2023-10-01
+
+    EventDates:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+          description: The date and time at which the event starts.
+        endDate:
+          type: string
+          format: date-time
+          description: The date and time at which the event ends.
+        expectedStartDate:
+          $ref: '#/components/schemas/TruncatedDateTime'
+          description: The approximate date (and optionally time) at which the event or coverage is expected to start.
+        expectedEndDate:
+          $ref: '#/components/schemas/TruncatedDateTime'
+          description: The approximate date (and optionally time) at which the event or coverage is expected to end.
+        timezone:
+          type: string
+          description: Timezone of the event
+        recurrence:
+          type: object
+          properties:
+            recurrenceRules:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecurringRule'
+      anyOf:
+        - oneOf: 
+            - required: [startDate]
+            - required: [expectedStartDate]
+        - oneOf:
+            - required: [endDate]
+            - required: [expectedEndDate]
+
+    EventLocation:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the location
+        qcode:
+          type: string
+          description: Unique identifier for the location
+        address:
+          type: object
+          additionalProperties: true
+          description: Address details
+        geo:
+          type: string
+          description: Geographic coordinates
+
+    OccurStatus:
+      type: object
+      properties:
+        qcode:
+          type: string
+          description: Status identifier
+        name:
+          type: string
+          description: Status name
+        label:
+          type: string
+          description: Display label for the status
+
+    # Planning-related schemas
+    PlanningItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for the planning item
+        firstcreated:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        versioncreated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        type:
+          enum:
+            - planning
+          readOnly: true
+          description: Type of the item
+        planning_date:
+          type: string
+          format: date-time
+          description: Date/time for the planning item
+        name:
+          type: string
+          description: Name/title of the planning item
+        slugline:
+          type: string
+          description: Short identifier for the planning item
+        headline:
+          type: string
+          description: Headline for the planning item
+        description_text:
+          type: string
+          format: html
+          description: Detailed description of the planning item
+        abstract:
+          type: string
+          format: html
+          description: Short abstract/summary
+        urgency:
+          type: integer
+          description: Urgency level (1-5)
+        state:
+          $ref: '#/components/schemas/WorkflowState'
+          default: draft
+          description: Workflow state of the planning item
+        pubstatus:
+          $ref: '#/components/schemas/PostStates'
+          description: Publication status
+        coverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanningCoverageItem'
+          description: Coverages planned for this item
+        agendas:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgendaItem'
+          description: Agendas this planning item belongs to
+        anpa_category:
+          type: array
+          items:
+            $ref: '#/components/schemas/CVItem'
+          description: News categories for the planning item
+        subject:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subject'
+          description: Subjects/topics for the planning item
+        place:
+          type: array
+          items:
+            $ref: '#/components/schemas/Place'
+          description: Geographic places associated with the planning item
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelatedEvent'
+          description: Related events
+        ednote:
+          type: string
+          format: html
+          description: Editorial note about the planning item
+        internal_note:
+          type: string
+          format: html
+          description: Internal notes about the planning item
+        flags:
+          $ref: '#/components/schemas/Flags'
+          description: Various flags for the planning item
+        version:
+          type: integer
+          description: Version number of the planning item
+      required:
+        - planning_date
+        - type
+
+    PlanningCoverageItem:
+      type: object
+      properties:
+        coverage_id:
+          type: string
+          description: Unique identifier for the coverage
+        guid:
+          type: string
+          description: Global unique identifier
+        news_coverage_status:
+          $ref: '#/components/schemas/NewsCoverageStatus'
+          description: Status of the coverage
+        planning:
+          $ref: '#/components/schemas/CoverageInternalPlanning'
+          description: Planning details for the coverage
+        assigned_to:
+          $ref: '#/components/schemas/CoverageAssignedTo'
+          description: Assignment information
+        assigned_desk:
+          $ref: '#/components/schemas/CoverageAssignedDesk'
+          description: Assigned desk information
+        assigned_user:
+          $ref: '#/components/schemas/CoverageAssignedUser'
+          description: Assigned user information
+        deliveries:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryResourceModel'
+          description: Delivery information
+        scheduled_updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduledUpdate'
+          description: Scheduled updates for this coverage
+        workflow_status:
+          type: string
+          description: Current workflow status
+        firstcreated:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        versioncreated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+      required:
+        - coverage_id
+        - guid
+
+    # Common schemas shared between Events and Planning
+    AgendaItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectid
+          description: Unique identifier
+        name:
+          type: string
+          description: Name of the agenda
+      required:
+        - _id
+        - name
+
+    CVItem:
+      type: object
+      properties:
+        qcode:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Display name
+        scheme:
+          type: string
+          description: Classification scheme
+      required:
+        - qcode
+        - name
+
+    CoverageStatus:
+      type: object
+      properties:
+        qcode:
+          type: string
+          description: Status identifier
+        name:
+          type: string
+          description: Status name
+
+    NewsCoverageStatus:
+      type: object
+      properties:
+        qcode:
+          type: string
+          description: Status identifier
+        name:
+          type: string
+          description: Status name
+        label:
+          type: string
+          description: Display label
+
+    CoverageInternalPlanning:
+      type: object
+      properties:
+        g2_content_type:
+          type: string
+          description: Type of content
+        slugline:
+          type: string
+          description: Short identifier
+        headline:
+          type: string
+          description: Headline text
+        scheduled:
+          type: string
+          format: date-time
+          description: Scheduled time
+        genre:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeywordQCodeName'
+          description: Content genres
+        service:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeywordQCodeName'
+          description: Content services
+        ednote:
+          type: string
+          format: html
+          description: Editorial note
+        internal_note:
+          type: string
+          format: html
+          description: Internal note
+        priority:
+          type: integer
+          description: Priority level
+        subject:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Subjects/topics
+
+    CoverageAssignedTo:
+      type: object
+      properties:
+        assignment_id:
+          type: string
+          description: Assignment identifier
+        desk:
+          type: string
+          description: Desk identifier
+        user:
+          type: string
+          format: objectid
+          description: User identifier
+        state:
+          type: string
+          description: Assignment state
+
+    CoverageAssignedDesk:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Desk name
+        email:
+          type: string
+          description: Desk email
+
+    CoverageAssignedUser:
+      type: object
+      properties:
+        display_name:
+          type: string
+          description: User's display name
+        first_name:
+          type: string
+          description: First name
+        last_name:
+          type: string
+          description: Last name
+        email:
+          type: string
+          description: Email address
+      required:
+        - first_name
+        - last_name
+        - display_name
+
+    DeliveryResourceModel:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectid
+          description: Unique identifier
+        assignment_id:
+          type: string
+          format: objectid
+          description: Assignment identifier
+        coverage_id:
+          type: string
+          description: Coverage identifier
+        planning_id:
+          type: string
+          description: Planning item identifier
+        item_state:
+          type: string
+          description: Item state
+        publish_time:
+          type: string
+          format: date-time
+          description: Publication time
+      required:
+        - planning_id
+        - assignment_id
+
+    ScheduledUpdate:
+      type: object
+      properties:
+        scheduled_update_id:
+          type: string
+          description: Update identifier
+        coverage_id:
+          type: string
+          description: Coverage identifier
+        news_coverage_status:
+          $ref: '#/components/schemas/NewsCoverageStatus'
+          description: Status of the update
+        planning:
+          $ref: '#/components/schemas/ScheduledUpdatePlanning'
+          description: Planning details for the update
+        workflow_status:
+          type: string
+          description: Workflow status
+
+    ScheduledUpdatePlanning:
+      type: object
+      properties:
+        scheduled:
+          type: string
+          format: date-time
+          description: Scheduled time
+        genre:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeywordQCodeName'
+          description: Content genres
+        internal_note:
+          type: string
+          format: html
+          description: Internal note
+
+    Subject:
+      type: object
+      properties:
+        qcode:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Display name
+        scheme:
+          type: string
+          description: Classification scheme
+      required:
+        - qcode
+        - name
+
+    Place:
+      type: object
+      properties:
+        qcode:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Display name
+        country:
+          type: string
+          description: Country name
+        country_code:
+          type: string
+          description: Country code
+        location:
+          $ref: '#/components/schemas/Geopoint'
+          description: Geographic coordinates
+
+    Geopoint:
+      type: object
+      properties:
+        lat:
+          type: number
+          description: Latitude
+        lon:
+          type: number
+          description: Longitude
+      required:
+        - lat
+        - lon
+
+    RelatedEvent:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Event identifier
+        link_type:
+          $ref: '#/components/schemas/LinkType'
+          description: Type of relationship
+        recurrence_id:
+          type: string
+          description: Recurrence identifier
+      required:
+        - _id
+
+    LinkType:
+      type: string
+      enum: [primary, secondary]
+      description: Type of relationship to an event
+
+    KeywordQCodeName:
+      type: object
+      properties:
+        qcode:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Display name
+      required:
+        - qcode
+        - name
+
+    WorkflowState:
+      type: string
+      enum: [draft, active, ingested, scheduled, killed, cancelled, rescheduled, postponed, spiked]
+      default: draft
+      description: Workflow state of the item
+
+    PostStates:
+      type: string
+      enum: [usable, cancelled]
+      description: Publication status
+
+    Flags:
+      type: object
+      properties:
+        marked_for_not_publication:
+          type: boolean
+          default: false
+          description: Whether item is marked to not be published
+        overide_auto_assign_to_workflow:
+          type: boolean
+          default: false
+          description: Whether to override automatic workflow assignment
+
+    ContactsResource:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: First name of the contact
+        last_name:
+          type: string
+          description: Last name of the contact
+        organisation:
+          type: string
+          description: Organization of the contact
+        contact_email:
+          type: array
+          items:
+            type: string
+          description: Email addresses
+        contact_phone:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactPhoneNumber'
+          description: Phone numbers
+        mobile:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactPhoneNumber'
+          description: Mobile numbers
+
+    ContactPhoneNumber:
+      type: object
+      properties:
+        number:
+          type: string
+          description: Phone number
+        public:
+          type: boolean
+          description: Whether the number is public
+        usage:
+          type: string
+          description: Usage description (e.g., 'office', 'home')
+      required:
+        - number
+        - usage
+        - public
+
+    EmbeddedPlanning:
+      type: object
+      properties:
+        planning_id:
+          type: string
+          description: ID of the planning item
+        coverages:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/EmbeddedPlanningCoverage'
+          description: Coverages by ID
+        update_method:
+          $ref: '#/components/schemas/UpdateMethods'
+
+    EmbeddedPlanningCoverage:
+      type: object
+      properties:
+        coverage_id:
+          type: string
+          description: Unique identifier for the coverage
+        g2_content_type:
+          type: string
+          description: Type of content
+        news_coverage_status:
+          type: string
+          description: Status of the coverage
+        scheduled:
+          type: string
+          format: date-time
+          description: Scheduled time
+        desk:
+          type: string
+          description: Desk assigned to the coverage
+        user:
+          type: string
+          description: User assigned to the coverage
+      required:
+        - coverage_id
+        - g2_content_type
+        - news_coverage_status
+        - scheduled
+
+    RecurringRule:
+      type: object
+      properties:
+        frequency:
+          type: string
+          description: Frequency of recurrence (daily, weekly, monthly, yearly)
+        interval:
+          type: integer
+          description: Interval between occurrences
+        until:
+          type: string
+          format: date-time
+          description: End date for recurrence
+        count:
+          type: integer
+          description: Number of occurrences
+        byday:
+          type: string
+          description: Days of week for weekly recurrence
+
+    ExRule:
+      type: object
+      properties:
+        frequency:
+          type: string
+          description: Frequency of exclusion
+        interval:
+          type: string
+          description: Interval for exclusion
+        until:
+          type: string
+          format: date-time
+          description: End date for exclusion
+
+    UpdateMethods:
+      type: string
+      enum: [single, future, all]
+      description: Method for updating recurring events

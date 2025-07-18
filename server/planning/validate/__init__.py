@@ -8,12 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import superdesk
-from .planning_validate import PlanningValidateResource, PlanningValidateService
+from .planning_validate import validate_docs
 
-
-def init_app(app):
-    """Initialize planning validators."""
-
-    validate_service = PlanningValidateService(PlanningValidateResource.endpoint_name, backend=superdesk.get_backend())
-    PlanningValidateResource(PlanningValidateResource.endpoint_name, app=app, service=validate_service)
+__all__ = ["validate_docs"]

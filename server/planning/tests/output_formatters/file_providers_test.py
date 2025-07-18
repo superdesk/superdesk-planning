@@ -39,6 +39,16 @@ class TestPlanningMedia(BytesIO):
     mimetype = "text/csv"
 
 
+class MockMedia:
+    def __init__(self, test_file):
+        self.get = mock.Mock(return_value=test_file)
+
+
+class MockApp:
+    def __init__(self, test_file):
+        self.media = MockMedia(test_file)
+
+
 class FileProvidersTestCase(TestCase):
     event_item = {
         "_id": "urn:newsml:localhost:2018-04-10T11:05:55.664317:e1301640-80a2-4df9-b4d9-91bbb4af7946",
@@ -47,6 +57,7 @@ class FileProvidersTestCase(TestCase):
             TransmitterFileEntry(
                 media="event_file",
                 mimetype="text/csv",
+                resource="events_files",
             )
         ],
         "type": "event",
@@ -58,6 +69,7 @@ class FileProvidersTestCase(TestCase):
             TransmitterFileEntry(
                 media="plan_file",
                 mimetype="text/csv",
+                resource="planning_files",
             )
         ],
         "type": "planning",
@@ -100,16 +112,17 @@ class FileProvidersTestCase(TestCase):
     def test_ignores_ftp_transmitter(self):
         self.assertDictEqual(get_event_planning_files_for_transmission(FTPPublishService.NAME, self.event_item), {})
 
-    @mock.patch("superdesk.publish.transmitters.http_push.app")
+    @mock.patch(
+        "superdesk.publish.transmitters.http_push.get_current_app", return_value=MockApp(TestEventMedia(b"bin"))
+    )
+    @mock.patch("superdesk.publish.transmitters.http_push.get_app_config", return_value=(5, 30))
     @mock.patch("superdesk.publish.transmitters.http_push.requests.Session.send", return_value=CreatedResponse)
     @mock.patch("requests.get", return_value=NotFoundResponse)
-    def test_push_event_files(self, get_mock, send_mock, app_mock):
-        app_mock.config = {}
-        app_mock.media.get.return_value = TestEventMedia(b"bin")
+    async def test_push_event_files(self, get_mock, send_mock, mock_config, get_mock_app):
         dest = {"config": {"assets_url": "http://example.com", "secret_token": "foo"}}
         service = HTTPPushService()
-        service._copy_published_media_files(self.event_item, dest)
-        app_mock.media.get.assert_called_with("event_file", resource="events_files")
+        await service._copy_published_media_files(self.event_item, dest)
+        get_mock_app().media.get.assert_called_with("event_file", resource="events_files")
         get_mock.assert_called_with("http://example.com/event_file", timeout=(5, 30))
         send_mock.assert_called_once_with(mock.ANY, timeout=(5, 30))
         request = send_mock.call_args[0][0]
@@ -122,15 +135,17 @@ class FileProvidersTestCase(TestCase):
             request.headers["x-superdesk-signature"], "sha1=%s" % hmac.new(b"foo", request.body, "sha1").hexdigest()
         )
 
-    @mock.patch("superdesk.publish.transmitters.http_push.app")
+    @mock.patch(
+        "superdesk.publish.transmitters.http_push.get_current_app", return_value=MockApp(TestPlanningMedia(b"bin"))
+    )
+    @mock.patch("superdesk.publish.transmitters.http_push.get_app_config", return_value=(5, 30))
     @mock.patch("superdesk.publish.transmitters.http_push.requests.Session.send", return_value=CreatedResponse)
     @mock.patch("requests.get", return_value=NotFoundResponse)
-    def test_push_planning_files(self, get_mock, send_mock, app_mock):
-        app_mock.config = {}
-        app_mock.media.get.return_value = TestPlanningMedia(b"bin")
+    async def test_push_planning_files(self, get_mock, send_mock, mock_config, get_mock_app):
+        app_mock = get_mock_app()
         dest = {"config": {"assets_url": "http://example.com", "secret_token": "foo"}}
         service = HTTPPushService()
-        service._copy_published_media_files(self.plan_item, dest)
+        await service._copy_published_media_files(self.plan_item, dest)
         app_mock.media.get.assert_called_with("plan_file", resource="planning_files")
         get_mock.assert_called_with("http://example.com/plan_file", timeout=(5, 30))
         send_mock.assert_called_once_with(mock.ANY, timeout=(5, 30))

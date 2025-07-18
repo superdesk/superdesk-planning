@@ -211,6 +211,22 @@ Feature: Post Planning
         Then we get OK response
         Then we store coverage id in "coverageId" from coverage 0
         Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        When we post to "/subscribers" with success
+        """
+        {
+            "name":"News2","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "is_active": true,
+            "codes": "",
+            "destinations": [{"name":"planning", "format": "json_planning", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
         When we post to "/planning/post"
         """
         {
@@ -289,6 +305,22 @@ Feature: Post Planning
         Then we get OK response
         Then we store coverage id in "coverageId" from coverage 0
         Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        When we post to "/subscribers" with success
+        """
+        {
+            "name":"News3","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "is_active": true,
+            "codes": "",
+            "destinations": [{"name":"planning", "format": "json_planning", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
         When we post to "/planning/post"
         """
         {
@@ -413,7 +445,7 @@ Feature: Post Planning
         Then we get error 400
 
     @auth
-    Scenario: filters private contacts on planning post and doesnt modify planning
+    Scenario: Filters private contacts on planning post and doesnt modify planning
         When we post to "/contacts"
         """
         [
@@ -459,6 +491,22 @@ Feature: Post Planning
         }
         """
         Then we get OK response
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        When we post to "/subscribers" with success
+        """
+        {
+            "name":"News4","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "is_active": true,
+            "codes": "",
+            "destinations": [{"name":"planning", "format": "json_planning", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
         When we post to "/planning/post"
         """
         {

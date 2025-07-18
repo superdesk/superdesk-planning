@@ -8,10 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import current_app as app
-
 import superdesk
-from superdesk.utils import ListCursor
+from superdesk.core import get_app_config
+from superdesk.eve_async.service import AsyncBaseService
 
 
 class PlanningExportTemplatesResource(superdesk.Resource):
@@ -105,11 +104,7 @@ default_export_templates = [
 ]
 
 
-class PlanningExportTemplatesService(superdesk.Service):
-    def get(self, req, lookup):
-        export_templates = list(super().get(req, lookup))
-        return ListCursor(export_templates)
-
+class PlanningExportTemplatesService(AsyncBaseService):
     def _get_default_template_data(self, item_type):
         """Retrieves the default body_html template for the provided item type
 
@@ -122,21 +117,22 @@ class PlanningExportTemplatesService(superdesk.Service):
 
         config_entry = "{}_EXPORT_BODY_TEMPLATE".format(item_type.upper())
 
-        if app.config.get(config_entry):
-            template = {"data": {"body_html": app.config[config_entry]}}
+        config_value = get_app_config(config_entry)
+        if config_value:
+            template = {"data": {"body_html": config_value}}
         else:
             template = next((t for t in default_export_templates if t["type"] == item_type), {})
 
         return template.get("data") if template else None
 
-    def get_export_template(self, name, type):
+    async def get_export_template(self, name, type):
         if name:
-            return (self.find_one(req=None, name=name) or {}).get("data")
+            return (await self.find_one_async(req=None, name=name) or {}).get("data")
 
         return self._get_default_template_data(type)
 
-    def get_download_template(self, name, type):
+    async def get_download_template(self, name, type):
         if name:
-            return ((self.find_one(req=None, name=name) or {}).get("data") or {}).get("template_file")
+            return ((await self.find_one_async(req=None, name=name) or {}).get("data") or {}).get("template_file")
 
         return "event_download_default.html" if type == "event" else None

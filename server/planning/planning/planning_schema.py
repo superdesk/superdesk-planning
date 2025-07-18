@@ -11,8 +11,7 @@
 import logging
 from copy import deepcopy
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk.resource import Resource, not_analyzed, string_with_analyzer
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from planning.content_profiles.profiles.fields import subjectField
@@ -58,10 +57,10 @@ coverage_schema = {
         "schema": {
             "ednote": metadata_schema["ednote"],
             "g2_content_type": {"type": "string", "mapping": not_analyzed},
-            "coverage_provider": {"type": "string", "mapping": not_analyzed},
+            "coverage_provider": {"type": "string", "nullable": True, "mapping": not_analyzed},
             "contact_info": Resource.rel("contacts", type="string", nullable=True),
-            "item_class": {"type": "string", "mapping": not_analyzed},
-            "item_count": {"type": "string", "mapping": not_analyzed},
+            "item_class": {"type": "string", "nullable": True, "mapping": not_analyzed},
+            "item_count": {"type": "string", "nullable": True, "mapping": not_analyzed},
             "news_coverage_status": {
                 "type": "dict",
                 "allow_unknown": True,
@@ -172,7 +171,7 @@ event_type["mapping"] = not_analyzed
 
 planning_schema = {
     # Identifiers
-    config.ID_FIELD: metadata_schema[config.ID_FIELD],
+    ID_FIELD: metadata_schema[ID_FIELD],
     "guid": metadata_schema["guid"],
     # Audit Information
     "original_creator": metadata_schema["original_creator"],

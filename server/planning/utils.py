@@ -8,22 +8,29 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Union, List, Dict, Any, TypedDict, Optional
+import arrow
+import pytz
 import logging
 from datetime import datetime
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from flask import current_app as app, json
-from flask_babel import lazy_gettext
-from eve.utils import str_to_date, ParsedRequest, config
-import arrow
-import pytz
+from quart_babel import lazy_gettext
+from eve.utils import ParsedRequest
+from superdesk.core.types import Request
+from werkzeug.exceptions import BadRequest
+from typing import Type, Union, List, Dict, Any, TypedDict, Optional
 
 from . import settings, types
 from superdesk import get_resource_service
 from superdesk.json_utils import cast_item
+from superdesk.core.utils import str_to_date
+from superdesk.resource_fields import ID_FIELD
+from superdesk.core import json, get_app_config
+from superdesk.core.resources.service import AsyncResourceService
 
+from planning import types
+from planning.types import EventResourceModel, PlanningResourceModel, AssignmentResourceModel, BasePlanningModel
 from planning.types import Event, Planning, PLANNING_RELATED_EVENT_LINK_TYPE, PlanningRelatedEventLink
 
 
@@ -41,6 +48,19 @@ class FormattedContact(TypedDict):
 
 MULTI_DAY_SECONDS = 24 * 60 * 60  # Number of seconds for an multi-day event
 ALL_DAY_SECONDS = MULTI_DAY_SECONDS - 1  # Number of seconds for an all-day event
+
+RESOURCE_MAPPING: dict[str, Type[BasePlanningModel]] = {
+    "events": EventResourceModel,
+    "planning": PlanningResourceModel,
+    "assignments": AssignmentResourceModel,
+}
+
+
+def get_service(item_type: str) -> AsyncResourceService:
+    resource_model = RESOURCE_MAPPING.get(item_type)
+    if resource_model is None:
+        raise BadRequest()
+    return resource_model.get_service()
 
 
 def try_cast_object_id(value: str) -> Union[ObjectId, str]:
@@ -94,18 +114,18 @@ def local_date(datetime: datetime, tz: pytz.BaseTzInfo) -> datetime:
 
 def time_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return local_date(datetime, tz).strftime(app.config.get("TIME_FORMAT_SHORT", "%H:%M"))
+        return local_date(datetime, tz).strftime(get_app_config("TIME_FORMAT_SHORT", "%H:%M"))
 
 
 def date_short(datetime: datetime, tz: pytz.BaseTzInfo):
     if datetime:
-        return local_date(datetime, tz).strftime(app.config.get("DATE_FORMAT_SHORT", "%d/%m/%Y"))
+        return local_date(datetime, tz).strftime(get_app_config("DATE_FORMAT_SHORT", "%d/%m/%Y"))
 
 
 def get_event_formatted_dates(event: Dict[str, Any]) -> str:
     start = event.get("dates", {}).get("start")
     end = event.get("dates", {}).get("end")
-    tz_name: str = event.get("dates", {}).get("tz", app.config["DEFAULT_TIMEZONE"])
+    tz_name: str = event.get("dates", {}).get("tz", get_app_config("DEFAULT_TIMEZONE"))
     tz = pytz.timezone(tz_name)
 
     duration_seconds = int((end - start).total_seconds())
@@ -191,15 +211,16 @@ def get_related_event_items_for_planning(
     if not len(event_ids):
         return []
 
+    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
     events = list(get_resource_service("events").find(where={"_id": {"$in": event_ids}}))
 
     if len(event_ids) != len(events):
         logger.warning(
             "Not all Events were found for the Planning item",
             extra=dict(
-                plan_id=plan[config.ID_FIELD],
+                plan_id=plan[ID_FIELD],
                 event_ids_requested=event_ids,
-                events_ids_found=[event[config.ID_FIELD] for event in events],
+                events_ids_found=[event[ID_FIELD] for event in events],
             ),
         )
 
@@ -217,11 +238,12 @@ def get_first_event_item_for_planning_id(
     if not first_event_id:
         return None
 
+    # TODO-ASYNC[EventsService] - Convert this to async when function is updated to async
     return get_resource_service("events").find_one(req=None, _id=first_event_id)
 
 
 def get_planning_event_link_method() -> types.PLANNING_EVENT_LINK_METHOD:
-    return app.config.get(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
+    return get_app_config(settings.PLANNING_EVENT_LINK_METHOD, "one_primary")
 
 
 def update_event_item_with_translations_value(event_item: Dict[str, Any], language: str) -> Dict[str, Any]:
@@ -233,3 +255,46 @@ def update_event_item_with_translations_value(event_item: Dict[str, Any], langua
             updated_event_item[translation["field"]] = translation["value"]
 
     return updated_event_item
+
+
+def is_coverage_planning_modified(updates: dict[str, Any], original: dict[str, Any]):
+    from planning.common import TO_BE_CONFIRMED_FIELD
+
+    planning_updates = updates.get("planning", {})
+    planning_original = original.get("planning", {})
+
+    for key in planning_updates.keys():
+        if not key.startswith("_") and planning_updates[key] != planning_original.get(key):
+            return True
+
+    if (
+        TO_BE_CONFIRMED_FIELD in original
+        and TO_BE_CONFIRMED_FIELD in updates
+        and original.get(TO_BE_CONFIRMED_FIELD) != updates.get(TO_BE_CONFIRMED_FIELD)
+    ):
+        return True
+
+    return False
+
+
+def is_coverage_assignment_modified(updates: dict[str, Any], original: dict[str, Any]):
+    assigned_to_updates = updates.get("assigned_to", {})
+    assigned_to_original = original.get("assigned_to", {})
+
+    if assigned_to_updates:
+        keys = ["desk", "user", "state", "coverage_provider"]
+        for key in keys:
+            if key in assigned_to_updates and assigned_to_updates[key] != assigned_to_original.get(key):
+                return True
+
+        if assigned_to_updates.get("priority") and assigned_to_updates["priority"] != original.get("priority"):
+            return True
+
+    return False
+
+
+async def get_json_or_400_async(req: Request) -> dict:
+    data = await req.get_json()
+    if not isinstance(data, dict):
+        await req.abort(400)
+    return data

@@ -10,9 +10,10 @@
 
 import logging
 
-from eve.utils import config
-
-from superdesk import Service, Resource, get_resource_service
+from superdesk import get_resource_service
+from superdesk.resource_fields import ID_FIELD
+from superdesk import Resource
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from planning.common import set_original_creator, format_address
@@ -26,10 +27,10 @@ venue_types = {}
 # TODO: set firstcreated, versioncreated, version_creator
 
 
-class LocationsService(Service):
+class LocationsService(AsyncBaseService):
     """Service class for the events model."""
 
-    def on_create(self, docs):
+    async def on_create_async(self, docs):
         """Set default metadata."""
 
         for doc in docs:
@@ -37,37 +38,39 @@ class LocationsService(Service):
                 doc["guid"] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
 
-    def on_fetched(self, docs):
+    async def on_fetched_async(self, docs):
         for doc in docs["_items"]:
             self._enhance_item(doc)
 
-    def on_fetched_item(self, doc):
+    async def on_fetched_item_async(self, doc):
         self._enhance_item(doc)
 
     def _enhance_item(self, doc):
         format_address(doc)
 
-    def delete(self, lookup):
+    async def delete_async(self, lookup):
         """If the document to be deleted is reference in an event then flag it as inactive otherwise just delete it.
 
         :param doc:
         :return:
         """
         if lookup:
-            location = get_resource_service("locations").find_one(req=None, _id=lookup.get(config.ID_FIELD))
+            location = await self.find_one_async(req=None, _id=lookup.get(ID_FIELD))
             if location:
-                events = get_resource_service("events").find(where={"location.qcode": str(location.get("guid"))})
-                if events.count():
+                events_count = await get_resource_service("events").count_async(
+                    {"location.qcode": str(location["guid"])}
+                )
+                if events_count > 0:
                     # patch the unique name in case the location get recreated
-                    get_resource_service("locations").patch(
-                        location[config.ID_FIELD],
+                    await self.patch_async(
+                        location[ID_FIELD],
                         {
                             "is_active": False,
-                            "unique_name": str(location[config.ID_FIELD]),
+                            "unique_name": str(location[ID_FIELD]),
                         },
                     )
                     return
-        super().delete(lookup)
+        await super().delete_async(lookup)
 
 
 locations_schema = {
@@ -174,3 +177,4 @@ class LocationsResource(Resource):
     }
 
     merge_nested_documents = True
+    # internal_resource = True

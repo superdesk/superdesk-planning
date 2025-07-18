@@ -10,6 +10,7 @@
 
 
 from superdesk.publish.formatters import Formatter
+from superdesk.publish_async.utils import generate_sequence_number
 import superdesk
 import json
 from superdesk.utils import json_serialize_datetime_objectId
@@ -45,8 +46,8 @@ class JsonPlanningFeaturedFormatter(Formatter):
     def can_format(self, format_type, article):
         return format_type == self.format_type and article.get("type") == "planning_featured"
 
-    def format(self, item, subscriber, codes=None):
-        pub_seq_num = superdesk.get_resource_service("subscribers").generate_sequence_number(subscriber)
+    async def format(self, item, subscriber, codes=None):
+        pub_seq_num = await generate_sequence_number(subscriber)
         output_item = deepcopy(item)
         for f in self.remove_fields:
             output_item.pop(f, None)

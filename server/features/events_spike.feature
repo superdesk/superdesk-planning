@@ -170,13 +170,9 @@ Feature: Events Spike
             }]}
         """
         When we spike events "#events._id#"
-        Then we get error 400
+        Then we get error 403
         """
-        {
-            "_issues": {
-                "validator exception": "403: Spike failed. One or more related planning items are locked."
-            }
-        }
+        {"_message": "Spike failed. One or more related planning items are locked."}
         """
 
     @auth
@@ -269,13 +265,9 @@ Feature: Events Spike
         """
         {"update_method": "all"}
         """
-        Then we get error 400
+        Then we get error 403
         """
-        {
-            "_issues": {
-                "validator exception": "403: Spike failed. An event in the series is locked."
-            }
-        }
+        {"_message": "Spike failed. An event in the series is locked."}
         """
         When we post to "/events/#EVENT3._id#/unlock"
         """
@@ -290,13 +282,9 @@ Feature: Events Spike
         """
         {"update_method": "all"}
         """
-        Then we get error 400
+        Then we get error 403
         """
-        {
-            "_issues": {
-                "validator exception": "403: Spike failed. A related planning item is locked."
-            }
-        }
+        {"_message": "Spike failed. A related planning item is locked."}
         """
         When we post to "/planning/#planning._id#/unlock"
         """
@@ -409,22 +397,22 @@ Feature: Events Spike
         When we spike events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Spike failed. Posted Events cannot be spiked."}}
+        {"_message": "Spike failed. Posted Events cannot be spiked."}
         """
         When we spike events "event3"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Spike failed. Rescheduled Events cannot be spiked."}}
+        {"_message": "Spike failed. Rescheduled Events cannot be spiked."}
         """
         When we spike events "event4"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Spike failed. Rescheduled Events cannot be spiked."}}
+        {"_message": "Spike failed. Rescheduled Events cannot be spiked."}
         """
         When we spike events "event5"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Spike failed. Event is already spiked."}}
+        {"_message": "Spike failed. Event is already spiked."}
         """
 
     @auth
@@ -699,7 +687,7 @@ Feature: Events Spike
         """
         Then we get OK response
         When we spike events "#events._id#"
-        Then we get error 400
+        Then we get error 403
         When we post to "/planning/#planning._id#/unlock"
         """
         {}

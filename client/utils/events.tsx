@@ -1151,6 +1151,12 @@ function getLocalEndDate(event: IEventItem): moment.Moment {
     return moment(event.dates.end);
 }
 
+function normalizeSortDate(event: IEventItem) {
+    const localStart = getLocalStartDate(event);
+
+    return localStart.toISOString();
+}
+
 function modifyForClient(event: IEventItem): IEventItem; // overload
 
 // eslint-disable-next-line no-redeclare
@@ -1272,6 +1278,10 @@ function modifyForServer(event: IEventItem, removeNullLinks: boolean = false) {
 
     if (event.dates?.end != null && moment.isMoment(event.dates.end)) {
         event.dates.end = event.dates.end.toISOString();
+    }
+
+    if (event.dates?.recurring_rule?.until != null && moment.isMoment(event.dates.recurring_rule.until)) {
+        event.dates.recurring_rule.until = event.dates.recurring_rule.until.toISOString();
     }
 
     return event;
@@ -1624,6 +1634,7 @@ const self = {
     addSomeEventsAsRelatedToPlanningEditor,
     addRelatedEvents,
     normalizeLocationDetails,
+    normalizeSortDate,
 };
 
 export default self;

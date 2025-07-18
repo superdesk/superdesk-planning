@@ -8,11 +8,12 @@
 
 """Superdesk Files"""
 
-from superdesk import Service
 from copy import deepcopy
-from flask import g
-from eve.utils import config
 from bson import ObjectId
+
+from superdesk.core import get_current_app
+from superdesk import Service
+from superdesk.resource_fields import ID_FIELD
 from .item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 from superdesk.metadata.item import ITEM_TYPE
 
@@ -46,11 +47,7 @@ class HistoryService(Service):
         for item in items:
             if not item.get("duplicate_from"):
                 self._save_history(
-                    {
-                        config.ID_FIELD: ObjectId(item[config.ID_FIELD])
-                        if ObjectId.is_valid(item[config.ID_FIELD])
-                        else str(item[config.ID_FIELD])
-                    },
+                    {ID_FIELD: ObjectId(item[ID_FIELD]) if ObjectId.is_valid(item[ID_FIELD]) else str(item[ID_FIELD])},
                     deepcopy(item),
                     operation or "create",
                 )
@@ -81,13 +78,13 @@ class HistoryService(Service):
 
     def on_reschedule_from(self, item):
         new_item = deepcopy(item)
-        self._save_history({config.ID_FIELD: str(item[config.ID_FIELD])}, new_item, "reschedule_from")
+        self._save_history({ID_FIELD: str(item[ID_FIELD])}, new_item, "reschedule_from")
 
     def on_postpone(self, updates, original):
         self.on_item_updated(updates, original, "postpone")
 
     def get_user_id(self):
-        user = getattr(g, "user", None)
+        user = get_current_app().get_current_user_dict()
         if user:
             return user.get("_id")
 

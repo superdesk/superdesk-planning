@@ -1,8 +1,7 @@
 from typing import Optional
 import logging
-from eve.utils import config
-from flask import current_app as app
 
+from superdesk.core import get_app_config
 from superdesk import get_resource_service
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 import pytz
@@ -25,7 +24,6 @@ from planning.common import (
     POST_STATE,
 )
 
-from planning.content_profiles.utils import get_planning_schema
 from .utils import upgrade_rich_text_fields
 
 utc = pytz.UTC
@@ -69,7 +67,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
     def set_missing_voc_policy(self):
         # config is not accessible during __init__, so we check it here
         if self.__class__.missing_voc is None:
-            self.__class__.missing_voc = app.config.get("QCODE_MISSING_VOC", "continue")
+            self.__class__.missing_voc = get_app_config("QCODE_MISSING_VOC", "continue")
             if self.__class__.missing_voc not in ("reject", "create", "continue"):
                 logger.warning(
                     'Bad QCODE_MISSING_VOC value ({value}) using default ("continue")'.format(value=self.missing_voc)
@@ -79,7 +77,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
     def get_item_id(self, tree: Element) -> str:
         return tree.attrib["guid"]
 
-    def parse(self, tree: Element, provider=None):
+    async def parse(self, tree: Element, provider=None):
         self.root = tree
         self.set_missing_voc_policy()
         planning_service = get_resource_service("planning")
@@ -87,12 +85,12 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         try:
             guid = self.get_item_id(tree)
             original: Optional[Planning] = planning_service.find_one(req=None, _id=guid)
-            item = self.parse_item(tree, original)
+            item = await self.parse_item(tree, original)
             return [item] if item is not None else []
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
 
-    def parse_item(self, tree: Element, original: Optional[Planning]) -> Optional[Planning]:
+    async def parse_item(self, tree: Element, original: Optional[Planning]) -> Optional[Planning]:
         guid = (original or {}).get("_id") or self.get_item_id(tree)
         item = {
             GUID_FIELD: guid,
@@ -106,9 +104,9 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         self.parse_news_coverage_set(tree, item, original)
         self.parse_news_coverage_status(tree, item)
 
-        upgrade_rich_text_fields(item, "planning")
+        await upgrade_rich_text_fields(item, "planning")
         for coverage in item.get("coverages") or []:
-            upgrade_rich_text_fields(coverage.get("planning") or {}, "coverage")
+            await upgrade_rich_text_fields(coverage.get("planning") or {}, "coverage")
 
         return item
 
@@ -173,7 +171,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
             if assigne_elt is not None:
                 item["planning_date"] = self.datetime(assigne_elt.get("value"))
         else:
-            item["planning_date"] = utc_to_local(config.DEFAULT_TIMEZONE, utcnow())
+            item["planning_date"] = utc_to_local(get_app_config("DEFAULT_TIMEZONE"), utcnow())
 
     def parse_news_coverage_status(self, tree, item):
         """Parse newsCoverageStatus tag

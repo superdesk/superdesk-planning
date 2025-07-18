@@ -709,7 +709,7 @@ export const getSearchDateRange = (
     startOfWeek: number,
     viewInterval?: JUMP_INTERVAL,
 ): IDateRange => {
-    const dates = currentSearch.advancedSearch.dates ?? {};
+    const dates = currentSearch.advancedSearch?.dates ?? {};
     const dateRange = {startDate: null, endDate: null};
     const jumpUnit = viewInterval ? INTERVAL_UNIT_MAPPING[viewInterval] : 'month';
 
@@ -884,12 +884,14 @@ export const itemsEqual = (nextItem, currentItem) => {
 
     get(lhs, 'coverages', []).forEach(
         (coverage) => {
+            delete coverage.planning._scheduledTime;
             formatDate(coverage, 'planning.scheduled');
         }
     );
 
     get(rhs, 'coverages', []).forEach(
         (coverage) => {
+            delete coverage.planning._scheduledTime;
             formatDate(coverage, 'planning.scheduled');
         }
     );

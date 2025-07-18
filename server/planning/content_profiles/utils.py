@@ -13,8 +13,8 @@ from superdesk import get_resource_service
 from planning.types import ContentProfile
 
 
-def get_planning_schema(resource: str) -> ContentProfile:
-    return get_resource_service("planning_types").find_one(req=None, name=resource)
+async def get_planning_schema(resource: str) -> ContentProfile:
+    return await get_resource_service("planning_types").find_one_async(req=None, name=resource)
 
 
 def is_field_enabled(field: str, profile: ContentProfile) -> bool:
@@ -58,12 +58,12 @@ def get_multilingual_fields_from_profile(profile: ContentProfile) -> Set[str]:
     )
 
 
-def get_multilingual_fields(resource: str) -> Set[str]:
-    return get_multilingual_fields_from_profile(get_planning_schema(resource))
+async def get_multilingual_fields(resource: str) -> Set[str]:
+    return get_multilingual_fields_from_profile(await get_planning_schema(resource))
 
 
-def get_editor3_fields(resource: str) -> Set[str]:
-    profile = get_planning_schema(resource)
+async def get_editor3_fields(resource: str) -> Set[str]:
+    profile = await get_planning_schema(resource)
     return set(field_name for field_name in profile["schema"].keys() if is_field_editor_3(field_name, profile))
 
 
@@ -73,11 +73,14 @@ class ContentProfileData:
     multilingual_fields: Set[str]
     enabled_fields: Set[str]
 
-    def __init__(self, resource: str):
-        self.profile = get_planning_schema(resource)
+    @classmethod
+    async def get(cls, resource: str):
+        self = cls()
+        self.profile = await get_planning_schema(resource)
         self.enabled_fields = get_enabled_fields(self.profile)
         self.is_multilingual = is_multilingual_enabled("language", self.profile)
         self.multilingual_fields = get_multilingual_fields_from_profile(self.profile)
+        return self
 
 
 class AllContentProfileData:
@@ -85,21 +88,24 @@ class AllContentProfileData:
     planning: ContentProfileData
     coverages: ContentProfileData
 
-    def __init__(self):
-        self.events = ContentProfileData("event")
-        self.planning = ContentProfileData("planning")
-        self.coverages = ContentProfileData("coverage")
+    @classmethod
+    async def get(cls):
+        self = cls()
+        self.events = await ContentProfileData.get("event")
+        self.planning = await ContentProfileData.get("planning")
+        self.coverages = await ContentProfileData.get("coverage")
+        return self
 
 
-def is_post_planning_with_event_enabled() -> bool:
+async def is_post_planning_with_event_enabled() -> bool:
     try:
-        return get_planning_schema("event")["schema"]["related_plannings"]["planning_auto_publish"] is True
+        return (await get_planning_schema("event"))["schema"]["related_plannings"]["planning_auto_publish"] is True
     except (KeyError, TypeError):
         return False
 
 
-def is_cancel_planning_with_event_enabled() -> bool:
+async def is_cancel_planning_with_event_enabled() -> bool:
     try:
-        return get_planning_schema("event")["schema"]["related_plannings"]["cancel_plan_with_event"] is True
+        return (await get_planning_schema("event"))["schema"]["related_plannings"]["cancel_plan_with_event"] is True
     except (KeyError, TypeError):
         return True

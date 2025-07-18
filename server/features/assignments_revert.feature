@@ -7,6 +7,16 @@ Feature: Assignment Revert
     """
     [{"_id": "desk123", "name": "Politic Desk"}]
     """
+    When we post to "planning" with success
+    """
+    [{
+        "guid": "plan1",
+        "headline": "test headline",
+        "slugline": "test slugline",
+        "state": "scheduled",
+        "planning_date": "2016-01-02"
+    }]
+    """
     Given "assignments"
     """
     [{

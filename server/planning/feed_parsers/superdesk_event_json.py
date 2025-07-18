@@ -34,14 +34,14 @@ class EventJsonFeedParser(FileFeedParser):
             pass
         return False
 
-    def parse(self, file_path, provider=None):
+    async def parse(self, file_path, provider=None):
         self.items = []
         with open(file_path, "r") as f:
             superdesk_event = json.load(f)
-        self.items.append(self._transform_from_superdesk_event(superdesk_event))
+        self.items.append(await self._transform_from_superdesk_event(superdesk_event))
         return self.items
 
-    def _transform_from_superdesk_event(self, superdesk_event):
+    async def _transform_from_superdesk_event(self, superdesk_event):
         superdesk_event = self.ignore_fields(superdesk_event)
         superdesk_event["_created"] = utcnow()
         superdesk_event["_updated"] = utcnow()
@@ -49,7 +49,7 @@ class EventJsonFeedParser(FileFeedParser):
         superdesk_event["versioncreated"] = utcnow()
 
         superdesk_event = self.assign_from_local_cv(superdesk_event)
-        superdesk_event = self.add_to_local_db(superdesk_event)
+        superdesk_event = await self.add_to_local_db(superdesk_event)
 
         if superdesk_event["dates"].get("recurring_rule"):
             superdesk_event["dates"]["recurring_rule"]["_created_externally"] = True
@@ -108,7 +108,7 @@ class EventJsonFeedParser(FileFeedParser):
 
         return superdesk_event
 
-    def add_to_local_db(self, superdesk_event):
+    async def add_to_local_db(self, superdesk_event):
         """Locations and Contacts are first searched into database.
 
         If any existing item is found having same id, assing that item,
@@ -124,11 +124,15 @@ class EventJsonFeedParser(FileFeedParser):
                 if field == "location":
                     item["_id"] = item.get("qcode")
                 if item.get("_id"):
-                    field_in_database = get_resource_service(add_to_local_db[field]).find_one(
-                        req=None, _id=item.get("_id")
-                    )
-                    if not field_in_database:
-                        get_resource_service(add_to_local_db[field]).post([item])
+                    service = get_resource_service(add_to_local_db[field])
+                    if hasattr(service, "find_one_async"):
+                        field_in_database = await service.find_one_async(req=None, _id=item.get("_id"))
+                        if not field_in_database:
+                            await service.post_async([item])
+                    else:
+                        field_in_database = service.find_one(req=None, _id=item.get("_id"))
+                        if not field_in_database:
+                            service.post([item])
 
             if field == "event_contact_info":
                 superdesk_event[field] = [item["_id"] for item in superdesk_event[field]]

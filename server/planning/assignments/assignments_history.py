@@ -8,11 +8,11 @@
 
 """Superdesk Files"""
 
+from superdesk.resource_fields import ID_FIELD
 from superdesk import Resource, get_resource_service
 from copy import deepcopy
 from planning.history import HistoryService
 import logging
-from eve.utils import config
 from collections import namedtuple
 from planning.common import WORKFLOW_STATE
 
@@ -65,6 +65,7 @@ class AssignmentsHistoryResource(Resource):
         "operation": {"type": "string"},
         "update": {"type": "dict", "nullable": True},
     }
+    internal_resource = True
 
 
 class AssignmentsHistoryService(HistoryService):
@@ -90,7 +91,7 @@ class AssignmentsHistoryService(HistoryService):
             user = assigned_to.get("user")
             update["assigned_to"] = {"user": user}
         history = {
-            "assignment_id": assignment[config.ID_FIELD],
+            "assignment_id": assignment[ID_FIELD],
             "user_id": user,
             "operation": operation,
             "update": update,

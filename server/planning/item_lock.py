@@ -10,9 +10,8 @@
 
 import logging
 
-from eve.utils import config
-
 import superdesk
+from superdesk.resource_fields import ID_FIELD
 from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
 from superdesk.users.services import current_user_has_privilege
@@ -41,7 +40,7 @@ class LockService(BaseComponent):
     def name(cls):
         return "planning_item_lock"
 
-    def lock(self, item, user_id, session_id, action, resource):
+    async def lock(self, item, user_id, session_id, action, resource):
         if not item:
             raise SuperdeskApiError.notFoundError()
         elif self.existing_lock_is_unchanged(item, user_id, session_id, action):
@@ -50,7 +49,7 @@ class LockService(BaseComponent):
             return item
 
         item_service = get_resource_service(resource)
-        item_id = item.get(config.ID_FIELD)
+        item_id = item.get(ID_FIELD)
 
         # lock_id will be:
         # 1 - Recurrence Id for items part of recurring series (event or planning)
@@ -75,7 +74,7 @@ class LockService(BaseComponent):
             if can_user_lock:
                 # following line executes handlers attached to function:
                 # on_lock_'resource' - ex. on_lock_planning, on_lock_event
-                getattr(self.app, "on_lock_%s" % resource)(item, user_id)
+                await getattr(self.app, "on_lock_%s" % resource).call_async(item, user_id)
 
                 updates = {
                     LOCK_USER: user_id,
@@ -85,11 +84,11 @@ class LockService(BaseComponent):
                 if action:
                     updates[LOCK_ACTION] = action
 
-                item_service.update(item.get(config.ID_FIELD), updates, item)
+                await item_service.update_async(item.get(ID_FIELD), updates, item)
 
                 push_notification(
                     resource + ":lock",
-                    item=str(item.get(config.ID_FIELD)),
+                    item=str(item.get(ID_FIELD)),
                     user=str(user_id),
                     lock_time=updates[LOCK_TIME],
                     lock_session=str(session_id),
@@ -102,11 +101,11 @@ class LockService(BaseComponent):
             else:
                 raise SuperdeskApiError.forbiddenError(message=error_message)
 
-            item = item_service.find_one(req=None, _id=item_id)
+            item = await item_service.find_one_async(req=None, _id=item_id)
 
             # following line executes handlers attached to function:
             # on_locked_'resource' - ex. on_locked_planning, on_locked_event
-            getattr(self.app, "on_locked_%s" % resource)(item, user_id)
+            await getattr(self.app, "on_locked_%s" % resource).call_async(item, user_id)
             return item
         finally:
             # unlock the lock :)
@@ -117,7 +116,7 @@ class LockService(BaseComponent):
             item.get(LOCK_USER) == user_id and item.get(LOCK_SESSION) == session_id and item.get(LOCK_ACTION) == action
         )
 
-    def unlock(self, item, user_id, session_id, resource):
+    async def unlock(self, item, user_id, session_id, resource):
         if not item:
             raise SuperdeskApiError.notFoundError()
         if item.get(LOCK_USER) is None and item.get(LOCK_SESSION) is None and item.get(LOCK_ACTION) is None:
@@ -125,7 +124,7 @@ class LockService(BaseComponent):
             return item
 
         item_service = get_resource_service(resource)
-        item_id = item.get(config.ID_FIELD)
+        item_id = item.get(ID_FIELD)
 
         can_user_unlock, error_message = self.can_unlock(item, user_id, resource)
 
@@ -134,20 +133,20 @@ class LockService(BaseComponent):
 
         # following line executes handlers attached to function:
         # on_unlock_'resource' - ex. on_unlock_planning, on_unlock_event
-        getattr(self.app, "on_unlock_%s" % resource)(item, user_id)
+        await getattr(self.app, "on_unlock_%s" % resource).call_async(item, user_id)
 
         # Unlock the item
         updates = {LOCK_USER: None, LOCK_SESSION: None, LOCK_TIME: None, LOCK_ACTION: None}
-        item_service.update(item.get(config.ID_FIELD), updates, item)
-        item = item_service.find_one(req=None, _id=item_id)
+        await item_service.update_async(item.get(ID_FIELD), updates, item)
+        item = await item_service.find_one_async(req=None, _id=item_id)
 
         # following line executes handlers attached to function:
         # on_unlocked_'resource' - ex. on_unlocked_planning, on_unlocked_event
-        getattr(self.app, "on_unlocked_%s" % resource)(item, user_id)
+        await getattr(self.app, "on_unlocked_%s" % resource).call_async(item, user_id)
 
         push_notification(
             resource + ":unlock",
-            item=str(item.get(config.ID_FIELD)),
+            item=str(item.get(ID_FIELD)),
             user=str(user_id),
             lock_session=str(session_id),
             etag=updates.get("_etag") or item.get("_etag"),
@@ -158,27 +157,27 @@ class LockService(BaseComponent):
 
         return item
 
-    def unlock_session(self, user_id, session_id, is_last_session):
+    async def unlock_session(self, user_id, session_id, is_last_session):
         logger.info(f"planning:item_lock: Unlocking session {session_id}")
-        self.unlock_session_for_resource(user_id, session_id, is_last_session, "planning")
-        self.unlock_session_for_resource(user_id, session_id, is_last_session, "events")
-        self.unlock_session_for_resource(user_id, session_id, is_last_session, "assignments")
-        self.unlock_featured_planning(user_id, session_id, is_last_session)
+        await self.unlock_session_for_resource(user_id, session_id, is_last_session, "planning")
+        await self.unlock_session_for_resource(user_id, session_id, is_last_session, "events")
+        await self.unlock_session_for_resource(user_id, session_id, is_last_session, "assignments")
+        await self.unlock_featured_planning(user_id, session_id, is_last_session)
 
-    def unlock_featured_planning(self, user_id, session_id, is_last_session):
+    async def unlock_featured_planning(self, user_id, session_id, is_last_session):
         item_service = get_resource_service("planning_featured_lock")
-        items = item_service.find(
+        items = await item_service.find_async(
             where={LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
         )
-        if items.count() > 0:
-            item_service.delete_action(lookup={})
+        if await items.count() > 0:
+            await item_service.delete_action_async(lookup={})
 
-    def unlock_session_for_resource(self, user_id, session_id, is_last_session, resource):
+    async def unlock_session_for_resource(self, user_id, session_id, is_last_session, resource):
         logger.info(f"planning:item_lock: Unlocking {resource} resources")
         item_service = get_resource_service(resource)
         term_filter = {LOCK_USER: str(user_id)} if is_last_session else {LOCK_SESSION: str(session_id)}
-        for item in item_service.search({"query": {"bool": {"filter": {"term": term_filter}}}}):
-            self.unlock(item, user_id, session_id, resource)
+        async for item in await item_service.search_async({"query": {"bool": {"filter": {"term": term_filter}}}}):
+            await self.unlock(item, user_id, session_id, resource)
 
     def can_lock(self, item, user_id, session_id, resource):
         """
@@ -214,17 +213,17 @@ class LockService(BaseComponent):
 
         return True, ""
 
-    def on_session_end(self, user_id, session_id, is_last_session):
+    async def on_session_end(self, user_id, session_id, is_last_session):
         logger.info("planning:item_lock: On session end")
-        self.unlock_session(user_id, session_id, is_last_session)
+        await self.unlock_session(user_id, session_id, is_last_session)
 
-    def validate_relationship_locks(self, item, resource_name):
+    async def validate_relationship_locks(self, item, resource_name):
         if not item:
             raise SuperdeskApiError.notFoundError()
 
-        all_items = get_resource_service(resource_name).get_all_items_in_relationship(item)
+        all_items = await get_resource_service(resource_name).get_all_items_in_relationship(item)
         for related_item in all_items:
-            if related_item[config.ID_FIELD] != item[config.ID_FIELD]:
+            if related_item[ID_FIELD] != item[ID_FIELD]:
                 if related_item.get(LOCK_USER) and related_item.get(LOCK_SESSION):
                     # Frame appropriate error message string
 

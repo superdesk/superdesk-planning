@@ -1,442 +1,184 @@
-from planning.tests import TestCase
-from superdesk import get_resource_service
-import flask
 from bson import ObjectId
 
+from superdesk import get_resource_service
+from superdesk.flask import g
+from superdesk.tests import utils as test_utils, fixtures
+from planning.tests import TestCase, fixtures as planning_fixtures
 
-class AssignmentUnlinkTestCase(TestCase):
-    USER_ID = ObjectId("5d385f31fe985ec67a0ca583")
 
-    def setUp(self):
-        super().setUp()
-        with self.app.app_context():
-            users = [
+class BaseAssignmentUnlinkTestCase(TestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await test_utils.post_items("vocabularies", planning_fixtures.cvs.all_cvs())
+        await test_utils.post_items("desks", fixtures.desks.all_desks())
+        await test_utils.post_items("stages", fixtures.stages.all_stages())
+
+        self.article = fixtures.articles.article_1()
+        self.article.update(
+            {
+                "state": "in_progress",
+                "event_id": fixtures.articles.ARTICLE_1_ID,
+            }
+        )
+        self.article.pop("operation", None)
+        await test_utils.post_items("archive", [self.article])
+
+
+class AssignmentUnlinkTestCase(BaseAssignmentUnlinkTestCase):
+    # USER_ID = ObjectId("5d385f31fe985ec67a0ca583")
+    async def test_delivery_record(self):
+        await test_utils.post_items("planning", [planning_fixtures.planning.plan1()])
+        assignment = await planning_fixtures.planning.get_plan1_assignment()
+        await test_utils.post_items(
+            "assignments_link",
+            [{"assignment_id": assignment["_id"], "item_id": fixtures.articles.ARTICLE_1_ID, "reassign": True}],
+        )
+
+        delivery_service = get_resource_service("delivery")
+        archive_service = get_resource_service("archive")
+        assignment_service = get_resource_service("assignments")
+
+        delivery_item = await delivery_service.find_one_async(req=None, item_id=fixtures.articles.ARTICLE_1_ID)
+
+        self.assertEqual(delivery_item.get("item_id"), fixtures.articles.ARTICLE_1_ID)
+        self.assertEqual(delivery_item.get("assignment_id"), assignment["_id"])
+        self.assertEqual(delivery_item.get("planning_id"), "plan1")
+        self.assertEqual(delivery_item.get("coverage_id"), "cov1")
+
+        archive_item = await archive_service.find_one_async(req=None, _id=fixtures.articles.ARTICLE_1_ID)
+        self.assertEqual(archive_item.get("assignment_id"), assignment["_id"])
+
+        assignment = await assignment_service.find_one_async(req=None, _id=assignment["_id"])
+        self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
+
+        await get_resource_service("assignments_unlink").post_async(
+            [
                 {
-                    "_id": self.USER_ID,
-                    "username": "admin",
-                    "password": "blabla",
-                    "email": "admin@example.com",
-                    "user_type": "administrator",
-                    "is_active": True,
-                    "needs_activation": False,
-                    "is_author": True,
-                    "is_enabled": True,
-                    "display_name": "John Smith",
-                    "sign_off": "ADM",
-                    "first_name": "John",
-                    "last_name": "Smith",
-                    "role": ObjectId("5d542206c04280bc6d6157f9"),
+                    "assignment_id": assignment["_id"],
+                    "item_id": fixtures.articles.ARTICLE_1_ID,
                 }
             ]
-            self.app.data.insert("users", users)
+        )
 
-    def test_delivery_record(self):
-        with self.app.app_context():
-            flask.g.user = {"_id": self.USER_ID}
-            self.app.data.insert(
-                "vocabularies",
-                [
-                    {
-                        "_id": "g2_content_type",
-                        "display_name": "Coverage content types",
-                        "type": "manageable",
-                        "unique_field": "qcode",
-                        "selection_type": "do not show",
-                        "items": [
-                            {
-                                "name": "Text",
-                                "qcode": "text",
-                                "content item type": "text",
-                            }
-                        ],
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId("5b20652a1d41c812e24aa49e"),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": "test",
-                            "desk": "test",
-                        },
-                        "planning": {"g2_content_type": "text"},
-                    }
-                ],
-            )
+        delivery_item = await delivery_service.find_one_async(req=None, item_id=fixtures.articles.ARTICLE_1_ID)
+        self.assertEqual(delivery_item, None)
 
-            get_resource_service("assignments_link").post(
-                [
-                    {
-                        "assignment_id": "5b20652a1d41c812e24aa49e",
-                        "item_id": "item1",
-                        "reassign": True,
-                    }
-                ]
-            )
+        assignment = await assignment_service.find_one_async(req=None, _id=assignment["_id"])
+        self.assertEqual(assignment.get("assigned_to")["state"], "assigned")
 
-            delivery_service = get_resource_service("delivery")
-            archive_service = get_resource_service("archive")
-            assignment_service = get_resource_service("assignments")
+        archive_item = archive_service.find_one(req=None, _id=fixtures.articles.ARTICLE_1_ID)
+        self.assertEqual(archive_item.get("assignment_id"), None)
 
-            delivery_item = delivery_service.find_one(req=None, item_id="item1")
 
-            self.assertEqual(delivery_item.get("item_id"), "item1")
-            self.assertEqual(delivery_item.get("assignment_id"), ObjectId("5b20652a1d41c812e24aa49e"))
-            self.assertEqual(delivery_item.get("planning_id"), "plan1")
-            self.assertEqual(delivery_item.get("coverage_id"), "cov1")
+class AssignmentUnlinkUpdatesTestCase(AssignmentUnlinkTestCase):
+    app_config = {
+        **TestCase.app_config,
+        "PLANNING_LINK_UPDATES_TO_COVERAGES": True,
+    }
 
-            archive_item = archive_service.find_one(req=None, _id="item1")
-            self.assertEqual(archive_item.get("assignment_id"), ObjectId("5b20652a1d41c812e24aa49e"))
+    async def test_unlinks_all_content_updates(self):
+        article = fixtures.articles.article_1()
+        article.update(
+            {
+                "_id": "rewrite_item1",
+                "state": "in_progress",
+                "rewrite_of": fixtures.articles.ARTICLE_1_ID,
+                "event_id": fixtures.articles.ARTICLE_1_ID,
+            }
+        )
+        article.pop("operation", None)
+        await test_utils.post_items("archive", [article])
 
-            assignment = assignment_service.find_one(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
-            self.assertEqual(assignment.get("assigned_to")["state"], "in_progress")
+        await test_utils.post_items("planning", [planning_fixtures.planning.plan1()])
+        assignment = await planning_fixtures.planning.get_plan1_assignment()
+        await test_utils.post_items(
+            "assignments_link", [{"assignment_id": assignment["_id"], "item_id": "rewrite_item1", "reassign": True}]
+        )
 
-            get_resource_service("assignments_unlink").post(
-                [
-                    {
-                        "assignment_id": ObjectId("5b20652a1d41c812e24aa49e"),
-                        "item_id": "item1",
-                    }
-                ]
-            )
+        deliveries = await get_resource_service("delivery").get_async(
+            req=None, lookup={"assignment_id": assignment["_id"]}
+        )
+        self.assertEqual(await deliveries.count(), 2)
 
-            delivery_item = delivery_service.find_one(req=None, item_id="item1")
-            self.assertEqual(delivery_item, None)
+        await get_resource_service("assignments_unlink").post_async(
+            [{"assignment_id": assignment["_id"], "item_id": fixtures.articles.ARTICLE_1_ID}]
+        )
 
-            assignment = assignment_service.find_one(req=None, _id=ObjectId("5b20652a1d41c812e24aa49e"))
-            self.assertEqual(assignment.get("assigned_to")["state"], "assigned")
+        deliveries = await get_resource_service("delivery").get_async(
+            req=None, lookup={"assignment_id": assignment["_id"]}
+        )
+        self.assertEqual(await deliveries.count(), 0)
 
-            archive_item = archive_service.find_one(req=None, _id="item1")
-            self.assertEqual(archive_item.get("assignment_id"), None)
+    async def test_unlinks_properly_on_unlinking_any_update_in_chain(self):
+        article = fixtures.articles.article_1()
+        article.update(
+            {
+                "_id": "rewrite_item1",
+                "state": "in_progress",
+                "rewrite_of": fixtures.articles.ARTICLE_1_ID,
+                "event_id": fixtures.articles.ARTICLE_1_ID,
+            }
+        )
+        article.pop("operation", None)
+        await test_utils.post_items("archive", [article])
 
-    def test_unlinks_all_content_updates(self):
-        with self.app.app_context():
-            self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": self.USER_ID}
-            user_id = self.USER_ID
-            desk_id = ObjectId()
+        await test_utils.post_items("planning", [planning_fixtures.planning.plan1()])
+        assignment = await planning_fixtures.planning.get_plan1_assignment()
+        await test_utils.post_items(
+            "assignments_link", [{"assignment_id": assignment["_id"], "item_id": "rewrite_item1", "reassign": True}]
+        )
 
-            # Make sure users a members of the desks
-            self.app.data.insert(
-                "desks",
-                [
-                    {
-                        "_id": "desk1",
-                        "name": "desk1",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
-                    },
-                    {
-                        "_id": desk_id,
-                        "name": "desk2",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
-                    },
-                ],
-            )
+        deliveries = await get_resource_service("delivery").get_async(
+            req=None, lookup={"assignment_id": assignment["_id"]}
+        )
+        self.assertEqual(await deliveries.count(), 2)
 
-            self.app.data.insert(
-                "vocabularies",
-                [
-                    {
-                        "_id": "g2_content_type",
-                        "display_name": "Coverage content types",
-                        "type": "manageable",
-                        "unique_field": "qcode",
-                        "selection_type": "do not show",
-                        "items": [
-                            {
-                                "name": "Text",
-                                "qcode": "text",
-                                "content item type": "text",
-                            }
-                        ],
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "event_id": "item1",
-                        "state": "in_progress",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "rewrite_item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "rewrite_of": "item1",
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId("5b20652a1d41c812e24aa49e"),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": user_id,
-                            "desk": desk_id,
-                        },
-                        "planning": {"g2_content_type": "text"},
-                    }
-                ],
-            )
+        await get_resource_service("assignments_unlink").post_async(
+            [
+                {
+                    "assignment_id": assignment["_id"],
+                    "item_id": "rewrite_item1",
+                }
+            ]
+        )
 
-            get_resource_service("assignments_link").post(
-                [
-                    {
-                        "assignment_id": "5b20652a1d41c812e24aa49e",
-                        "item_id": "rewrite_item1",
-                        "reassign": True,
-                    }
-                ]
-            )
+        deliveries = await get_resource_service("delivery").get_async(
+            req=None, lookup={"assignment_id": assignment["_id"]}
+        )
+        self.assertEqual(await deliveries.count(), 0)
 
-            deliveries = get_resource_service("delivery").get(
-                req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
-            )
-            self.assertEqual(deliveries.count(), 2)
+    async def test_unlinks_archived_content(self):
+        await test_utils.post_items("planning", [planning_fixtures.planning.plan1()])
+        assignment = await planning_fixtures.planning.get_plan1_assignment()
 
-            get_resource_service("assignments_unlink").post(
-                [{"assignment_id": "5b20652a1d41c812e24aa49e", "item_id": "item1"}]
-            )
+        await test_utils.post_items(
+            "assignments_link",
+            [{"assignment_id": assignment["_id"], "item_id": fixtures.articles.ARTICLE_1_ID, "reassign": True}],
+        )
 
-            deliveries = get_resource_service("delivery").get(
-                req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
-            )
-            self.assertEqual(deliveries.count(), 0)
+        archived_item = fixtures.articles.article_1()
+        archived_item.update(
+            {
+                "_id": ObjectId("111111111111111111111111"),
+                "item_id": fixtures.articles.ARTICLE_1_ID,
+                "assignment_id": assignment["_id"],
+                "event_id": fixtures.articles.ARTICLE_1_ID,
+            }
+        )
+        await test_utils.post_items("archived", [archived_item])
 
-    def test_unlinks_properly_on_unlinking_any_update_in_chain(self):
-        with self.app.app_context():
-            self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": self.USER_ID}
-            user_id = self.USER_ID
-            desk_id = ObjectId()
+        await get_resource_service("assignments_unlink").post_async(
+            [
+                {
+                    "assignment_id": assignment["_id"],
+                    "item_id": archived_item["_id"],
+                }
+            ]
+        )
 
-            # Make sure users a members of the desks
-            self.app.data.insert(
-                "desks",
-                [
-                    {
-                        "_id": "desk1",
-                        "name": "desk1",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
-                    },
-                    {
-                        "_id": desk_id,
-                        "name": "desk2",
-                        "members": [{"user": flask.g.user["_id"]}, {"user": user_id}],
-                    },
-                ],
-            )
-
-            self.app.data.insert(
-                "vocabularies",
-                [
-                    {
-                        "_id": "g2_content_type",
-                        "display_name": "Coverage content types",
-                        "type": "manageable",
-                        "unique_field": "qcode",
-                        "selection_type": "do not show",
-                        "items": [
-                            {
-                                "name": "Text",
-                                "qcode": "text",
-                                "content item type": "text",
-                            }
-                        ],
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "state": "in_progress",
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "archive",
-                [
-                    {
-                        "_id": "rewrite_item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "state": "in_progress",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "rewrite_of": "item1",
-                        "event_id": "item1",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId("5b20652a1d41c812e24aa49e"),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": user_id,
-                            "desk": desk_id,
-                        },
-                        "planning": {"g2_content_type": "text"},
-                    }
-                ],
-            )
-
-            get_resource_service("assignments_link").post(
-                [
-                    {
-                        "assignment_id": "5b20652a1d41c812e24aa49e",
-                        "item_id": "rewrite_item1",
-                        "reassign": True,
-                    }
-                ]
-            )
-
-            deliveries = get_resource_service("delivery").get(
-                req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
-            )
-            self.assertEqual(deliveries.count(), 2)
-
-            get_resource_service("assignments_unlink").post(
-                [
-                    {
-                        "assignment_id": "5b20652a1d41c812e24aa49e",
-                        "item_id": "rewrite_item1",
-                    }
-                ]
-            )
-
-            deliveries = get_resource_service("delivery").get(
-                req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
-            )
-            self.assertEqual(deliveries.count(), 0)
-
-    def test_unlinks_archived_content(self):
-        with self.app.app_context():
-            self.app.config.update({"PLANNING_LINK_UPDATES_TO_COVERAGES": True})
-            flask.g.user = {"_id": self.USER_ID}
-            user_id = self.USER_ID
-            desk_id = ObjectId()
-            self.app.data.insert(
-                "vocabularies",
-                [
-                    {
-                        "_id": "g2_content_type",
-                        "display_name": "Coverage content types",
-                        "type": "manageable",
-                        "unique_field": "qcode",
-                        "selection_type": "do not show",
-                        "items": [
-                            {
-                                "name": "Text",
-                                "qcode": "text",
-                                "content item type": "text",
-                            }
-                        ],
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "archived",
-                [
-                    {
-                        "_id": ObjectId("111111111111111111111111"),
-                        "item_id": "item1",
-                        "type": "text",
-                        "headline": "test headline",
-                        "slugline": "test slugline",
-                        "assignment_id": "5b20652a1d41c812e24aa49e",
-                        "task": {"desk": "desk1", "stage": "stage1"},
-                        "event_id": "item1",
-                        "state": "in_progress",
-                    }
-                ],
-            )
-            self.app.data.insert(
-                "assignments",
-                [
-                    {
-                        "_id": ObjectId("5b20652a1d41c812e24aa49e"),
-                        "planning_item": "plan1",
-                        "coverage_item": "cov1",
-                        "assigned_to": {
-                            "state": "assigned",
-                            "user": user_id,
-                            "desk": desk_id,
-                        },
-                        "planning": {"g2_content_type": "text"},
-                    }
-                ],
-            )
-
-            self.app.data.insert(
-                "delivery",
-                [
-                    {
-                        "assignment_id": ObjectId("5b20652a1d41c812e24aa49e"),
-                        "coverage_id": "cove1",
-                        "item_id": "item1",
-                    }
-                ],
-            )
-
-            get_resource_service("assignments_unlink").post(
-                [
-                    {
-                        "assignment_id": "5b20652a1d41c812e24aa49e",
-                        "item_id": ObjectId("111111111111111111111111"),
-                    }
-                ]
-            )
-
-            deliveries = get_resource_service("delivery").get(
-                req=None, lookup={"assignment_id": ObjectId("5b20652a1d41c812e24aa49e")}
-            )
-            self.assertEqual(deliveries.count(), 0)
+        deliveries = await get_resource_service("delivery").get_async(
+            req=None, lookup={"assignment_id": assignment["_id"]}
+        )
+        self.assertEqual(await deliveries.count(), 0)

@@ -11,14 +11,13 @@
 from typing import Dict, Any
 from copy import deepcopy
 
-import superdesk
-from superdesk.utils import ListCursor
+from superdesk.eve_async import AsyncBaseService, AsyncListCursor
 
 from planning.common import planning_link_updates_to_coverage, get_config_event_related_item_search_provider_name
 from .profiles import DEFAULT_PROFILES
 
 
-class PlanningTypesService(superdesk.Service):
+class PlanningTypesService(AsyncBaseService):
     """Planning types service
 
     Provide a service that returns what fields should be shown in the edit forms in planning, in the edit dictionary.
@@ -26,9 +25,9 @@ class PlanningTypesService(superdesk.Service):
     Entries can be overridden by providing alternates in the planning_types mongo collection.
     """
 
-    def find_one(self, req, **lookup):
+    async def find_one_async(self, req, **lookup):
         try:
-            planning_type = super().find_one(req, **lookup)
+            planning_type = await super().find_one_async(req, **lookup)
 
             # lookup name from either **lookup of planning_item(if lookup has only '_id')
             lookup_name = lookup.get("name")
@@ -50,8 +49,8 @@ class PlanningTypesService(superdesk.Service):
         except IndexError:
             return None
 
-    def get(self, req, lookup):
-        planning_types = list(super().get(req, lookup))
+    async def get_async(self, req, lookup):
+        planning_types = await (await super().get_async(req, lookup)).to_list()
         merged_planning_types = []
 
         for default_planning_type in deepcopy(DEFAULT_PROFILES):
@@ -68,7 +67,7 @@ class PlanningTypesService(superdesk.Service):
                 self.merge_planning_type(planning_type, default_planning_type)
                 merged_planning_types.append(planning_type)
 
-        return ListCursor(merged_planning_types)
+        return AsyncListCursor(merged_planning_types)
 
     def merge_planning_type(self, planning_type, default_planning_type):
         # Update schema fields with database schema fields

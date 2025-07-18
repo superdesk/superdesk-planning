@@ -8,8 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from eve.utils import config
-
+from superdesk.resource_fields import LINKS
 from prod_api.service import ProdApiService
 
 from planning.types import Planning
@@ -29,12 +28,12 @@ class PlanningService(ProdApiService):
         | excluded_lock_fields
     )
 
-    def _process_fetched_object(self, doc: Planning):
+    async def _process_fetched_object(self, doc: Planning):
         super()._process_fetched_object(doc)
         sync_assignment_details_to_coverages(doc)
 
-        if doc.get(config.LINKS):
+        if doc.get(LINKS):
             add_related_event_links(doc, doc)
             assignment_ids = get_assignment_ids_from_planning(doc)
             if len(assignment_ids):
-                doc[config.LINKS]["assignments"] = construct_assignment_links(assignment_ids)
+                doc[LINKS]["assignments"] = await construct_assignment_links(assignment_ids)

@@ -9,15 +9,17 @@
 """Superdesk Files"""
 
 import logging
-from flask import current_app as app
-import superdesk
-from superdesk import get_resource_service
+
+from superdesk import Resource, get_resource_service
+from superdesk.core import get_current_app
 from superdesk.errors import SuperdeskApiError
+from superdesk.eve_async.service import AsyncBaseService
+
 
 logger = logging.getLogger(__name__)
 
 
-class EventsFilesResource(superdesk.Resource):
+class EventsFilesResource(Resource):
     schema = {
         "media": {"type": "media"},
         "mimetype": {"type": "string"},
@@ -43,8 +45,9 @@ class EventsFilesResource(superdesk.Resource):
     }
 
 
-class EventsFilesService(superdesk.Service):
-    def on_create(self, docs):
+class EventsFilesService(AsyncBaseService):
+    async def on_create_async(self, docs):
+        app = get_current_app()
         for doc in docs:
             # save the media id to retrieve the file later
             if "media" in doc:
@@ -57,13 +60,12 @@ class EventsFilesService(superdesk.Service):
                         "length": _file.length,
                     }
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         for doc in docs:
             # check if the filename contains a folder, if so just return the file name component
             if isinstance(doc.get("media"), dict) and "/" in doc.get("media", {}).get("name", ""):
                 doc["media"]["name"] = doc["media"]["name"].split("/")[1]
 
-    def on_delete(self, doc):
-        events_using_file = get_resource_service("events").find(where={"files": doc.get("_id")})
-        if events_using_file.count() > 0:
+    async def on_delete_async(self, doc):
+        if await get_resource_service("events").count_async({"files": doc.get("_id")}) > 0:
             raise SuperdeskApiError.forbiddenError("Delete failed. File still used by other events.")

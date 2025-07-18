@@ -43,8 +43,8 @@ class CommonTestCase(TestCase):
         set_actioned_date_to_event(updates, original)
         self.assertEqual(updates, {})
 
-    def test_get_coverage_status_from_cv(self):
-        with self.app.app_context():
+    async def test_get_coverage_status_from_cv(self):
+        async with self.app.app_context():
             items = [
                 {
                     "is_active": True,

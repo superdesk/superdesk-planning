@@ -56,16 +56,6 @@ Feature: Planning Validate
             }
         }]
         """
-        Given the "vocabularies"
-        """
-        [{
-            "_id": "event_calendars",
-            "display_name": "Event Calendars",
-            "type": "manageable",
-            "unique_field": "qcode",
-            "items": [{"is_active": true, "name": "Calendar 1", "qcode": "cal1"}]
-        }]
-        """
 
     @auth
     @vocabulary
@@ -105,7 +95,7 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "calendars": [{"qcode": "sport", "name": "Sport"}],
             "dates": {
                 "start": "2029-11-21T01:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
@@ -149,7 +139,7 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "calendars": [{"qcode": "sport", "name": "Sport"}],
             "dates": {
                 "start": "2029-11-21T01:00:00.000Z",
                 "end": "2029-11-21T04:00:00.000Z",
@@ -205,7 +195,7 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "calendars": [{"qcode": "sport", "name": "Sport"}],
             "update_method": "all",
             "dates": {
                 "start": "2029-11-21T01:00:00.000Z",

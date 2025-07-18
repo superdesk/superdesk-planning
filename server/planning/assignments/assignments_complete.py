@@ -10,15 +10,15 @@
 
 from copy import deepcopy
 
-from eve.utils import config
-
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
-from superdesk.services import BaseService
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 
 from .assignments import AssignmentsResource, assignments_schema, AssignmentsService
+from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.common import (
     ASSIGNMENT_WORKFLOW_STATE,
     remove_lock_information,
@@ -49,17 +49,17 @@ class AssignmentsCompleteResource(AssignmentsResource):
     schema = assignments_complete_schema
 
 
-class AssignmentsCompleteService(BaseService):
-    def on_update(self, updates, original):
+class AssignmentsCompleteService(AsyncBaseService):
+    async def on_update_async(self, updates, original):
         assignment_state = original.get("assigned_to").get("state")
         AssignmentsService.set_type(updates, original)
         assignments_service = get_resource_service("assignments")
-        assignments_service.validate_assignment_action(original)
-        text_assignment = assignments_service.is_text_assignment(original)
+        await assignments_service.validate_assignment_action(original)
+        text_assignment = await assignments_service.is_text_assignment(original)
 
         if text_assignment:
             if original.get("scheduled_update_id"):
-                coverage = get_coverage_for_assignment(original)
+                coverage = await get_coverage_for_assignment(original)
                 cov_assigned_to = coverage.get("assigned_to")
                 if cov_assigned_to["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
                     raise SuperdeskApiError.forbiddenError(
@@ -90,7 +90,7 @@ class AssignmentsCompleteService(BaseService):
                 "Cannot confirm availability. Assignment should be assigned, submitted or in progress."
             )
 
-    def update(self, id, updates, original):
+    async def update_async(self, id, updates, original):
         # if the completion is being done by an external application then ensure that it is not locked
         if "proxy_user" in updates:
             if original.get("lock_user"):
@@ -98,9 +98,9 @@ class AssignmentsCompleteService(BaseService):
             user = updates.pop("proxy_user", None)
             proxy_user = True
         else:
-            user = get_user(required=True).get(config.ID_FIELD, "")
+            user = get_user(required=True).get(ID_FIELD, "")
             proxy_user = False
-        session = get_auth().get(config.ID_FIELD, "")
+        session = get_auth().get(ID_FIELD, "")
 
         original_assigned_to = deepcopy(original).get("assigned_to")
         if not updates.get("assigned_to"):
@@ -110,7 +110,7 @@ class AssignmentsCompleteService(BaseService):
 
         assignments_service = get_resource_service("assignments")
         # If we are confirming availability, save the revert state for revert action
-        text_assignment = assignments_service.is_text_assignment(original)
+        text_assignment = await assignments_service.is_text_assignment(original)
         if not text_assignment:
             updates["assigned_to"]["revert_state"] = updates["assigned_to"]["state"]
 
@@ -118,22 +118,23 @@ class AssignmentsCompleteService(BaseService):
 
         remove_lock_information(updates)
 
-        item = self.backend.update(self.datasource, id, updates, original)
+        item = await self.backend.update_async(self.datasource, id, updates, original)
 
         # publish the planning item
-        assignments_service.publish_planning(original["planning_item"])
+        await assignments_service.publish_planning(original["planning_item"])
 
         # Save history if user initiates complete
+        assignments_history_service = AssignmentsHistoryAsyncService()
         if text_assignment:
-            get_resource_service("assignments_history").on_item_complete(updates, original)
+            await assignments_history_service.on_item_complete(updates, original)
         else:
             if proxy_user:
                 updates["proxy_user"] = user
-            get_resource_service("assignments_history").on_item_confirm_availability(updates, original)
+            await assignments_history_service.on_item_confirm_availability(updates, original)
 
         push_notification(
             "assignments:completed",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             planning=original.get("planning_item"),
             assigned_user=(original.get("assigned_to") or {}).get("user"),
             assigned_desk=(original.get("assigned_to") or {}).get("desk"),
@@ -145,19 +146,19 @@ class AssignmentsCompleteService(BaseService):
 
         # Send notification that the work has been completed
         # Determine the display name of the assignee
-        assigned_to_user = get_resource_service("users").find_one(req=None, _id=user)
+        assigned_to_user = await get_resource_service("users").find_one_async(req=None, _id=user)
         assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
         target_user = original.get("assigned_to", {}).get("assignor_user")
         if target_user is None:
             target_user = original.get("assigned_to", {}).get("assignor_desk")
-        PlanningNotifications().notify_assignment(
+        await PlanningNotifications().notify_assignment(
             target_user=target_user,
             message="assignment_fulfilled_msg",
             assignee=assignee,
             coverage_type=get_coverage_type_name(original.get("planning", {}).get("g2_content_type", "")),
             slugline=original.get("planning", {}).get("slugline"),
             omit_user=True,
-            assignment_id=original[config.ID_FIELD],
+            assignment_id=original[ID_FIELD],
             is_link=True,
             no_email=True,
         )

@@ -522,22 +522,22 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        {"_message": "The event must be locked", "_status": "ERR"}
         """
         When we perform cancel on events "event2"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        {"_message": "The event is locked by you in another session", "_status": "ERR"}
         """
         When we perform cancel on events "event3"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        {"_message": "The event is locked by another user", "_status": "ERR"}
         """
         When we perform cancel on events "event4"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The lock must be for the `cancel` action"}, "_status": "ERR"}
+        {"_message": "The lock must be for the `cancel` action", "_status": "ERR"}
         """
 
     @auth
@@ -566,7 +566,7 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        {"_message": "Event not in valid state for cancellation", "_status": "ERR"}
         """
         When we patch "/events/#events._id#"
         """
@@ -576,7 +576,7 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        {"_message": "Event not in valid state for cancellation", "_status": "ERR"}
         """
         When we patch "/events/#events._id#"
         """
@@ -586,7 +586,7 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: Aborted. Event is already cancelled"}, "_status": "ERR"}
+        {"_message": "Aborted. Event is already cancelled", "_status": "ERR"}
         """
 
     @auth

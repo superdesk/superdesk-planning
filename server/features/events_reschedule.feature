@@ -1024,7 +1024,7 @@ Feature: Events Reschedule
                         "workflow_status_reason": "Postponed this event!",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2025-11-21T14:00:00+0000",
+                        "scheduled": "2025-11-21T14:00:00+00:00",
                         "g2_content_type": "text"
                     },
                     "news_coverage_status": { "qcode": "ncostat:int" }
@@ -1229,7 +1229,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        {"_message": "The event must be locked", "_status": "ERR"}
         """
         When we perform reschedule on events "event2"
         """
@@ -1243,7 +1243,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        {"_message": "The event is locked by you in another session", "_status": "ERR"}
         """
         When we perform reschedule on events "event3"
         """
@@ -1257,7 +1257,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        {"_message": "The event is locked by another user", "_status": "ERR"}
         """
         When we perform reschedule on events "event4"
         """
@@ -1271,7 +1271,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_issues": {"validator exception": "403: The lock must be for the `reschedule` action"}, "_status": "ERR"}
+        {"_message": "The lock must be for the `reschedule` action", "_status": "ERR"}
         """
 
     @auth
@@ -1502,7 +1502,7 @@ Feature: Events Reschedule
         """
         Then we get error 400
         """
-        {"_status": "ERR", "_issues": {"validator exception": "400: Event duration is greater than 7 days."}}
+        {"_status": "ERR", "_message": "Event duration is greater than 7 days."}
         """
 
     @auth

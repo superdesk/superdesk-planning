@@ -11,10 +11,10 @@
 from .delete_marked_assignments import DeleteMarkedAssignments
 from planning.tests import TestCase
 from superdesk import get_resource_service
+from superdesk.flask import g
 from superdesk.utc import utcnow
 from datetime import timedelta
 from bson import ObjectId
-import flask
 
 now = utcnow()
 yesterday = now - timedelta(hours=48)
@@ -48,17 +48,17 @@ class DeleteMarkedAssignmentsTest(TestCase):
             else:
                 self.assertIsNone(assignment)
 
-    def test_delete_marked_assignments(self):
-        with self.app.app_context():
+    async def test_delete_marked_assignments(self):
+        async with self.app.app_context():
             self.app.data.insert("users", self.users)
             self.app.data.insert("auth", self.auth)
             self.app.data.insert("planning", self.plans)
             self.app.data.insert("assignments", self.assignments)
 
-            flask.g.user = self.users[0]
-            flask.g.auth = self.auth[0]
+            g.user = self.users[0]
+            g.auth = self.auth[0]
 
-            DeleteMarkedAssignments().run()
+            await DeleteMarkedAssignments().run()
 
             self.assertAssignmentDeleted(["a1", "a2"])
             self.assertAssignmentDeleted(["a3"], True)

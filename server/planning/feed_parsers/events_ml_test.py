@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 from dateutil.tz import tzoffset
 from pytz import utc
 from copy import deepcopy
+from bson import ObjectId
 
 from superdesk import get_resource_service
+from superdesk.flask import g
 from superdesk.etree import etree
 from superdesk.metadata.item import (
     ITEM_TYPE,
@@ -14,89 +16,101 @@ from superdesk.metadata.item import (
     CONTENT_STATE,
 )
 from superdesk.io.commands.update_ingest import ingest_item
+from superdesk.tests import utils as test_utils, fixtures
 
 from planning.feed_parsers.events_ml import EventsMLParser
 from planning.common import POST_STATE
-from planning.tests import TestCase
+from planning.tests import TestCase, fixtures as planning_fixtures
 
 
 class EventsMLFeedParserTestCase(TestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await test_utils.post_items("users", fixtures.users.all_users())
+        g.user = fixtures.users.admin().to_dict()
+        await planning_fixtures.publish_config.configure_planning_publishing()
+        self.provider = {
+            "_id": ObjectId(),
+            "source": "sf",
+            "name": "EventsML Ingest",
+        }
+        await test_utils.post_items("ingest_providers", [self.provider])
+
     def _load_fixture(self, filename: str):
         dirname = path.dirname(path.realpath(__file__))
         fixture = path.normpath(path.join(dirname, "fixtures", filename))
         with open(fixture, "rb") as f:
             self.xml = etree.parse(f)
 
-    def _add_cvs(self):
-        with self.app.app_context():
-            self.app.data.insert(
-                "vocabularies",
-                [
-                    {
-                        "_id": "eventoccurstatus",
-                        "display_name": "Event Occurence Status",
-                        "type": "manageable",
-                        "unique_field": "qcode",
-                        "selection_type": "do not show",
-                        "items": [
-                            {
-                                "is_active": True,
-                                "qcode": "eocstat:eos0",
-                                "name": "Unplanned event",
-                                "label": "Unplanned event",
-                            },
-                            {
-                                "is_active": True,
-                                "qcode": "eocstat:eos1",
-                                "name": "Planned, occurence planned only",
-                                "label": "Planned, occurence planned only",
-                            },
-                            {
-                                "is_active": True,
-                                "qcode": "eocstat:eos2",
-                                "name": "Planned, occurence highly uncertain",
-                                "label": "Planned, occurence highly uncertain",
-                            },
-                            {
-                                "is_active": True,
-                                "qcode": "eocstat:eos3",
-                                "name": "Planned, May occur",
-                                "label": "Planned, May occur",
-                            },
-                            {
-                                "is_active": True,
-                                "qcode": "eocstat:eos4",
-                                "name": "Planned, occurence highly likely",
-                                "label": "Planned, occurence highly likely",
-                            },
-                            {
-                                "is_active": True,
-                                "qcode": "eocstat:eos5",
-                                "name": "Planned, occurs certainly",
-                                "label": "Planned, occurs certainly",
-                            },
-                            {
-                                "is_active": True,
-                                "qcode": "eocstat:eos6",
-                                "name": "Planned, then cancelled",
-                                "label": "Planned, then cancelled",
-                            },
-                        ],
-                    }
-                ],
-            )
+    async def _add_cvs(self):
+        self.app.data.insert(
+            "vocabularies",
+            [
+                {
+                    "_id": "eventoccurstatus",
+                    "display_name": "Event Occurence Status",
+                    "type": "manageable",
+                    "unique_field": "qcode",
+                    "selection_type": "do not show",
+                    "items": [
+                        {
+                            "is_active": True,
+                            "qcode": "eocstat:eos0",
+                            "name": "Unplanned event",
+                            "label": "Unplanned event",
+                        },
+                        {
+                            "is_active": True,
+                            "qcode": "eocstat:eos1",
+                            "name": "Planned, occurence planned only",
+                            "label": "Planned, occurence planned only",
+                        },
+                        {
+                            "is_active": True,
+                            "qcode": "eocstat:eos2",
+                            "name": "Planned, occurence highly uncertain",
+                            "label": "Planned, occurence highly uncertain",
+                        },
+                        {
+                            "is_active": True,
+                            "qcode": "eocstat:eos3",
+                            "name": "Planned, May occur",
+                            "label": "Planned, May occur",
+                        },
+                        {
+                            "is_active": True,
+                            "qcode": "eocstat:eos4",
+                            "name": "Planned, occurence highly likely",
+                            "label": "Planned, occurence highly likely",
+                        },
+                        {
+                            "is_active": True,
+                            "qcode": "eocstat:eos5",
+                            "name": "Planned, occurs certainly",
+                            "label": "Planned, occurs certainly",
+                        },
+                        {
+                            "is_active": True,
+                            "qcode": "eocstat:eos6",
+                            "name": "Planned, then cancelled",
+                            "label": "Planned, then cancelled",
+                        },
+                    ],
+                }
+            ],
+        )
 
-    def test_can_parse(self):
+    async def test_can_parse(self):
         self._load_fixture("events_ml_259625.xml")
         self.assertTrue(EventsMLParser().can_parse(self.xml.getroot()))
 
         self._load_fixture("planning.xml")
         self.assertFalse(EventsMLParser().can_parse(self.xml.getroot()))
 
-    def test_content(self):
+    async def test_content(self):
         self._load_fixture("events_ml_259625.xml")
-        self._add_cvs()
-        item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        await self._add_cvs()
+        item = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
 
         self.assertEqual(item[GUID_FIELD], "urn:newsml:stt.fi:20220705:259625")
         self.assertEqual(item[ITEM_TYPE], CONTENT_TYPE.EVENT)
@@ -127,12 +141,12 @@ class EventsMLFeedParserTestCase(TestCase):
         self.assertEqual("2022-07-05T18:00:00+02:00", get_dt_str("2022-07-05T18:00:00", "00:00:00", tz))
         self.assertEqual("2022-07-05T00:00:00+02:00", get_dt_str("2022-07-05", "00:00:00", tz))
 
-    def test_parse_event_schedule(self):
+    async def test_parse_event_schedule(self):
         self._load_fixture("events_ml_259625.xml")
         parser = EventsMLParser()
         item = {}
 
-        def get_item_dates(start: str, end: Optional[str] = None):
+        async def get_item_dates(start: str, end: Optional[str] = None):
             root = self.xml.getroot()
             parser.root = root
 
@@ -145,12 +159,12 @@ class EventsMLFeedParserTestCase(TestCase):
                 etree.SubElement(dates, parser.qname("end")).text = end
 
             item.clear()
-            parser.parse_event_schedule(dates, item)
+            await parser.parse_event_schedule(dates, item)
             return item["dates"]
 
         # Full start/end date supplied, including UTC offset
         self.assertEqual(
-            get_item_dates("2022-07-05T18:00:00+03:00", "2022-07-05T20:00:00+03:00"),
+            await get_item_dates("2022-07-05T18:00:00+03:00", "2022-07-05T20:00:00+03:00"),
             dict(
                 start=datetime(2022, 7, 5, 15, 0, tzinfo=utc),
                 end=datetime(2022, 7, 5, 17, 0, tzinfo=utc),
@@ -162,7 +176,7 @@ class EventsMLFeedParserTestCase(TestCase):
 
         # Only start date & time supplied, with time NOT midnight in local time
         self.assertEqual(
-            get_item_dates("2022-07-05T18:00:00+03:00"),
+            await get_item_dates("2022-07-05T18:00:00+03:00"),
             dict(
                 start=datetime(2022, 7, 5, 15, 0, tzinfo=utc),
                 end=datetime(2022, 7, 5, 16, 0, tzinfo=utc),
@@ -174,7 +188,7 @@ class EventsMLFeedParserTestCase(TestCase):
 
         # Only start date supplied, with time defaulting to midnight local time
         self.assertEqual(
-            get_item_dates("2022-07-05"),
+            await get_item_dates("2022-07-05"),
             dict(
                 start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                 end=datetime(2022, 7, 5, 23, 59, 59, tzinfo=utc),
@@ -187,7 +201,7 @@ class EventsMLFeedParserTestCase(TestCase):
         # Only start & end dates supplied, with start time defaulting to midnight local time
         # and end time defaulting to end of the day, local time
         self.assertEqual(
-            get_item_dates("2022-07-05", "2022-07-07"),
+            await get_item_dates("2022-07-05", "2022-07-07"),
             dict(
                 start=datetime(2022, 7, 5, 0, 0, tzinfo=utc),
                 end=datetime(2022, 7, 7, 23, 59, 59, tzinfo=utc),
@@ -197,51 +211,50 @@ class EventsMLFeedParserTestCase(TestCase):
             ),
         )
 
-    def test_editor_3_fields(self):
+    async def test_editor_3_fields(self):
         self._load_fixture("events_ml_259625.xml")
-        self._add_cvs()
+        await self._add_cvs()
         url = "https://www.eurooppamarkkinat.fi/"
         link = f'<a href="{url}" target="_blank">{url}</a>'
 
         # Test with default fields configured as multi-line text
-        item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        item = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
         self.assertFalse(item["definition_short"].startswith("<p>"))
         self.assertIn(url, item["definition_short"])
         self.assertNotIn(link, item["definition_short"])
         self.assertNotIn("registration_details", item)
 
         # Re-test the same fields configured with Editor3
-        with self.app.app_context():
-            self.app.data.insert(
-                "planning_types",
-                [
-                    {
-                        "name": "event",
-                        "editor": {
-                            "registration_details": {
-                                "enabled": True,
-                                "group": "description",
-                                "index": 9,
-                            },
+        self.app.data.insert(
+            "planning_types",
+            [
+                {
+                    "name": "event",
+                    "editor": {
+                        "registration_details": {
+                            "enabled": True,
+                            "group": "description",
+                            "index": 9,
                         },
-                        "schema": {
-                            "registration_details": {
-                                "field_type": "editor_3",
-                                "format_options": ["link"],
-                                "type": "string",
-                                "required": False,
-                            },
-                            "definition_short": {
-                                "field_type": "editor_3",
-                                "format_options": ["link"],
-                                "type": "string",
-                                "required": False,
-                            },
+                    },
+                    "schema": {
+                        "registration_details": {
+                            "field_type": "editor_3",
+                            "format_options": ["link"],
+                            "type": "string",
+                            "required": False,
                         },
-                    }
-                ],
-            )
-        item = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+                        "definition_short": {
+                            "field_type": "editor_3",
+                            "format_options": ["link"],
+                            "type": "string",
+                            "required": False,
+                        },
+                    },
+                }
+            ],
+        )
+        item = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
 
         self.assertTrue(item["definition_short"].startswith("<p>"))
         self.assertIn(url, item["definition_short"])
@@ -250,19 +263,14 @@ class EventsMLFeedParserTestCase(TestCase):
         self.assertTrue(item["registration_details"].startswith("<p>"))
         self.assertIn('<a href="mailto:baz@foobar.com">baz@foobar.com</a>', item["registration_details"])
 
-    def test_update_event(self):
+    async def test_update_event(self):
         service = get_resource_service("events")
         self._load_fixture("events_ml_259625.xml")
-        self._add_cvs()
-        source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
-        provider = {
-            "_id": "abcd",
-            "source": "sf",
-            "name": "EventsML Ingest",
-        }
+        await self._add_cvs()
+        source = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
 
         # Ingest first version
-        ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+        ingested, ids = await ingest_item(source, provider=self.provider, feeding_service={})
         self.assertTrue(ingested)
         self.assertIn(source["guid"], ids)
         dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
@@ -272,37 +280,37 @@ class EventsMLFeedParserTestCase(TestCase):
         source["ingest_versioncreated"] += timedelta(hours=1)
         source["versioncreated"] = source["ingest_versioncreated"]
         source["name"] = "Test name"
-        provider["disable_item_updates"] = True
-        ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+        await test_utils.patch_item("ingest_providers", self.provider["_id"], {"disable_item_updates": True})
+        self.provider["disable_item_updates"] = True
+        ingested, ids = await ingest_item(source, provider=self.provider, feeding_service={})
         self.assertFalse(ingested)
 
         # Attempt to update with a new version
-        provider.pop("disable_item_updates")
-        ingested, ids = ingest_item(source, provider=provider, feeding_service={})
+        source["ingest_versioncreated"] += timedelta(hours=1)
+        source["versioncreated"] = source["ingest_versioncreated"]
+        source["name"] = "Test name"
+        self.provider.pop("disable_item_updates")
+        await test_utils.patch_item("ingest_providers", self.provider["_id"], {"disable_item_updates": False})
+        ingested, ids = await ingest_item(source, provider=self.provider, feeding_service={})
         self.assertTrue(ingested)
         self.assertIn(source["guid"], ids)
         dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
         self.assertEqual(dest["name"], "Test name")
 
-    def test_update_published_event(self):
+    async def test_update_published_event(self):
         service = get_resource_service("events")
         published_service = get_resource_service("published_planning")
 
         self._load_fixture("events_ml_259625.xml")
-        self._add_cvs()
-        original_source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        await self._add_cvs()
+        original_source = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
         source = deepcopy(original_source)
-        provider = {
-            "_id": "abcd",
-            "source": "sf",
-            "name": "EventsML Ingest",
-        }
 
         # Ingest first version
-        ingest_item(source, provider=provider, feeding_service={})
+        await ingest_item(source, provider=self.provider, feeding_service={})
 
         # Publish the Event
-        service.patch(
+        await service.patch_async(
             source["guid"],
             {
                 "pubstatus": POST_STATE.USABLE,
@@ -311,7 +319,7 @@ class EventsMLFeedParserTestCase(TestCase):
         )
 
         # Make sure the Event has been added to the ``published_planning`` collection
-        self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 1)
+        self.assertEqual(await published_service.count_async({"item_id": source["guid"]}), 1)
         dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
         self.assertEqual(dest["state"], CONTENT_STATE.SCHEDULED)
         self.assertEqual(dest["pubstatus"], POST_STATE.USABLE)
@@ -319,7 +327,7 @@ class EventsMLFeedParserTestCase(TestCase):
         # Ingest a new version of the item, and make sure the item is re-published
         source = deepcopy(original_source)
         source["versioncreated"] += timedelta(hours=1)
-        ingest_item(source, provider=provider, feeding_service={})
+        await ingest_item(source, provider=self.provider, feeding_service={})
         self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 2)
         dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
 
@@ -331,7 +339,7 @@ class EventsMLFeedParserTestCase(TestCase):
         source = deepcopy(original_source)
         source["versioncreated"] += timedelta(hours=2)
         source["pubstatus"] = POST_STATE.CANCELLED
-        ingest_item(source, provider=provider, feeding_service={})
+        await ingest_item(source, provider=self.provider, feeding_service={})
         self.assertEqual(published_service.get(req=None, lookup={"item_id": source["guid"]}).count(), 3)
         dest = list(service.get_from_mongo(req=None, lookup={"guid": source["guid"]}))[0]
 
@@ -339,10 +347,10 @@ class EventsMLFeedParserTestCase(TestCase):
         self.assertEqual(dest["state"], CONTENT_STATE.KILLED)
         self.assertEqual(dest["pubstatus"], POST_STATE.CANCELLED)
 
-    def test_parse_dates(self):
+    async def test_parse_dates(self):
         self._load_fixture("events_ml_259270.xml")
-        self._add_cvs()
-        source = EventsMLParser().parse(self.xml.getroot(), {"name": "Test"})[0]
+        await self._add_cvs()
+        source = (await EventsMLParser().parse(self.xml.getroot(), {"name": "Test"}))[0]
         dates = source["dates"]
         self.assertTrue(dates["all_day"])
         self.assertEqual(datetime(2022, 11, 10, tzinfo=utc), dates["start"])

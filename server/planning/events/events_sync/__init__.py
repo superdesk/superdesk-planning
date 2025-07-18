@@ -8,18 +8,19 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Dict, Optional, List
-from copy import deepcopy
 
 import pytz
-from eve.utils import str_to_date
+from copy import deepcopy
+from typing import Dict, Optional, List, cast
 
 from superdesk import get_resource_service
 
-from planning.types import Event, EmbeddedPlanning, StringFieldTranslation
-from planning.common import get_config_event_fields_to_sync_with_planning
-from planning.content_profiles.utils import AllContentProfileData
+from planning.utils import parse_date
 from planning.utils import get_related_planning_for_events
+from planning.content_profiles.utils import AllContentProfileData
+from planning.common import get_config_event_fields_to_sync_with_planning
+from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
+from planning.types.event import EmbeddedPlanning as EmbeddedPlanningModel
 
 from .common import VocabsSyncData, SyncItemData, SyncData
 from .embedded_planning import (
@@ -39,10 +40,18 @@ def get_translated_fields(translations: List[StringFieldTranslation]) -> Dict[st
     return fields
 
 
-def sync_event_metadata_with_planning_items(
-    original: Optional[Event], updates: Event, embedded_planning: List[EmbeddedPlanning]
+# TODO-ASYNC: use resource models instead of typed dicts
+async def sync_event_metadata_with_planning_items(
+    original: Optional[Event],
+    updates: Event,
+    embedded_planning: list[EmbeddedPlanningDict] | list[EmbeddedPlanningModel],
 ):
-    profiles = AllContentProfileData()
+    embedded_planning = [
+        cast(EmbeddedPlanningDict, obj.to_dict()) if isinstance(obj, EmbeddedPlanningModel) else obj
+        for obj in embedded_planning
+    ]
+
+    profiles = await AllContentProfileData.get()
 
     if original is None:
         original = {}
@@ -50,7 +59,8 @@ def sync_event_metadata_with_planning_items(
     event_updated.update(updates)
 
     if isinstance(event_updated["dates"]["start"], str):
-        event_updated["dates"]["start"] = str_to_date(event_updated["dates"]["start"])
+        event_updated["dates"]["start"] = parse_date(event_updated["dates"]["start"])
+
     if event_updated["dates"]["start"].tzinfo is None:
         event_updated["dates"]["start"] = event_updated["dates"]["start"].replace(tzinfo=pytz.utc)
 
@@ -74,7 +84,9 @@ def sync_event_metadata_with_planning_items(
     event_translations = deepcopy(event_sync_data.updated_translations or event_sync_data.original_translations)
 
     # Create any new Planning items (and their coverages), based on the ``embedded_planning`` Event field
-    create_new_plannings_from_embedded_planning(event_updated, event_translations, embedded_planning, profiles, vocabs)
+    await create_new_plannings_from_embedded_planning(
+        event_updated, event_translations, embedded_planning, profiles, vocabs
+    )
 
     if not original:
         # If this was from the creation of a new Event, then no need to sync metadata with existing items
@@ -92,7 +104,7 @@ def sync_event_metadata_with_planning_items(
             event_updated, event_translations, embedded_planning, profiles, vocabs
         ):
             if update_required:
-                planning_service.patch(planning_original["_id"], planning_updates)
+                await planning_service.patch_async(planning_original["_id"], planning_updates)
         return
 
     coverage_sync_fields = set(field for field in sync_fields if field in COVERAGE_SYNC_FIELDS)
@@ -139,7 +151,7 @@ def sync_event_metadata_with_planning_items(
         )
         processed_planning_ids.append(planning_original["_id"])
         if sync_data.update_planning:
-            planning_service.patch(sync_data.planning.original["_id"], sync_data.planning.updates)
+            await planning_service.patch_async(sync_data.planning.original["_id"], sync_data.planning.updates)
 
     # Sync all the Planning items that were NOT provided in the ``embedded_planning`` field
     for item in get_related_planning_for_events([event_updated["_id"]], "primary", processed_planning_ids):
@@ -164,4 +176,4 @@ def sync_event_metadata_with_planning_items(
             coverage_sync_fields,
         )
         if sync_data.update_planning:
-            planning_service.patch(sync_data.planning.original["_id"], sync_data.planning.updates)
+            await planning_service.patch_async(sync_data.planning.original["_id"], sync_data.planning.updates)

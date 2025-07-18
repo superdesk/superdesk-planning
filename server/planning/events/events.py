@@ -10,17 +10,19 @@
 
 """Superdesk Events"""
 
-from typing import Dict, Any, Optional, List, Tuple
+
+import re
+import pytz
 import logging
 import itertools
-from copy import deepcopy
-from datetime import datetime, timedelta
 
-import pytz
-import re
-from flask import current_app as app
+from copy import deepcopy
+from typing import Dict, Any, Optional, List
+from datetime import timedelta, datetime, timedelta
+from dateutil import parser
+
 from eve.methods.common import resolve_document_etag
-from eve.utils import config, date_to_str
+from eve.utils import date_to_str
 from dateutil.rrule import (
     rrule,
     YEARLY,
@@ -37,24 +39,32 @@ from dateutil.rrule import (
 )
 
 import superdesk
+from superdesk.core import get_app_config, get_current_app
+from superdesk.resource_fields import ID_FIELD
 from superdesk import get_resource_service
+from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from superdesk.utc import get_date, utcnow
 from superdesk.users.services import current_user_has_privilege
+from superdesk.publish_async.utils import get_next_sequence_number
 from apps.auth import get_user, get_user_id
 from apps.archive.common import get_auth, update_dates_for
 
+from planning.events.events_reschedule import reschedule_single_event
+from planning.events.events_utils import get_recurring_timeline
+from planning.events.events_history_async_service import EventsHistoryAsyncService
 from planning.types import (
-    Event,
-    EmbeddedPlanning,
     EmbeddedCoverageItem,
+    Event,
     PlanningRelatedEventLink,
     PLANNING_RELATED_EVENT_LINK_TYPE,
+    EmbeddedPlanningDict,
 )
 from planning.common import (
+    TEMP_ID_PREFIX,
     UPDATE_SINGLE,
     UPDATE_FUTURE,
     get_max_recurrent_events,
@@ -74,14 +84,12 @@ from planning.common import (
     set_ingest_version_datetime,
     is_new_version,
     update_ingest_on_patch,
-    TEMP_ID_PREFIX,
 )
 from planning.utils import (
     get_planning_event_link_method,
     get_related_planning_for_events,
     get_related_event_ids_for_planning,
 )
-from .events_base_service import EventsBaseService
 from .events_schema import events_schema
 from .events_sync import sync_event_metadata_with_planning_items
 
@@ -112,14 +120,15 @@ CONTENT_FIELDS = {
 }
 
 
-def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanning]:
+# TODO-ASYNC: this method was migrated to events_utils and it uses pydantic models instead
+def get_events_embedded_planning(event: Event) -> List[EmbeddedPlanningDict]:
     def get_coverage_id(coverage: EmbeddedCoverageItem) -> str:
         if not coverage.get("coverage_id"):
             coverage["coverage_id"] = TEMP_ID_PREFIX + "-" + generate_guid(type=GUID_NEWSML)
         return coverage["coverage_id"]
 
     return [
-        EmbeddedPlanning(
+        EmbeddedPlanningDict(
             planning_id=planning.get("planning_id"),
             update_method=planning.get("update_method") or "single",
             coverages={get_coverage_id(coverage): coverage for coverage in planning.get("coverages") or []},
@@ -153,22 +162,22 @@ def is_event_updated(new_item: Event, old_item: Event) -> bool:
     return False
 
 
-def get_user_updated_keys(event_id: str) -> set[str]:
-    history_service = get_resource_service("events_history")
-    updates = history_service.get_by_id(event_id)
-    updated_keys = set()
+async def get_user_updated_keys(event_id: str) -> set[str]:
+    history_service = EventsHistoryAsyncService()
+    updates = await history_service.get_by_id(event_id)
+    updated_keys: set[str] = set()
     for update in updates:
-        if not update.get("user_id"):
+        if update.get("operation") == "ingested" or not update.get("user_id"):
             continue
         if update.get("update"):
             updated_keys.update(update["update"].keys())
     return updated_keys
 
 
-class EventsService(superdesk.Service):
+class EventsService(AsyncBaseService):
     """Service class for the events model."""
 
-    def post_in_mongo(self, docs, **kwargs):
+    async def post_in_mongo(self, docs, **kwargs):
         """Post an ingested item(s)"""
 
         for doc in docs:
@@ -176,28 +185,30 @@ class EventsService(superdesk.Service):
             self._resolve_defaults(doc)
             set_ingest_version_datetime(doc)
 
-        self.on_create(docs)
+        await self.on_create_async(docs)
         resolve_document_etag(docs, self.datasource)
-        ids = self.backend.create_in_mongo(self.datasource, docs, **kwargs)
-        self.on_created(docs)
+        ids = await self.backend.create_in_mongo_async(self.datasource, docs, **kwargs)
+        await self.on_created_async(docs)
         return ids
 
-    def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
+    async def patch_in_mongo(self, _id: str, document, original) -> Optional[Dict[str, Any]]:
         """Patch an ingested item onto an existing item locally"""
         prepare_ingested_item_for_storage(document)
-        events_history = get_resource_service("events_history")
-        events_history.on_item_updated(document, original, "ingested")
 
-        content_fields = app.config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
-        updated_keys = get_user_updated_keys(_id)
+        content_fields = get_current_app().config.get("EVENT_INGEST_CONTENT_FIELDS", CONTENT_FIELDS)
+        updated_keys = await get_user_updated_keys(_id)
         for key in updated_keys:
             if key in document and key in content_fields and original.get(key):
                 document[key] = original[key]
 
         set_planning_schedule(document)
         update_ingest_on_patch(document, original)
-        response = self.backend.update_in_mongo(self.datasource, _id, document, original)
-        self.on_updated(document, original, from_ingest=True)
+
+        events_history = EventsHistoryAsyncService()
+        await events_history.on_item_updated(document, original, "ingested")
+
+        response = await self.backend.update_in_mongo_async(self.datasource, _id, document, original)
+        await self.on_updated_async(document, original, from_ingest=True)
         return response
 
     def is_new_version(self, new_item, old_item):
@@ -208,15 +219,15 @@ class EventsService(superdesk.Service):
 
         pass
 
-    def on_fetched(self, docs):
+    async def on_fetched_async(self, docs):
         for doc in docs["_items"]:
             self._enhance_event_item(doc)
 
-    def on_fetched_item(self, doc):
+    async def on_fetched_item_async(self, doc):
         self._enhance_event_item(doc)
 
     def _enhance_event_item(self, doc):
-        plannings = get_related_planning_for_events([doc[config.ID_FIELD]])
+        plannings = get_related_planning_for_events([doc[ID_FIELD]])
 
         if len(plannings):
             doc["planning_ids"] = [planning.get("_id") for planning in plannings]
@@ -228,50 +239,56 @@ class EventsService(superdesk.Service):
         if not doc.get("original_creator"):
             doc.pop("original_creator", None)
 
-    def get_all_items_in_relationship(self, item: Event, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"):
+    async def get_all_items_in_relationship(
+        self, item: Event, event_link_type: PLANNING_RELATED_EVENT_LINK_TYPE = "primary"
+    ):
         # Get recurring items
         if item.get("recurrence_id"):
             all_items = self.find(where={"recurrence_id": item.get("recurrence_id")})
             # Now, get associated planning items with the same recurrence
             return itertools.chain(
                 all_items,
-                get_resource_service("planning").find(where={"recurrence_id": item.get("recurrence_id")}),
+                await (
+                    await get_resource_service("planning").find_async(
+                        where={"recurrence_id": item.get("recurrence_id")}
+                    )
+                ).to_list(),
             )
         else:
             # Get associated planning items
-            return get_related_planning_for_events([item[config.ID_FIELD]], event_link_type)
+            return get_related_planning_for_events([item[ID_FIELD]], event_link_type)
 
     def on_locked_event(self, doc, user_id):
         self._enhance_event_item(doc)
 
-    @staticmethod
-    def set_ingest_provider_sequence(item, provider):
+    async def set_ingest_provider_sequence_async(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
 
         :param item: object to which ingest_provider_sequence to be set
         :param provider: ingest_provider object, used to build the key name of sequence
         """
-        sequence_number = get_resource_service("sequences").get_next_sequence_number(
-            key_name="ingest_providers_{_id}".format(_id=provider[config.ID_FIELD]),
-            max_seq_number=app.config["MAX_VALUE_OF_INGEST_SEQUENCE"],
+        sequence_number = await get_next_sequence_number(
+            key_name="ingest_providers_{_id}".format(_id=provider[ID_FIELD]),
+            max_seq_number=get_app_config("MAX_VALUE_OF_INGEST_SEQUENCE"),
         )
         item["ingest_provider_sequence"] = str(sequence_number)
 
-    def on_create(self, docs):
+    async def on_create_async(self, docs):
         # events generated by recurring rules
         generated_events = []
+
         for event in docs:
             # generates an unique id
             if "guid" not in event:
                 event["guid"] = generate_guid(type=GUID_NEWSML)
-            event[config.ID_FIELD] = event["guid"]
+            event[ID_FIELD] = event["guid"]
 
             # SDCP-638
             if not event.get("language"):
                 try:
                     event["language"] = event["languages"][0]
                 except (KeyError, IndexError):
-                    event["language"] = app.config["DEFAULT_LANGUAGE"]
+                    event["language"] = get_app_config("DEFAULT_LANGUAGE")
 
             # family_id get on ingest we don't need it planning
             event.pop("family_id", None)
@@ -319,35 +336,31 @@ class EventsService(superdesk.Service):
                 # (generate_recurring_events removes this field)
                 event["_planning_item"] = planning_item
 
-            if event["state"] == "ingested":
-                events_history = get_resource_service("events_history")
-                events_history.on_item_created([event])
-
             if planning_item:
-                self._link_to_planning(event)
+                await self._link_to_planning(event)
                 del event["_planning_item"]
 
         if generated_events:
             docs.extend(generated_events)
 
-    def create(self, docs: List[Event], **kwargs):
+    async def create_async(self, docs: List[Event], **kwargs):
         """Saves the list of Events to Mongo & Elastic
 
         Also extracts out the ``embedded_planning`` before saving the Event(s)
         And then uses them to synchronise/process the associated Planning item(s)
         """
 
-        embedded_planning_lists: List[Tuple[Event, List[EmbeddedPlanning]]] = []
+        embedded_planning_lists: list[tuple[Event, list[EmbeddedPlanningDict]]] = []
         for event in docs:
-            embedded_planning = get_events_embedded_planning(event)
-            if len(embedded_planning):
-                embedded_planning_lists.append((event, embedded_planning))
+            emb_planning = get_events_embedded_planning(event)
+            if len(emb_planning):
+                embedded_planning_lists.append((event, emb_planning))  # type: ignore
 
         ids = self.backend.create(self.datasource, docs, **kwargs)
 
         if len(embedded_planning_lists):
             for event, embedded_planning in embedded_planning_lists:
-                sync_event_metadata_with_planning_items(None, event, embedded_planning)
+                await sync_event_metadata_with_planning_items(None, event, embedded_planning)
 
         return ids
 
@@ -426,16 +439,33 @@ class EventsService(superdesk.Service):
 
         @:param dict event: event created or updated
         """
-        max_duration = get_event_max_multi_day_duration(app)
+        max_duration = get_event_max_multi_day_duration()
         if not max_duration > 0:
             return
 
         if not event.get("dates"):
             return
 
-        event_duration = event.get("dates").get("end") - event.get("dates").get("start")
+        dates = event.get("dates")
+        if not dates:
+            return
+
+        start = dates.get("start")
+        end = dates.get("end")
+
+        if not start or not end:
+            return
+
+        # Parse dates
+        start = parser.parse(start) if isinstance(start, str) else start
+        end = parser.parse(end) if isinstance(end, str) else end
+
+        event_duration = end - start
+
         if event_duration.days > max_duration:
-            raise SuperdeskApiError(message="Event duration is greater than {} days.".format(max_duration))
+            raise SuperdeskApiError.badRequestError(
+                message="Event duration is greater than {} days.".format(max_duration)
+            )
 
     @staticmethod
     def _validate_template(updates, original):
@@ -457,28 +487,32 @@ class EventsService(superdesk.Service):
                 payload={"template": "This value can't be changed."},
             )
 
-    def on_created(self, docs):
+    async def on_created_async(self, docs):
         """Send WebSocket Notifications for created Events
 
         Generate the list of IDs for recurring and non-recurring events
         Then send this list off to the clients so they can fetch these events
         """
         notifications_sent = []
-        history_service = get_resource_service("events_history")
+        history_service = EventsHistoryAsyncService()
 
         for doc in docs:
-            event_id = str(doc.get(config.ID_FIELD))
+            event_id = str(doc.get(ID_FIELD))
+
+            if doc.get("state") == "ingested":
+                await history_service.on_item_created([doc])
+
             # If we duplicated this event, update the history
             if doc.get("duplicate_from"):
                 parent_id = doc["duplicate_from"]
                 parent_event = self.find_one(req=None, _id=parent_id)
 
-                history_service.on_item_updated({"duplicate_id": event_id}, parent_event, "duplicate")
-                history_service.on_item_updated({"duplicate_id": parent_id}, doc, "duplicate_from")
+                await history_service.on_item_updated({"duplicate_id": event_id}, parent_event, "duplicate")
+                await history_service.on_item_updated({"duplicate_id": parent_id}, doc, "duplicate_from")
 
                 duplicate_ids = parent_event.get("duplicate_to", [])
                 duplicate_ids.append(event_id)
-                self.patch(parent_id, {"duplicate_to": duplicate_ids, config.ID_FIELD: parent_id})
+                self.patch(parent_id, {"duplicate_to": duplicate_ids, ID_FIELD: parent_id})
 
             event_type = "events:created"
             user_id = str(doc.get("original_creator", ""))
@@ -502,7 +536,7 @@ class EventsService(superdesk.Service):
             return False, "User does not have sufficient permissions."
         return True, ""
 
-    def update(self, id, updates, original):
+    async def update_async(self, id, updates, original):
         """Updated the Event in Mongo & Elastic
 
         Also extracts out the ``embedded_planning`` before saving the Event
@@ -517,11 +551,11 @@ class EventsService(superdesk.Service):
         item = self.backend.update(self.datasource, id, updates, original)
 
         # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
-        sync_event_metadata_with_planning_items(original, updates, embedded_planning)
+        await sync_event_metadata_with_planning_items(original, updates, embedded_planning)
 
         return item
 
-    def on_update(self, updates, original):
+    async def on_update_async(self, updates, original):
         """Update single or series of recurring events.
 
         Determine if the supplied event is a single event or a
@@ -540,17 +574,16 @@ class EventsService(superdesk.Service):
         update_method = updates.pop("update_method", UPDATE_SINGLE)
 
         user = get_user()
-        user_id = user.get(config.ID_FIELD) if user else None
+        user_id = user.get(ID_FIELD) if user else None
 
         if user_id:
             updates["version_creator"] = user_id
             set_ingested_event_state(updates, original)
 
         lock_user = original.get("lock_user", None)
-        str_user_id = str(user.get(config.ID_FIELD)) if user_id else None
+        str_user_id = str(user.get(ID_FIELD)) if user_id else None
 
         if lock_user and str(lock_user) != str_user_id:
-            print(lock_user, str_user_id)
             raise SuperdeskApiError.forbiddenError("The item was locked by another user")
 
         # If only the `recurring_rule` was provided, then fill in the rest from the original
@@ -566,20 +599,20 @@ class EventsService(superdesk.Service):
         # Run the specific methods based on if the original is a
         # single or a series of recurring events
         if not original.get("dates", {}).get("recurring_rule", None) or update_method == UPDATE_SINGLE:
-            self._update_single_event(updates, original)
+            await self._update_single_event(updates, original)
         else:
-            self._update_recurring_events(updates, original, update_method)
+            await self._update_recurring_events(updates, original, update_method)
 
-    def on_updated(self, updates, original, from_ingest: Optional[bool] = None):
+    async def on_updated_async(self, updates, original, from_ingest: Optional[bool] = None):
         # If this Event was converted to a recurring series
         # Then update all associated Planning items with the recurrence_id
         if updates.get("recurrence_id") and not original.get("recurrence_id"):
-            get_resource_service("planning").on_event_converted_to_recurring(updates, original)
+            await get_resource_service("planning").on_event_converted_to_recurring(updates, original)
 
         if not updates.get("duplicate_to"):
-            posted = update_post_item(updates, original)
+            posted = await update_post_item(updates, original)
             if posted:
-                new_event = get_resource_service("events").find_one(req=None, _id=original.get(config.ID_FIELD))
+                new_event = await get_resource_service("events").find_one_async(req=None, _id=original.get(ID_FIELD))
                 updates["_etag"] = new_event["_etag"]
                 updates["state_reason"] = new_event.get("state_reason")
 
@@ -587,7 +620,7 @@ class EventsService(superdesk.Service):
             # when the event is unlocked by the patch.
             push_notification(
                 "events:unlock",
-                item=str(original.get(config.ID_FIELD)),
+                item=str(original.get(ID_FIELD)),
                 user=str(get_user_id()),
                 lock_session=str(get_auth().get("_id")),
                 etag=updates["_etag"],
@@ -595,23 +628,23 @@ class EventsService(superdesk.Service):
                 from_ingest=from_ingest,
             )
 
-        self.delete_event_files(updates, original)
+        await self.delete_event_files(updates, original)
 
         if "location" not in updates and original.get("location"):
             updates["location"] = original["location"]
 
-        updates[config.ID_FIELD] = original[config.ID_FIELD]
+        updates[ID_FIELD] = original[ID_FIELD]
         self._enhance_event_item(updates)
 
-    def on_deleted(self, doc):
+    async def on_deleted_async(self, doc):
         push_notification(
             "events:delete",
-            item=str(doc.get(config.ID_FIELD)),
+            item=str(doc.get(ID_FIELD)),
             user=str(get_user_id()),
             lock_session=str(get_auth().get("_id")),
         )
 
-    def _update_single_event(self, updates, original):
+    async def _update_single_event(self, updates, original):
         """Updates the metadata of a single event.
 
         If recurring_rule is provided, we convert this single event into
@@ -621,7 +654,7 @@ class EventsService(superdesk.Service):
         if post_required(updates, original):
             merged = deepcopy(original)
             merged.update(updates)
-            get_resource_service("events_post").validate_item(merged)
+            await get_resource_service("events_post").validate_item(merged)
 
         # Determine if we're to convert this single event to a recurring
         #  of events
@@ -629,36 +662,36 @@ class EventsService(superdesk.Service):
             original.get(LOCK_ACTION) == "convert_recurring"
             and updates.get("dates", {}).get("recurring_rule", None) is not None
         ):
-            generated_events = self._convert_to_recurring_event(updates, original)
+            generated_events = await self._convert_to_recurring_event(updates, original)
 
             # if the original event was "posted" then post all the generated events
             if original.get("pubstatus") in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
                 post = {
-                    "event": generated_events[0][config.ID_FIELD],
+                    "event": generated_events[0][ID_FIELD],
                     "etag": generated_events[0]["_etag"],
                     "update_method": "all",
                     "pubstatus": original.get("pubstatus"),
                 }
-                get_resource_service("events_post").post([post])
+                await get_resource_service("events_post").post_async([post])
 
             push_notification(
                 "events:updated:recurring",
-                item=str(original[config.ID_FIELD]),
+                item=str(original[ID_FIELD]),
                 user=str(updates.get("version_creator", "")),
                 recurrence_id=str(generated_events[0]["recurrence_id"]),
             )
         else:
             if original.get("lock_action") == "mark_completed" and updates.get("actioned_date"):
-                self.mark_event_complete(original, updates, original, None)
+                await self.mark_event_complete(original, updates, original, None)
 
             # This updates Event metadata only
             push_notification(
                 "events:updated",
-                item=str(original[config.ID_FIELD]),
+                item=str(original[ID_FIELD]),
                 user=str(updates.get("version_creator", "")),
             )
 
-    def _update_recurring_events(self, updates, original, update_method):
+    async def _update_recurring_events(self, updates, original, update_method):
         """Method to update recurring events.
 
         If the recurring_rule has been removed for this event, process
@@ -670,10 +703,10 @@ class EventsService(superdesk.Service):
         updates.pop("dates", None)
 
         if update_method == UPDATE_FUTURE:
-            historic, past, future = self.get_recurring_timeline(original)
+            historic, past, future = await get_recurring_timeline(original, spiked=False, postponed=True)
             events = future
         else:
-            historic, past, future = self.get_recurring_timeline(original)
+            historic, past, future = await get_recurring_timeline(original, spiked=False, postponed=True)
             events = historic + past + future
 
         events_post_service = get_resource_service("events_post")
@@ -683,7 +716,7 @@ class EventsService(superdesk.Service):
             if post_required(updates, e):
                 merged = deepcopy(e)
                 merged.update(updates)
-                events_post_service.validate_item(merged)
+                await events_post_service.validate_item(merged)
 
         # If this update is from assignToCalendar action
         # Then we only want to update the calendars of each Event
@@ -697,11 +730,11 @@ class EventsService(superdesk.Service):
         mark_completed = original.get("lock_action") == "mark_completed" and updates.get("actioned_date")
         mark_complete_validated = False
         for e in events:
-            event_id = e[config.ID_FIELD]
+            event_id = e[ID_FIELD]
 
             new_updates = deepcopy(updates)
             new_updates["skip_on_update"] = True
-            new_updates[config.ID_FIELD] = event_id
+            new_updates[ID_FIELD] = event_id
 
             if only_calendars:
                 # Get the original for this item, and add new calendars to it
@@ -714,7 +747,7 @@ class EventsService(superdesk.Service):
                     [calendar for calendar in updated_calendars if calendar["qcode"] not in original_qcodes]
                 )
             elif mark_completed:
-                self.mark_event_complete(original, updates, e, mark_complete_validated)
+                await self.mark_event_complete(original, updates, e, mark_complete_validated)
                 # It is validated if the previous funciton did not raise an error
                 mark_complete_validated = True
 
@@ -722,17 +755,18 @@ class EventsService(superdesk.Service):
             # by the event provided to this update request
             new_updates.pop("embedded_planning", None)
             self.patch(event_id, new_updates)
-            app.on_updated_events(new_updates, {"_id": event_id})
+            app = get_current_app().as_any()
+            await app.on_updated_events.call_async(new_updates, {"_id": event_id})
 
         # And finally push a notification to connected clients
         push_notification(
             "events:updated:recurring",
-            item=str(original[config.ID_FIELD]),
+            item=str(original[ID_FIELD]),
             recurrence_id=str(original["recurrence_id"]),
             user=str(updates.get("version_creator", "")),
         )
 
-    def mark_event_complete(self, original, updates, event, mark_complete_validated):
+    async def mark_event_complete(self, original, updates, event, mark_complete_validated):
         # If the entire series is in future, raise an error
         if event.get("recurrence_id"):
             if not mark_complete_validated:
@@ -744,17 +778,17 @@ class EventsService(superdesk.Service):
             if event["dates"]["start"] < updates["actioned_date"]:
                 return
 
-        for plan in get_related_planning_for_events([event[config.ID_FIELD]], "primary"):
+        for plan in get_related_planning_for_events([event[ID_FIELD]], "primary"):
             if plan.get("state") != WORKFLOW_STATE.CANCELLED and len(plan.get("coverages", [])) > 0:
-                get_resource_service("planning_cancel").patch(
-                    plan[config.ID_FIELD],
+                await get_resource_service("planning_cancel").patch_async(
+                    plan[ID_FIELD],
                     {
                         "reason": "Event Completed",
                         "cancel_all_coverage": True,
                     },
                 )
 
-    def _convert_to_recurring_event(self, updates, original):
+    async def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
         self._validate_convert_to_recurring(updates, original)
         updates["recurrence_id"] = original["_id"]
@@ -773,13 +807,12 @@ class EventsService(superdesk.Service):
         if updated_event["dates"]["start"].date() != original["dates"]["start"].date():
             # Reschedule original event
             updates["update_method"] = UPDATE_SINGLE
-            event_reschedule_service = get_resource_service("events_reschedule")
             updates["dates"] = updated_event["dates"]
             set_planning_schedule(updates)
-            event_reschedule_service.update_single_event(updates, original)
+            await reschedule_single_event(updates, original)
             if updates.get("state") == WORKFLOW_STATE.RESCHEDULED:
-                history_service = get_resource_service("events_history")
-                history_service.on_reschedule(updates, original)
+                history_service = EventsHistoryAsyncService()
+                await history_service.on_reschedule(updates, original)
         else:
             # Original event falls as a part of the series
             # Remove the first element in the list (the current event being updated)
@@ -790,16 +823,13 @@ class EventsService(superdesk.Service):
             remove_lock_information(item=updates)
 
         # Create the new events and generate their history
-        self.create(generated_events)
-        app.on_inserted_events(generated_events)
+        await self.create_async(generated_events)
+        app = get_current_app().as_any()
+        await app.on_inserted_events.call_async(generated_events)
         return generated_events
 
-    def get_recurring_timeline(self, selected, spiked=False):
-        events_base_service = EventsBaseService("events", backend=superdesk.get_backend())
-        return events_base_service.get_recurring_timeline(selected, postponed=True, spiked=spiked)
-
     @staticmethod
-    def _link_to_planning(event: Event):
+    async def _link_to_planning(event: Event):
         """
         Links an Event to an existing Planning Item
 
@@ -808,8 +838,8 @@ class EventsService(superdesk.Service):
         """
         planning_service = get_resource_service("planning")
         plan_id = event["_planning_item"]
-        event_id = event[config.ID_FIELD]
-        planning_item = planning_service.find_one(req=None, _id=plan_id)
+        event_id = event[ID_FIELD]
+        planning_item = await planning_service.find_one_async(req=None, _id=plan_id)
 
         if not planning_item:
             raise SuperdeskApiError.badRequestError("Planning item not found")
@@ -831,11 +861,12 @@ class EventsService(superdesk.Service):
             if not planning_item.get("recurrence_id") and link_type == "primary":
                 updates["recurrence_id"] = event["recurrence_id"]
 
-        planning_service.validate_on_update(updates, planning_item, get_user())
-        planning_service.system_update(plan_id, updates, planning_item)
-        app.on_updated_planning(updates, planning_item)
+        await planning_service.validate_on_update(updates, planning_item, get_user())
+        await planning_service.system_update_async(plan_id, updates, planning_item)
+        app = get_current_app().as_any()
+        await app.on_updated_planning.call_async(updates, planning_item)
 
-    def get_expired_items(self, expiry_datetime, spiked_events_only=False):
+    async def get_expired_items(self, expiry_datetime, spiked_events_only=False):
         """Get the expired items
 
         Where end date is in the past
@@ -856,33 +887,34 @@ class EventsService(superdesk.Service):
         while total_received + get_max_recurrent_events() < 10000:  # 10k is max elastic limit
             query["from"] = total_received
 
-            results = self.search(query)
+            results = await self.search_async(query)
 
             # If the total_events has not been set, then this is the first query
             # In which case we need to store the total hits from the search
             if total_events < 0:
-                total_events = results.count()
+                total_events = await results.count()
 
                 # If the search doesn't contain any results, return here
                 if total_events < 1:
                     break
 
             # If the last query doesn't contain any results, return here
-            if not len(results.docs):
+            items = await results.to_list()
+            if not len(items):
                 break
 
-            total_received += len(results.docs)
+            total_received += len(items)
 
             # Yield the results for iteration by the callee
-            yield list(results.docs)
+            yield items
 
-    def delete_event_files(self, updates, original):
+    async def delete_event_files(self, updates, original):
         files = [f for f in original.get("files", []) if f not in (updates or {}).get("files", [])]
         files_service = get_resource_service("events_files")
         for file in files:
-            events_using_file = self.find(where={"files": file})
-            if events_using_file.count() == 0:
-                files_service.delete_action(lookup={"_id": file})
+            events_using_file = await self.find_async(where={"files": file})
+            if await events_using_file.count() == 0:
+                await files_service.delete_action_async(lookup={"_id": file})
 
     def should_update(self, old_item, new_item, provider):
         return old_item is None or not any(
@@ -924,17 +956,17 @@ class EventsResource(superdesk.Resource):
     merge_nested_documents = True
 
 
+# TODO-ASYNC: moved to `events_utils.py`. Remove when it is no longer referenced
 def generate_recurring_dates(
     start,
     frequency,
     interval=1,
-    endRepeatMode="count",
     until=None,
     byday=None,
     count=5,
     tz=None,
     date_only=False,
-    _created_externally=False,
+    **_,
 ):
     """
 
@@ -1019,8 +1051,13 @@ def setRecurringMode(event):
 
 def overwrite_event_expiry_date(event):
     if "expiry" in event:
-        expiry_minutes = app.settings.get("PLANNING_EXPIRY_MINUTES", None)
-        event["expiry"] = event["dates"]["end"] + timedelta(minutes=expiry_minutes or 0)
+        expiry_minutes = get_app_config("PLANNING_EXPIRY_MINUTES", None)
+        end = event.get("dates", {}).get("end")
+        if isinstance(end, str):
+            end = parser.isoparse(end)
+
+        if end:
+            event["expiry"] = end + timedelta(minutes=expiry_minutes or 0)
 
 
 def generate_recurring_events(event, recurrence_id=None):
@@ -1047,6 +1084,7 @@ def generate_recurring_events(event, recurrence_id=None):
         for key in list(new_event.keys()):
             if key.startswith("_") or key.startswith("lock_"):
                 new_event.pop(key)
+
             elif key == "embedded_planning":
                 if not embedded_planning_added:
                     # If this is the first Event in the series, then keep

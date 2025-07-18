@@ -13,10 +13,10 @@ import pytz
 import re
 import logging
 
-from flask import current_app as app
 from xml.etree.ElementTree import Element
 
 from superdesk import get_resource_service
+from superdesk.core import get_app_config
 from eve_elastic.elastic import parse_date
 from superdesk.io.feed_parsers import NewsMLTwoFeedParser
 from superdesk.metadata.item import (
@@ -66,7 +66,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
     def set_missing_voc_policy(self):
         # config is not accessible during __init__, so we check it here
         if self.__class__.missing_voc is None:
-            self.__class__.missing_voc = app.config.get("QCODE_MISSING_VOC", "continue")
+            self.__class__.missing_voc = get_app_config("QCODE_MISSING_VOC", "continue")
             if self.__class__.missing_voc not in ("reject", "create", "continue"):
                 logger.warning(
                     'Bad QCODE_MISSING_VOC value ({value}) using default ("continue")'.format(value=self.missing_voc)
@@ -76,7 +76,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
     def get_item_id(self, tree: Element) -> str:
         return tree.attrib["guid"]
 
-    def parse(self, tree: Element, provider=None):
+    async def parse(self, tree: Element, provider=None):
         self.root = tree
         self.set_missing_voc_policy()
 
@@ -93,8 +93,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
             self.parse_item_meta(tree, item)
             self.parse_content_meta(tree, item)
             self.parse_concept(tree, item)
-            self.parse_event_details(tree, item)
-            utils.upgrade_rich_text_fields(item, "event")
+            await self.parse_event_details(tree, item)
+            await utils.upgrade_rich_text_fields(item, "event")
             return [item]
 
         except Exception as ex:
@@ -143,8 +143,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
         except AttributeError:
             pass
 
-    def get_default_event_duration(self):
-        profile = get_resource_service("planning_types").find_one(req=None, name="event") or {}
+    async def get_default_event_duration(self):
+        profile = (await get_resource_service("planning_types").find_one_async(req=None, name="event")) or {}
         return ((profile.get("editor") or {}).get("dates") or {}).get("default_duration_on_change", 1)
 
     def parse_concept(self, tree, item):
@@ -186,30 +186,31 @@ class EventsMLParser(NewsMLTwoFeedParser):
 
         return value
 
-    def parse_event_details(self, tree, item):
+    async def parse_event_details(self, tree, item):
         """Parse eventDetails tag"""
         concept = tree.find(self.qname("concept"))
         event_details = concept.find(self.qname("eventDetails"))
 
-        self.parse_event_schedule(event_details.find(self.qname("dates")), item)
+        await self.parse_event_schedule(event_details.find(self.qname("dates")), item)
         self.parse_content_subject(event_details, item)
-        self.parse_registration_details(event_details, item)
+        await self.parse_registration_details(event_details, item)
 
-    def parse_event_schedule(self, dates, item):
+    async def parse_event_schedule(self, dates, item):
+        default_timezone = get_app_config("DEFAULT_TIMEZONE")
         start_date_source = dates.find(self.qname("start")).text
-        start_date_str = self.get_datetime_str(start_date_source, "00:00:00", app.config["DEFAULT_TIMEZONE"])
+        start_date_str = self.get_datetime_str(start_date_source, "00:00:00", default_timezone)
         start_date = parse_date(start_date_str)
         is_start_local_midnight = start_date.time() == time(0, 0, 0)
         no_end_time = None
         all_day = not utils.has_time(start_date_source)
-        tz = app.config["DEFAULT_TIMEZONE"]
+        tz = default_timezone
         if all_day:  # ignore timezone
             tz = None
             start_date = utils.parse_date_utc(start_date_source)
 
         if dates.find(self.qname("end")) is not None and dates.find(self.qname("end")).text:
             dates_end_text = dates.find(self.qname("end")).text
-            end_date = parse_date(self.get_datetime_str(dates_end_text, "23:59:59", app.config["DEFAULT_TIMEZONE"]))
+            end_date = parse_date(self.get_datetime_str(dates_end_text, "23:59:59", default_timezone))
             if all_day:
                 end_date = utils.parse_date_utc(dates_end_text).replace(hour=23, minute=59, second=59)
             else:
@@ -225,7 +226,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
             if is_start_local_midnight and all_day:
                 end_date = start_date.replace(hour=23, minute=59, second=59)
             else:
-                end_date = start_date + timedelta(hours=self.get_default_event_duration())
+                end_date = start_date + timedelta(hours=await self.get_default_event_duration())
 
         item["dates"] = dict(
             start=start_date.astimezone(pytz.utc),
@@ -236,8 +237,8 @@ class EventsMLParser(NewsMLTwoFeedParser):
         item["dates"]["all_day"] = all_day
         item["dates"]["no_end_time"] = (all_day or no_end_time) is True
 
-    def parse_registration_details(self, event_details, item):
-        event_type = get_planning_schema("event")
+    async def parse_registration_details(self, event_details, item):
+        event_type = await get_planning_schema("event")
 
         if not is_field_enabled("registration_details", event_type):
             return

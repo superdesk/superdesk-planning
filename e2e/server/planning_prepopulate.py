@@ -8,9 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import current_app
-
-from superdesk import Service, Resource, get_backend, get_resource_service
+from superdesk import Resource, get_backend
+from superdesk.eve_async import AsyncBaseService
+from superdesk.tests import utils as test_utils
 from apps.prepopulate.app_prepopulate import get_default_user, set_logged_user
 
 
@@ -43,17 +43,13 @@ class PlanningPrepopulateResource(Resource):
     }
 
 
-class PlanningPrepopulateService(Service):
-    def create(self, docs, **kwargs):
+class PlanningPrepopulateService(AsyncBaseService):
+    async def create_async(self, docs, **kwargs):
         ids = []
         user = get_default_user()
-        set_logged_user(user['username'], user['password'])
+        await set_logged_user(user['username'], user['password'])
         for doc in docs:
             resource = doc.get('resource')
-            service = get_resource_service(doc.get('resource'))
             for item in doc.get('items') or []:
-                current_app.data.mongo._mongotize(item, resource)
-                ids.extend(
-                    service.post([item])
-                )
+                ids.extend(await test_utils.post_items(resource, [item]))
         return ids

@@ -17,7 +17,7 @@ from superdesk import get_resource_service
 
 from planning.types import (
     Event,
-    EmbeddedPlanning,
+    EmbeddedPlanningDict,
     EmbeddedCoverageItem,
     Planning,
     Coverage,
@@ -33,10 +33,10 @@ from .common import VocabsSyncData, get_enabled_subjects
 logger = logging.getLogger(__name__)
 
 
-def create_new_plannings_from_embedded_planning(
+async def create_new_plannings_from_embedded_planning(
     event: Event,
     event_translations: Dict[str, Dict[str, str]],
-    embedded_planning: List[EmbeddedPlanning],
+    embedded_planning: List[EmbeddedPlanningDict],
     profiles: AllContentProfileData,
     vocabs: VocabsSyncData,
 ):
@@ -138,7 +138,7 @@ def create_new_plannings_from_embedded_planning(
         new_plannings.append(new_planning)
 
     if len(new_plannings):
-        get_resource_service("planning").post(new_plannings)
+        await get_resource_service("planning").post_async(new_plannings)
 
 
 def create_new_coverage_from_event_and_planning(
@@ -244,7 +244,7 @@ def create_new_coverage_from_event_and_planning(
 def get_existing_plannings_from_embedded_planning(
     event: Event,
     event_translations: Dict[str, Dict[str, str]],
-    embedded_planning: List[EmbeddedPlanning],
+    embedded_planning: List[EmbeddedPlanningDict],
     profiles: AllContentProfileData,
     vocabs: VocabsSyncData,
 ) -> Iterator[Tuple[Planning, Planning, bool]]:

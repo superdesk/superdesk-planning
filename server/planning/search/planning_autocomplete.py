@@ -1,8 +1,7 @@
 from typing import Dict, Any
 from datetime import timedelta
 
-from flask import current_app as app
-
+from superdesk.core import get_app_config, get_current_app
 from superdesk.utc import utcnow
 from apps.archive.autocomplete import (
     SETTING_LIMIT as AUTOCOMPLETE_LIMIT,
@@ -44,6 +43,7 @@ def get_planning_suggestions(field: str, language: str) -> Dict[str, int]:
         "aggs": aggs_query,
     }
 
+    app = get_current_app()
     res = app.data.elastic.search(query, "planning", params={"size": 0})
     return _get_aggregation_values(res.hits["aggregations"])
 
@@ -54,6 +54,7 @@ def get_event_suggestions(field: str, language: str) -> Dict[str, int]:
         "aggs": _construct_aggs_query(field, language),
     }
 
+    app = get_current_app()
     res = app.data.elastic.search(query, "events", params={"size": 0})
     return _get_aggregation_values(res.hits["aggregations"])
 
@@ -90,7 +91,7 @@ def agg_field_suggestion(field):
     return {
         "terms": {
             "field": field,
-            "size": app.config[AUTOCOMPLETE_LIMIT],
+            "size": get_app_config(AUTOCOMPLETE_LIMIT),
             "order": {"_key": "asc"},
         },
     }
@@ -98,7 +99,7 @@ def agg_field_suggestion(field):
 
 def _construct_bool_query(language: str) -> Dict[str, Any]:
     versioncreated_min = (
-        utcnow() - timedelta(days=app.config[AUTOCOMPLETE_DAYS], hours=app.config[AUTOCOMPLETE_HOURS])
+        utcnow() - timedelta(days=get_app_config(AUTOCOMPLETE_DAYS), hours=get_app_config(AUTOCOMPLETE_HOURS))
     ).replace(
         microsecond=0
     )  # avoid different microsecond each time so elastic has 1s to cache

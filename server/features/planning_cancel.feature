@@ -161,24 +161,6 @@ Feature: Cancel all coverage
     @notification
     @vocabulary
     Scenario: Posted planning gets updated on cancel all coverage
-      Given "vocabularies"
-      """
-      [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-      }]
-      """
       When we post to "planning" with success
       """
       [{
@@ -264,39 +246,6 @@ Feature: Cancel all coverage
     @notification
     @vocabulary
     Scenario: Associated event remains unchanged
-      Given "vocabularies"
-      """
-      [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-      },
-      {
-          "_id": "eventoccurstatus",
-          "display_name": "Event Occurence Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
-              {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
-              {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
-              {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
-              {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
-              {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
-              {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
-          ]
-        }]
-      """
       Given "contacts"
       """
         [{"first_name": "Albert", "last_name": "Foo"}]
@@ -404,24 +353,6 @@ Feature: Cancel all coverage
     @notification
     @vocabulary
     Scenario: Changes coverage status on cancel all coverage
-      Given "vocabularies"
-      """
-      [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-      }]
-      """
       When we post to "planning" with success
       """
       [{
@@ -848,25 +779,7 @@ Feature: Cancel all coverage
     @notification
     @vocabulary
     Scenario: Reason field is required field for cancel all coverage action
-      Given "vocabularies"
-      """
-      [{
-          "_id": "newscoveragestatus",
-          "display_name": "News Coverage Status",
-          "type": "manageable",
-          "unique_field": "qcode",
-          "items": [
-              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
-              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
-                  "label": "On merit"},
-              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
-                  "label": "Not planned"},
-              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
-                  "label": "On request"}
-          ]
-      }]
-      """
-        And "planning_types"
+      Given "planning_types"
         """
         [
             {
