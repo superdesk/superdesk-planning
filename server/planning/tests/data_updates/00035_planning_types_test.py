@@ -9,24 +9,25 @@ class UpgradeTestCase(TestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
 
-    def test_upgrade(self):
-        self.app.data.insert(
-            "planning_types",
-            [
-                {
-                    "name": "events",
-                    "schema": {"custom_vocabularies": {"vocabularies": ["v1", "v2"], "mandatory_in_list": ["v1"]}},
-                    "editor": {
-                        "other": {"enabled": True, "group": "group2", "index": 0},
-                        "before": {"enabled": True, "group": "group1", "index": 0},
-                        "custom_vocabularies": {"enabled": True, "group": "group1", "index": 1},
-                        "after": {"enabled": True, "group": "group1", "index": 2},
+    async def test_upgrade(self):
+        async with self.app.app_context():
+            self.app.data.insert(
+                "planning_types",
+                [
+                    {
+                        "name": "events",
+                        "schema": {"custom_vocabularies": {"vocabularies": ["v1", "v2"], "mandatory_in_list": ["v1"]}},
+                        "editor": {
+                            "other": {"enabled": True, "group": "group2", "index": 0},
+                            "before": {"enabled": True, "group": "group1", "index": 0},
+                            "custom_vocabularies": {"enabled": True, "group": "group1", "index": 1},
+                            "after": {"enabled": True, "group": "group1", "index": 2},
+                        },
                     },
-                },
-            ],
-        )
+                ],
+            )
 
-        DataUpdate().forwards(self.app.data.get_mongo_collection(DataUpdate.resource), self.app.data.driver.db)
+            DataUpdate().forwards(self.app.data.get_mongo_collection(DataUpdate.resource), self.app.data.driver.db)
 
         profile = self.app.data.find_one("planning_types", req=None, name="events")
         assert profile is not None
