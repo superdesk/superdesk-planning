@@ -1,11 +1,11 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
+import moment from 'moment';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {Menu} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../superdeskApi';
-import {appConfig} from 'appConfig';
 import {
     IPlanningListItemProps,
     LIST_VIEW_TYPE,
@@ -30,8 +30,10 @@ import {
 import {renderFields} from '../fields';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
-import {ILineConfig} from 'globals';
 import {LineItems} from '../../components/UI/List/LineItems';
+import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../config';
+import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+
 
 interface IState {
     hover: boolean;
@@ -114,7 +116,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-                    this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
@@ -135,7 +137,8 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 lockedItems: lockedItems,
                 agendas: agendas,
                 contentTypes: contentTypes,
-                callBacks: itemActionsCallBack});
+                callBacks: itemActionsCallBack,
+            });
 
         if (get(itemActions, 'length', 0) === 0) {
             return null;
@@ -199,31 +202,50 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
 
-        const firstLine: Array<ILineConfig> = appConfig.planning?.planning_list_item?.firstLine ?? firstLineDefaults;
-        const secondLine: Array<ILineConfig> =
-            (appConfig.planning?.planning_list_item?.secondLine ?? secondLineDefaults)
-                .filter((fields) => isAgendaEnabled ? true : fields !== 'agendas');
-
         const renderFieldsWithProps = (fields: Array<string>) => renderFields(
             fields,
             item,
             {
                 fieldsProps: {
-                    agendas: {
-                        agendas: planningUtils.getAgendaNames(item, agendas),
-                        noGrow: true,
-                    },
                     related_events: {
                         relatedEventsUI: this.props.relatedEventsUI,
                     },
                     coverages: {
-                        date,
-                        users,
-                        desks,
-                        activeFilter,
-                        contentTypes,
-                        contacts,
-                        filterLanguage,
+                        prepare: (coverages) => { // removing coverages that do not match page filters
+                            const coveragesMapped = planningUtils.mapCoverageByDate(coverages);
+                            const hasAssociatedEvent = getRelatedEventIdsForPlanning(item).length > 0;
+
+                            const isSameDay = (scheduled) =>
+                                scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
+
+                            const coverageToDisplay = coveragesMapped.filter((coverage) => {
+                                const scheduled = get(coverage, 'planning.scheduled');
+
+                                // Display only the coverages that match the active filter language
+                                if (
+                                    filterLanguage !== ''
+                                    && filterLanguage != null
+                                    && coverage.planning.language != filterLanguage
+                                ) {
+                                    return false;
+                                }
+
+                                if (activeFilter === MAIN.FILTERS.COMBINED) {
+                                    // Display if it has an associated event
+                                    // or if adhoc planning has coverage on that date
+                                    if (hasAssociatedEvent || isSameDay(scheduled)) {
+                                        return true;
+                                    }
+                                } else if (scheduled && isSameDay(scheduled)) {
+                                    // Planning-only view - display only coverage of the particular date
+                                    return true;
+                                }
+
+                                return false;
+                            });
+
+                            return coverageToDisplay;
+                        },
                     },
                 },
             },
@@ -269,7 +291,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 <PubStatus
                     item={item}
                     isPublic={isItemPosted(item) &&
-                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
+                        getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
                 />
 
                 <Column
@@ -277,8 +299,8 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     border={false}
                 >
                     <LineItems
-                        firstLine={firstLine}
-                        secondLine={secondLine}
+                        firstLine={planningFirstLineConfig}
+                        secondLine={getPlanningSecondLineConfig({isAgendaEnabled})}
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </Column>
@@ -319,21 +341,5 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         );
     }
 }
-
-const firstLineDefaults: Array<ILineConfig> = [
-    {fieldId: 'slugline'},
-    {fieldId: 'internalnote'},
-    {fieldId: 'description'},
-];
-
-const secondLineDefaults: Array<ILineConfig> = [
-    {fieldId: 'expired'},
-    {fieldId: 'state'},
-    {fieldId: 'event_completed'},
-    {fieldId: 'featured'},
-    {fieldId: 'agendas'},
-    {fieldId: 'related_events'},
-    {fieldId: 'coverages', position: 'end'},
-];
 
 export const PlanningItem = connect()(PlanningItemComponent);

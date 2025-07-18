@@ -1,28 +1,29 @@
 import React, {Fragment, FunctionComponent} from 'react';
 import classNames from 'classnames';
-
+import {connect} from 'react-redux';
+import * as selectors from '../../selectors';
 import {AgendaNameList} from '../Agendas';
 import {superdeskApi} from '../../superdeskApi';
-import {IAgenda, IFieldsProps} from 'interfaces';
+import {IAgenda, IFieldsProps, IPlanningAppState} from '../../interfaces';
+import {isPlanning, planningUtils} from '../../utils';
 
-interface IProps extends IFieldsProps {
-    fieldsProps: {
-        agendas: {
-            agendas: Array<IAgenda>;
-            noGrow: boolean;
-        }
-    };
+interface IReduxStateProps {
+    agendas: Array<IAgenda>;
 }
 
-export const agendas: FunctionComponent<IProps> = ({fieldsProps}) => {
+type IProps = IFieldsProps & IReduxStateProps;
+
+export const AgendasComponent: FunctionComponent<IProps> = (props) => {
     const {gettext} = superdeskApi.localization;
+    const {item, agendas, fieldsProps} = props;
 
-    const agendas = fieldsProps?.agendas?.agendas;
-    const noGrow = fieldsProps?.agendas?.noGrow ?? false;
-
-    if (agendas == null) {
+    if (!isPlanning(item)) {
         return null;
     }
+
+    const agendasNames = planningUtils.getAgendaNames(item, agendas);
+
+    // PR-TODO: ensure ellipsis is applied to agendas
 
     return (
         <Fragment>
@@ -31,13 +32,18 @@ export const agendas: FunctionComponent<IProps> = ({fieldsProps}) => {
                 className={classNames(
                     'sd-overflow-ellipsis',
                     'sd-list-item__text-strong',
-                    {
-                        'sd-list-item--element-grow': !noGrow,
-                    }
                 )}
             >
-                <AgendaNameList agendas={agendas} />
+                <AgendaNameList agendas={agendasNames} />
             </span>
         </Fragment>
     );
 };
+
+const mapStateToProps = (state: IPlanningAppState): IReduxStateProps => ({
+    agendas: selectors.general.agendas(state),
+});
+
+export const agendas = connect(
+    mapStateToProps,
+)(AgendasComponent);

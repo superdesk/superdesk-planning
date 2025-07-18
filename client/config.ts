@@ -126,3 +126,26 @@ export const eventFirstLineConfig: Array<ILineConfig> =
 
 export const eventSecondLineConfig: Array<ILineConfig> =
     appConfig.planning?.event_list_item?.secondLine ?? eventSecondLineConfigDefaults;
+
+const firstLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'description'},
+];
+
+const secondLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'expired'},
+    {fieldId: 'state'},
+    {fieldId: 'event_completed'},
+    {fieldId: 'featured'},
+    {fieldId: 'agendas'},
+    {fieldId: 'related_events'},
+    {fieldId: 'coverages', position: 'end'},
+];
+
+export const planningFirstLineConfig: Array<ILineConfig> =
+    appConfig.planning?.planning_list_item?.firstLine ?? firstLineDefaults;
+
+export const getPlanningSecondLineConfig = ({isAgendaEnabled}: {isAgendaEnabled: boolean}): Array<ILineConfig> =>
+    (appConfig.planning?.planning_list_item?.secondLine ?? secondLineDefaults)
+        .filter(({fieldId}: ILineConfig) => isAgendaEnabled ? true : fieldId !== 'agendas');

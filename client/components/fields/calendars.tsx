@@ -90,7 +90,7 @@ class CalendarsComponent extends React.PureComponent<IProps> {
     }
 }
 
-const mapStateToProps = (state: IPlanningAppState) => ({
+const mapStateToProps = (state: IPlanningAppState): IReduxStateProps => ({
     calendars: selectors.events.calendars(state),
 });
 

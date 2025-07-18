@@ -1,56 +1,63 @@
 import React from 'react';
 
-import {PlanningDateTime} from '../Planning';
+import {connect} from 'react-redux';
 import {IDesk, IUser} from 'superdesk-api';
-import {IContactItem, IFieldsProps, IG2ContentType} from 'interfaces';
+import {IFieldsProps, IG2ContentType, IPlanningAppState, IPlanningCoverageItem} from 'interfaces';
 import {isPlanning} from '../../utils';
+import * as selectors from '../../selectors';
+import {CoverageIcons} from '../../components/Coverages/CoverageIcons';
 
-interface IProps extends IFieldsProps {
+interface IOwnProps extends IFieldsProps {
     fieldsProps: {
-        coverages: {
-            date: string;
-            users: Array<IUser>;
-            desks: Array<IDesk>;
-            activeFilter: string;
-            contentTypes: Array<IG2ContentType>;
-            contacts: IContactItem;
-            filterLanguage: string;
+        coverages?: {
+            /**
+             * Needed when coverages need to be adjusted before being displayed. e.g. filtered
+             */
+            prepare?(coverages: Array<IPlanningCoverageItem>): Array<IPlanningCoverageItem>;
         };
     };
 }
 
-export const coverages: React.FunctionComponent<IProps> = ({
-    item,
-    fieldsProps,
-}) => {
-    if (fieldsProps?.coverages == null) {
-        return null;
-    }
+interface IReduxStateProps {
+    contentTypes: Array<IG2ContentType>;
+    desks: Array<IDesk>;
+    users: Array<IUser>;
+}
 
+type IProps = IOwnProps & IReduxStateProps;
+
+const CoveragesComponent: React.FunctionComponent<IProps> = (props) => {
     const {
-        date,
         users,
         desks,
-        activeFilter,
         contentTypes,
-        contacts,
-        filterLanguage,
-    } = fieldsProps.coverages;
+        item,
+        fieldsProps,
+    } = props;
 
     if (!isPlanning(item)) {
         return null;
     }
 
+    const coverages = item?.coverages ?? [];
+    const prepare = fieldsProps?.coverages?.prepare ?? ((_items) => _items);
+
     return (
-        <PlanningDateTime
-            filterLanguage={filterLanguage}
-            item={item}
-            date={date}
+        <CoverageIcons
+            coverages={prepare(coverages)}
             users={users}
             desks={desks}
-            activeFilter={activeFilter}
             contentTypes={contentTypes}
-            contacts={contacts}
         />
     );
 };
+
+const mapStateToProps = (state: IPlanningAppState): IReduxStateProps => ({
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
+    contentTypes: selectors.general.contentTypes(state),
+});
+
+export const coverages = connect(
+    mapStateToProps,
+)(CoveragesComponent);

@@ -1,29 +1,34 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {Item, Border, ItemType, PubStatus, Column, Row} from '../../UI/List';
-import {Button as NavButton} from '../../UI/Nav';
-import {PlanningDateTime} from '../';
-import {ICON_COLORS, WORKFLOW_STATE} from '../../../constants';
+import {IconButton} from 'superdesk-ui-framework/react';
+import {Item, Border, Column} from '../../UI/List';
 import {renderFields} from '../../fields';
 
 import {
-    planningUtils,
     lockUtils,
-    getItemId,
     isItemExpired,
     gettext,
-    isItemPosted,
-    getItemWorkflowState,
 } from '../../../utils';
+import {LineItems} from '../../../components/UI/List/LineItems';
+import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {ILockedItems, IPlanningItem} from '../../../interfaces';
 
-// PR-TODO: does this need to be updated?
-export const FeaturedPlanningItem = ({
+interface IProps {
+    item: IPlanningItem;
+    lockedItems: ILockedItems;
+    selectedPlanningIds: Array<string>;
+    onAddToSelectedFeaturedPlanning(item: IPlanningItem, event: React.MouseEvent): any;
+    onRemoveFromSelectedFeaturedPlanning(item: IPlanningItem, event: React.MouseEvent): any;
+    readOnly: boolean;
+    onClick(item: IPlanningItem, event: React.MouseEvent): void;
+    withMargin: boolean;
+    activated: boolean;
+    disabled: boolean;
+}
+
+export const FeaturedPlanningItem: React.FunctionComponent<IProps> = ({
     item,
     lockedItems,
-    date,
-    users,
-    desks,
     selectedPlanningIds,
     onAddToSelectedFeaturedPlanning,
     onRemoveFromSelectedFeaturedPlanning,
@@ -31,7 +36,6 @@ export const FeaturedPlanningItem = ({
     activated,
     onClick,
     withMargin,
-    contentTypes,
     disabled,
 }) => {
     if (!item) {
@@ -40,118 +44,77 @@ export const FeaturedPlanningItem = ({
 
     const isItemLocked = lockUtils.isItemLocked(item, lockedItems);
     const isExpired = isItemExpired(item);
-    let borderState = false;
+    let borderState: React.ComponentProps<typeof Border>['state'] = false;
 
     if (isItemLocked) {
         borderState = 'locked';
     }
+
+    const language = item.language || getUserInterfaceLanguageFromCV();
+
+    const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+        fields,
+        item,
+        {
+            fieldsProps: {
+                // no field specific config needed yet
+            },
+        },
+        language,
+    );
 
     return (
         <Item
             shadow={1}
             disabled={isExpired || disabled}
             activated={activated}
-            onClick={onClick.bind(null, item)}
+            onClick={(event) => {
+                onClick(item, event);
+            }}
             margin={withMargin}
         >
+            <Border state={borderState} />
+
             {!readOnly && selectedPlanningIds.includes(item._id) && (
-                <Column>
-                    <OverlayTrigger
-                        placement="right"
-                        overlay={(
-                            <Tooltip id={getItemId(item)}>
-                                {gettext('Remove from Feature Stories')}
-                            </Tooltip>
-                        )}
-                    >
-                        <NavButton
-                            data-test-id="btn-remove"
-                            navbtn={false}
-                            className="sd-create-btn"
-                            text={gettext('Remove from Feature Stories')}
-                            onClick={onRemoveFromSelectedFeaturedPlanning.bind(null, item)}
-                            icon="icon-chevron-left-thin"
-                        >
-                            <span className="circle" />
-                        </NavButton>
-                    </OverlayTrigger>
+                <Column border={false} style={{paddingInlineEnd: 0}}>
+                    <IconButton
+                        icon="chevron-left-thin"
+                        ariaValue={gettext('Remove from Feature Stories')}
+                        onClick={(event) => {
+                            onRemoveFromSelectedFeaturedPlanning(item, event);
+                        }}
+                        style="outline"
+                    />
                 </Column>
             )}
-            <Border state={borderState} />
-            <ItemType
-                item={item}
-                color={!isExpired && ICON_COLORS.LIGHT_BLUE}
-            />
-            <PubStatus
-                item={item}
-                isPublic={isItemPosted(item) && getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
-            />
+
             <Column
                 grow={true}
                 border={false}
+                style={{paddingBlock: 'var(--space--1)'}}
             >
-                <Row>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {item.slugline &&
-                            <span className="sd-list-item__slugline">{item.slugline}</span>
-                        }
-                    </span>
-                    {renderFields('state', item)}
-                    {renderFields('featured', item, {tooltipFlowDirection: 'right'})}
-                    <PlanningDateTime
-                        item={item}
-                        date={date.format('YYYY-MM-DD')}
-                        users={users}
-                        desks={desks}
-                        contentTypes={contentTypes}
-                        includeScheduledUpdates
-                    />
-                </Row>
+                <LineItems
+                    firstLine={planningFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
+                    secondLine={
+                        getPlanningSecondLineConfig({isAgendaEnabled: true})
+                            .filter(({fieldId}) => fieldId !== 'related_events')
+                    }
+                    renderFieldsWithProps={renderFieldsWithProps}
+                />
             </Column>
+
             {!readOnly && !selectedPlanningIds.includes(item._id) && (
-                <Column>
-                    <OverlayTrigger
-                        placement="left"
-                        overlay={(
-                            <Tooltip id={getItemId(item)}>
-                                {gettext('Add to Feature Stories')}
-                            </Tooltip>
-                        )}
-                    >
-                        <NavButton
-                            data-test-id="btn-add"
-                            navbtn={false}
-                            className="sd-create-btn"
-                            text={gettext('Add to Feature Stories')}
-                            onClick={onAddToSelectedFeaturedPlanning.bind(null, item)}
-                            icon="icon-chevron-right-thin"
-                        >
-                            <span className="circle" />
-                        </NavButton>
-                    </OverlayTrigger>
+                <Column border={false} style={{paddingInlineStart: 0}}>
+                    <IconButton
+                        icon="chevron-right-thin"
+                        ariaValue={gettext('Add to Feature Stories')}
+                        onClick={(event) => {
+                            onAddToSelectedFeaturedPlanning(item, event);
+                        }}
+                        style="outline"
+                    />
                 </Column>
             )}
         </Item>
     );
-};
-
-FeaturedPlanningItem.propTypes = {
-    item: PropTypes.object.isRequired,
-    date: PropTypes.object,
-    lockedItems: PropTypes.object.isRequired,
-    selectedPlanningIds: PropTypes.array,
-    highlights: PropTypes.array,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    showUnlock: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    showAddCoverage: PropTypes.bool,
-    onAddToSelectedFeaturedPlanning: PropTypes.func,
-    onRemoveFromSelectedFeaturedPlanning: PropTypes.func,
-    readOnly: PropTypes.bool,
-    onClick: PropTypes.func,
-    withMargin: PropTypes.bool,
-    activated: PropTypes.bool,
-    contentTypes: PropTypes.array,
-    disabled: PropTypes.bool,
 };
