@@ -269,7 +269,6 @@ Feature: Planning Validate
         """
         Then we get OK response
 
-    @wip
     @auth
     Scenario: Validate coverages
         Given "coverage_profiles"

@@ -17,7 +17,7 @@ planning_types_resource_config = ResourceConfig(
 )
 
 coverage_profiles_resource_config = ResourceConfig(
-    name="covereage_profiles",
+    name="coverage_profiles",
     data_class=None,
     mongo=MongoResourceConfig(
         indexes=[
