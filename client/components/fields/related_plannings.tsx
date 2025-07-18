@@ -2,6 +2,7 @@ import React from 'react';
 import {IEventListItemProps, IFieldsProps} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {isEvent} from '../../utils';
+import {Spacer} from '@sourcefabric/common';
 
 interface IProps extends IFieldsProps {
     fieldsProps: {
@@ -38,21 +39,22 @@ export const related_plannings: React.FunctionComponent<IProps> = ({item, fields
         );
 
     return (
-        <span
-            className="sd-overflow-ellipsis sd-list-item__element-lm-10"
+        <button
+            className="sd-line-input__input--related-item-link"
+            onClick={(event) => {
+                event.stopPropagation();
+                relatedEventsUI.setVisibility(!relatedEventsUI.visible);
+            }}
         >
-            <a
-                className="sd-line-input__input--related-item-link"
-                onClick={(event) => {
-                    event.stopPropagation();
-                    relatedEventsUI.setVisibility(!relatedEventsUI.visible);
-                }}
-            >
-                <i className="icon-calendar" />
-                <span className="sd-margin-l--0-5">
+            <Spacer h gap="4" alignItems="center" noWrap>
+                <span>
+                    <i className="icon-calendar" style={{display: 'block'}} />
+                </span>
+
+                <span>
                     {relatedPlanningText}
                 </span>
-            </a>
-        </span>
+            </Spacer>
+        </button>
     );
 };

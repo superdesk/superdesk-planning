@@ -19,7 +19,7 @@ export const related_events: React.ComponentType<IFieldsProps> = ({item, fieldsP
     }
 
     return (
-        <a
+        <button
             className="sd-line-input__input--related-item-link"
             onClick={(event) => {
                 event.stopPropagation();
@@ -28,12 +28,8 @@ export const related_events: React.ComponentType<IFieldsProps> = ({item, fieldsP
             }}
         >
             <Spacer h gap="4" alignItems="center" noWrap>
-                <span
-                    style={{
-                        paddingBlockStart: 1, // fixing icon alignment
-                    }}
-                >
-                    <i className="icon-event" />
+                <span>
+                    <i className="icon-event" style={{display: 'block'}} />
                 </span>
 
                 <span>
@@ -54,6 +50,6 @@ export const related_events: React.ComponentType<IFieldsProps> = ({item, fieldsP
                     }
                 </span>
             </Spacer>
-        </a>
+        </button>
     );
 };
