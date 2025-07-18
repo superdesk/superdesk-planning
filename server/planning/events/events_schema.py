@@ -245,7 +245,7 @@ events_schema = {
     },
     "event_contact_info": {
         "type": "list",
-        "schema": Resource.rel("contacts"),
+        "schema": Resource.rel("contacts", type="string"),
         "mapping": not_analyzed,
     },
     "language": metadata_schema["language"],

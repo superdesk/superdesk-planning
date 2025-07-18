@@ -171,7 +171,7 @@ export class ContactFieldComponent extends React.Component<IProps, IState> {
                 <ContactsPreviewList
                     contactIds={value}
                     onEditContact={privileges.contacts ? this.showEditModal : null}
-                    onRemoveContact={privileges.contacts ? this.removeContact : null}
+                    onRemoveContact={this.removeContact}
                     scrollInView={true}
                     scrollIntoViewOptions={{block: 'center'}}
                     tabEnabled={true}
