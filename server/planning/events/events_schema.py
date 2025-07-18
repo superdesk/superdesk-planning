@@ -57,6 +57,7 @@ events_schema = {
     "version_creator": metadata_schema["version_creator"],
     "firstcreated": metadata_schema["firstcreated"],
     "versioncreated": metadata_schema["versioncreated"],
+    "firstpublished": metadata_schema["firstpublished"],
     # Ingest Details
     "ingest_provider": metadata_schema["ingest_provider"],
     "source": metadata_schema["source"],
@@ -246,7 +247,7 @@ events_schema = {
     },
     "event_contact_info": {
         "type": "list",
-        "schema": Resource.rel("contacts"),
+        "schema": Resource.rel("contacts", type="string"),
         "mapping": not_analyzed,
     },
     "language": metadata_schema["language"],

@@ -4,6 +4,8 @@ from eve.utils import config
 from superdesk import get_resource_service, logger
 from superdesk.resource import Resource, not_analyzed
 from superdesk.notification import push_notification
+from superdesk.users import user_metrics
+from superdesk.utc import utcnow
 
 from .events import EventsResource
 from .events_base_service import EventsBaseService
@@ -63,6 +65,13 @@ class EventsPostService(EventsBaseService):
 
             update_method = self.get_update_method(event, doc)
 
+            if (
+                not doc.get("firstpublished")
+                and doc.get("pubstatus") == POST_STATE.USABLE
+                and event.get("original_creator")
+            ):
+                user_metrics.incr("published_events", event["original_creator"])
+
             if update_method == UPDATE_SINGLE:
                 event_id, planning_ids = self._post_single_event(doc, event)
             else:
@@ -120,12 +129,12 @@ class EventsPostService(EventsBaseService):
             update_method = UPDATE_FUTURE
 
         if update_method == UPDATE_FUTURE:
-            posted_events = [original] + future
+            published_events = [original] + future
         else:
-            posted_events = historic + past + [original] + future
+            published_events = historic + past + [original] + future
 
         # First we want to validate that all events can be posted
-        for event in posted_events:
+        for event in published_events:
             self.validate_post_state(post_to_state)
             self.validate_item(event)
 
@@ -134,7 +143,7 @@ class EventsPostService(EventsBaseService):
         ids = []
         items = []
         failed_planning_ids = []
-        for event in posted_events:
+        for event in published_events:
             updated_event, failed_planning_ids = self.post_event(event, post_to_state, doc.get("repost_on_update"))
             ids.append(event[config.ID_FIELD])
             items.append({"id": event[config.ID_FIELD], "etag": updated_event["_etag"]})
@@ -167,6 +176,8 @@ class EventsPostService(EventsBaseService):
 
         new_item_state = get_item_post_state(event, new_post_state, repost)
         updates = {"state": new_item_state, "pubstatus": new_post_state}
+        if not event.get("firstpublished"):
+            updates["firstpublished"] = utcnow()
 
         event["pubstatus"] = new_post_state
         # Remove previous workflow state reason

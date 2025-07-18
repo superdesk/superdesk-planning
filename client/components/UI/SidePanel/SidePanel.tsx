@@ -1,13 +1,30 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
+
+interface IProps {
+    children: React.ReactNode;
+    shadowRight?: boolean;
+    shadowLeft?: boolean;
+    transparent?: boolean;
+    bg00?: boolean;
+    className?: string;
+    testId?: string;
+}
 
 /**
  * @ngdoc react
  * @name SidePanel
  * @description SidePanel Component used usually for Advanced Search panels
  */
-export const SidePanel = ({children, shadowRight, shadowLeft, transparent, bg00, className, testId}) => (
+export const SidePanel: React.FC<IProps> = ({
+    children,
+    shadowRight = false,
+    shadowLeft = false,
+    transparent = false,
+    bg00 = false,
+    className = '',
+    testId,
+}: IProps) => (
     <div
         className={classNames(
             'side-panel',
@@ -24,21 +41,3 @@ export const SidePanel = ({children, shadowRight, shadowLeft, transparent, bg00,
         {children}
     </div>
 );
-
-SidePanel.propTypes = {
-    children: PropTypes.node,
-    shadowRight: PropTypes.bool,
-    shadowLeft: PropTypes.bool,
-    transparent: PropTypes.bool,
-    bg00: PropTypes.bool,
-    className: PropTypes.string,
-    testId: PropTypes.string,
-};
-
-SidePanel.defaultProps = {
-    shadowRight: false,
-    shadowLeft: false,
-    transparent: false,
-    bg00: false,
-    className: '',
-};
