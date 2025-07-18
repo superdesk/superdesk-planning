@@ -36,7 +36,7 @@ from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 FrequencyType = Literal["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]
 
-FREQUENCIES = {
+FREQUENCIES: dict[FrequencyType, Literal[0, 1, 2, 3]] = {
     "DAILY": DAILY,
     "WEEKLY": WEEKLY,
     "MONTHLY": MONTHLY,
@@ -120,7 +120,7 @@ def generate_recurring_dates(
 
     # TODO: use dateutil.rrule.rruleset to incude ex_date and ex_rule
     dates = rrule(
-        FREQUENCIES.get(frequency),
+        FREQUENCIES[frequency],
         dtstart=start,
         until=until,
         byweekday=byweekday,
