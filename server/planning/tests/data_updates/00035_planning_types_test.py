@@ -6,7 +6,6 @@ DataUpdate = importlib.import_module("planning.data_updates.00035_20250529-10500
 
 
 class UpgradeTestCase(TestCase):
-
     async def asyncSetUp(self):
         await super().asyncSetUp()
 

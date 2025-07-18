@@ -1,4 +1,4 @@
-from superdesk.core.resources import ResourceConfig, RestEndpointConfig
+from superdesk.core.resources import ResourceConfig, RestEndpointConfig, MongoResourceConfig, MongoIndexOptions
 
 from planning.types import PlanningTypesResourceModel
 from .planning_types_async_service import PlanningTypesAsyncService
@@ -14,4 +14,18 @@ planning_types_resource_config = ResourceConfig(
     #     item_methods=["GET", "PATCH"],
     #     enable_cors=True,
     # ),
+)
+
+coverage_profiles_resource_config = ResourceConfig(
+    name="covereage_profiles",
+    data_class=None,
+    mongo=MongoResourceConfig(
+        indexes=[
+            MongoIndexOptions(
+                name="content_type_1_name_1",
+                keys=[("content_type", 1), ("name", 1)],
+                unique=True,
+            ),
+        ]
+    ),
 )
