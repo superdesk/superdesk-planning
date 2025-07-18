@@ -120,9 +120,10 @@ class PlanningPostService(AsyncBaseService):
 
         if doc.get("coverages"):
             for coverage in doc["coverages"]:
-                errors = get_resource_service("planning_validator").post(
+                errors_list = await validate_docs(
                     [{"validate_on_post": True, "type": "coverage", "validate": coverage}]
-                )[0]
+                )
+                errors = errors_list[0]
                 if errors:
                     abort(400, description=errors)
 

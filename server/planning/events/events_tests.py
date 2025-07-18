@@ -39,7 +39,7 @@ class EventsBaseTestCase(TestCase):
 class EventTestCase(EventsBaseTestCase):
     def test_recurring_dates_generation(self):
         # Every other thurdsay and friday afternoon on January 2016
-        self.assertEquals(
+        self.assertEqual(
             list(
                 generate_recurring_dates(
                     start=datetime(2016, 1, 1, 15, 0),
@@ -59,7 +59,7 @@ class EventTestCase(EventsBaseTestCase):
             ],
         )
         # Every working day - 2 cycles
-        self.assertEquals(
+        self.assertEqual(
             list(
                 generate_recurring_dates(
                     start=datetime(2016, 1, 1),
@@ -83,7 +83,7 @@ class EventTestCase(EventsBaseTestCase):
             ],
         )
         # Next 4 Summer Olympics
-        self.assertEquals(
+        self.assertEqual(
             list(
                 generate_recurring_dates(
                     start=datetime(2016, 1, 2),
@@ -111,7 +111,7 @@ class EventTestCase(EventsBaseTestCase):
         self.assertTrue(datetime(2016, 12, 13) in my_birthdays)
         self.assertTrue(datetime(2179, 12, 13) in my_birthdays)
         # Time zone
-        self.assertEquals(
+        self.assertEqual(
             list(
                 generate_recurring_dates(
                     start=datetime(2016, 11, 17, 23, 00),
@@ -134,28 +134,28 @@ class EventTestCase(EventsBaseTestCase):
         self.app.data.insert("events", generated_events)
 
         selected = await self.events_service.find_one_async(req=None, name="Event 5")
-        self.assertEquals("Event 5", selected["name"])
+        self.assertEqual("Event 5", selected["name"])
 
         (historic, past, future) = await get_recurring_timeline(selected)
 
-        self.assertEquals(2, len(historic))
-        self.assertEquals(3, len(past))
-        self.assertEquals(4, len(future))
+        self.assertEqual(2, len(historic))
+        self.assertEqual(3, len(past))
+        self.assertEqual(4, len(future))
 
         expected_time = generated_events[0]["dates"]["start"]
         for e in historic:
-            self.assertEquals(e["dates"]["start"], expected_time)
+            self.assertEqual(e["dates"]["start"], expected_time)
             expected_time += timedelta(days=1)
 
         for e in past:
-            self.assertEquals(e["dates"]["start"], expected_time)
+            self.assertEqual(e["dates"]["start"], expected_time)
             expected_time += timedelta(days=1)
 
-        self.assertEquals(selected["dates"]["start"], expected_time)
+        self.assertEqual(selected["dates"]["start"], expected_time)
         expected_time += timedelta(days=1)
 
         for e in future:
-            self.assertEquals(e["dates"]["start"], expected_time)
+            self.assertEqual(e["dates"]["start"], expected_time)
             expected_time += timedelta(days=1)
 
     async def test_create_cancelled_event(self):
