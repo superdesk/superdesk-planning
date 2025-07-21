@@ -41,20 +41,45 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
     }
 
     componentDidMount() {
-        const {item} = this.props;
-
-        // Allow the Planning item and store to be loaded concurrently
-        getItemPlanningInfo(item).then((planning) => {
-            this.setState({planning});
-        });
-
+        this.loadPlanning();
         this.sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
             // Fetch the agendas before saving the store to the state
             store.dispatch(fetchAgendas()).then(() => {
                 this.setState({store});
             });
         });
+
+        // Listen to real-time planning updates
+        window.addEventListener('planning:updated', this.onPlanningUpdated as EventListener);
     }
+
+    componentWillUnmount() {
+        window.removeEventListener('planning:updated', this.onPlanningUpdated as EventListener);
+    }
+
+    private loadPlanning = () => {
+        const {item} = this.props;
+
+        getItemPlanningInfo(item).then((planning) => {
+            this.setState({planning});
+        });
+    };
+
+    private onPlanningUpdated = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        const updatedItem = customEvent.detail?.item;
+
+        const current = this.state.planning;
+
+        if (!updatedItem || !current) {
+            return;
+        }
+
+        // Check if same planning item and different etag
+        if (updatedItem._id === current._id && updatedItem._etag !== current._etag) {
+            this.loadPlanning(); // re-fetch the updated planning
+        }
+    };
 
     render() {
         // Only render if we have both the planning item and store

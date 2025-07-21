@@ -13,6 +13,7 @@ export const PLANNING_DETAILS_WIDGET_LABEL = gettext('Planning Details');
 interface IState {
     loading: boolean;
     planningId: string | null;
+    planningEtag: string | null;
 }
 
 export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidgetComponentType, IState> {
@@ -22,6 +23,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
         this.state = {
             loading: props.article.assignment_id != null,
             planningId: null,
+            planningEtag: null,
         };
     }
 
@@ -43,6 +45,7 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
             .then((planning) => {
                 this.setState({
                     planningId: planning._id,
+                    planningEtag: planning._etag,
                     loading: false,
                 });
             })
@@ -61,15 +64,18 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
 
     private onPlanningUpdated = (event: Event) => {
         const customEvent = event as CustomEvent;
-        const updatedId = customEvent?.detail?.item;
-        const {planningId} = this.state;
+        const updatedPlanningItem = customEvent?.detail?.item;
 
-        if (planningId && updatedId === planningId) {
-            const {assignment_id} = this.props.article;
+        if (!updatedPlanningItem) return;
 
-            if (assignment_id) {
-                this.fetchPlanningInfo(assignment_id);
-            }
+        const {assignment_id} = this.props.article;
+        const {planningId, planningEtag} = this.state;
+
+        if (!assignment_id || !planningId) return;
+
+        // Only respond to changes of the currently loaded planning item
+        if (updatedPlanningItem._id === planningId && updatedPlanningItem._etag !== planningEtag) {
+            this.fetchPlanningInfo(assignment_id); // Re-fetch planning info
         }
     };
 
