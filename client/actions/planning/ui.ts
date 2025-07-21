@@ -125,9 +125,19 @@ const loadMore = () => (
     (dispatch, getState) => {
         const previousParams = selectors.main.lastRequestParams(getState());
         const totalItems = selectors.main.planningTotalItems(getState());
-        const planIdsInList = selectors.planning.planIdsInList(getState());
+        const planIdsInList = selectors.planning.planIdsInList(getState()) ?? [];
+        const lastDayGroup = selectors.planning.lastDayGroup(getState()) ?? [];
 
-        if (totalItems === get(planIdsInList, 'length', 0)) {
+        // When user scrolls to load more items, this function runs recursively.
+        // Check if previously stored lastDayGroup and the already loaded items
+        // make up all the items so there's no further fetching
+        if (totalItems === (planIdsInList.length + lastDayGroup.length)) {
+            if (lastDayGroup.length != 0) {
+                dispatch(planningApis.receivePlannings(lastDayGroup));
+                dispatch(self.addToList(lastDayGroup.map((x) => x._id)));
+                dispatch(storeLastDayGroup([]));
+            }
+
             return Promise.resolve();
         }
 
@@ -141,7 +151,6 @@ const loadMore = () => (
                 // Save params queried with in lastRequestParams
                 // so we keep track of next page
                 dispatch(self.requestPlannings(params));
-
                 dispatch(self.addToList(items.map((x) => x._id)));
 
                 return Promise.resolve(items);
