@@ -411,7 +411,7 @@ describe('actions.planning.notifications', () => {
                 })
         ).catch(done.fail));
 
-        fit('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => (
+        it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => (
             store.test(done, planningNotifications.onPlanningUnspiked({}, {
                 item: data.plannings[0]._id,
                 state: 'draft',
