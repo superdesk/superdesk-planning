@@ -226,6 +226,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
         const eventItem = (
             <EventItem
                 {...eventProps}
+                planningProps={this.props.planningProps}
                 active={this.state.activeIndex === 0}
                 relatedEventsUI={{
                     visible: this.state.openPlanningItems,

@@ -75,13 +75,6 @@ function isEventAllDay(item: IEventItem): boolean {
         && end.isSame(end.clone().endOf('day'), 'minute');
 }
 
-function showEventStartDate(eventDate: IDateTime, multiDay: boolean, planningDate?: IDateTime): boolean {
-    if (planningDate == null) {
-        return true;
-    }
-    return (!moment(eventDate).isSame(planningDate, 'day') || multiDay);
-}
-
 function eventHasPlanning(event: IEventItem): boolean {
     return get(event, 'planning_ids', []).length > 0;
 }
@@ -1591,7 +1584,6 @@ const self = {
     canUpdateEventTime,
     canConvertToRecurringEvent,
     canUpdateEventRepetitions,
-    showEventStartDate,
     isEventRecurring,
     getDateStringForEvent,
     getEventActions,

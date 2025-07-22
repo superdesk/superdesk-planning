@@ -1,5 +1,6 @@
 import React from 'react';
 import {connect} from 'react-redux';
+import moment from 'moment';
 import {get} from 'lodash';
 import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
@@ -175,7 +176,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
         const isExpired = isItemExpired(item);
         const eventStartDate = eventUtils.getStartDate(item);
         const eventEndDate = eventUtils.getEndDate(item);
-        const isEventMultiDay = !isSameDay(eventStartDate, eventEndDate);
 
         const renderFieldsWithProps = (fields: Array<string>) => renderFields(
             fields,
@@ -187,14 +187,8 @@ class EventItemComponent extends React.Component<IProps, IState> {
                         relatedPlanningsCount: this.props.relatedPlanningsCount,
                     },
                     event_datetime: {
-                        isEventAndPlanningSameDate: this.props.planningProps?.date == null
-                            ? false
-                            : isSameDay(eventStartDate, this.props.planningProps.date),
-                        hideStartDate: !eventUtils.showEventStartDate(
-                            eventStartDate,
-                            isEventMultiDay,
-                            this.props.planningProps?.date,
-                        ),
+                        hideStartDate: this.props.planningProps?.date != null
+                            && isSameDay(eventStartDate, moment(this.props.planningProps.date)),
                     },
                 },
             },

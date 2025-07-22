@@ -260,7 +260,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             }
 
             return (
-                <EventItem {... eventProps} />
+                <EventItem {...eventProps} planningProps={planningProps} />
             );
 
         case ITEM_TYPE.PLANNING:

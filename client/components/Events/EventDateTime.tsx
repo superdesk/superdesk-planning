@@ -15,7 +15,6 @@ import {SpacerBlock} from '@sourcefabric/common';
 interface IProps {
     item: IEventItem;
 
-    isEventAndPlanningSameDate?: boolean;
     hideStartDate?: boolean;
 }
 
@@ -27,7 +26,6 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(item);
         const multiDay = !isSameDay(start, end);
-        const isEventAndPlanningSameDate = this.props.isEventAndPlanningSameDate ?? false;
         const showEventStartDate = !(this.props.hideStartDate ?? false);
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
         const withYear = multiDay && start.year() !== end.year();
@@ -75,7 +73,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
         return isAllDay ? (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
                 <Spacer h gap={'4'}>
-                    {(!isEventAndPlanningSameDate || multiDay) && (
+                    {showEventStartDate && (
                         <DateTime
                             withDate={showEventStartDate}
                             withYear={false}
@@ -85,6 +83,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                             testId="event-start-date"
                         />
                     )}
+
                     {gettext('All day')}
                 </Spacer>
             </span>
@@ -102,6 +101,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                 <DateTime
                     withDate={multiDay}
                     withYear={withYear}
+                    withTime={!isFullDay}
                     isEndEventDateTime={true}
                     date={end}
                     testId="event-end-date"
@@ -119,6 +119,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                             withDate={remoteStartWithDate}
                             withYear={remoteStartWithYear}
                             date={remoteStart}
+                            withTime={!isFullDay}
                             {...commonProps}
                         />
 
@@ -128,6 +129,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
                             withDate={remoteEndWithDate}
                             withYear={remoteEndWithYear}
                             date={remoteEnd}
+                            withTime={!isFullDay}
                             isEndEventDateTime={true}
                             {...commonProps}
                         />
