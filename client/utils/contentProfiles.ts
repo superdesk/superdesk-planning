@@ -14,6 +14,7 @@ import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 import {getUserInterfaceLanguageFromCV} from './users';
+import {appConfig} from 'appConfig';
 
 export function getProfileGroupIdsSorted(profile: IEditorProfile): Array<IEditorProfileGroup['_id']> {
     return Object.keys(profile.groups ?? {})
@@ -84,9 +85,9 @@ export function getGroupFieldsSorted(
  */
 export const VOCABULARIES_TO_BE_EXCLUDED = new Set([
     /**
-     * General vocabularies to be excluded:
+     * Client specific vocabularies to be excluded:
      */
-    'sttsubj',
+    ...appConfig.vocabulariesToExcludeAsFields,
 
     /**
      * Coverage specific vocabularies:
