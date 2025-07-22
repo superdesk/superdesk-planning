@@ -110,6 +110,7 @@ const eventFirstLineConfigDefaults: Array<ILineConfig> = [
     {fieldId: 'name'},
     {fieldId: 'calendars'},
     {fieldId: 'location'},
+    {fieldId: 'event_datetime', position: 'end'},
 ];
 
 const eventSecondLineConfigDefaults: Array<ILineConfig> = [

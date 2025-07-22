@@ -18,11 +18,11 @@ import {
 } from '../../utils';
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
-import {EventDateTimeColumn} from './EventDateTimeColumn';
 import * as actions from '../../actions';
 import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {LineItems} from '../../components/UI/List/LineItems';
 import {eventFirstLineConfig, eventSecondLineConfig} from '../../config';
+import {isSameDay} from '../../helpers';
 
 interface IState {
     hover: boolean;
@@ -173,6 +173,9 @@ class EventItemComponent extends React.Component<IProps, IState> {
         }
 
         const isExpired = isItemExpired(item);
+        const eventStartDate = eventUtils.getStartDate(item);
+        const eventEndDate = eventUtils.getEndDate(item);
+        const isEventMultiDay = !isSameDay(eventStartDate, eventEndDate);
 
         const renderFieldsWithProps = (fields: Array<string>) => renderFields(
             fields,
@@ -182,6 +185,16 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     related_plannings: {
                         relatedEventsUI: this.props.relatedEventsUI,
                         relatedPlanningsCount: this.props.relatedPlanningsCount,
+                    },
+                    event_datetime: {
+                        isEventAndPlanningSameDate: this.props.planningProps?.date == null
+                            ? false
+                            : isSameDay(eventStartDate, this.props.planningProps.date),
+                        hideStartDate: !eventUtils.showEventStartDate(
+                            eventStartDate,
+                            isEventMultiDay,
+                            this.props.planningProps?.date,
+                        ),
                     },
                 },
             },
@@ -239,12 +252,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </Column>
-
-                <EventDateTimeColumn
-                    item={item}
-                    multiRow={listViewType === LIST_VIEW_TYPE.LIST}
-                    planningProps={this.props.planningProps}
-                />
 
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
                     <CreatedUpdatedColumn

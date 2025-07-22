@@ -38,6 +38,7 @@ import {expired} from './expired';
 import {event_completed} from './event_completed';
 import {related_events} from './related_events';
 import {related_plannings} from './related_plannings';
+import {event_datetime} from './event_datetime';
 
 let registeredFields = {};
 
@@ -422,6 +423,7 @@ registerField('definition_short', description);
 registerField('internalnote', internalnote);
 registerField('state', state);
 registerField('expired', expired);
+registerField('event_datetime', event_datetime);
 registerField('event_completed', event_completed);
 registerField('related_events', related_events);
 
