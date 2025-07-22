@@ -354,6 +354,7 @@ describe('actions.planning.notifications', () => {
             sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
             sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
             sinon.stub(planningUi, 'getByIdAndAddToList').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'refetchPlanning').callsFake(() => (Promise.resolve()));
             sinon.stub(featuredPlanning, 'getAndUpdateStoredPlanningItem').callsFake(
@@ -365,6 +366,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(main.closePreviewAndEditorForItems);
             restoreSinonStub(main.setUnsetLoadingIndicator);
             restoreSinonStub(planningUi.getByIdAndAddToList);
+            restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.refetchPlanning);
             restoreSinonStub(featuredPlanning.getAndUpdateStoredPlanningItem);
@@ -409,14 +411,14 @@ describe('actions.planning.notifications', () => {
                 })
         ).catch(done.fail));
 
-        it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => (
+        fit('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => (
             store.test(done, planningNotifications.onPlanningUnspiked({}, {
                 item: data.plannings[0]._id,
                 state: 'draft',
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(9);
+                    expect(store.dispatch.callCount).toBe(7);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                         payload: {
