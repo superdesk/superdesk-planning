@@ -14,6 +14,7 @@ import {planningApi, superdeskApi} from '../superdeskApi';
 
 import {getVocabularyItemFieldTranslated} from './vocabularies';
 import {getUserInterfaceLanguageFromCV} from './users';
+import {appConfig} from 'appConfig';
 
 export function getProfileGroupIdsSorted(profile: IEditorProfile): Array<IEditorProfileGroup['_id']> {
     return Object.keys(profile.groups ?? {})
@@ -78,7 +79,19 @@ export function getGroupFieldsSorted(
     return fields;
 }
 
-export const COVERAGE_VOCABULARIES = new Set([
+/**
+ * Used to determine which custom vocabularies should not be registered as field
+ * of type `custom_vocabulary`.
+ */
+export const VOCABULARIES_TO_BE_EXCLUDED = new Set([
+    /**
+     * Client specific vocabularies to be excluded:
+     */
+    ...(appConfig.vocabulariesToExcludeAsFields ?? []),
+
+    /**
+     * Coverage specific vocabularies:
+     */
     'news_coverage_status',
     'g2_content_type',
     'genre',
@@ -101,7 +114,7 @@ export function getUnusedProfileFields(
     includeGroupCheck: boolean = true
 ): Array<IProfileFieldEntry> {
     const customVocabularies = planningApi.vocabularies.getCustomVocabularies()
-        .filter(({_id}) => COVERAGE_VOCABULARIES.has(_id) === false);
+        .filter(({_id}) => VOCABULARIES_TO_BE_EXCLUDED.has(_id) === false);
     const vocabularyIds = new Set(customVocabularies.map(({_id}) => _id));
 
     /*
