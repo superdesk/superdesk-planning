@@ -125,7 +125,12 @@ export class ListPanel extends React.Component<IProps, IState> {
         this.memoizedSort = memoize((items) =>
             extensionConfig?.comparePlanningItems != null
                 ? items.sort(extensionConfig.comparePlanningItems)
-                : items
+                : items.sort((x, y) => {
+                    const item1Date = (x as IEventItem).dates?.start ?? (x as IPlanningItem).planning_date;
+                    const item2Date = (y as IEventItem).dates?.start ?? (y as IPlanningItem).planning_date;
+
+                    return item1Date.toString().localeCompare(item2Date.toString());
+                })
         );
     }
 
