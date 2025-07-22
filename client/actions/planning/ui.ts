@@ -161,32 +161,44 @@ const loadMore = () => (
 /**
  * Refetch planning items based on the current search
  */
-const refetch = () => (
+const getByIdAndAddToList = (itemId: string) => (
     (dispatch, getState, {notify}) => {
         var previewId = selectors.main.previewId(getState());
 
         if (!selectors.main.isPlanningView(getState())) {
             return Promise.resolve();
         }
+
         if (previewId) {
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
-        dispatch(self.clearList());
+        return dispatch(planningApis.fetchById(itemId))
+            .then((item: IPlanningItem) => {
+                const shouldAddToList = ['killed', 'spiked'].includes(item.state) === false;
 
-        return dispatch(planningApis.refetch())
-            .then((items) => {
-                dispatch(self.setInList(items.map((p) => p._id)));
+                if (shouldAddToList) {
+                    const totalItems = selectors.main.planningTotalItems(getState());
 
-                return Promise.resolve(items);
+                    dispatch(main.setTotal(MAIN.FILTERS.PLANNING, totalItems + 1));
+                    dispatch(self.addToList([item._id]));
+                } else {
+                    // if item was spiked or killed remove it from the list view
+                    const itemsInList = selectors.planning.planIdsInList(getState());
+                    const nextItemsInList = itemsInList.filter((x) => x !== item._id);
+
+                    dispatch(self.setInList(nextItemsInList));
+                }
+
+                return Promise.resolve([item]);
             })
             .catch((error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to update the planning list!')
                 );
+
                 return Promise.reject(error);
-            }
-            );
+            });
     }
 );
 
@@ -196,11 +208,10 @@ const refetch = () => (
 let nextRefetch = {
     called: 0,
 };
-const scheduleRefetch = () => (
+
+const scheduleRefetch = (itemId: string) => (
     (dispatch) => (
-        dispatch(
-            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
-        )
+        dispatch(dispatchUtils.scheduleDispatch(self.getByIdAndAddToList(itemId), nextRefetch))
     )
 );
 
@@ -577,7 +588,7 @@ const self = {
     setInList,
     addToList,
     loadMore,
-    refetch,
+    getByIdAndAddToList,
     duplicate,
     openCancelPlanningModal,
     openCancelAllCoverageModal,

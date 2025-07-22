@@ -35,7 +35,8 @@ const onPlanningCreated = (_e: {}, data: IWebsocketMessageData['PLANNING_CREATED
         }
 
         dispatch(main.setUnsetLoadingIndicator(true));
-        return dispatch(planning.ui.scheduleRefetch())
+
+        return dispatch(planning.ui.scheduleRefetch(data.item))
             .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
             .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
     }
@@ -62,8 +63,8 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
 
         const promises = [];
 
-        promises.push(dispatch(planning.ui.scheduleRefetch())
-            .then((results) => {
+        promises.push(dispatch(planning.ui.scheduleRefetch(data.item))
+            .then(() => {
                 if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
                     const currentPreviewId = selectors.main.previewId(getState());
 
@@ -71,8 +72,6 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
                         dispatch(planning.api.fetchById(updatedPlanningId, {force: true}));
                     }
                 }
-
-                dispatch(eventsPlanning.ui.scheduleRefetch());
             }));
 
         if (data.added_agendas.length > 0 || data.removed_agendas.length > 0) {
@@ -189,8 +188,7 @@ function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']
 const onPlanningPosted = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.ui.scheduleRefetch());
-            dispatch(eventsPlanning.ui.scheduleRefetch());
+            dispatch(planning.ui.scheduleRefetch(data.item));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(eventsPlanning.ui.refetchPlanning(data.item));
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
@@ -222,7 +220,8 @@ const onPlanningSpiked = (_e, data) => (
 
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
+
+            return dispatch(planning.ui.getByIdAndAddToList(data.item))
                 .then(() => {
                     dispatch(eventsPlanning.ui.refetchPlanning(data.item));
                     return dispatch(eventsPlanning.ui.scheduleRefetch());
@@ -255,7 +254,7 @@ const onPlanningUnspiked = (_e, data) => (
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
 
             dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
+            return dispatch(planning.ui.scheduleRefetch(data.item))
                 .then(() => {
                     dispatch(eventsPlanning.ui.refetchPlanning(data.item));
                     return dispatch(eventsPlanning.ui.scheduleRefetch());
@@ -387,7 +386,8 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
                         title: gettext('Featured Stories Unlocked'),
                         body: gettext('Featured stories you were managing was ' +
                             `unlocked by ${user.display_name}`),
-                    }}));
+                    }
+                }));
             }
             return Promise.resolve();
         }
