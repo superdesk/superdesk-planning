@@ -62,21 +62,17 @@ import {isSameDay} from './../helpers';
 import {getOpenEditorType} from './editor';
 
 
-/**
- * Helper function to determine if the starting and ending dates
- * occupy entire day(s)
- * @param {moment} startingDate - A moment instance for the starting date/time
- * @param {moment} endingDate - A moment instance for the starting date/time
- * @param {boolean} checkMultiDay - If true include multi-day in the check, otherwise must be single day only
- * @return {boolean} If the date/times occupy entire day(s)
- */
-function isEventAllDay(startingDate: IDateTime, endingDate: IDateTime, checkMultiDay: boolean = false): boolean {
-    const start = moment(startingDate).clone();
-    const end = moment(endingDate).clone();
+function isEventAllDay(item: IEventItem): boolean {
+    if (item?.dates?.all_day === true) {
+        return true;
+    }
 
-    return (checkMultiDay || start.isSame(end, 'day')) &&
-        start.isSame(start.clone().startOf('day'), 'minute') &&
-        end.isSame(end.clone().endOf('day'), 'minute');
+    const start = getStartDate(item).clone();
+    const end = getEndDate(item).clone();
+
+    return start.isSame(end, 'day')
+        && start.isSame(start.clone().startOf('day'), 'minute')
+        && end.isSame(end.clone().endOf('day'), 'minute');
 }
 
 function showEventStartDate(eventDate: IDateTime, multiDay: boolean, planningDate?: IDateTime): boolean {

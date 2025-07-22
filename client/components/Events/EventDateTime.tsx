@@ -25,7 +25,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const {item} = this.props;
         const start = eventUtils.getStartDate(item);
         const end = eventUtils.getEndDate(item);
-        const isAllDay = eventUtils.isEventAllDay(start, end);
+        const isAllDay = eventUtils.isEventAllDay(item);
         const multiDay = !isSameDay(start, end);
         const isEventAndPlanningSameDate = this.props.isEventAndPlanningSameDate ?? false;
         const showEventStartDate = !(this.props.hideStartDate ?? false);
