@@ -176,11 +176,14 @@ const getByIdAndAddToList = (itemId: string) => (
 
         const prevParams = selectors.main.lastRequestParams(getState());
 
-        return dispatch(planningApis.query({
-            ...prevParams,
-            itemIds: [itemId],
-            page: 1,
-        }))
+        return dispatch(planningApis.query(
+            {
+                ...prevParams,
+                itemIds: [itemId],
+                page: 1,
+            },
+            false,
+        ))
             .then((result: IRestApiResponse<IPlanningItem>) => {
                 const maybeItem = result._items?.[0];
 
