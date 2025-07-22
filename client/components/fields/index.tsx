@@ -2,15 +2,13 @@ import React from 'react';
 import {sortBy} from 'lodash';
 
 import {
-    EDITOR_TYPE,
-    IEditorState,
     IEventOrPlanningItem,
     IProfileSchemaType,
     IRenderPanelType,
     ISearchProfile,
     PREVIEW_PANEL,
 } from '../../interfaces';
-import {planningApi, superdeskApi} from '../../superdeskApi';
+import {superdeskApi} from '../../superdeskApi';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -18,7 +16,6 @@ import {headline} from './headline';
 import {description} from './description';
 import {internalnote} from './internalnote';
 import {state} from './state';
-import {actionedState} from './actionedState';
 import {calendars} from './calendars';
 import {location} from './location';
 import {files} from './files';
@@ -34,8 +31,6 @@ import {FIELD_TO_FORM_PREVIEW_COMPONENT, FIELD_TO_PREVIEW_COMPONENT} from './pre
 
 import {ToggleBox} from '../UI/ToggleBox';
 import './style.scss';
-import {expired} from './expired';
-import {event_completed} from './event_completed';
 import {related_events} from './related_events';
 import {related_plannings} from './related_plannings';
 import {event_datetime} from './event_datetime';
@@ -422,14 +417,11 @@ registerField('description', description);
 registerField('definition_short', description);
 registerField('internalnote', internalnote);
 registerField('state', state);
-registerField('expired', expired);
 registerField('event_datetime', event_datetime);
-registerField('event_completed', event_completed);
 registerField('related_events', related_events);
 
 
 // Event related fields
-registerField('actionedState', actionedState);
 registerField('calendars', calendars);
 registerField('location', location);
 registerField('files', files);

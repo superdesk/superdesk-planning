@@ -114,10 +114,7 @@ const eventFirstLineConfigDefaults: Array<ILineConfig> = [
 ];
 
 const eventSecondLineConfigDefaults: Array<ILineConfig> = [
-    {fieldId: 'expired'},
     {fieldId: 'state'},
-    {fieldId: 'actionedState'},
-    {fieldId: 'event_completed'},
     {fieldId: 'related_plannings'},
     {fieldId: 'location'},
 ];
@@ -135,9 +132,7 @@ const planningFirstLineDefaults: Array<ILineConfig> = [
 ];
 
 const planningSecondLineDefaults: Array<ILineConfig> = [
-    {fieldId: 'expired'},
     {fieldId: 'state'},
-    {fieldId: 'event_completed'},
     {fieldId: 'featured'},
     {fieldId: 'agendas'},
     {fieldId: 'related_events'},
