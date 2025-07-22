@@ -223,7 +223,6 @@ const onPlanningSpiked = (_e, data) => (
 
             return dispatch(planning.ui.getByIdAndAddToList(data.item))
                 .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
                     return dispatch(eventsPlanning.ui.scheduleRefetch());
                 })
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
@@ -251,14 +250,12 @@ const onPlanningUnspiked = (_e, data) => (
                     null :
                     gettext('The Planning item was unspiked')
             ));
-            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
 
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
+
             return dispatch(planning.ui.scheduleRefetch(data.item))
-                .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
-                    return dispatch(eventsPlanning.ui.scheduleRefetch());
-                })
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 

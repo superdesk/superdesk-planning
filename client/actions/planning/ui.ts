@@ -23,6 +23,7 @@ import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import * as selectors from '../../selectors';
 import {PLANNING, WORKSPACE, MODALS, MAIN} from '../../constants';
 import * as actions from '../index';
+import {IRestApiResponse} from 'superdesk-api';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -159,7 +160,7 @@ const loadMore = () => (
 );
 
 /**
- * Refetch planning items based on the current search
+ * Refetch planning item based on the current search
  */
 const getByIdAndAddToList = (itemId: string) => (
     (dispatch, getState, {notify}) => {
@@ -173,24 +174,28 @@ const getByIdAndAddToList = (itemId: string) => (
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
-        return dispatch(planningApis.fetchById(itemId))
-            .then((item: IPlanningItem) => {
-                const shouldAddToList = ['killed', 'spiked'].includes(item.state) === false;
+        const prevParams = selectors.main.lastRequestParams(getState());
 
-                if (shouldAddToList) {
-                    const totalItems = selectors.main.planningTotalItems(getState());
+        return dispatch(planningApis.query({
+            ...prevParams,
+            itemIds: [itemId],
+            page: 1,
+        }))
+            .then((result: IRestApiResponse<IPlanningItem>) => {
+                const maybeItem = result._items?.[0];
 
-                    dispatch(main.setTotal(MAIN.FILTERS.PLANNING, totalItems + 1));
-                    dispatch(self.addToList([item._id]));
+                if (maybeItem != null) {
+                    dispatch(planningApis.receivePlannings([maybeItem]));
+                    dispatch(self.addToList([maybeItem._id]));
                 } else {
-                    // if item was spiked or killed remove it from the list view
+                    // remove from the list view
                     const itemsInList = selectors.planning.planIdsInList(getState());
-                    const nextItemsInList = itemsInList.filter((x) => x !== item._id);
+                    const nextItemsInList = itemsInList.filter((x) => x !== itemId);
 
                     dispatch(self.setInList(nextItemsInList));
                 }
 
-                return Promise.resolve([item]);
+                return Promise.resolve([]);
             })
             .catch((error) => {
                 notify.error(
