@@ -6,7 +6,7 @@ import {EventDateTime} from '../../components/Events';
 interface IProps extends IFieldsProps {
     fieldsProps: {
         event_datetime?: {
-            hideStartDate?: boolean;
+            hasStartDateContext?: boolean;
         };
     };
 }
@@ -21,7 +21,7 @@ export const event_datetime: React.ComponentType<IProps> = (props) => {
     return (
         <EventDateTime
             item={item}
-            hideStartDate={props?.fieldsProps?.event_datetime?.hideStartDate}
+            hasStartDateContext={props?.fieldsProps?.event_datetime?.hasStartDateContext}
         />
     );
 };

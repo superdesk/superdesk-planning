@@ -15,20 +15,25 @@ import {SpacerBlock} from '@sourcefabric/common';
 interface IProps {
     item: IEventItem;
 
-    hideStartDate?: boolean;
+    /**
+     * This prop indicates that this component is rendered in a location that already provides start day information.
+     * Its purpose is to render shorter output and omit information that is already clear from the context.
+     */
+    hasStartDateContext?: boolean;
 }
 
 export class EventDateTime extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const {hasStartDateContext = false} = this.props;
         const {item} = this.props;
         const start = eventUtils.getStartDate(item);
         const end = eventUtils.getEndDate(item);
         const isAllDay = eventUtils.isEventAllDay(item);
         const multiDay = !isSameDay(start, end);
-        const showEventStartDate = !(this.props.hideStartDate ?? false);
+        const showEventStartDate = !hasStartDateContext;
         const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
-        const withYear = multiDay && start.year() !== end.year();
+        const withYear = !hasStartDateContext || (multiDay && start.year() !== end.year());
         let remoteStart,
             remoteEnd,
             remoteStartWithDate,

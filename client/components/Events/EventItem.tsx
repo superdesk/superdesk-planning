@@ -175,7 +175,6 @@ class EventItemComponent extends React.Component<IProps, IState> {
 
         const isExpired = isItemExpired(item);
         const eventStartDate = eventUtils.getStartDate(item);
-        const eventEndDate = eventUtils.getEndDate(item);
 
         const renderFieldsWithProps = (fields: Array<string>) => renderFields(
             fields,
@@ -187,7 +186,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
                         relatedPlanningsCount: this.props.relatedPlanningsCount,
                     },
                     event_datetime: {
-                        hideStartDate: this.props.planningProps?.date != null
+                        hasStartDateContext: this.props.planningProps?.date != null
                             && isSameDay(eventStartDate, moment(this.props.planningProps.date)),
                     },
                 },
