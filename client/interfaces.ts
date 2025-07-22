@@ -1583,6 +1583,7 @@ export interface IEditorFieldProps {
     showErrors?: boolean;
     editorType?: EDITOR_TYPE;
     profile?: IPlanningContentProfile;
+    debounce?: number;
 
     onChange(field: string | {[key: string]: any}, value: any): void;
     popupContainer?(): HTMLElement;
