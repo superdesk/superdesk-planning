@@ -33,6 +33,7 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
     static defaultProps: Partial<IProps>;
     readonly state = {store: null, planning: null};
     private sdPlanningStore: any;
+    private intervalId: NodeJS.Timeout | null = null;
 
     constructor(props: IProps) {
         super(props);
@@ -41,7 +42,13 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
     }
 
     componentDidMount() {
-        this.loadPlanning();
+        const {item} = this.props;
+
+        // Allow the Planning item and store to be loaded concurrently
+        getItemPlanningInfo(item).then((planning) => {
+            this.setState({planning});
+        });
+
         this.sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
             // Fetch the agendas before saving the store to the state
             store.dispatch(fetchAgendas()).then(() => {
@@ -49,37 +56,26 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
             });
         });
 
-        // Listen to real-time planning updates
-        window.addEventListener('planning:updated', this.onPlanningUpdated as EventListener);
+        this.intervalId = setInterval(() => {
+            this.fetchPlanning(item);
+        }, 10000);
     }
 
     componentWillUnmount() {
-        window.removeEventListener('planning:updated', this.onPlanningUpdated as EventListener);
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
     }
 
-    private loadPlanning = () => {
-        const {item} = this.props;
-
-        getItemPlanningInfo(item).then((planning) => {
-            this.setState({planning});
-        });
-    };
-
-    private onPlanningUpdated = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        const updatedItem = customEvent.detail?.item;
-
-        const current = this.state.planning;
-
-        if (!updatedItem || !current) {
-            return;
-        }
-
-        // Check if same planning item and different etag
-        if (updatedItem._id === current._id && updatedItem._etag !== current._etag) {
-            this.loadPlanning(); // re-fetch the updated planning
-        }
-    };
+    fetchPlanning(item: IProps['item']) {
+        getItemPlanningInfo(item)
+            .then((planning) => {
+                this.setState({planning});
+            })
+            .catch(() => {
+                // Error ignored
+            });
+    }
 
     render() {
         // Only render if we have both the planning item and store
