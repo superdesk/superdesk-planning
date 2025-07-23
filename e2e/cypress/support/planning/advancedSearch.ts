@@ -254,6 +254,7 @@ export class AdvancedSearch {
                     throw new Error(`Field "${name}" not registered with e2e search helper`);
                 } else if (value?.length || isBoolean(value)) {
                     field.type(value);
+                    cy.wait(100); // Wait for any potential debounce
                 } else {
                     field.clear();
                 }

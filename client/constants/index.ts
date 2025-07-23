@@ -95,6 +95,9 @@ export const TEMP_ID_PREFIX = 'tempId-';
 // The delay in ms for use with single and double click detection
 export const CLICK_DELAY = 250;
 
+// The delay in ms for use with input changes
+export const CHANGE_DELAY = 500;
+
 export const USER_ACTIONS = {
     RECEIVE_USER_PREFERENCES: 'RECEIVE_USER_PREFERENCES',
 };

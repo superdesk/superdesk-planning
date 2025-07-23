@@ -37,10 +37,10 @@ export class Input {
      * @param {string} value - The value to type into the input field
      */
     type(value) {
+        this.clear();
         cy.log('Common.Input.type');
-        this.element
-            .clear()
-            .type(value);
+        this.element.type(value);
+        cy.wait(250); // Wait for any potential debounce
     }
 
     /**
@@ -56,6 +56,7 @@ export class Input {
     clear() {
         cy.log('Common.Input.clear');
         this.element.clear();
+        cy.wait(250); // Wait for any potential debounce
     }
 
     expectError(message) {

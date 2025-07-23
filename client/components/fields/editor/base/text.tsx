@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {get, uniqueId} from 'lodash';
+import {debounce, get, uniqueId} from 'lodash';
 import {IRestApiResponse} from 'superdesk-api';
 import {appConfig} from 'appConfig';
 
@@ -11,6 +11,7 @@ import {Row} from '../../../UI/Form';
 
 interface IState {
     key: string;
+    value: string;
     suggestions: string[];
 }
 
@@ -21,19 +22,19 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.propsOnChange = debounce(
+            this.propsOnChange.bind(this),
+            props.debounce ?? 0,
+            {maxWait: 1000},
+        );
         this.searchSuggestions = this.searchSuggestions.bind(this);
         this.node = React.createRef();
 
         this.state = {
             key: uniqueId(),
             suggestions: [],
+            value: get(props.item, props.field, props.defaultValue || ''),
         };
-    }
-
-    componentDidUpdate(prevProps: Readonly<IEditorFieldTextProps>, prevState: Readonly<IState>, snapshot?: any) {
-        if (get(prevProps.item, prevProps.field) !== get(this.props.item, this.props.field)) {
-            this.onPropValueChanged();
-        }
     }
 
     componentDidMount(): void {
@@ -46,22 +47,14 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         }
     }
 
-    onPropValueChanged() {
-        // If the value on the provided item has changed
-        // Check this new value against the value in the `input` element directly
-        // If these two differ, then force a re-mount/render of the `input` element
-        // Using the React `key` attribute
-
-        const node = this.getInputElement();
-        const propValue = get(this.props.item, this.props.field);
-
-        if (node != null && node.value !== propValue) {
-            this.setState({key: uniqueId()});
-        }
+    onChange(value: string) {
+        this.setState({value}, () => {
+            this.propsOnChange(this.state.value);
+        });
     }
 
-    onChange(newValue) {
-        this.props.onChange(this.props.field, newValue);
+    propsOnChange(value: string) {
+        this.props.onChange(this.props.field, value);
     }
 
     getInputElement(): HTMLInputElement | undefined {
@@ -89,8 +82,6 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
     }
 
     searchSuggestions(searchString: string, callback: (result: Array<any>) => void) {
-        const currentValue = this.props.item[this.props.field];
-
         callback(this.state.suggestions.filter(
             (name) => name.toLowerCase().includes(searchString.toLowerCase()),
         ));
@@ -101,7 +92,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
 
     render() {
         const field = this.props.field;
-        const value = get(this.props.item, field, this.props.defaultValue);
+        const value = this.state.value;
         const error = get(this.props.errors ?? {}, field);
 
         return (

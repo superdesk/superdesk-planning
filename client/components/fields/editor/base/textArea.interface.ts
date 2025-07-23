@@ -8,4 +8,5 @@ export interface IEditorFieldTextAreaProps extends IEditorFieldProps {
     rows?: number;
     labelIcon?: string;
     noPadding?: boolean;
+    debounce?: number;
 }

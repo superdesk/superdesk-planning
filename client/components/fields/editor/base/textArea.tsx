@@ -1,16 +1,29 @@
 import * as React from 'react';
-import {get} from 'lodash';
+import {debounce, get} from 'lodash';
 
 import {IEditorFieldTextAreaProps} from './textArea.interface';
 import {Row, TextAreaInput} from '../../../UI/Form';
 
-export class EditorFieldTextArea extends React.PureComponent<IEditorFieldTextAreaProps> {
+interface IState {
+    value: string;
+}
+
+export class EditorFieldTextArea extends React.PureComponent<IEditorFieldTextAreaProps, IState> {
     node: React.RefObject<HTMLDivElement>;
 
     constructor(props: IEditorFieldTextAreaProps) {
         super(props);
 
         this.node = React.createRef();
+
+        this.state = {value: get(props.item, props.field, props.defaultValue || '')};
+
+        this.onChange = this.onChange.bind(this);
+        this.propsOnChange = debounce(
+            this.propsOnChange.bind(this),
+            props.debounce ?? 0,
+            {maxWait: 1000},
+        );
     }
 
     focus() {
@@ -19,9 +32,19 @@ export class EditorFieldTextArea extends React.PureComponent<IEditorFieldTextAre
         }
     }
 
+    onChange(field: string, value: string) {
+        this.setState({value}, () => {
+            this.propsOnChange(this.state.value);
+        });
+    }
+
+    propsOnChange(value: string) {
+        this.props.onChange(this.props.field, value);
+    }
+
     render() {
         const field = this.props.field;
-        const value = get(this.props.item, field, this.props.defaultValue);
+        const value = this.state.value;
         const error = get(this.props.errors ?? {}, field);
 
         return (
@@ -38,6 +61,7 @@ export class EditorFieldTextArea extends React.PureComponent<IEditorFieldTextAre
                     maxLength={this.props.maxLength ?? this.props.schema?.maxlength}
                     invalid={this.props.invalid ?? (error != null && this.props.showErrors)}
                     noMargin={true}
+                    onChange={this.onChange}
                 />
             </Row>
         );
