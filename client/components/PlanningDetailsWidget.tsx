@@ -33,48 +33,47 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
     static defaultProps: Partial<IProps>;
     readonly state = {store: null, planning: null};
     private sdPlanningStore: any;
-    private intervalId: NodeJS.Timeout | null = null;
+    private planningId: string | null = null;
+    private unsubscribe: (() => void) | null = null;
 
     constructor(props: IProps) {
         super(props);
-
         this.sdPlanningStore = ng.get('sdPlanningStore');
     }
 
     componentDidMount() {
         const {item} = this.props;
 
-        // Allow the Planning item and store to be loaded concurrently
         getItemPlanningInfo(item).then((planning) => {
+            this.planningId = planning._id;
             this.setState({planning});
         });
 
         this.sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
-            // Fetch the agendas before saving the store to the state
             store.dispatch(fetchAgendas()).then(() => {
                 this.setState({store});
             });
         });
 
-        this.intervalId = setInterval(() => {
-            this.fetchPlanning(item);
-        }, 10000);
+        const $rootScope = ng.get('$rootScope');
+
+        this.unsubscribe = $rootScope.$on('planning:updated', (_e: any, updatedPlanning: any) => {
+            const updatedPlanningId = updatedPlanning?.item;
+
+            if (!this.planningId || !updatedPlanningId || updatedPlanningId !== this.planningId) {
+                return;
+            }
+
+            getItemPlanningInfo(this.props.item).then((planning) => {
+                this.setState({planning});
+            });
+        });
     }
 
     componentWillUnmount() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
+        if (this.unsubscribe) {
+            this.unsubscribe();
         }
-    }
-
-    fetchPlanning(item: IProps['item']) {
-        getItemPlanningInfo(item)
-            .then((planning) => {
-                this.setState({planning});
-            })
-            .catch(() => {
-                // Error ignored
-            });
     }
 
     render() {
