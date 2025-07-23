@@ -23,6 +23,7 @@ import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import * as selectors from '../../selectors';
 import {PLANNING, WORKSPACE, MODALS, MAIN} from '../../constants';
 import * as actions from '../index';
+import {IRestApiResponse} from 'superdesk-api';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -125,9 +126,19 @@ const loadMore = () => (
     (dispatch, getState) => {
         const previousParams = selectors.main.lastRequestParams(getState());
         const totalItems = selectors.main.planningTotalItems(getState());
-        const planIdsInList = selectors.planning.planIdsInList(getState());
+        const planIdsInList = selectors.planning.planIdsInList(getState()) ?? [];
+        const lastDayGroup = selectors.planning.lastDayGroup(getState()) ?? [];
 
-        if (totalItems === get(planIdsInList, 'length', 0)) {
+        // When user scrolls to load more items, this function runs recursively.
+        // Check if previously stored lastDayGroup and the already loaded items
+        // make up all the items so there's no further fetching
+        if (totalItems === (planIdsInList.length + lastDayGroup.length)) {
+            if (lastDayGroup.length != 0) {
+                dispatch(planningApis.receivePlannings(lastDayGroup));
+                dispatch(self.addToList(lastDayGroup.map((x) => x._id)));
+                dispatch(storeLastDayGroup([]));
+            }
+
             return Promise.resolve();
         }
 
@@ -141,7 +152,6 @@ const loadMore = () => (
                 // Save params queried with in lastRequestParams
                 // so we keep track of next page
                 dispatch(self.requestPlannings(params));
-
                 dispatch(self.addToList(items.map((x) => x._id)));
 
                 return Promise.resolve(items);
@@ -150,34 +160,53 @@ const loadMore = () => (
 );
 
 /**
- * Refetch planning items based on the current search
+ * Refetch planning item based on the current search
  */
-const refetch = () => (
+const getByIdAndAddToList = (itemId: string) => (
     (dispatch, getState, {notify}) => {
         var previewId = selectors.main.previewId(getState());
 
         if (!selectors.main.isPlanningView(getState())) {
             return Promise.resolve();
         }
+
         if (previewId) {
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
-        dispatch(self.clearList());
+        const prevParams = selectors.main.lastRequestParams(getState());
 
-        return dispatch(planningApis.refetch())
-            .then((items) => {
-                dispatch(self.setInList(items.map((p) => p._id)));
+        return dispatch(planningApis.query(
+            {
+                ...prevParams,
+                itemIds: [itemId],
+                page: 1,
+            },
+            false,
+        ))
+            .then((result: IRestApiResponse<IPlanningItem>) => {
+                const maybeItem = result._items?.[0];
 
-                return Promise.resolve(items);
+                if (maybeItem != null) {
+                    dispatch(planningApis.receivePlannings([maybeItem]));
+                    dispatch(self.addToList([maybeItem._id]));
+                } else {
+                    // remove from the list view
+                    const itemsInList = selectors.planning.planIdsInList(getState());
+                    const nextItemsInList = itemsInList.filter((x) => x !== itemId);
+
+                    dispatch(self.setInList(nextItemsInList));
+                }
+
+                return Promise.resolve([]);
             })
             .catch((error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to update the planning list!')
                 );
+
                 return Promise.reject(error);
-            }
-            );
+            });
     }
 );
 
@@ -187,11 +216,10 @@ const refetch = () => (
 let nextRefetch = {
     called: 0,
 };
-const scheduleRefetch = () => (
+
+const scheduleRefetch = (itemId: string) => (
     (dispatch) => (
-        dispatch(
-            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
-        )
+        dispatch(dispatchUtils.scheduleDispatch(self.getByIdAndAddToList(itemId), nextRefetch))
     )
 );
 
@@ -568,7 +596,7 @@ const self = {
     setInList,
     addToList,
     loadMore,
-    refetch,
+    getByIdAndAddToList,
     duplicate,
     openCancelPlanningModal,
     openCancelAllCoverageModal,
