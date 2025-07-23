@@ -138,7 +138,7 @@ TextArea.propTypes = {
 TextArea.defaultProps = {
     readOnly: false,
     autoHeight: true,
-    autoHeightTimeout: 50,
+    autoHeightTimeout: 200,
     nativeOnChange: false,
     paddingRight60: false,
     multiLine: true,
