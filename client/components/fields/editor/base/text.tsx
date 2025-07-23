@@ -44,7 +44,7 @@ export class EditorFieldText extends React.Component<IEditorFieldTextProps, ISta
         this.state = {
             key: uniqueId(),
             suggestions: [],
-            value: get(props.item, props.field, props.defaultValue) ?? '',
+            value: get(props.item, props.field, props.defaultValue || ''),
         };
     }
 

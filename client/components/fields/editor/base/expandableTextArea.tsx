@@ -24,7 +24,7 @@ export class EditorFieldExpandableTextArea extends React.PureComponent<IProps, I
 
         this.node = React.createRef();
 
-        this.state = {value: get(props.item, props.field, props.defaultValue) ?? ''};
+        this.state = {value: get(props.item, props.field, props.defaultValue || '')};
 
         this.onChange = this.onChange.bind(this);
         this.propsOnChange = debounce(

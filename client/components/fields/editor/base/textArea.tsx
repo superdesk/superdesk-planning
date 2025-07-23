@@ -27,7 +27,7 @@ export class EditorFieldTextArea extends React.PureComponent<IProps, IState> {
 
         this.node = React.createRef();
 
-        this.state = {value: get(props.item, props.field, props.defaultValue) ?? ''};
+        this.state = {value: get(props.item, props.field, props.defaultValue || '')};
 
         this.onChange = this.onChange.bind(this);
         this.propsOnChange = debounce(
