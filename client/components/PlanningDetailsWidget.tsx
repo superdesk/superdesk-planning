@@ -5,6 +5,7 @@ import {PlanningPreviewContent} from './Planning/PlanningPreviewContent';
 import {modifyForClient} from '../utils/planning';
 import {WORKSPACE} from '../constants';
 import {fetchAgendas} from '../actions';
+import {superdeskApi} from '../superdeskApi';
 
 interface IProps {
     item: {
@@ -39,15 +40,20 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.sdPlanningStore = ng.get('sdPlanningStore');
+        this.loadPlanning = this.loadPlanning.bind(this);
     }
 
-    componentDidMount() {
+    private loadPlanning() {
         const {item} = this.props;
 
         getItemPlanningInfo(item).then((planning) => {
             this.planningId = planning._id;
             this.setState({planning});
         });
+    }
+
+    componentDidMount() {
+        this.loadPlanning();
 
         this.sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
             store.dispatch(fetchAgendas()).then(() => {
@@ -55,18 +61,14 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
             });
         });
 
-        const $rootScope = ng.get('$rootScope');
+        this.unsubscribe = superdeskApi.addWebsocketMessageListener('resource:updated', (event: any) => {
+            const updatedPlanningId = event.detail.extra?._id || event.detail.extra?.item_id;
 
-        this.unsubscribe = $rootScope.$on('planning:updated', (_e: any, updatedPlanning: any) => {
-            const updatedPlanningId = updatedPlanning?.item;
-
-            if (!this.planningId || !updatedPlanningId || updatedPlanningId !== this.planningId) {
+            if (this.planningId === null || updatedPlanningId === null || updatedPlanningId !== this.planningId) {
                 return;
             }
 
-            getItemPlanningInfo(this.props.item).then((planning) => {
-                this.setState({planning});
-            });
+            this.loadPlanning();
         });
     }
 
@@ -78,7 +80,7 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
 
     render() {
         // Only render if we have both the planning item and store
-        if (!this.state.planning || !this.state.store) {
+        if (this.state.planning === null || this.state.store === null) {
             return null;
         }
 
