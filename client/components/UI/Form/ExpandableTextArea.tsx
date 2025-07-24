@@ -219,5 +219,5 @@ ExpandableTextArea.defaultProps = {
     nativeOnChange: false,
     readOnly: false,
     initialFocus: false,
-    autoHeightTimeout: 50,
+    autoHeightTimeout: 100,
 };
