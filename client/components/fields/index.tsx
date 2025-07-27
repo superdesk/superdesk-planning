@@ -36,6 +36,7 @@ import {related_plannings} from './related_plannings';
 import {event_datetime} from './event_datetime';
 import {vocabulary} from './vocabulary';
 import {ILineConfig} from 'globals';
+import {urgency} from './urgency';
 
 let registeredFields = {};
 
@@ -423,6 +424,7 @@ registerField('internalnote', internalnote);
 registerField('state', state);
 registerField('event_datetime', event_datetime);
 registerField('related_events', related_events);
+registerField('urgency', urgency);
 
 
 // Event related fields
