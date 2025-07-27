@@ -21,7 +21,7 @@ export const state: React.FunctionComponent<IFieldsProps> = ({item}) => {
     })();
 
     return (
-        <Spacer h gap="4">
+        <Spacer h gap="4" noWrap>
             <Label text={gettext(itemState.label)} iconType={itemState.iconType} />
 
             {

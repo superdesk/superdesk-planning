@@ -153,10 +153,20 @@ interface ResizeObserverCallback {
     (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
 }
 
-export interface ILineConfig {
+export interface ILineConfigStandard {
     fieldId: string;
     position?: 'start' | 'end';
+    fieldOptions: any; // type of options will be different for each field type
 }
+
+export interface ILineConfigVocabulary extends ILineConfigStandard {
+    fieldId: 'vocabulary';
+    fieldOptions: {
+        vocabularyId: string;
+    };
+}
+
+export type ILineConfig = ILineConfigStandard | ILineConfigVocabulary;
 
 // KEEP IN SYNC WITH client/planning-extension/src/globals.d.ts
 declare module 'superdesk-api' {

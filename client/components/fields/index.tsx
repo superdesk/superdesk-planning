@@ -34,6 +34,8 @@ import './style.scss';
 import {related_events} from './related_events';
 import {related_plannings} from './related_plannings';
 import {event_datetime} from './event_datetime';
+import {vocabulary} from './vocabulary';
+import {ILineConfig} from 'globals';
 
 let registeredFields = {};
 
@@ -53,12 +55,13 @@ export function registerField(id, component) {
  * @param {Object} props
  */
 export function renderFields(
-    fields: Array<any>|string,
+    fields: Array<ILineConfig>,
     item: IEventOrPlanningItem,
     props: Object = {},
     language: string = ''
 ) {
-    return (Array.isArray(fields) ? fields : [fields]).map((id) => {
+    return fields.map((field) => {
+        const id = field.fieldId;
         const Component = registeredFields[id];
 
         if (Component) {
@@ -67,6 +70,7 @@ export function renderFields(
                     key={id}
                     item={item}
                     language={language}
+                    fieldOptions={{[id]: field.fieldOptions}}
                     {...props}
                 />
             );
@@ -430,3 +434,6 @@ registerField('agendas', agendas);
 registerField('coverages', coverages);
 registerField('reference', reference);
 registerField('related_plannings', related_plannings);
+
+// common fields
+registerField('vocabulary', vocabulary);

@@ -33,6 +33,7 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {LineItems} from '../../components/UI/List/LineItems';
 import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../config';
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
+import {ILineConfig} from 'globals';
 
 
 interface IState {
@@ -202,7 +203,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
         const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
 
-        const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
             fields,
             item,
             {
