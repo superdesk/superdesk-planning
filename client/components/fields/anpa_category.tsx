@@ -26,7 +26,7 @@ export const anpa_category: React.ComponentType<IProps> = (props) => {
 
     return (
         <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
-            <div>{gettext('ANPA Category')}</div>
+            <div className="sd-list-item__text-label">{gettext('ANPA Category')}</div>
 
             <WithMoreItems
                 items={anpa_category}

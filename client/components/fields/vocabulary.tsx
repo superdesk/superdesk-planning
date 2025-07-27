@@ -27,7 +27,7 @@ export const vocabulary: React.ComponentType<IProps> = (props) => {
 
     return (
         <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
-            <div>{vocabulary.display_name}</div>
+            <div className="sd-list-item__text-label">{vocabulary.display_name}</div>
 
             <WithMoreItems
                 items={vocabularyItems}
