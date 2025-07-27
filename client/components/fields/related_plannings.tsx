@@ -45,6 +45,7 @@ export const related_plannings: React.FunctionComponent<IProps> = ({item, fields
                 event.stopPropagation();
                 relatedEventsUI.setVisibility(!relatedEventsUI.visible);
             }}
+            style={{whiteSpace: 'nowrap'}}
         >
             <Spacer h gap="4" alignItems="center" noWrap>
                 <span>
