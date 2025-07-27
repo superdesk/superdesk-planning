@@ -37,6 +37,7 @@ import {event_datetime} from './event_datetime';
 import {vocabulary} from './vocabulary';
 import {ILineConfig} from 'globals';
 import {urgency} from './urgency';
+import {anpa_category} from './anpa_category';
 
 let registeredFields = {};
 
@@ -439,3 +440,4 @@ registerField('related_plannings', related_plannings);
 
 // common fields
 registerField('vocabulary', vocabulary);
+registerField('anpa_category', anpa_category);
