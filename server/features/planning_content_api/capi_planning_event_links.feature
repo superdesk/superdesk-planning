@@ -69,7 +69,7 @@ Feature: Events & Planning Content API
         Then we get list with 1 items
         """
         {"_items": [
-            {"_id": "event1"}
+            {"_id": "event1", "plans": ["plan1"]}
         ]}
         """
         When we get capi "/planning/plan1"
@@ -153,8 +153,8 @@ Feature: Events & Planning Content API
         Then we get list with 2 items
         """
         {"_items": [
-            {"_id": "event1"},
-            {"_id": "event2"}
+            {"_id": "event1", "plans": ["plan1"]},
+            {"_id": "event2", "plans": ["plan1"]}
         ]}
         """
         When we get capi "/planning/plan1"
