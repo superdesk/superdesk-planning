@@ -22,6 +22,7 @@ from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_update_time import process_update_time
 from planning.events.events_update_repetitions import process_update_repetitions
+from planning.content_api.resources import ContentAPIPlanningService, ContentAPIEventService
 
 from .events import is_event_updated
 
@@ -691,3 +692,52 @@ class EventsRelatedPlanningAutoPublish(EventsBaseTestCase):
         planning_item = await planning_service.find_one_async(req=None, _id=new_plannings[0])
         self.assertEqual(len([planning_item]), 1)
         self.assertEqual(planning_item.get("state"), "scheduled")
+
+
+class EventPlanningContentAPITestCase(TestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        self.events_service = get_resource_service("events")
+        self.planning_service = get_resource_service("planning")
+        self.event_capi_service = ContentAPIEventService()
+        self.planning_capi_service = ContentAPIPlanningService()
+
+    async def test_related_event_planning_details_sync(self):
+        [event_id] = await self.events_service.post_async([
+            {
+                "guid": "test-event-guid",
+                "name": "Original Event Name",
+                "dates": {
+                    "start": datetime.now(),
+                    "end": datetime.now() + timedelta(days=1),
+                },
+            }
+        ])
+        event = await self.events_service.find_one_async(req=None, _id=event_id)
+        await self.event_capi_service.publish_async(event, None)
+        
+        [planning_id] = await self.planning_service.post_async([
+            {
+                "guid": "test-planning-guid",
+                "slugline": "test slugline",
+                "name": "Test Planning",
+                "planning_date": datetime.now() + timedelta(hours=1),
+                "type": "planning",
+                "related_events": [{"_id": event_id, "link_type": "primary"}],
+            }
+        ])
+        planning = await self.planning_service.find_one_async(req=None, _id=planning_id)
+        await self.planning_capi_service.publish_async(planning, None)
+
+        content_api_planning = await self.planning_capi_service.find_by_id_raw(planning_id)
+        self.assertEqual(len([content_api_planning]), 1)
+        self.assertEqual(content_api_planning["events"][0]["name"], "Original Event Name")
+
+        updated_name = "Updated Event Name"
+        await self.events_service.patch_async(event_id, {"name": updated_name})
+        event = await self.events_service.find_one_async(req=None, _id=event_id)
+        await self.event_capi_service.publish_async(event, None)
+        
+        updated_capi_planning = await self.planning_capi_service.find_by_id_raw(planning_id)
+        self.assertEqual(len([updated_capi_planning]), 1)
+        self.assertEqual(updated_capi_planning["events"][0]["name"], updated_name)
