@@ -703,29 +703,33 @@ class EventPlanningContentAPITestCase(TestCase):
         self.planning_capi_service = ContentAPIPlanningService()
 
     async def test_related_event_planning_details_sync(self):
-        [event_id] = await self.events_service.post_async([
-            {
-                "guid": "test-event-guid",
-                "name": "Original Event Name",
-                "dates": {
-                    "start": datetime.now(),
-                    "end": datetime.now() + timedelta(days=1),
-                },
-            }
-        ])
+        [event_id] = await self.events_service.post_async(
+            [
+                {
+                    "guid": "test-event-guid",
+                    "name": "Original Event Name",
+                    "dates": {
+                        "start": datetime.now(),
+                        "end": datetime.now() + timedelta(days=1),
+                    },
+                }
+            ]
+        )
         event = await self.events_service.find_one_async(req=None, _id=event_id)
         await self.event_capi_service.publish_async(event, None)
-        
-        [planning_id] = await self.planning_service.post_async([
-            {
-                "guid": "test-planning-guid",
-                "slugline": "test slugline",
-                "name": "Test Planning",
-                "planning_date": datetime.now() + timedelta(hours=1),
-                "type": "planning",
-                "related_events": [{"_id": event_id, "link_type": "primary"}],
-            }
-        ])
+
+        [planning_id] = await self.planning_service.post_async(
+            [
+                {
+                    "guid": "test-planning-guid",
+                    "slugline": "test slugline",
+                    "name": "Test Planning",
+                    "planning_date": datetime.now() + timedelta(hours=1),
+                    "type": "planning",
+                    "related_events": [{"_id": event_id, "link_type": "primary"}],
+                }
+            ]
+        )
         planning = await self.planning_service.find_one_async(req=None, _id=planning_id)
         await self.planning_capi_service.publish_async(planning, None)
 
@@ -737,7 +741,7 @@ class EventPlanningContentAPITestCase(TestCase):
         await self.events_service.patch_async(event_id, {"name": updated_name})
         event = await self.events_service.find_one_async(req=None, _id=event_id)
         await self.event_capi_service.publish_async(event, None)
-        
+
         updated_capi_planning = await self.planning_capi_service.find_by_id_raw(planning_id)
         self.assertEqual(len([updated_capi_planning]), 1)
         self.assertEqual(updated_capi_planning["events"][0]["name"], updated_name)
