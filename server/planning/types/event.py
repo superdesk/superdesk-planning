@@ -29,7 +29,7 @@ class LocationAddress(Dataclass):
     city: str | None = None
     state: str | None = None
     country: str | None = None
-    line: str | None = None
+    line: list[str] | None = None
     locality: str | None = None
     title: str | None = None
     type: str | None = None
@@ -39,8 +39,7 @@ class LocationAddress(Dataclass):
 class EventLocation(Dataclass):
     name: fields.TextWithKeyword
     qcode: fields.Keyword | None = None
-    address: Annotated[dict[str, Any] | None, fields.dynamic_mapping()] = None
-    # address: LocationAddress | None = None
+    address: LocationAddress | None = None
     formatted_address: str | None = None
     geo: str | None = None
     location: fields.Geopoint | None = None
