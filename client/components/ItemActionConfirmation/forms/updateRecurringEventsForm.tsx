@@ -348,7 +348,7 @@ export class UpdateRecurringEventsComponent extends React.Component<IProps, ISta
                 {this.state.eventModified === false ? null : (
                     <React.Fragment>
                         <Text size="small" className="mb-1 mt-0-5">
-                            <strong>{gettext('This is a recurring event.')}</strong>
+                            <strong>{gettext('This is a recurring event.')}</strong>&nbsp;
                             {gettext('Update all recurring events or just this one?')}
                         </Text>
                         <Select
