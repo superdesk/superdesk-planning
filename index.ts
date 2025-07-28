@@ -1,4 +1,5 @@
 // styles
+import ReactDOM from 'react-dom';
 import './client/styles/index.scss';
 import planningModule from './client';
 import * as ctrl from './client/controllers';
@@ -73,7 +74,11 @@ window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     newElement.className = 'modal__dialog ng-scope';
     rootScope.locals = {data: {item: e.detail}};
 
-    rootScope.resolve = () => newElement.remove();
+    // unmount the component and remove the element when the modal is closed
+    rootScope.resolve = () => {
+        ReactDOM.unmountComponentAtNode(newElement);
+        newElement.remove();
+    };
 
     new ctrl.AddToPlanningController(
         newElement,
