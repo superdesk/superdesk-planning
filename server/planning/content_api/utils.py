@@ -43,13 +43,14 @@ SYSTEM_FIELDS: set[str] = {
     "planning_schedule",
 }
 
+
 def adjust_coverage_planning_scheduled_if_tbc(item: dict) -> None:
     if item.get("type") != "planning" or not item.get("coverages"):
         return
 
     for coverage in item["coverages"]:
         tbc = coverage.pop("_time_to_be_confirmed", None)
-        
+
         planning = coverage.get("planning")
         if not planning:
             continue
