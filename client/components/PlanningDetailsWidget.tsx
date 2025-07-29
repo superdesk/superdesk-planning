@@ -18,6 +18,13 @@ interface IState {
     planning: any;
 }
 
+interface ResourceUpdatedEventDetail {
+    extra: {
+        _id?: string;
+        item_id?: string;
+    };
+}
+
 export function getItemPlanningInfo(item: {assignment_id: string}) {
     const api = ng.get('api');
 
@@ -61,15 +68,17 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
             });
         });
 
-        this.unsubscribe = superdeskApi.addWebsocketMessageListener('resource:updated', (event: any) => {
-            const updatedPlanningId = event.detail.extra?._id || event.detail.extra?.item_id;
+        this.unsubscribe = superdeskApi.addWebsocketMessageListener(
+            'resource:updated',
+            (event: CustomEvent<ResourceUpdatedEventDetail>) => {
+                const updatedPlanningId = event.detail.extra?._id || event.detail.extra?.item_id;
 
-            if (this.planningId === null || updatedPlanningId === null || updatedPlanningId !== this.planningId) {
-                return;
-            }
+                if (this.planningId === null || updatedPlanningId === null || updatedPlanningId !== this.planningId) {
+                    return;
+                }
 
-            this.loadPlanning();
-        });
+                this.loadPlanning();
+            });
     }
 
     componentWillUnmount() {
