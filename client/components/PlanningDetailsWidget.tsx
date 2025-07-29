@@ -5,6 +5,7 @@ import {PlanningPreviewContent} from './Planning/PlanningPreviewContent';
 import {modifyForClient} from '../utils/planning';
 import {WORKSPACE} from '../constants';
 import {fetchAgendas} from '../actions';
+import {superdeskApi} from '../superdeskApi';
 
 interface IProps {
     item: {
@@ -15,6 +16,13 @@ interface IProps {
 interface IState {
     store: any;
     planning: any;
+}
+
+interface ResourceUpdatedEventDetail {
+    extra: {
+        _id?: string;
+        item_id?: string;
+    };
 }
 
 export function getItemPlanningInfo(item: {assignment_id: string}) {
@@ -33,57 +41,55 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
     static defaultProps: Partial<IProps>;
     readonly state = {store: null, planning: null};
     private sdPlanningStore: any;
+    private planningId: string | null = null;
+    private unsubscribe: (() => void) | null = null;
 
     constructor(props: IProps) {
         super(props);
-
         this.sdPlanningStore = ng.get('sdPlanningStore');
+        this.loadPlanning = this.loadPlanning.bind(this);
+    }
+
+    private loadPlanning() {
+        const {item} = this.props;
+
+        getItemPlanningInfo(item).then((planning) => {
+            this.planningId = planning._id;
+            this.setState({planning});
+        });
     }
 
     componentDidMount() {
         this.loadPlanning();
+
         this.sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING_WIDGET, (store) => {
-            // Fetch the agendas before saving the store to the state
             store.dispatch(fetchAgendas()).then(() => {
                 this.setState({store});
             });
         });
 
-        // Listen to real-time planning updates
-        window.addEventListener('planning:updated', this.onPlanningUpdated as EventListener);
+        this.unsubscribe = superdeskApi.addWebsocketMessageListener(
+            'resource:updated',
+            (event: CustomEvent<ResourceUpdatedEventDetail>) => {
+                const updatedPlanningId = event.detail.extra?._id || event.detail.extra?.item_id;
+
+                if (this.planningId === null || updatedPlanningId === null || updatedPlanningId !== this.planningId) {
+                    return;
+                }
+
+                this.loadPlanning();
+            });
     }
 
     componentWillUnmount() {
-        window.removeEventListener('planning:updated', this.onPlanningUpdated as EventListener);
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
     }
-
-    private loadPlanning = () => {
-        const {item} = this.props;
-
-        getItemPlanningInfo(item).then((planning) => {
-            this.setState({planning});
-        });
-    };
-
-    private onPlanningUpdated = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        const updatedItem = customEvent.detail?.item;
-
-        const current = this.state.planning;
-
-        if (!updatedItem || !current) {
-            return;
-        }
-
-        // Check if same planning item and different etag
-        if (updatedItem._id === current._id && updatedItem._etag !== current._etag) {
-            this.loadPlanning(); // re-fetch the updated planning
-        }
-    };
 
     render() {
         // Only render if we have both the planning item and store
-        if (!this.state.planning || !this.state.store) {
+        if (this.state.planning === null || this.state.store === null) {
             return null;
         }
 
