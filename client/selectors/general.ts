@@ -1,7 +1,7 @@
 import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
 
-import {IAgenda, IG2ContentType, IPlanningAppState} from '../interfaces';
+import {IAgenda, IG2ContentType, IPlanningAppState, ISession} from '../interfaces';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
 import {ITEM_TYPE, COVERAGES, ASSIGNMENTS} from '../constants/index';
 
@@ -70,7 +70,7 @@ export const preferredCountry = createSelector(
     (vocab) => get(vocab, 'countries[0]', null)
 );
 
-export const session = (state) => get(state, 'session');
+export const session: (state: any) => ISession = (state) => get(state, 'session');
 export const sessionId = (state) => get(state, 'session.sessionId');
 export const userPreferences = (state) => get(state, 'session.userPreferences') || {};
 export const defaultPlaceList = (state) => get(state, 'session.userPreferences.article:default:place.place', []);

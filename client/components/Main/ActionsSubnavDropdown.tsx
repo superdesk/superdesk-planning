@@ -12,6 +12,8 @@ import {showModal} from '../../actions/modal';
 import {showModal as showModalSf} from '@sourcefabric/common';
 import {MODALS} from '../../constants/modals';
 import {CoverageProfilesModal} from '../../components/ContentProfiles/CoverageProfileModal';
+import * as selectors from '../../selectors';
+import ManageExportTemplatesModal from '../../components/ExportTemplates/ManageExportTemplates';
 
 const ActionsSubnavDropdownComponent = (props) => {
     let items = [];
@@ -57,6 +59,17 @@ const ActionsSubnavDropdownComponent = (props) => {
         items.push({
             label: gettext('Manage Event & Planning Filters'),
             action: props.openEventsPlanningFiltersModal,
+        });
+    }
+
+    const currentSession = selectors.general.session(planningApi.redux.store.getState());
+
+    if (currentSession.identity.user_type === 'administrator') {
+        items.push({
+            label: gettext('Manage Export Templates'),
+            action: () => showModalSf(({closeModal}) => (
+                <ManageExportTemplatesModal closeModal={closeModal} />
+            )),
         });
     }
 
