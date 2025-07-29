@@ -48,11 +48,13 @@ def adjust_coverage_planning_scheduled_if_tbc(item: dict) -> None:
         return
 
     for coverage in item["coverages"]:
+        tbc = coverage.pop("_time_to_be_confirmed", None)
+        
         planning = coverage.get("planning")
         if not planning:
             continue
 
-        if coverage.get("_time_to_be_confirmed") is True:
+        if tbc is True:
             planning["scheduled"] = planning["scheduled"].strftime("%Y-%m-%d")
 
 
