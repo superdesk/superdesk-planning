@@ -68,9 +68,9 @@ window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
 
 window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const newElement = document.createElement('div');
-    document.body.appendChild(newElement);
     const rootScope = ng.get('$rootScope');
 
+    document.body.appendChild(newElement);
     newElement.className = 'modal__dialog ng-scope';
     rootScope.locals = {data: {item: e.detail}};
 
