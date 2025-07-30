@@ -241,7 +241,7 @@ planning_schema = {
     "subject": {
         "type": "list",
         "mapping": {
-            "type": "object",
+            "type": "nested",
             "dynamic": False,
             "properties": {
                 "qcode": not_analyzed,

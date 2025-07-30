@@ -122,6 +122,51 @@ export class AdvancedSearch {
                 getSearchPanel,
                 '[data-test-id=field-month_day] select'
             ),
+            reference: new Input(
+                getSearchPanel,
+                '[data-test-id=field-reference] input',
+            ),
+            definition_short: new Input(
+                getSearchPanel,
+                '[data-test-id=field-definition_short] input',
+            ),
+            definition_long: new Input(
+                getSearchPanel,
+                '[data-test-id=field-definition_long] input',
+            ),
+            registration_details: new Input(
+                getSearchPanel,
+                '[data-test-id=field-registration_details] input',
+            ),
+            invitation_details: new Input(
+                getSearchPanel,
+                '[data-test-id=field-invitation_details] input',
+            ),
+            accreditation_info: new Input(
+                getSearchPanel,
+                '[data-test-id=field-accreditation_info] input',
+            ),
+            registration: new Input(
+                getSearchPanel,
+                '[data-test-id=field-registration] input',
+            ),
+            event_types: new TreeSelect(
+                getSearchPanel,
+                '[data-test-id=field-event_types]',
+                true,
+            ),
+            description_text: new Input(
+                getSearchPanel,
+                '[data-test-id=field-description_text] input',
+            ),
+            ednote: new Input(
+                getSearchPanel,
+                '[data-test-id=field-ednote] input',
+            ),
+            headline: new Input(
+                getSearchPanel,
+                '[data-test-id=field-headline] input',
+            ),
         };
         this.list = new PlanningList();
     }
@@ -222,7 +267,7 @@ export class AdvancedSearch {
         }
 
         if (run.expectedCount != null) {
-            this.list.expectItemCount(run.expectedCount);
+            this.list.expectItemCount(run.expectedCount, 5000);
         }
 
         if (run.expectedText?.length) {

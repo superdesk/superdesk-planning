@@ -1,6 +1,8 @@
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
 import {AdvancedSearch, PlanningList, PlanningEditor} from '../../support/planning';
 import {TEST_PLANNINGS, createPlanningFor} from '../../fixtures/planning';
+import {ADVANCED_SEARCH} from '../../fixtures/planning_types';
+import {CVs} from '../../fixtures/cvs';
 
 describe('Search.Planning: searching planning items', () => {
     const search = new AdvancedSearch();
@@ -19,9 +21,76 @@ describe('Search.Planning: searching planning items', () => {
             TEST_PLANNINGS.spiked,
             TEST_PLANNINGS.featured,
         ]);
+        addItems('vocabularies', [
+            CVs.EVENT_TYPES,
+        ]);
+        addItems('planning_types', [
+            ADVANCED_SEARCH,
+        ]);
+
+        cy.reload(); // when adding vocabularies, the page needs to be reloaded to reflect the changes
+
         search.viewPlanningOnly();
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
+
+        // custom CVs
+        search.runSearchTests([
+            {
+                params: {event_types: 'Foo'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {event_types: 'Bar'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+        ]);
+ 
+        // text fields
+        search.runSearchTests([
+            {
+                params: {description_text: 'description text'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {description_text: 'non-existing text'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {name: 'name'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {name: 'non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {ednote: 'editorial note'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {ednote: 'non-existing note'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {headline: 'planning headline'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {headline: 'non-existing headline'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+        ]);
 
         search.runSearchTests([{
             params: {},

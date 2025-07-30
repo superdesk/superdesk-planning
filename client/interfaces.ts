@@ -966,6 +966,8 @@ export interface ICommonAdvancedSearchParams {
         name?: string;
     }>;
     priority?: Array<number>;
+    internal_note?: string;
+    ednote?: string;
 }
 
 export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
@@ -998,8 +1000,14 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
     advancedSearch?: ICommonAdvancedSearchParams & {
         location?: IEventLocation;
         reference?: string;
+        invitation_details?: string;
+        accreditation_details?: string;
+        registration_details?: string;
+        accreditation_info?: string;
+        definition_short?: string;
+        definition_long?: string;
+        registration?: string;
     };
-
 }
 
 export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem> {
@@ -1015,6 +1023,8 @@ export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem
         g2_content_type?: IG2ContentType;
         noCoverage?: boolean;
         urgency?: IUrgency;
+        description_text?: string;
+        headline?: string;
     };
 }
 
@@ -1389,6 +1399,7 @@ export interface IFormAutosave {
 }
 
 export interface ISearchParams {
+    ednote: any;
     // Common Params
     item_ids?: Array<string>;
     name?: string;
@@ -1430,6 +1441,14 @@ export interface ISearchParams {
     location?: IEventLocation;
     calendars?: Array<ICalendar>;
     no_calendar_assigned?: boolean;
+    invitation_details?: string;
+    accreditation_details?: string;
+    registration_details?: string;
+    internal_note?: string;
+    accreditation_info?: string;
+    definition_short?: string;
+    definition_long?: string;
+    registration?: string;
 
     // Planning Params
     agendas?: Array<IAgenda['_id']>;
@@ -1443,6 +1462,8 @@ export interface ISearchParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: Array<IEventItem['_id']>;
+    description_text?: string;
+    headline?: string;
 
     // Pagination
     page?: number;
@@ -1476,6 +1497,7 @@ export interface ISearchAPIParams {
     source?: string;
     coverage_user_id?: string;
     priority?: string;
+    ednote?: string;
 
     // Event Params
     reference?: string;
@@ -1483,6 +1505,14 @@ export interface ISearchAPIParams {
     calendars?: string;
     no_calendar_assigned?: boolean;
     only_future?: boolean;
+    invitation_details?: string;
+    accreditation_details?: string;
+    registration_details?: string;
+    internal_note?: string;
+    accreditation_info?: string;
+    definition_short?: string;
+    definition_long?: string;
+    registration?: string;
 
     // Planning Params
     agendas?: string;
@@ -1496,6 +1526,8 @@ export interface ISearchAPIParams {
     include_scheduled_updates?: boolean;
     event_item?: string;
     coverage_assignment_status?: ICoverageAssigned['qcode']
+    description_text?: string;
+    headline?: string;
 
     // Pagination
     page?: number;

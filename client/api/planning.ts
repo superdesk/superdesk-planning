@@ -41,6 +41,8 @@ export function convertPlanningParams(params: ISearchParams): Partial<ISearchAPI
         coverage_user_id: params.coverage_user_id,
         coverage_assignment_status: params.coverage_assignment_status,
         priority: arrayToString(params.priority),
+        description_text: params.description_text,
+        headline: params.headline,
     };
 }
 

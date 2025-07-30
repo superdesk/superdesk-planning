@@ -8,10 +8,14 @@ import planningApi from '../actions/planning/api';
 import eventsApi from '../actions/events/api';
 import {partition} from 'lodash';
 
-export function cvsToString(items?: Array<{[key: string]: any}>, field: string = 'qcode'): string {
+export function cvsToString(
+    items?: Array<{[key: string]: any}>,
+    field: string = 'qcode',
+    includeScheme: boolean = false,
+): string {
     return arrayToString(
         (items ?? [])
-            .map((item) => item[field])
+            .map((item) => includeScheme && item.scheme ? item.scheme + ':' + item[field] : item[field])
     );
 }
 
@@ -26,7 +30,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         name: params.name,
         full_text: params.full_text,
         anpa_category: cvsToString(params.anpa_category),
-        subject: cvsToString(params.subject),
+        subject: cvsToString(params.subject, 'qcode', true),
         state: cvsToString(params.state),
         posted: params.posted,
         language: params.language,
@@ -53,6 +57,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         sort_field: params.sort_field,
         tz_offset: params.date_filter ? getTimeZoneOffset() : null,
         time_zone: timeUtils.localTimeZone(),
+        ednote: params.ednote,
     };
 }
 
