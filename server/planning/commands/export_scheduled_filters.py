@@ -122,12 +122,16 @@ class ExportScheduledFilters:
         # Is this export to be run on this week day (i.e. Monday, Wednesday etc)?
         # None or [] = every week day
         week_day = now_local.strftime("%A")
-        if len(schedule_week_days) > 0 and week_day not in schedule_week_days:
+        if schedule_week_days and week_day not in schedule_week_days:
             return False
 
-        # Is this export to be run on this hour (i.e. 8am)
-        # -1 = every hour
-        if schedule_hour > -1 and schedule_hour != now_local.hour:
+        now_hour_str = now_local.strftime("%H:%M")
+
+        # If schedule has 'hours' array, check if current hour is in it
+        if "hours" in schedule and schedule["hours"]:
+            if now_hour_str not in schedule["hours"]:
+                return False
+        elif schedule_hour > -1 and schedule_hour != now_local.hour:
             return False
 
         # This export has not been run on this hour

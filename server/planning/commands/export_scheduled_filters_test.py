@@ -228,3 +228,49 @@ class ExportScheduledFiltersTestCase(TestCase):
                 to_local("2018-12-01T00"),
             ],
         )
+
+    def test_send_report_multiple_hours_per_day(self):
+        # Export should run on weekdays (Mon–Fri) at 08:00 and 16:00
+        report = {
+            "frequency": "weekly",
+            "hours": ["08:00", "16:00"],
+            "week_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        }
+
+        self._test(
+            report=report,
+            start="2018-06-04T00",
+            end="2018-06-08T23",
+            expected_hits=[
+                to_local("2018-06-04T08"),
+                to_local("2018-06-04T16"),
+                to_local("2018-06-05T08"),
+                to_local("2018-06-05T16"),
+                to_local("2018-06-06T08"),
+                to_local("2018-06-06T16"),
+                to_local("2018-06-07T08"),
+                to_local("2018-06-07T16"),
+                to_local("2018-06-08T08"),
+                to_local("2018-06-08T16"),
+            ],
+        )
+
+    def test_send_report_multiple_hours_with_last_sent(self):
+        # Simulate already sent at 08:00 on June 4
+        report = {
+            "frequency": "weekly",
+            "hours": ["08:00", "16:00"],
+            "week_days": ["Monday", "Tuesday"],
+            "_last_sent": to_utc("2018-06-04T08"),
+        }
+
+        self._test(
+            report=report,
+            start="2018-06-04T00",
+            end="2018-06-05T23",
+            expected_hits=[
+                to_local("2018-06-04T16"),
+                to_local("2018-06-05T08"),
+                to_local("2018-06-05T16"),
+            ],
+        )

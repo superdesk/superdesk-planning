@@ -16,7 +16,7 @@ interface IProps extends IEventsPlanningContentPanelProps {
 
 interface IState {
     pristine: boolean;
-    schedule: Partial<ISearchFilterSchedule>;
+    schedule: Partial<ISearchFilterSchedule> & {hours?: string[]};
     invalid: boolean;
     errors: {[key: string]: string};
 }
@@ -28,11 +28,14 @@ const mapStateToProps = (state) => ({
 export class EditFilterScheduleComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
+        const original = this.props.filter.schedules?.[0];
+
         this.state = {
             pristine: false,
-            schedule: cloneDeep(this.props.filter.schedules?.[0] ?? {
+            schedule: cloneDeep(original ?? {
                 frequency: SCHEDULE_FREQUENCY.HOURLY,
                 desk: this.props.desks[0]._id,
+                hours: [],
             }),
             invalid: false,
             errors: {},
@@ -41,34 +44,34 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
         this.onSaveHandler = this.onSaveHandler.bind(this);
         this.previewFilter = this.previewFilter.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.updateHour = this.updateHour.bind(this);
+        this.addHour = this.addHour.bind(this);
+        this.removeHour = this.removeHour.bind(this);
     }
 
     onSaveHandler() {
-        const schedule = Object.assign({}, this.state.schedule);
+        const schedule = {...this.state.schedule};
 
-        switch (schedule.frequency) {
-        case SCHEDULE_FREQUENCY.HOURLY:
-            delete schedule.hour;
-            delete schedule.day;
-            delete schedule.week_days;
-            break;
-        case SCHEDULE_FREQUENCY.WEEKLY:
-            delete schedule.day;
-            if (!schedule.week_days?.length) {
-                schedule.week_days = [
-                    WEEK_DAY.SUNDAY,
-                    WEEK_DAY.MONDAY,
-                    WEEK_DAY.TUESDAY,
-                    WEEK_DAY.WEDNESDAY,
-                    WEEK_DAY.THURSDAY,
-                    WEEK_DAY.FRIDAY,
-                    WEEK_DAY.SATURDAY,
-                ];
-            }
-            break;
-        case SCHEDULE_FREQUENCY.MONTHLY:
-            delete schedule.week_days;
-            break;
+        // Clean up legacy `hour` field
+        delete schedule.hour;
+
+        // Default single hour if not set
+        if (schedule.frequency === SCHEDULE_FREQUENCY.WEEKLY || schedule.frequency === SCHEDULE_FREQUENCY.MONTHLY) {
+            schedule.hours = schedule.hours ?? [];
+        } else {
+            delete schedule.hours;
+        }
+
+        if (schedule.frequency === SCHEDULE_FREQUENCY.WEEKLY && !schedule.week_days?.length) {
+            schedule.week_days = [
+                WEEK_DAY.SUNDAY,
+                WEEK_DAY.MONDAY,
+                WEEK_DAY.TUESDAY,
+                WEEK_DAY.WEDNESDAY,
+                WEEK_DAY.THURSDAY,
+                WEEK_DAY.FRIDAY,
+                WEEK_DAY.SATURDAY,
+            ];
         }
 
         this.props.onSave({
@@ -86,17 +89,39 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
 
         schedule[field] = value;
 
-        if (field === 'frequency' && value === 'weekly') {
-            // When changing the frequency to weekly
-            // If the week_days array is empty, delete the attribute
-            // This enabled the input field to automatically select all days
-            // Which converts this to a 'daily' schedule automatically
-            if (!schedule.week_days?.length) {
-                delete schedule.week_days;
+        if (field === 'frequency') {
+            if (value === SCHEDULE_FREQUENCY.WEEKLY || value === SCHEDULE_FREQUENCY.MONTHLY) {
+                schedule.hours = [];
+            } else {
+                delete schedule.hours;
             }
         }
 
         this.setState({schedule});
+    }
+
+    updateHour(index: number, value: string) {
+        const hours = [...(this.state.schedule.hours ?? [])];
+
+        hours[index] = value;
+        this.setState({schedule: {...this.state.schedule, hours}});
+    }
+
+    addHour() {
+        const used = new Set(this.state.schedule.hours ?? []);
+        const allHours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+        const next = allHours.find((h) => !used.has(h)) || '00:00';
+
+        const hours = [...(this.state.schedule.hours ?? []), next];
+
+        this.setState({schedule: {...this.state.schedule, hours}});
+    }
+
+    removeHour(index: number) {
+        const hours = [...(this.state.schedule.hours ?? [])];
+
+        hours.splice(index, 1);
+        this.setState({schedule: {...this.state.schedule, hours}});
     }
 
     getScheduleProfile() {
@@ -104,7 +129,6 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             frequency: {enabled: true, index: 1},
             week_days: {enabled: false, index: 2},
             month_day: {enabled: false, index: 3},
-            hour: {enabled: false, index: 4},
         };
 
         switch (this.state.schedule.frequency) {
@@ -112,15 +136,73 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             break;
         case SCHEDULE_FREQUENCY.WEEKLY:
             profile.week_days.enabled = true;
-            profile.hour.enabled = true;
             break;
         case SCHEDULE_FREQUENCY.MONTHLY:
             profile.month_day.enabled = true;
-            profile.hour.enabled = true;
             break;
         }
 
         return profile;
+    }
+
+    renderTimeInputs() {
+        const {gettext} = superdeskApi.localization;
+        const {schedule} = this.state;
+
+        if (
+            schedule.frequency !== SCHEDULE_FREQUENCY.WEEKLY &&
+            schedule.frequency !== SCHEDULE_FREQUENCY.MONTHLY
+        ) {
+            return null;
+        }
+
+        const hourOptions = Array.from({length: 24}).map((_, i) => {
+            const value = `${i.toString().padStart(2, '0')}:00`;
+
+            return (
+                <option key={value} value={value}>
+                    {value}
+                </option>
+            );
+        });
+
+        return (
+            <div className="form__row">
+                <label className="form__label">{gettext('HOUR')}</label>
+                <div className="form__row-items">
+                    {(schedule.hours ?? []).map((time, idx) => (
+                        <div
+                            className="form__row-item--flex"
+                            key={idx}
+                            style={{marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem'}}
+                        >
+                            <select
+                                value={time}
+                                className="sd-input__input"
+                                style={{minWidth: '100px', flex: '1 1 auto', backgroundColor: '#ffffff'}}
+                                onChange={(e) => this.updateHour(idx, e.target.value)}
+                            >
+                                {hourOptions}
+                            </select>
+                            <button
+                                type="button"
+                                className="btn btn--hollow btn--small"
+                                onClick={() => this.removeHour(idx)}
+                            >
+                                {gettext('Remove')}
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        type="button"
+                        className="btn btn--hollow btn--small"
+                        onClick={this.addHour}
+                    >
+                        {gettext('+ Add Time')}
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     render() {
@@ -176,6 +258,8 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                                     },
                                 }
                             )}
+
+                            {this.renderTimeInputs()}
 
                             <ToggleBox
                                 title={gettext('Destination')}
