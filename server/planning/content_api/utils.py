@@ -44,6 +44,21 @@ SYSTEM_FIELDS: set[str] = {
 }
 
 
+def adjust_coverage_planning_scheduled_if_tbc(item: dict) -> None:
+    if item.get("type") != "planning" or not item.get("coverages"):
+        return
+
+    for coverage in item["coverages"]:
+        tbc = coverage.pop("_time_to_be_confirmed", None)
+
+        planning = coverage.get("planning")
+        if not planning:
+            continue
+
+        if tbc is True:
+            planning["scheduled"] = planning["scheduled"].strftime("%Y-%m-%d")
+
+
 def convert_capi_item_to_response_instance(item_instance: ResourceModel | dict) -> dict:
     if isinstance(item_instance, ResourceModel):
         item = item_instance.to_dict(
@@ -62,6 +77,7 @@ def convert_capi_item_to_response_instance(item_instance: ResourceModel | dict) 
                 item.pop(field, None)
 
     convert_event_dates_to_ninjs_3(item)
+    adjust_coverage_planning_scheduled_if_tbc(item)
     return item
 
 
