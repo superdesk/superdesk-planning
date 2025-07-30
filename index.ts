@@ -68,16 +68,20 @@ window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
 
 window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const newElement = document.createElement('div');
-    document.body.appendChild(newElement);
     const rootScope = ng.get('$rootScope');
+    const timeout = ng.get('$timeout');
 
+    document.body.appendChild(newElement);
     newElement.className = 'modal__dialog ng-scope';
     rootScope.locals = {data: {item: e.detail}};
 
-    // unmount the component and remove the element when the modal is closed
+    // clean up: unmount the React component and remove the DOM element after the modal closes.
+    // delay is added to ensure any pending actions complete before removal.
     rootScope.resolve = () => {
-        ReactDOM.unmountComponentAtNode(newElement);
-        newElement.remove();
+        timeout(() => {
+            ReactDOM.unmountComponentAtNode(newElement);
+            newElement.remove();
+        }, 500);
     };
 
     new ctrl.AddToPlanningController(
@@ -90,7 +94,7 @@ window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
         ng.get('lock'),
         ng.get('session'),
         ng.get('userList'),
-        ng.get('$timeout'),
+        timeout,
         ng.get('superdeskFlags'),
     );
 });

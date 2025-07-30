@@ -107,7 +107,7 @@ export class AddToPlanningController {
 
         ReactDOM.render(
             <Provider store={this.store}>
-                <ModalsContainer />
+                <ModalsContainer onModalHide={this.unlockAddToPlanningItem} />
             </Provider>,
             this.$element
         );
@@ -170,17 +170,23 @@ export class AddToPlanningController {
             }, 1000);
         }
 
-        // Only unlock the item if it was locked when launching this modal
-        if ((this.newsItem?.lock_session ?? null) !== null
-            && (this.newsItem.lock_action ?? 'edit') === 'add_to_planning'
-        ) {
-            this.lock.unlock(this.newsItem);
-        }
+        this.unlockAddToPlanningItem();
 
         if (this.rendered) {
             ReactDOM.unmountComponentAtNode(this.$element.get(0));
         }
     }
+
+    /**
+     * Unlocks the item if it was locked when launching this modal
+     */
+    unlockAddToPlanningItem = () => {
+        const {lock_session, lock_action} = this.newsItem || {};
+
+        if (lock_session && lock_action === 'add_to_planning') {
+            this.lock.unlock(this.newsItem);
+        }
+    };
 
     onItemUnlock(_e, data) {
         if (this.store &&

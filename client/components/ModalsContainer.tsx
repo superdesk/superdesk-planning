@@ -57,20 +57,25 @@ Modals.propTypes = {
     modalType: PropTypes.string,
     modalProps: PropTypes.object,
     handleHide: PropTypes.func.isRequired,
+    onModalHide: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
     modalType: modalType(state),
     modalProps: modalProps(state),
 });
-const mapDispatchToProps = (dispatch) => ({
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
     handleHide: (itemType) => {
         dispatch(modalActions.hideModal());
-        if (itemType === ITEM_TYPE.EVENT) {
-            dispatch(multiSelect.deSelectEvents(null, true));
-        } else {
-            dispatch(multiSelect.deSelectPlannings(null, true));
-        }
+
+        const action = itemType === ITEM_TYPE.EVENT
+            ? multiSelect.deSelectEvents
+            : multiSelect.deSelectPlannings;
+
+        dispatch(action(null, true));
+
+        ownProps?.onModalHide?.();
     },
 });
 
