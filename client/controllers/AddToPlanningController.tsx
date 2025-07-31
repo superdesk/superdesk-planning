@@ -109,7 +109,7 @@ export class AddToPlanningController {
             <Provider store={this.store}>
                 <ModalsContainer />
             </Provider>,
-            this.$element.get(0)
+            this.$element
         );
 
         this.rendered = true;
