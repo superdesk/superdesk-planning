@@ -8,15 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Literal, Callable
+from typing import Literal
 import functools
+
 from pydantic import Field, field_validator, model_validator, computed_field
 
-from superdesk.core.types import SearchRequest, SearchArgs, Request
+from superdesk.core.types import SearchRequest, SearchArgs, Request, DefaultOperator
 from superdesk.core import get_config
-from superdesk.core.resources import BaseModel
+from superdesk.core.resources import BaseModel, fields
 
-from planning.types import SearchItemType
+from planning.types import SearchItemType, SearchDateRange
 from planning.search.queries.elastic import ElasticQuery
 from planning.search.queries.events import search_dates as search_event_dates
 from planning.search.queries.planning import search_dates as search_planning_dates
@@ -31,19 +32,40 @@ class PlanningCAPIParams(BaseModel):
     def item_type(self) -> SearchItemType:
         raise NotImplementedError
 
-    start_date: str | None = None
-    end_date: str | None = None
-    date_filter: str | None = None
-    time_zone: str | None = None
-    start_of_week: int | None = None
+    start_date: fields.DateWithOptionalTime | None = Field(default=None, description="Start date for filtering")
+    end_date: fields.DateWithOptionalTime | None = Field(default=None, description="End date for filtering")
+    date_filter: SearchDateRange | None = Field(default=None, description="Filter using pre-defined date ranges")
+    time_zone: str | None = Field(
+        default=None,
+        description="Time zone used for date math",
+        examples=[
+            "+01:00",
+            "-08:00",
+            "Europe/Prague",
+        ],
+    )
+    start_of_week: int | None = Field(
+        default=None,
+        description="Change start day of week for filtering, 0=Sunday, 1=Monday ... 6=Saturday (defaults to system config)",
+        ge=0,
+        le=6,
+    )
 
-    include_fields: set[str] = Field(default_factory=set)
-    exclude_fields: set[str] = Field(default_factory=set)
-    max_results: int = 25
-    page: int = 1
-    where: str | None = None
-    q: str | None = None
-    default_operator: str = "AND"
+    include_fields: set[str] = Field(
+        default_factory=set, description="Fields to include in the response", examples=["name,subject,extra"]
+    )
+    exclude_fields: set[str] = Field(
+        default_factory=set, description="Fields to exclude from the response", examples=["products,location"]
+    )
+    max_results: int = Field(default=25, description="Maximum number of results to return")
+    page: int = Field(default=1, description="Page number for pagination")
+    where: str | None = Field(
+        default=None,
+        description="Filter criteria (internally uses Elasticsearch 'term' queries)",
+        examples=["slugline==test-event-1", '{"source":"external_supplier"}'],
+    )
+    q: str | None = Field(default=None, description="Search query")
+    default_operator: DefaultOperator = Field(default="AND", description="Default operator for search queries")
 
     @field_validator("include_fields", "exclude_fields", mode="before")
     @classmethod

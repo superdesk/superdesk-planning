@@ -269,7 +269,11 @@ Feature: Planning Content API
                     "user": "#CONTEXT_USER_ID#",
                     "state": "draft"
                 }
-            }]
+            }],
+            "extra": {
+                "stt_events": "259431",
+                "stt_topics": "584717"
+            }
         }]
         """
         Then we get OK response
@@ -322,6 +326,219 @@ Feature: Planning Content API
                 "assigned_to": "__no_value__",
                 "assigned_user": {"display_name": "test_user"},
                 "assigned_desk": {"name": "Sports"}
-            }]
+            }],
+            "extra": {
+                "stt_events": "259431",
+                "stt_topics": "584717"
+            }
         }]}
+        """
+
+    @auth
+    Scenario: Test ContentAPIPlanningResource excludes unknown fields
+        When we configure content for publishing
+        Given empty "planning"
+        And empty "planning_capi"
+        And "content_types"
+        """
+        [{"schema": {"body_html": {}, "slugline": {}, "headline": {}, "ednote": null }}]
+        """
+        And "content_templates"
+        """
+        [{
+            "template_name": "Default",
+            "template_type": "create",
+            "data": {"profile": "#content_types._id#"}
+        }]
+        """
+        And "desks"
+        """
+        [{
+            "name": "Sports",
+            "default_content_template": "#content_templates._id#",
+            "default_content_profile": "#content_types._id#",
+            "members": [{"user": "#CONTEXT_USER_ID#"}]
+        }]
+        """
+        When we set capi auth token to "#subscriber_token_0._id#"
+        When we post to "planning"
+        """
+        [{
+            "guid": "plan-1",
+            "type": "planning",
+            "slugline": "test-full-planning-1",
+            "headline": "Testing Full Planning 1",
+            "planning_date": "2042-01-01T05:00:00+0000",
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "internal_note": "something that should NEVER be included",
+            "coverages": [{
+                "coverage_id": "txt-cov-1",
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "g2_content_type" : "text",
+                    "scheduled": "2042-01-01T07:00:00+0000",
+                    "internal_note": "something that should NEVER be included"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }]
+        """
+        Then we get OK response
+        Then we store coverage id in "COVERAGE_ID" from coverage 0
+        Then we store assignment id in "ASSIGNMENT_ID" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "plan-1",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we post to "/assignments/content"
+        """
+        [{"assignment_id": "#ASSIGNMENT_ID#"}]
+        """
+        Then we get OK response
+        And we store "ARCHIVE_ID" with value "#content._id#" to context
+        When we publish "#ARCHIVE_ID#" with "publish" type and "published" state
+        Then we get OK response
+        When we get capi "/planning/plan-1"
+        Then we get existing resource
+        """
+        {
+            "_id": "plan-1",
+            "_created": "__no_value__",
+            "_updated": "__no_value__",
+            "original_creator": "__no_value__",
+            "version_creator": "__no_value__",
+            "ingest_provider": "__no_value__",
+            "internal_note": "__no_value__",
+            "coverages": [{
+                "coverage_id": "#COVERAGE_ID#",
+                "original_creator": "__no_value__",
+                "version_creator": "__no_value__",
+                "previous_status": "__no_value__",
+                "flags": "__no_value__",
+                "deliveries": [{
+                    "_id": "__no_value__",
+                    "item_id": "#ARCHIVE_ID#"
+                }],
+                "assigned_to": "__no_value__",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "internal_note": "__no_value__"
+                }
+            }]
+        }
+        """
+
+    @auth
+    Scenario: Date only for Coverage schedule
+        When we set capi auth token to "#subscriber_token_0._id#"
+        Given empty "planning"
+        And empty "planning_capi"
+        When we post to "planning"
+        """
+        [{
+            "guid": "plan-1",
+            "type": "planning",
+            "slugline": "test-full-planning-1",
+            "headline": "Testing Full Planning 1",
+            "planning_date": "2042-01-01T05:00:00+0000",
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "coverages": [{
+                "coverage_id": "txt-cov-1",
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "_time_to_be_confirmed": true,
+                "planning": {
+                    "headline": "test headline",
+                    "g2_content_type" : "text",
+                    "scheduled": "2042-01-01T07:00:00+0000"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }]
+        """
+        Then we get OK response
+        Then we store coverage id in "COVERAGE_1_ID" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "plan-1",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "guid": "plan-2",
+            "type": "planning",
+            "slugline": "test-full-planning-2",
+            "headline": "Testing Full Planning 2",
+            "planning_date": "2042-01-02T05:00:00+0000",
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "coverages": [{
+                "coverage_id": "txt-cov-2",
+                "workflow_status": "active",
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "_time_to_be_confirmed": false,
+                "planning": {
+                    "headline": "test headline",
+                    "g2_content_type" : "text",
+                    "scheduled": "2042-01-02T07:00:00+0000"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }]
+        """
+        Then we get OK response
+        Then we store coverage id in "COVERAGE_2_ID" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "plan-2",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get capi "/planning/plan-1"
+        Then we get existing resource
+        """
+        {
+            "_id": "plan-1",
+            "coverages": [{
+                "coverage_id": "#COVERAGE_1_ID#",
+                "_time_to_be_confirmed": "__no_value__",
+                "planning": {"scheduled": "2042-01-01"}
+            }]
+        }
+        """
+        When we get capi "/planning/plan-2"
+        Then we get existing resource
+        """
+        {
+            "_id": "plan-2",
+            "coverages": [{
+                "coverage_id": "#COVERAGE_2_ID#",
+                "_time_to_be_confirmed": "__no_value__",
+                "planning": {"scheduled": "2042-01-02T07:00:00+0000"}
+            }]
+        }
         """

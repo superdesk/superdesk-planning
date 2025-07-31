@@ -113,7 +113,7 @@ class PlanningService(AsyncBaseService):
         ids = await self.backend.create_in_mongo_async(self.datasource, docs, **kwargs)
         await self.on_created_async(docs)
         for doc in docs:
-            planning_ingested.send(self, item=doc)
+            await planning_ingested.send(doc, None)
         return ids
 
     async def patch_in_mongo(self, id, document, original):
@@ -122,7 +122,7 @@ class PlanningService(AsyncBaseService):
         update_ingest_on_patch(document, original)
         response = await self.backend.update_in_mongo_async(self.datasource, id, document, original)
         await self.on_updated_async(document, original, from_ingest=True)
-        planning_ingested.send(self, item=document, original=original)
+        await planning_ingested.send(document, original)
         return response
 
     def is_new_version(self, new_item, old_item):
@@ -161,7 +161,7 @@ class PlanningService(AsyncBaseService):
     async def on_create_async(self, docs):
         """Set default metadata."""
         planning_type = await PlanningTypesAsyncService().find_one(name="planning")
-        assert planning_type is not None, "Expexted planning_type to not be None"
+        assert planning_type is not None, "Expected planning_type to not be None"
 
         history_service = PlanningHistoryAsyncService()
         generated_planning_items = []
@@ -185,17 +185,10 @@ class PlanningService(AsyncBaseService):
             self.set_planning_schedule(doc)
             # set timestamps
             update_dates_for(doc)
-
-            is_ingested = doc["state"] == "ingested"
-            if is_ingested:
-                await history_service.on_item_created([doc])
-
             update_method: Optional[UPDATE_METHOD] = doc.pop("update_method", None)
             if first_event and update_method is not None:
                 new_plans = await self._add_planning_to_event_series(doc, first_event, update_method)
                 if len(new_plans):
-                    if is_ingested:
-                        await history_service.on_item_created(new_plans)
                     generated_planning_items.extend(new_plans)
 
         if len(generated_planning_items):
@@ -203,6 +196,7 @@ class PlanningService(AsyncBaseService):
 
     async def on_created_async(self, docs):
         session_id = get_auth().get("_id")
+        history_service = PlanningHistoryAsyncService()
         post_planning_with_event = await is_post_planning_with_event_enabled()
         for doc in docs:
             plan_id = str(doc.get(ID_FIELD))
@@ -215,6 +209,8 @@ class PlanningService(AsyncBaseService):
                 session=session_id,
                 event_ids=get_related_event_ids_for_planning(doc, "primary"),  # Event IDs for primary events
             )
+            if doc["state"] == "ingested":
+                await history_service.on_item_created([doc])
             await self._update_event_history(doc)
             planning_created.send(self, item=doc)
 

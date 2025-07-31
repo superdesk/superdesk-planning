@@ -73,7 +73,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
                 )
                 self.__class__.missing_voc = "continue"
 
-    def get_item_id(self, tree: Element) -> str:
+    async def get_item_id(self, tree: Element) -> str:
         return tree.attrib["guid"]
 
     async def parse(self, tree: Element, provider=None):
@@ -81,7 +81,7 @@ class EventsMLParser(NewsMLTwoFeedParser):
         self.set_missing_voc_policy()
 
         try:
-            guid = self.get_item_id(tree)
+            guid = await self.get_item_id(tree)
 
             item = {
                 GUID_FIELD: guid,

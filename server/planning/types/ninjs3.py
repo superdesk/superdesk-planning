@@ -4,14 +4,13 @@ from enum import Enum, unique
 from pydantic import Field
 
 from superdesk.core.resources import BaseModel, Dataclass
-
-
-partial_datetime_regex = "^(-?(?:[1-9][0-9]*)?[0-9]{4})(-(1[0-2]|0[1-9])(-(3[01]|0[1-9]|[12][0-9])(T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?)?)?)?$"
-partial_datetime_description = "Allows any of year (xs:gYear, YYYY), year/month (xs:gYearMonth, YYYY-MM), year/month/day (xs:date YYYY-MM-DD), and full datetime (xs:dateTime, YYYY-MM-DDTHH:MM:SS+HH:MM), all with an optional timezone suffix. Note that this does NOT include ISO8601 month of year (xs:gMonth, --MM) or yearly day (xs:gMonthDay, --MM-DD)"
+from superdesk.core.resources.fields import DateWithOptionalTime
 
 
 @unique
 class RecurrenceRulesFrequency(str, Enum):
+    """The FREQ rule part identifies the type of recurrence rule."""
+
     daily = "daily"
     weekly = "weekly"
     monthly = "monthly"
@@ -21,9 +20,7 @@ class RecurrenceRulesFrequency(str, Enum):
 class RecurrenceRulesObject(Dataclass):
     """Date(s) (and optionally times) on which the event occurs."""
 
-    frequency: RecurrenceRulesFrequency = Field(
-        title="Frequency", description="The FREQ rule part identifies the type of recurrence rule."
-    )
+    frequency: RecurrenceRulesFrequency
     interval: int = Field(
         description="The INTERVAL rule part contains a positive integer representing how often the recurrence rule repeats."
     )
@@ -33,6 +30,10 @@ class RecurrenceRulesObject(Dataclass):
     )
     count: int | None = Field(
         description="The COUNT rule part defines the number of occurrences at which to range-bound the recurrence.",
+        default=None,
+    )
+    byday: str | None = Field(
+        description="Days of week for weekly recurrence",
         default=None,
     )
 
@@ -54,24 +55,16 @@ class DatesObject(BaseModel):
         description="The date and time at which the event ends.",
         default=None,
     )
-    expectedStartDate: str | None = Field(
-        title="Expected Start Date",
-        description=partial_datetime_description,
-        pattern=partial_datetime_regex,
+    expectedStartDate: DateWithOptionalTime | None = Field(
+        title="The approximate date (and optionally time) at which the event or coverage is expected to start.",
         default=None,
     )
-    expectedEndDate: str | None = Field(
-        title="Expected End Date",
-        description=partial_datetime_description,
-        pattern=partial_datetime_regex,
+    expectedEndDate: DateWithOptionalTime | None = Field(
+        title="The approximate date (and optionally time) at which the event or coverage is expected to end.",
         default=None,
     )
-    recurrence: RecurrenceObject | None = Field(
-        description="Specifies recurrence information about the event.",
-        default=None,
-    )
+    recurrence: RecurrenceObject | None = None
     timezone: str | None = Field(
-        title="Timezone",
         description="The timezone where the event takes place.",
         default=None,
     )

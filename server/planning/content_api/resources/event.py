@@ -17,7 +17,9 @@ from superdesk.core.resources import (
 from superdesk.core.resources.service import AsyncResourceService
 
 from content_api import MONGO_PREFIX, ELASTIC_PREFIX
+from planning.utils import get_related_planning_for_events
 
+from .planning import ContentAPIPlanningService
 from ..types import ContentAPIEventResource
 from ..output_formatters import ContentApiEventFormatter
 
@@ -41,6 +43,11 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
             await self.update(event_id, formatted_item)
         else:
             await self.create([formatted_item])
+
+        # Check for linked planning items to the event and update them as well
+        related_planning_items = get_related_planning_for_events([event_id])
+        for planning_item in related_planning_items:
+            await ContentAPIPlanningService().publish_async(planning_item, subscribers)
 
 
 content_api_event_resource_config: ResourceConfig = ResourceConfig(
