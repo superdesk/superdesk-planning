@@ -267,7 +267,7 @@ Feature: Events Content API
                         "country": "Suomi",
                         "line": ["1234 some road"],
                         "locality": "Helsinki",
-                        "title": null,
+                        "title": "Praha Helsinki",
                         "type": "city",
                         "extra": {
                             "sttlocationalias": "14068",
@@ -361,7 +361,7 @@ Feature: Events Content API
             "definition_long": "Or a longer version of what I just said",
             "registration_details": "Please see foo for rego",
             "invitation_details": "Please see bar for details",
-            "accreditation_deadline": "2025-05-05T00:00:00+0000",
+            "accreditation_deadline": "2025-05-05",
             "accreditation_info": "Provide info here",
             "anpa_category": [{"name": "Sports", "qcode": "sports"}],
             "calendars": [{"name": "finance", "qcode": "finance" }],
@@ -391,7 +391,7 @@ Feature: Events Content API
                     "country": "Suomi",
                     "line": ["1234 some road"],
                     "locality": "Helsinki",
-                    "title": null,
+                    "title": "Praha Helsinki",
                     "type": "city",
                     "extra": {
                         "sttlocationalias": "14068",
@@ -439,6 +439,56 @@ Feature: Events Content API
             }
         }]}
         """
+
+    @auth
+    Scenario: Test ContentAPIEventResource excludes unknown fields
+        Given empty "events"
+        And empty "events_capi"
+        When we set capi auth token to "#subscriber_token_0._id#"
+        # Create test events
+        When we upload a file "bike.jpg" to "/events_files"
+        When we post to "events"
+        """
+        [{
+            "guid": "event1",
+            "name": "Sports Event",
+            "slugline": "sports-event",
+            "anpa_category": [{"name": "Sports", "qcode": "sports"}],
+            "internal_note": "something that should NEVER be included",
+            "revert_state": "draft",
+            "files": ["#events_files._id#"],
+            "dates": {
+                "start": "2042-01-01T10:00:00+0000",
+                "end": "2042-01-01T12:00:00+0000"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get capi "/events/event1"
+        Then we get existing resource
+        """
+        {
+            "_id": "event1",
+            "_created": "__no_value__",
+            "_updated": "__no_value__",
+            "original_creator": "__no_value__",
+            "version_creator": "__no_value__",
+            "ingest_provider": "__no_value__",
+            "internal_note": "__no_value__",
+            "revert_state": "__no_value__",
+            "files": "__no_value__"
+        }
+        """
+
 
 # [STT-1244]: Disabled file support for now
 #    @auth
