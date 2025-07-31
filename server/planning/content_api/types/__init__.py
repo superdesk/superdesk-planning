@@ -11,7 +11,7 @@
 from .common import BasePlanningContentAPIResource, GetItemArgs
 from .search import PlanningCAPIParams
 from .events import ContentAPIEventResource
-from .planning import ContentAPIPlanningResource
+from .planning import ContentAPIPlanningResource, ContentAPICoverageResource, ContentAPICoveragePlanning
 
 
 __all__ = [
@@ -20,4 +20,6 @@ __all__ = [
     "PlanningCAPIParams",
     "ContentAPIEventResource",
     "ContentAPIPlanningResource",
+    "ContentAPICoverageResource",
+    "ContentAPICoveragePlanning",
 ]

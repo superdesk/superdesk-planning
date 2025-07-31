@@ -9,7 +9,6 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from typing import Annotated
-from datetime import datetime
 
 from bson import ObjectId
 from pydantic import computed_field, Field

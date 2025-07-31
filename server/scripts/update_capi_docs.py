@@ -5,9 +5,9 @@ from superdesk.core.types import DefaultOperator
 from superdesk.core.openapi import OpenAPISpec
 
 from planning.types import SearchDateRange
-from planning.content_api.types import ContentAPIPlanningResource
 from planning.content_api.views import event_endpoints, planning_endpoints
 from planning.content_api.views.events import ContentAPIEventResponse
+from planning.content_api.views.planning import ContentAPIPlanningResponse
 
 
 FILE_HEADER = """# ----------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ def update_capi_planning_spec(print_to_stdout: bool) -> None:
         .add_server("http://localhost:5400/", "Development server")
         .add_tag("Events", "Event management operations")
         .add_tag("Planning", "Planning item management operations")
-        .add_model(ContentAPIPlanningResource)
+        .add_model(ContentAPIPlanningResponse)
         .add_model(ContentAPIEventResponse)
         .add_enum(DefaultOperator)
         .add_enum(SearchDateRange)

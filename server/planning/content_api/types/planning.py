@@ -49,6 +49,7 @@ class ContentAPICoverageResource(BaseContentAPIDataclass):
     assigned_desk: CoverageAssignedDesk | None = None
     deliveries: list[CoverageDelivery] | None = None
     planning: ContentAPICoveragePlanning | None = None
+    time_to_be_confirmed: Annotated[bool, Field(alias="_time_to_be_confirmed")] = False
 
 
 class RelatedEvent(BaseContentAPIDataclass):

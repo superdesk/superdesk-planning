@@ -8,18 +8,25 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Generic, TypeVar, Annotated
+from typing import Annotated
 
 from bson import ObjectId
 from pydantic import computed_field, Field
+from pydantic.json_schema import SkipJsonSchema
 
-from superdesk.core.resources import BaseModel, Dataclass
+from superdesk.core.resources import fields
 from superdesk.core.web import EndpointGroup
 from superdesk.core.types import Request, Response
 
 from planning.types import SearchItemType
 
-from ..types import PlanningCAPIParams, GetItemArgs
+from ..types import (
+    PlanningCAPIParams,
+    GetItemArgs,
+    ContentAPIPlanningResource,
+    ContentAPICoverageResource,
+    ContentAPICoveragePlanning,
+)
 from ..resources import ContentAPIPlanningService
 from ..utils import convert_cursor_to_response_items, convert_capi_item_to_response_instance
 
@@ -27,18 +34,17 @@ from ..utils import convert_cursor_to_response_items, convert_capi_item_to_respo
 planning_endpoints = EndpointGroup("planning_capi", __name__)
 
 
-ItemType = TypeVar("ItemType")
+class ContentAPICoveragePlanningResponse(ContentAPICoveragePlanning):
+    scheduled: fields.DateWithOptionalTime | None = None
 
 
-class ResponseMeta(Dataclass):
-    page: int
-    max_results: int
-    total: int
+class ContentAPICoverageResponse(ContentAPICoverageResource):
+    planning: ContentAPICoveragePlanningResponse | None = None
+    time_to_be_confirmed: SkipJsonSchema[None] = None
 
 
-class ItemListResponse(BaseModel, Generic[ItemType]):
-    items: Annotated[list[ItemType], Field(alias="_items")]
-    meta: Annotated[ResponseMeta, Field(alias="_meta")]
+class ContentAPIPlanningResponse(ContentAPIPlanningResource):
+    coverages: Annotated[list[ContentAPICoverageResponse], fields.nested_list(), Field(default_factory=list)]
 
 
 class PlanningParams(PlanningCAPIParams):
@@ -64,7 +70,7 @@ class PlanningParams(PlanningCAPIParams):
                         "properties": {
                             "_items": {
                                 "type": "array",
-                                "items": {"$ref": "#/components/schemas/ContentAPIPlanningResource"},
+                                "items": {"$ref": "#/components/schemas/ContentAPIPlanningResponse"},
                             },
                             "_meta": {
                                 "type": "object",
@@ -109,7 +115,7 @@ async def get_planning_list(args, params: PlanningParams, request: Request) -> R
             "description": "The requested planning item",
             "content": {
                 "application/json": {
-                    "schema": {"$ref": "#/components/schemas/ContentAPIPlanningResource"},
+                    "schema": {"$ref": "#/components/schemas/ContentAPIPlanningResponse"},
                 },
             },
         },
