@@ -103,7 +103,7 @@ describe('Planning.Events: create planning action', () => {
 
     function doubleClickPlanningItem() {
         list.nestedItem(0)
-            .find('.sd-list-item-nested__childs')
+            .find('[data-test-id=nested-items]')
             .find('.sd-list-item')
             .eq(0)
             .dblclick();
