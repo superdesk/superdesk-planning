@@ -9,7 +9,7 @@ export const getPriorityField = (): IFieldDefinition => {
     return {
         fieldId: 'priority',
         getField: ({id, required, language}) => {
-            const priorityVocabulary = planningApi.redux.store.getState().vocabularies.priority;
+            const priorityVocabulary = planningApi.redux.store.getState().vocabularies.priority ?? [];
             const options = priorityVocabulary.map(
                 (option) => ({
                     id: option.qcode,
