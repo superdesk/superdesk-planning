@@ -80,7 +80,7 @@ export class FeaturedModal extends Modal {
             .find('li')
             .eq(index)
             .should('exist')
-            .find('[data-test-id="btn-add"]')
+            .find('[aria-label="Add to Feature Stories"]')
             .should('exist')
             .click();
     }
