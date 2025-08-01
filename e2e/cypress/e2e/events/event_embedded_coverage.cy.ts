@@ -1,5 +1,4 @@
 import {setup, login, waitForPageLoad, SubNavBar, addItems, CLIENT_FORMAT} from '../../support/common';
-import {TIME_STRINGS} from '../../support/utils/time';
 import {EventEditor, PlanningList} from '../../support/planning';
 import {EmbeddedCoverageEditor} from '../../support/planning/events/embeddedCoverageEditor';
 import moment from 'moment';
@@ -45,6 +44,11 @@ describe('Planning.Events: embedded coverage', () => {
         editor.element
             .find('[data-test-id="editor--planning-item__0"]')
             .should('exist');
+
+        // wait until related planning component mounts
+        // would be better to improve the implementation
+        // but it would take significant time to do so and issue doesn't happen when interacting manually
+        cy.wait(1000);
 
         editor.saveButton
             .should('exist')
