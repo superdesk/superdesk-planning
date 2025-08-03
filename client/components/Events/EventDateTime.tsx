@@ -76,7 +76,7 @@ export class EventDateTime extends React.PureComponent<IProps> {
         const showDash = !((noEndTime || isFullDay) && !multiDay);
 
         return isAllDay ? (
-            <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
+            <span className="EventDateTime sd-list-item__slugline sd-no-wrap" data-test-id="event-datetime">
                 <Spacer h gap={'4'}>
                     {showEventStartDate && (
                         <DateTime
@@ -85,7 +85,6 @@ export class EventDateTime extends React.PureComponent<IProps> {
                             date={start}
                             {...commonProps}
                             withTime={false}
-                            testId="event-start-date"
                         />
                     )}
 
@@ -93,13 +92,12 @@ export class EventDateTime extends React.PureComponent<IProps> {
                 </Spacer>
             </span>
         ) : (
-            <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
+            <span className="EventDateTime sd-list-item__slugline sd-no-wrap" data-test-id="event-datetime">
                 <DateTime
                     withTime={!isFullDay}
                     withDate={showEventStartDate}
                     withYear={withYear}
                     date={start}
-                    testId="event-start-date"
                     {...commonProps}
                 />
                 {showDash && <>&ndash;</>}
@@ -109,7 +107,6 @@ export class EventDateTime extends React.PureComponent<IProps> {
                     withTime={!isFullDay}
                     isEndEventDateTime={true}
                     date={end}
-                    testId="event-end-date"
                     {...commonProps}
                 />
                 {isRemoteTimeZone && (

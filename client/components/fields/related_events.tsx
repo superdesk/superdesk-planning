@@ -26,6 +26,7 @@ export const related_events: React.ComponentType<IFieldsProps> = ({item, fieldsP
 
                 relatedEventsUI.setVisibility(!relatedEventsUI.visible);
             }}
+            data-test-id="toggle-related-events"
         >
             <Spacer h gap="4" alignItems="center" noWrap>
                 <span>
