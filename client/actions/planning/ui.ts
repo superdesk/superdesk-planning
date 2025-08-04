@@ -4,7 +4,7 @@ import {IPlanningSearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import {showModal} from '../index';
-import planningApis from './api';
+import planningApis, {storeLastDayGroup} from './api';
 import main from '../main';
 import eventsUi from '../events/ui';
 import {ITEM_TYPE} from '../../constants';
@@ -23,6 +23,7 @@ import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import * as selectors from '../../selectors';
 import {PLANNING, WORKSPACE, MODALS, MAIN} from '../../constants';
 import * as actions from '../index';
+import {IRestApiResponse} from 'superdesk-api';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -95,16 +96,24 @@ const addToList = (ids) => ({
  */
 function fetchToList(params: IPlanningSearchParams) {
     return (dispatch) => {
-        dispatch(self.requestPlannings(params));
+        // Store params as previous, starting with page 1
+        dispatch(self.requestPlannings({...params, page: 1}));
 
         // reset list items, so handleItemsForLastFetchedDay
         // can keep track of all fetched items
         dispatch(self.clearList());
 
-        return dispatch(planningApis.fetch(params))
-            .then((items) =>
-                dispatch(self.setInList(items.map((p) => p._id)))
-            );
+        // reset lastDayGroupItems since this function is fetching for a new range,
+        // and previous items are irrelevant
+        dispatch(storeLastDayGroup([]));
+
+        // Always fetch starting from page 1.
+        // This is the first page for the given date range,
+        // otherwise results may be incomplete
+        return dispatch(planningApis.fetch({...params, page: 1}))
+            .then((items) => {
+                dispatch(self.setInList(items.map((p) => p._id)));
+            });
     };
 }
 
@@ -117,9 +126,19 @@ const loadMore = () => (
     (dispatch, getState) => {
         const previousParams = selectors.main.lastRequestParams(getState());
         const totalItems = selectors.main.planningTotalItems(getState());
-        const planIdsInList = selectors.planning.planIdsInList(getState());
+        const planIdsInList = selectors.planning.planIdsInList(getState()) ?? [];
+        const lastDayGroup = selectors.planning.lastDayGroup(getState()) ?? [];
 
-        if (totalItems === get(planIdsInList, 'length', 0)) {
+        // When user scrolls to load more items, this function runs recursively.
+        // Check if previously stored lastDayGroup and the already loaded items
+        // make up all the items so there's no further fetching
+        if (totalItems === (planIdsInList.length + lastDayGroup.length)) {
+            if (lastDayGroup.length != 0) {
+                dispatch(planningApis.receivePlannings(lastDayGroup));
+                dispatch(self.addToList(lastDayGroup.map((x) => x._id)));
+                dispatch(storeLastDayGroup([]));
+            }
+
             return Promise.resolve();
         }
 
@@ -130,10 +149,9 @@ const loadMore = () => (
 
         return dispatch(planningApis.fetch(params))
             .then((items) => {
-                if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
-                    dispatch(self.requestPlannings(params));
-                }
-
+                // Save params queried with in lastRequestParams
+                // so we keep track of next page
+                dispatch(self.requestPlannings(params));
                 dispatch(self.addToList(items.map((x) => x._id)));
 
                 return Promise.resolve(items);
@@ -142,31 +160,53 @@ const loadMore = () => (
 );
 
 /**
- * Refetch planning items based on the current search
+ * Refetch planning item based on the current search
  */
-const refetch = () => (
+const getByIdAndAddToList = (itemId: string) => (
     (dispatch, getState, {notify}) => {
         var previewId = selectors.main.previewId(getState());
 
         if (!selectors.main.isPlanningView(getState())) {
             return Promise.resolve();
         }
+
         if (previewId) {
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
-        return dispatch(planningApis.refetch())
-            .then(
-                (items) => {
-                    dispatch(self.setInList(items.map((p) => p._id)));
-                    return Promise.resolve(items);
-                }, (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to update the planning list!')
-                    );
-                    return Promise.reject(error);
+        const prevParams = selectors.main.lastRequestParams(getState());
+
+        return dispatch(planningApis.query(
+            {
+                ...prevParams,
+                itemIds: [itemId],
+                page: 1,
+            },
+            false,
+        ))
+            .then((result: IRestApiResponse<IPlanningItem>) => {
+                const maybeItem = result._items?.[0];
+
+                if (maybeItem != null) {
+                    dispatch(planningApis.receivePlannings([maybeItem]));
+                    dispatch(self.addToList([maybeItem._id]));
+                } else {
+                    // remove from the list view
+                    const itemsInList = selectors.planning.planIdsInList(getState());
+                    const nextItemsInList = itemsInList.filter((x) => x !== itemId);
+
+                    dispatch(self.setInList(nextItemsInList));
                 }
-            );
+
+                return Promise.resolve([]);
+            })
+            .catch((error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to update the planning list!')
+                );
+
+                return Promise.reject(error);
+            });
     }
 );
 
@@ -176,11 +216,10 @@ const refetch = () => (
 let nextRefetch = {
     called: 0,
 };
-const scheduleRefetch = () => (
+
+const scheduleRefetch = (itemId: string) => (
     (dispatch) => (
-        dispatch(
-            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
-        )
+        dispatch(dispatchUtils.scheduleDispatch(self.getByIdAndAddToList(itemId), nextRefetch))
     )
 );
 
@@ -430,6 +469,9 @@ const save = (original, updates) => (
 /**
  * Action that states that there are Planning items currently loading
  * @param {object} params - Parameters used when querying for planning items
+ *
+ * Stores passed params as lastRequestParams, which are later used to build
+ * a query for next page
  */
 const requestPlannings = (params = {}) => ({
     type: MAIN.ACTIONS.REQUEST,
@@ -554,7 +596,7 @@ const self = {
     setInList,
     addToList,
     loadMore,
-    refetch,
+    getByIdAndAddToList,
     duplicate,
     openCancelPlanningModal,
     openCancelAllCoverageModal,

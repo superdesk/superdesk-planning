@@ -35,7 +35,6 @@ import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../config
 import {getRelatedEventIdsForPlanning} from '../../utils/planning';
 import {ILineConfig} from 'globals';
 
-
 interface IState {
     hover: boolean;
 }

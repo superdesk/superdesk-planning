@@ -35,7 +35,8 @@ const onPlanningCreated = (_e: {}, data: IWebsocketMessageData['PLANNING_CREATED
         }
 
         dispatch(main.setUnsetLoadingIndicator(true));
-        return dispatch(planning.ui.scheduleRefetch())
+
+        return dispatch(planning.ui.scheduleRefetch(data.item))
             .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
             .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
     }
@@ -62,17 +63,15 @@ const onPlanningUpdated = (_e: {}, data: IWebsocketMessageData['PLANNING_UPDATED
 
         const promises = [];
 
-        promises.push(dispatch(planning.ui.scheduleRefetch())
-            .then((results) => {
+        promises.push(dispatch(planning.ui.scheduleRefetch(data.item))
+            .then(() => {
                 if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
                     const currentPreviewId = selectors.main.previewId(getState());
 
                     if (currentPreviewId === updatedPlanningId) {
-                        dispatch(planning.api.fetchById(updatedPlanningId, {force: true}));
+                        dispatch(planningApis.fetchById(updatedPlanningId, {force: true}));
                     }
                 }
-
-                dispatch(eventsPlanning.ui.scheduleRefetch());
             }));
 
         if (data.added_agendas.length > 0 || data.removed_agendas.length > 0) {
@@ -189,8 +188,7 @@ function onPlanningUnlocked(_e: {}, data: IWebsocketMessageData['ITEM_UNLOCKED']
 const onPlanningPosted = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.ui.scheduleRefetch());
-            dispatch(eventsPlanning.ui.scheduleRefetch());
+            dispatch(planning.ui.scheduleRefetch(data.item));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(eventsPlanning.ui.refetchPlanning(data.item));
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
@@ -222,9 +220,9 @@ const onPlanningSpiked = (_e, data) => (
 
             dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
+
+            return dispatch(planning.ui.getByIdAndAddToList(data.item))
                 .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
                     return dispatch(eventsPlanning.ui.scheduleRefetch());
                 })
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
@@ -252,14 +250,12 @@ const onPlanningUnspiked = (_e, data) => (
                     null :
                     gettext('The Planning item was unspiked')
             ));
-            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
 
+            dispatch(planning.featuredPlanning.getAndUpdateStoredPlanningItem(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
-            return dispatch(planning.ui.scheduleRefetch())
-                .then(() => {
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
-                    return dispatch(eventsPlanning.ui.scheduleRefetch());
-                })
+
+            return dispatch(planning.ui.scheduleRefetch(data.item))
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
@@ -270,7 +266,7 @@ const onPlanningUnspiked = (_e, data) => (
 const onPlanningCancelled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.api.markPlanningCancelled(
+            dispatch(planningApis.markPlanningCancelled(
                 data.item,
                 get(data, 'reason'),
                 get(data, 'coverage_state'),
@@ -286,7 +282,7 @@ const onPlanningCancelled = (e, data) => (
 const onCoverageCancelled = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'planning_item') && get(data, 'ids')) {
-            dispatch(planning.api.markCoverageCancelled(
+            dispatch(planningApis.markCoverageCancelled(
                 data.planning_item,
                 get(data, 'reason'),
                 get(data, 'coverage_state'),
@@ -326,7 +322,7 @@ const udpateAssignment = (planningId) => (
 const onPlanningRescheduled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.api.loadPlanningById(data.item));
+            dispatch(planningApis.loadPlanningById(data.item));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
         }
     }
@@ -335,7 +331,7 @@ const onPlanningRescheduled = (e, data) => (
 const onPlanningPostponed = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.api.markPlanningPostponed(
+            dispatch(planningApis.markPlanningPostponed(
                 data.item,
                 get(data, 'reason')
             ));
@@ -387,7 +383,8 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
                         title: gettext('Featured Stories Unlocked'),
                         body: gettext('Featured stories you were managing was ' +
                             `unlocked by ${user.display_name}`),
-                    }}));
+                    }
+                }));
             }
             return Promise.resolve();
         }
@@ -395,7 +392,7 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
 );
 
 const onPlanningFilesUpdated = (_e, data) => (
-    (dispatch) => (dispatch(planning.api.getFiles([data.item])))
+    (dispatch) => (dispatch(planningApis.getFiles([data.item])))
 );
 
 // eslint-disable-next-line consistent-this

@@ -48,7 +48,6 @@ import {EditorFieldNoContentLinking} from './NoContentLinking';
 import {EditorFieldCoverageContact} from './CoverageContact';
 import {EditorFieldXMPFile} from './XMPFile';
 import {EditorFieldScheduledUpdates} from './ScheduledUpdates';
-import {EditorFieldCustomVocabularies} from './CustomVocabularies';
 import {EditorFieldAssignedCoverageComponent} from './AssignedCoverage';
 import {EditorFieldEventRelatedPlannings} from './EventRelatedPlannings/EventRelatedPlanningWrapper';
 import {EditorFieldAddCoverageToWorkflow} from './AddCoverageToWorkflow';

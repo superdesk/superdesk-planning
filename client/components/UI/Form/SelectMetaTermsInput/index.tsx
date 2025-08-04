@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {SelectFieldPopup} from './SelectFieldPopup';
 import {cloneDeep, differenceBy} from 'lodash';
@@ -9,15 +8,42 @@ import {TermsList} from '../../';
 
 import './style.scss';
 
+export interface IProps {
+    options: Array<any>;
+    value?: Array<any>;
+    label?: string;
+    labelKey?: string;
+    valueKey?: string;
+    searchKey?: string;
+    readOnly?: boolean;
+    onChange?: (field: string, value: any) => void;
+    required?: boolean;
+    field?: string;
+    scheme?: string;
+    popupContainer?: () => HTMLElement;
+    onFocus?: () => void;
+    groupField?: string;
+    onPopupOpen?: () => void;
+    onPopupClose?: () => void;
+    maxLength?: number;
+    language?: string;
+    invalid?: boolean;
+}
+
+interface IState {
+    multiLevel: boolean;
+    openSelectPopup: boolean;
+}
+
 /**
  * @ngdoc react
  * @name SelectMetaTermsInput
  * @description Component to select metadata terms like Subjects/Category
  */
-export class SelectMetaTermsInput extends React.Component {
+export class SelectMetaTermsInput extends React.Component<IProps, IState> {
     addBtn: React.RefObject<HTMLButtonElement>;
 
-    constructor(props) {
+    constructor(props: IProps) {
         super(props);
         this.state = {
             multiLevel: false,
@@ -43,9 +69,13 @@ export class SelectMetaTermsInput extends React.Component {
     removeValue(index, term) {
         const {value, field, onChange} = this.props;
 
-        if (term.scheme || term.qcode) {
-            const updatedValue = value.filter(({scheme, qcode}) =>
-                !((term.scheme ?? null) === scheme && term.qcode === qcode),
+        if (term.scheme != null || term.qcode != null) {
+            const termScheme = term.scheme ?? null;
+            const termQcode = term.qcode ?? null;
+
+            // fallback to `null` when destructuring, since this is a strict comparison
+            const updatedValue = value.filter(({scheme = null, qcode = null}) =>
+                !(termScheme === scheme && termQcode === qcode)
             );
 
             onChange(
@@ -54,7 +84,7 @@ export class SelectMetaTermsInput extends React.Component {
             );
         } else {
             // Delete by index
-            onChange(field, cloneDeep(value).filter((item, i) => (i !== index)));
+            onChange(field, cloneDeep(value).filter((_, i) => (i !== index)));
         }
     }
 
@@ -103,11 +133,22 @@ export class SelectMetaTermsInput extends React.Component {
             language,
             ...props
         } = this.props;
+
         const options = this.removeValuesFromOptions();
-        const disabled = options.length === 0 || (maxLength && Array.isArray(value) && value.length >= maxLength);
-        const selectedIds: Array<string> = (value || []).map(
-            (option) => option[valueKey]
-        );
+        const disabled = (() => {
+            // No options available to be selected
+            if (options.length === 0) {
+                return true;
+
+            // If maxLength is defined, and values is an array check if values are exceeding maxLength
+            } else if (maxLength != null && Array.isArray(value) && value.length >= maxLength) {
+                return true;
+            }
+
+            return false;
+        })();
+
+        const selectedIds: Array<string> = (value || []).map((option) => option[valueKey]);
         let selected = this.props.options.filter(
             (option) => selectedIds.includes(option[valueKey])
         );
@@ -138,7 +179,8 @@ export class SelectMetaTermsInput extends React.Component {
                             'sd-line-input__plus-btn',
                             {'sd-line-input__plus-btn--disabled': disabled}
                         )}
-                        onClick={!disabled ? this.toggleOpenSelectPopup : null}
+                        disabled={disabled}
+                        onClick={this.toggleOpenSelectPopup}
                         onFocus={onFocus}
                         ref={this.addBtn}
                     />
@@ -182,41 +224,3 @@ export class SelectMetaTermsInput extends React.Component {
         );
     }
 }
-
-SelectMetaTermsInput.propTypes = {
-    options: PropTypes.array.isRequired,
-    value: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.shape(undefined),
-        PropTypes.shape({
-            label: PropTypes.string,
-            value: PropTypes.object,
-        }),
-    ]),
-    label: PropTypes.string,
-    labelKey: PropTypes.string,
-    valueKey: PropTypes.string,
-    searchKey: PropTypes.string,
-    readOnly: PropTypes.bool,
-    onChange: PropTypes.func,
-    required: PropTypes.bool,
-    field: PropTypes.string,
-    scheme: PropTypes.string,
-    popupContainer: PropTypes.func,
-    onFocus: PropTypes.func,
-    groupField: PropTypes.string,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    maxLength: PropTypes.number,
-    language: PropTypes.string,
-    invalid: PropTypes.bool,
-};
-
-SelectMetaTermsInput.defaultProps = {
-    required: false,
-    invalid: false,
-    labelKey: 'name',
-    valueKey: 'qcode',
-    searchKey: 'name',
-    scheme: '',
-};

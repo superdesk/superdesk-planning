@@ -1,7 +1,9 @@
 import {superdeskApi} from '../../../superdeskApi';
 
 // @ts-ignore
-import * as iconFont from 'superdesk-ui-framework/app/styles/_icon-font.scss';
+import iconObj from 'superdesk-ui-framework/app/styles/_icon-font.scss';
+
+const icons = iconObj.icon;
 
 export interface IIcon {
     name: string;
@@ -9,7 +11,7 @@ export interface IIcon {
 }
 
 export function getIcons(): Array<IIcon> {
-    return iconFont.icon
+    return icons
         .split(', ')
         .sort()
         .map((icon) => ({

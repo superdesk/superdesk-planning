@@ -194,6 +194,9 @@ declare module 'superdesk-api' {
         start_of_week?: number;
         planning_default_view: PLANNING_VIEW;
 
+        // Custom vocabularies to exclude from registration as `custom_vocabulary` fields.
+        vocabulariesToExcludeAsFields: Array<IVocabulary['_id']>;
+
         planning?: {
             dateformat?: string;
             timeformat?: string;
