@@ -381,3 +381,4 @@ cd superdesk-planning/server
 behave
 cd ../..
 ```
+trigger CI
