@@ -58,10 +58,6 @@ interface IProps {
     loadingIndicator: boolean;
     showAddCoverage?: boolean;
     hideItemActions?: boolean;
-    listFields?: {[key: string]: { // List fields from planning_types collection (i.e. Planning Profiles)
-        primary_fields?: Array<string>;
-        secondary_fields?: Array<string>;
-    }};
     calendars: Array<ICalendar>;
     isAllListItemsLoaded: boolean;
     indexItems?: boolean;
@@ -329,7 +325,6 @@ export class ListPanel extends React.Component<IProps, IState> {
             desks,
             showAddCoverage,
             hideItemActions,
-            listFields,
             isAllListItemsLoaded,
             indexItems,
             previewItem,
@@ -412,7 +407,6 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 desks: desks,
                                 showAddCoverage: showAddCoverage,
                                 hideItemActions: hideItemActions,
-                                listFields: listFields,
                                 contacts: contacts,
                                 listViewType: listViewType,
                                 sortField: sortField,

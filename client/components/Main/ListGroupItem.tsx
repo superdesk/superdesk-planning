@@ -113,7 +113,6 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             desks,
             showAddCoverage,
             hideItemActions,
-            listFields,
             active,
             index,
             navigateDown,
@@ -142,7 +141,6 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             privileges: privileges,
             activeFilter: activeFilter,
             onMultiSelectClick: onMultiSelectClick,
-            listFields: listFields,
             active: active,
             listViewType: listViewType,
             sortField: sortField,
@@ -262,7 +260,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             }
 
             return (
-                <EventItem {... eventProps} />
+                <EventItem {...eventProps} planningProps={planningProps} />
             );
 
         case ITEM_TYPE.PLANNING:

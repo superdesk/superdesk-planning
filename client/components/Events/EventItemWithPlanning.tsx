@@ -9,14 +9,13 @@ import {
     IEventOrPlanningItem,
     IPlanningItem,
 } from '../../interfaces';
-import {superdeskApi} from '../../superdeskApi';
 
 import {onEventCapture} from '../../utils';
 import {KEYCODES} from '../../constants';
 
 import {EventItem} from '.';
 import {PlanningItem} from '../Planning';
-import {NestedItem} from '../UI/List';
+import {NestedItem} from '../../components/UI/List/NestedItem';
 
 interface IProps {
     eventProps: IEventListItemProps;
@@ -227,6 +226,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
         const eventItem = (
             <EventItem
                 {...eventProps}
+                planningProps={this.props.planningProps}
                 active={this.state.activeIndex === 0}
                 relatedEventsUI={{
                     visible: this.state.openPlanningItems,
@@ -238,7 +238,6 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
         return (
             <NestedItem
                 parentItem={eventItem}
-                collapsed={!this.state.openPlanningItems}
                 expanded={this.state.openPlanningItems}
                 nestedChildren={getPlannings(eventProps.item)}
                 noMarginTop={this.props.listViewType === LIST_VIEW_TYPE.LIST}

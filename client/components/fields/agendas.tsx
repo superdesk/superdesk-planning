@@ -1,21 +1,29 @@
 import React, {Fragment, FunctionComponent} from 'react';
 import classNames from 'classnames';
-
+import {connect} from 'react-redux';
+import * as selectors from '../../selectors';
 import {AgendaNameList} from '../Agendas';
 import {superdeskApi} from '../../superdeskApi';
-import {IAgenda} from 'interfaces';
+import {IAgenda, IFieldsProps, IPlanningAppState} from '../../interfaces';
+import {isPlanning, planningUtils} from '../../utils';
 
-interface IProps {
-    fieldsProps: {
-        agendas: {
-            agendas: IAgenda;
-        }
-    };
-    noGrow: boolean;
+interface IReduxStateProps {
+    agendas: Array<IAgenda>;
 }
 
-export const agendas: FunctionComponent<IProps> = ({fieldsProps, noGrow}) => {
+type IProps = IFieldsProps & IReduxStateProps;
+
+export const AgendasComponent: FunctionComponent<IProps> = (props) => {
     const {gettext} = superdeskApi.localization;
+    const {item, agendas, fieldsProps} = props;
+
+    if (!isPlanning(item)) {
+        return null;
+    }
+
+    const agendasNames = planningUtils.getAgendaNames(item, agendas);
+
+    // PR-TODO: ensure ellipsis is applied to agendas
 
     return (
         <Fragment>
@@ -24,13 +32,18 @@ export const agendas: FunctionComponent<IProps> = ({fieldsProps, noGrow}) => {
                 className={classNames(
                     'sd-overflow-ellipsis',
                     'sd-list-item__text-strong',
-                    {
-                        'sd-list-item--element-grow': !noGrow,
-                    }
                 )}
             >
-                <AgendaNameList agendas={fieldsProps?.agendas?.agendas} />
+                <AgendaNameList agendas={agendasNames} />
             </span>
         </Fragment>
     );
 };
+
+const mapStateToProps = (state: IPlanningAppState): IReduxStateProps => ({
+    agendas: selectors.general.agendas(state),
+});
+
+export const agendas = connect(
+    mapStateToProps,
+)(AgendasComponent);

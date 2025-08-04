@@ -2,18 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {appConfig} from 'appConfig';
-
-import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils, planningUtils} from '../utils';
-import {ITEM_TYPE, EVENTS, PLANNING} from '../constants';
+import {gettext, getItemType} from '../utils';
+import {ITEM_TYPE} from '../constants';
 
 import {Button} from './UI';
 import {SelectInput, Row} from './UI/Form';
-import {Item, Column, Row as ListRow} from './UI/List';
 import {Modal} from './index';
 import SortItems from './SortItems/index';
 import {KEYCODES} from '../constants';
-import {renderFields} from './fields';
+import {RelatedEventListItem} from './Events/EventMetadata/RelatedEventListItem';
+import {RelatedPlanningListItem} from './RelatedPlannings/PlanningMetaData/RelatedPlanningListItem';
 
 export class ExportAsArticleModal extends React.Component {
     constructor(props) {
@@ -93,61 +91,28 @@ export class ExportAsArticleModal extends React.Component {
     }
 
     getListElement(item) {
-        const {exportListFields, agendas} = this.props.modalProps;
         const itemType = getItemType(item);
-        const propsToComponent = {
-            fieldsProps: {
-                location: {noMargin: true},
-                description: {alternateFieldName: 'definition_short'},
-                agendas: {agendas: planningUtils.getAgendaNames(item, agendas, true)},
-
-            },
-        };
-        let primaryFields, secFields, dateStr;
 
         if (itemType === ITEM_TYPE.EVENT) {
-            primaryFields = EVENTS.EXPORT_LIST.PRIMARY_FIELDS;
-            secFields = EVENTS.EXPORT_LIST.SECONDARY_FIELDS;
-            dateStr = eventUtils.getDateStringForEvent(
-                item,
-                false,
-                true,
-                timeUtils.isEventInDifferentTimeZone(item));
+            return (
+                <RelatedEventListItem
+                    item={item}
+                    showIcon={true}
+                    shadow={1}
+                />
+            );
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            return (
+                <RelatedPlanningListItem
+                    item={item}
+                    showIcon={true}
+                    shadow={1}
+                    isAgendaEnabled={false}
+                />
+            );
         } else {
-            primaryFields = PLANNING.EXPORT_LIST.PRIMARY_FIELDS;
-            secFields = PLANNING.EXPORT_LIST.SECONDARY_FIELDS;
-            dateStr = getDateTimeString(
-                item.planning_date,
-                appConfig.planning.dateformat,
-                appConfig.planning.timeformat,
-                ' @ ',
-                false
-            ) || '';
+            throw new Error('no other options');
         }
-
-        return (
-            <Item>
-                <Column grow={true} border={false}>
-                    <ListRow>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(exportListFields,
-                                `${itemType}.primary_fields`, primaryFields), item, propsToComponent)}
-                        </span>
-                        <button
-                            className="icon-close-small"
-                            onClick={this.onCloseItem.bind(null, item._id)}
-                        />
-                    </ListRow>
-                    <ListRow>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(exportListFields,
-                                `${itemType}.secondary_fields`, secFields), item, propsToComponent)}
-                        </span>
-                        {dateStr && <time className="no-padding"><i className="icon-time" />{dateStr}</time>}
-                    </ListRow>
-                </Column>
-            </Item>
-        );
     }
 
     render() {
@@ -251,7 +216,6 @@ ExportAsArticleModal.propTypes = {
         download: PropTypes.bool,
         articleTemplates: PropTypes.array,
         defaultArticleTemplate: PropTypes.object,
-        exportListFields: PropTypes.object.isRequired,
         agendas: PropTypes.array,
     }),
 };

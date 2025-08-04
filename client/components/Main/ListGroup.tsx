@@ -70,7 +70,6 @@ interface IProps {
     itemActions?: {};
     showAddCoverage?: boolean;
     hideItemActions?: boolean;
-    listFields?: {};
     activeItemIndex?: number;
     indexItems?: boolean;
     indexFrom?: number;
@@ -140,7 +139,6 @@ export class ListGroup extends React.Component<IProps> {
             desks,
             showAddCoverage,
             hideItemActions,
-            listFields,
             activeItemIndex,
             navigateDown,
             navigateList,
@@ -203,7 +201,6 @@ export class ListGroup extends React.Component<IProps> {
                             showAddCoverage: showAddCoverage,
                             hideItemActions: hideItemActions,
                             calendars: calendars,
-                            listFields: listFields,
                             navigateDown: navigateDown,
                             navigateList: navigateList,
                             onItemActivate: onItemActivate,
