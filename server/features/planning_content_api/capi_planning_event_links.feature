@@ -79,7 +79,6 @@ Feature: Events & Planning Content API
             "_id": "plan1",
             "events": [{
                 "uri": "urn:event:event1",
-                "name": "Sports Event",
                 "literal": "event1",
                 "rel": "primary"
             }]
@@ -165,13 +164,11 @@ Feature: Events & Planning Content API
             "events": [
                 {
                     "uri": "urn:event:event1",
-                    "name": "Sports Event",
                     "literal": "event1",
                     "rel": "secondary"
                 },
                 {
                     "uri": "urn:event:event2",
-                    "name": "Sports Event 2",
                     "literal": "event2",
                     "rel": "secondary"
                 }

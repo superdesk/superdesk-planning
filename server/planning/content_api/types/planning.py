@@ -54,7 +54,6 @@ class ContentAPICoverageResource(BaseContentAPIDataclass):
 
 class RelatedEvent(BaseContentAPIDataclass):
     uri: fields.Keyword
-    name: str
     literal: fields.Keyword
     rel: LinkType
 
