@@ -4,8 +4,13 @@ import {cloneDeep} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk} from 'superdesk-api';
-import {IEventsPlanningContentPanelProps, ISearchFilterSchedule, SCHEDULE_FREQUENCY, WEEK_DAY} from '../../interfaces';
-
+import {
+    IEventsPlanningContentPanelProps,
+    ISearchFilterSchedule,
+    ISearchFilter,
+    SCHEDULE_FREQUENCY,
+    WEEK_DAY,
+} from '../../interfaces';
 import {SidePanel, ToggleBox} from '../UI';
 import {renderFieldsForPanel} from '../fields';
 import {desks as getDesks} from '../../selectors/general';
@@ -76,12 +81,12 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
 
         this.props.onSave({
             ...this.props.filter,
-            schedules: [schedule],
+            schedules: [schedule as ISearchFilterSchedule],
         }).then(() => this.props.onClose());
     }
 
     previewFilter() {
-        this.props.previewFilter(this.props.filter);
+        this.props.previewFilter(this.props.filter as ISearchFilter);
     }
 
     onChange<T extends keyof ISearchFilterSchedule>(field: T, value: ISearchFilterSchedule[T]) {
