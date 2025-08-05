@@ -1,5 +1,7 @@
-from planning.feed_parsers.superdesk_event_json import EventJsonFeedParser
 import os
+from datetime import datetime, timedelta, timezone
+
+from planning.feed_parsers.superdesk_event_json import EventJsonFeedParser
 from planning.tests import TestCase
 from superdesk import get_resource_service
 
@@ -50,7 +52,8 @@ class EventJsonFeedParserTestCase(TestCase):
                     ],
                 )
 
-            events = await EventJsonFeedParser().parse(self.sample_json)
+            provider = {"content_expiry": 1}
+            events = await EventJsonFeedParser().parse(self.sample_json, provider)
 
             # ignore fields like files as per the ACs in SDNTB-682
             self.assertNotIn("files", events[0])
@@ -77,3 +80,14 @@ class EventJsonFeedParserTestCase(TestCase):
             # remove the locations and contacts added.
             await get_resource_service("locations").delete_async(location)
             get_resource_service("contacts").delete(contact)
+
+            assert events[0]["dates"]["start"].isoformat() == "2021-03-01T14:00:41+00:00"
+            assert events[0]["dates"]["end"].isoformat() == "2021-03-01T15:00:41+00:00"
+
+            assert events[0]["firstcreated"].isoformat() == "2021-01-25T14:31:52+00:00"
+            assert events[0]["versioncreated"].isoformat() == "2021-01-25T14:32:01+00:00"
+
+            assert events[0]["expiry"] == events[0]["dates"]["end"] + timedelta(minutes=provider["content_expiry"])
+
+            assert int(events[0]["location"][0]["location"]["lat"]) == 59
+            assert int(events[0]["location"][0]["location"]["lon"]) == 10
