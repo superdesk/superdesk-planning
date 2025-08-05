@@ -21,7 +21,7 @@ interface IProps extends IEventsPlanningContentPanelProps {
 
 interface IState {
     pristine: boolean;
-    schedule: Partial<ISearchFilterSchedule> & {hours?: string[]};
+    schedule: Partial<ISearchFilterSchedule>;
     invalid: boolean;
     errors: {[key: string]: string};
 }
@@ -177,14 +177,13 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                 <div className="form__row-items">
                     {(schedule.hours ?? []).map((time, idx) => (
                         <div
-                            className="form__row-item--flex"
+                            className="form__row-item--flex sd-flex sd-align-items-center sd-gap-x--1 sd-m-b--1"
                             key={idx}
-                            style={{marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem'}}
                         >
                             <select
+                                data-test-id={`field-hour-${idx}`}
                                 value={time}
-                                className="sd-input__input"
-                                style={{minWidth: '100px', flex: '1 1 auto', backgroundColor: '#ffffff'}}
+                                className="sd-input__input sd-flex-grow sd-min-width--100"
                                 onChange={(e) => this.updateHour(idx, e.target.value)}
                             >
                                 {hourOptions}
