@@ -1,7 +1,7 @@
 from superdesk.core.resources import ResourceCursorAsync, ResourceModel
 
 from planning.types import ninjs3
-from .types import PlanningCAPIParams
+from .types import PlanningCAPIParams, ContentAPIPlanningResource
 
 
 async def format_base_content_api_item(item: dict, subscribers: list[dict] | None) -> dict:
@@ -44,7 +44,22 @@ SYSTEM_FIELDS: set[str] = {
 }
 
 
-def convert_capi_item_to_response_instance(item_instance: ResourceModel | dict) -> dict:
+def adjust_coverage_planning_scheduled_if_tbc(item: dict) -> None:
+    if item.get("type") != "planning" or not item.get("coverages"):
+        return
+
+    for coverage in item["coverages"]:
+        tbc = coverage.pop("_time_to_be_confirmed", None)
+
+        planning = coverage.get("planning")
+        if not planning:
+            continue
+
+        if tbc is True:
+            planning["scheduled"] = planning["scheduled"].strftime("%Y-%m-%d")
+
+
+async def convert_capi_item_to_response_instance(item_instance: ResourceModel | dict) -> dict:
     if isinstance(item_instance, ResourceModel):
         item = item_instance.to_dict(
             exclude_none=True, exclude_unset=False, exclude_defaults=False, exclude=SYSTEM_FIELDS
@@ -62,6 +77,8 @@ def convert_capi_item_to_response_instance(item_instance: ResourceModel | dict) 
                 item.pop(field, None)
 
     convert_event_dates_to_ninjs_3(item)
+    await add_plan_ids_to_event(item)
+    adjust_coverage_planning_scheduled_if_tbc(item)
     return item
 
 
@@ -101,8 +118,17 @@ def convert_event_dates_to_ninjs_3(item: dict) -> None:
         }
 
 
+async def add_plan_ids_to_event(item: dict) -> None:
+    cursor = await ContentAPIPlanningResource.get_service().find(
+        {"query": {"bool": {"must": [{"term": {"events.literal": item["_id"]}}]}}},
+        max_results=100,
+        projection=["_id"],
+    )
+    item["plans"] = [plan["_id"] for plan in await cursor.to_list_raw()]
+
+
 async def convert_cursor_to_response_items(cursor: ResourceCursorAsync, params: PlanningCAPIParams) -> list[dict]:
     if params.include_fields or params.exclude_fields:
-        return [convert_capi_item_to_response_instance(item) for item in await cursor.to_list_raw()]
+        return [await convert_capi_item_to_response_instance(item) for item in await cursor.to_list_raw()]
     else:
-        return [convert_capi_item_to_response_instance(item) async for item in cursor]
+        return [await convert_capi_item_to_response_instance(item) async for item in cursor]

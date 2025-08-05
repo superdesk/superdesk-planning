@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import Field
 
-from superdesk.core.resources import ResourceModel, fields, Dataclass, default_model_config
+from superdesk.core.resources import ResourceModel, fields, Dataclass, default_model_config, BaseModel
 
 from planning.types import (
     PlanningSchedule,
@@ -16,19 +16,32 @@ from planning.types import (
 )
 
 
-class ContactPhoneNumber(Dataclass):
+planning_capi_model_config: dict = {
+    **default_model_config,
+    "extra": "ignore",
+}
+
+
+class GetItemArgs(BaseModel):
+    item_id: str
+
+
+class BaseContentAPIDataclass(Dataclass):
+    model_config = planning_capi_model_config
+
+
+class ContactPhoneNumber(BaseContentAPIDataclass):
     number: str
     usage: str
-    public: bool
 
 
-class ContactLocationEntity(Dataclass):
+class ContactLocationEntity(BaseContentAPIDataclass):
     name: str
     qcode: fields.Keyword
-    translations: dict[str, str]
+    translations: dict[str, str] | None = None
 
 
-class ContactsResource(Dataclass):
+class ContactsResource(BaseContentAPIDataclass):
     uri: fields.Keyword | None = None
     organisation: fields.TextWithKeyword | None = None
     first_name: fields.TextWithKeyword | None = None
@@ -54,27 +67,37 @@ class ContactsResource(Dataclass):
 
 
 def generate_title(item: type["BasePlanningContentAPIResource"]) -> str:
-    return "Event" if "event" in item.__name__ else "Planning"
+    return "Content API / Event" if "Event" in item.__name__ else "Content API / Planning"
 
 
 class BasePlanningContentAPIResource(ResourceModel):
     model_config = {
-        **default_model_config,
-        "extra": "allow",
+        **planning_capi_model_config,
         "model_title_generator": generate_title,
     }
 
     id: Annotated[str, Field(alias="_id")]
+
+    # Override some base fields to exclude them from docs
+    created: Annotated[datetime | None, Field(alias="_created"), fields.exclude_from_docs()] = None
+    updated: Annotated[datetime | None, Field(alias="_updated"), fields.exclude_from_docs()] = None
+    etag: Annotated[str | None, Field(alias="_etag"), fields.exclude_from_docs()] = None
+
     firstcreated: datetime | None = None
     versioncreated: datetime | None = None
-    products: list[MatchingProduct] | None = None
-    subscribers: list[fields.ObjectId] | None = None
+    products: list[MatchingProduct] | None = Field(
+        default=None, description="List of Superdesk publish Product IDs that matched the item"
+    )
+    subscribers: Annotated[list[fields.ObjectId], fields.exclude_from_docs()]
 
     # This is an extra field so that we can sort in the combined view of events and planning.
     # It will store the dates.start of the event.
     # Exclude from API response & docs
     planning_schedule: Annotated[
-        list[PlanningSchedule], fields.nested_list(), Field(alias="_planning_schedule", default_factory=list)
+        list[PlanningSchedule],
+        fields.nested_list(),
+        Field(alias="_planning_schedule", default_factory=list),
+        fields.exclude_from_docs(),
     ]
 
     # What about these 2? Not available on Planning item

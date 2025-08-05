@@ -21,7 +21,12 @@ __all__ = [
 signals = blinker.Namespace()
 
 planning_created = signals.signal("planning:created")
-planning_ingested = signals.signal("planning:ingested")
+
+#: Signal for when a Planning item has been ingested (both created and updated)
+#: param updates: Updated Planning item dict
+#: param original: Original Planning item dict (if updating), else None
+planning_ingested = AsyncSignal[dict, dict | None]("planning:ingested")
+
 assignment_content_create = signals.signal("planning:assignment_content_create")
 
 

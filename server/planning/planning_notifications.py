@@ -417,7 +417,6 @@ async def _send_to_slack_user(sc, user_id, message):
         if im.get("ok", False):
             sent = sc.api_call(
                 "chat.postMessage",
-                as_user=False,
                 channel=im.get("channel", {}).get("id"),
                 text=message,
                 link_names=True,

@@ -74,7 +74,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
                 )
                 self.__class__.missing_voc = "continue"
 
-    def get_item_id(self, tree: Element) -> str:
+    async def get_item_id(self, tree: Element) -> str:
         return tree.attrib["guid"]
 
     async def parse(self, tree: Element, provider=None):
@@ -83,7 +83,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
         planning_service = get_resource_service("planning")
 
         try:
-            guid = self.get_item_id(tree)
+            guid = await self.get_item_id(tree)
             original: Optional[Planning] = planning_service.find_one(req=None, _id=guid)
             item = await self.parse_item(tree, original)
             return [item] if item is not None else []
@@ -91,7 +91,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
             raise ParserError.parseMessageError(ex, provider)
 
     async def parse_item(self, tree: Element, original: Optional[Planning]) -> Optional[Planning]:
-        guid = (original or {}).get("_id") or self.get_item_id(tree)
+        guid = (original or {}).get("_id") or await self.get_item_id(tree)
         item = {
             GUID_FIELD: guid,
             ITEM_TYPE: CONTENT_TYPE.PLANNING,
@@ -101,7 +101,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         self.parse_item_meta(tree, item)
         self.parse_content_meta(tree, item)
-        self.parse_news_coverage_set(tree, item, original)
+        await self.parse_news_coverage_set(tree, item, original)
         self.parse_news_coverage_status(tree, item)
 
         await upgrade_rich_text_fields(item, "planning")
@@ -241,7 +241,7 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         return None
 
-    def get_coverage_details(self, news_coverage_elt: Element, item: Planning, original: Optional[Planning]):
+    async def get_coverage_details(self, news_coverage_elt: Element, item: Planning, original: Optional[Planning]):
         """Process the Coverage element and optionally return the coverage details
 
         If ``None`` is returned, this coverage is not added to the Planning item
@@ -283,13 +283,13 @@ class PlanningMLParser(NewsMLTwoFeedParser):
 
         return coverage_details
 
-    def parse_news_coverage_set(self, tree: Element, item: Planning, original: Optional[Planning]):
+    async def parse_news_coverage_set(self, tree: Element, item: Planning, original: Optional[Planning]):
         """Parse newsCoverageSet tag"""
 
         item["coverages"] = []
         news_coverage_set = tree.find(self.qname("newsCoverageSet"))
         if news_coverage_set is not None:
             for news_coverage_elt in news_coverage_set.findall(self.qname("newsCoverage")):
-                coverage = self.get_coverage_details(news_coverage_elt, item, original)
+                coverage = await self.get_coverage_details(news_coverage_elt, item, original)
                 if coverage is not None:
                     item["coverages"].append(coverage)

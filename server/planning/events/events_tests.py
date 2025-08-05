@@ -22,6 +22,7 @@ from planning.events.events_utils import get_recurring_timeline
 from planning.events.events_reschedule import process_reschedule_event
 from planning.events.events_update_time import process_update_time
 from planning.events.events_update_repetitions import process_update_repetitions
+from planning.content_api.resources import ContentAPIPlanningService, ContentAPIEventService
 
 from .events import is_event_updated
 

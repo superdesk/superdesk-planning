@@ -69,7 +69,7 @@ Feature: Events & Planning Content API
         Then we get list with 1 items
         """
         {"_items": [
-            {"_id": "event1"}
+            {"_id": "event1", "plans": ["plan1"]}
         ]}
         """
         When we get capi "/planning/plan1"
@@ -79,7 +79,6 @@ Feature: Events & Planning Content API
             "_id": "plan1",
             "events": [{
                 "uri": "urn:event:event1",
-                "name": "Sports Event",
                 "literal": "event1",
                 "rel": "primary"
             }]
@@ -153,8 +152,8 @@ Feature: Events & Planning Content API
         Then we get list with 2 items
         """
         {"_items": [
-            {"_id": "event1"},
-            {"_id": "event2"}
+            {"_id": "event1", "plans": ["plan1"]},
+            {"_id": "event2", "plans": ["plan1"]}
         ]}
         """
         When we get capi "/planning/plan1"
@@ -165,13 +164,11 @@ Feature: Events & Planning Content API
             "events": [
                 {
                     "uri": "urn:event:event1",
-                    "name": "Sports Event",
                     "literal": "event1",
                     "rel": "secondary"
                 },
                 {
                     "uri": "urn:event:event2",
-                    "name": "Sports Event 2",
                     "literal": "event2",
                     "rel": "secondary"
                 }
