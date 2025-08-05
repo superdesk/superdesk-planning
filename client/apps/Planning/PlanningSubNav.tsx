@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 
 import {IArticle} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {LIST_VIEW_TYPE, PLANNING_VIEW} from '../../interfaces';
+import {GROUP_LIST_BY, PLANNING_VIEW} from '../../interfaces';
 import {ISubNavPanelProps} from '../PageContent';
 
 import {ITEM_TYPE} from '../../constants';
@@ -25,7 +25,7 @@ interface IProps extends ISubNavPanelProps {
     createPlanningOnly?: boolean;
     privileges: {[key: string]: number};
     showFilters?: boolean; // defaults to true
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
 
     addEvent(): void;
     addPlanning(): void;
@@ -39,7 +39,7 @@ const mapStateToProps = (state) => ({
     currentView: selectors.main.activeFilter(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
     privileges: selectors.general.privileges(state),
-    listViewType: selectors.main.getCurrentListViewType(state),
+    groupListBy: selectors.main.getCurrentListGrouping(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -62,11 +62,11 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
 
         this.viewOptions = [{
             label: gettext('Schedule'),
-            onSelect: () => planningApi.ui.list.setViewType(LIST_VIEW_TYPE.SCHEDULE),
+            onSelect: () => planningApi.ui.list.setGroupListBy(GROUP_LIST_BY.DATE),
             icon: 'list-view',
         }, {
             label: gettext('List'),
-            onSelect: () => planningApi.ui.list.setViewType(LIST_VIEW_TYPE.LIST),
+            onSelect: () => planningApi.ui.list.setGroupListBy(GROUP_LIST_BY.NOT_GROUPED),
             icon: 'stream',
         }];
     }
@@ -77,7 +77,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const listViewIcon = this.props.listViewType === LIST_VIEW_TYPE.SCHEDULE ?
+        const listViewIcon = this.props.groupListBy === GROUP_LIST_BY.DATE ?
             'icon-list-view' :
             'icon-stream';
 

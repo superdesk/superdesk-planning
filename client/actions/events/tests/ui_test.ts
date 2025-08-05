@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import moment from 'moment';
 
 import {planningApi} from '../../../superdeskApi';
-import {LIST_VIEW_TYPE} from '../../../interfaces';
+import {GROUP_LIST_BY} from '../../../interfaces';
 import eventsApi from '../api';
 import eventsUi from '../ui';
 import planningApis from '../../planning/api';
@@ -331,7 +331,7 @@ describe('actions.events.ui', () => {
         expect(store.dispatch.args[0]).toEqual([{
             type: 'SET_EVENTS_LIST',
             payload: {
-                listViewType: LIST_VIEW_TYPE.SCHEDULE,
+                groupListBy: GROUP_LIST_BY.DATE,
                 ids: ['e1', 'e2'],
             },
         }]);

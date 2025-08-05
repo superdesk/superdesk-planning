@@ -2,7 +2,7 @@ import React from 'react';
 import {get, findIndex} from 'lodash';
 
 import {
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     IEventListItemProps,
     IPlanningListItemProps,
     IEventItem,
@@ -23,7 +23,7 @@ interface IProps {
     relatedPlanningsInList: {[key: string]: Array<IPlanningItem>};
     navigateDown?: boolean;
     previewItem: IEventOrPlanningItem['_id'];
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
 
     showRelatedPlannings(item: IEventItem): void;
     refNode?(node: HTMLElement): void;
@@ -240,7 +240,7 @@ export class EventItemWithPlanning extends React.Component<IProps, IState> {
                 parentItem={eventItem}
                 expanded={this.state.openPlanningItems}
                 nestedChildren={getPlannings(eventProps.item)}
-                noMarginTop={this.props.listViewType === LIST_VIEW_TYPE.LIST}
+                noMarginTop={this.props.groupListBy === GROUP_LIST_BY.NOT_GROUPED}
             />
         );
     }

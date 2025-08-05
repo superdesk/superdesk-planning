@@ -11,7 +11,7 @@ import {
     ILockedItems,
     IPlanningItem,
     ISearchFilter,
-    ISession, LIST_VIEW_TYPE, SORT_FIELD
+    ISession, GROUP_LIST_BY, SORT_FIELD
 } from '../../interfaces';
 
 import {KEYCODES, MAIN} from '../../constants';
@@ -63,7 +63,7 @@ interface IProps {
     indexItems?: boolean;
     contentTypes: Array<IG2ContentType>;
     contacts: {[key: string]: IContactItem};
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     userInitiatedSearch?: boolean;
     searchParams?: ICommonAdvancedSearchParams,
@@ -330,7 +330,7 @@ export class ListPanel extends React.Component<IProps, IState> {
             previewItem,
             contentTypes,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             searchParams,
             searchFilterParams,
@@ -408,7 +408,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 showAddCoverage: showAddCoverage,
                                 hideItemActions: hideItemActions,
                                 contacts: contacts,
-                                listViewType: listViewType,
+                                groupListBy: groupListBy,
                                 sortField: sortField,
                                 listBoxGroupProps: listBoxGroupProps,
                                 searchParams: searchParams,

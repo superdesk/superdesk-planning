@@ -700,7 +700,7 @@ function setEventsList(ids: Array<IEventItem['_id']>) {
             type: EVENTS.ACTIONS.SET_EVENTS_LIST,
             payload: {
                 ids: ids,
-                listViewType: selectors.main.getCurrentListViewType(getState()),
+                groupListBy: selectors.main.getCurrentListGrouping(getState()),
             },
         });
     };
@@ -721,7 +721,7 @@ function addToList(ids: Array<IEventItem['_id']>) {
             type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
             payload: {
                 ids: ids,
-                listViewType: selectors.main.getCurrentListViewType(getState()),
+                groupListBy: selectors.main.getCurrentListGrouping(getState()),
             },
         });
     };

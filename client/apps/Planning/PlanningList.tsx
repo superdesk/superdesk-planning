@@ -13,7 +13,7 @@ import {
     ISession,
     IEventOrPlanningItem,
     IG2ContentType,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     IContactItem,
     SORT_FIELD,
     ICommonSearchParams,
@@ -57,7 +57,7 @@ interface IProps {
     contentTypes: Array<IG2ContentType>;
     userInitiatedSearch?: boolean;
     contacts: {[key: string]: IContactItem};
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     currentSearch: ICommonSearchParams<IEventOrPlanningItem>;
     searchFilters: Array<ISearchFilter>;
@@ -91,7 +91,7 @@ const mapStateToProps = (state) => ({
     contentTypes: selectors.general.contentTypes(state),
     userInitiatedSearch: selectors.main.userInitiatedSearch(state),
     contacts: selectors.general.contactsById(state),
-    listViewType: selectors.main.getCurrentListViewType(state),
+    groupListBy: selectors.main.getCurrentListGrouping(state),
     sortField: selectors.main.getCurrentSortField(state),
     currentSearch: selectors.main.currentSearch(state),
     searchFilters: selectors.eventsPlanning.combinedViewFilters(state),
@@ -182,7 +182,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             contentTypes,
             userInitiatedSearch,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             currentSearch
         } = this.props;
@@ -219,7 +219,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     contentTypes={contentTypes}
                     userInitiatedSearch={userInitiatedSearch}
                     contacts={contacts}
-                    listViewType={listViewType}
+                    groupListBy={groupListBy}
                     sortField={sortField}
                     indexItems
                     searchParams={currentSearch.advancedSearch}

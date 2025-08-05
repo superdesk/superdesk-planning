@@ -121,7 +121,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             previewItem,
             contentTypes,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             minTimeWidth,
             searchParams,
@@ -142,7 +142,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             activeFilter: activeFilter,
             onMultiSelectClick: onMultiSelectClick,
             active: active,
-            listViewType: listViewType,
+            groupListBy: groupListBy,
             sortField: sortField,
             minTimeWidth: minTimeWidth,
             refNode: (node) => {
@@ -254,7 +254,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
                         navigateList={navigateList}
                         onItemActivate={onItemActivate}
                         previewItem={previewItem}
-                        listViewType={this.props.listViewType}
+                        groupListBy={this.props.groupListBy}
                     />
                 );
             }

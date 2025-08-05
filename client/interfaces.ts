@@ -229,9 +229,9 @@ export enum SORT_FIELD {
     UPDATED = 'updated'
 }
 
-export enum LIST_VIEW_TYPE {
-    SCHEDULE = 'schedule',
-    LIST = 'list',
+export enum GROUP_LIST_BY {
+    DATE = 'date',
+    NOT_GROUPED = 'not_grouped',
 }
 
 export type IPlanningProfile = {
@@ -901,7 +901,7 @@ export interface IBaseListItemProps<T> {
     multiSelectDisabled?: boolean;
     multiSelected: boolean;
     active: boolean;
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     minTimeWidth: string;
 
@@ -1683,7 +1683,7 @@ interface IMainStateSearch<T> {
 export interface IMainState {
     previewId?: IEventItem['_id'] | IPlanningItem['_id'];
     previewType?: IEventItem['type'] | IPlanningItem['type'];
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     loadingPreview: boolean;
     filter?: PLANNING_VIEW;
     loadingIndicator: boolean;
@@ -2331,7 +2331,7 @@ export interface IPlanningAPI {
             search(params: ISearchParams): Promise<any>;
             clearSearch(): Promise<any>;
             clearList(): void;
-            setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
+            setGroupListBy(value: GROUP_LIST_BY): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
         };
     };

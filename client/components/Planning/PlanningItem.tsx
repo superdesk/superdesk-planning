@@ -8,7 +8,7 @@ import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
 import {
     IPlanningListItemProps,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     SORT_FIELD
 } from '../../interfaces';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
@@ -188,7 +188,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             contentTypes,
             agendas,
             contacts,
-            listViewType,
+            groupListBy,
             filterLanguage,
             isAgendaEnabled,
         } = this.props;
@@ -305,7 +305,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     />
                 </Column>
 
-                {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+                {groupListBy === GROUP_LIST_BY.DATE ? null : (
                     <CreatedUpdatedColumn
                         item={item}
                         field={this.props.sortField === SORT_FIELD.CREATED ?
