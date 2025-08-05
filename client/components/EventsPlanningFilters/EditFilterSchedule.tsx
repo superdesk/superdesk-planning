@@ -1,7 +1,7 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import {cloneDeep} from 'lodash';
-
+import {getLocalizedHourOptions} from '../../utils/filters';
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk} from 'superdesk-api';
 import {
@@ -33,14 +33,11 @@ const mapStateToProps = (state) => ({
 export class EditFilterScheduleComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
-        const original = this.props.filter.schedules?.[0];
-
         this.state = {
             pristine: false,
-            schedule: cloneDeep(original ?? {
+            schedule: cloneDeep(this.props.filter.schedules?.[0] ?? {
                 frequency: SCHEDULE_FREQUENCY.HOURLY,
                 desk: this.props.desks[0]._id,
-                hours: [],
             }),
             invalid: false,
             errors: {},
@@ -55,28 +52,31 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
     }
 
     onSaveHandler() {
-        const schedule = {...this.state.schedule};
+        const schedule = Object.assign({}, this.state.schedule);
 
-        // Clean up legacy `hour` field
-        delete schedule.hour;
-
-        // Default single hour if not set
-        if (schedule.frequency === SCHEDULE_FREQUENCY.WEEKLY || schedule.frequency === SCHEDULE_FREQUENCY.MONTHLY) {
-            schedule.hours = schedule.hours ?? [];
-        } else {
-            delete schedule.hours;
-        }
-
-        if (schedule.frequency === SCHEDULE_FREQUENCY.WEEKLY && !schedule.week_days?.length) {
-            schedule.week_days = [
-                WEEK_DAY.SUNDAY,
-                WEEK_DAY.MONDAY,
-                WEEK_DAY.TUESDAY,
-                WEEK_DAY.WEDNESDAY,
-                WEEK_DAY.THURSDAY,
-                WEEK_DAY.FRIDAY,
-                WEEK_DAY.SATURDAY,
-            ];
+        switch (schedule.frequency) {
+        case SCHEDULE_FREQUENCY.HOURLY:
+            delete schedule.hour;
+            delete schedule.day;
+            delete schedule.week_days;
+            break;
+        case SCHEDULE_FREQUENCY.WEEKLY:
+            delete schedule.day;
+            if (!schedule.week_days?.length) {
+                schedule.week_days = [
+                    WEEK_DAY.SUNDAY,
+                    WEEK_DAY.MONDAY,
+                    WEEK_DAY.TUESDAY,
+                    WEEK_DAY.WEDNESDAY,
+                    WEEK_DAY.THURSDAY,
+                    WEEK_DAY.FRIDAY,
+                    WEEK_DAY.SATURDAY,
+                ];
+            }
+            break;
+        case SCHEDULE_FREQUENCY.MONTHLY:
+            delete schedule.week_days;
+            break;
         }
 
         this.props.onSave({
@@ -94,11 +94,13 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
 
         schedule[field] = value;
 
-        if (field === 'frequency') {
-            if (value === SCHEDULE_FREQUENCY.WEEKLY || value === SCHEDULE_FREQUENCY.MONTHLY) {
-                schedule.hours = [];
-            } else {
-                delete schedule.hours;
+        if (field === 'frequency' && value === 'weekly') {
+            // When changing the frequency to weekly
+            // If the week_days array is empty, delete the attribute
+            // This enabled the input field to automatically select all days
+            // Which converts this to a 'daily' schedule automatically
+            if (!schedule.week_days?.length) {
+                delete schedule.week_days;
             }
         }
 
@@ -107,26 +109,30 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
 
     updateHour(index: number, value: string) {
         const hours = [...(this.state.schedule.hours ?? [])];
+        hours[index] = value === '-1' ? '' : value;
 
-        hours[index] = value;
-        this.setState({schedule: {...this.state.schedule, hours}});
+        this.setState({
+            schedule: {...this.state.schedule, hours},
+            pristine: false,
+        });
     }
 
     addHour() {
-        const used = new Set(this.state.schedule.hours ?? []);
-        const allHours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-        const next = allHours.find((h) => !used.has(h)) || '00:00';
-
-        const hours = [...(this.state.schedule.hours ?? []), next];
-
-        this.setState({schedule: {...this.state.schedule, hours}});
+        const hours = [...(this.state.schedule.hours ?? []), '-1'];
+        this.setState({
+            schedule: {...this.state.schedule, hours},
+            pristine: false,
+        });
     }
 
     removeHour(index: number) {
         const hours = [...(this.state.schedule.hours ?? [])];
-
         hours.splice(index, 1);
-        this.setState({schedule: {...this.state.schedule, hours}});
+
+        this.setState({
+            schedule: {...this.state.schedule, hours},
+            pristine: false,
+        });
     }
 
     getScheduleProfile() {
@@ -137,14 +143,12 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
         };
 
         switch (this.state.schedule.frequency) {
-        case SCHEDULE_FREQUENCY.HOURLY:
-            break;
-        case SCHEDULE_FREQUENCY.WEEKLY:
-            profile.week_days.enabled = true;
-            break;
-        case SCHEDULE_FREQUENCY.MONTHLY:
-            profile.month_day.enabled = true;
-            break;
+            case SCHEDULE_FREQUENCY.WEEKLY:
+                profile.week_days.enabled = true;
+                break;
+            case SCHEDULE_FREQUENCY.MONTHLY:
+                profile.month_day.enabled = true;
+                break;
         }
 
         return profile;
@@ -161,15 +165,7 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             return null;
         }
 
-        const hourOptions = Array.from({length: 24}).map((_, i) => {
-            const value = `${i.toString().padStart(2, '0')}:00`;
-
-            return (
-                <option key={value} value={value}>
-                    {value}
-                </option>
-            );
-        });
+        const hourOptions = getLocalizedHourOptions();
 
         return (
             <div className="form__row">
@@ -179,19 +175,25 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                         <div
                             className="form__row-item--flex sd-flex sd-align-items-center sd-gap-x--1 sd-m-b--1"
                             key={idx}
+                            data-test-id={`time-slot-${idx}`}
                         >
                             <select
-                                data-test-id={`field-hour-${idx}`}
-                                value={time}
-                                className="sd-input__input sd-flex-grow sd-min-width--100"
+                                data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
+                                value={time || '-1'}
+                                className="sd-input__input sd-input__select sd-input__input--default"
                                 onChange={(e) => this.updateHour(idx, e.target.value)}
                             >
-                                {hourOptions}
+                                {hourOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
                             </select>
                             <button
                                 type="button"
                                 className="btn btn--hollow btn--small"
                                 onClick={() => this.removeHour(idx)}
+                                data-test-id={`remove-hour-${idx}`}
                             >
                                 {gettext('Remove')}
                             </button>
@@ -201,6 +203,7 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                         type="button"
                         className="btn btn--hollow btn--small"
                         onClick={this.addHour}
+                        data-test-id="add-hour"
                     >
                         {gettext('+ Add Time')}
                     </button>
