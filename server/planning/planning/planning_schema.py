@@ -243,6 +243,7 @@ planning_schema = {
         "mapping": {
             "type": "nested",
             "dynamic": False,
+            "include_in_parent": True,
             "properties": {
                 "qcode": not_analyzed,
                 "name": {

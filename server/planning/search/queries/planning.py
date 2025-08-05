@@ -358,12 +358,6 @@ def search_keywords(params: Params, query: elastic.ElasticQuery):
     search_text_field(params, query, "keywords")
 
 
-def search_priority(params: Params, query: elastic.ElasticQuery):
-    priority = str_to_number(params.get("priority"))
-    if priority is not None:
-        query.must.append(elastic.term(field="priority", value=priority))
-
-
 PLANNING_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_planning,
     search_agendas,
@@ -384,7 +378,6 @@ PLANNING_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_abstract,
     search_headline,
     search_keywords,
-    search_priority,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
