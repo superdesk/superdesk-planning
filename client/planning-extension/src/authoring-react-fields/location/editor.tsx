@@ -18,10 +18,19 @@ export class Editor extends React.PureComponent<IProps> {
                 required={this.props.config.required}
                 disabled={this.props.config.readOnly}
                 onChange={(field: string, value: any) => {
-                    const valueCopy = {location: cloneDeep(this.props.value ?? {})};
-                    
+                    const currentLocation = Array.isArray(this.props.value)
+                        ? this.props.value[0]
+                        : this.props.value;
+                    const currentDetails = currentLocation.details;
+                    const valueCopy = {location: cloneDeep(currentLocation)};
+
                     set(valueCopy, field, value);
-                    this.props.onChange(valueCopy.location);
+
+                    if (field === 'location' && currentDetails && !value?.details) {
+                        set(valueCopy, 'location.details', currentDetails);
+                    }
+
+                    this.props.onChange([valueCopy.location]);
                 }}
             />
         );
