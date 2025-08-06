@@ -9,23 +9,29 @@ type IProps = IEditorComponentProps<ILocationValueOperational, ILocationFieldCon
 export class Editor extends React.PureComponent<IProps> {
     render() {
         const {EditorFieldLocation} = extensionBridge.editor.fields;
+        const location = Array.isArray(this.props.value) ? this.props.value[0] : this.props.value;
 
         return (
             <EditorFieldLocation
                 field="location"
                 enableExternalSearch
-                item={{location: this.props.value ?? {}}}
+                item={{location: location ?? {}}}
                 required={this.props.config.required}
                 disabled={this.props.config.readOnly}
                 onChange={(field: string, value: any) => {
-                    if (field === 'location') {
-                        this.props.onChange(value);
-                    } else if (field === 'location.details') {
-                        const valueCopy = cloneDeep(this.props.value ?? {});
+                    const currentDetails = location?.details;
+                    const valueCopy = {location: cloneDeep(location ?? {})};
 
-                        set(valueCopy, 'details', value);
-                        this.props.onChange(valueCopy);
+                    set(valueCopy, field, value);
+
+                    // Preserve location.details if a new location was selected without details
+                    if (field === 'location' && currentDetails != null && value?.details == null) {
+                        valueCopy.location = {
+                            ...valueCopy.location,
+                            details: currentDetails
+                        };
                     }
+                    this.props.onChange([valueCopy.location]);
                 }}
             />
         );
