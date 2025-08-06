@@ -14,6 +14,7 @@ import {
 import {SidePanel, ToggleBox} from '../UI';
 import {renderFieldsForPanel} from '../fields';
 import {desks as getDesks} from '../../selectors/general';
+import {TimeInputs} from './TimeInputs';
 
 interface IProps extends IEventsPlanningContentPanelProps {
     desks: Array<IDesk>;
@@ -47,9 +48,6 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
         this.onSaveHandler = this.onSaveHandler.bind(this);
         this.previewFilter = this.previewFilter.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.updateHour = this.updateHour.bind(this);
-        this.addHour = this.addHour.bind(this);
-        this.removeHour = this.removeHour.bind(this);
     }
 
     onSaveHandler() {
@@ -62,7 +60,7 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             break;
         case SCHEDULE_FREQUENCY.WEEKLY:
             delete schedule.day;
-            if (!schedule.week_days?.length) {
+            if ((schedule.week_days?.length ?? 0) === 0) {
                 schedule.week_days = [
                     WEEK_DAY.SUNDAY,
                     WEEK_DAY.MONDAY,
@@ -103,45 +101,12 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             // If the week_days array is empty, delete the attribute
             // This enabled the input field to automatically select all days
             // Which converts this to a 'daily' schedule automatically
-            if (!schedule.week_days?.length) {
+            if ((schedule.week_days?.length ?? 0) === 0) {
                 delete schedule.week_days;
             }
         }
 
         this.setState({schedule});
-    }
-
-    updateHour(index: number, value: string) {
-        const hours = [...(this.state.schedule.hours ?? [])];
-
-        hours[index] = value;
-        this.setState({
-            schedule: {...this.state.schedule, hours},
-            pristine: false,
-        });
-    }
-
-    addHour() {
-        const used = new Set(this.state.schedule.hours ?? []);
-        const allHours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-        const next = allHours.find((h) => !used.has(h)) || '00:00';
-
-        const hours = [...(this.state.schedule.hours ?? []), next];
-
-        this.setState({
-            schedule: {...this.state.schedule, hours},
-            pristine: false,
-        });
-    }
-
-    removeHour(index: number) {
-        const hours = [...(this.state.schedule.hours ?? [])];
-
-        hours.splice(index, 1);
-        this.setState({
-            schedule: {...this.state.schedule, hours},
-            pristine: false,
-        });
     }
 
     getScheduleProfile() {
@@ -161,64 +126,6 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
         }
 
         return profile;
-    }
-
-    renderTimeInputs() {
-        const {gettext} = superdeskApi.localization;
-        const {schedule} = this.state;
-
-        const hourOptions = Array.from({length: 24}, (_, i) => {
-            const value = `${i.toString().padStart(2, '0')}:00`;
-
-            return {
-                value: value,
-                label: value
-            };
-        });
-
-        return (
-            <div className="form__row">
-                <label className="form__label">{gettext('HOUR')}</label>
-                <div className="form__row-items">
-                    {(schedule.hours ?? []).map((time, idx) => (
-                        <div
-                            className="form__row-item--flex sd-flex sd-align-items-center sd-gap-x--1 sd-m-b--1"
-                            key={idx}
-                            data-test-id={`time-slot-${idx}`}
-                        >
-                            <select
-                                data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
-                                value={time}
-                                className="sd-input__input sd-input__select sd-input__input--default"
-                                onChange={(e) => this.updateHour(idx, e.target.value)}
-                            >
-                                {hourOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <button
-                                type="button"
-                                className="btn btn--hollow btn--small"
-                                onClick={() => this.removeHour(idx)}
-                                data-test-id={`remove-hour-${idx}`}
-                            >
-                                {gettext('Remove')}
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        type="button"
-                        className="btn btn--hollow btn--small"
-                        onClick={this.addHour}
-                        data-test-id="add-hour"
-                    >
-                        {gettext('+ Add Time')}
-                    </button>
-                </div>
-            </div>
-        );
     }
 
     render() {
@@ -275,7 +182,13 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                                 }
                             )}
 
-                            {this.renderTimeInputs()}
+                            <TimeInputs
+                                hours={this.state.schedule.hours ?? []}
+                                onChange={(hours) => this.setState({
+                                    schedule: {...this.state.schedule, hours},
+                                    pristine: false
+                                })}
+                            />
 
                             <ToggleBox
                                 title={gettext('Destination')}
