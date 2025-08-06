@@ -1,6 +1,5 @@
 import React from 'react';
 import {superdeskApi} from '../../superdeskApi';
-import {FormFieldType} from 'superdesk-core/scripts/core/ui/components/generic-form/interfaces/form';
 import {Modal} from 'superdesk-ui-framework/react';
 import {gettext} from '../../utils';
 import {IFormField, IFormGroup} from 'superdesk-api';
@@ -11,55 +10,63 @@ interface IProps {
     closeModal: () => void;
 }
 
-export const getNameField = (): IFormField => ({
-    type: FormFieldType.plainText,
-    field: 'name',
-    label: gettext('Name'),
-    required: true,
-});
+export const getNameField = (): IFormField<IPlanningExportTemplate> => {
+    const {GenericFormFieldType} = superdeskApi.forms;
 
-const getFormConfig = (): IFormGroup => ({
-    direction: 'vertical',
-    type: 'inline',
-    form: [
-        getNameField(),
-        {
-            type: FormFieldType.select,
-            field: 'type',
-            label: gettext('Type'),
-            required: true,
-            component_parameters: {
-                options: [
-                    {label: gettext('Event'), id: 'event'},
-                    {label: gettext('Planning'), id: 'planning'},
-                    {label: gettext('Combined'), id: 'combined'},
-                ],
-            }
-        },
-        {
-            type: FormFieldType.plainText,
-            field: 'data.body_html',
-            label: gettext('Template Content'),
-            component_parameters: {
-                multiline: true,
-                formattingOptions: [],
-            }
-        },
-        {
-            type: FormFieldType.plainText,
-            field: 'label',
-            label: gettext('Label'),
-        },
-        {
-            type: FormFieldType.checkbox,
-            field: 'download',
-            label: gettext('Download'),
-        },
-    ]
-});
+    return {
+        type: GenericFormFieldType.plainText,
+        field: 'name',
+        label: gettext('Name'),
+        required: true,
+    };
+};
+
+const getFormConfig = (): IFormGroup<IPlanningExportTemplate> => {
+    const {GenericFormFieldType} = superdeskApi.forms;
+
+    return {
+        direction: 'vertical',
+        type: 'inline',
+        form: [
+            getNameField(),
+            {
+                type: GenericFormFieldType.select,
+                field: 'type',
+                label: gettext('Type'),
+                required: true,
+                component_parameters: {
+                    options: [
+                        {label: gettext('Event'), id: 'event'},
+                        {label: gettext('Planning'), id: 'planning'},
+                        {label: gettext('Combined'), id: 'combined'},
+                    ],
+                },
+            },
+            {
+                type: GenericFormFieldType.plainText,
+                field: 'data.body_html',
+                label: gettext('Template Content'),
+                component_parameters: {
+                    multiline: true,
+                    formattingOptions: [],
+                },
+            },
+            {
+                type: GenericFormFieldType.plainText,
+                field: 'label',
+                label: gettext('Label'),
+            },
+            {
+                type: GenericFormFieldType.checkbox,
+                field: 'download',
+                label: gettext('Download'),
+            },
+        ]
+    };
+};
 
 export default class ManageExportTemplatesModal extends React.PureComponent<IProps> {
-    private config: IFormGroup;
+    private config: IFormGroup<IPlanningExportTemplate>;
 
     constructor(props: IProps) {
         super(props);
