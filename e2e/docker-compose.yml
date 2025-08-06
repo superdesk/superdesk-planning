@@ -20,11 +20,15 @@ services:
         image: redis:alpine
         networks:
             - e2e
+        ports:
+            - "6379:6379"
 
     mongo:
         image: mongo:6
         networks:
             - e2e
+        ports:
+            - "27017:27017"
         tmpfs:
             - /data/db
 

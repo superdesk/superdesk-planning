@@ -46,6 +46,8 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
         source: params.advancedSearch?.source,
         priority: params.advancedSearch?.priority,
+        internal_note: params.advancedSearch?.internal_note,
+        ednote: params.advancedSearch?.ednote,
     };
 }
 
@@ -81,6 +83,8 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
             language: params.language,
             source: params.source,
             priority: params.priority,
+            internal_note: params.internal_note,
+            ednote: params.ednote,
         },
     };
 }
@@ -98,7 +102,9 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         no_agenda_assigned: params.noAgendaAssigned,
         agendas: params.agendas,
         coverage_user_id: params.coverage_user_id,
-        coverage_assignment_status: params.coverage_assignment_status
+        coverage_assignment_status: params.coverage_assignment_status,
+        description_text: params.advancedSearch?.description_text,
+        headline: params.advancedSearch?.headline,
     };
 }
 
@@ -121,6 +127,8 @@ export function searchParamsToPlanningParams(params: ISearchParams): IPlanningSe
             g2_content_type: params.g2_content_type,
             noCoverage: params.no_coverage,
             urgency: params.urgency,
+            description_text: params.description_text,
+            headline: params.headline,
         },
     };
 }
@@ -133,6 +141,13 @@ export function eventParamsToSearchParams(params: IEventSearchParams): ISearchPa
         location: params.advancedSearch?.location,
         no_calendar_assigned: params.noCalendarAssigned,
         calendars: params.calendars,
+        accreditation_info: params.advancedSearch?.accreditation_info,
+        invitation_details: params.advancedSearch?.invitation_details,
+        accreditation_details: params.advancedSearch?.accreditation_details,
+        registration_details: params.advancedSearch?.registration_details,
+        definition_short: params.advancedSearch?.definition_short,
+        definition_long: params.advancedSearch?.definition_long,
+        registration: params.advancedSearch?.registration,
     };
 }
 
@@ -149,6 +164,13 @@ export function searchParamsToEventParams(params: ISearchParams): IEventSearchPa
             ...common.advancedSearch,
             location: params.location,
             reference: params.reference,
+            accreditation_info: params.accreditation_info,
+            invitation_details: params.invitation_details,
+            accreditation_details: params.accreditation_details,
+            registration_details: params.registration_details,
+            definition_short: params.definition_short,
+            definition_long: params.definition_long,
+            registration: params.registration,
         },
     };
 }

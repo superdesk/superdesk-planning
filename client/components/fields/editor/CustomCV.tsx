@@ -29,7 +29,7 @@ export class EditorFieldCV extends React.PureComponent<IEditorFieldProps> {
             <Row
                 key={cv._id}
                 id={`form-row-${cv.display_name}`}
-                data-test-id={testId?.length ? `${testId}.${cv._id}` : cv._id}
+                testId={testId?.length ? testId : cv._id}
             >
                 <TreeSelect
                     selectBranchWithChildren={

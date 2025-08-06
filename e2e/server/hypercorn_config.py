@@ -8,5 +8,5 @@ access_log_format = "%(m)s %(U)s status=%(s)s time=%(T)ss size=%(B)sb"
 
 loglevel = "warning"
 
-use_reload = "SUPERDESK_RELOAD" in os.environ
+use_reloader = "SUPERDESK_RELOAD" in os.environ
 timeout = int(os.environ.get("WEB_TIMEOUT", 500))

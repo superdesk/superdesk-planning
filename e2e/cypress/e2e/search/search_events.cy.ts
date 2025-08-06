@@ -1,6 +1,8 @@
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
 import {AdvancedSearch, PlanningList, EventEditor} from '../../support/planning';
 import {TEST_EVENTS, createEventFor, LOCATIONS} from '../../fixtures/events';
+import {ADVANCED_SEARCH} from '../../fixtures/planning_types';
+import {CVs} from '../../fixtures/cvs';
 
 describe('Search.Events: searching events', () => {
     const search = new AdvancedSearch();
@@ -22,9 +24,103 @@ describe('Search.Events: searching events', () => {
             TEST_EVENTS.draft,
             TEST_EVENTS.spiked,
         ]);
+        addItems('vocabularies', [
+            CVs.EVENT_TYPES,
+        ]);
+        addItems('planning_types', [
+            ADVANCED_SEARCH,
+        ]);
+
+        cy.reload(); // when adding vocabularies, the page needs to be reloaded to reflect the changes
+
         search.viewEventsOnly();
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
+
+        search.runSearchTests([{
+            params: {event_types: 'Foo'},
+            expectedCount: 1,
+            clearAfter: true,
+        },
+        {
+            params: {event_types: 'Bar'},
+            expectedCount: 0,
+            clearAfter: true,
+        }]);
+
+        // events text fields
+        search.runSearchTests([
+            {
+                params: {reference: 'REF-1234'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {reference: 'REF-non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {definition_short: 'short description'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {definition_short: 'non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {definition_long: 'non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {definition_long: 'long description'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {registration_details: 'non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {registration_details: 'registration details'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {invitation_details: 'non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {invitation_details: 'invitation details'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {accreditation_info: 'non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {accreditation_info: 'accreditation info'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+            {
+                params: {registration: 'non-existing'},
+                expectedCount: 0,
+                clearAfter: true,
+            },
+            {
+                params: {registration: 'registration'},
+                expectedCount: 1,
+                clearAfter: true,
+            },
+        ]);
 
         search.runSearchTests([{
             params: {},
@@ -60,6 +156,7 @@ describe('Search.Events: searching events', () => {
             params: {subject: ['archaeology', 'music']},
             expectedCount: 1,
             clearAfter: true,
+
         }, {
             params: {state: ['Draft']},
             expectedCount: 1,

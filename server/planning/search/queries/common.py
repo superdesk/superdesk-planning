@@ -30,8 +30,11 @@ from planning.content_profiles.utils import get_multilingual_fields
 logger = logging.getLogger(__name__)
 
 
+Params = Dict[str, Any]
+
+
 FilterFunctionType = (
-    Callable[[dict, elastic.ElasticQuery], None] | Callable[[dict, elastic.ElasticQuery], Awaitable[None]]
+    Callable[[Params, elastic.ElasticQuery], None] | Callable[[Params, elastic.ElasticQuery], Awaitable[None]]
 )
 
 
@@ -197,8 +200,47 @@ def search_anpa_category(params: Dict[str, Any], query: elastic.ElasticQuery):
 def search_subject(params: Dict[str, Any], query: elastic.ElasticQuery):
     subjects = str_to_array(params.get("subject"))
 
-    if len(subjects):
-        query.must.append(elastic.terms(field="subject.qcode", values=subjects))
+    subjects_by_scheme: Dict[str, List[str]] = {}
+    for subject in subjects:
+        scheme, code = subject.split(":", 1) if ":" in subject else ("", subject)
+        subjects_by_scheme.setdefault(scheme, []).append(code)
+
+    for scheme, codes in subjects_by_scheme.items():
+        if scheme:
+            query.must.append(
+                elastic.nested(
+                    "subject",
+                    {
+                        "bool": {
+                            "must": [
+                                elastic.term(field="subject.scheme", value=scheme),
+                                elastic.terms(field="subject.qcode", values=codes),
+                            ]
+                        }
+                    },
+                )
+            )
+        else:
+            query.must.append(
+                elastic.nested(
+                    "subject",
+                    {
+                        "bool": {
+                            "must": [
+                                elastic.terms(field="subject.qcode", values=codes),
+                                {
+                                    "bool": {
+                                        "should": [
+                                            elastic.term(field="subject.scheme", value=""),
+                                            {"bool": {"must_not": elastic.field_exists("subject.scheme")}},
+                                        ],
+                                    },
+                                },
+                            ]
+                        }
+                    },
+                )
+            )
 
 
 def search_posted(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -501,6 +543,19 @@ def search_priority(params: Dict[str, Any], query: elastic.ElasticQuery):
         query.must.append(elastic.terms(field="priority", values=priorities))
 
 
+def search_invitation_details(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get("invitation_details"):
+        query.must.append(elastic.match_phrase(field="invitation_details", value=params["invitation_details"]))
+
+
+def search_ednote(params: Dict[str, Any], query: elastic.ElasticQuery):
+    search_text_field(params, query, "ednote")
+
+
+def search_internal_note(params: Dict[str, Any], query: elastic.ElasticQuery):
+    search_text_field(params, query, "internal_note")
+
+
 COMMON_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_item_ids,
     search_name,
@@ -517,10 +572,13 @@ COMMON_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_original_creator,
     search_source,
     search_priority,
+    search_invitation_details,
+    search_ednote,
+    search_internal_note,
 ]
 
 
-COMMON_PARAMS: List[str] = [
+COMMON_PARAMS = [
     "item_ids",
     "name",
     "tz_offset",
@@ -553,4 +611,6 @@ COMMON_PARAMS: List[str] = [
     "original_creator",
     "source",
     "priority",
+    "ednote",
+    "internal_note",
 ]

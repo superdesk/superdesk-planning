@@ -99,6 +99,7 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                 popupContainer: this.props.popupContainer,
                 language: getUserInterfaceLanguageFromCV(),
                 item: this.props.params,
+                schema: {},
             },
             {
                 start_date: {

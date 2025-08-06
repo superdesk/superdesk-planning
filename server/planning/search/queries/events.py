@@ -22,6 +22,7 @@ from .common import (
     get_sort_order,
     search_text_field,
     FilterFunctionType,
+    Params,
 )
 
 
@@ -328,6 +329,30 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
     query.sort.append({field: {"order": order}})
 
 
+def search_definition_short(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "definition_short")
+
+
+def search_definition_long(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "definition_long")
+
+
+def search_registration_details(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "registration_details")
+
+
+def search_invitation_details(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "invitation_details")
+
+
+def search_accreditation_info(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "accreditation_info")
+
+
+def search_registration(params: Params, query: elastic.ElasticQuery):
+    search_text_field(params, query, "registration")
+
+
 EVENT_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_events,
     search_slugline,
@@ -337,15 +362,28 @@ EVENT_SEARCH_FILTERS: list[FilterFunctionType] = [
     search_no_calendar_assigned,
     search_dates,
     set_search_sort,
+    search_definition_short,
+    search_definition_long,
+    search_registration_details,
+    search_accreditation_info,
+    search_invitation_details,
+    search_registration,
 ]
 
 EVENT_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
 
-EVENT_PARAMS: List[str] = [
+EVENT_PARAMS = [
     "reference",
     "location",
     "calendars",
     "no_calendar_assigned",
+    "definition_short",
+    "definition_long",
+    "registration_details",
+    "invitation_details",
+    "accreditation_info",
+    "reference",
+    "registration",
 ]
 
 EVENT_PARAMS.extend(COMMON_PARAMS)

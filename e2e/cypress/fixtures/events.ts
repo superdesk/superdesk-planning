@@ -53,6 +53,7 @@ export const TEST_EVENTS = {
         subject: [
             {qcode: '01001000', name: 'archaeology', parent: '01000000'},
             {qcode: '01011000', name: 'music', parent: '01000000'},
+            {qcode: 'foo', name: 'Foo', scheme: 'event_types'},
         ],
         calendars: [
             {qcode: 'sport', name: 'Sport'},
@@ -62,6 +63,13 @@ export const TEST_EVENTS = {
             name: LOCATIONS.sydney_opera_house.name,
             address: LOCATIONS.sydney_opera_house.address,
         }],
+        reference: 'REF-1234',
+        definition_short: 'Short description of the event',
+        definition_long: 'Long description of the event',
+        registration_details: 'Registration details',
+        invitation_details: 'Invitation details',
+        accreditation_info: 'Accreditation info',
+        registration: 'Registration info',
     }),
     spiked: getEventForDate(getDateStringFor.today(), {
         ...BASE_EVENT,
