@@ -25,8 +25,11 @@ export class Editor extends React.PureComponent<IProps> {
                     set(valueCopy, field, value);
 
                     // Preserve location.details if a new location is selected and details are present
-                    if (field === 'location' && currentDetails && !value?.details) {
-                        set(valueCopy, 'location.details', currentDetails);
+                    if (field === 'location' && currentDetails != null && value?.details == null) {
+                        valueCopy.location = {
+                            ...valueCopy.location,
+                            details: currentDetails
+                        };
                     }
                     this.props.onChange([valueCopy.location]);
                 }}
