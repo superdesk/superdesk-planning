@@ -18,7 +18,7 @@ export const getNameField = (): IFormField => ({
     required: true,
 });
 
-const formConfig: IFormGroup = {
+const getFormConfig = (): IFormGroup => ({
     direction: 'vertical',
     type: 'inline',
     form: [
@@ -56,22 +56,30 @@ const formConfig: IFormGroup = {
             label: gettext('Download'),
         },
     ]
-};
+});
 
 export default class ManageExportTemplatesModal extends React.PureComponent<IProps> {
+    private config: IFormGroup;
+
+    constructor(props: IProps) {
+        super(props);
+
+        this.config = getFormConfig();
+    }
+
     render() {
         const ExportTemplatesView = superdeskApi
             .components
             .getGenericHttpEntityListPageComponent<IPlanningExportTemplate, never>(
                 'planning_export_templates',
-                formConfig,
+                this.config,
             );
 
         return (
             <Modal visible closeOnEscape onHide={this.props.closeModal} size="x-large" contentPadding="none">
                 <ExportTemplatesView
                     ItemComponent={ExportTemplateItem}
-                    getFormConfig={() => formConfig}
+                    getFormConfig={() => this.config}
                     fieldForSearch={getNameField()}
                     getId={(item) => item._id}
                     defaultSortOption={{field: 'name', direction: 'ascending'}}

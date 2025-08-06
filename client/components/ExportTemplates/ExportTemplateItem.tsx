@@ -3,7 +3,7 @@ import {IPlanningExportTemplate} from 'interfaces';
 import {IPropsGenericFormItemComponent} from 'superdesk-api';
 import {ListItem, ListItemColumn, ListItemActionsMenu} from 'superdesk-core/scripts/core/components/ListItem';
 import {getFormFieldPreviewComponent} from 'superdesk-core/scripts/core/ui/components/generic-form/form-field';
-import {gettext} from 'utils';
+import {gettext} from '../../utils';
 import {getNameField} from './ManageExportTemplates';
 
 export class ExportTemplateItem extends React.PureComponent<IPropsGenericFormItemComponent<IPlanningExportTemplate>> {
