@@ -6,27 +6,26 @@ import {superdeskApi} from '../../superdeskApi';
 import {WithMoreItems} from './with-more-items';
 
 interface IProps extends IFieldsProps {
-    fieldsProps: {
-        vocabulary: {
-            id: string;
-        };
+    fieldOptions: {
+        hideLabel?: boolean;
     };
 }
 
 export const anpa_category: React.ComponentType<IProps> = (props) => {
     const {getVocabularyItemNameTranslated} = superdeskApi.entities.vocabulary;
-    const {gettext} = superdeskApi.localization;
     const {item} = props;
 
     const anpa_category = item.anpa_category;
+    const vocabulary = superdeskApi.entities.vocabulary.getAll().get('categories');
+    const showLabel = props.fieldOptions?.hideLabel !== true;
 
-    if ((anpa_category ?? []).length < 1) {
+    if ((anpa_category ?? []).length < 1 || vocabulary == null) {
         return null;
     }
 
     return (
         <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
-            <div className="sd-list-item__text-label">{gettext('ANPA Category')}</div>
+            {showLabel && <div className="sd-list-item__text-label">{vocabulary.display_name}</div>}
 
             <WithMoreItems
                 items={anpa_category}

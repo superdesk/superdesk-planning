@@ -72,7 +72,7 @@ export function renderFields(
                     key={id}
                     item={item}
                     language={language}
-                    fieldOptions={{[id]: field.fieldOptions}}
+                    fieldOptions={field.fieldOptions}
                     {...props}
                 />
             );

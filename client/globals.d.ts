@@ -159,10 +159,18 @@ export interface ILineConfigStandard {
     fieldOptions: any; // type of options will be different for each field type
 }
 
+export interface ILineConfigAnpaCategory extends ILineConfigStandard {
+    fieldId: 'anpa_category';
+    fieldOptions: {
+        hideLabel?: boolean;
+    };
+}
+
 export interface ILineConfigVocabulary extends ILineConfigStandard {
     fieldId: 'vocabulary';
     fieldOptions: {
         vocabularyId: string;
+        hideVocabularyName?: boolean;
     };
 }
 

@@ -6,28 +6,28 @@ import {superdeskApi} from '../../superdeskApi';
 import {WithMoreItems} from './with-more-items';
 
 interface IProps extends IFieldsProps {
-    fieldsProps: {
-        vocabulary: {
-            id: string;
-        };
+    fieldOptions: {
+        vocabularyId: string;
+        hideVocabularyName?: boolean;
     };
 }
 
 export const vocabulary: React.ComponentType<IProps> = (props) => {
     const {getVocabularyItemNameTranslated} = superdeskApi.entities.vocabulary;
     const {item} = props;
-    const vocabularyId = props.fieldOptions.vocabulary.vocabularyId;
+    const vocabularyId = props.fieldOptions.vocabularyId;
     const vocabulary = superdeskApi.entities.vocabulary.getAll().get(vocabularyId);
+    const showVocabularyName = props.fieldOptions.hideVocabularyName !== true;
 
     const vocabularyItems = (item.subject ?? []).filter(({scheme}) => scheme === vocabularyId);
 
-    if (vocabularyItems.length < 1) {
+    if (vocabularyItems.length < 1 || vocabulary == null) {
         return null;
     }
 
     return (
         <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
-            <div className="sd-list-item__text-label">{vocabulary.display_name}</div>
+            {showVocabularyName && <div className="sd-list-item__text-label">{vocabulary.display_name}</div>}
 
             <WithMoreItems
                 items={vocabularyItems}
