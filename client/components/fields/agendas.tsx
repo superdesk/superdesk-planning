@@ -1,6 +1,7 @@
-import React, {Fragment, FunctionComponent} from 'react';
+import React, {FunctionComponent} from 'react';
 import classNames from 'classnames';
 import {connect} from 'react-redux';
+import {Spacer} from '@sourcefabric/common';
 import * as selectors from '../../selectors';
 import {AgendaNameList} from '../Agendas';
 import {superdeskApi} from '../../superdeskApi';
@@ -15,7 +16,7 @@ type IProps = IFieldsProps & IReduxStateProps;
 
 export const AgendasComponent: FunctionComponent<IProps> = (props) => {
     const {gettext} = superdeskApi.localization;
-    const {item, agendas, fieldsProps} = props;
+    const {item, agendas} = props;
 
     if (!isPlanning(item)) {
         return null;
@@ -23,20 +24,17 @@ export const AgendasComponent: FunctionComponent<IProps> = (props) => {
 
     const agendasNames = planningUtils.getAgendaNames(item, agendas);
 
-    // PR-TODO: ensure ellipsis is applied to agendas
-
     return (
-        <Fragment>
+        <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
             <span className="sd-list-item__text-label">{gettext('Agenda:')}</span>
             <span
                 className={classNames(
-                    'sd-overflow-ellipsis',
                     'sd-list-item__text-strong',
                 )}
             >
                 <AgendaNameList agendas={agendasNames} />
             </span>
-        </Fragment>
+        </Spacer>
     );
 };
 

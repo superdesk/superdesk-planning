@@ -24,6 +24,7 @@ import {getUserInterfaceLanguageFromCV} from '../../utils/users';
 import {LineItems} from '../../components/UI/List/LineItems';
 import {eventFirstLineConfig, eventSecondLineConfig} from '../../config';
 import {isSameDay} from '../../helpers';
+import {ILineConfig} from 'globals';
 
 interface IState {
     hover: boolean;
@@ -176,7 +177,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
         const isExpired = isItemExpired(item);
         const eventStartDate = eventUtils.getStartDate(item);
 
-        const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
             fields,
             item,
             {
