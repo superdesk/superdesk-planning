@@ -90,6 +90,8 @@ export default class ManageExportTemplatesModal extends React.PureComponent<IPro
                     fieldForSearch={getNameField()}
                     getId={(item) => item._id}
                     defaultSortOption={{field: 'name', direction: 'ascending'}}
+                    disallowSorting
+                    hideItemsCount
                 />
             </Modal>
         );
