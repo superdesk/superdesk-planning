@@ -6,9 +6,9 @@ import {extensionBridge} from '../../extension_bridge';
 import {cloneDeep, set} from 'lodash';
 
 type IProps = IEditorComponentProps<ILocationValueOperational, ILocationFieldConfig, ILocationFieldUserPreferences>;
-type FieldValue = ILocation | string | null;
+type LocationOrDetailsValue = ILocation | string | null;
 
-const isLocation = (v: FieldValue): v is ILocation =>
+const isLocationObject = (v: LocationOrDetailsValue): v is ILocation =>
     typeof v === 'object' && v !== null;
 
 export class Editor extends React.PureComponent<IProps> {
@@ -19,7 +19,7 @@ export class Editor extends React.PureComponent<IProps> {
                 ? this.props.value?.[0] ?? null
                 : (this.props.value as any) ?? null;
 
-        const handleChange = (field: string, value: FieldValue) => {
+        const handleChange = (field: string, value: LocationOrDetailsValue) => {
             const previousDetails = location?.details;
             const nextValue = {
                 location: location != null ? cloneDeep(location) : null,
@@ -28,7 +28,7 @@ export class Editor extends React.PureComponent<IProps> {
             set(nextValue, field, value);
 
             if (field === 'location' && previousDetails != null) {
-                const newDetails = isLocation(value) ? value.details : undefined;
+                const newDetails = isLocationObject(value) ? value.details : undefined;
                 const hasNewDetails = (newDetails ?? []).length > 0;
 
                 if (hasNewDetails === false) {
@@ -37,7 +37,7 @@ export class Editor extends React.PureComponent<IProps> {
                 }
             }
 
-            const finalValue = nextValue.location ? [nextValue.location] : [];
+            const finalValue = nextValue.location != null ? [nextValue.location] : [];
 
             this.props.onChange(finalValue);
         };
