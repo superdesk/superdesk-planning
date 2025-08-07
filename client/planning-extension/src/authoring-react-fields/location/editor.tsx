@@ -3,8 +3,7 @@ import {IEditorComponentProps} from 'superdesk-api';
 import {ILocationFieldConfig, ILocationFieldUserPreferences, ILocationValueOperational} from './interfaces';
 import {ILocation} from '../../../../interfaces';
 import {extensionBridge} from '../../extension_bridge';
-import {set} from 'lodash';
-import {produce} from 'immer';
+import {set, cloneDeep} from 'lodash';
 
 type IProps = IEditorComponentProps<ILocationValueOperational, ILocationFieldConfig, ILocationFieldUserPreferences>;
 type LocationOrDetailsValue = ILocation | string | null;
@@ -26,21 +25,23 @@ export class Editor extends React.PureComponent<IProps> {
 
         const handleChange = (field: string, value: LocationOrDetailsValue) => {
             const previousDetails = location?.details;
-            const nextValue = produce({location}, (draft) => {
-                set(draft, field, value);
+            const nextValue = {location: cloneDeep(location)};
 
-                if (field === 'location' && previousDetails != null) {
-                    const newDetails = isLocationObject(value) ? value.details : undefined;
-                    const hasNewDetails = (newDetails ?? []).length > 0;
+            set(nextValue, field, value);
 
-                    if (!hasNewDetails) {
-                        draft.location = draft.location ?? ({} as ILocation);
-                        draft.location.details = previousDetails;
-                    }
+            if (field === 'location' && previousDetails != null) {
+                const newDetails = isLocationObject(value) ? value.details : undefined;
+                const hasNewDetails = (newDetails ?? []).length > 0;
+
+                if (hasNewDetails === false) {
+                    nextValue.location = nextValue.location ?? ({} as ILocation);
+                    nextValue.location.details = previousDetails;
                 }
-            });
+            }
 
-            this.props.onChange(nextValue.location ? [nextValue.location] : []);
+            const finalValue = nextValue.location != null ? [nextValue.location] : [];
+
+            this.props.onChange(finalValue);
         };
 
         return (
