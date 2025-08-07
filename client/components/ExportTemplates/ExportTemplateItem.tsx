@@ -13,7 +13,7 @@ export class ExportTemplateItem extends React.PureComponent<IPropsGenericFormIte
         return (
             <ListItem
                 onClick={() => page.openPreview(item._id)}
-                data-test-id="internal-destinations-item"
+                data-test-id="export-template-item"
             >
                 <ListItemColumn ellipsisAndGrow noBorder>
                     {getFormFieldPreviewComponent(item, getNameField())}
