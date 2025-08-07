@@ -14,7 +14,7 @@ interface IEventTemplate extends IBaseRestApiResponse {
     template_name: string;
 }
 
-const getItemComponent = (nameField: IFormField) =>
+const getItemComponent = (nameField: IFormField<IEventTemplate>) =>
     class ItemComponent extends React.PureComponent<IPropsGenericFormItemComponent<any>> {
         render(): React.ReactNode {
             const {item, page} = this.props;
@@ -56,16 +56,16 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
 
         const {gettext} = superdeskApi.localization;
         const {getGenericHttpEntityListPageComponent} = superdeskApi.components;
-        const {FormFieldType} = superdeskApi.forms;
+        const {GenericFormFieldType} = superdeskApi.forms;
 
-        const nameField: IFormField = {
+        const nameField: IFormField<IEventTemplate> = {
             label: gettext('Template name'),
-            type: FormFieldType.plainText,
+            type: GenericFormFieldType.plainText,
             field: 'template_name',
             required: true,
         };
 
-        const formConfig: IFormGroup = {
+        const formConfig: IFormGroup<IEventTemplate> = {
             direction: 'vertical',
             type: 'inline',
             form: [nameField],
