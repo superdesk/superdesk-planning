@@ -276,7 +276,7 @@ const extension: IExtension = {
         if (allVocabularies.has(PLACE_FIELD_DEPENDENT_VOCABULARY_ID) === false) {
             result.contributions.getInstanceConfigurationIssues = () => (
                 Promise.resolve([
-                    {message: gettext("Vocabulary `locators` is not configured!")},
+                    {message: gettext('Vocabulary `locators` is not configured!')},
                 ])
             );
         }
