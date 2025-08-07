@@ -6,7 +6,7 @@ import {partitionLineItems} from '../../../helpers';
 interface IProps {
     firstLine: Array<ILineConfig>;
     secondLine: Array<ILineConfig>;
-    renderFieldsWithProps(fields: Array<string>): Array<JSX.Element>;
+    renderFieldsWithProps(fields: Array<ILineConfig>): Array<JSX.Element>;
 }
 
 export class LineItems extends React.PureComponent<IProps> {
@@ -24,23 +24,23 @@ export class LineItems extends React.PureComponent<IProps> {
                 {/** overflow: hidden needed for support ellipsis for children */}
                 <Spacer h gap="8" justifyContent="space-between" noWrap noGrow style={firstLineStyles}>
                     <Spacer h gap="8" justifyContent="start" noWrap noGrow style={{overflow: 'hidden'}}>
-                        {renderFieldsWithProps(firstLineStart.map(({fieldId}) => fieldId))}
+                        {renderFieldsWithProps(firstLineStart)}
                     </Spacer>
 
                     {/** overflow: hidden not needed - ellipsis not supported on end */}
                     <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                        {renderFieldsWithProps(firstLineEnd.map(({fieldId}) => fieldId))}
+                        {renderFieldsWithProps(firstLineEnd)}
                     </Spacer>
                 </Spacer>
 
                 {/** overflow: hidden needed for support ellipsis for children */}
                 <Spacer h gap="8" justifyContent="space-between" noWrap noGrow style={secondLineStyles}>
                     <Spacer h gap="8" justifyContent="start" noWrap noGrow style={{overflow: 'hidden'}}>
-                        {renderFieldsWithProps(secondLineStart.map(({fieldId}) => fieldId))}
+                        {renderFieldsWithProps(secondLineStart)}
                     </Spacer>
 
                     <Spacer h gap="8" justifyContent="start" noWrap noGrow>
-                        {renderFieldsWithProps(secondLineEnd.map(({fieldId}) => fieldId))}
+                        {renderFieldsWithProps(secondLineEnd)}
                     </Spacer>
                 </Spacer>
             </>

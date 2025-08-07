@@ -126,6 +126,7 @@ describe('Planning.Events: embedded coverage', () => {
         editor.closeButton
             .should('exist')
             .should('be.enabled')
+            .should('contains.text', 'Close')
             .click();
         editor.waitTillClosed();
 

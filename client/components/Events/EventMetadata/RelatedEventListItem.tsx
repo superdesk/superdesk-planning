@@ -13,6 +13,7 @@ import {LineItems} from '../../../components/UI/List/LineItems';
 import {eventFirstLineConfig, eventSecondLineConfig} from '../../../config';
 import {renderFields} from '../../../components/fields';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {ILineConfig} from 'globals';
 
 interface IProps {
     item: DeepPartial<IEventItem>;
@@ -43,7 +44,7 @@ class RelatedEventListItemComponent extends React.PureComponent<IProps> {
 
         const language = item.language || getUserInterfaceLanguageFromCV();
 
-        const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
             fields,
             item,
             {

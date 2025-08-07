@@ -21,6 +21,7 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick, id, 
             className={labelClasses}
             data-sd-tooltip={tooltip.text}
             data-flow={tooltip.flow ? tooltip.flow : 'down'}
+            onClick={onClick}
         >
             {verbose ? verbose : text}
         </span>
@@ -29,12 +30,13 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick, id, 
             id={id}
             name={id}
             className={labelClasses}
+            onClick={onClick}
         >
             {verbose ? verbose : text}
         </span>
     );
 
-    return onClick ? <a onClick={onClick}>{label}</a> : label;
+    return label;
 };
 
 Label.propTypes = {

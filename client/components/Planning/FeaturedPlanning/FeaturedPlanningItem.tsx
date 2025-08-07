@@ -12,6 +12,7 @@ import {LineItems} from '../../../components/UI/List/LineItems';
 import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {ILockedItems, IPlanningItem} from '../../../interfaces';
+import {ILineConfig} from 'globals';
 
 interface IProps {
     item: IPlanningItem;
@@ -52,7 +53,7 @@ export const FeaturedPlanningItem: React.FunctionComponent<IProps> = ({
 
     const language = item.language || getUserInterfaceLanguageFromCV();
 
-    const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+    const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
         fields,
         item,
         {

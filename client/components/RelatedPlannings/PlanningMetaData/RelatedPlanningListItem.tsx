@@ -14,6 +14,7 @@ import {LineItems} from '../../../components/UI/List/LineItems';
 import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
 import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import {renderFields} from '../../../components/fields';
+import {ILineConfig} from 'globals';
 
 interface IOwnProps {
     item: DeepPartial<IPlanningItem>;
@@ -53,7 +54,7 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
         );
         const language = this.props.item.language || getUserInterfaceLanguageFromCV();
 
-        const renderFieldsWithProps = (fields: Array<string>) => renderFields(
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
             fields,
             this.props.item,
             {
