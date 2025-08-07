@@ -12,8 +12,8 @@ import {showModal} from '../../actions/modal';
 import {showModal as showModalSf} from '@sourcefabric/common';
 import {MODALS} from '../../constants/modals';
 import {CoverageProfilesModal} from '../../components/ContentProfiles/CoverageProfileModal';
-import {session} from '../../selectors/general';
-import ManageExportTemplatesModal from '../../components/ExportTemplates/ManageExportTemplates';
+import * as selectors from '../../selectors';
+import {ManageExportTemplatesModal} from '../../components/ExportTemplates/ManageExportTemplates';
 
 const ActionsSubnavDropdownComponent = (props) => {
     let items = [];
@@ -62,7 +62,7 @@ const ActionsSubnavDropdownComponent = (props) => {
         });
     }
 
-    const currentSession = session(planningApi.redux.store.getState());
+    const currentSession = selectors.general.session(planningApi.redux.store.getState());
 
     if (currentSession.identity.user_type === 'administrator') {
         items.push({

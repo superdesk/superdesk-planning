@@ -65,7 +65,7 @@ const getFormConfig = (): IFormGroup<IPlanningExportTemplate> => {
     };
 };
 
-export default class ManageExportTemplatesModal extends React.PureComponent<IProps> {
+export class ManageExportTemplatesModal extends React.PureComponent<IProps> {
     private config: IFormGroup<IPlanningExportTemplate>;
 
     constructor(props: IProps) {
