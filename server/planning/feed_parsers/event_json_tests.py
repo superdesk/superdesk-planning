@@ -89,3 +89,5 @@ class EventJsonFeedParserTestCase(TestCase):
 
             assert int(events[0]["location"][0]["location"]["lat"]) == 59
             assert int(events[0]["location"][0]["location"]["lon"]) == 10
+
+            assert "actioned_date" not in events[0]
