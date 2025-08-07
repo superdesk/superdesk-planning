@@ -182,13 +182,15 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                                 }
                             )}
 
-                            <TimeInputs
-                                hours={this.state.schedule.hours ?? []}
-                                onChange={(hours) => this.setState({
-                                    schedule: {...this.state.schedule, hours},
-                                    pristine: false
-                                })}
-                            />
+                            {this.state.schedule.frequency !== SCHEDULE_FREQUENCY.HOURLY && (
+                                <TimeInputs
+                                    hours={this.state.schedule.hours ?? []}
+                                    onChange={(hours) => this.setState({
+                                        schedule: {...this.state.schedule, hours},
+                                        pristine: false
+                                    })}
+                                />
+                            )}
 
                             <ToggleBox
                                 title={gettext('Destination')}

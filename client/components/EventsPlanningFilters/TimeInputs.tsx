@@ -1,6 +1,6 @@
 import React from 'react';
 import {superdeskApi} from '../../superdeskApi';
-import {TimePicker} from 'superdesk-ui-framework/react';
+import {TimePicker, Button} from 'superdesk-ui-framework/react';
 
 interface IProps {
     hours: Array<string>;
@@ -9,10 +9,11 @@ interface IProps {
 
 export class TimeInputs extends React.Component<IProps> {
     updateHour(index: number, value: string) {
-        const hours = [...this.props.hours];
-
-        hours[index] = value;
-        this.props.onChange(hours);
+        this.props.onChange(
+            this.props.hours.map((hour, i) =>
+                i === index ? value : hour
+            )
+        );
     }
 
     addHour() {
@@ -46,25 +47,25 @@ export class TimeInputs extends React.Component<IProps> {
                                 value={time}
                                 onChange={(val) => this.updateHour(idx, val)}
                             />
-                            <button
-                                type="button"
-                                className="btn btn--hollow btn--small"
+                            <Button
+                                type="default"
+                                size="small"
+                                icon="close-small"
                                 onClick={() => this.removeHour(idx)}
                                 data-test-id={`remove-hour-${idx}`}
                                 aria-label={gettext('Remove')}
-                            >
-                                <i className="icon-close-small" />
-                            </button>
+                                text=""
+                                iconOnly
+                            />
                         </div>
                     ))}
-                    <button
-                        type="button"
-                        className="btn btn--hollow btn--small"
+                    <Button
+                        type="default"
+                        size="small"
+                        text={gettext('Add Time')}
                         onClick={() => this.addHour()}
                         data-test-id="add-hour"
-                    >
-                        {gettext('+ Add Time')}
-                    </button>
+                    />
                 </div>
             </div>
         );
