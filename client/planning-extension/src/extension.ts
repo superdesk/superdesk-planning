@@ -114,6 +114,8 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
     return Promise.resolve();
 }
 
+const PLACE_FIELD_DEPENDENT_VOCABULARY_ID = 'locators';
+
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
@@ -213,7 +215,7 @@ const extension: IExtension = {
             return permittedActions;
         };
 
-        const result: IExtensionActivationResult = {
+        const result: Required<IExtensionActivationResult> = {
             contributions: {
                 entities: {
                     article: {
@@ -269,17 +271,24 @@ const extension: IExtension = {
             },
         };
 
+        const allVocabularies = superdesk.entities.vocabulary.getAll();
+
+        if (allVocabularies.has(PLACE_FIELD_DEPENDENT_VOCABULARY_ID) === false) {
+            result.contributions.getInstanceConfigurationIssues = () => (
+                Promise.resolve([
+                    {message: gettext('Vocabulary `locators` is not configured!')},
+                ])
+            );
+        }
+
         // Do not register coverage related CVs as fields, because it overrides current implementation for these fields.
         // Do not register CVs that aren't considered "custom CVs" also,
         // because if some are already registered as specific fields they will be overridden.
         // Definition of a custom CV: client/services/PlanningStoreService.ts:255
-        const vocabularies = superdesk.entities.vocabulary
-            .getAll()
-            .toArray()
-            .filter((x) =>
-                !extensionBridge.ui.utils.VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
-                && extensionBridge.ui.utils.isCustomVocabulary(x),
-            );
+        const vocabularies = allVocabularies.toArray().filter((x) =>
+            !extensionBridge.ui.utils.VOCABULARIES_TO_BE_EXCLUDED.has(x._id)
+            && extensionBridge.ui.utils.isCustomVocabulary(x),
+        );
 
         vocabularies.forEach((vocab) => {
             registerEditorField(

@@ -97,6 +97,11 @@ export const VOCABULARIES_TO_BE_EXCLUDED = new Set([
     'genre',
 
     /**
+     * Fields that are manually registered in `client/components/fields/resources` and use a specific custom vocabulary
+     */
+    'priority',
+
+    /**
      * coverage language field with id `language` uses languages vocabulary for values,
      * so it doesn't make sense to register it again as a vocabulary field
      */
