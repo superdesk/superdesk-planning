@@ -14,6 +14,13 @@ const isLocationObject = (v: LocationOrDetailsValue): v is ILocation =>
 export class Editor extends React.PureComponent<IProps> {
     render() {
         const {EditorFieldLocation} = extensionBridge.editor.fields;
+        
+        /*
+        * Schema/back-end provide `location` as an array,
+        * but the editor supports only a single entry.
+        * If we receive an array, pick element 0; otherwise
+        * treat the value as the lone ILocation.
+        */
         const location: ILocation | null = this.props.value?.[0] ?? this.props.value;
 
         const handleChange = (field: string, value: LocationOrDetailsValue) => {
