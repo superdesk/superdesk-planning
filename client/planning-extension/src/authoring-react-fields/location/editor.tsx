@@ -8,27 +8,20 @@ import {cloneDeep, set} from 'lodash';
 type IProps = IEditorComponentProps<ILocationValueOperational, ILocationFieldConfig, ILocationFieldUserPreferences>;
 type LocationOrDetailsValue = ILocation | string | null;
 
-const isLocationObject = (v: LocationOrDetailsValue): v is ILocation =>
-    typeof v === 'object' && v !== null;
 
 export class Editor extends React.PureComponent<IProps> {
     render() {
         const {EditorFieldLocation} = extensionBridge.editor.fields;
-        const location: ILocation | null =
-            Array.isArray(this.props.value)
-                ? this.props.value?.[0] ?? null
-                : (this.props.value as any) ?? null;
+        const location: ILocation | null = this.props.value?.[0] ?? this.props.value;
 
         const handleChange = (field: string, value: LocationOrDetailsValue) => {
             const previousDetails = location?.details;
-            const nextValue = {
-                location: location != null ? cloneDeep(location) : null,
-            };
+            const nextValue = {location: cloneDeep(location)};
 
             set(nextValue, field, value);
 
             if (field === 'location' && previousDetails != null) {
-                const newDetails = isLocationObject(value) ? value.details : undefined;
+                const newDetails = typeof value === 'object' ? value?.details : undefined;
                 const hasNewDetails = (newDetails ?? []).length > 0;
 
                 if (hasNewDetails === false) {
