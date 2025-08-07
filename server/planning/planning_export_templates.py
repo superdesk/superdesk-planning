@@ -28,7 +28,7 @@ class PlanningExportTemplatesResource(superdesk.Resource):
         "label": {"type": "string"},
         "download": {"type": "boolean", "default": False},
     }
-    item_methods = ["PATCH", "DELETE"]
+    item_methods = ["GET", "PATCH", "DELETE"]
     resource_methods = ["GET", "POST"]
     privileges = {"POST": "planning", "PATCH": "planning", "DELETE": "planning"}
 
