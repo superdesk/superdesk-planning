@@ -241,8 +241,8 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     border={false}
                 >
                     <LineItems
-                        firstLine={eventFirstLineConfig}
-                        secondLine={eventSecondLineConfig}
+                        firstLine={this.props.customTemplate?.firstLine ?? eventFirstLineConfig}
+                        secondLine={this.props.customTemplate?.secondLine ?? eventSecondLineConfig}
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </Column>

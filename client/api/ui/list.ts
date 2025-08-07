@@ -13,6 +13,7 @@ import {
     PLANNING_VIEW,
     SORT_FIELD,
     SORT_ORDER,
+    IMainViewType,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN} from '../../constants';
@@ -210,6 +211,23 @@ function setGroupListBy(groupByValue: GROUP_LIST_BY) {
     return reloadList(params);
 }
 
+function setViewType(value: IMainViewType) {
+    const {dispatch} = planningApi.redux.store;
+
+    // For performance reasons, clear the list before changing list view type
+    // otherwise the list will try and re-render with the currently loaded items
+    clearList();
+
+    dispatch({
+        type: MAIN.ACTIONS.SET_VIEW_TYPE,
+        payload: value,
+    });
+
+    superdeskApi.browser.location.urlParams.setString('viewType', value);
+
+    return reloadList();
+}
+
 export const list: IPlanningAPI['ui']['list'] = {
     changeFilterId,
     changeCalendarId,
@@ -218,5 +236,6 @@ export const list: IPlanningAPI['ui']['list'] = {
     clearSearch,
     clearList,
     setGroupListBy,
+    setViewType,
     changeCurrentView,
 };

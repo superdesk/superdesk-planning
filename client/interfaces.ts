@@ -234,6 +234,8 @@ export enum GROUP_LIST_BY {
     NOT_GROUPED = 'not_grouped',
 }
 
+export type IMainViewType = 'list' | 'list-compact';
+
 export type IPlanningProfile = {
     name: string;
     editor: {
@@ -918,6 +920,10 @@ export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
         visible: boolean;
         setVisibility(value: boolean): void;
     };
+    customTemplate?: {
+        firstLine: Array<ILineConfig>;
+        secondLine?: Array<ILineConfig>;
+    };
 }
 
 export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem> {
@@ -936,6 +942,10 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     relatedEventsUI?: {
         visible: boolean;
         setVisibility(value: boolean): void;
+    };
+    customTemplate?: {
+        firstLine: Array<ILineConfig>;
+        secondLine?: Array<ILineConfig>;
     };
 }
 
@@ -1684,6 +1694,7 @@ export interface IMainState {
     previewId?: IEventItem['_id'] | IPlanningItem['_id'];
     previewType?: IEventItem['type'] | IPlanningItem['type'];
     groupListBy: GROUP_LIST_BY;
+    viewType: IMainViewType;
     loadingPreview: boolean;
     filter?: PLANNING_VIEW;
     loadingIndicator: boolean;
@@ -2332,6 +2343,7 @@ export interface IPlanningAPI {
             clearSearch(): Promise<any>;
             clearList(): void;
             setGroupListBy(value: GROUP_LIST_BY): Promise<any>;
+            setViewType(value: IMainViewType): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
         };
     };

@@ -299,8 +299,10 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                     border={false}
                 >
                     <LineItems
-                        firstLine={planningFirstLineConfig}
-                        secondLine={getPlanningSecondLineConfig({isAgendaEnabled})}
+                        firstLine={this.props.customTemplate?.firstLine ?? planningFirstLineConfig}
+                        secondLine={
+                            this.props.customTemplate?.secondLine ?? getPlanningSecondLineConfig({isAgendaEnabled})
+                        }
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </Column>

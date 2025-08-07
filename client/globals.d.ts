@@ -219,11 +219,21 @@ declare module 'superdesk-api' {
             planning_list_item?: {
                 firstLine: Array<ILineConfig>;
                 secondLine?: Array<ILineConfig>;
+
+                compact_view?: {
+                    firstLine: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
             };
 
             event_list_item?: {
                 firstLine: Array<ILineConfig>;
                 secondLine?: Array<ILineConfig>;
+
+                compact_view?: {
+                    firstLine: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
             };
         };
 

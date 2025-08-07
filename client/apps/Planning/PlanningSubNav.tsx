@@ -3,18 +3,19 @@ import {connect} from 'react-redux';
 
 import {IArticle} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {GROUP_LIST_BY, PLANNING_VIEW} from '../../interfaces';
+import {GROUP_LIST_BY, IPlanningAppState, IMainViewType, PLANNING_VIEW} from '../../interfaces';
 import {ISubNavPanelProps} from '../PageContent';
 
 import {ITEM_TYPE} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
-import {ButtonGroup, Dropdown, NavButton, SubNav} from 'superdesk-ui-framework/react';
+import {ButtonGroup, Dropdown, NavButton, SubNav, Switch} from 'superdesk-ui-framework/react';
 import {ArchiveItem} from '../../components/Archive';
 import {MultiSelectActions} from '../../components';
 import {Button, SearchBox} from '../../components/UI';
 import {ActionsSubnavDropdown, CreateNewSubnavDropdown, FiltersBox} from '../../components/Main';
+import {appConfig} from 'appConfig';
 
 interface IProps extends ISubNavPanelProps {
     withArchiveItem?: boolean;
@@ -26,6 +27,7 @@ interface IProps extends ISubNavPanelProps {
     privileges: {[key: string]: number};
     showFilters?: boolean; // defaults to true
     groupListBy: GROUP_LIST_BY;
+    viewType: IMainViewType;
 
     addEvent(): void;
     addPlanning(): void;
@@ -34,12 +36,13 @@ interface IProps extends ISubNavPanelProps {
     openFeaturedPlanningModal(): void;
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state: IPlanningAppState) => ({
     fullText: selectors.main.fullText(state),
     currentView: selectors.main.activeFilter(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
     privileges: selectors.general.privileges(state),
     groupListBy: selectors.main.getCurrentListGrouping(state),
+    viewType: state.main.viewType,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -50,25 +53,16 @@ const mapDispatchToProps = (dispatch) => ({
     openFeaturedPlanningModal: () => dispatch(actions.planning.featuredPlanning.openFeaturedPlanningModal()),
 });
 
-export class PlanningSubNavComponent extends React.PureComponent<IProps> {
-    viewOptions: Array<{label: string, onSelect(): void, icon: string}>
+const iconByViewType: {[key in IMainViewType]: string} = {
+    list: 'list-view',
+    'list-compact': 'unordered-list',
+};
 
+export class PlanningSubNavComponent extends React.PureComponent<IProps> {
     constructor(props) {
         super(props);
 
         this.search = this.search.bind(this);
-
-        const {gettext} = superdeskApi.localization;
-
-        this.viewOptions = [{
-            label: gettext('Schedule'),
-            onSelect: () => planningApi.ui.list.setGroupListBy(GROUP_LIST_BY.DATE),
-            icon: 'list-view',
-        }, {
-            label: gettext('List'),
-            onSelect: () => planningApi.ui.list.setGroupListBy(GROUP_LIST_BY.NOT_GROUPED),
-            icon: 'stream',
-        }];
     }
 
     search(searchText) {
@@ -77,9 +71,39 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const listViewIcon = this.props.groupListBy === GROUP_LIST_BY.DATE ?
-            'icon-list-view' :
-            'icon-stream';
+
+        const viewType = this.props.viewType ?? 'list';
+
+        const viewOptions: Array<{label: string, onSelect(): void, icon: string}> = [{
+            label: gettext('List'),
+            onSelect: () => planningApi.ui.list.setViewType('list'),
+            icon: iconByViewType['list'],
+        }];
+
+        const compactViewAvailable: boolean = (() => {
+            const compactPlanningsConfigured = appConfig.planning?.planning_list_item?.compact_view != null;
+            const compactEventsConfigured = appConfig.planning?.event_list_item?.compact_view != null;
+
+            if (this.props.currentView == null) {
+                return false;
+            } else if (this.props.currentView === PLANNING_VIEW.PLANNING) {
+                return compactPlanningsConfigured;
+            } else if (this.props.currentView === PLANNING_VIEW.EVENTS) {
+                return compactEventsConfigured;
+            } else if (this.props.currentView === PLANNING_VIEW.COMBINED) {
+                return compactPlanningsConfigured || compactEventsConfigured;
+            } else {
+                return superdeskApi.helpers.assertNever(this.props.currentView);
+            }
+        })();
+
+        if (compactViewAvailable) {
+            viewOptions.push({
+                label: gettext('Compact list'),
+                onSelect: () => planningApi.ui.list.setViewType('list-compact'),
+                icon: iconByViewType['list-compact'],
+            });
+        }
 
         return (
             <React.Fragment>
@@ -127,11 +151,26 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                         privileges={this.props.privileges}
                     />
                     <ButtonGroup align="end">
-                        <Dropdown items={this.viewOptions}>
-                            <button className="sd-navbtn" aria-label={gettext('Change view')}>
-                                <i className={listViewIcon} />
-                            </button>
-                        </Dropdown>
+                        <Switch
+                            label={{content: gettext('Group by day'), side: 'left'}}
+                            value={this.props.groupListBy === GROUP_LIST_BY.DATE}
+                            onChange={(val) => {
+                                const nextView = val === true ? GROUP_LIST_BY.DATE : GROUP_LIST_BY.NOT_GROUPED;
+
+                                planningApi.ui.list.setGroupListBy(nextView);
+                            }}
+                        />
+
+                        {
+                            viewOptions.length > 1 && (
+                                <Dropdown items={viewOptions}>
+                                    <button className="sd-navbtn" aria-label={gettext('Change view')}>
+                                        <i className={'icon-' + iconByViewType[viewType]} />
+                                    </button>
+                                </Dropdown>
+                            )
+                        }
+
                         <ActionsSubnavDropdown
                             openAgendas={this.props.openAgendas}
                             openEventsPlanningFiltersModal={this.props.openEventsPlanningFiltersModal}

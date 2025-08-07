@@ -104,6 +104,11 @@ export default createReducer<IMainState>(initialState, {
         groupListBy: payload,
     }),
 
+    [MAIN.ACTIONS.SET_VIEW_TYPE]: (state, payload) => ({
+        ...state,
+        viewType: payload,
+    }),
+
     [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload: keyof IMainState['search']) => ({
         ...state,
         search: {
