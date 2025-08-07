@@ -3,7 +3,8 @@ import {IEditorComponentProps} from 'superdesk-api';
 import {ILocationFieldConfig, ILocationFieldUserPreferences, ILocationValueOperational} from './interfaces';
 import {ILocation} from '../../../../interfaces';
 import {extensionBridge} from '../../extension_bridge';
-import {cloneDeep, set} from 'lodash';
+import {set} from 'lodash';
+import {produce} from 'immer';
 
 type IProps = IEditorComponentProps<ILocationValueOperational, ILocationFieldConfig, ILocationFieldUserPreferences>;
 type LocationOrDetailsValue = ILocation | string | null;
@@ -14,7 +15,7 @@ const isLocationObject = (v: LocationOrDetailsValue): v is ILocation =>
 export class Editor extends React.PureComponent<IProps> {
     render() {
         const {EditorFieldLocation} = extensionBridge.editor.fields;
-        
+
         /*
         * Schema/back-end provide `location` as an array,
         * but the editor supports only a single entry.
@@ -25,23 +26,21 @@ export class Editor extends React.PureComponent<IProps> {
 
         const handleChange = (field: string, value: LocationOrDetailsValue) => {
             const previousDetails = location?.details;
-            const nextValue = {location: cloneDeep(location)};
+            const nextValue = produce({location}, (draft) => {
+                set(draft, field, value);
 
-            set(nextValue, field, value);
+                if (field === 'location' && previousDetails != null) {
+                    const newDetails = isLocationObject(value) ? value.details : undefined;
+                    const hasNewDetails = (newDetails ?? []).length > 0;
 
-            if (field === 'location' && previousDetails != null) {
-                const newDetails = isLocationObject(value) ? value.details : undefined;
-                const hasNewDetails = (newDetails ?? []).length > 0;
-
-                if (hasNewDetails === false) {
-                    nextValue.location = nextValue.location ?? ({} as ILocation);
-                    nextValue.location.details = previousDetails;
+                    if (!hasNewDetails) {
+                        draft.location = draft.location ?? ({} as ILocation);
+                        draft.location.details = previousDetails;
+                    }
                 }
-            }
+            });
 
-            const finalValue = nextValue.location != null ? [nextValue.location] : [];
-
-            this.props.onChange(finalValue);
+            this.props.onChange(nextValue.location ? [nextValue.location] : []);
         };
 
         return (
