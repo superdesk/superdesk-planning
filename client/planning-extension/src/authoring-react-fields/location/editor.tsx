@@ -8,6 +8,8 @@ import {cloneDeep, set} from 'lodash';
 type IProps = IEditorComponentProps<ILocationValueOperational, ILocationFieldConfig, ILocationFieldUserPreferences>;
 type LocationOrDetailsValue = ILocation | string | null;
 
+const isLocationObject = (v: LocationOrDetailsValue): v is ILocation =>
+    typeof v === 'object' && v !== null;
 
 export class Editor extends React.PureComponent<IProps> {
     render() {
@@ -21,7 +23,7 @@ export class Editor extends React.PureComponent<IProps> {
             set(nextValue, field, value);
 
             if (field === 'location' && previousDetails != null) {
-                const newDetails = typeof value === 'object' ? value?.details : undefined;
+                const newDetails = isLocationObject(value) ? value.details : undefined;
                 const hasNewDetails = (newDetails ?? []).length > 0;
 
                 if (hasNewDetails === false) {
