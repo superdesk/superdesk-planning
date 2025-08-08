@@ -113,7 +113,7 @@ export class AdvancedSearch {
             ),
             hour: new TimePickerInput(
                 getSearchPanel,
-                '[data-test-id=field-hour] input'
+                '[data-test-id=field-hour]'
             ),
             desk: new SelectInput(
                 getSearchPanel,
