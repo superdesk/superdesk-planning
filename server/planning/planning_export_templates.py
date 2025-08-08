@@ -30,7 +30,11 @@ class PlanningExportTemplatesResource(superdesk.Resource):
     }
     item_methods = ["GET", "PATCH", "DELETE"]
     resource_methods = ["GET", "POST"]
-    privileges = {"POST": "planning", "PATCH": "planning", "DELETE": "planning"}
+    privileges = {
+        "POST": "planning_manage_export_templates",
+        "PATCH": "planning_manage_export_templates",
+        "DELETE": "planning_manage_export_templates",
+    }
 
 
 DEFAULT_PLANNING_ITEM_BODY = """
