@@ -156,7 +156,6 @@ interface ResizeObserverCallback {
 export interface ILineConfigStandard {
     fieldId: string;
     position?: 'start' | 'end';
-    fieldOptions: any; // type of options will be different for each field type
 }
 
 export interface ILineConfigAnpaCategory extends ILineConfigStandard {
