@@ -82,6 +82,9 @@ class EventJsonFeedParser(FileFeedParser):
                 ):
                     location.pop("location")
 
+        # Ignore None fields
+        superdesk_event = {field: value for field, value in superdesk_event.items() if value is not None}
+
         return superdesk_event
 
     def ignore_fields(self, superdesk_event):
