@@ -255,15 +255,15 @@ export class ListGroupItemComponent extends React.Component<IProps, IState> {
         } else if (this.props.viewType === 'list-compact') {
             if (appConfig.planning?.planning_list_item?.compact_view != null) {
                 planningProps.customTemplate = {
-                    firstLine: appConfig.planning.planning_list_item.compact_view.firstLine ?? [],
-                    secondLine: appConfig.planning.planning_list_item.compact_view.secondLine ?? [],
+                    firstLine: appConfig.planning?.planning_list_item?.compact_view.firstLine,
+                    secondLine: [],
                 };
             }
 
             if (appConfig.planning?.event_list_item?.compact_view != null) {
                 eventProps.customTemplate = {
-                    firstLine: appConfig.planning.event_list_item.compact_view.firstLine ?? [],
-                    secondLine: appConfig.planning.event_list_item.compact_view.secondLine ?? [],
+                    firstLine: appConfig.planning?.event_list_item?.compact_view.firstLine,
+                    secondLine: [],
                 };
             }
         } else {
