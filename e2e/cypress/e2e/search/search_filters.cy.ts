@@ -232,7 +232,7 @@ describe('Search.Filters: creating search filters', () => {
         searchFilters.editScheduleButton.click();
         searchFilters.editor.enterSearchParams({
             week_days: ['Su', 'Sa'],
-            hour: '1100',
+            hour: '11:00',
             desk: 'Sports Desk',
         });
         searchFilters.saveScheduleButton.click();
@@ -245,7 +245,7 @@ describe('Search.Filters: creating search filters', () => {
         searchFilters.editor.enterSearchParams({
             frequency: 'Monthly',
             month_day: '4th',
-            hour: '1400',
+            hour: '14:00',
         });
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();

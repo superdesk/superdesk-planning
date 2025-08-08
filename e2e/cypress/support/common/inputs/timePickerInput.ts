@@ -6,6 +6,9 @@ export class TimePickerInput extends Input {
             .find(this.selector)
             .should('exist')
             .click()
-            .type(value.replace(':', '') + '{enter}');
+            .clear({ force: true })
+            .type(value, { force: true })
+            .blur()
+            .should('have.value', value);
     }
 }
