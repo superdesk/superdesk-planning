@@ -142,6 +142,12 @@ def init_app(app):
     )
 
     superdesk.privilege(
+        name="planning_manage_export_templates",
+        label=lazy_gettext("Planning - Manage Export Templates"),
+        description=lazy_gettext("Ability to manage export templates"),
+    )
+
+    superdesk.privilege(
         name="planning_create_past",
         label=lazy_gettext("Planning - Create Event/Planning in the past"),
         description=lazy_gettext("Ability to create an Event or Planning item in the past"),
