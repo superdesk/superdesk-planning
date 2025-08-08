@@ -38,34 +38,42 @@ export class TimeInputs extends React.Component<IProps> {
                 <div className="form__row-items">
                     {(hours.length === 0 ? ['00:00'] : hours).map((time, idx) => (
                         <div
-                            className="form__row-item--flex sd-flex sd-align-items-center sd-gap-x--0-5 sd-m-b--0-5"
+                            className="sd-list-item"
                             key={idx}
                             data-test-id={`time-slot-${idx}`}
                         >
-                            <TimePicker
-                                data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
-                                value={time}
-                                onChange={(val) => this.updateHour(idx, val)}
-                            />
-                            <Button
-                                type="default"
-                                size="small"
-                                icon="close-small"
-                                onClick={() => this.removeHour(idx)}
-                                data-test-id={`remove-hour-${idx}`}
-                                aria-label={gettext('Remove')}
-                                text=""
-                                iconOnly
-                            />
+                            <div className="sd-list-item__column--grow">
+                                <TimePicker
+                                    data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
+                                    value={time}
+                                    onChange={(val) => this.updateHour(idx, val)}
+                                />
+                            </div>
+                            <div className="sd-padding-t--2">
+                                <Button
+                                    type="default"
+                                    size="small"
+                                    icon="close-small"
+                                    onClick={() => this.removeHour(idx)}
+                                    data-test-id={`remove-hour-${idx}`}
+                                    aria-label={gettext('Remove')}
+                                    text=""
+                                    iconOnly
+                                    style="text-only"
+                                />
+                            </div>
                         </div>
                     ))}
-                    <Button
-                        type="default"
-                        size="small"
-                        text={gettext('Add Time')}
-                        onClick={() => this.addHour()}
-                        data-test-id="add-hour"
-                    />
+
+                    <div className="sd-padding-t--1">
+                        <Button
+                            type="primary"
+                            size="small"
+                            text={gettext('Add Time')}
+                            onClick={() => this.addHour()}
+                            data-test-id="add-hour"
+                        />
+                    </div>
                 </div>
             </div>
         );
