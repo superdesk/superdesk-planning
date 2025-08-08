@@ -5,7 +5,7 @@ import {Group, Header} from '../UI/List';
 import {
     ICommonAdvancedSearchParams,
     IEventOrPlanningItem, ISearchFilter,
-    LIST_VIEW_TYPE, SORT_FIELD
+    GROUP_LIST_BY, SORT_FIELD
 } from '../../interfaces';
 import {timeUtils} from '../../utils';
 
@@ -17,10 +17,10 @@ const TIME_COLUMN_MIN_WIDTH = {
 
 function getMinTimeWidth(
     items: Array<IEventOrPlanningItem>,
-    listViewType: LIST_VIEW_TYPE,
+    groupListBy: GROUP_LIST_BY,
     sortField: SORT_FIELD
 ): string | undefined {
-    if (listViewType === LIST_VIEW_TYPE.SCHEDULE) {
+    if (groupListBy === GROUP_LIST_BY.DATE) {
         return TIME_COLUMN_MIN_WIDTH.TIME_ONLY;
     }
 
@@ -78,7 +78,7 @@ interface IProps {
     onItemActivate?(): void;
     contentTypes?: Array<any>;
     contacts?: {};
-    listViewType?: string;
+    groupListBy?: GROUP_LIST_BY;
     sortField?: string;
     listBoxGroupProps: {};
     searchParams?: ICommonAdvancedSearchParams;
@@ -146,7 +146,7 @@ export class ListGroup extends React.Component<IProps> {
             previewItem,
             contentTypes,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             listBoxGroupProps,
             searchParams,
@@ -160,7 +160,7 @@ export class ListGroup extends React.Component<IProps> {
         const flattenMultiday = (eventId, all, multi) => {
             onMultiSelectClick(eventId, all, multi, name);
         };
-        const minTimeWidth = getMinTimeWidth(items, listViewType, sortField);
+        const minTimeWidth = getMinTimeWidth(items, groupListBy, sortField);
 
         const headingId = `heading--${listBoxGroupProps['groupId']}`;
 
@@ -170,7 +170,7 @@ export class ListGroup extends React.Component<IProps> {
                     <Header title={moment(name).format('dddd LL')} id={headingId} />
                 )}
                 <Group
-                    spaceBetween={listViewType === LIST_VIEW_TYPE.SCHEDULE}
+                    spaceBetween={groupListBy === GROUP_LIST_BY.DATE}
                     listBoxGroupProps={listBoxGroupProps}
                     aria-labelledby={headingId}
                     indexFrom={indexFrom}
@@ -207,7 +207,7 @@ export class ListGroup extends React.Component<IProps> {
                             previewItem: previewItem,
                             contentTypes: contentTypes,
                             contacts: contacts,
-                            listViewType: listViewType,
+                            groupListBy: groupListBy,
                             sortField: sortField,
                             minTimeWidth: minTimeWidth,
                             searchParams: searchParams,

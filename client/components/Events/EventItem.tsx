@@ -4,7 +4,7 @@ import moment from 'moment';
 import {get} from 'lodash';
 import {Menu} from 'superdesk-ui-framework/react';
 import {superdeskApi} from '../../superdeskApi';
-import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
+import {IEventListItemProps, GROUP_LIST_BY, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
 
 import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
@@ -156,7 +156,7 @@ class EventItemComponent extends React.Component<IProps, IState> {
             onMultiSelectClick,
             active,
             refNode,
-            listViewType,
+            groupListBy,
             filterLanguage
         } = this.props;
 
@@ -241,13 +241,13 @@ class EventItemComponent extends React.Component<IProps, IState> {
                     border={false}
                 >
                     <LineItems
-                        firstLine={eventFirstLineConfig}
-                        secondLine={eventSecondLineConfig}
+                        firstLine={this.props.customTemplate?.firstLine ?? eventFirstLineConfig}
+                        secondLine={this.props.customTemplate?.secondLine ?? eventSecondLineConfig}
                         renderFieldsWithProps={renderFieldsWithProps}
                     />
                 </Column>
 
-                {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+                {groupListBy === GROUP_LIST_BY.DATE ? null : (
                     <CreatedUpdatedColumn
                         item={item}
                         field={this.props.sortField === SORT_FIELD.CREATED ?

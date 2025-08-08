@@ -1,7 +1,7 @@
 import {cloneDeep} from 'lodash';
 
 import events, {spikeEvent, unspikeEvent} from '../events';
-import {LIST_VIEW_TYPE} from '../../interfaces';
+import {GROUP_LIST_BY} from '../../interfaces';
 
 describe('events', () => {
     describe('reducers', () => {
@@ -75,7 +75,7 @@ describe('events', () => {
             const result = events(initialState, {
                 type: 'SET_EVENTS_LIST',
                 payload: {
-                    listViewType: LIST_VIEW_TYPE.SCHEDULE,
+                    listViewType: GROUP_LIST_BY.DATE,
                     ids: ['e1', 'e2', 'e3'],
                 },
             });
@@ -91,7 +91,7 @@ describe('events', () => {
             }, {
                 type: 'ADD_TO_EVENTS_LIST',
                 payload: {
-                    listViewType: LIST_VIEW_TYPE.SCHEDULE,
+                    listViewType: GROUP_LIST_BY.DATE,
                     ids: ['e3', 'e1'],
                 },
             });

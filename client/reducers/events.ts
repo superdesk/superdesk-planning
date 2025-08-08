@@ -1,7 +1,7 @@
 import {orderBy, cloneDeep, uniq, get} from 'lodash';
 import moment from 'moment';
 
-import {IEventState, IMainState, LIST_VIEW_TYPE} from '../interfaces';
+import {IEventState, IMainState, GROUP_LIST_BY} from '../interfaces';
 
 import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, WORKFLOW_STATE, MAIN} from '../constants';
 import {createReducer} from './createReducer';
@@ -90,7 +90,7 @@ const eventsReducer = createReducer<IEventState>(initialState, {
     [EVENTS.ACTIONS.SET_EVENTS_LIST]: (state, payload) => (
         {
             ...state,
-            eventsInList: payload.listViewType === LIST_VIEW_TYPE.LIST ?
+            eventsInList: payload.groupListBy === GROUP_LIST_BY.NOT_GROUPED ?
                 uniq([...payload.ids]) :
                 orderBy(
                     uniq([...payload.ids]),
@@ -111,7 +111,7 @@ const eventsReducer = createReducer<IEventState>(initialState, {
             type: EVENTS.ACTIONS.SET_EVENTS_LIST,
             payload: {
                 ids: [...state.eventsInList, ...payload.ids],
-                listViewType: payload.listViewType,
+                groupListBy: payload.groupListBy,
             },
         })
     ),
