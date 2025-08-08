@@ -1,6 +1,6 @@
 import React from 'react';
 import {superdeskApi} from '../../superdeskApi';
-import {TimePicker, Button} from 'superdesk-ui-framework/react';
+import {TimePicker, Button, Spacer} from 'superdesk-ui-framework/react';
 
 interface IProps {
     hours: Array<string>;
@@ -38,33 +38,33 @@ export class TimeInputs extends React.Component<IProps> {
                 <div className="form__row-items">
                     {(hours.length === 0 ? ['00:00'] : hours).map((time, idx) => (
                         <div
-                            className="sd-list-item"
                             key={idx}
                             data-test-id={`time-slot-${idx}`}
                         >
-                            <div className="sd-list-item__column--grow">
-                                <TimePicker
-                                    data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
-                                    value={time}
-                                    onChange={(val) => this.updateHour(idx, val)}
-                                />
-                            </div>
-                            <div className="sd-padding-t--2">
-                                <Button
-                                    type="default"
-                                    size="small"
-                                    icon="close-small"
-                                    onClick={() => this.removeHour(idx)}
-                                    data-test-id={`remove-hour-${idx}`}
-                                    aria-label={gettext('Remove')}
-                                    text=""
-                                    iconOnly
-                                    style="text-only"
-                                />
-                            </div>
+                            <Spacer h gap="8" alignItems="center" noWrap>
+                                <div className="sd-list-item__column--grow">
+                                    <TimePicker
+                                        data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
+                                        value={time}
+                                        onChange={(val) => this.updateHour(idx, val)}
+                                    />
+                                </div>
+                                <div className="sd-padding-t--2">
+                                    <Button
+                                        type="default"
+                                        size="small"
+                                        icon="close-small"
+                                        onClick={() => this.removeHour(idx)}
+                                        data-test-id={`remove-hour-${idx}`}
+                                        aria-label={gettext('Remove')}
+                                        text=""
+                                        iconOnly
+                                        style="text-only"
+                                    />
+                                </div>
+                            </Spacer>
                         </div>
                     ))}
-
                     <div className="sd-padding-t--1">
                         <Button
                             type="primary"
