@@ -11,7 +11,7 @@ import * as selectors from '../../../selectors';
 
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
 import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
-import {planningApi} from 'superdeskApi';
+import {planningApi} from '../../../superdeskApi';
 
 interface IOwnProps {
     field: string;
