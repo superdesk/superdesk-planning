@@ -286,13 +286,6 @@ export class ListPanel extends React.Component<IProps, IState> {
             this.props.loadMore(this.props.activeFilter)
                 .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
         }
-
-        if (node.scrollTop === 0 && this.state.scrollTop > 0) {
-            this.setState({isNextPageLoading: true, scrollTop: 0});
-
-            this.props.filter(this.props.activeFilter)
-                .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
-        }
     }
 
     // Function to preview the item once activated
