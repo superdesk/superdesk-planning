@@ -17,13 +17,15 @@ const mapStateToProps = (state) => ({
 export class EditorFieldCategoriesComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const vocabulary = superdeskApi.entities.vocabulary.getVocabulary('categories');
 
         return (
             <EditorFieldVocabulary
                 {...this.props}
                 field={this.props.field ?? 'anpa_category'}
-                label={this.props.label ?? gettext('ANPA Category')}
+                label={vocabulary.display_name ?? gettext('ANPA Category')}
                 options={this.props.categories}
+                singleSelect={vocabulary.selection_type !== 'multi selection'}
             />
         );
     }

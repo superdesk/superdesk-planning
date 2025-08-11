@@ -257,7 +257,7 @@ export function getFieldNameTranslated(field: string): string {
     case 'event_contact_info':
         return gettext('Contacts');
     case 'anpa_category':
-        return gettext('ANPA Category');
+        return superdeskApi.entities.vocabulary.getVocabulary('categories').display_name ?? gettext('ANPA Category');
     case 'subject':
         return gettext('Subject');
     case 'definition_long':
