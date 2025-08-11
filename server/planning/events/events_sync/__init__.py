@@ -19,7 +19,7 @@ from planning.utils import parse_date
 from planning.utils import get_related_planning_for_events
 from planning.content_profiles.utils import AllContentProfileData
 from planning.common import get_config_event_fields_to_sync_with_planning
-from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
+from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation, Planning
 from planning.types.event import EmbeddedPlanning as EmbeddedPlanningModel
 
 from .common import VocabsSyncData, SyncItemData, SyncData
@@ -45,6 +45,7 @@ async def sync_event_metadata_with_planning_items(
     original: Optional[Event],
     updates: Event,
     embedded_planning: list[EmbeddedPlanningDict] | list[EmbeddedPlanningModel],
+    embedded_planning_present: bool,
 ):
     embedded_planning = [
         cast(EmbeddedPlanningDict, obj.to_dict()) if isinstance(obj, EmbeddedPlanningModel) else obj
@@ -100,11 +101,42 @@ async def sync_event_metadata_with_planning_items(
     if not len(sync_fields):
         # There are no fields to sync with the Event
         # So only update the Planning items based on the ``embedded_planning`` Event field
+
+        # 1) Update embedded items and collect the IDs of embedded, existing planning items
+        embedded_existing_ids: set[str] = set()
+        pending_planning_updates: list[tuple[str, Planning]] = []
+
         for planning_original, planning_updates, update_required in get_existing_plannings_from_embedded_planning(
             event_updated, event_translations, embedded_planning, profiles, vocabs
         ):
+            embedded_existing_ids.add(planning_original["_id"])
             if update_required:
-                await planning_service.patch_async(planning_original["_id"], planning_updates)
+                pending_planning_updates.append((planning_original["_id"], planning_updates))
+
+        for planning_id, payload in pending_planning_updates:
+            await planning_service.patch_async(planning_id, payload)
+
+        # 2. Unlink removed planning items
+        if embedded_planning_present:
+            existing_linked_planning_items = get_related_planning_for_events([event_updated["_id"]], "primary")
+            linked_ids: set[str] = {p["_id"] for p in existing_linked_planning_items}
+
+            # Anything linked but not present in the embedded set should be unlinked
+            ids_to_unlink = linked_ids - embedded_existing_ids
+
+            for planning_id in ids_to_unlink:
+                planning_item = next((p for p in existing_linked_planning_items if p["_id"] == planning_id), None)
+                if not planning_item:
+                    continue
+
+                current_related_events = planning_item.get("related_events") or []
+                pruned_related_events = [
+                    rel for rel in current_related_events if rel.get("_id") != event_updated["_id"]
+                ]
+
+                if pruned_related_events != current_related_events:
+                    await planning_service.patch_async(planning_id, {"related_events": pruned_related_events})
+
         return
 
     coverage_sync_fields = set(field for field in sync_fields if field in COVERAGE_SYNC_FIELDS)
