@@ -45,7 +45,7 @@ async def sync_event_metadata_with_planning_items(
     original: Optional[Event],
     updates: Event,
     embedded_planning: list[EmbeddedPlanningDict] | list[EmbeddedPlanningModel],
-    embedded_planning_present: bool,
+    embedded_planning_present: bool = False,
 ):
     embedded_planning = [
         cast(EmbeddedPlanningDict, obj.to_dict()) if isinstance(obj, EmbeddedPlanningModel) else obj
