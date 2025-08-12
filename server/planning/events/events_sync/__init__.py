@@ -104,21 +104,17 @@ async def sync_event_metadata_with_planning_items(
 
         # 1) Update embedded items and collect the IDs of embedded, existing planning items
         embedded_existing_ids: set[str] = set()
-        pending_planning_updates: list[tuple[str, Planning]] = []
 
         for planning_original, planning_updates, update_required in get_existing_plannings_from_embedded_planning(
             event_updated, event_translations, embedded_planning, profiles, vocabs
         ):
             embedded_existing_ids.add(planning_original["_id"])
             if update_required:
-                pending_planning_updates.append((planning_original["_id"], planning_updates))
-
-        for planning_id, payload in pending_planning_updates:
-            await planning_service.patch_async(planning_id, payload)
+                await planning_service.patch_async(planning_original["_id"], planning_updates)
 
         # 2. Unlink removed planning items
         if embedded_planning_present:
-            existing_linked_planning_items = get_related_planning_for_events([event_updated["_id"]], "primary")
+            existing_linked_planning_items = get_related_planning_for_events([event_updated["_id"]])
             linked_ids: set[str] = {p["_id"] for p in existing_linked_planning_items}
 
             # Anything linked but not present in the embedded set should be unlinked
