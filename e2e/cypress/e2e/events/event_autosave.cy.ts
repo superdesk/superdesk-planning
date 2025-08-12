@@ -34,7 +34,7 @@ describe('Planning.Events: autosave', () => {
             occur_status: 'Planned, occurence planned only',
 
             calendars: ['Sport', 'Finance'],
-            anpa_category: ['Domestic Sport', 'Finance'],
+            anpa_category: ['Domestic Sport'],
             subject: ['sports awards'],
 
             links: ['https://www.google.com.au', 'https://en.wikipedia.org'],
