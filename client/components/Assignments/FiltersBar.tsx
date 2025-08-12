@@ -106,7 +106,6 @@ export const FiltersBar = ({
                 }}
                 dateFormat={appConfig.view.dateformat}
                 data-test-id="date-input"
-                fullWidth={false}
             />
             <Spacer />
             <div className="filter-bar__order-field">
