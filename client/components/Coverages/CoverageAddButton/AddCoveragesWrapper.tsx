@@ -7,11 +7,11 @@ import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from
 
 import {planningUtils, onEventCapture} from '../../../utils';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
-import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
 import * as selectors from '../../../selectors';
 
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
 import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
+import {planningApi} from '../../../superdeskApi';
 
 interface IOwnProps {
     field: string;
@@ -152,7 +152,7 @@ class AddCoveragesWrapperComponent extends React.Component<IProps, IState> {
     render() {
         const Button = this.props.button;
         const coverageTypes = this.getOptions(
-            this.props.language || getUserInterfaceLanguageFromCV(),
+            selectors.general.session(planningApi.redux.store.getState()).identity.language ?? 'en',
             this.props.contentTypes,
             this.props.onAdd,
             this.props.defaultDesk,
