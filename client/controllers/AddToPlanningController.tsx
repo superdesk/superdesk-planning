@@ -5,9 +5,9 @@ import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {planning} from '../actions';
-import {get, isEmpty, isNumber, noop} from 'lodash';
+import {isEmpty, isNumber, noop} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
-import {WORKSPACE, MODALS} from '../constants';
+import {WORKSPACE, MODALS, PLANNING} from '../constants';
 import {GET_LABEL_MAP} from 'superdesk-core/scripts/apps/workspace/content/constants';
 import {IArticle, IContentProfile} from 'superdesk-api';
 import {authoringReactViewEnabled} from 'appConfig';
@@ -20,6 +20,8 @@ const DEFAULT_PLANNING_SCHEMA = {
     slugline: {required: true},
     urgency: {required: true},
 };
+
+const ADD_TO_PLANNING_LOCK = PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
 
 export class AddToPlanningController {
     $scope: any;
@@ -107,9 +109,9 @@ export class AddToPlanningController {
 
         ReactDOM.render(
             <Provider store={this.store}>
-                <ModalsContainer />
+                <ModalsContainer onModalHide={this.unlockAddToPlanningItem} />
             </Provider>,
-            this.$element.get(0)
+            this.$element
         );
 
         this.rendered = true;
@@ -170,21 +172,27 @@ export class AddToPlanningController {
             }, 1000);
         }
 
-        // Only unlock the item if it was locked when launching this modal
-        if ((this.newsItem?.lock_session ?? null) !== null
-            && (this.newsItem.lock_action ?? 'edit') === 'add_to_planning'
-        ) {
-            this.lock.unlock(this.newsItem);
-        }
+        this.unlockAddToPlanningItem();
 
         if (this.rendered) {
             ReactDOM.unmountComponentAtNode(this.$element.get(0));
         }
     }
 
+    /**
+     * Unlocks item locked due to `add_to_planning` action
+     */
+    unlockAddToPlanningItem = () => {
+        const {lock_session, lock_action} = this.newsItem || {};
+
+        if (lock_session && lock_action === ADD_TO_PLANNING_LOCK) {
+            this.lock.unlock(this.newsItem);
+        }
+    };
+
     onItemUnlock(_e, data) {
         if (this.store &&
-            data.item === this.newsItem._id &&
+            data.item === this.newsItem?._id &&
             data.lock_session !== this.session.sessionId
         ) {
             this.store.dispatch(actions.hideModal());
@@ -286,7 +294,7 @@ export class AddToPlanningController {
 
                 if (!this.lock.isLockedInCurrentSession(newsItem)) {
                     newsItem._editable = true;
-                    return this.lock.lock(newsItem, false, 'add_to_planning')
+                    return this.lock.lock(newsItem, false, ADD_TO_PLANNING_LOCK)
                         .then(
                             (lockedItem) => Promise.resolve(lockedItem),
                             (error) => {

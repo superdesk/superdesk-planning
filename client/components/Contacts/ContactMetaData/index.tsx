@@ -7,11 +7,12 @@ import {onEventCapture} from '../../../utils';
 
 import {StateLabel} from '../../';
 import {Item, Column, Row, ActionMenu} from '../../UI/List';
-import {CollapseBox, IconButton} from '../../UI';
+import {CollapseBox} from '../../UI';
 import {ContactInfoContainer, ContactLabel} from '../';
 
 
 import '../SelectSearchContactsField/style.scss';
+import {IconButton} from 'superdesk-ui-framework/react/components/IconButton';
 
 interface IProps {
     contact: IContactItem;
@@ -64,10 +65,10 @@ export class ContactMetaData extends React.PureComponent<IProps> {
             if (onEditContact) {
                 contactActions.push(
                     <IconButton
-                        icon="icon-pencil"
-                        aria-label={gettext('Edit Contact')}
-                        tabIndex={this.props.tabEnabled ? 0 : null}
+                        icon="pencil"
                         onClick={this.editContact}
+                        ariaValue={gettext('Edit Contact')}
+                        toolTipFlow="left"
                     />
                 );
             }
@@ -75,10 +76,10 @@ export class ContactMetaData extends React.PureComponent<IProps> {
             if (onRemoveContact) {
                 contactActions.push(
                     <IconButton
-                        icon="icon-trash"
-                        aria-label={gettext('Remove Contact')}
-                        tabIndex={this.props.tabEnabled ? 0 : null}
+                        icon="trash"
                         onClick={this.removeContact}
+                        ariaValue={gettext('Remove Contact')}
+                        toolTipFlow="left"
                     />
                 );
             }

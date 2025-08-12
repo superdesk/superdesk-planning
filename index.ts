@@ -1,4 +1,5 @@
 // styles
+import ReactDOM from 'react-dom';
 import './client/styles/index.scss';
 import planningModule from './client';
 import * as ctrl from './client/controllers';
@@ -67,16 +68,20 @@ window.addEventListener('planning:fulfilassignment', (event: CustomEvent) => {
 
 window.addEventListener('planning:addToPlanning', (e: CustomEvent) => {
     const newElement = document.createElement('div');
-    const jQueryElement = window.$(newElement);
     const rootScope = ng.get('$rootScope');
 
+    document.body.appendChild(newElement);
     newElement.className = 'modal__dialog ng-scope';
     rootScope.locals = {data: {item: e.detail}};
 
-    rootScope.resolve = () => newElement.remove();
+    // unmount the component and remove the element when the modal is closed
+    rootScope.resolve = () => {
+        ReactDOM.unmountComponentAtNode(newElement);
+        newElement.remove();
+    };
 
     new ctrl.AddToPlanningController(
-        jQueryElement,
+        newElement,
         rootScope,
         ng.get('sdPlanningStore'),
         ng.get('notify'),

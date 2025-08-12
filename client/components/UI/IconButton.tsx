@@ -24,6 +24,7 @@ const IconButton = ({
     label,
     tooltip,
     tooltipDirection,
+    refNode,
     ...props
 }) => {
     const handleKeyDown = (event) => {
@@ -51,6 +52,7 @@ const IconButton = ({
             data-sd-tooltip={tooltip}
             data-flow={tooltipDirection}
             {...props}
+            ref={refNode}
         >
             <Icon icon={icon} />
             {label}
@@ -70,6 +72,7 @@ IconButton.propTypes = {
     label: PropTypes.string,
     tooltip: PropTypes.string,
     tooltipDirection: PropTypes.string,
+    refNode: PropTypes.object,
 };
 
 IconButton.defaultProps = {
