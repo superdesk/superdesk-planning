@@ -89,6 +89,11 @@ export const FiltersBar = ({
                     {days: 1, label: gettext('Tomorrow')},
                     {days: 2, label: gettext('In 2 days')},
                 ]}
+                fullWidth={false}
+                locale={{
+                    type: 'full',
+                    payload: superdeskApi.ui.framework.getLocaleForDatePicker(),
+                }}
                 label={gettext('Filter by day:')}
                 inlineLabel
                 value={dayField != null ? new Date(dayField) : null}
