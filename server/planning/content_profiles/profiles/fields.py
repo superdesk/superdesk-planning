@@ -137,3 +137,16 @@ subjectField = schema.ListField(
         },
     },
 )
+
+
+class MultipleCoveragesField(StringField):
+    def __init__(
+        self,
+        required: bool = False,
+        default_value: bool = False,
+        read_only: bool = False,
+    ):
+        super().__init__(required=required)
+        self.schema["default_value"] = default_value
+        self.schema["read_only"] = read_only
+        self.schema["required"] = required    

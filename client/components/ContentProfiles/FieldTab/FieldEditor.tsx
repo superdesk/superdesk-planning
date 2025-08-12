@@ -5,6 +5,7 @@ import {
     IPlanningContentProfile,
     IProfileSchemaTypeString,
     IEventFormProfile,
+    ICoverageFormProfile,
 } from '../../../interfaces';
 
 import {superdeskApi, planningApi} from '../../../superdeskApi';
@@ -93,7 +94,10 @@ export class FieldEditor extends React.Component<IProps, IState> {
             multilingual.isEnabled(this.props.profile);
         const storeState = planningApi.redux.store.getState();
         const allCoverageProfileIds = coverageProfiles(storeState).map((x) => x._id);
-        const nameof = superdeskApi.helpers.nameof<IEventFormProfile['editor']>;
+        const nameof = superdeskApi.helpers.nameof<
+            Partial<IEventFormProfile['editor']> &
+            Partial<ICoverageFormProfile['editor']>
+        >;
 
         const fieldProps = {
             'schema.show_in_embedded_editor': {
@@ -106,7 +110,11 @@ export class FieldEditor extends React.Component<IProps, IState> {
                     && allCoverageProfileIds.includes(this.props.profile._id) === false,
             },
             'schema.required': {enabled: !(this.props.disableRequired || this.props.systemRequired)},
-            'schema.read_only': {enabled: this.props.item.name === nameof('related_plannings')},
+            'schema.read_only': {
+                enabled:
+                    this.props.item.name === nameof('related_plannings') ||
+                    this.props.item.name === nameof('multiple_coverages')
+            },
             'schema.planning_auto_publish': {
                 enabled: this.props.item.name === nameof('related_plannings')
             },
