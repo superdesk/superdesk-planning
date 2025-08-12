@@ -14,9 +14,26 @@ export function getSearchFilterScheduleText(schedule: ISearchFilterSchedule, des
         frequency = SCHEDULE_FREQUENCY.DAILY;
     }
 
+    let timeText = '';
+
+    if (schedule.hours && schedule.hours.length > 0) {
+        timeText = schedule.hours
+            .map((h) => {
+                const m = moment(h, 'HH:mm', true);
+
+                if (!m.isValid()) {
+                    return '00:00';
+                }
+                return m.format('HH:mm');
+            })
+            .join(', ');
+    } else {
+        timeText = translateHour(schedule.hour);
+    }
+
     const args = {
         desk: deskName,
-        time: translateHour(schedule.hour),
+        time: timeText,
         day: translateMonthDay(schedule.day),
     };
 

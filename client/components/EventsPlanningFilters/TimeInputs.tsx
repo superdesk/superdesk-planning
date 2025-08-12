@@ -1,6 +1,6 @@
 import React from 'react';
 import {superdeskApi} from '../../superdeskApi';
-import {TimePicker, Button, Spacer} from 'superdesk-ui-framework/react';
+import {Button, Spacer} from 'superdesk-ui-framework/react';
 
 interface IProps {
     hours: Array<string>;
@@ -37,19 +37,19 @@ export class TimeInputs extends React.Component<IProps> {
                 <label className="form__label">{gettext('HOUR')}</label>
                 <div className="form__row-items">
                     {(hours.length === 0 ? ['00:00'] : hours).map((time, idx) => (
-                        <div
-                            key={idx}
-                            data-test-id={`time-slot-${idx}`}
-                        >
+                        <div key={`time-slot-${idx}`} data-test-id={`time-slot-${idx}`} className="sd-padding-t--2">
                             <Spacer h gap="8" alignItems="center" noWrap>
                                 <div className="sd-list-item__column--grow">
-                                    <TimePicker
-                                        data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
+                                    <input
+                                        type="time"
+                                        className="sd-input__input"
                                         value={time}
-                                        onChange={(val) => this.updateHour(idx, val)}
+                                        onChange={(e) => this.updateHour(idx, e.target.value)}
+                                        step="3600"
+                                        data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
                                     />
                                 </div>
-                                <div className="sd-padding-t--2">
+                                <div>
                                     <Button
                                         type="default"
                                         size="small"
