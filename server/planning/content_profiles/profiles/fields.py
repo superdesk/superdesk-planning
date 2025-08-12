@@ -149,4 +149,4 @@ class MultipleCoveragesField(StringField):
         super().__init__(required=required)
         self.schema["default_value"] = default_value
         self.schema["read_only"] = read_only
-        self.schema["required"] = required    
+        self.schema["required"] = required
