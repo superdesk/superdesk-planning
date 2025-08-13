@@ -77,7 +77,7 @@ function canStartWorking(
         return false;
     }
 
-    if (assignment.planning?.multiple_coverages) {
+    if (assignment.planning?.multiple_content) {
         // If this Assignment allows multiple content linked,
         // make sure the Assignment is not in a completed state
         return (

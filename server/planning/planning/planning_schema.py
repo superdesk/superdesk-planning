@@ -110,7 +110,7 @@ coverage_schema = {
             "internal_note": {"type": "string", "nullable": True},
             "workflow_status_reason": {"type": "string", "nullable": True},
             "priority": metadata_schema["priority"],
-            "multiple_coverages": {"type": "boolean", "default": False},
+            "multiple_content": {"type": "boolean", "default": False},
         },  # end planning dict schema
     },  # end planning
     "news_coverage_status": {
@@ -313,7 +313,7 @@ planning_schema = {
                     "type": "object",
                     "properties": {
                         "slugline": metadata_schema["slugline"]["mapping"],
-                        "multiple_coverages": {"type": "boolean"},
+                        "multiple_content": {"type": "boolean"},
                     },
                 },
                 "assigned_to": assigned_to_schema["mapping"],

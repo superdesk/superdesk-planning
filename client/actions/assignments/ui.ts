@@ -493,7 +493,7 @@ function revert(item: IAssignmentItem) {
             .then((lockedItem) => {
                 const contentTypes = selectors.general.contentTypes(getState());
 
-                if (!assignmentUtils.isTextAssignment(item, contentTypes) || item.planning?.multiple_coverages) {
+                if (!assignmentUtils.isTextAssignment(item, contentTypes) || item.planning?.multiple_content) {
                     return dispatch(assignments.api.revert(lockedItem))
                         .then((updatedItem) => {
                             notify.success(gettext('The assignment has been reverted.'));

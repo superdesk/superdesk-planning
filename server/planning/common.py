@@ -888,6 +888,6 @@ def prepare_ingested_item_for_storage(doc: Union[Event, Planning]) -> None:
 
 def assignment_allows_multiple_content_linked(assignment: dict) -> bool:
     try:
-        return assignment["planning"]["multiple_coverages"] is True
+        return assignment["planning"]["multiple_content"] is True
     except (KeyError, TypeError):
         return False

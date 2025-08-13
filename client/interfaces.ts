@@ -619,7 +619,7 @@ export interface ICoveragePlanningDetails {
     internal_note: string;
     workflow_status_reason: string;
     priority?: number;
-    multiple_coverages?: boolean;
+    multiple_content?: boolean;
 }
 
 export interface ICoverageScheduledUpdate {

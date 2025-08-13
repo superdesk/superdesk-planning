@@ -26,7 +26,7 @@ Feature: Assignment with multiple linked content
                 "planning": {
                     "slugline": "test slugline",
                     "g2_content_type": "text",
-                    "multiple_coverages": true
+                    "multiple_content": true
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
@@ -45,7 +45,7 @@ Feature: Assignment with multiple linked content
         """
         {"coverages": [{
             "coverage_id": "#COVERAGE_ID#",
-            "planning": {"multiple_coverages": true},
+            "planning": {"multiple_content": true},
             "assigned_to": {"assignment_id": "#ASSIGNMENT_ID#", "state": "assigned"}
         }]}
         """
@@ -56,7 +56,7 @@ Feature: Assignment with multiple linked content
         """
 
     @auth
-    Scenario: Coverage without multiple_coverages enabled fails with start working
+    Scenario: Coverage without multiple_content enabled fails with start working
         When we post to "planning"
         """
         {
@@ -66,7 +66,7 @@ Feature: Assignment with multiple linked content
                 "planning": {
                     "slugline": "test slugline",
                     "g2_content_type": "text",
-                    "multiple_coverages": false
+                    "multiple_content": false
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
