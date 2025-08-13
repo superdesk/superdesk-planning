@@ -5,11 +5,11 @@ import {gettextCatalog} from '../utils';
 
 interface IProps {
     text: string;
-    children: React.ReactNode;
     centerText: boolean;
+    children?: React.ReactNode;
 }
 
-const Label = ({text, children, centerText}: IProps) => {
+const Label = ({text, children, centerText = false}: IProps) => {
     return (
         <span
             className={classNames(
@@ -22,7 +22,5 @@ const Label = ({text, children, centerText}: IProps) => {
         </span>
     );
 };
-
-Label.defaultProps = {centerText: false};
 
 export default Label;

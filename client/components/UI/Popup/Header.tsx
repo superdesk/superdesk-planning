@@ -5,7 +5,7 @@ import Label from './Label';
 interface IProps {
     text: string;
     onClose(): void;
-    children: React.ReactNode;
+    children?: React.ReactChildren;
     className: string;
     noBorder: boolean;
     noPadding: boolean;
