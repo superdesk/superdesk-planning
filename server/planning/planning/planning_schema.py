@@ -313,6 +313,7 @@ planning_schema = {
                     "type": "object",
                     "properties": {
                         "slugline": metadata_schema["slugline"]["mapping"],
+                        "multiple_coverages": coverage_schema["planning"]["schema"]["multiple_coverages"],
                     },
                 },
                 "assigned_to": assigned_to_schema["mapping"],
