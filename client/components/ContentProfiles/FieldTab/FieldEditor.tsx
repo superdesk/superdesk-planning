@@ -137,11 +137,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                     !['language', 'location'].includes(this.props.item.name)
                 )
             )},
-            'schema.default_value': {
-                enabled:
-                    this.props.item.name === 'priority' ||
-                    this.props.item.name === nameof('multiple_content')
-            },
+            'schema.default_value': {enabled: this.props.item.name === 'priority'},
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)
@@ -248,17 +244,16 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                         },
                                         fieldProps
                                     )}
-                                    {this.props.item.name === nameof('multiple_content') &&
-                                        fieldProps['schema.default_value'].enabled ? (
-                                            <div className="form__row">
-                                                <Checkbox
-                                                    checked={Boolean(this.props.item.schema.default_value)}
-                                                    label={{text: gettext('Default Value')}}
-                                                    onChange={(value) => this.onChange('schema.default_value', value)}
-                                                    disabled={false}
-                                                />
-                                            </div>
-                                        ) : null}
+                                    {this.props.item.name === nameof('multiple_content') ? (
+                                        <div className="form__row">
+                                            <Checkbox
+                                                checked={Boolean(this.props.item.schema.default_value)}
+                                                label={{text: gettext('Default Value')}}
+                                                onChange={(value) => this.onChange('schema.default_value', value)}
+                                                disabled={false}
+                                            />
+                                        </div>
+                                    ) : null}
                                 </React.Fragment>
                             )}
                         </div>
