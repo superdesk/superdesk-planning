@@ -21,6 +21,7 @@ from planning.common import (
     get_next_assignment_status,
     get_delivery_publish_time,
     is_content_link_to_coverage_allowed,
+    assignment_allows_multiple_content_linked,
 )
 from .assignments_history_async import AssignmentsHistoryAsyncService
 from apps.archive.common import get_user, is_assigned_to_a_desk
@@ -173,12 +174,8 @@ class AssignmentsLinkService(AsyncBaseService):
         if not is_assigned_to_a_desk(item):
             raise SuperdeskApiError.badRequestError("Content not in workflow. Cannot link assignment and content.")
 
-        if not item.get("rewrite_of"):
-            delivery = await get_resource_service("delivery").find_one_async(
-                req=None, assignment_id=doc.get("assignment_id")
-            )
-
-            if delivery:
+        if not item.get("rewrite_of") and not assignment_allows_multiple_content_linked(assignment):
+            if await get_resource_service("delivery").count_async({"assignment_id": doc.get("assignment_id")}) > 0:
                 raise SuperdeskApiError.badRequestError(
                     "Content already exists for the assignment. Cannot link assignment and content."
                 )

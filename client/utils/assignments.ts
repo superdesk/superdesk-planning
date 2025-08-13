@@ -63,17 +63,40 @@ function canRemoveAssignment(
         self.isAssignmentInEditableState(assignment);
 }
 
-const canStartWorking = (assignment, session, privileges, contentTypes) => (
-    !!privileges[PRIVILEGES.ARCHIVE] &&
-    !get(assignment, 'lock_user') &&
-    self.isTextAssignment(assignment, contentTypes) &&
-    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-    (
-        !get(assignment, 'assigned_to.user') ||
-        assignment.assigned_to.user === get(session, 'identity._id')
-    ) &&
-    !isAssignedToProvider(assignment)
-);
+function canStartWorking(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges,
+    contentTypes: Array<IG2ContentType>
+): boolean {
+    if (
+        !privileges[PRIVILEGES.ARCHIVE]
+        || isAssignedToProvider(assignment)
+        || !self.isTextAssignment(assignment, contentTypes)
+    ) {
+        return false;
+    }
+
+    if (assignment.planning?.multiple_content) {
+        // If this Assignment allows multiple content linked,
+        // make sure the Assignment is not in a completed state
+        return (
+            [
+                ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+            ].includes(assignment.assigned_to?.state)
+        );
+    } else {
+        // Otherwise if this Assignment only allows 1 content linked, then make sure the Assignment
+        // is not locked and assigned to the current user (or not assigned to anyone)
+        return (
+            assignment.assigned_to?.state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED
+            && !assignment.lock_user
+            && (!assignment.assigned_to?.user || assignment.assigned_to?.user === session.identity._id)
+        );
+    }
+}
 
 function canFulfilAssignment(
     assignment: IAssignmentItem,

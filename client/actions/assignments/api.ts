@@ -330,29 +330,6 @@ const link = (assignment, newsItem, reassign) => (
 );
 
 /**
- * Action to create news item from assignment and template
- * @param {String} assignmentId - Id of the Assignment
- * @param {String} templateName - name of the template to use
- * @return Promise
- */
-const createFromTemplateAndShow = (assignmentId, templateName) => (
-    (dispatch, getState, {api, authoringWorkspace, notify}) => (
-        api('assignments_content').save({}, {
-            assignment_id: assignmentId,
-            template_name: templateName,
-        })
-            .then((item) => authoringWorkspace.edit(item),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to lock the Assignment.')
-                    );
-                    return Promise.reject(error);
-                }
-            )
-    )
-);
-
-/**
  * Action to complete an assignment
  * @param {String} item - Assignment to be completed
  * @return Promise
@@ -564,7 +541,6 @@ const self = {
     fetchAssignmentById,
     save,
     link,
-    createFromTemplateAndShow,
     complete,
     revert,
     loadPlanningAndEvent,

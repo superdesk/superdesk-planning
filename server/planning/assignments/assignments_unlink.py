@@ -79,23 +79,37 @@ class AssignmentsUnlinkService(AsyncBaseService):
             doc.update(actioned_item)
 
             assignments = await self.get_all_assignments_for_coverage(assignment.get("coverage_item"))
-            async for a in assignments:
+            async for assignment in assignments:
                 # Update all assignments in the coverage including scheduled_updates
-                updates = {"assigned_to": deepcopy(a.get("assigned_to"))}
-                archive_items = await assignments_service.get_archive_items_for_assignment(a)
-                other_linked_items = [
-                    a async for a in archive_items if str(a.get(ID_FIELD)) != str(actioned_item[ID_FIELD])
-                ]
-                if len(other_linked_items) <= 0:
-                    updates["assigned_to"]["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                    await assignments_service.patch_async(a.get(ID_FIELD), updates)
+                updates = {"assigned_to": deepcopy(assignment.get("assigned_to"))}
+                archive_items = await assignments_service.get_archive_items_for_assignment(assignment)
+                other_items_in_chain: set[str] = set()
+                other_items_not_in_chain: set[str] = set()
+
+                async for other_item in archive_items:
+                    other_item_id = str(other_item.get(ID_FIELD))
+                    if other_item_id == str(actioned_item[ID_FIELD]):
+                        # This is the same item we're processing
+                        continue
+                    elif other_item.get("event_id") == actioned_item.get("event_id"):
+                        # This item is linked to the item we're processing
+                        other_items_in_chain.add(other_item_id)
+                    else:
+                        other_items_not_in_chain.add(other_item_id)
+
+                if not len(other_items_in_chain):
+                    if not len(other_items_not_in_chain):
+                        # There are no other items linked to this Assignment, change the state to ``assigned``
+                        updates["assigned_to"]["state"] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                        await assignments_service.patch_async(assignment.get(ID_FIELD), updates)
+
                     assignment_history_service = AssignmentsHistoryAsyncService()
                     if spike:
                         await assignment_history_service.on_item_content_unlink(
-                            updates, a, ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK
+                            updates, assignment, ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK
                         )
                     else:
-                        await assignment_history_service.on_item_content_unlink(updates, a)
+                        await assignment_history_service.on_item_content_unlink(updates, assignment)
 
                     if not cancel:
                         user = get_user()
@@ -107,7 +121,7 @@ class AssignmentsUnlinkService(AsyncBaseService):
                             coverage_type=get_coverage_type_name(actioned_item.get("type", "")),
                             slugline=actioned_item.get("slugline"),
                             omit_user=True,
-                            assignment_id=a[ID_FIELD],
+                            assignment_id=assignment[ID_FIELD],
                             is_link=True,
                             no_email=True,
                         )
