@@ -248,6 +248,17 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                         },
                                         fieldProps
                                     )}
+                                    {this.props.item.name === nameof('multiple_coverages') &&
+                                        fieldProps['schema.default_value'].enabled ? (
+                                            <div className="form__row">
+                                                <Checkbox
+                                                    checked={Boolean(this.props.item.schema.default_value)}
+                                                    label={{text: gettext('Default Value')}}
+                                                    onChange={(value) => this.onChange('schema.default_value', value)}
+                                                    disabled={false}
+                                                />
+                                            </div>
+                                        ) : null}
                                 </React.Fragment>
                             )}
                         </div>
