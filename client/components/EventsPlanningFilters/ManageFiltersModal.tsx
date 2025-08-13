@@ -147,6 +147,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
 
         return (
             <Modal
+                data-test-id="search-filters-modal"
                 visible
                 closeOnEscape
                 contentPadding="none"
