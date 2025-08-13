@@ -234,7 +234,12 @@ describe('Search.Filters: creating search filters', () => {
             week_days: ['Su', 'Sa'],
             desk: 'Sports Desk',
         });
-        cy.get('[data-test-id="field-hour"]').clear({ force: true }).type('11:00');
+        cy.get('[data-test-id="field-hour"]').click();
+        cy.get('[data-test-id="time-picker-popover"]')
+            .should('be.visible')
+            .find('.time-unit')
+            .contains('11')
+            .click();
         cy.get('[data-test-id="field-hour"]').should('have.value', '11:00');
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
@@ -247,7 +252,12 @@ describe('Search.Filters: creating search filters', () => {
             frequency: 'Monthly',
             month_day: '4th',
         });
-        cy.get('[data-test-id="field-hour"]').clear({ force: true }).type('14:00');
+        cy.get('[data-test-id="field-hour"]').click();
+        cy.get('[data-test-id="time-picker-popover"]')
+            .should('be.visible')
+            .find('.time-unit')
+            .contains('14')
+            .click();
         cy.get('[data-test-id="field-hour"]').should('have.value', '14:00');
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
