@@ -1,5 +1,6 @@
 import pytz
 
+from contextlib import ExitStack
 from datetime import datetime
 from copy import deepcopy
 from typing import Any
@@ -45,27 +46,34 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
         updated_event = deepcopy(self.get_base_event())
         embedded_planning = self.build_embedded_planning(updated_event)
 
-        # Mocks for dependencies inside the module under test
-        with patch(
-            f"{MODULE}.AllContentProfileData.get", new=AsyncMock(return_value=MagicMock())
-        ) as profiles_get_mock, patch(f"{MODULE}.get_resource_service") as get_resource_service_mock, patch(
-            f"{MODULE}.create_new_plannings_from_embedded_planning", new=AsyncMock()
-        ) as create_new_plannings_mock, patch(
-            f"{MODULE}.get_existing_plannings_from_embedded_planning"
-        ) as get_existing_plannings_mock:
-            vocab_service = MagicMock()
-            vocab_service.find_one.side_effect = [{"items": []}, {"items": []}]
-            planning_service = MagicMock()
-            planning_service.patch_async = AsyncMock()
+        vocab_service = MagicMock()
+        vocab_service.find_one.side_effect = [{"items": []}, {"items": []}]
 
-            def select_resource_service(resource_name: str):
-                if resource_name == "vocabularies":
-                    return vocab_service
-                if resource_name == "planning":
-                    return planning_service
-                return MagicMock()
+        planning_service = MagicMock()
+        planning_service.patch_async = AsyncMock()
 
-            get_resource_service_mock.side_effect = select_resource_service
+        def select_resource_service(resource_name: str):
+            services = {
+                "vocabularies": vocab_service,
+                "planning": planning_service,
+            }
+            return services.get(resource_name, MagicMock())
+
+        with ExitStack() as stack:
+            profiles_get = stack.enter_context(
+                patch(f"{MODULE}.AllContentProfileData.get", new=AsyncMock(return_value=MagicMock()))
+            )
+            get_resource_service = stack.enter_context(
+                patch(f"{MODULE}.get_resource_service")
+            )
+            create_new_plannings = stack.enter_context(
+                patch(f"{MODULE}.create_new_plannings_from_embedded_planning", new=AsyncMock())
+            )
+            get_existing_plannings = stack.enter_context(
+                patch(f"{MODULE}.get_existing_plannings_from_embedded_planning")
+            )
+            
+            get_resource_service.side_effect = select_resource_service
 
             await sync_event_metadata_with_planning_items(
                 original=original_event,
@@ -75,10 +83,10 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
             )
 
             # Assert expectations for creation path
-            create_new_plannings_mock.assert_awaited_once()
-            get_existing_plannings_mock.assert_not_called()
+            create_new_plannings.assert_awaited_once()
+            get_existing_plannings.assert_not_called()
             planning_service.patch_async.assert_not_awaited()
-            profiles_get_mock.assert_awaited()
+            profiles_get.assert_awaited()
 
     async def test_no_sync_fields_embedded_updates_and_unlink(self):
         """
@@ -116,32 +124,43 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
             {"_id": "pl3", "related_events": [{"_id": original_event["_id"]}, {"_id": "keep"}]},
         ]
 
-        with patch(
-            f"{MODULE}.AllContentProfileData.get", new=AsyncMock(return_value=MagicMock())
-        ) as profiles_get_mock, patch(
-            f"{MODULE}.get_config_event_fields_to_sync_with_planning", return_value=set()
-        ) as get_sync_config_mock, patch(
-            f"{MODULE}.get_resource_service"
-        ) as get_resource_service_mock, patch(
-            f"{MODULE}.create_new_plannings_from_embedded_planning", new=AsyncMock()
-        ) as create_new_plannings_mock, patch(
-            f"{MODULE}.get_existing_plannings_from_embedded_planning", side_effect=existing_plannings_generator
-        ), patch(
-            f"{MODULE}.get_related_planning_for_events", return_value=related_planning
-        ) as get_related_planning_mock:
-            vocab_service = MagicMock()
-            vocab_service.find_one.side_effect = [{"items": []}, {"items": []}]
-            planning_service = MagicMock()
-            planning_service.patch_async = AsyncMock()
+        vocab_service = MagicMock()
+        vocab_service.find_one.side_effect = [{"items": []}, {"items": []}]
+        planning_service = MagicMock()
+        planning_service.patch_async = AsyncMock()
 
-            def select_resouce_service(resource_name: str):
-                if resource_name == "vocabularies":
-                    return vocab_service
-                if resource_name == "planning":
-                    return planning_service
-                return MagicMock()
+        def select_resource_service(name: str):
+            return {
+                "vocabularies": vocab_service,
+                "planning": planning_service,
+            }.get(name, MagicMock())
 
-            get_resource_service_mock.side_effect = select_resouce_service
+        with ExitStack() as stack:
+            profiles_get = stack.enter_context(
+                patch(f"{MODULE}.AllContentProfileData.get",
+                    new=AsyncMock(return_value=MagicMock()))
+            )
+            get_sync_config = stack.enter_context(
+                patch(f"{MODULE}.get_config_event_fields_to_sync_with_planning",
+                    return_value=set())
+            )
+            get_resource_service = stack.enter_context(
+                patch(f"{MODULE}.get_resource_service")
+            )
+            create_new_plannings = stack.enter_context(
+                patch(f"{MODULE}.create_new_plannings_from_embedded_planning",
+                    new=AsyncMock())
+            )
+            get_existing_plannings = stack.enter_context(
+                patch(f"{MODULE}.get_existing_plannings_from_embedded_planning",
+                    side_effect=existing_plannings_generator)
+            )
+            get_related_planning = stack.enter_context(
+                patch(f"{MODULE}.get_related_planning_for_events",
+                    return_value=related_planning)
+            )
+
+            get_resource_service.side_effect = select_resource_service
 
             await sync_event_metadata_with_planning_items(
                 original=original_event,
@@ -150,25 +169,23 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
                 embedded_planning_present=embedded_planning_present,
             )
 
-            # 1) create_new always runs
-            create_new_plannings_mock.assert_awaited_once()
+            # Assert 1) create_new always runs
+            create_new_plannings.assert_awaited_once()
 
-            # 2) Embedded updates: only pl2 should be patched
+            # Assert 2) Embedded updates: only pl2 should be patched for slugline
             planning_service.patch_async.assert_any_await("pl2", {"slugline": "needs-update"})
 
-            # 3) Unlink: pl3 is linked but not embedded so patch related_events to prune evt1
-            # Build expected pruned list for pl3
-            pruned_pl3 = [{"_id": "keep"}]  # original had evt1 + keep, we remove evt1
+            # Assert 3) Unlink: pl3 should have event pruned from related_events
+            pruned_pl3 = [{"_id": "keep"}]
             planning_service.patch_async.assert_any_await("pl3", {"related_events": pruned_pl3})
 
-            # Ensure we didn't patch pl1 (no update required and still embedded)
-            # We can check that there's no patch call for pl1 with slugline or related_events removing evt1
-            calls_str = [str(c) for c in planning_service.patch_async.await_args_list]
-            assert not any("('pl1'," in s and "slugline" in s for s in calls_str)
+            # Ensure no patch for pl1 at all (still embedded + no update required)
+            patched_ids = [call.args[0] for call in planning_service.patch_async.await_args_list]
+            assert "pl1" not in patched_ids
 
-            get_sync_config_mock.assert_called_once()
-            get_related_planning_mock.assert_called_once()
-            profiles_get_mock.assert_awaited()
+            get_sync_config.assert_called_once()
+            assert get_related_planning.call_count == 2
+            profiles_get.assert_awaited()
 
     async def test_sync_fields_present_embedded_item(self):
         """
@@ -199,38 +216,58 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
             updates_dict["headline"] = "synced-headline"
             sync_data.planning.updates = updates_dict
 
-        with patch(
-            f"{MODULE}.AllContentProfileData.get",
-            new=AsyncMock(
-                return_value=MagicMock(
-                    events=MagicMock(is_multilingual=True),
-                    planning=MagicMock(is_multilingual=True),
+        vocab_service = MagicMock()
+        vocab_service.find_one.side_effect = [{"items": []}, {"items": []}]
+        planning_service = MagicMock()
+        planning_service.patch_async = AsyncMock()
+
+        def select_resource_service(name: str):
+            return {
+                "vocabularies": vocab_service,
+                "planning": planning_service,
+            }.get(name, MagicMock())
+
+        with ExitStack() as stack:
+            profiles_get = stack.enter_context(
+                patch(
+                    f"{MODULE}.AllContentProfileData.get",
+                    new=AsyncMock(
+                        return_value=MagicMock(
+                            events=MagicMock(is_multilingual=True),
+                            planning=MagicMock(is_multilingual=True),
+                        )
+                    ),
                 )
-            ),
-        ) as profiles_get_mock, patch(
-            f"{MODULE}.get_config_event_fields_to_sync_with_planning", return_value={"name", "language"}
-        ) as get_sync_config_mock, patch(
-            f"{MODULE}.get_resource_service"
-        ) as get_resource_service_mock, patch(
-            f"{MODULE}.create_new_plannings_from_embedded_planning", new=AsyncMock()
-        ) as create_new_plannings_mock, patch(
-            f"{MODULE}.get_existing_plannings_from_embedded_planning", side_effect=existing_plannings_generator
-        ), patch(
-            f"{MODULE}.sync_existing_planning_item", side_effect=sync_side_effect
-        ) as sync_existing_planning_item_mock:
-            vocab_service = MagicMock()
-            vocab_service.find_one.side_effect = [{"items": []}, {"items": []}]
-            planning_service = MagicMock()
-            planning_service.patch_async = AsyncMock()
+            )
+            get_sync_config = stack.enter_context(
+                patch(
+                    f"{MODULE}.get_config_event_fields_to_sync_with_planning",
+                    return_value={"name", "language"},
+                )
+            )
+            get_resource_service = stack.enter_context(
+                patch(f"{MODULE}.get_resource_service")
+            )
+            create_new_plannings = stack.enter_context(
+                patch(
+                    f"{MODULE}.create_new_plannings_from_embedded_planning",
+                    new=AsyncMock(),
+                )
+            )
+            get_existing_plannings = stack.enter_context(
+                patch(
+                    f"{MODULE}.get_existing_plannings_from_embedded_planning",
+                    side_effect=existing_plannings_generator,
+                )
+            )
+            sync_existing_planning_item = stack.enter_context(
+                patch(
+                    f"{MODULE}.sync_existing_planning_item",
+                    side_effect=sync_side_effect,
+                )
+            )
 
-            def select_resource_service(resource_name: str):
-                if resource_name == "vocabularies":
-                    return vocab_service
-                if resource_name == "planning":
-                    return planning_service
-                return MagicMock()
-
-            get_resource_service_mock.side_effect = select_resource_service
+            get_resource_service.side_effect = select_resource_service
 
             await sync_event_metadata_with_planning_items(
                 original=original_event,
@@ -239,16 +276,16 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
                 embedded_planning_present=True,
             )
 
-            # sync should have been invoked for our single embedded item
-            assert sync_existing_planning_item_mock.call_count == 1
+            # Assert: sync invoked for the single embedded item
+            assert sync_existing_planning_item.call_count == 1
 
-            # Patch must be called since sync_data.update_planning=True in side_effect
+            # Assert: patch called once with merged updates from embedded + sync
             planning_service.patch_async.assert_awaited_once_with(
                 "pl-sync",
                 {"slugline": "from-embedded", "headline": "synced-headline"},
             )
 
-            # create_new always runs first
-            create_new_plannings_mock.assert_awaited_once()
-            get_sync_config_mock.assert_called_once()
-            profiles_get_mock.assert_awaited()
+            # Assert: create_new runs first; config and profiles fetched
+            create_new_plannings.assert_awaited_once()
+            get_sync_config.assert_called_once()
+            profiles_get.assert_awaited()

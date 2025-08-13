@@ -84,6 +84,11 @@ async def sync_event_metadata_with_planning_items(
     )
     event_translations = deepcopy(event_sync_data.updated_translations or event_sync_data.original_translations)
 
+    pre_linked_ids: set[str] = set()
+    if original:
+        pre_linked_items = get_related_planning_for_events([event_updated["_id"]])
+        pre_linked_ids = {p["_id"] for p in pre_linked_items}
+
     # Create any new Planning items (and their coverages), based on the ``embedded_planning`` Event field
     await create_new_plannings_from_embedded_planning(
         event_updated, event_translations, embedded_planning, profiles, vocabs
@@ -112,10 +117,18 @@ async def sync_event_metadata_with_planning_items(
             if update_required:
                 await planning_service.patch_async(planning_original["_id"], planning_updates)
 
-        # 2. Unlink removed planning items
+        # 2) Include any planning IDs that were created in this request (post-creation minus pre-creation)
+        existing_linked_planning_items = get_related_planning_for_events([event_updated["_id"]])
+        post_linked_ids = {p["_id"] for p in existing_linked_planning_items}
+        newly_linked_ids = post_linked_ids - pre_linked_ids
+
+        # Merge the keep set with the newly linked IDs so we don't accidentally unlink them
+        embedded_existing_ids.update(newly_linked_ids)
+
+        # 3) If embedded planning data was provided, unlink planning items no longer embedded
         if embedded_planning_present:
-            existing_linked_planning_items = get_related_planning_for_events([event_updated["_id"]])
-            linked_ids: set[str] = {p["_id"] for p in existing_linked_planning_items}
+            # use the items we just fetched
+            linked_ids: set[str] = post_linked_ids
 
             # Anything linked but not present in the embedded set should be unlinked
             ids_to_unlink = linked_ids - embedded_existing_ids
