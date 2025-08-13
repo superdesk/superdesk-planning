@@ -151,60 +151,55 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                 closeOnEscape
                 contentPadding="none"
                 size="x-large"
+                className="sd-content-wrapper__main-content-area sd-main-content-grid comfort"
                 onHide={handleHide}
-                headerTemplate={(
-                    <h3 className="modal__heading">
-                        {gettext('Manage Events & Planning Filters')}
-                    </h3>
-                )}
+                headerTemplate={gettext('Manage Events & Planning Filters')}
             >
-                <div className="sd-content-wrapper__main-content-area sd-main-content-grid comfort">
-                    <div className="sd-main-content-grid__content">
-                        {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && (
-                            <SubNav>
-                                <StretchBar />
-                                <Button
-                                    right={true}
-                                    buttonClassName="btn btn--primary"
-                                    onClick={() => this.editFilter()}
-                                    testId="manage-filters--add-new-filter"
-                                >
-                                    <i className="icon-plus-sign icon-white" />
-                                    {gettext('Add New Filter')}
-                                </Button>
-                            </SubNav>
-                        )}
-                        <ColumnBox.Box verticalScroll={true}>
-                            <ColumnBox.MainColumn padded={true}>
-                                <FiltersList
-                                    privileges={privileges}
-                                    deleteFilter={deleteFilter}
-                                    editFilter={this.state.contentPanelState === 'edit' ? null : this.editFilter}
+                <div className="sd-main-content-grid__content">
+                    {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && (
+                        <SubNav>
+                            <StretchBar />
+                            <Button
+                                right={true}
+                                buttonClassName="btn btn--primary"
+                                onClick={() => this.editFilter()}
+                                testId="manage-filters--add-new-filter"
+                            >
+                                <i className="icon-plus-sign icon-white" />
+                                {gettext('Add New Filter')}
+                            </Button>
+                        </SubNav>
+                    )}
+                    <ColumnBox.Box verticalScroll={true}>
+                        <ColumnBox.MainColumn padded={true}>
+                            <FiltersList
+                                privileges={privileges}
+                                deleteFilter={deleteFilter}
+                                editFilter={this.state.contentPanelState === 'edit' ? null : this.editFilter}
+                                editFilterSchedule={this.editFilterSchedule}
+                                deleteFilterSchedule={this.props.deleteFilterSchedule}
+                                previewFilter={this.previewFilter}
+                            />
+                        </ColumnBox.MainColumn>
+                    </ColumnBox.Box>
+                </div>
+                <div className={rightPanelClasses} data-test-id="manage-filters--content-panel">
+                    <div className="side-panel__container">
+                        <SidePanel className="side-panel--right">
+                            {ContentPanel == null ? (
+                                <div />
+                            ) : (
+                                <ContentPanel
+                                    filter={this.state.selectedFilter}
+                                    onClose={this.closeEditor}
+                                    onSave={createOrUpdate}
+                                    editFilter={this.editFilter}
                                     editFilterSchedule={this.editFilterSchedule}
-                                    deleteFilterSchedule={this.props.deleteFilterSchedule}
                                     previewFilter={this.previewFilter}
+                                    deleteFilterSchedule={this.props.deleteFilterSchedule}
                                 />
-                            </ColumnBox.MainColumn>
-                        </ColumnBox.Box>
-                    </div>
-                    <div className={rightPanelClasses} data-test-id="manage-filters--content-panel">
-                        <div className="side-panel__container">
-                            <SidePanel className="side-panel--right">
-                                {ContentPanel == null ? (
-                                    <div />
-                                ) : (
-                                    <ContentPanel
-                                        filter={this.state.selectedFilter}
-                                        onClose={this.closeEditor}
-                                        onSave={createOrUpdate}
-                                        editFilter={this.editFilter}
-                                        editFilterSchedule={this.editFilterSchedule}
-                                        previewFilter={this.previewFilter}
-                                        deleteFilterSchedule={this.props.deleteFilterSchedule}
-                                    />
-                                )}
-                            </SidePanel>
-                        </div>
+                            )}
+                        </SidePanel>
                     </div>
                 </div>
             </Modal>
