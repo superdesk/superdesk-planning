@@ -22,7 +22,13 @@ export const TEST_PLANNINGS = {
         subject: [
             {qcode: '01001000', name: 'archaeology', parent: '01000000'},
             {qcode: '01011000', name: 'music', parent: '01000000'},
+            {qcode: 'foo', name: 'Foo', scheme: 'event_types'},
+            {qcode: 'bar', name: 'Bar'},
         ],
+        description_text: 'description text',
+        name: 'planning name',
+        ednote: 'editorial note',
+        headline: 'planning headline',
     }),
     spiked: getPlanningForDate(getDateStringFor.today(), {
         ...BASE_PLANNING,

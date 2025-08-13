@@ -2,6 +2,8 @@ import {setup, login, addItems, waitForPageLoad} from '../../support/common';
 import {AdvancedSearch, PlanningList} from '../../support/planning';
 import {TEST_EVENTS, createEventFor} from '../../fixtures/events';
 import {TEST_PLANNINGS, createPlanningFor} from '../../fixtures/planning';
+import {ADVANCED_SEARCH} from '../../fixtures/planning_types';
+import {CVs} from '../../fixtures/cvs';
 
 describe('Search.Combined: searching events and planning', () => {
     const search = new AdvancedSearch();
@@ -22,9 +24,30 @@ describe('Search.Combined: searching events and planning', () => {
             TEST_PLANNINGS.draft,
             TEST_PLANNINGS.spiked,
         ]);
+        addItems('vocabularies', [
+            CVs.EVENT_TYPES,
+        ]);
+        addItems('planning_types', [
+            ADVANCED_SEARCH,
+        ]);
+
+        cy.reload(); // when adding vocabularies, the page needs to be reloaded to reflect the changes
+
         search.viewEventsAndPlanning();
         search.toggleSearchPanel();
         search.openAllToggleBoxes();
+
+        // custom CVs
+        search.runSearchTests([{
+            params: {event_types: 'Foo'},
+            expectedCount: 2,
+            clearAfter: true,
+        },
+        {
+            params: {event_types: 'Bar'},
+            expectedCount: 0,
+            clearAfter: true,
+        }]);
 
         search.runSearchTests([{
             params: {},

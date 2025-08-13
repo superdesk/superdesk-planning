@@ -21,7 +21,7 @@ from planning.common import get_start_of_next_week, sanitize_query_text
 class ElasticQuery:
     """Utility class to build elastic queries"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Default all filters to empty arrays"""
 
         self.must: List[Dict[str, Any]] = []

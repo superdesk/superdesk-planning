@@ -50,4 +50,17 @@ export const CVs = {
             {qcode: 'de', name: 'German', is_active: true},
         ]
     },
+    EVENT_TYPES: {
+        _id: 'event_types',
+        display_name: 'Event types',
+        type: 'manageable',
+        unique_field: 'qcode',
+        schema_field: "subject",
+        selection_type: "multi selection",
+        service: {all: 1},
+        items: [
+            {qcode: 'foo', name: 'Foo', is_active: true},
+            {qcode: 'bar', name: 'Bar', is_active: true},
+        ]
+    }
 };

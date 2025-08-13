@@ -29,6 +29,15 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
         priority: arrayToString(params.priority),
+        invitation_details: params.invitation_details,
+        accreditation_details: params.accreditation_details,
+        registration_details: params.registration_details,
+        internal_note: params.internal_note,
+        accreditation_info: params.accreditation_info,
+        definition_short: params.definition_short,
+        definition_long: params.definition_long,
+        registration: params.registration,
+        description_text: params.description_text,
     };
 }
 
