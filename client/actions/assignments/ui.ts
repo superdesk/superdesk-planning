@@ -493,11 +493,11 @@ function revert(item: IAssignmentItem) {
             .then((lockedItem) => {
                 const contentTypes = selectors.general.contentTypes(getState());
 
-                if (!assignmentUtils.isTextAssignment(item, contentTypes)) {
+                if (!assignmentUtils.isTextAssignment(item, contentTypes) || item.planning?.multiple_coverages) {
                     return dispatch(assignments.api.revert(lockedItem))
-                        .then((lockedItem) => {
+                        .then((updatedItem) => {
                             notify.success(gettext('The assignment has been reverted.'));
-                            return Promise.resolve(lockedItem);
+                            return Promise.resolve(updatedItem);
                         }, (error) => {
                             notify.error(getErrorMessage(error, gettext('Failed to revert the assignment.')));
                             return Promise.reject(error);
@@ -655,14 +655,15 @@ function startWorking(assignment: IAssignmentItem) {
                         });
 
                         const onSelect = (template) => (
-                            dispatch(assignments.api.createFromTemplateAndShow(
+                            planningApi.assignments.createAndOpenArticleFromTemplate(
                                 assignment._id,
                                 template.template_name
-                            )).catch((error) => {
-                                planningApi.locks.unlockItem(assignment);
-                                notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
-                                return Promise.reject(error);
-                            })
+                            )
+                                .catch((error) => {
+                                    planningApi.locks.unlockItem(assignment);
+                                    notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
+                                    return Promise.reject(error);
+                                })
                         );
                         const onCancel = () => planningApi.locks.unlockItem(lockedAssignment);
 

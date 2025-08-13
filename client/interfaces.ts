@@ -619,6 +619,7 @@ export interface ICoveragePlanningDetails {
     internal_note: string;
     workflow_status_reason: string;
     priority?: number;
+    multiple_coverages?: boolean;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -2323,6 +2324,7 @@ export interface IPlanningAPI {
     };
     assignments: {
         getById(assignmentId: IAssignmentItem['_id']): Promise<IAssignmentItem>;
+        createAndOpenArticleFromTemplate(assignmentId: IAssignmentItem['_id'], templateName: string): Promise<void>;
     };
     coverages: {
         cancelCoverage(

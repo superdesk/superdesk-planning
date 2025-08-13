@@ -187,6 +187,10 @@ class CoverageInternalPlanning:
     internal_note: fields.HTML | None = None
     workflow_status_reason: str | None = None
     priority: int | None = None
+    multiple_coverages: bool = Field(
+        default=False,
+        description="If enabled, will allow multiple content items to be linked to this Coverage/Assignment",
+    )
 
 
 @dataclass

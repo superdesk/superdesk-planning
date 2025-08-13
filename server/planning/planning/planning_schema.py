@@ -110,6 +110,7 @@ coverage_schema = {
             "internal_note": {"type": "string", "nullable": True},
             "workflow_status_reason": {"type": "string", "nullable": True},
             "priority": metadata_schema["priority"],
+            "multiple_coverages": {"type": "boolean", "default": False},
         },  # end planning dict schema
     },  # end planning
     "news_coverage_status": {
