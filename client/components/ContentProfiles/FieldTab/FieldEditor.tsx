@@ -137,7 +137,11 @@ export class FieldEditor extends React.Component<IProps, IState> {
                     !['language', 'location'].includes(this.props.item.name)
                 )
             )},
-            'schema.default_value': {enabled: this.props.item.name === 'priority'},
+            'schema.default_value': {
+                enabled:
+                    this.props.item.name === 'priority' ||
+                    this.props.item.name === nameof('multiple_coverages')
+            },
         };
         const noOptionsAvailable = !(
             Object.values(fieldProps)

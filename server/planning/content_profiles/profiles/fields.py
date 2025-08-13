@@ -139,7 +139,7 @@ subjectField = schema.ListField(
 )
 
 
-class MultipleCoveragesField(StringField):
+class MultipleCoveragesField(BooleanField):
     def __init__(
         self,
         required: bool = False,
