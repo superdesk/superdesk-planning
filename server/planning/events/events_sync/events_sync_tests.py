@@ -63,16 +63,14 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
             profiles_get = stack.enter_context(
                 patch(f"{MODULE}.AllContentProfileData.get", new=AsyncMock(return_value=MagicMock()))
             )
-            get_resource_service = stack.enter_context(
-                patch(f"{MODULE}.get_resource_service")
-            )
+            get_resource_service = stack.enter_context(patch(f"{MODULE}.get_resource_service"))
             create_new_plannings = stack.enter_context(
                 patch(f"{MODULE}.create_new_plannings_from_embedded_planning", new=AsyncMock())
             )
             get_existing_plannings = stack.enter_context(
                 patch(f"{MODULE}.get_existing_plannings_from_embedded_planning")
             )
-            
+
             get_resource_service.side_effect = select_resource_service
 
             await sync_event_metadata_with_planning_items(
@@ -137,27 +135,22 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
 
         with ExitStack() as stack:
             profiles_get = stack.enter_context(
-                patch(f"{MODULE}.AllContentProfileData.get",
-                    new=AsyncMock(return_value=MagicMock()))
+                patch(f"{MODULE}.AllContentProfileData.get", new=AsyncMock(return_value=MagicMock()))
             )
             get_sync_config = stack.enter_context(
-                patch(f"{MODULE}.get_config_event_fields_to_sync_with_planning",
-                    return_value=set())
+                patch(f"{MODULE}.get_config_event_fields_to_sync_with_planning", return_value=set())
             )
-            get_resource_service = stack.enter_context(
-                patch(f"{MODULE}.get_resource_service")
-            )
+            get_resource_service = stack.enter_context(patch(f"{MODULE}.get_resource_service"))
             create_new_plannings = stack.enter_context(
-                patch(f"{MODULE}.create_new_plannings_from_embedded_planning",
-                    new=AsyncMock())
+                patch(f"{MODULE}.create_new_plannings_from_embedded_planning", new=AsyncMock())
             )
             get_existing_plannings = stack.enter_context(
-                patch(f"{MODULE}.get_existing_plannings_from_embedded_planning",
-                    side_effect=existing_plannings_generator)
+                patch(
+                    f"{MODULE}.get_existing_plannings_from_embedded_planning", side_effect=existing_plannings_generator
+                )
             )
             get_related_planning = stack.enter_context(
-                patch(f"{MODULE}.get_related_planning_for_events",
-                    return_value=related_planning)
+                patch(f"{MODULE}.get_related_planning_for_events", return_value=related_planning)
             )
 
             get_resource_service.side_effect = select_resource_service
@@ -245,9 +238,7 @@ class SyncEventMetadataWithPlanningItemsTest(EventsBaseTestCase):
                     return_value={"name", "language"},
                 )
             )
-            get_resource_service = stack.enter_context(
-                patch(f"{MODULE}.get_resource_service")
-            )
+            get_resource_service = stack.enter_context(patch(f"{MODULE}.get_resource_service"))
             create_new_plannings = stack.enter_context(
                 patch(
                     f"{MODULE}.create_new_plannings_from_embedded_planning",
