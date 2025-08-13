@@ -19,7 +19,11 @@ from apps.archive.common import get_user, get_auth
 
 from .assignments import AssignmentsResource, assignments_schema
 from .assignments_history_async import AssignmentsHistoryAsyncService
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
+from planning.common import (
+    ASSIGNMENT_WORKFLOW_STATE,
+    remove_lock_information,
+    assignment_allows_multiple_content_linked,
+)
 
 
 assignments_revert_schema = deepcopy(assignments_schema)
@@ -44,7 +48,9 @@ class AssignmentsRevertService(AsyncBaseService):
         assignments_service = get_resource_service("assignments")
         await assignments_service.validate_assignment_action(original)
 
-        if await assignments_service.is_text_assignment(original):
+        if not assignment_allows_multiple_content_linked(original) and await assignments_service.is_text_assignment(
+            original
+        ):
             raise SuperdeskApiError.forbiddenError("Cannot revert text assignments.")
 
         if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:

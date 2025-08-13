@@ -29,6 +29,7 @@ from planning.common import (
     get_next_assignment_status,
     get_coverage_for_assignment,
     get_archive_items_for_assignment,
+    assignment_allows_multiple_content_linked,
 )
 from planning.planning_notifications import PlanningNotifications
 from planning.archive import create_item_from_template
@@ -280,16 +281,29 @@ class AssignmentsContentService(AsyncBaseService):
             raise SuperdeskApiError.badRequestError("Assignment not found.")
 
         await assignment_service.validate_assignment_action(assignment)
-        if assignment.get("assigned_to").get("state") != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
-            raise SuperdeskApiError.badRequestError("Assignment workflow started. Cannot create content.")
 
-        delivery = await get_resource_service("delivery").find_one_async(
-            req=None, assignment_id=assignment.get(ID_FIELD)
-        )
-        if delivery:
-            raise SuperdeskApiError.badRequestError(
-                "Content already exists for the assignment. " "Cannot create content."
-            )
+        try:
+            workflow_state = assignment["assigned_to"]["state"]
+        except (KeyError, TypeError):
+            workflow_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
+
+        if workflow_state == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+            raise SuperdeskApiError.badRequestError("Cannot create content from a draft Assignment.")
+        elif not assignment_allows_multiple_content_linked(assignment):
+            if workflow_state != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+                raise SuperdeskApiError.badRequestError("Assignment workflow started. Cannot create content.")
+
+            delivery_service = get_resource_service("delivery")
+            if await delivery_service.count_async({"assignment_id": assignment.get(ID_FIELD)}) > 0:
+                raise SuperdeskApiError.badRequestError(
+                    "Content already exists for the assignment. Cannot create content."
+                )
+        elif workflow_state not in [
+            ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
+            ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
+            ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
+        ]:
+            raise SuperdeskApiError.badRequestError("Assignment workflow completed. Cannot create content.")
 
         # Handle schedule_updates validation
         if assignment.get("scheduled_update_id"):

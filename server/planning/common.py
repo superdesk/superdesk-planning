@@ -884,3 +884,10 @@ def get_coverage_from_planning(planning_item: Planning, coverage_id: str) -> Opt
 def prepare_ingested_item_for_storage(doc: Union[Event, Planning]) -> None:
     doc.setdefault("state", "ingested")
     doc["ingest_pubstatus"] = doc.pop("pubstatus", "usable")  # pubstatus is set when posted
+
+
+def assignment_allows_multiple_content_linked(assignment: dict) -> bool:
+    try:
+        return assignment["planning"]["multiple_content"] is True
+    except (KeyError, TypeError):
+        return False

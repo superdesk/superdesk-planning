@@ -69,7 +69,7 @@ from planning.common import (
 
 from planning.types import EventResourceModel
 from planning.planning_notifications import PlanningNotifications
-from planning.common import format_address, get_assginment_name
+from planning.common import format_address, get_assginment_name, assignment_allows_multiple_content_linked
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 from .assignments_history_async import AssignmentsHistoryAsyncService
 from planning.utils import (
@@ -925,21 +925,29 @@ class AssignmentsService(AsyncBaseService):
             return
 
         assignment_update_data = await self._get_assignment_data_on_archive_update(updates, original)
+        current_assignment = assignment_update_data.get("assignment") or {}
+        current_assigned_to = current_assignment.get("assigned_to") or {}
+        if not current_assignment or current_assigned_to.get("user") == assignment_update_data.get("item_user_id"):
+            return
 
-        if assignment_update_data.get("assignment") and assignment_update_data["assignment"].get("assigned_to")[
-            "user"
-        ] != assignment_update_data.get("item_user_id"):
-            # re-assign the user to the lock user
-            updated_assignment = self._set_user_for_assignment(
-                assignment_update_data.get("assignment"),
-                assignment_update_data.get("item_user_id"),
-            )
-            updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
-                updated_assignment, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
-            )
-            await self._update_assignment_and_notify(updated_assignment, assignment_update_data.get("assignment"))
+        assignment_updates = self._set_user_for_assignment(
+            current_assignment,
+            assignment_update_data.get("item_user_id"),
+        )
+        assignment_updates["assigned_to"]["state"] = get_next_assignment_status(
+            current_assignment, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+        )
+
+        update_required = False
+        for field in ("user", "assignor_user", "state"):
+            if current_assigned_to.get(field, "") != assignment_updates["assigned_to"].get(field, ""):
+                update_required = True
+                break
+
+        if update_required:
+            await self._update_assignment_and_notify(assignment_updates, current_assignment)
             await AssignmentsHistoryAsyncService().on_item_updated(
-                updated_assignment, assignment_update_data.get("assignment", {})
+                assignment_updates, assignment_update_data.get("assignment", {})
             )
 
     async def update_assignment_on_archive_operation(self, updates, original, operation=None):
@@ -991,7 +999,11 @@ class AssignmentsService(AsyncBaseService):
                         },
                     )
 
-                if updated_assignment.get("assigned_to")["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                multiple_content_allowed = assignment_allows_multiple_content_linked(assignment)
+                if (
+                    not multiple_content_allowed
+                    and updated_assignment.get("assigned_to")["state"] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+                ):
                     updated_assignment.get("assigned_to")["state"] = get_next_assignment_status(
                         updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED
                     )
@@ -1006,11 +1018,14 @@ class AssignmentsService(AsyncBaseService):
                     # publish planning
                     await self.publish_planning(assignment.get("planning_item"))
 
-                assigned_to_user = get_resource_service("users").find_one(req=None, _id=get_user().get(ID_FIELD, ""))
-                assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
-                target_user = assignment.get("assigned_to", {}).get("assignor_desk")
+                if not multiple_content_allowed and not original.get("rewrite_of"):
+                    # Send assignment completed notification
+                    assigned_to_user = await get_resource_service("users").find_one_async(
+                        req=None, _id=get_user().get(ID_FIELD, "")
+                    )
+                    assignee = assigned_to_user.get("display_name") if assigned_to_user else "Unknown"
+                    target_user = assignment.get("assigned_to", {}).get("assignor_desk")
 
-                if not original.get("rewrite_of"):
                     await PlanningNotifications().notify_assignment(
                         target_user=target_user,
                         message="assignment_complete_msg",
@@ -1189,7 +1204,10 @@ class AssignmentsService(AsyncBaseService):
         # If more than one archive item is associated with the assignment
         # No need to lock assignment in case of a rewrite document
         assignment = await self._get_assignment_from_archive_item({}, item)
-        if assignment and (
+        if not assignment:
+            return
+
+        if not assignment_allows_multiple_content_linked(assignment) and (
             not item.get("rewrite_of")
             or await get_resource_service("archive").count_async({"assignment_id": assignment[ID_FIELD]}) <= 1
         ):
@@ -1198,7 +1216,14 @@ class AssignmentsService(AsyncBaseService):
 
     async def sync_assignment_unlock(self, item, user_id):
         assignment = await self._get_assignment_from_archive_item({}, item)
-        if assignment and assignment.get(LOCK_USER) and assignment.get(LOCK_ACTION) == "content_edit":
+        if not assignment:
+            return
+
+        if (
+            not assignment_allows_multiple_content_linked(assignment)
+            and assignment.get(LOCK_USER)
+            and assignment.get(LOCK_ACTION) == "content_edit"
+        ):
             lock_service = get_component(LockService)
             await lock_service.unlock(assignment, user_id, get_auth()["_id"], "assignments")
 
