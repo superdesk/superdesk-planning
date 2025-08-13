@@ -1291,7 +1291,7 @@ export interface ICoverageFormProfile {
         news_coverage_status: IProfileEditorField;
         scheduled: IProfileEditorField;
         slugline: IProfileEditorField;
-        multiple_coverages: IProfileEditorField;
+        multiple_content: IProfileEditorField;
     };
     name: 'coverage';
     schema: {
@@ -1308,7 +1308,7 @@ export interface ICoverageFormProfile {
         news_coverage_status: IProfileSchemaTypeList;
         scheduled: IProfileSchemaTypeDateTime;
         slugline: IProfileSchemaTypeString;
-        multiple_coverages: IProfileSchemaType;
+        multiple_content: IProfileSchemaType;
     };
 }
 

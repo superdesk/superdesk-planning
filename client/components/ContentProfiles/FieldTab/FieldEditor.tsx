@@ -113,7 +113,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.read_only': {
                 enabled:
                     this.props.item.name === nameof('related_plannings') ||
-                    this.props.item.name === nameof('multiple_coverages')
+                    this.props.item.name === nameof('multiple_content')
             },
             'schema.planning_auto_publish': {
                 enabled: this.props.item.name === nameof('related_plannings')
@@ -140,7 +140,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
             'schema.default_value': {
                 enabled:
                     this.props.item.name === 'priority' ||
-                    this.props.item.name === nameof('multiple_coverages')
+                    this.props.item.name === nameof('multiple_content')
             },
         };
         const noOptionsAvailable = !(
@@ -248,7 +248,7 @@ export class FieldEditor extends React.Component<IProps, IState> {
                                         },
                                         fieldProps
                                     )}
-                                    {this.props.item.name === nameof('multiple_coverages') &&
+                                    {this.props.item.name === nameof('multiple_content') &&
                                         fieldProps['schema.default_value'].enabled ? (
                                             <div className="form__row">
                                                 <Checkbox

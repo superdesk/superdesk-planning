@@ -10,7 +10,7 @@
 
 import superdesk.schema as schema
 
-from .fields import subjectField, BaseSchema, DateTimeField, BooleanField, TextField, MultipleCoveragesField
+from .fields import subjectField, BaseSchema, DateTimeField, BooleanField, TextField, MultipleContentField
 
 
 class CoverageSchema(BaseSchema):
@@ -32,7 +32,7 @@ class CoverageSchema(BaseSchema):
     no_content_linking = BooleanField()
     scheduled_updates = schema.ListField()
     priority = schema.IntegerField()
-    multiple_coverages = MultipleCoveragesField(read_only=True, default_value=True)
+    multiple_content = MultipleContentField(read_only=True, default_value=True)
 
 
 DEFAULT_COVERAGE_PROFILE = {
@@ -74,7 +74,7 @@ DEFAULT_COVERAGE_PROFILE = {
             "enabled": True,
             "index": 9,
         },
-        "multiple_coverages": {
+        "multiple_content": {
             "enabled": True,
             "index": 10,
         },
