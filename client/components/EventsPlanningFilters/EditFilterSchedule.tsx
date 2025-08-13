@@ -38,7 +38,7 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             pristine: false,
             schedule: cloneDeep(this.props.filter.schedules?.[0] ?? {
                 frequency: SCHEDULE_FREQUENCY.HOURLY,
-                desk: this.props.desks[0]._id,
+                desk: (this.props.desks ?? [])?.[0]?._id,
                 hours: ['00:00']
             }),
             invalid: false,

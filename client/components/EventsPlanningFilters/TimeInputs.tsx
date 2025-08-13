@@ -1,6 +1,6 @@
 import React from 'react';
 import {superdeskApi} from '../../superdeskApi';
-import {Button, Spacer} from 'superdesk-ui-framework/react';
+import {Button, Spacer, TimePicker} from 'superdesk-ui-framework/react';
 
 interface IProps {
     hours: Array<string>;
@@ -19,9 +19,9 @@ export class TimeInputs extends React.Component<IProps> {
     addHour() {
         const used = new Set(this.props.hours);
         const allHours = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-        const next = allHours.find((h) => !used.has(h)) || '00:00';
+        const nextAvailableHour = allHours.find((h) => !used.has(h)) || '00:00';
 
-        this.props.onChange([...this.props.hours, next]);
+        this.props.onChange([...this.props.hours, nextAvailableHour]);
     }
 
     removeHour(index: number) {
@@ -30,51 +30,56 @@ export class TimeInputs extends React.Component<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
-        const {hours} = this.props;
+        const {hours = ['00:00']} = this.props;
 
         return (
             <div className="form__row">
-                <label className="form__label">{gettext('HOUR')}</label>
-                <div className="form__row-items">
-                    {(hours.length === 0 ? ['00:00'] : hours).map((time, idx) => (
-                        <div key={`time-slot-${idx}`} data-test-id={`time-slot-${idx}`} className="sd-padding-t--2">
-                            <Spacer h gap="8" alignItems="center" noWrap>
-                                <div className="sd-list-item__column--grow">
-                                    <input
-                                        type="time"
-                                        className="sd-input__input"
-                                        value={time}
-                                        onChange={(e) => this.updateHour(idx, e.target.value)}
-                                        step="3600"
-                                        data-test-id={idx === 0 ? 'field-hour' : `field-hour-${idx}`}
-                                    />
-                                </div>
-                                <div>
-                                    <Button
-                                        type="default"
-                                        size="small"
-                                        icon="close-small"
-                                        onClick={() => this.removeHour(idx)}
-                                        data-test-id={`remove-hour-${idx}`}
-                                        aria-label={gettext('Remove')}
-                                        text=""
-                                        iconOnly
-                                        style="text-only"
-                                    />
-                                </div>
-                            </Spacer>
-                        </div>
-                    ))}
-                    <div className="sd-padding-t--1">
-                        <Button
-                            type="primary"
-                            size="small"
-                            text={gettext('Add Time')}
-                            onClick={() => this.addHour()}
-                            data-test-id="add-hour"
-                        />
-                    </div>
+                <div className="sd-line-input sd-line-input--no-margin">
+                    <label className="sd-line-input__label">{gettext('HOUR')}</label>
                 </div>
+                <Spacer v gap="8">
+                    <Spacer v gap="8">
+                        {hours.map((time, index) => (
+                            <Spacer
+                                h
+                                gap="8"
+                                alignItems="center"
+                                key={`time-slot-${index}`}
+                                data-test-id={`time-slot-${index}`}
+                                noWrap
+                                noGrow
+                            >
+                                <TimePicker
+                                    inlineLabel
+                                    labelHidden
+                                    value={time}
+                                    onChange={(next) => {
+                                        this.updateHour(index, next);
+                                    }}
+                                    data-test-id={index === 0 ? 'field-hour' : `field-hour-${index}`}
+                                />
+                                <Button
+                                    type="default"
+                                    size="small"
+                                    icon="close-small"
+                                    onClick={() => this.removeHour(index)}
+                                    data-test-id={`remove-hour-${index}`}
+                                    aria-label={gettext('Remove')}
+                                    text=""
+                                    iconOnly
+                                    style="text-only"
+                                />
+                            </Spacer>
+                        ))}
+                    </Spacer>
+                    <Button
+                        type="primary"
+                        size="small"
+                        text={gettext('Add Time')}
+                        onClick={() => this.addHour()}
+                        data-test-id="add-hour"
+                    />
+                </Spacer>
             </div>
         );
     }
