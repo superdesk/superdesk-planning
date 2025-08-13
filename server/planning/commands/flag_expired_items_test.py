@@ -265,7 +265,7 @@ class FlagExpiredItemsTest(BaseFlagExpiredItemsTest):
             },
         )
 
-    async def test_event_with_single_planning_multiple_content(self):
+    async def test_event_with_single_planning_multiple_coverages(self):
         await self.insert(
             "events",
             [
