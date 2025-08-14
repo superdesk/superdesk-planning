@@ -2450,3 +2450,5 @@ export interface IPlanningAPI {
         unlockFeaturedPlanning(): Promise<void>;
     };
 }
+
+export type ISearchQueryOperator = 'must' | 'must_not' | 'should';
