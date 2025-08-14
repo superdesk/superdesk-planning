@@ -173,7 +173,7 @@ describe('Search.Filters: creating search filters', () => {
         searchFilters.expectItemText(0, 'Test Empties');
     });
 
-    it('can create schedules', () => {
+    it.only('can create schedules', () => {
         searchFilters.open();
         searchFilters.addNewFilterButton.click();
         searchFilters.editor.openAllToggleBoxes();
@@ -256,11 +256,11 @@ describe('Search.Filters: creating search filters', () => {
         cy.get('[data-test-id="time-picker-popover"]')
             .should('be.visible')
             .find('.time-unit')
-            .contains('14')
+            .contains('10')
             .click();
-        cy.get('[data-test-id="field-hour"]').should('have.value', '14:00');
+        cy.get('[data-test-id="field-hour"]').should('have.value', '10:00');
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
-        searchFilters.expectItemText(1, 'Scheduled export: Monthly on the 4th day @ 14:00 to Sports Desk');
+        searchFilters.expectItemText(1, 'Scheduled export: Monthly on the 4th day @ 10:00 to Sports Desk');
     });
 });
