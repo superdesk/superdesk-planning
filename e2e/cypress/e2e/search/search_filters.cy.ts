@@ -173,7 +173,7 @@ describe('Search.Filters: creating search filters', () => {
         searchFilters.expectItemText(0, 'Test Empties');
     });
 
-    it.only('can create schedules', () => {
+    it('can create schedules', () => {
         searchFilters.open();
         searchFilters.addNewFilterButton.click();
         searchFilters.editor.openAllToggleBoxes();
