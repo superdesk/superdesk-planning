@@ -176,7 +176,7 @@ class AssignmentPreviewContainerComponent extends React.Component<IProps> {
                         <ContentBlockInner grow={true}>
                             <Button
                                 type="primary"
-                                text={gettext('Fulfil Assignment')}
+                                text={gettext('Link to Assignment')}
                                 onClick={() => {
                                     onFulFilAssignment(assignment);
                                 }}

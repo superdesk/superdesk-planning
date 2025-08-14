@@ -202,12 +202,18 @@ const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
         const assignmentListSelectors = selectors.getAssignmentGroupSelectors[groupKey];
         const group = ASSIGNMENTS.LIST_GROUPS[groupKey];
 
-        querySearchSettings.states = group.states;
+        if (!group.excludeStatesFromQuery) {
+            querySearchSettings.states = group.states;
+        }
+
         querySearchSettings.page = page;
         querySearchSettings.dateFilter = group.dateFilter;
         querySearchSettings.orderDirection = assignmentListSelectors.sortOrder(getState());
         if (group.max_results) {
             querySearchSettings.max_results = group.max_results;
+        }
+        if (group.baseQuery) {
+            querySearchSettings.baseQuery = group.baseQuery;
         }
 
         return dispatch(assignments.api.query(querySearchSettings))
@@ -460,7 +466,7 @@ const onFulFilAssignment = (assignment) => (
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'Failed to fulfil assignment.')
+                    getErrorMessage(error, 'Failed to link to assignment.')
                 );
                 $scope.reject();
                 dispatch(actions.actionInProgress(false));

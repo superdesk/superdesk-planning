@@ -106,7 +106,16 @@ function canFulfilAssignment(
 ) {
     return !!privileges[PRIVILEGES.ARCHIVE] &&
         isNotLockRestricted(assignment, session, lockedItems) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED;
+        (
+            assignment.assigned_to?.state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
+            (
+                assignment.planning?.multiple_content &&
+                [
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
+                    ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                ].includes(assignment.assigned_to?.state)
+            )
+        );
 }
 
 const isAssignmentInEditableState = (assignment) => (
