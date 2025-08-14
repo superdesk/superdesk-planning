@@ -212,7 +212,7 @@ const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
         if (group.max_results) {
             querySearchSettings.max_results = group.max_results;
         }
-        if (group.baseQuery) {
+        if (group.baseQuery != null) {
             querySearchSettings.baseQuery = group.baseQuery;
         }
 
