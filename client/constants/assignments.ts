@@ -2,6 +2,27 @@ import {superdeskApi} from '../superdeskApi';
 
 export const editPlanningParam = 'editPlanningItem';
 
+const linkableAssignmentStateQuery = {
+    must: [
+        {
+            bool: {
+                should: [
+                    {terms: {'assigned_to.state': ['assigned', 'submitted']}},
+                    {
+                        bool: {
+                            must: [
+                                {term: {'assigned_to.state': 'in_progress'}},
+                                {term: {'planning.multiple_content': true}},
+                            ],
+                        },
+                    },
+                ],
+                minimum_should_match: 1,
+            },
+        },
+    ],
+};
+
 export const ASSIGNMENTS = {
     ACTIONS: {
         RECEIVED_ASSIGNMENTS: 'RECEIVED_ASSIGNMENTS',
@@ -119,6 +140,8 @@ export const ASSIGNMENTS = {
             states: ['assigned', 'submitted'],
             emptyMessage: 'There are no current assignments',
             dateFilter: 'current',
+            baseQuery: linkableAssignmentStateQuery,
+            excludeStatesFromQuery: true,
         },
         TODAY: {
             id: 'TODAY',
@@ -126,6 +149,8 @@ export const ASSIGNMENTS = {
             states: ['assigned', 'submitted'],
             emptyMessage: 'There are no assignments for today',
             dateFilter: 'today',
+            baseQuery: linkableAssignmentStateQuery,
+            excludeStatesFromQuery: true,
         },
         FUTURE: {
             id: 'FUTURE',
@@ -133,6 +158,8 @@ export const ASSIGNMENTS = {
             states: ['assigned', 'submitted'],
             emptyMessage: 'There are no future assignments',
             dateFilter: 'future',
+            baseQuery: linkableAssignmentStateQuery,
+            excludeStatesFromQuery: true,
         },
     },
     DEFAULT_LIST_GROUPS: ['TODO', 'IN_PROGRESS', 'COMPLETED'],

@@ -169,7 +169,7 @@ const extension: IExtension = {
                 permittedActions.push({
                     label: gettext('Add to Planning'),
                     groupId: planningActionsGroupId,
-                    icon: 'calendar-list',
+                    icon: 'icon-calendar-list',
                     onTrigger: () => {
                         const customEvent = new CustomEvent('planning:addToPlanning', {detail: item});
 
@@ -182,7 +182,7 @@ const extension: IExtension = {
                 permittedActions.push({
                     label: gettext('Unlink as Coverage'),
                     groupId: planningActionsGroupId,
-                    icon: 'cut',
+                    icon: 'icon-cut',
                     onTrigger: () => {
                         superdesk.entities.article.get(item._id).then((_item) => {
                             window.dispatchEvent(new CustomEvent(
@@ -196,9 +196,9 @@ const extension: IExtension = {
 
             if (canFulfilAssignment(item)) {
                 permittedActions.push({
-                    label: superdesk.localization.gettext('Fulfil assignment'),
+                    label: superdesk.localization.gettext('Link to Assignment'),
                     groupId: planningActionsGroupId,
-                    icon: 'calendar-list',
+                    icon: 'icon-calendar-list',
                     onTrigger: () => {
                         superdesk.entities.article.get(item._id).then((_item) => {
                             window.dispatchEvent(new CustomEvent(

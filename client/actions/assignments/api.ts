@@ -2,7 +2,7 @@ import moment from 'moment-timezone';
 import {get, cloneDeep, has, pick} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IAssignmentItem} from '../../interfaces';
+import {IAssignmentItem, ISearchQueryOperator} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
@@ -12,6 +12,8 @@ import planningUtils from '../../utils/planning';
 import {getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planningActions from '../planning/api';
 import {assignmentsViewRequiresArchiveItems} from '../../components/Assignments/AssignmentItem/fields';
+
+export const SEARCH_QUERY_OPERATORS: Array<ISearchQueryOperator> = ['must', 'must_not', 'should'];
 
 const setBaseQuery = ({must = []}) => ({
     type: ASSIGNMENTS.ACTIONS.SET_BASE_QUERY,
@@ -164,6 +166,7 @@ const query = ({
     size = null,
     ignoreScheduledUpdates = false,
     max_results = null,
+    baseQuery = null,
 }) => (
     (dispatch, getState, {api}) => {
         const filterByValues = {
@@ -176,10 +179,20 @@ const query = ({
         let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
             + (orderDirection === SORT_DIRECTION.ASCENDING ? 1 : -1) + ')]';
 
-        const baseQuery = selectors.getBaseAssignmentQuery(getState());
+        const baseElasticQuery = selectors.getBaseAssignmentQuery(getState());
+
+        if (baseQuery) {
+            // Combine the elastic queries from the provided baseQuery and the one from the redux store
+            for (const field of SEARCH_QUERY_OPERATORS) {
+                if (baseQuery[field]) {
+                    baseElasticQuery[field] = (baseElasticQuery[field] || []).concat(baseQuery[field]);
+                }
+            }
+        }
+
         const query = constructQuery({
             systemTimezone: appConfig.default_timezone,
-            baseQuery: baseQuery,
+            baseQuery: baseElasticQuery,
             searchQuery: searchQuery,
             deskId: deskId,
             userId: userId,
