@@ -14,7 +14,7 @@ export class UrgencyInput extends Input {
      */
     type(value) {
         cy.log('Common.UrgencyInput.type');
-        const popup = new Popup();
+        const popup = new Popup('[data-test-id="coloured-popup-contents"]');
 
         this.element
             .find('button')

@@ -6,7 +6,7 @@ export class SearchFilters extends Modal {
     subnav: SubNavBar;
 
     constructor() {
-        super('[data-test-id=search-filters-modal"]');
+        super('[data-test-id="search-filters-modal"]');
 
         this.editor = new AdvancedSearch(
             () => cy.get('[data-test-id=manage-filters--content-panel]')

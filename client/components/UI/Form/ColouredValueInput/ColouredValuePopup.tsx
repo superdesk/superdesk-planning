@@ -102,6 +102,7 @@ export class ColouredValueDropdown extends React.Component<IProps, IState> {
 
         return (
             <div
+                data-test-id="coloured-popup-contents"
                 className="select-coloured-value__popup"
                 style={{
                     backgroundColor: 'var(--color-dropdown-menu-Bg)',
