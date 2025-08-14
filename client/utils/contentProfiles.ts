@@ -304,6 +304,8 @@ export function getFieldNameTranslated(field: string): string {
         return gettext('Priority');
     case 'related_items':
         return gettext('Related Articles');
+    case 'multiple_content':
+        return gettext('Multiple Content');
     }
 
     return field;
