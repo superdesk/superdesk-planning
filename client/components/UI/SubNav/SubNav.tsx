@@ -1,13 +1,32 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
+
+interface ISubNavProps {
+    children?: React.ReactNode;
+    className?: string;
+    darkBlue?: boolean;
+    darker?: boolean;
+    responsive?: boolean;
+    compact?: boolean;
+    testId?: string;
+    zIndex?: number;
+}
 
 /**
  * @ngdoc react
  * @name Subnav
  * @description Main Sub Nav component
  */
-export const SubNav = ({children, className, darkBlue, darker, responsive, compact, testId, zIndex}) => (
+export const SubNav: React.FC<ISubNavProps> = ({
+    children,
+    className,
+    darkBlue = false,
+    darker = false,
+    responsive = false,
+    compact = false,
+    testId,
+    zIndex
+}) => (
     <div
         className={classNames(
             'subnav',
@@ -20,26 +39,8 @@ export const SubNav = ({children, className, darkBlue, darker, responsive, compa
             className
         )}
         data-test-id={testId}
-        style={{zIndex: zIndex + ' !important'}}
+        style={zIndex ? {zIndex} : undefined}
     >
         {children}
     </div>
 );
-
-SubNav.propTypes = {
-    children: PropTypes.node,
-    className: PropTypes.string,
-    darkBlue: PropTypes.bool,
-    darker: PropTypes.bool,
-    responsive: PropTypes.bool,
-    compact: PropTypes.bool,
-    testId: PropTypes.string,
-    zIndex: PropTypes.number,
-};
-
-SubNav.defaultProps = {
-    darkBlue: false,
-    darker: false,
-    responsive: false,
-    compact: false,
-};

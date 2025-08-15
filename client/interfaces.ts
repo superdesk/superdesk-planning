@@ -1582,6 +1582,7 @@ export interface ISearchFilterSchedule {
     _last_sent?: string;
     frequency: SCHEDULE_FREQUENCY;
     hour: number;
+    hours?: Array<string>;
     day: number;
     week_days: Array<WEEK_DAY>;
 }

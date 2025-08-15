@@ -225,16 +225,22 @@ describe('Search.Filters: creating search filters', () => {
         });
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
-        searchFilters.expectItemText(1, 'Scheduled export: Daily @ Every Hour to Politic Desk');
+        searchFilters.expectItemText(1, 'Scheduled export: Daily @ 00:00 to Politic Desk');
 
         searchFilters.preview(1);
         searchFilters.waitForContentPanelToOpen();
         searchFilters.editScheduleButton.click();
         searchFilters.editor.enterSearchParams({
             week_days: ['Su', 'Sa'],
-            hour: '11:00',
             desk: 'Sports Desk',
         });
+        cy.get('[data-test-id="field-hour"]').click();
+        cy.get('[data-test-id="time-picker-popover"]')
+            .should('be.visible')
+            .find('.time-unit')
+            .contains('11')
+            .click();
+        cy.get('[data-test-id="field-hour"]').should('have.value', '11:00');
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
         searchFilters.expectItemText(1, 'Scheduled export: Weekly @ 11:00 to Sports Desk');
@@ -245,10 +251,16 @@ describe('Search.Filters: creating search filters', () => {
         searchFilters.editor.enterSearchParams({
             frequency: 'Monthly',
             month_day: '4th',
-            hour: '14:00',
         });
+        cy.get('[data-test-id="field-hour"]').click();
+        cy.get('[data-test-id="time-picker-popover"]')
+            .should('be.visible')
+            .find('.time-unit')
+            .contains('10')
+            .click();
+        cy.get('[data-test-id="field-hour"]').should('have.value', '10:00');
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
-        searchFilters.expectItemText(1, 'Scheduled export: Monthly on the 4th day @ 14:00 to Sports Desk');
+        searchFilters.expectItemText(1, 'Scheduled export: Monthly on the 4th day @ 10:00 to Sports Desk');
     });
 });
