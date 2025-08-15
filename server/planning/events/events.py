@@ -546,12 +546,13 @@ class EventsService(AsyncBaseService):
         updates.setdefault("versioncreated", utcnow())
 
         # Extract the ``embedded_planning`` from the updates
+        embedded_planning_present = "embedded_planning" in updates
         embedded_planning = get_events_embedded_planning(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
 
         # Process ``embedded_planning`` field, and sync Event metadata with associated Planning/Coverages
-        await sync_event_metadata_with_planning_items(original, updates, embedded_planning)
+        await sync_event_metadata_with_planning_items(original, updates, embedded_planning, embedded_planning_present)
 
         return item
 
