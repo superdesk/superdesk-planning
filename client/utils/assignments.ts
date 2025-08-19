@@ -1,7 +1,7 @@
 import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
 
-import {IVocabularyItem} from 'superdesk-api';
+import {IArticle, IVocabularyItem} from 'superdesk-api';
 import {
     IAssignmentItem,
     ISession,
@@ -200,6 +200,13 @@ const getContactLabel = (assignment) => (
         gettext('Coverage Contact')
 );
 
+function getArticleNameForOpenCoverageAction(item: IArticle): string {
+    const name = item.headline || item.slugline;
+    const genre = item?.genre?.[0]?.name;
+
+    return genre != null ? `${genre} - ${name}` : name;
+}
+
 function getAssignmentActions(
     assignment: IAssignmentItem,
     session: ISession,
@@ -207,6 +214,7 @@ function getAssignmentActions(
     lockedItems: ILockedItems,
     contentTypes: Array<IG2ContentType>,
     callBacks: {[key: string]: (...args: Array<any>) => any},
+    archiveItems: {[itemId: string]: IArticle},
 ) {
     if (!isExistingItem(assignment) || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
         return [];
@@ -268,11 +276,23 @@ function getAssignmentActions(
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
-                    callback: callBacks[callBackName].bind(null, assignment),
-                });
+            if (callBacks[callBackName] != null) {
+                if ((assignment.linked_items?.length ?? 0) > 1) {
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+                        callback: assignment.linked_items.map((linkedItem) => ({
+                            label: getArticleNameForOpenCoverageAction(archiveItems[linkedItem._id]),
+                            callback: superdeskApi.ui.article.edit.bind(null, linkedItem._id),
+                        })),
+
+                    });
+                } else {
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+                        callback: callBacks[callBackName].bind(null, assignment),
+                    });
+                }
+            }
             break;
 
         case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName:
