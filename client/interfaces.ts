@@ -889,6 +889,12 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     lock_session: string;
     lock_action: string;
     _to_delete: boolean;
+    item_ids?: Array<string>; // Populated by API upon response (not stored in DB)
+    linked_items?: Array<{
+        _id: IArticle['_id'];
+        _type: IArticle['_type'];
+        event_id: IArticle['event_id'];
+    }>;
 }
 
 export interface IBaseListItemProps<T> {

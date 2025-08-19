@@ -119,9 +119,19 @@ class AssignmentsService(AsyncBaseService):
         """Populate `item_ids` with ids for all linked Archive items for an Assignment"""
         items = await (await self.get_archive_items_for_assignments([str(doc.get(ID_FIELD)) for doc in docs])).to_list()
         for doc in docs:
-            ids = [str(item.get("_id")) for item in items if str(item.get("assignment_id")) == str(doc.get("_id"))]
-            if len(ids):
-                doc["item_ids"] = ids
+            linked_items = [
+                {
+                    "_id": item.get("_id"),
+                    "_type": item.get("_type"),
+                    "event_id": item.get("event_id"),
+                }
+                for item in items
+                if str(item.get("assignment_id")) == str(doc.get("_id"))
+            ]
+
+            if len(linked_items):
+                doc["item_ids"] = [item["_id"] for item in linked_items]
+                doc["linked_items"] = linked_items
 
             self.set_type(doc, doc)
 
