@@ -28,7 +28,7 @@ export class AssignmentPreviewComponent extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {tab: TABS.ASSIGNMENT};
+        this.state = {tab: TABS[props.initialTab] || TABS.ASSIGNMENT};
 
         this.setActiveTab = this.setActiveTab.bind(this);
         this.closePanel = this.closePanel.bind(this);
@@ -64,11 +64,14 @@ export class AssignmentPreviewComponent extends React.Component {
         this.tabs[1].enabled = assignmentUtils.assignmentHasContent(this.props.assignment);
     }
 
-    componentWillReceiveProps(nextProps) {
-        // When changing Assignment items,  if the new Assignment has content
-        // Then enable the CONTENT tab
-        if (get(nextProps, 'assignment._id') !== get(this.props, 'assignment._id')) {
-            this.tabs[TABS.CONTENT].enabled = assignmentUtils.assignmentHasContent(nextProps.assignment);
+    componentDidUpdate(prevProps: Readonly<{}>, prevState: Readonly<{}>, snapshot?: any) {
+        if (prevProps.assignment?._id !== this.props.assignment?._id) {
+            // When changing Assignment items,  if the new Assignment has content
+            // Then enable the CONTENT tab
+            this.tabs[TABS.CONTENT].enabled = assignmentUtils.assignmentHasContent(this.props.assignment);
+        }
+        if (prevProps.initialTab !== this.props.initialTab) {
+            this.setActiveTab(TABS[this.props.initialTab] || TABS.ASSIGNMENT);
         }
     }
 
@@ -152,6 +155,7 @@ AssignmentPreviewComponent.propTypes = {
     lockedItems: PropTypes.object,
     hideItemActions: PropTypes.bool,
     showFulfilAssignment: PropTypes.bool,
+    initialTab: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
@@ -159,6 +163,7 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     previewOpened: selectors.getPreviewAssignmentOpened(state),
     lockedItems: selectors.locks.getLockedItems(state),
+    initialTab: selectors.getInitialTab(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

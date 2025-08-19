@@ -1,312 +1,177 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, map} from 'lodash';
-import classNames from 'classnames';
 
-import {AuditInformation, HtmlPreview, StateLabel, ItemRendition, PriorityLabel, UrgencyLabel} from '../../';
-import {getCreator} from '../../../utils';
-import * as actions from '../../../actions';
+import {
+    ToggleBox,
+    SimpleList,
+    SimpleListItem,
+    ContentDivider,
+    Heading,
+    PanelContentBlock,
+} from 'superdesk-ui-framework/react';
+
+import {IArticle} from 'superdesk-api';
+import {superdeskApi} from '../../../superdeskApi';
+import {IAssignmentItem} from '../../../interfaces';
 import * as selectors from '../../../selectors';
 
-import './style.scss';
+import {HtmlPreview, ItemRendition} from '../../';
+import {ArchiveItem} from '../ArchiveItem';
+import {AuditInformation} from '../../';
+import {getCreator} from '../../../utils';
 
-class ArchivePreviewComponent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {headerOpen: true};
-        this.toggleHeader = this.toggleHeader.bind(this);
-    }
 
-    componentDidMount() {
-        // When mounting this component, if the Assignment item is set
-        // then load the associated Archive item now
-        const {assignment, loadArchiveItem} = this.props;
+interface IProps {
+    assignment: IAssignmentItem;
+    archiveItems: {[itemId: string]: IArticle};
+    selectedArchiveItemId: IArticle['_id'];
+}
 
-        if (get(assignment, '_id', null) !== null) {
-            loadArchiveItem(assignment);
-        }
-    }
-
-    componentWillReceiveProps(nextProps) {
-        // If the Assignment item has changed, then load the associated Archive item
-        const nextId = get(nextProps, 'assignment._id', null);
-        const currentId = get(this.props, 'assignment._id', null);
-
-        if (nextId !== currentId) {
-            this.props.loadArchiveItem(nextProps.assignment);
-        }
-    }
-
-    toggleHeader() {
-        this.setState({headerOpen: !this.state.headerOpen});
-    }
-
+class ArchivePreviewComponent extends React.PureComponent<IProps> {
     render() {
-        const {archive, users, priorities, urgencies, urgencyLabel} = this.props;
+        const {gettext} = superdeskApi.localization;
+        const {UserAvatar} = superdeskApi.components;
+        const users = Object.values(superdeskApi.entities.users.getAllUsers());
 
-        if (archive === null) {
-            return null;
-        }
+        const relatedItems = this.props.assignment.linked_items
+            .map((itemLink) => (this.props.archiveItems[itemLink._id]))
+            .filter((item) => (item != null));
 
-        const createdBy = getCreator(archive, 'original_creator', users);
-        const updatedBy = getCreator(archive, 'version_creator', users);
-        const creationDate = get(archive, '_created');
-        const updatedDate = get(archive, '_updated');
-        const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
-            users.find((user) => user._id === updatedBy);
-        const archiveType = get(archive, 'type', 'text');
-
-        return (
-            <div className="ArchivePreview content">
-                <div className="ArchivePreview__audit side-panel__content-block side-panel__content-block--pad-small">
-                    <div className="side-panel__content-block-inner">
-                        <AuditInformation
-                            createdBy={createdBy}
-                            updatedBy={versionCreator}
-                            createdAt={creationDate}
-                            updatedAt={updatedDate}
-                        />
-                    </div>
-                </div>
-
-                <div
-                    className={classNames(
-                        'ArchivePreview__header',
-                        'side-panel__content-block',
-                        'side-panel__content-block--pad-small',
-                        'side-panel__content-block--flex',
-                        {active: this.state.headerOpen}
-                    )}
+        return relatedItems.map((archive) => (
+            <PanelContentBlock key={archive._id} className="ArchivePreview content-item-preview">
+                <ToggleBox
+                    key={archive._id + '-' + (this.props.selectedArchiveItemId == archive._id).toString()}
+                    variant="custom-header"
+                    header={(<ArchiveItem item={archive} use2Lines={true} />)}
+                    initiallyOpen={relatedItems.length === 1 || this.props.selectedArchiveItemId === archive._id}
+                    getToggleButtonLabel={(isOpen) => isOpen ? gettext('Show less') : gettext('Show more')}
                 >
-                    {this.state.headerOpen && (
-                        <div className="ArchivePreview__header-left side-panel__content-block-inner">
-                            <div>
-                                <span
-                                    data-sd-tooltip={`Article Type: ${archive.type}`}
-                                    data-flow="right"
-                                >
-                                    <i className={`coverage-icon icon-${archive.type}`} />
-                                </span>
-                            </div>
+                    {(() => {
+                        const createdBy = getCreator(archive, 'original_creator', users);
+                        const updatedBy = getCreator(archive, 'version_creator', users);
+                        const creationDate = archive._created;
+                        const updatedDate = archive._updated;
+                        const versionCreator = updatedBy?.display_name ?
+                            updatedBy :
+                            users.find((user) => user._id === updatedBy);
 
-                            {get(archive, 'priority') && (
-                                <div>
-                                    <PriorityLabel
-                                        item={archive}
-                                        priorities={priorities}
-                                    />
-                                </div>
-                            )}
-
-                            {get(archive, 'urgency') && (
-                                <div>
-                                    <UrgencyLabel
-                                        item={archive}
-                                        urgencies={urgencies}
-                                        label={urgencyLabel}
-                                    />
-                                </div>
-                            )}
-
-                        </div>
-                    )}
-
-                    {this.state.headerOpen && (
-                        <div
-                            className="ArchivePreview__header-middle side-panel__content-block-inner
-                        side-panel__content-block-inner--grow"
-                        >
-                            {get(archive, 'slugline') &&
-                                <HtmlPreview className="sd-text__slugline" html={archive.slugline} />
-                            }
-
-                            {get(archive, 'anpa_take_key') && (
-                                <div>
-                                    <span className="metaLabel">takekey: </span>
-                                    <span>{archive.anpa_take_key}</span>
-                                </div>
-                            )}
-                            {get(archive, 'ednote') && (
-                                <div>
-                                    <span className="metaLabel">EdNote: </span>
-                                    <span className="sd-text__ednote">{archive.ednote}</span>
-                                </div>
-                            )}
-                            {get(archive, 'company_codes.length', 0) > 0 && (
-                                <div>
-                                    <span className="metaLabel">Company Codes: </span>
-                                    <span>{map(archive.company_codes, 'qcode').join(', ')}</span>
-                                </div>
-                            )}
-
-                            <div>
-                                <StateLabel
+                        return (
+                            <div className="flex-row p-1 gap-1">
+                                <UserAvatar userId={archive.version_creator} />
+                                <AuditInformation
+                                    createdBy={createdBy}
+                                    updatedBy={versionCreator}
+                                    createdAt={creationDate}
+                                    updatedAt={updatedDate}
+                                    showStateInformation
                                     item={archive}
-                                    withPubStatus={false}
                                 />
-                                {get(archive, 'embargo') &&
-                                    <span className="state-label state_embargo">Embargo</span>
-                                }
-                                {get(archive, 'flags.marked_for_not_publication') &&
-                                    <span className="state-label not-for-publication">Not for Publication</span>
-                                }
-                                {get(archive, 'flags.marked_for_legal') &&
-                                    <span className="state-label legal">Legal</span>
-                                }
-                                {get(archive, 'flags.marked_for_sms') &&
-                                    <span className="state-label sms">Sms</span>
-                                }
-                                {get(archive, 'rewritten_by') &&
-                                    <span className="state-label updated">Updated</span>
-                                }
                             </div>
+                        );
+                    })()}
+                    <SimpleList border={true} density="comfortable">
+                        {(() => {
+                            const desk = superdeskApi.entities.desk.getDeskById(archive.task.desk);
+                            const stage = superdeskApi.entities.desk.getStageById(archive.task.stage);
+                            const wordCountLabel = gettext(
+                                '{{ wordCount }} words',
+                                {wordCount: archive.word_count ?? 0},
+                            );
 
-                            {get(archive, '_type') !== 'archived' && (
-                                <div>
-                                    <span><b>{get(archive, '_deskName')}</b> / {get(archive, '_stageName')}</span>
-                                </div>
-                            )}
-                        </div>
+                            return desk == null ? null : (
+                                <SimpleListItem>
+                                    <span className="text-color-muted">{gettext('Desk:')}</span>
+                                    <span className="font-bold">{desk.name}</span>
+                                    <span className="text-color-muted">/ {stage.name}</span>
+                                    <ContentDivider orientation="vertical" margin="x-small" />
+                                    <span className="text-color-muted">{wordCountLabel}</span>
+                                </SimpleListItem>
+                            );
+                        })()}
+                        {(archive.ednote?.length ?? 0) === 0 ? null : (
+                            <SimpleListItem>
+                                <span className="text-color-muted">{gettext('Editorial Note:')}</span>
+                                <span className="text-red--800">
+                                    {archive.ednote}
+                                </span>
+                            </SimpleListItem>
+                        )}
+                    </SimpleList>
+                    {(archive.type === 'composite' || (archive.headline?.length ?? 0) === 0) ? null : (
+                        <Heading type="h2">
+                            {archive.headline}
+                        </Heading>
                     )}
 
-                    {this.state.headerOpen && (
-                        <div
-                            className="ArchivePreview__header-right side-panel__content-block-inner
-                        side-panel__content-block-inner--right"
-                        >
-                            {archiveType === 'text' && (
+                    <div className="content">
+                        <div className="core-content">
+                            {archive.associations?.featuremedia == null ? null : (
                                 <div>
-                                    <span className="word-count">
-                                        <b>{get(archive, 'word_count', 0)}</b> <span>words</span>
-                                    </span>
+                                    <ItemRendition item={archive.associations.featuremedia} />
+                                    <p>{archive.associations.featuremedia.description_text}</p>
                                 </div>
                             )}
 
-                            {get(archive, 'source') && (
+                            {!(archive.type === 'picture' || archive.type === 'graphic') ? null : (
                                 <div>
-                                    <span>{archive.source}</span>
+                                    <span>{gettext('Original')}</span>
+                                    <ItemRendition item={archive} />
                                 </div>
                             )}
 
-                            {get(archive, 'highlights.length', 0) > 0 && (
+                            {archive.type !== 'audio' ? null : (
                                 <div>
-                                    <i className={archive.highlights.length > 1 ? 'icon-multi-star' : 'icon-start'} />
+                                    <audio controls>
+                                        <source
+                                            src={archive.renditions?.original?.href}
+                                            type={archive.renditions?.original?.mimetype}
+                                        />
+                                    </audio>
                                 </div>
                             )}
 
-                            {get(archive, 'marked_desks.length', 0) > 0 && (
+                            {archive.type !== 'video' ? null : (
                                 <div>
-                                    <i className="icon-bell" />
+                                    <video controls>
+                                        <source
+                                            src={archive.renditions?.original?.href}
+                                            type={archive.renditions?.original?.mimetype}
+                                        />
+                                    </video>
                                 </div>
+                            )}
+
+                            {(archive.abstract?.length ?? 0) == 0 ? null : (
+                                <HtmlPreview className="text abstract" html={archive.abstract} />
+                            )}
+                            {(archive.byline?.length ?? 0) == 0 ? null : (
+                                <HtmlPreview className="text byline" html={archive.byline} />
+                            )}
+                            {(archive.dateline?.text?.length ?? 0) == 0 ? null : (
+                                <HtmlPreview className="text dateline" html={archive.dateline.text} />
+                            )}
+                            {(archive.body_html?.length ?? 0) == 0 ? null : (
+                                <HtmlPreview className="text body-text html-preview" html={archive.body_html} />
+                            )}
+                            {(archive.body_footer?.length ?? 0) == 0 ? null : (
+                                <HtmlPreview className="text body-footer" html={archive.body_footer} />
+                            )}
+                            {(archive.sign_off?.length ?? 0) == 0 ? null : (
+                                <HtmlPreview className="text sign-off" html={archive.sign_off} />
                             )}
                         </div>
-                    )}
-
-                    <button
-                        className={classNames(
-                            'preview-header__toggle',
-                            {active: !this.state.headerOpen}
-                        )}
-                        onClick={this.toggleHeader}
-                    >
-                        <i className="icon-chevron-up-thin" />
-                    </button>
-                </div>
-
-                <div
-                    className="ArchivePreview__content side-panel__content-block
-                side-panel__content-block--pad-small"
-                >
-                    {archiveType !== 'composite' && get(archive, 'headline') && (
-                        <div>
-                            <span className="headline">{archive.headline}</span>
-                        </div>
-                    )}
-
-                    <div className="core-content">
-                        {get(archive, 'associations.featuremedia') && (
-                            <div>
-                                <ItemRendition item={archive.associations.featuremedia} />
-                                <p>{get(archive, 'associations.featuremedia.description_text')}</p>
-                            </div>
-                        )}
-
-                        {(archiveType === 'picture' || archiveType === 'graphic') && (
-                            <div>
-                                <span>Original</span>
-                                <ItemRendition item={archive} />
-                            </div>
-                        )}
-
-                        {archiveType === 'audio' && (
-                            <div>
-                                <audio controls="controls">
-                                    <source
-                                        src={get(archive, 'renditions.original.href')}
-                                        type={get(archive, 'renditions.original.mimetype')}
-                                    />
-                                </audio>
-                            </div>
-                        )}
-
-                        {archiveType === 'video' && (
-                            <div>
-                                <video controls="controls">
-                                    <source
-                                        src={get(archive, 'renditions.original.href')}
-                                        type={get(archive, 'renditions.original.mimetype')}
-                                    />
-                                </video>
-                            </div>
-                        )}
-
-                        {get(archive, 'abstract') &&
-                        <HtmlPreview className="text abstract" html={archive.abstract} />}
-                        {get(archive, 'byline') &&
-                        <HtmlPreview className="text byline" html={archive.byline} />}
-                        {get(archive, 'dateline.text') &&
-                        <HtmlPreview className="text dateline" html={archive.dateline.text} />}
-                        {get(archive, 'body_html') &&
-                        <HtmlPreview className="text body-text" html={archive.body_html} />}
-                        {get(archive, 'body_footer') &&
-                        <HtmlPreview className="text body-footer" html={archive.body_footer} />}
-                        {get(archive, 'sign_off') &&
-                        <HtmlPreview className="text sign-off" html={archive.sign_off} />}
                     </div>
-                </div>
-            </div>
-        );
+
+                </ToggleBox>
+            </PanelContentBlock>
+        ));
     }
 }
 
-ArchivePreviewComponent.propTypes = {
-    archive: PropTypes.object,
-    users: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.object,
-    ]),
-    assignment: PropTypes.object,
-    loadArchiveItem: PropTypes.func,
-    priorities: PropTypes.array,
-    urgencies: PropTypes.array,
-    urgencyLabel: PropTypes.string,
-};
-
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
-    archive: selectors.getCurrentAssignmentArchiveItem(state),
-    users: selectors.general.users(state),
-    priorities: selectors.getArchivePriorities(state),
-    urgencies: selectors.getUrgencies(state),
-    urgencyLabel: selectors.vocabs.urgencyLabel(state),
+    archiveItems: selectors.getStoredArchiveItems(state),
+    selectedArchiveItemId: selectors.getSelectedArchiveItemId(state),
 });
 
-const mapDispatchToProps = (dispatch) => (
-    {loadArchiveItem: (assignment) => dispatch(actions.assignments.api.loadArchiveItem(assignment))}
-);
-
-export const ArchivePreview = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(ArchivePreviewComponent);
+export const ArchivePreview = connect(mapStateToProps)(ArchivePreviewComponent);
