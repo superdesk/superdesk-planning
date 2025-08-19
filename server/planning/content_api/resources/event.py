@@ -66,7 +66,7 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
                 plan_doc = await planning_service.find_by_id(plan_id)
 
             existing_events = plan_doc.get("events") or []
-            updated_events = [ev for ev in existing_events if ev.get("literal") != event_id]
+            updated_events = [event for event in existing_events if event.get("literal") != event_id]
 
             # Update only when there’s a change
             if updated_events != existing_events:
