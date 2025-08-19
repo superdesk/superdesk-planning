@@ -19,6 +19,10 @@ Object.assign(appConfig, {
 });
 
 export const getTestActionStore = () => {
+    const apiSpy = sinon.spy((resource) => (store.spies.api[resource]));
+
+    apiSpy.query = sinon.spy(() => (Promise.resolve({_items: []})));
+
     let store = {
         spies: {
             api: {
@@ -167,7 +171,7 @@ export const getTestActionStore = () => {
                 pop: sinon.spy(),
             },
             $timeout: sinon.spy((func) => func()),
-            api: sinon.spy((resource) => (store.spies.api[resource])),
+            api: apiSpy,
             $location: {search: sinon.spy(
                 (key, value = null) => {
                     if (key) {
@@ -238,6 +242,12 @@ export const getTestActionStore = () => {
                 initWorkspace: sinon.spy(
                     (workspaceName, onLoadWorkspace) => onLoadWorkspace(store)
                 ),
+            },
+            search: {
+                query: () => ({
+                    filter: () => false,
+                    getCriteria: () => ({}),
+                }),
             },
         },
 

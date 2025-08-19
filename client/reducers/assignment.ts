@@ -9,6 +9,8 @@ const initialState = {
     assignments: {},
     baseQuery: {must: []},
     currentAssignmentId: null,
+    selectedArchiveItemId: null,
+    initialTab: null,
     filterBy: 'Desk',
     filterByPriority: null,
     filterByType: null,
@@ -204,7 +206,10 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             previewOpened: true,
-            currentAssignmentId: getItemId(payload) || payload,
+            currentAssignmentId: payload.assignmentId,
+            initialTab: payload.initialTab,
+            selectedArchiveItemId: payload.archiveItemId ?? null,
+
             readOnly: true,
         }
     ),
@@ -214,6 +219,8 @@ const assignmentReducer = createReducer(initialState, {
             ...state,
             previewOpened: false,
             currentAssignmentId: null,
+            initialTab: null,
+            selectedArchiveItemId: null,
             readOnly: true,
         }
     ),
@@ -254,23 +261,19 @@ const assignmentReducer = createReducer(initialState, {
     },
 
     [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: (state, payload) => {
-        const archiveItems = {};
-
-        if (Array.isArray(payload)) { // Multiple items
-            for (const newItem of payload) {
-                if (newItem.assignment_id) {
-                    archiveItems[newItem.assignment_id] = newItem;
-                }
-            }
-        } else { // One single item
-            archiveItems[payload.assignment_id] = payload;
-        }
-
+        // Store Archive items by their ID
         return {
             ...state,
             archive: {
                 ...state.archive,
-                ...archiveItems,
+                ...(Array.isArray(payload) ? payload : [payload]).reduce(
+                    (archiveItems, item) => {
+                        archiveItems[item._id] = item;
+
+                        return archiveItems;
+                    },
+                    {}
+                ),
             },
         };
     },
@@ -287,6 +290,8 @@ const assignmentReducer = createReducer(initialState, {
                 if (state.currentAssignmentId === a) {
                     state.previewOpened = false;
                     state.currentAssignmentId = null;
+                    state.initialTab = null;
+                    state.selectedArchiveItemId = null;
                 }
 
                 // Remove this assignment from any list groups

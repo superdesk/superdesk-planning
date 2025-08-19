@@ -362,13 +362,17 @@ describe('assignment', () => {
         it('PREVIEW_ASSIGNMENT', () => {
             const result = assignment(state, {
                 type: 'PREVIEW_ASSIGNMENT',
-                payload: 'as1',
+                payload: {
+                    assignmentId: 'as1',
+                    initialTab: 'ASSIGNMENT',
+                },
             });
 
             expect(result).toEqual({
                 ...initialState,
                 previewOpened: true,
                 currentAssignmentId: 'as1',
+                initialTab: 'ASSIGNMENT',
                 readOnly: true,
             });
         });
@@ -481,7 +485,10 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'PREVIEW_ASSIGNMENT',
-                    payload: 'as1',
+                    payload: {
+                        assignmentId: 'as1',
+                        initialTab: 'ASSIGNMENT',
+                    },
                 });
 
                 result = assignment(result, {
@@ -508,7 +515,10 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'PREVIEW_ASSIGNMENT',
-                    payload: 'as2',
+                    payload: {
+                        assignmentId: 'as2',
+                        initialTab: 'ASSIGNMENT',
+                    },
                 });
 
                 result = assignment(result, {

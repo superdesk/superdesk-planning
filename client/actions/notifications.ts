@@ -1,8 +1,11 @@
 import {get} from 'lodash';
 
-import {planningApi} from '../superdeskApi';
+import {IArticle} from 'superdesk-api';
+import {planningApi, superdeskApi} from '../superdeskApi';
 
+import {ASSIGNMENTS} from '../constants';
 import contacts from './contacts';
+import {getStoredArchiveItems} from '../selectors';
 
 /**
  * WS Action when a new Planning item is created
@@ -20,9 +23,21 @@ const onContactsUpdated = (_e, data) => (
 );
 
 function onResourceCreatedOrUpdated(_e, data) {
-    return () => {
+    return (dispatch, getState) => {
         if (data.resource === 'planning_types') {
             planningApi.contentProfiles.updateProfilesInStore();
+        } else if (['archive', 'archived', 'published'].includes(data.resource)) {
+            const loadedArticles = getStoredArchiveItems(getState());
+
+            if (loadedArticles[data._id] != null) {
+                // This item is loaded into the Redux store, grab a fresh copy now
+                superdeskApi.dataApi.findOne<IArticle>(data.resource, data._id).then((updatedItem) => {
+                    dispatch({
+                        type: ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE,
+                        payload: [updatedItem],
+                    });
+                });
+            }
         }
     };
 }
