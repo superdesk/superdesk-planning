@@ -13,7 +13,7 @@ export const ContentComponent = ({assignment}: IProps) => {
     const itemEventIds = (assignment.linked_items ?? []).map((item) => item.event_id);
     const numberOfContent = (new Set(itemEventIds)).size;
 
-    if (!numberOfContent) {
+    if (numberOfContent === 0) {
         return null;
     }
 
