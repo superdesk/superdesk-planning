@@ -1,6 +1,7 @@
 import {get, cloneDeep, forEach} from 'lodash';
 import moment from 'moment';
 
+import {IArticle} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {IAssignmentItem} from '../../interfaces';
 
@@ -370,14 +371,22 @@ const addToAssignmentListGroup = (assignmentIds, totalNoOfItems, group) => ({
  * @param {object} assignment - The Assignment to preview
  * @return object
  */
-const preview = (assignment) => (
+const preview = (
+    assignment: IAssignmentItem,
+    initialTab?: 'ASSIGNMENT' | 'CONTENT' | 'HISTORY',
+    archiveItem?: IArticle,
+) => (
     (dispatch, getState, {$timeout, $location}) => (
         dispatch(assignments.api.loadPlanningAndEvent(assignment))
             .then(() => {
                 $timeout(() => $location.search('assignment', get(assignment, '_id', null)));
                 return dispatch({
                     type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
-                    payload: assignment,
+                    payload: {
+                        assignmentId: assignment._id,
+                        initialTab: initialTab ?? 'ASSIGNMENT',
+                        archiveItemId: archiveItem?._id,
+                    },
                 });
             })
     )

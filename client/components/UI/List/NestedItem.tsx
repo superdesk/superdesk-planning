@@ -7,6 +7,7 @@ interface IProps {
     parentItem: React.ReactNode,
     nestedChildren: React.ReactNode;
     noMarginTop?: boolean;
+    marginBottom?: boolean;
 }
 
 export class NestedItem extends React.PureComponent<IProps> {
@@ -19,6 +20,7 @@ export class NestedItem extends React.PureComponent<IProps> {
                         'sd-list-item-nested--collapsed': this.props.collapsed ?? true,
                         'sd-list-item-nested--expanded': this.props.expanded,
                         'sd-margin-t--0': this.props.noMarginTop,
+                        'mb-2': this.props.marginBottom === true,
                     }
                 )}
             >

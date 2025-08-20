@@ -111,6 +111,7 @@ export const PLANNING = {
     },
     G2_CONTENT_TYPE: {
         TEXT: 'text',
+        MULTIPLE_TEXT: 'multiple_text',
         VIDEO: 'video',
         LIVE_VIDEO: 'live_video',
         AUDIO: 'audio',

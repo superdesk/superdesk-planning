@@ -512,6 +512,8 @@ export const assignmentInitialState = {
     assignments: {},
     baseQuery: {must: []},
     currentAssignmentId: null,
+    selectedArchiveItemId: null,
+    initialTab: null,
     filterBy: 'Desk',
     filterByPriority: null,
     filterByType: null,

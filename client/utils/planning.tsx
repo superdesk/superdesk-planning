@@ -1382,10 +1382,15 @@ function getCoverageIcon(
         : getItemWorkflowState(coverage.assigned_to) === WORKFLOW_STATE.CANCELLED;
     const iconType: 'normal' | 'cancelled' = cancelled ? 'cancelled' : 'normal';
     const iconForUnknownType = cancelled ? 'icon-file-cancel' : 'icon-file';
+    const contentType = coverage?.planning?.multiple_content === true ? PLANNING.G2_CONTENT_TYPE.MULTIPLE_TEXT : type;
 
     const coverageIcons = {
         [PLANNING.G2_CONTENT_TYPE.TEXT]: {
             normal: 'icon-text',
+            cancelled: 'icon-text-cancel',
+        },
+        [PLANNING.G2_CONTENT_TYPE.MULTIPLE_TEXT]: {
+            normal: 'icon-takes-package',
             cancelled: 'icon-text-cancel',
         },
         [PLANNING.G2_CONTENT_TYPE.VIDEO]: {
@@ -1418,7 +1423,7 @@ function getCoverageIcon(
         },
     };
 
-    return coverageIcons[type]?.[iconType] ?? iconForUnknownType;
+    return coverageIcons[contentType]?.[iconType] ?? iconForUnknownType;
 }
 
 function getCoverageIconColor(item: IPlanningCoverageItem): string | undefined {

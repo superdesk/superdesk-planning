@@ -150,6 +150,8 @@ export const getAssignmentListSingleGroupView = (state) => get(state,
 
 export const getPreviewAssignmentOpened = (state) => !!get(state, 'assignment.previewOpened');
 export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId');
+export const getSelectedArchiveItemId = (state) => get(state, 'assignment.selectedArchiveItemId');
+export const getInitialTab = (state) => get(state, 'assignment.initialTab');
 export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', []);
 export const getArchivePriorities = (state) => get(state, 'vocabularies.priority', []);
 export const getUrgencies = (state) => get(state, 'vocabularies.urgency', []);
