@@ -4,8 +4,9 @@ import {get} from 'lodash';
 import {gettext} from '../../utils';
 
 import {LineInput, Label} from '../';
-import {ColouredValuePopup} from './ColouredValuePopup';
+import {ColouredValueDropdown} from './ColouredValuePopup';
 import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
+import {WithPopover} from 'superdesk-ui-framework/react';
 
 interface IProps {
     value: any;
@@ -48,18 +49,8 @@ export class ColouredValueInput extends React.Component<IProps, IState> {
         super(props);
         this.state = {openPopup: false};
 
-        this.togglePopup = this.togglePopup.bind(this);
         this.getIconClasses = this.getIconClasses.bind(this);
         this.onChange = this.onChange.bind(this);
-    }
-
-    /**
-    * @ngdoc method
-    * @name ColouredValueInput#togglePopup
-    * @description togglePopup method to toggle open state of opop-up component
-    */
-    togglePopup() {
-        this.setState({openPopup: !this.state.openPopup});
     }
 
     /**
@@ -90,7 +81,6 @@ export class ColouredValueInput extends React.Component<IProps, IState> {
                 value :
                 null
         );
-        this.togglePopup();
     }
 
     render() {
@@ -116,63 +106,71 @@ export class ColouredValueInput extends React.Component<IProps, IState> {
         const text = getVocabularyItemFieldTranslated(value ?? {}, labelKey, language) ?? '';
 
         return (
-            <LineInput
-                className="select-coloured-value"
-                required={required}
-                readOnly={readOnly}
-                labelLeft={labelLeft}
-                noMargin={noMargin}
-                {...props}
-            >
-                <Label text={label} row={row} light={row && readOnly} />
-                {readOnly ? (
-                    <LineInput labelLeft={labelLeft} className="select-coloured-value__input">
-                        <span
-                            className={this.getIconClasses(value)}
-                            style={{backgroundColor: value?.color}}
-                        >
-                            {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
-                        </span>
-                        <span>
-                        &nbsp;&nbsp;{text}
-                        </span>
-                    </LineInput>
-                ) : (
-                    <button
-                        type="button"
-                        className="dropdown__toggle select-coloured-value__input line-input"
-                        onClick={this.togglePopup}
-                        onFocus={onFocus}
-                    >
-                        <span
-                            className={this.getIconClasses(value)}
-                            style={{backgroundColor: value?.color}}
-                        >
-                            {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
-                        </span>
-                        &nbsp;&nbsp;{text}
-                        <b className="dropdown__caret" />
-                    </button>
-                )}
-
-                {this.state.openPopup && (
-                    <ColouredValuePopup
+            <WithPopover
+                placement="bottom-start"
+                component={({closePopup}) => (
+                    <ColouredValueDropdown
                         title={label}
                         options={options}
                         getClassNamesForOption={this.getIconClasses}
-                        onChange={this.onChange}
-                        onCancel={this.togglePopup}
+                        onChange={(value) => {
+                            this.onChange(value);
+
+                            closePopup();
+                        }}
+                        onCancel={closePopup}
                         clearable={clearable}
-                        target="dropdown__caret"
                         labelKey={labelKey}
                         valueKey={valueKey}
-                        popupContainer={popupContainer}
-                        onPopupOpen={props.onPopupOpen}
-                        onPopupClose={props.onPopupClose}
                         language={language}
                     />
                 )}
-            </LineInput>
+            >
+                {(togglePopup) => (
+                    <LineInput
+                        className="select-coloured-value"
+                        required={required}
+                        readOnly={readOnly}
+                        labelLeft={labelLeft}
+                        noMargin={noMargin}
+                        {...props}
+                    >
+                        <Label text={label} row={row} light={row && readOnly} />
+                        {readOnly ? (
+                            <LineInput labelLeft={labelLeft} className="select-coloured-value__input">
+                                <span
+                                    className={this.getIconClasses(value)}
+                                    style={{backgroundColor: value?.color}}
+                                >
+                                    {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
+                                </span>
+                                <span>
+                                &nbsp;&nbsp;{text}
+                                </span>
+                            </LineInput>
+                        ) : (
+                            <button
+                                type="button"
+                                className="dropdown__toggle select-coloured-value__input line-input"
+                                onClick={(e) => {
+                                    togglePopup(e.target as HTMLElement);
+                                }}
+                                onFocus={onFocus}
+                            >
+                                <span
+                                    className={this.getIconClasses(value)}
+                                    style={{backgroundColor: value?.color}}
+                                >
+                                    {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
+                                </span>
+                                         &nbsp;&nbsp;{text}
+                                <b className="dropdown__caret" />
+                            </button>
+                        )}
+
+                    </LineInput>
+                )}
+            </WithPopover>
         );
     }
 }

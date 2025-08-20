@@ -35,6 +35,7 @@ class Schedule(Dataclass):
     template: str | None = None
     _last_sent: datetime | None = None
     hour: int = -1
+    hours: list[str] | None = None
     day: int = -1
     week_days: list[SearchWeekDay] | None = None
 

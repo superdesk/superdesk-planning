@@ -9,6 +9,7 @@ import {
     LocationInput,
     UrgencyInput,
     TreeSelect,
+    TimePickerInput,
 } from '../common/inputs';
 import {PlanningList} from './planningList';
 
@@ -110,9 +111,9 @@ export class AdvancedSearch {
                 '[data-test-id=field-week_days]',
                 '.sd-check-button'
             ),
-            hour: new SelectInput(
+            hour: new TimePickerInput(
                 getSearchPanel,
-                '[data-test-id=field-hour] select'
+                '[data-test-id=field-hour]'
             ),
             desk: new SelectInput(
                 getSearchPanel,

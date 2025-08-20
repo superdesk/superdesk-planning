@@ -4,11 +4,17 @@ import {cloneDeep} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
 import {IDesk} from 'superdesk-api';
-import {IEventsPlanningContentPanelProps, ISearchFilterSchedule, SCHEDULE_FREQUENCY, WEEK_DAY} from '../../interfaces';
-
+import {
+    IEventsPlanningContentPanelProps,
+    ISearchFilterSchedule,
+    ISearchFilter,
+    SCHEDULE_FREQUENCY,
+    WEEK_DAY,
+} from '../../interfaces';
 import {SidePanel, ToggleBox} from '../UI';
 import {renderFieldsForPanel} from '../fields';
 import {desks as getDesks} from '../../selectors/general';
+import {TimeInputs} from './TimeInputs';
 
 interface IProps extends IEventsPlanningContentPanelProps {
     desks: Array<IDesk>;
@@ -32,7 +38,8 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             pristine: false,
             schedule: cloneDeep(this.props.filter.schedules?.[0] ?? {
                 frequency: SCHEDULE_FREQUENCY.HOURLY,
-                desk: this.props.desks[0]._id,
+                desk: (this.props.desks ?? [])?.[0]?._id,
+                hours: ['00:00']
             }),
             invalid: false,
             errors: {},
@@ -48,13 +55,12 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
 
         switch (schedule.frequency) {
         case SCHEDULE_FREQUENCY.HOURLY:
-            delete schedule.hour;
             delete schedule.day;
             delete schedule.week_days;
             break;
         case SCHEDULE_FREQUENCY.WEEKLY:
             delete schedule.day;
-            if (!schedule.week_days?.length) {
+            if ((schedule.week_days?.length ?? 0) === 0) {
                 schedule.week_days = [
                     WEEK_DAY.SUNDAY,
                     WEEK_DAY.MONDAY,
@@ -71,14 +77,18 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             break;
         }
 
+        if (!schedule.hours?.length) {
+            schedule.hours = ['00:00'];
+        }
+
         this.props.onSave({
             ...this.props.filter,
-            schedules: [schedule],
+            schedules: [schedule as ISearchFilterSchedule],
         }).then(() => this.props.onClose());
     }
 
     previewFilter() {
-        this.props.previewFilter(this.props.filter);
+        this.props.previewFilter(this.props.filter as ISearchFilter);
     }
 
     onChange<T extends keyof ISearchFilterSchedule>(field: T, value: ISearchFilterSchedule[T]) {
@@ -91,7 +101,7 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             // If the week_days array is empty, delete the attribute
             // This enabled the input field to automatically select all days
             // Which converts this to a 'daily' schedule automatically
-            if (!schedule.week_days?.length) {
+            if ((schedule.week_days?.length ?? 0) === 0) {
                 delete schedule.week_days;
             }
         }
@@ -104,19 +114,14 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
             frequency: {enabled: true, index: 1},
             week_days: {enabled: false, index: 2},
             month_day: {enabled: false, index: 3},
-            hour: {enabled: false, index: 4},
         };
 
         switch (this.state.schedule.frequency) {
-        case SCHEDULE_FREQUENCY.HOURLY:
-            break;
         case SCHEDULE_FREQUENCY.WEEKLY:
             profile.week_days.enabled = true;
-            profile.hour.enabled = true;
             break;
         case SCHEDULE_FREQUENCY.MONTHLY:
             profile.month_day.enabled = true;
-            profile.hour.enabled = true;
             break;
         }
 
@@ -175,6 +180,16 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                                         field: 'day',
                                     },
                                 }
+                            )}
+
+                            {this.state.schedule.frequency !== SCHEDULE_FREQUENCY.HOURLY && (
+                                <TimeInputs
+                                    hours={this.state.schedule.hours ?? []}
+                                    onChange={(hours) => this.setState({
+                                        schedule: {...this.state.schedule, hours},
+                                        pristine: false
+                                    })}
+                                />
                             )}
 
                             <ToggleBox
