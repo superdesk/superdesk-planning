@@ -44,7 +44,6 @@ export class WithMoreItems<T> extends React.PureComponent<IProps<T>> {
                                         <Spacer
                                             h
                                             gap="16"
-                                            justifyContent="space-between"
                                             noWrap
                                             style={{padding: 'var(--space--1)'}}
                                         >

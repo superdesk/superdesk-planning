@@ -20,7 +20,7 @@ export class LineItems extends React.PureComponent<IProps> {
         const secondLineStyles: React.CSSProperties = {overflow: 'hidden', paddingBlockEnd: 'var(--space--1)'};
 
         return (
-            <>
+            <Spacer v gap="4">
                 {/** overflow: hidden needed for support ellipsis for children */}
                 <Spacer h gap="8" justifyContent="space-between" noWrap noGrow style={firstLineStyles}>
                     <Spacer h gap="8" justifyContent="start" noWrap noGrow style={{overflow: 'hidden'}}>
@@ -43,7 +43,7 @@ export class LineItems extends React.PureComponent<IProps> {
                         {renderFieldsWithProps(secondLineEnd)}
                     </Spacer>
                 </Spacer>
-            </>
+            </Spacer>
         );
     }
 }

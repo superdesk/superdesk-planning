@@ -24,7 +24,7 @@ export const anpa_category: React.ComponentType<IProps> = (props) => {
     }
 
     return (
-        <Spacer h gap="4" noWrap style={{whiteSpace: 'nowrap'}}>
+        <Spacer h gap="4" noGrow style={{whiteSpace: 'nowrap'}}>
             {showLabel && <div className="sd-list-item__text-label">{vocabulary.display_name}</div>}
 
             <WithMoreItems
