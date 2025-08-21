@@ -237,9 +237,7 @@ async def sync_event_metadata_with_planning_items(
                 continue
 
             current_related_events = planning_item.get("related_events") or []
-            pruned_related_events = [
-                rel for rel in current_related_events if rel.get("_id") != event_updated["_id"]
-            ]
+            pruned_related_events = [rel for rel in current_related_events if rel.get("_id") != event_updated["_id"]]
 
             if pruned_related_events != current_related_events:
                 await planning_service.patch_async(planning_id, {"related_events": pruned_related_events})
