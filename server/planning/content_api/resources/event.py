@@ -42,6 +42,7 @@ class ContentAPIEventService(AsyncResourceService[ContentAPIEventResource]):
         else:
             await self.create([formatted_item])
 
+
 content_api_event_resource_config: ResourceConfig = ResourceConfig(
     name="events_capi",
     data_class=ContentAPIEventResource,
