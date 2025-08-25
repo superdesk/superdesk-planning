@@ -36,6 +36,18 @@ export class PlanningDetailsWidget extends React.PureComponent<IArticleSideWidge
         }
     }
 
+    componentDidUpdate = (_prevProps: IArticleSideWidgetComponentType, prevState: IState): void => {
+        const {assignment_id} = this.props.article;
+        const {planningId} = this.state;
+
+        if (assignment_id == null) return;
+
+        // refetch if there's a valid assignment but not planning data or different planning data
+        if (!planningId || planningId !== prevState.planningId)
+            this.fetchPlanningInfo(assignment_id);
+    }
+
+
     componentWillUnmount() {
         this.unsubscribeFromUpdates();
     }
