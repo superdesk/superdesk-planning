@@ -19,7 +19,7 @@ from planning.utils import parse_date
 from planning.utils import get_related_planning_for_events
 from planning.content_profiles.utils import AllContentProfileData
 from planning.common import get_config_event_fields_to_sync_with_planning
-from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation, Planning
+from planning.types import Event, EmbeddedPlanningDict, StringFieldTranslation
 from planning.types.event import EmbeddedPlanning as EmbeddedPlanningModel
 
 from .common import VocabsSyncData, SyncItemData, SyncData
@@ -218,3 +218,26 @@ async def sync_event_metadata_with_planning_items(
         )
         if sync_data.update_planning:
             await planning_service.patch_async(sync_data.planning.original["_id"], sync_data.planning.updates)
+
+    # Unlink planning items no longer embedded (even when sync_fields are present)
+    if embedded_planning_present:
+        existing_linked_planning_items = get_related_planning_for_events([event_updated["_id"]])
+        post_linked_ids = {p["_id"] for p in existing_linked_planning_items}
+
+        newly_linked_ids = post_linked_ids - pre_linked_ids
+
+        ids_to_maintain: set[str] = set(processed_planning_ids)
+        ids_to_maintain.update(newly_linked_ids)
+
+        ids_to_unlink = post_linked_ids - ids_to_maintain
+
+        for planning_id in ids_to_unlink:
+            planning_item = next((p for p in existing_linked_planning_items if p["_id"] == planning_id), None)
+            if not planning_item:
+                continue
+
+            current_related_events = planning_item.get("related_events") or []
+            pruned_related_events = [rel for rel in current_related_events if rel.get("_id") != event_updated["_id"]]
+
+            if pruned_related_events != current_related_events:
+                await planning_service.patch_async(planning_id, {"related_events": pruned_related_events})
