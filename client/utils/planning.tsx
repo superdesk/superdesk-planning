@@ -387,7 +387,7 @@ function canAddCoverageToWorkflow(
     return (
         isCoverageDraft(coverage) &&
         isCoverageAssigned(coverage) &&
-        options?.ignoreAutoAssignConfig ? true : !appConfig.planning_auto_assign_to_workflow &&
+        options?.ignoreAutoAssignConfig === true ? true : !appConfig.planning_auto_assign_to_workflow &&
         !isItemExpired(planning)
     );
 }
