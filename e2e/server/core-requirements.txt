@@ -324,7 +324,7 @@ six==1.17.0
     #   flask-oidc-ex
     #   oauth2client
     #   python-dateutil
-superdesk-core @ git+https://github.com/superdesk/superdesk-core.git@develop-async
+superdesk-core @ git+https://github.com/MarkLark86/superdesk-core.git@STT-1203
     # via -r core-requirements.in
 taskgroup==0.2.2
     # via hypercorn
