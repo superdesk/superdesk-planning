@@ -6,7 +6,7 @@ export class ManageContentProfiles extends Modal {
 
         subnav.menuBtn.click();
         subnav.menu
-            .contains(`Manage ${contentType} profiles`)
+            .contains(`Manage ${contentType} profile`)
             .should('exist')
             .click();
 

@@ -8,6 +8,7 @@ interface IProps {
     readOnly?: boolean;
     className?: string;
     testId?: string;
+    style?: React.CSSProperties;
     onChange(field: string, value: string | number): void;
     onBlur?(event: React.FocusEvent<HTMLInputElement>): void;
     onClick?(event: React.MouseEvent<HTMLInputElement>): void;
@@ -47,6 +48,7 @@ export class Input extends React.PureComponent<IProps> {
             refNode,
             className,
             testId,
+            style,
             ...props
         } = this.props;
 
@@ -67,6 +69,7 @@ export class Input extends React.PureComponent<IProps> {
                 disabled={readOnly}
                 data-test-id={testId}
                 ref={refNode}
+                style={style}
                 {...props}
             />
         );

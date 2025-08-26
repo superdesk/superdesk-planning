@@ -134,7 +134,7 @@ class ContactFieldComponent extends React.Component<IContactFieldProps> {
                             <ContactsPreviewList
                                 contactIds={value}
                                 onEditContact={privileges.contacts ? this.showEditModal : null}
-                                onRemoveContact={privileges.contacts ? this.removeContact : null}
+                                onRemoveContact={this.removeContact}
                             />
                         )}
                     </Spacer>

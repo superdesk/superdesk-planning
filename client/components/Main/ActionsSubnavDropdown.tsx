@@ -25,7 +25,7 @@ const ActionsSubnavDropdownComponent = (props) => {
 
     if (props.privileges[PRIVILEGES.MANAGE_CONTENT_PROFILES]) {
         items.push({
-            label: gettext('Manage planning profiles'),
+            label: gettext('Manage planning profile'),
             action: planningApi.contentProfiles.showManagePlanningProfileModal,
         });
 
@@ -39,7 +39,7 @@ const ActionsSubnavDropdownComponent = (props) => {
         });
 
         items.push({
-            label: gettext('Manage event profiles'),
+            label: gettext('Manage event profile'),
             action: planningApi.contentProfiles.showManageEventProfileModal,
         });
     }

@@ -43,6 +43,7 @@ interface IExtensionBridge {
     };
     planning: {
         getItemPlanningInfo(item: {assignment_id?: string}): Promise<IPlanningItem>;
+        editPlanningInNewTab(planningItemId: IPlanningItem['_id']): void;
     },
     coverages: {
         validateCoverages(coverages: Array<IPlanningCoverageItem>): {errors: {}; messages: Array<string>};
