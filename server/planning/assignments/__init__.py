@@ -11,10 +11,16 @@
 import superdesk
 from quart_babel import lazy_gettext
 
+from superdesk.signals import item_duplicate_async, item_duplicated_async
 from planning import signals
 from .assignments import AssignmentsResource, AssignmentsService
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
-from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
+from .assignments_link import (
+    AssignmentsLinkResource,
+    AssignmentsLinkService,
+    on_archive_item_duplicate,
+    on_archive_item_duplicated,
+)
 from .assignments_unlink import AssignmentsUnlinkResource, AssignmentsUnlinkService
 from .assignments_complete import (
     AssignmentsCompleteResource,
@@ -143,6 +149,9 @@ def init_app(app):
     app.on_fetched_resource_published += assignments_publish_service.on_fetched_resource_archive
     app.on_fetched_item_published += assignments_publish_service.on_fetched_resource_archive
     app.on_updated_archive_spike += assignments_unlink_service.on_spike_item
+
+    item_duplicate_async.connect(on_archive_item_duplicate)
+    item_duplicated_async.connect(on_archive_item_duplicated)
 
     # Privileges
     superdesk.intrinsic_privilege(AssignmentsUnlockResource.endpoint_name, method=["POST"])

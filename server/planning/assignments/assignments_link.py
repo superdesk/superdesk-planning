@@ -6,9 +6,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 from copy import deepcopy
-from quart_babel import gettext as _
 
+from quart_babel import gettext as _
+from bson import ObjectId
+
+from superdesk.core import get_config
 from superdesk.resource_fields import ID_FIELD
+from superdesk.flask import g
 from superdesk import Resource, get_resource_service
 from superdesk.eve_async.service import AsyncBaseService
 from superdesk.errors import SuperdeskApiError
@@ -270,3 +274,72 @@ class AssignmentsLinkResource(Resource):
     item_methods = []
 
     privileges = {"POST": "archive"}
+
+
+async def _get_assignment_for_content_duplicate(item: dict) -> dict | None:
+    """Retrieve Assignment to link to the duplicate content item.
+
+    If this item returns None, then the newly created duplicate item is not to be linked to an Assignment.
+    Returns true if all of the following conditions are met:
+
+    * ``ASSIGNMENT_LINK_DUPLICATE_CONTENT`` setting is enabled
+    * The original item has ``assignment_id`` (linked to an Assignment)
+    * Assignment with ``assignment_id`` exists
+    * Item is not being duplicated to the personal space
+    * Assignment has ``planning.multiple_content`` enabled
+
+    :param: item: The content item where the Assignment is to be possibly linked to
+    :return: Returns the assignment data if it exists and meets the criteria for multiple content
+            link duplication. Otherwise, returns None.
+    """
+
+    if not get_config(bool, "ASSIGNMENT_LINK_DUPLICATE_CONTENT", False):
+        return None
+
+    assignment_id: ObjectId | None = item.get("assignment_id")
+    if not assignment_id:
+        return None
+    elif not (item.get("task") or {}).get("desk"):
+        return None
+
+    assignment: dict | None = g.get("archive_assignment")
+    if not assignment:
+        assignment = await get_resource_service("assignments").find_one_async(req=None, _id=assignment_id)
+        if not assignment:
+            logger.warning(f"Failed to find assignment {assignment_id} for duplicated item {item['_id']}")
+            return None
+        g.archive_assignment = assignment
+
+    if not assignment_allows_multiple_content_linked(assignment):
+        return None
+
+    return assignment
+
+
+async def on_archive_item_duplicate(updated: dict, original: dict, operation: str) -> None:
+    """Remove the ``assignment_id`` from the duplicated item.
+
+    Before the duplicated item is to be created, check to see if the new item is to be linked to the same Assignment.
+    If it is not, then remove the ``assignment_id`` from the duplicated item.
+    """
+
+    if not await _get_assignment_for_content_duplicate(updated):
+        updated.pop("assignment_id", None)
+
+
+async def on_archive_item_duplicated(updated: dict, original: dict, operation: str) -> None:
+    """Link the newly created duplicated item to the Assignment."""
+
+    assignment = await _get_assignment_for_content_duplicate(updated)
+    if assignment:
+        await get_resource_service("assignments_link").post_async(
+            [
+                {
+                    "assignment_id": assignment["_id"],
+                    "item_id": updated["_id"],
+                    "reassign": False,
+                    "force": True,  # Force the linking, even though this item has ``assignment_id``
+                    "skip_archive_update": True,  # No need to update item, as we've already done this
+                }
+            ]
+        )
