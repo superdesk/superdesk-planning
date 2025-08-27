@@ -618,6 +618,7 @@ class PlanningService(Service):
             and coverage["workflow_status"] == WORKFLOW_STATE.DRAFT
         ):
             coverage["workflow_status"] = WORKFLOW_STATE.ACTIVE
+            coverage["add_coverage_to_workflow"] = True
 
             # set all scheduled_updates to be activated
             for s in coverage.get("scheduled_updates") or []:

@@ -70,7 +70,7 @@ import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {getOpenEditorType} from './editor';
 import {coverageProfiles} from '../selectors/coverageProfiles';
 
-const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
+const isCoverageAssigned = (coverage: IPlanningCoverageItem) => coverage.assigned_to?.desk != null;
 
 function isCancelPlanWithEventDisabled(): boolean {
     return (planningApi.events.getEditorProfile().schema.related_plannings?.cancel_plan_with_event ?? true) === false;
