@@ -24,10 +24,10 @@ export class EditorFieldAddCoverageToWorkflow extends React.PureComponent<IProps
         }
 
         if (isItemExpired(planning)) {
-            return gettext('Cannot add expired planning items to workflow');
+            return gettext('Cannot change workflow status if the coverage is part of an expired planning item');
         }
 
-        return gettext('Coverage cannot be added to workflow');
+        return gettext('You cannot change workflow status');
     }
 
     render() {
