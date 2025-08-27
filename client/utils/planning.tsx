@@ -377,11 +377,17 @@ function canCancelCoverage(
     );
 }
 
-function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: Partial<IPlanningItem>): boolean {
+function canAddCoverageToWorkflow(
+    coverage: IPlanningCoverageItem,
+    planning: Partial<IPlanningItem>,
+    options?: {
+        ignoreAutoAssignConfig?: boolean,
+    },
+): boolean {
     return (
         isCoverageDraft(coverage) &&
         isCoverageAssigned(coverage) &&
-        !appConfig.planning_auto_assign_to_workflow &&
+        options?.ignoreAutoAssignConfig === true ? true : !appConfig.planning_auto_assign_to_workflow &&
         !isItemExpired(planning)
     );
 }
