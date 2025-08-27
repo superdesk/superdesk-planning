@@ -1,18 +1,43 @@
 import * as React from 'react';
-import {IEditorFieldProps} from '../../../interfaces';
+import {IEditorFieldProps, IPlanningCoverageItem} from '../../../interfaces';
 import {EditorFieldToggle} from './base/toggle';
 
 import {superdeskApi} from '../../../superdeskApi';
 import {Tooltip} from '@sourcefabric/common';
+import {isItemExpired, planningUtils} from '../../../utils';
+import {IPlanningItem} from 'globals';
 
-export class EditorFieldAddCoverageToWorkflow extends React.PureComponent<IEditorFieldProps> {
+type IProps = IEditorFieldProps<IPlanningCoverageItem> & {planningItem: IPlanningItem};
+
+export class EditorFieldAddCoverageToWorkflow extends React.PureComponent<IProps> {
+    getTooltipMessage(): string {
+        const {gettext} = superdeskApi.localization;
+        const coverage = this.props.item;
+        const planning = this.props.planningItem;
+
+        if (!planningUtils.isCoverageDraft(coverage)) {
+            return gettext('Coverage must be in draft status');
+        }
+
+        if (!planningUtils.isCoverageAssigned(coverage)) {
+            return gettext('Coverage must be assigned to a desk');
+        }
+
+        if (isItemExpired(planning)) {
+            return gettext('Cannot add expired planning items to workflow');
+        }
+
+        return gettext('Coverage cannot be added to workflow');
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
+        const tooltipMessage = this.getTooltipMessage();
 
         return (
             <Tooltip
                 disabled={this.props.disabled === false}
-                content={superdeskApi.localization.gettext('You haven\'t assigned the coverage')}
+                content={tooltipMessage}
             >
                 <EditorFieldToggle
                     {...this.props}

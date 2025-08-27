@@ -6,10 +6,11 @@ import {
     EDITOR_TYPE,
     IAssignmentPriority,
     ICoverageProvider,
+    IEventItem,
     IG2ContentType,
-    IGenre,
     IPlanningAppState,
     IPlanningCoverageItem,
+    IPlanningItem,
     IPlanningNewsCoverageStatus
 } from '../../../interfaces';
 import {IArticle, IDesk, IUser} from 'superdesk-api';
@@ -323,6 +324,7 @@ export class CoverageEditorComponent extends React.PureComponent<IProps> {
                 onChange={onChange}
                 readOnly={readOnly}
                 message={message}
+                item={diff}
                 hasAssignment={planningUtils.isCoverageAssigned(value)}
                 addNewsItemToPlanning={addNewsItemToPlanning}
                 onFieldFocus={onFocus}
