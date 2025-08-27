@@ -13,6 +13,7 @@ import {
 import {Dispatch, Store} from 'redux';
 import * as moment from 'moment';
 import * as React from 'react';
+import {ILineConfig} from './globals';
 
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
@@ -228,10 +229,12 @@ export enum SORT_FIELD {
     UPDATED = 'updated'
 }
 
-export enum LIST_VIEW_TYPE {
-    SCHEDULE = 'schedule',
-    LIST = 'list',
+export enum GROUP_LIST_BY {
+    DATE = 'date',
+    NOT_GROUPED = 'not_grouped',
 }
+
+export type IMainViewType = 'list' | 'list-compact';
 
 export type IPlanningProfile = {
     name: string;
@@ -906,9 +909,8 @@ export interface IBaseListItemProps<T> {
     activeFilter: PLANNING_VIEW;
     multiSelectDisabled?: boolean;
     multiSelected: boolean;
-    listFields: any;
     active: boolean;
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     minTimeWidth: string;
 
@@ -924,6 +926,10 @@ export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
     relatedEventsUI?: {
         visible: boolean;
         setVisibility(value: boolean): void;
+    };
+    customTemplate?: {
+        firstLine: Array<ILineConfig>;
+        secondLine?: Array<ILineConfig>;
     };
 }
 
@@ -943,6 +949,10 @@ export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem
     relatedEventsUI?: {
         visible: boolean;
         setVisibility(value: boolean): void;
+    };
+    customTemplate?: {
+        firstLine: Array<ILineConfig>;
+        secondLine?: Array<ILineConfig>;
     };
 }
 
@@ -1076,10 +1086,10 @@ export interface IProfileSchemaTypeList extends IBaseProfileSchemaType<'list'> {
     cancel_plan_with_event?: boolean;
 }
 
-export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> {}
-export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> {}
-export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> {}
-export interface IProfileSchemaTypeBoolean extends IBaseProfileSchemaType<'boolean'> {}
+export interface IProfileSchemaTypeInteger extends IBaseProfileSchemaType<'integer'> { }
+export interface IProfileSchemaTypeDict extends IBaseProfileSchemaType<'dict'> { }
+export interface IProfileSchemaTypeDateTime extends IBaseProfileSchemaType<'datetime'> { }
+export interface IProfileSchemaTypeBoolean extends IBaseProfileSchemaType<'boolean'> { }
 export interface IProfileSchemaTypeCV extends IBaseProfileSchemaType<'custom_vocabulary'> { }
 
 export interface IProfileSchemaTypeString extends IBaseProfileSchemaType<'string'> {
@@ -1135,12 +1145,6 @@ export interface IEditorProfile {
 
     // postSchema controls the validation of fields when posting.
     postSchema?: {[key: string]: IProfileSchemaType};
-
-    // list fields config
-    list?: {[key: string]: any};
-
-    // list fields when seeing events/planning when exporting or downloading
-    export_list?: Array<string>;
 
     // list of groups (and their translations) for grouping of fields in the Editor
     groups: {[key: string]: IEditorProfileGroup};
@@ -1600,8 +1604,8 @@ export interface ISearchFilter extends IBaseRestApiResponse {
     schedules?: Array<ISearchFilterSchedule>;
 }
 
-export interface IEditorFieldProps {
-    item: any;
+export interface IEditorFieldProps<T = any> {
+    item: T;
     field: string;
     label?: string;
     required?: boolean;
@@ -1713,7 +1717,12 @@ export interface IContentTemplate extends IBaseRestApiResponse {
 
 export interface IFieldsProps {
     item: IEventOrPlanningItem;
-    language?: string;
+    language: string;
+    fieldsProps: {
+        // field specific props may be passed
+        [key: string]: any;
+    };
+    fieldOptions: ILineConfig['fieldOptions'];
 }
 
 interface IMainStateSearch<T> {
@@ -1727,7 +1736,8 @@ interface IMainStateSearch<T> {
 export interface IMainState {
     previewId?: IEventItem['_id'] | IPlanningItem['_id'];
     previewType?: IEventItem['type'] | IPlanningItem['type'];
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
+    viewType: IMainViewType;
     loadingPreview: boolean;
     filter?: PLANNING_VIEW;
     loadingIndicator: boolean;
@@ -2376,7 +2386,8 @@ export interface IPlanningAPI {
             search(params: ISearchParams): Promise<any>;
             clearSearch(): Promise<any>;
             clearList(): void;
-            setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
+            setGroupListBy(value: GROUP_LIST_BY): Promise<any>;
+            setViewType(value: IMainViewType): Promise<any>;
             changeCurrentView(view: PLANNING_VIEW): Promise<any>;
         };
     };

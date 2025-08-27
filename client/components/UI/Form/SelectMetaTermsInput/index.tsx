@@ -11,6 +11,7 @@ import './style.scss';
 export interface IProps {
     options: Array<any>;
     value?: Array<any>;
+    singleSelect?: boolean;
     label?: string;
     labelKey?: string;
     valueKey?: string;
@@ -157,6 +158,8 @@ export class SelectMetaTermsInput extends React.Component<IProps, IState> {
             selected = selected.filter((val) => val.scheme === scheme);
         }
 
+        const hasSelectedMax = this.props.singleSelect && selected.length >= 1;
+
         return (
             <LineInput
                 {...props}
@@ -177,9 +180,9 @@ export class SelectMetaTermsInput extends React.Component<IProps, IState> {
                         className={classNames(
                             'dropdown__toggle',
                             'sd-line-input__plus-btn',
-                            {'sd-line-input__plus-btn--disabled': disabled}
+                            {'sd-line-input__plus-btn--disabled': disabled || hasSelectedMax}
                         )}
-                        disabled={disabled}
+                        disabled={disabled || hasSelectedMax}
                         onClick={this.toggleOpenSelectPopup}
                         onFocus={onFocus}
                         ref={this.addBtn}

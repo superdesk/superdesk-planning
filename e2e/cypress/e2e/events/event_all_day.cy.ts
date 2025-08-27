@@ -37,7 +37,7 @@ describe('Planning.Events: all day events and events without end time', () => {
 
     it('can create single day event without start and end time', () => {
         const event = {
-            ...baseEvent, 
+            ...baseEvent,
             'dates.start.date': moment().format(CLIENT_FORMAT),
         };
 
@@ -48,15 +48,19 @@ describe('Planning.Events: all day events and events without end time', () => {
 
         createEvent(event, expectedEvent, 1);
 
-        list.item(0).find('[data-test-id="event-start-date"]').should('contain.text', event['dates.start.date']);
-        list.item(0).find('[data-test-id="event-end-date"]').should('contain.text', '');
+        list.item(0).find('[data-test-id="event-datetime"]')
+            .should('contain.text', 'All day');
     });
 
     it('can create multi day event without start and end time', () => {
+        const startDate = moment().format(CLIENT_FORMAT);
+        const endDate = moment().add(1, 'day')
+            .format(CLIENT_FORMAT);
+
         const event = {
-            ...baseEvent, 
-            'dates.start.date': moment().format(CLIENT_FORMAT),
-            'dates.end.date': moment().add(1, 'day').format(CLIENT_FORMAT),
+            ...baseEvent,
+            'dates.start.date': startDate,
+            'dates.end.date': endDate,
         };
 
         const expectedEvent = {
@@ -66,13 +70,16 @@ describe('Planning.Events: all day events and events without end time', () => {
 
         createEvent(event, expectedEvent, 2);
 
-        list.item(0).find('[data-test-id="event-start-date"]').should('contain.text', event['dates.start.date']);
-        list.item(0).find('[data-test-id="event-end-date"]').should('contain.text', event['dates.end.date']);
+        list.item(0).find('[data-test-id="event-datetime"]')
+            .should('contain.text', 'All day');
+
+        list.item(1).find('[data-test-id="event-datetime"]')
+            .should('contain.text', `${startDate}All day`);
     });
 
     it('can create single day event with start time', () => {
         const event = {
-            ...baseEvent, 
+            ...baseEvent,
             'dates.start.date': moment().format(CLIENT_FORMAT),
             'dates.start.time': '12:00',
         };
@@ -84,16 +91,21 @@ describe('Planning.Events: all day events and events without end time', () => {
 
         createEvent(event, expectedEvent, 1);
 
-        list.item(0).find('[data-test-id="event-start-date"]').should('contain.text', moment().format('DD/MM\xa0[12:00]')); // &nbsp;
-        list.item(0).find('[data-test-id="event-end-date"]').should('contain.text', '');
+        list.item(0).find('[data-test-id="event-datetime"]')
+            .should('contain.text', '12:00');
     });
 
     it('can create multi day event with start time', () => {
+        const startDate = moment().format(CLIENT_FORMAT);
+        const startTime = '12:00';
+        const endDate = moment().add(1, 'day')
+            .format(CLIENT_FORMAT);
+
         const event = {
-            ...baseEvent, 
-            'dates.start.date': moment().format(CLIENT_FORMAT),
-            'dates.start.time': '12:00',
-            'dates.end.date': moment().add(1, 'day').format(CLIENT_FORMAT),
+            ...baseEvent,
+            'dates.start.date': startDate,
+            'dates.start.time': startTime,
+            'dates.end.date': endDate,
         };
 
         const expectedEvent = {
@@ -103,13 +115,16 @@ describe('Planning.Events: all day events and events without end time', () => {
 
         createEvent(event, expectedEvent, 2);
 
-        list.item(0).find('[data-test-id="event-start-date"]').should('contain.text', moment().format('DD/MM\xa0[12:00]')); // &nbsp;
-        list.item(0).find('[data-test-id="event-end-date"]').should('contain.text', event['dates.end.date']);
+        list.item(0).find('[data-test-id="event-datetime"]')
+            .should('contain.text', `${startTime}–${endDate}`);
+
+        list.item(1).find('[data-test-id="event-datetime"]')
+            .should('contain.text', `${startDate}\xa0${startTime}–${endDate}`); // &nbsp;
     });
 
     it('can clear time via popup', () => {
         const event = {
-            ...baseEvent, 
+            ...baseEvent,
             'dates.start.date': moment().format(CLIENT_FORMAT),
             'dates.start.time': '12:00',
             'dates.end.time': '13:00',
@@ -117,7 +132,7 @@ describe('Planning.Events: all day events and events without end time', () => {
 
         editor.openAllToggleBoxes();
         editor.type(event);
-     
+
         cy.get('[data-test-id="field-dates_end"]').find('[data-test-id="time-popup-toggle"]').click();
         cy.get('[data-test-id="time-popup-clear"]').click();
 
@@ -128,6 +143,7 @@ describe('Planning.Events: all day events and events without end time', () => {
             .should('exist')
             .click();
 
-        list.item(0).find('[data-test-id="event-start-date"]').should('contain.text', event['dates.start.date']);
+        list.item(0).find('[data-test-id="event-datetime"]')
+            .should('contain.text', 'All day');
     });
 });

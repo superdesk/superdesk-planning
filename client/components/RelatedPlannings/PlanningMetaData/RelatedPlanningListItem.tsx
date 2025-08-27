@@ -3,15 +3,18 @@ import {connect} from 'react-redux';
 
 import {IPlanningItem, IG2ContentType, ILockedItems, IAgenda} from '../../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
-import {superdeskApi} from '../../../superdeskApi';
 
-import {lockUtils, getItemWorkflowStateLabel, stringUtils} from '../../../utils';
+import {lockUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 
-import {Label} from 'superdesk-ui-framework/react';
 import * as List from '../../UI/List';
-import {AgendaNameList} from '../../Agendas';
-import {CoverageIcons} from '../../Coverages/CoverageIcons';
+import {ICON_COLORS} from '../../../constants';
+import {ItemIcon} from '../../../components/ItemIcon';
+import {LineItems} from '../../../components/UI/List/LineItems';
+import {getPlanningSecondLineConfig, planningFirstLineConfig} from '../../../config';
+import {getUserInterfaceLanguageFromCV} from '../../../utils/users';
+import {renderFields} from '../../../components/fields';
+import {ILineConfig} from 'globals';
 
 interface IOwnProps {
     item: DeepPartial<IPlanningItem>;
@@ -45,16 +48,22 @@ const mapStateToProps = (state) => ({
 
 class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
     render() {
-        const {gettext} = superdeskApi.localization;
         const isItemLocked = lockUtils.isItemLocked(
             this.props.item,
             this.props.lockedItems
         );
-        const stateLabel = getItemWorkflowStateLabel(this.props.item);
-        const agendas = (this.props.item.agendas ?? [])
-            .map((agendaId) => this.props.agendas[agendaId])
-            .filter((agenda) => agenda != null);
-        const itemDescription = this.props.item.name || this.props.item.description_text || '';
+        const language = this.props.item.language || getUserInterfaceLanguageFromCV();
+
+        const renderFieldsWithProps = (fields: Array<ILineConfig>) => renderFields(
+            fields,
+            this.props.item,
+            {
+                fieldsProps: {
+                    // no field specific config needed yet
+                },
+            },
+            language,
+        );
 
         return (
             <List.Item
@@ -66,64 +75,31 @@ class RelatedPlanningListItemComponent extends React.PureComponent<IProps> {
                 {!(this.props.showBorder && isItemLocked) ? null : (
                     <List.Border state="locked" />
                 )}
+
+                {!this.props.showIcon ? null : (
+                    <List.Column>
+                        <ItemIcon
+                            item={this.props.item}
+                            color={ICON_COLORS.DARK_BLUE_GREY}
+                        />
+                    </List.Column>
+                )}
+
                 <List.Column
                     grow={true}
                     border={false}
+                    style={{paddingBlock: 'var(--space--1)'}}
                 >
-                    <List.Row>
-                        {this.props.showIcon !== true ? null : (
-                            <i
-                                role="presentation"
-                                className="icon-calendar icon--light-blue"
-                            />
-                        )}
-                        {(this.props.item.slugline?.length ?? 0) === 0 ? null : (
-                            <span className="sd-list-item__slugline">
-                                {this.props.item.slugline}
-                            </span>
-                        )}
-                        {itemDescription.length === 0 ? null : (
-                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                {/* Description_text may contain HTML and we
-                                do not want to display that in this header */}
-                                {stringUtils.convertHtmlToPlainText(
-                                    this.props.item.name || this.props.item.description_text,
-                                )}
-                            </span>
-                        )}
-                    </List.Row>
-                    <List.Row
-                        classes="sd-list-item__row--overflow-visible me-1"
-                        style={{overflow: 'visible'}} // Adding static style here, so it works with Superdesk 2.7
-                    >
-                        <Label
-                            text={stateLabel.label}
-                            style="translucent"
-                            type={stateLabel.iconType}
-                        />
-                        {this.props.isAgendaEnabled === false ? null : (
-                            <div className="sd-display--flex">
-                                <span className="sd-list-item__text-label">
-                                    {gettext('Agenda:')}
-                                </span>
-                                <span
-                                    className="ms-0-5 sd-overflow--ellipsis
-                                    sd-list-item__text-strong sd-list-item--element-grow"
-                                >
-                                    <AgendaNameList agendas={agendas} />
-                                </span>
-                            </div>
-                        )}
-                        <span className="sd-margin-s--auto">
-                            <CoverageIcons
-                                coverages={(this.props.item.coverages ?? [])}
-                                users={this.props.users}
-                                desks={this.props.desks}
-                                contentTypes={this.props.contentTypes}
-                            />
-                        </span>
-                    </List.Row>
+                    <LineItems
+                        firstLine={planningFirstLineConfig.filter(({fieldId}) => fieldId !== 'related_events')}
+                        secondLine={
+                            getPlanningSecondLineConfig({isAgendaEnabled: this.props.isAgendaEnabled})
+                                .filter(({fieldId}) => fieldId !== 'related_events')
+                        }
+                        renderFieldsWithProps={renderFieldsWithProps}
+                    />
                 </List.Column>
+
                 {this.props.editPlanningComponent == null ? null : (
                     <List.ActionMenu>
                         {this.props.editPlanningComponent}

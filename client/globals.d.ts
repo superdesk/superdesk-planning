@@ -153,6 +153,29 @@ interface ResizeObserverCallback {
     (entries: ResizeObserverEntry[], observer: ResizeObserver): void;
 }
 
+export interface ILineConfigStandard {
+    fieldId: string;
+    position?: 'start' | 'end';
+    fieldOptions: any; // type of options will be different for each field type
+}
+
+export interface ILineConfigAnpaCategory extends ILineConfigStandard {
+    fieldId: 'anpa_category';
+    fieldOptions: {
+        hideLabel?: boolean;
+    };
+}
+
+export interface ILineConfigVocabulary extends ILineConfigStandard {
+    fieldId: 'vocabulary';
+    fieldOptions: {
+        vocabularyId: string;
+        hideVocabularyName?: boolean;
+    };
+}
+
+export type ILineConfig = ILineConfigStandard | ILineConfigVocabulary;
+
 // KEEP IN SYNC WITH client/planning-extension/src/globals.d.ts
 declare module 'superdesk-api' {
     interface ISuperdeskGlobalConfig {
@@ -179,6 +202,9 @@ declare module 'superdesk-api' {
         start_of_week?: number;
         planning_default_view: PLANNING_VIEW;
 
+        // Custom vocabularies to exclude from registration as `custom_vocabulary` fields.
+        vocabulariesToExcludeAsFields: Array<IVocabulary['_id']>;
+
         planning?: {
             dateformat?: string;
             timeformat?: string;
@@ -189,6 +215,26 @@ declare module 'superdesk-api' {
 
             // Controls whether planning should have date only
             all_day?: boolean;
+
+            planning_list_item?: {
+                firstLine: Array<ILineConfig>;
+                secondLine?: Array<ILineConfig>;
+
+                compact_view?: {
+                    firstLine: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
+            };
+
+            event_list_item?: {
+                firstLine: Array<ILineConfig>;
+                secondLine?: Array<ILineConfig>;
+
+                compact_view?: {
+                    firstLine: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
+            };
         };
 
         coverage?: {

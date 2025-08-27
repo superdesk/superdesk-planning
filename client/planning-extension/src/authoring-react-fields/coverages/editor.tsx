@@ -37,6 +37,7 @@ export class Editor extends React.PureComponent<IProps> {
                         readOnly={false}
                         field="coverages"
                         item={{
+                            ...this.props.item,
                             // coverages are the main value
                             coverages: changedValue ?? [],
 

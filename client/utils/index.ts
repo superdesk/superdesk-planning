@@ -322,20 +322,6 @@ export const isExistingItem = (item, field = '_id') => !!get(item, field) && !it
 export const isTemporaryId = (itemId) => itemId && itemId.startsWith(TEMP_ID_PREFIX);
 export const isPublishedItemId = (itemId) => itemId && itemId.startsWith(QUEUE_ITEM_PREFIX);
 
-export const getItemActionedStateLabel = (item) => {
-    const {gettext} = superdeskApi.localization;
-
-    // Currently will cater for 'rescheduled from' scenario.
-    // If we need to use this for 'duplicate from' or any other, we can extend it
-    if (item.reschedule_from) {
-        return {
-            label: gettext('Rescheduled Event'),
-            iconType: 'primary',
-            tooltip: {text: gettext('View original event'), flow: 'right'},
-        };
-    }
-};
-
 // eslint-disable-next-line complexity
 export const getItemWorkflowStateLabel = (item, field = 'state') => {
     const {gettext} = superdeskApi.localization;

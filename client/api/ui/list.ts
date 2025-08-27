@@ -9,15 +9,16 @@ import {
     IPlanningSearchParams,
     ISearchFilter,
     ISearchParams,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     PLANNING_VIEW,
     SORT_FIELD,
     SORT_ORDER,
+    IMainViewType,
 } from '../../interfaces';
 import {planningApi, superdeskApi} from '../../superdeskApi';
 import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN} from '../../constants';
 
-import {activeFilter, getCurrentListViewType, lastRequestParams} from '../../selectors/main';
+import {activeFilter, getCurrentListGrouping, lastRequestParams} from '../../selectors/main';
 import {getEventFilterParams} from '../../selectors/events';
 import {getPlanningFilterParams} from '../../selectors/planning';
 import {getEventsPlanningViewParams} from '../../selectors/eventsplanning';
@@ -159,11 +160,11 @@ function search(newParams: ISearchParams) {
         page: 1,
     };
     const dates = params.advancedSearch?.dates ?? {};
-    const listViewType = getCurrentListViewType(getState());
+    const groupListBy = getCurrentListGrouping(getState());
 
     // If an end date had been provided without a start date
     // then default the start date to 1 day before the end date
-    if (listViewType === LIST_VIEW_TYPE.SCHEDULE && !dates.range && !dates.start && dates.end) {
+    if (groupListBy === GROUP_LIST_BY.DATE && !dates.range && !dates.start && dates.end) {
         dates.start = moment(dates.end).subtract(1, 'days');
     }
 
@@ -181,10 +182,10 @@ function clearSearch() {
     return reloadList();
 }
 
-function setViewType(viewType: LIST_VIEW_TYPE) {
+function setGroupListBy(groupByValue: GROUP_LIST_BY) {
     const {dispatch, getState} = planningApi.redux.store;
 
-    if (viewType === getCurrentListViewType(getState())) {
+    if (groupByValue === getCurrentListGrouping(getState())) {
         return Promise.resolve();
     }
 
@@ -192,12 +193,12 @@ function setViewType(viewType: LIST_VIEW_TYPE) {
     // otherwise the list will try and re-render with the currently loaded items
     clearList();
     dispatch({
-        type: MAIN.ACTIONS.SET_LIST_VIEW_TYPE,
-        payload: viewType,
+        type: MAIN.ACTIONS.SET_LIST_GROUP_BY,
+        payload: groupByValue,
     });
-    superdeskApi.browser.location.urlParams.setString('listViewType', viewType);
+    superdeskApi.browser.location.urlParams.setString('groupListBy', groupByValue);
 
-    const params: ICombinedEventOrPlanningSearchParams = viewType === LIST_VIEW_TYPE.SCHEDULE ?
+    const params: ICombinedEventOrPlanningSearchParams = groupByValue === GROUP_LIST_BY.DATE ?
         {
             sortField: SORT_FIELD.SCHEDULE,
             sortOrder: SORT_ORDER.ASCENDING,
@@ -210,6 +211,23 @@ function setViewType(viewType: LIST_VIEW_TYPE) {
     return reloadList(params);
 }
 
+function setViewType(value: IMainViewType) {
+    const {dispatch} = planningApi.redux.store;
+
+    // For performance reasons, clear the list before changing list view type
+    // otherwise the list will try and re-render with the currently loaded items
+    clearList();
+
+    dispatch({
+        type: MAIN.ACTIONS.SET_VIEW_TYPE,
+        payload: value,
+    });
+
+    superdeskApi.browser.location.urlParams.setString('viewType', value);
+
+    return reloadList();
+}
+
 export const list: IPlanningAPI['ui']['list'] = {
     changeFilterId,
     changeCalendarId,
@@ -217,6 +235,7 @@ export const list: IPlanningAPI['ui']['list'] = {
     search,
     clearSearch,
     clearList,
+    setGroupListBy,
     setViewType,
     changeCurrentView,
 };

@@ -1,10 +1,10 @@
 import React from 'react';
-import {NestedItem} from '../../components/UI/List';
 import {PlanningItem} from '../Planning/PlanningItem';
 import {IEventItem, IEventListItemProps, IPlanningListItemProps} from 'interfaces';
 import {superdeskApi} from '../../superdeskApi';
 import {EventItem} from '../../components/Events';
 import {eventUtils} from '../../utils';
+import {NestedItem} from '../../components/UI/List/NestedItem';
 
 interface IProps {
     planningProps: IPlanningListItemProps;

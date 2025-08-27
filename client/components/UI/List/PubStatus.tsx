@@ -6,6 +6,7 @@ import {TOOLTIPS} from '../../../constants';
 
 import {Column} from './Column';
 import {isNotForPublication} from '../utils';
+import {superdeskApi} from '../../../superdeskApi';
 
 /**
  * @ngdoc react
@@ -15,6 +16,8 @@ import {isNotForPublication} from '../utils';
 export const PubStatus = ({item, isPublic}) => {
     let badge;
     let title = null;
+
+    const {gettext} = superdeskApi.localization;
 
     if (isPublic) {
         title = TOOLTIPS.postedState;
@@ -32,6 +35,8 @@ export const PubStatus = ({item, isPublic}) => {
             />
         );
     } else {
+        title = gettext('Not posted');
+
         badge = <span className="badge badge--light">&nbsp;</span>;
     }
 

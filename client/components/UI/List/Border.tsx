@@ -1,13 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+interface IProps {
+    state: false | 'success' | 'error' | 'locked' | 'active' | 'idle';
+}
+
 /**
- * @ngdoc react
- * @name Border
- * @description Component to show border for a list item. Eg. red border for locked item
+ * Component to show border for a list item. Eg. red border for locked item
  */
-export const Border = ({state}) => (
+export const Border: React.FunctionComponent<IProps> = ({state = false}) => (
     <div
         className={classNames(
             'sd-list-item__border',
@@ -16,15 +17,3 @@ export const Border = ({state}) => (
     />
 );
 
-Border.propTypes = {
-    state: PropTypes.oneOf([
-        false,
-        'success',
-        'error',
-        'locked',
-        'active',
-        'idle',
-    ]),
-};
-
-Border.defaultProps = {state: false};

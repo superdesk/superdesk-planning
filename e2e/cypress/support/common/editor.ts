@@ -171,6 +171,8 @@ export class Editor {
     waitTillClosed() {
         cy.log('Common.Editor.waitTillClosed');
         this.closeButton.should('not.exist');
+
+        cy.wait(200);
     }
 
     /**

@@ -2,14 +2,13 @@ import * as React from 'react';
 import {cloneDeep, omit} from 'lodash';
 import {
     IProfileFieldEntry,
-    IG2ContentType,
     ICoverageContentProfile,
     ICoverageType,
     IEditorProfile,
 } from '../../interfaces';
 import {superdeskApi, planningApi} from '../../superdeskApi';
 import {getErrorMessage, planningUtils} from '../../utils';
-import {contentTypes} from '../../selectors/general';
+import {contentTypes, session} from '../../selectors/general';
 import {Button, Modal, RadioButtonGroup, Spacer} from 'superdesk-ui-framework/react';
 import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
 import {FieldTab} from './FieldTab';
@@ -40,6 +39,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
 
         const state = planningApi.redux.store.getState();
         const allProfiles = coverageProfiles(state);
+        const userInterfaceLanguage = session(planningApi.redux.store.getState()).identity.language ?? 'en';
 
         this.availableCoverageTypes = (contentTypes(planningApi.redux.store.getState()))
             .map((item) => ({
@@ -47,7 +47,7 @@ export class CoverageProfilesModal extends React.Component<IProps, IState> {
                 label: getVocabularyItemFieldTranslated(
                     item,
                     superdeskApi.helpers.nameof<typeof item>('name'),
-                    planningApi.contentProfiles.getDefaultLanguage(defaultProfile)
+                    userInterfaceLanguage,
                 ),
 
                 // remove 'icon-' string because RadioButtonGroup icon prop for each option expects just icon name

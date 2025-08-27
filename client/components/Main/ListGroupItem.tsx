@@ -1,21 +1,28 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import {debounce, indexOf} from 'lodash';
 import {
     IEventListItemProps,
     IPlanningListItemProps,
     IEventOrPlanningItem,
-    IEventItem, IPlanningItem, IBaseListItemProps, ICommonAdvancedSearchParams, ISearchFilter
+    IEventItem, IPlanningItem, IBaseListItemProps, ICommonAdvancedSearchParams, ISearchFilter,
+    IPlanningAppState
 } from '../../interfaces';
 
 import {EventItem, EventItemWithPlanning} from '../Events';
 
 import {ITEM_TYPE, EVENTS, PLANNING, CLICK_DELAY} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 import {PlanningItemWithEvents} from '../../components/Planning/PlanningItemWithEvents';
 import {pickRelatedEventIdsForPlanning} from '../../utils/planning';
+import {appConfig} from 'superdesk-core/scripts/appConfig';
 
-interface IProps extends Omit<
+interface IReduxStateProps {
+    viewType: IPlanningAppState['main']['viewType'];
+}
+
+interface IOwnProps extends Omit<
     IEventListItemProps & IPlanningListItemProps,
     'item' | 'multiSelected' | 'refNode' | 'onItemClick'
 > {
@@ -38,11 +45,13 @@ interface IProps extends Omit<
     onItemClick(index: number, item: IEventOrPlanningItem): void;
 }
 
+type IProps = IOwnProps & IReduxStateProps;
+
 interface IState {
     clickedOnce?: boolean;
 }
 
-export class ListGroupItem extends React.Component<IProps, IState> {
+export class ListGroupItemComponent extends React.Component<IProps, IState> {
     dom: {item: HTMLElement};
     _delayedClick: any | undefined;
 
@@ -113,7 +122,6 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             desks,
             showAddCoverage,
             hideItemActions,
-            listFields,
             active,
             index,
             navigateDown,
@@ -122,7 +130,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             previewItem,
             contentTypes,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             minTimeWidth,
             searchParams,
@@ -142,9 +150,8 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             privileges: privileges,
             activeFilter: activeFilter,
             onMultiSelectClick: onMultiSelectClick,
-            listFields: listFields,
             active: active,
-            listViewType: listViewType,
+            groupListBy: groupListBy,
             sortField: sortField,
             minTimeWidth: minTimeWidth,
             refNode: (node) => {
@@ -243,6 +250,26 @@ export class ListGroupItem extends React.Component<IProps, IState> {
                 itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
         };
 
+        if (this.props.viewType == null || this.props.viewType === 'list') {
+            // nothing to do, keeping default list template
+        } else if (this.props.viewType === 'list-compact') {
+            if (appConfig.planning?.planning_list_item?.compact_view != null) {
+                planningProps.customTemplate = {
+                    firstLine: appConfig.planning?.planning_list_item?.compact_view.firstLine,
+                    secondLine: [],
+                };
+            }
+
+            if (appConfig.planning?.event_list_item?.compact_view != null) {
+                eventProps.customTemplate = {
+                    firstLine: appConfig.planning?.event_list_item?.compact_view.firstLine,
+                    secondLine: [],
+                };
+            }
+        } else {
+            superdeskApi.helpers.assertNever(this.props.viewType);
+        }
+
         switch (itemType) {
         case ITEM_TYPE.EVENT:
             if (eventUtils.eventHasPlanning(item)) {
@@ -256,13 +283,13 @@ export class ListGroupItem extends React.Component<IProps, IState> {
                         navigateList={navigateList}
                         onItemActivate={onItemActivate}
                         previewItem={previewItem}
-                        listViewType={this.props.listViewType}
+                        groupListBy={this.props.groupListBy}
                     />
                 );
             }
 
             return (
-                <EventItem {... eventProps} />
+                <EventItem {...eventProps} planningProps={planningProps} />
             );
 
         case ITEM_TYPE.PLANNING:
@@ -282,3 +309,11 @@ export class ListGroupItem extends React.Component<IProps, IState> {
         return null;
     }
 }
+
+const mapStateToProps = (state: IPlanningAppState) => ({
+    viewType: state.main.viewType,
+});
+
+export const ListGroupItem = connect(
+    mapStateToProps
+)(ListGroupItemComponent);

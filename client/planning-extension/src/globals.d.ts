@@ -31,6 +31,8 @@ declare module 'superdesk-api' {
         start_of_week?: number;
         planning_default_view: PLANNING_VIEW;
 
+        vocabulariesToExcludeAsFields: Array<IVocabulary['_id']>;
+
         planning?: {
             dateformat?: string;
             timeformat?: string;
@@ -38,7 +40,29 @@ declare module 'superdesk-api' {
             autosave_timeout?: number;
             default_create_planning_series_with_event_series?: boolean;
             event_related_item_search_provider_name?: string;
+
+            // Controls whether planning should have date only
             all_day?: boolean;
+
+            planning_list_item?: {
+                firstLine: Array<ILineConfig>;
+                secondLine?: Array<ILineConfig>;
+
+                compact_view?: {
+                    firstLine: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
+            };
+
+            event_list_item?: {
+                firstLine: Array<ILineConfig>;
+                secondLine?: Array<ILineConfig>;
+
+                compact_view?: {
+                    firstLine: Array<ILineConfig>;
+                    secondLine?: Array<ILineConfig>;
+                };
+            };
         };
 
         coverage?: {

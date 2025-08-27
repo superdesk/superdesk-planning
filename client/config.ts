@@ -2,6 +2,7 @@ import moment from 'moment-timezone';
 
 import {PLANNING_VIEW} from './interfaces';
 import {appConfig} from 'appConfig';
+import {ILineConfig} from 'globals';
 
 // Set the default values for Planning config entries
 
@@ -101,3 +102,46 @@ export function updateConfigAfterLoad() {
         appConfig.planning.autosave_timeout = 1500;
     }
 }
+
+
+const eventFirstLineConfigDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'name'},
+    {fieldId: 'calendars'},
+    {fieldId: 'location'},
+    {fieldId: 'event_datetime', position: 'end'},
+];
+
+const eventSecondLineConfigDefaults: Array<ILineConfig> = [
+    {fieldId: 'state'},
+    {fieldId: 'related_plannings'},
+    {fieldId: 'location'},
+];
+
+export const eventFirstLineConfig: Array<ILineConfig> =
+    appConfig.planning?.event_list_item?.firstLine ?? eventFirstLineConfigDefaults;
+
+export const eventSecondLineConfig: Array<ILineConfig> =
+    appConfig.planning?.event_list_item?.secondLine ?? eventSecondLineConfigDefaults;
+
+const planningFirstLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'slugline'},
+    {fieldId: 'internalnote'},
+    {fieldId: 'description'},
+];
+
+const planningSecondLineDefaults: Array<ILineConfig> = [
+    {fieldId: 'state'},
+    {fieldId: 'featured'},
+    {fieldId: 'agendas'},
+    {fieldId: 'related_events'},
+    {fieldId: 'coverages', position: 'end'},
+];
+
+export const planningFirstLineConfig: Array<ILineConfig> =
+    appConfig.planning?.planning_list_item?.firstLine ?? planningFirstLineDefaults;
+
+export const getPlanningSecondLineConfig = ({isAgendaEnabled}: {isAgendaEnabled: boolean}): Array<ILineConfig> =>
+    (appConfig.planning?.planning_list_item?.secondLine ?? planningSecondLineDefaults)
+        .filter(({fieldId}: ILineConfig) => isAgendaEnabled ? true : fieldId !== 'agendas');

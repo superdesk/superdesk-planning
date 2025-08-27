@@ -13,7 +13,7 @@ import {
     IItemUrlParams,
     ISearchFilter,
     ISearchParams,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     PLANNING_VIEW,
     IWebsocketMessageData,
     ITEM_TYPE,
@@ -814,8 +814,8 @@ function filter(ftype?: PLANNING_VIEW) {
     return (dispatch, getState) => {
         const {urlParams} = superdeskApi.browser.location;
         const isNewSearch = urlParams.getBoolean('isNewSearch', false);
-        const listViewType = (urlParams.getString('listViewType') as LIST_VIEW_TYPE) ||
-            LIST_VIEW_TYPE.SCHEDULE;
+        const groupListBy = (urlParams.getString('groupListBy') as GROUP_LIST_BY) ||
+            GROUP_LIST_BY.DATE;
         const filterType = ftype ||
             (urlParams.getString('filter') as PLANNING_VIEW) ||
             activeFilter(getState());
@@ -827,12 +827,12 @@ function filter(ftype?: PLANNING_VIEW) {
         });
         urlParams.setString('filter', filterType);
 
-        // Set the Redux/URL params for `listViewType`
+        // Set the Redux/URL params for `groupListBy`
         dispatch({
-            type: MAIN.ACTIONS.SET_LIST_VIEW_TYPE,
-            payload: listViewType,
+            type: MAIN.ACTIONS.SET_LIST_GROUP_BY,
+            payload: groupListBy,
         });
-        urlParams.setString('listViewType', listViewType);
+        urlParams.setString('groupListBy', groupListBy);
 
         const previousParams = omit(lastRequestParams(getState()) || {}, 'page');
         const searchParams = omit(urlParams.getJson('searchParams', {}), 'page');

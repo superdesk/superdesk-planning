@@ -39,7 +39,7 @@ export class PlanningList {
      * @returns {Cypress.Chainable<JQuery<HTMLElementTagNameMap[string]>> | Cypress.Chainable<JQuery<HTMLElement>>}
      */
     nestedItems(timeout = 40000) {
-        return this.panel.find('.sd-list-item-nested', {timeout: timeout});
+        return this.panel.find('[data-test-id="has-nested-items"]', {timeout: timeout});
     }
 
     /**
@@ -127,7 +127,7 @@ export class PlanningList {
     toggleAssociatedPlanning(index) {
         cy.log('Planning.List.toggleAssociatedPlanning');
         this.nestedItem(index)
-            .find('.icon-calendar')
+            .find('[data-test-id="toggle-related-plannings"]')
             .click();
     }
 

@@ -2,15 +2,13 @@ import React from 'react';
 import {sortBy} from 'lodash';
 
 import {
-    EDITOR_TYPE,
-    IEditorState,
     IEventOrPlanningItem,
     IProfileSchemaType,
     IRenderPanelType,
     ISearchProfile,
     PREVIEW_PANEL,
 } from '../../interfaces';
-import {planningApi, superdeskApi} from '../../superdeskApi';
+import {superdeskApi} from '../../superdeskApi';
 
 import {name} from './name';
 import {slugline} from './slugline';
@@ -18,7 +16,6 @@ import {headline} from './headline';
 import {description} from './description';
 import {internalnote} from './internalnote';
 import {state} from './state';
-import {actionedState} from './actionedState';
 import {calendars} from './calendars';
 import {location} from './location';
 import {files} from './files';
@@ -34,6 +31,13 @@ import {FIELD_TO_FORM_PREVIEW_COMPONENT, FIELD_TO_PREVIEW_COMPONENT} from './pre
 
 import {ToggleBox} from '../UI/ToggleBox';
 import './style.scss';
+import {related_events} from './related_events';
+import {related_plannings} from './related_plannings';
+import {event_datetime} from './event_datetime';
+import {vocabulary} from './vocabulary';
+import {ILineConfig} from 'globals';
+import {urgency} from './urgency';
+import {anpa_category} from './anpa_category';
 
 let registeredFields = {};
 
@@ -53,12 +57,13 @@ export function registerField(id, component) {
  * @param {Object} props
  */
 export function renderFields(
-    fields: Array<any>|string,
+    fields: Array<ILineConfig>,
     item: IEventOrPlanningItem,
     props: Object = {},
     language: string = ''
 ) {
-    return (Array.isArray(fields) ? fields : [fields]).map((id) => {
+    return fields.map((field) => {
+        const id = field.fieldId;
         const Component = registeredFields[id];
 
         if (Component) {
@@ -67,6 +72,7 @@ export function renderFields(
                     key={id}
                     item={item}
                     language={language}
+                    fieldOptions={field.fieldOptions}
                     {...props}
                 />
             );
@@ -417,9 +423,12 @@ registerField('description', description);
 registerField('definition_short', description);
 registerField('internalnote', internalnote);
 registerField('state', state);
+registerField('event_datetime', event_datetime);
+registerField('related_events', related_events);
+registerField('urgency', urgency);
+
 
 // Event related fields
-registerField('actionedState', actionedState);
 registerField('calendars', calendars);
 registerField('location', location);
 registerField('files', files);
@@ -427,3 +436,8 @@ registerField('featured', FeatureLabel);
 registerField('agendas', agendas);
 registerField('coverages', coverages);
 registerField('reference', reference);
+registerField('related_plannings', related_plannings);
+
+// common fields
+registerField('vocabulary', vocabulary);
+registerField('anpa_category', anpa_category);

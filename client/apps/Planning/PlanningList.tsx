@@ -13,7 +13,7 @@ import {
     ISession,
     IEventOrPlanningItem,
     IG2ContentType,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     IContactItem,
     SORT_FIELD,
     ICommonSearchParams,
@@ -52,16 +52,12 @@ interface IProps {
     hideItemActions?: boolean;
     showAddCoverage?: boolean;
     calendars: Array<ICalendar>;
-    listFields?: {[key: string]: { // List fields from planning_types collection (i.e. Planning Profiles)
-        primary_fields?: Array<string>;
-        secondary_fields?: Array<string>;
-    }};
     isAllListItemsLoaded: boolean;
     previewId: IEventOrPlanningItem['_id'];
     contentTypes: Array<IG2ContentType>;
     userInitiatedSearch?: boolean;
     contacts: {[key: string]: IContactItem};
-    listViewType: LIST_VIEW_TYPE;
+    groupListBy: GROUP_LIST_BY;
     sortField: SORT_FIELD;
     currentSearch: ICommonSearchParams<IEventOrPlanningItem>;
     searchFilters: Array<ISearchFilter>;
@@ -90,13 +86,12 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     calendars: selectors.events.calendars(state),
-    listFields: selectors.forms.listFields(state),
     isAllListItemsLoaded: selectors.main.isAllListItemsLoaded(state),
     previewId: selectors.main.previewId(state),
     contentTypes: selectors.general.contentTypes(state),
     userInitiatedSearch: selectors.main.userInitiatedSearch(state),
     contacts: selectors.general.contactsById(state),
-    listViewType: selectors.main.getCurrentListViewType(state),
+    groupListBy: selectors.main.getCurrentListGrouping(state),
     sortField: selectors.main.getCurrentSortField(state),
     currentSearch: selectors.main.currentSearch(state),
     searchFilters: selectors.eventsPlanning.combinedViewFilters(state),
@@ -182,13 +177,12 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             itemActions,
             hideItemActions,
             showAddCoverage,
-            listFields,
             isAllListItemsLoaded,
             previewId,
             contentTypes,
             userInitiatedSearch,
             contacts,
-            listViewType,
+            groupListBy,
             sortField,
             currentSearch
         } = this.props;
@@ -220,13 +214,12 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     hideItemActions={hideItemActions}
                     showAddCoverage={showAddCoverage}
                     calendars={calendars}
-                    listFields={listFields}
                     isAllListItemsLoaded={isAllListItemsLoaded}
                     previewItem={previewId}
                     contentTypes={contentTypes}
                     userInitiatedSearch={userInitiatedSearch}
                     contacts={contacts}
-                    listViewType={listViewType}
+                    groupListBy={groupListBy}
                     sortField={sortField}
                     indexItems
                     searchParams={currentSearch.advancedSearch}

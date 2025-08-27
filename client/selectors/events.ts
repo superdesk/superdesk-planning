@@ -9,7 +9,7 @@ import {
     IEventTemplate,
     IPlanningAppState,
     IPlanningItem,
-    LIST_VIEW_TYPE,
+    GROUP_LIST_BY,
     JUMP_INTERVAL
 } from '../interfaces';
 
@@ -20,8 +20,8 @@ import {eventUtils, getSearchDateRange} from '../utils';
 import {pickRelatedEventsForPlanning} from '../utils/planning';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 
-function getCurrentListViewType(state?: IPlanningAppState) {
-    return state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE;
+function getCurrentListGrouping(state?: IPlanningAppState) {
+    return state?.main?.groupListBy ?? GROUP_LIST_BY.DATE;
 }
 
 function getCurrentViewInterval(state?: IPlanningAppState): JUMP_INTERVAL {
@@ -51,11 +51,11 @@ export const eventsInList = createSelector(
 * the associated events.
 */
 export const orderedEvents = createSelector(
-    [eventsInList, currentSearch, getCurrentListViewType, getCurrentViewInterval],
-    (events, search, viewType, viewInterval) => {
+    [eventsInList, currentSearch, getCurrentListGrouping, getCurrentViewInterval],
+    (events, search, groupListBy, viewInterval) => {
         if (!events?.length) {
             return [];
-        } else if (viewType === LIST_VIEW_TYPE.LIST) {
+        } else if (groupListBy === GROUP_LIST_BY.NOT_GROUPED) {
             return [{
                 date: null,
                 events: events,

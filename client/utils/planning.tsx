@@ -70,7 +70,7 @@ import {confirmAddingRelatedItems} from './confirmAddingRelatedItems';
 import {getOpenEditorType} from './editor';
 import {coverageProfiles} from '../selectors/coverageProfiles';
 
-const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
+const isCoverageAssigned = (coverage: IPlanningCoverageItem) => coverage.assigned_to?.desk != null;
 
 function isCancelPlanWithEventDisabled(): boolean {
     return (planningApi.events.getEditorProfile().schema.related_plannings?.cancel_plan_with_event ?? true) === false;
@@ -377,11 +377,17 @@ function canCancelCoverage(
     );
 }
 
-function canAddCoverageToWorkflow(coverage: IPlanningCoverageItem, planning: Partial<IPlanningItem>): boolean {
+function canAddCoverageToWorkflow(
+    coverage: IPlanningCoverageItem,
+    planning: Partial<IPlanningItem>,
+    options?: {
+        ignoreAutoAssignConfig?: boolean,
+    },
+): boolean {
     return (
         isCoverageDraft(coverage) &&
         isCoverageAssigned(coverage) &&
-        !appConfig.planning_auto_assign_to_workflow &&
+        options?.ignoreAutoAssignConfig === true ? true : !appConfig.planning_auto_assign_to_workflow &&
         !isItemExpired(planning)
     );
 }

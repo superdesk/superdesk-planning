@@ -75,7 +75,7 @@ interface IExtensionBridge {
             ): string;
             isContentLinkToCoverageAllowed(item: IArticle): boolean;
             isCustomVocabulary(vocabulary: IVocabulary): boolean;
-            COVERAGE_VOCABULARIES: Set<string>;
+            VOCABULARIES_TO_BE_EXCLUDED: Set<string>;
         };
         components: {
             EditorFieldVocabulary: React.ComponentType<IEditorFieldVocabularyProps>;

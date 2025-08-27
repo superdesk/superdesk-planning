@@ -8,6 +8,11 @@
 .addgeolookup {
     width: 100%;
 
+    a {
+        color: var(--color-text);
+        white-space: nowrap;
+    }
+
     &__popup {
         max-height: 200px;
 

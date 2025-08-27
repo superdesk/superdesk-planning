@@ -303,7 +303,6 @@ const exportAsArticle = (items = [], download) => (
                 articleTemplates: articleTemplates,
                 defaultArticleTemplate: articleTemplates.find((t) =>
                     t._id === get(defaultDesk, 'default_content_template')) || articleTemplates[0],
-                exportListFields: selectors.forms.exportListFields(getState()),
                 agendas: selectors.general.agendas(state),
             },
         }));

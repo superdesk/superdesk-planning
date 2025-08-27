@@ -377,6 +377,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             profile: profile,
             editorType: this.props.editorType,
         };
+
         const fieldProps = {
             contact_info: {
                 field: 'planning.contact_info',
@@ -385,9 +386,12 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             },
             add_coverage_to_workflow: {
                 onChange: this.toggleAddToWorkflow,
-                disabled: this.props.value.add_coverage_to_workflow
-                    ? false
-                    : !planningUtils.canAddCoverageToWorkflow(this.props.value, this.props.diff),
+                planningItem: this.props.item,
+                disabled: !planningUtils.canAddCoverageToWorkflow(
+                    this.props.value,
+                    this.props.diff,
+                    {ignoreAutoAssignConfig: true},
+                ),
             },
             g2_content_type: {
                 readOnly: this.props.readOnly || readOnlyFields.g2_content_type,

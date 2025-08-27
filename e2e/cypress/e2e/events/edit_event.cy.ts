@@ -28,7 +28,7 @@ describe('Planning.Events: edit metadata', () => {
             occur_status: 'Planned, occurence planned only',
 
             calendars: ['Sport', 'Finance'],
-            anpa_category: ['Domestic Sport', 'Finance'],
+            anpa_category: ['Domestic Sport'],
             subject: ['sports awards'],
 
             links: ['https://www.google.com.au', 'https://en.wikipedia.org'],
@@ -75,14 +75,16 @@ describe('Planning.Events: edit metadata', () => {
         event = {
             ...event,
             'dates.recurring.enable': true,
-            'dates.recurring.until': moment().add(2, 'day').format(CLIENT_FORMAT),
+            'dates.recurring.until': moment().add(2, 'day')
+                .format(CLIENT_FORMAT),
             slugline: 'slugline of the recurring event',
             name: 'name of the recurring event',
         };
         expectedEvent = {
             ...expectedEvent,
             'dates.recurring.enable': true,
-            'dates.recurring.until': moment().add(2, 'day').format(CLIENT_FORMAT),
+            'dates.recurring.until': moment().add(2, 'day')
+                .format(CLIENT_FORMAT),
             slugline: 'slugline of the recurring event',
             name: 'name of the recurring event',
         };
@@ -185,7 +187,7 @@ describe('Planing.Events: edit existing events', () => {
             ...cloneDeep(TEST_EVENTS.date_01_02_2045),
         }), createEventFor.tomorrow({
             ...cloneDeep(TEST_EVENTS.date_02_02_2045),
-            }, null),
+        }, null),
         ]);
 
         login();

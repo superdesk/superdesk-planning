@@ -27,7 +27,7 @@ describe('Planning.Planning: edit metadata', () => {
             description_text: 'Desc. Text',
             internal_note: 'Int. Note',
             ednote: 'Ed. Note',
-            anpa_category: ['Domestic Sport', 'Finance'],
+            anpa_category: ['Domestic Sport'],
             subject: ['sports awards'],
             urgency: '2',
             'flags.marked_for_not_publication': true,
@@ -127,7 +127,7 @@ describe('Planning.Planning: edit metadata', () => {
             description_text: 'Desc. Text',
             internal_note: 'Int. Note',
             ednote: 'Ed. Note',
-            anpa_category: ['Domestic Sport', 'Finance'],
+            anpa_category: ['Domestic Sport'],
             subject: ['sports awards'],
         });
         editor.waitForAutosave();
