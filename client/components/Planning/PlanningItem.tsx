@@ -180,14 +180,9 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
             onMultiSelectClick,
             multiSelected,
             activeFilter,
-            users,
-            desks,
             showAddCoverage,
             active,
             refNode,
-            contentTypes,
-            agendas,
-            contacts,
             groupListBy,
             filterLanguage,
             isAgendaEnabled,
@@ -283,7 +278,7 @@ class PlanningItemComponent extends React.Component<IProps, IState> {
                 <Border state={borderState} />
                 <ItemType
                     item={item}
-                    hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
+                    hasCheck={this.props.hideItemActions === true ? false : activeFilter !== MAIN.FILTERS.COMBINED}
                     checked={multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.LIGHT_BLUE}
