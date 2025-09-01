@@ -861,8 +861,8 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     accepted: boolean;
     planning: ICoveragePlanningDetails;
 
-    coverage_item: string;
-    planning_item: string;
+    coverage_item: IPlanningCoverageItem['coverage_id'];
+    planning_item: IPlanningItem['_id'];
     scheduled_update_id: string;
 
     assigned_to: {

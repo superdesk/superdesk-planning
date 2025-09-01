@@ -2,9 +2,10 @@ import React from 'react';
 import {get} from 'lodash';
 import {Label} from '../../..';
 import {gettext} from '../../../../utils';
+import {IAssignmentItem} from 'interfaces';
 
 interface IProps {
-    assignment: any;
+    assignment: IAssignmentItem;
 }
 
 export const AcceptedComponent = ({assignment}: IProps) => {
