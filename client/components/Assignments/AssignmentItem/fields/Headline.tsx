@@ -1,17 +1,23 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import {IAssignmentItem} from 'interfaces';
+import {IArticle} from 'superdesk-api';
 
 interface IProps {
-    assignment: any;
-    archiveItemForAssignment: {[assignmentId: string]: any}
+    assignment: IAssignmentItem;
+    archiveItemForAssignment: {[assignmentId: string]: IArticle}
 }
 
 export const HeadlineComponent = ({assignment, archiveItemForAssignment}: IProps) => {
-    const item = archiveItemForAssignment?.[assignment._id];
+    const archiveItem = archiveItemForAssignment?.[assignment._id];
+    const coverageHeadline = assignment.planning?.headline;
 
-    if (!item) {
-        return null;
+    if ((archiveItem?.headline ?? '').trim().length > 0) {
+        return <span>{archiveItem.headline}</span>;
     }
 
-    return <span>{item.headline}</span>;
+    if ((coverageHeadline ?? '').trim().length > 0) {
+        return <span>{coverageHeadline}</span>;
+    }
+
+    return null;
 };
