@@ -4,6 +4,7 @@ from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
 from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
+from superdesk.io.commands.update_ingest import set_expiry
 from planning.common import WORKFLOW_STATE
 import pytz
 import json
@@ -38,7 +39,9 @@ class EventJsonFeedParser(FileFeedParser):
         self.items = []
         with open(file_path, "r") as f:
             superdesk_event = json.load(f)
-        self.items.append(await self._transform_from_superdesk_event(superdesk_event))
+        event = await self._transform_from_superdesk_event(superdesk_event)
+        set_expiry(event, provider)
+        self.items.append(event)
         return self.items
 
     async def _transform_from_superdesk_event(self, superdesk_event):
@@ -46,7 +49,6 @@ class EventJsonFeedParser(FileFeedParser):
         superdesk_event["_created"] = utcnow()
         superdesk_event["_updated"] = utcnow()
         superdesk_event["state"] = WORKFLOW_STATE.INGESTED
-        superdesk_event["versioncreated"] = utcnow()
 
         superdesk_event = self.assign_from_local_cv(superdesk_event)
         superdesk_event = await self.add_to_local_db(superdesk_event)
@@ -54,11 +56,33 @@ class EventJsonFeedParser(FileFeedParser):
         if superdesk_event["dates"].get("recurring_rule"):
             superdesk_event["dates"]["recurring_rule"]["_created_externally"] = True
 
+        if superdesk_event["dates"].get("start"):
+            superdesk_event["dates"]["start"] = self.datetime(superdesk_event["dates"]["start"])
+
+        if superdesk_event["dates"].get("end"):
+            superdesk_event["dates"]["end"] = self.datetime(superdesk_event["dates"]["end"])
+
+        if superdesk_event.get("versioncreated"):
+            superdesk_event["versioncreated"] = self.datetime(superdesk_event["versioncreated"])
+
+        if superdesk_event.get("firstcreated"):
+            superdesk_event["firstcreated"] = self.datetime(superdesk_event["firstcreated"])
+
         if superdesk_event.get("subject"):
             subject_code_items = get_subjectcodeitems()
 
             json_qcodes = [item["qcode"] for item in superdesk_event["subject"]]
             superdesk_event["subject"] = [item for item in subject_code_items if item["qcode"] in json_qcodes]
+
+        if superdesk_event.get("location"):
+            for location in superdesk_event["location"]:
+                if location.get("location") and (
+                    location["location"].get("lat") is None or location["location"].get("lon") is None
+                ):
+                    location.pop("location")
+
+        # Ignore None fields
+        superdesk_event = {field: value for field, value in superdesk_event.items() if value is not None}
 
         return superdesk_event
 

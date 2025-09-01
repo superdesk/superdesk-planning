@@ -1584,6 +1584,7 @@ export interface IEditorFieldProps {
     showErrors?: boolean;
     editorType?: EDITOR_TYPE;
     profile?: IPlanningContentProfile;
+    debounce?: number;
 
     onChange(field: string, value: any): void;
     onChange(values: {[key: string]: any}): void;
