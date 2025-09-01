@@ -69,7 +69,7 @@
     "sinon": "^4.5.0",
     "style-loader": "^2.0.0",
     "superdesk-code-style": "1.5.0",
-    "superdesk-core": "github:superdesk/superdesk-client-core#async",
+    "superdesk-core": "github:superdesk/superdesk-client-core#release/3.0",
     "superdesk-ui-framework": "^4.0.35",
     "ts-loader": "^8.4.0",
     "ts-node": "~7.0.1",
