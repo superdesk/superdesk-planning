@@ -1,11 +1,9 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {gettext} from '../../../../utils';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: any;
-}
+type IProps = IAssignmentListItemField;
 
 export const GenreComponent = ({assignment}: IProps) => {
     const genre = get(assignment, 'planning.genre.name');

@@ -23,7 +23,8 @@ import {Menu} from 'superdesk-ui-framework/react';
 import {UserAvatarWithMargin} from '../../../components/UserAvatar';
 import {Item, Border, Column, Row} from '../../UI/List';
 
-import {getComponentForField, getAssignmentsListView} from './fields';
+import {getComponentForField, getAssignmentsListView, AssignmentViewField} from './fields';
+import {LineItems} from '../../../components/UI/List/LineItems';
 
 export interface IAssignmentItemProps {
     assignment: IAssignmentItem;
@@ -152,30 +153,41 @@ export class AssignmentItem extends React.Component<IAssignmentItemProps, IState
         );
     }
 
-    renderField(field) {
-        const FieldComponent = getComponentForField(field);
-
-        // @ts-ignore
-        return <FieldComponent {...this.props} key={field} />;
-    }
-
     renderContentColumn() {
         const listViewConfig = getAssignmentsListView();
 
         return (
-            <Column grow={true} border={false}>
-                <Row>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {listViewConfig.firstLine.map((field) =>
-                            this.renderField(field)
-                        )}
-                    </span>
-                </Row>
-                <Row>
-                    {listViewConfig.secondLine.map((field) =>
-                        this.renderField(field)
-                    )}
-                </Row>
+            <Column grow border={false}>
+                <LineItems
+                    firstLine={listViewConfig.firstLine}
+                    secondLine={listViewConfig.secondLine}
+                    renderFieldsWithProps={(fields) => {
+                        return fields.map((field) => {
+                            const FieldComponent = getComponentForField(field.fieldId as AssignmentViewField);
+
+                            const fieldsProps = {
+                                priority: {
+                                    priorities: this.props.priorities,
+                                },
+                                desk: {
+                                    assignedDesk: this.props.assignedDesk,
+                                },
+                                headline: {
+                                    archiveItems: this.props.archiveItems,
+                                }
+                            };
+
+                            return (
+                                <FieldComponent
+                                    assignment={this.props.assignment}
+                                    fieldsProps={fieldsProps}
+                                    fieldOptions={field.fieldOptions}
+                                    key={field.fieldId}
+                                />
+                            );
+                        });
+                    }}
+                />
             </Column>
         );
     }

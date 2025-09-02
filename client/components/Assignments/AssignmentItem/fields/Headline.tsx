@@ -1,14 +1,14 @@
 import React from 'react';
-import {IAssignmentItem} from 'interfaces';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 import {IArticle} from 'superdesk-api';
 
-interface IProps {
-    assignment: IAssignmentItem;
-    archiveItemForAssignment: {[assignmentId: string]: IArticle}
-}
+type IProps = IAssignmentListItemField;
 
-export const HeadlineComponent = ({assignment, archiveItemForAssignment}: IProps) => {
-    const archiveItem = archiveItemForAssignment?.[assignment._id];
+export const HeadlineComponent = ({assignment, ...props}: IProps) => {
+    const archiveItems: {[_id: IArticle['_id']]: IArticle} = props.fieldsProps.headline.archiveItems ?? {};
+    const archiveItem: IArticle = Object.values(archiveItems)
+        .find((item: IArticle) => item.assignment_id === assignment._id);
+
     const coverageHeadline = assignment.planning?.headline;
 
     if ((archiveItem?.headline ?? '').trim().length > 0) {

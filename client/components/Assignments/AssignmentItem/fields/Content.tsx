@@ -3,11 +3,9 @@ import React from 'react';
 import {Label} from 'superdesk-ui-framework/react';
 
 import {superdeskApi} from '../../../../superdeskApi';
-import {IAssignmentItem} from '../../../../interfaces';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: IAssignmentItem;
-}
+type IProps = IAssignmentListItemField;
 
 export const ContentComponent = ({assignment}: IProps) => {
     const itemEventIds = (assignment.linked_items ?? []).map((item) => item.event_id);
