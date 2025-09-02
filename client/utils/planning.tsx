@@ -1557,9 +1557,10 @@ function defaultCoverageValues(
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
 ): DeepPartial<IPlanningCoverageItem> {
     const {contentProfiles} = planningApi;
-    const coverageProfile = contentProfiles.get('coverage');
-    const defaultValues = (contentProfiles.getDefaultValues(coverageProfile)) as DeepPartial<IPlanningCoverageItem>;
     const allProfiles = coverageProfiles(planningApi.redux.store.getState());
+    const coverageProfile = allProfiles.find((x) => x.content_type === g2contentType)
+        ?? contentProfiles.get('coverage');
+    const defaultValues = (contentProfiles.getDefaultValues(coverageProfile)) as DeepPartial<IPlanningCoverageItem>;
 
     // if new profile hasn't been created for the type don't set to anything, backend also accepts objectid only
     const profileId = allProfiles.find((x) => x.content_type === g2contentType)?._id ?? undefined;
