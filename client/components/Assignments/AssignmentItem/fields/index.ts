@@ -14,6 +14,7 @@ import {LanguageComponent} from './Language';
 import {appConfig} from 'appConfig';
 import {ILineConfig} from 'globals';
 import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
+import {VocabularyComponent} from './Vocabulary';
 
 export type AssignmentViewField =
     | 'accepted'
@@ -28,7 +29,8 @@ export type AssignmentViewField =
     | 'priority'
     | 'slugline'
     | 'state'
-    | 'language';
+    | 'language'
+    | 'vocabulary';
 
 // Returns the React component to render for the given 'field' of an assignment
 export const getComponentForField = (field: AssignmentViewField): React.ComponentType<IAssignmentListItemField> => {
@@ -59,6 +61,8 @@ export const getComponentForField = (field: AssignmentViewField): React.Componen
         return StateComponent;
     case 'language':
         return LanguageComponent;
+    case 'vocabulary':
+        return VocabularyComponent;
     default:
         console.warn(
             `There's no component for assignment field '${field}'`

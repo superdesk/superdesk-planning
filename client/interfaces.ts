@@ -623,6 +623,7 @@ export interface ICoveragePlanningDetails {
     workflow_status_reason: string;
     priority?: number;
     multiple_content?: boolean;
+    subject?: Array<IVocabularyItem>;
 }
 
 export interface ICoverageScheduledUpdate {
