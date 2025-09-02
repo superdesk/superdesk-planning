@@ -95,6 +95,7 @@ export const VOCABULARIES_TO_BE_EXCLUDED = new Set([
     'news_coverage_status',
     'g2_content_type',
     'genre',
+    'categories',
 
     /**
      * Fields that are manually registered in `client/components/fields/resources` and use a specific custom vocabulary
