@@ -75,68 +75,57 @@ export class EventDateTime extends React.PureComponent<IProps> {
 
         const showDash = !((noEndTime || isFullDay) && !multiDay);
 
-        return isAllDay ? (
+        return (
             <span className="EventDateTime sd-list-item__slugline sd-no-wrap" data-test-id="event-datetime">
-                <Spacer h gap={'4'}>
-                    {showEventStartDate && (
+                <Spacer h gap="4" noWrap>
+                    <span>
                         <DateTime
+                            withTime={!isFullDay}
                             withDate={showEventStartDate}
-                            withYear={false}
+                            withYear={withYear}
                             date={start}
                             {...commonProps}
-                            withTime={false}
                         />
-                    )}
-
-                    {gettext('All day')}
-                </Spacer>
-            </span>
-        ) : (
-            <span className="EventDateTime sd-list-item__slugline sd-no-wrap" data-test-id="event-datetime">
-                <DateTime
-                    withTime={!isFullDay}
-                    withDate={showEventStartDate}
-                    withYear={withYear}
-                    date={start}
-                    {...commonProps}
-                />
-                {showDash && <>&ndash;</>}
-                <DateTime
-                    withDate={multiDay}
-                    withYear={withYear}
-                    withTime={!isFullDay}
-                    isEndEventDateTime={true}
-                    date={end}
-                    {...commonProps}
-                />
-                {isRemoteTimeZone && (
-                    <span>
-                        <SpacerBlock h gap="4" />
-
-                        <span className="EventDateTime__timezone sd-margin-r--0-5">
-                            {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
-                        </span>
-
-                        <DateTime
-                            withDate={remoteStartWithDate}
-                            withYear={remoteStartWithYear}
-                            date={remoteStart}
-                            withTime={!isFullDay}
-                            {...commonProps}
-                        />
-
                         {showDash && <>&ndash;</>}
-
                         <DateTime
-                            withDate={remoteEndWithDate}
-                            withYear={remoteEndWithYear}
-                            date={remoteEnd}
+                            withDate={multiDay}
+                            withYear={withYear}
                             withTime={!isFullDay}
                             isEndEventDateTime={true}
+                            date={end}
                             {...commonProps}
                         />
                     </span>
-                )}
+
+                    {isRemoteTimeZone && (
+                        <span>
+                            <span className="EventDateTime__timezone sd-margin-r--0-5">
+                                {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
+                            </span>
+
+                            <DateTime
+                                withDate={remoteStartWithDate}
+                                withYear={remoteStartWithYear}
+                                date={remoteStart}
+                                withTime={!isFullDay}
+                                {...commonProps}
+                            />
+
+                            {showDash && <>&ndash;</>}
+
+                            <DateTime
+                                withDate={remoteEndWithDate}
+                                withYear={remoteEndWithYear}
+                                date={remoteEnd}
+                                withTime={!isFullDay}
+                                isEndEventDateTime={true}
+                                {...commonProps}
+                            />
+                        </span>
+                    )}
+
+                    {isAllDay && (<span>{gettext('All day')}</span>)}
+                </Spacer>
             </span>
         );
     }
