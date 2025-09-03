@@ -69,12 +69,12 @@ export class AddToPlanningComponent extends React.Component<IProps> {
                 contentPadding="none"
                 headerTemplate={(
                     <h3 className="modal__heading">
-                        {gettext('Select an existing Planning Item or create a new one')}
+                        {gettext('Add article to Planning - select an existing Planning Item or create a new one')}
                     </h3>
                 )}
                 footerTemplate={(
                     <Button
-                        text={gettext('Ignore')}
+                        text={gettext('Don\'t add')}
                         disabled={actionInProgress}
                         onClick={handleCancel}
                     />

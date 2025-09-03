@@ -234,7 +234,9 @@ function updateProfilesInStore(): Promise<void> {
     });
 }
 
-function getDefaultValues(profile: IPlanningContentProfile): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem> {
+function getDefaultValues(
+    profile: IPlanningContentProfile | ICoverageContentProfile,
+): DeepPartial<IEventOrPlanningItem | IPlanningCoverageItem> {
     return Object.keys(profile?.schema ?? {}).reduce(
         (defaults, field) => {
             if (profile.schema[field]?.default_value != null) {
