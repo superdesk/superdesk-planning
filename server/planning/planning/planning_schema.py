@@ -111,6 +111,16 @@ coverage_schema = {
             "workflow_status_reason": {"type": "string", "nullable": True},
             "priority": metadata_schema["priority"],
             "multiple_content": {"type": "boolean", "default": False},
+            "fields": {
+                "type": "list",
+                "schema": {
+                    "type": "dict",
+                    "schema": {
+                        "field": {"type": "string"},
+                        "value": {"type": "string"},
+                    },
+                },
+            },
         },  # end planning dict schema
     },  # end planning
     "news_coverage_status": {
@@ -319,6 +329,13 @@ planning_schema = {
                 "assigned_to": assigned_to_schema["mapping"],
                 "original_creator": {
                     "type": "keyword",
+                },
+                "fields": {
+                    "type": "nested",
+                    "properties": {
+                        "field": not_analyzed,
+                        "value": metadata_schema["body_html"]["mapping"],
+                    },
                 },
             },
         },
