@@ -105,6 +105,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
         this.onContentTypeChange = this.onContentTypeChange.bind(this);
         this.toggleAddToWorkflow = this.toggleAddToWorkflow.bind(this);
+        this.onAnpaCategoryChange = this.onAnpaCategoryChange.bind(this);
 
         this.dom = {
             contentType: React.createRef(),
@@ -354,6 +355,22 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         }
     }
 
+    onAnpaCategoryChange(_field, nextValue: Array<IVocabularyItem['qcode']>) {
+        const coveragesWithoutUpdates =
+            this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
+
+        this.props.onChange(
+            'coverages',
+            [
+                ...coveragesWithoutUpdates,
+                {
+                    ...this.props.value,
+                    anpa_category: nextValue,
+                },
+            ],
+        );
+    }
+
     render() {
         const contentTypeQcode = this.props.value.planning?.g2_content_type;
         const {searchProfile, profile} = getCoverageFields(contentTypeQcode);
@@ -383,6 +400,11 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 field: 'planning.contact_info',
                 assignmentField: 'assigned_to.contact',
                 label: assignmentUtils.getContactLabel(this.props.value),
+            },
+            anpa_category: {
+                field: 'anpa_category',
+                valueAsString: true,
+                onChange: this.onAnpaCategoryChange,
             },
             add_coverage_to_workflow: {
                 onChange: this.toggleAddToWorkflow,

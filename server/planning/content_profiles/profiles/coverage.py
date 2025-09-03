@@ -19,6 +19,7 @@ class CoverageSchema(BaseSchema):
     ednote = TextField(field_type="multi_line")
     files = schema.ListField()
     g2_content_type = schema.ListField(required=True)
+    anpa_category = schema.ListField()
     genre = schema.ListField()
     headline = schema.StringField()
     internal_note = TextField(field_type="multi_line", expandable=True)
@@ -78,6 +79,7 @@ DEFAULT_COVERAGE_PROFILE = {
             "enabled": False,
             "index": 10,
         },
+        "anpa_category": {"enabled": False},
         "subject": {"enabled": False},
         # Fields disabled by default
         "contact_info": {"enabled": False},
