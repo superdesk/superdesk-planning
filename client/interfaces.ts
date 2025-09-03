@@ -623,7 +623,8 @@ export interface ICoveragePlanningDetails {
     workflow_status_reason: string;
     priority?: number;
     multiple_content?: boolean;
-    subject?: Array<IVocabularyItem>;
+    subject?: Array<{name: string; qcode: string; scheme: string}>; // PR-TODO: ensure field arrives from back-end
+    anpa_category?: Array<{name: string; qcode: string}>; // PR-TODO: ensure field arrives from back-end
 }
 
 export interface ICoverageScheduledUpdate {
