@@ -91,3 +91,11 @@ class EventJsonFeedParserTestCase(TestCase):
             assert int(events[0]["location"][0]["location"]["lon"]) == 10
 
             assert "actioned_date" not in events[0]
+
+            assert events[0]["registration_details"] == "TEST Registration details"
+            assert events[0]["invitation_details"] == "TEST Invitation details"
+            assert events[0]["accreditation_info"] == "TEST Accreditation info"
+            assert events[0]["accreditation_deadline"].isoformat() == "2021-03-15T10:00:00+00:00"
+            assert events[0]["reference"] == "2021/00000001"
+            assert events[0]["priority"] == 3
+            assert events[0]["language"] == "en"
