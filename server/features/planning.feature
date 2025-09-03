@@ -290,6 +290,9 @@ Feature: Planning
                         "slugline": "test slugline",
                         "fields": [
                             {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
                         ]
                     }
                 }
@@ -316,6 +319,9 @@ Feature: Planning
                         "slugline": "test slugline",
                         "fields": [
                             {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
                         ]
                     }
                 }
@@ -338,6 +344,9 @@ Feature: Planning
                         "slugline": "test slugline",
                         "fields": [
                             {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
                         ]
                     },
                     "assigned_to": {
@@ -367,6 +376,9 @@ Feature: Planning
                         "slugline": "test slugline",
                         "fields": [
                             {"value": "<p>test content</p>", "field": "custom"}
+                        ],
+                        "subject": [
+                            {"name": "test", "qcode": "test", "scheme": "test"}
                         ]
          
                     },
@@ -390,6 +402,9 @@ Feature: Planning
                 "slugline": "test slugline",
                 "fields": [
                     {"value": "<p>test content</p>", "field": "custom"}
+                ],
+                "subject": [
+                    {"name": "test", "qcode": "test", "scheme": "test"}
                 ]
             }
         }
