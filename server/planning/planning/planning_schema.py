@@ -111,6 +111,7 @@ coverage_schema = {
             "workflow_status_reason": {"type": "string", "nullable": True},
             "priority": metadata_schema["priority"],
             "multiple_content": {"type": "boolean", "default": False},
+            "anpa_category": metadata_schema["anpa_category"],
         },  # end planning dict schema
     },  # end planning
     "news_coverage_status": {
@@ -124,6 +125,7 @@ coverage_schema = {
     },
     "workflow_status": {"type": "string"},
     "add_coverage_to_workflow": {"type": "boolean"},
+    "anpa_category": {"type": "list"},
     "previous_status": {"type": "string"},
     "assigned_to": assigned_to_schema,
     "flags": {
