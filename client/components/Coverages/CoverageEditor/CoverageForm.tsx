@@ -355,7 +355,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
         }
     }
 
-    onAnpaCategoryChange(_field, nextValue: Array<IVocabularyItem['qcode']>) {
+    onAnpaCategoryChange(_field, nextValue?: Array<IVocabularyItem>) {
         const coveragesWithoutUpdates =
             this.props.coverages.filter((x) => x.coverage_id !== this.props.value.coverage_id);
 
@@ -365,7 +365,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                 ...coveragesWithoutUpdates,
                 {
                     ...this.props.value,
-                    anpa_category: nextValue,
+                    anpa_category: (nextValue ?? []).map((x) => ({qcode: x.qcode, name: x.name})),
                 },
             ],
         );
@@ -403,7 +403,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             },
             anpa_category: {
                 field: 'anpa_category',
-                valueAsString: true,
                 onChange: this.onAnpaCategoryChange,
             },
             add_coverage_to_workflow: {
