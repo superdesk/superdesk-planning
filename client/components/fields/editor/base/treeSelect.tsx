@@ -17,6 +17,8 @@ export interface IEditorFieldTreeSelectProps<T = any> extends IEditorFieldProps 
     smallPadding?: boolean;
     sortable?: boolean;
     filterScheme?(value: Array<ITreeNode<T>>): Array<ITreeNode<T>>;
+    optionTemplate?(item: T): React.ComponentType<T> | JSX.Element;
+    valueTemplate?(): React.ComponentType<{item: T}>;
 }
 
 export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTreeSelectProps<T>> {
@@ -89,6 +91,8 @@ export class EditorFieldTreeSelect<T> extends React.PureComponent<IEditorFieldTr
                     tabindex={0}
                     info={this.props.info}
                     sortable={this.props.sortable}
+                    optionTemplate={this.props.optionTemplate}
+                    valueTemplate={this.props.valueTemplate}
                 />
             </Row>
         );

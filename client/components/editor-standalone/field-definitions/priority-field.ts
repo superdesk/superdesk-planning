@@ -3,6 +3,22 @@ import {IFieldDefinition} from './interfaces';
 import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 
+export const PRIORITY_CONFIG: Omit<IDropdownConfigManualSource, 'options'> = {
+    source: 'manual-entry',
+    roundCorners: false,
+    type: 'text',
+    multiple: false,
+};
+
+export const DEFAULT_PRIORITY_COLORS = {
+    1: '#d33c44',
+    2: '#ff6900',
+    3: '#f5a623',
+    4: '#7ac142',
+    5: '#6bb0f5',
+    6: '#9013fe',
+};
+
 export const getPriorityField = (): IFieldDefinition => {
     const {gettext} = superdeskApi.localization;
 
@@ -19,15 +35,13 @@ export const getPriorityField = (): IFieldDefinition => {
                         language,
                         superdeskApi.helpers.nameof<IVocabularyItem>('name'),
                     ),
+                    color: option.color ?? DEFAULT_PRIORITY_COLORS[option.qcode],
                 })
             );
 
             const fieldConfig: IDropdownConfigManualSource = {
-                source: 'manual-entry',
+                ...PRIORITY_CONFIG,
                 options: options,
-                roundCorners: true,
-                type: 'text',
-                multiple: false,
                 required: required,
             };
 

@@ -53,6 +53,7 @@ class EventSchema(BaseSchema):
     accreditation_info = TextField(field_type="single_line")
     accreditation_deadline = DateOptionalTimeField()
     priority = schema.IntegerField()
+    urgency = schema.IntegerField()
     related_items = schema.ListField()
 
 
@@ -117,6 +118,11 @@ DEFAULT_EVENT_PROFILE = {
             "enabled": False,
             "group": "description",
             "index": 9,
+        },
+        "urgency": {
+            "enabled": False,
+            "group": "description",
+            "index": 10,
         },
         # Location Group
         "location": {

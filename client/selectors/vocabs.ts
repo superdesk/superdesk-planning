@@ -3,6 +3,14 @@ import {createSelector} from 'reselect';
 
 import {IVocabularyItem} from 'superdesk-api';
 import {IPlanningAppState} from '../interfaces';
+import {
+    PRIORITY_CONFIG,
+    DEFAULT_PRIORITY_COLORS,
+} from '../components/editor-standalone/field-definitions/priority-field';
+import {
+    URGENCY_CONFIG,
+    DEFAULT_URGENCY_COLORS,
+} from '../components/editor-standalone/field-definitions/urgency-field';
 
 const EMPTY_ARRAY = [];
 
@@ -26,15 +34,40 @@ export const getLanguagesForTreeSelectInput = createSelector<
 
 export const getPriorities = (state: IPlanningAppState) => state.vocabularies.priority ?? EMPTY_ARRAY;
 
-export const getPriorityQcodes = createSelector<
+export const getPrioritiesForTreeSelect = createSelector<
     IPlanningAppState,
     Array<IVocabularyItem>,
-    Array<number>
+    Array<{value: IVocabularyItem}>
 >(
     getPriorities,
-    (priorities) => (
-        priorities
-            .map((item) => parseInt(item.qcode, 10))
-            .sort()
-    )
+    (priorities) => {  
+        return priorities
+            .sort((a, b) => String(a.qcode).localeCompare(String(b.qcode)))
+            .map((priority) => ({
+                value: {
+                    ...priority,
+                    color: priority.color ?? DEFAULT_PRIORITY_COLORS[priority.qcode],
+                    fieldConfig: PRIORITY_CONFIG
+                }
+            }));
+    }
+);
+
+export const getUrgenciesForTreeSelect = createSelector<
+    IPlanningAppState,
+    Array<IVocabularyItem>,
+    Array<{value: IVocabularyItem}>
+>(
+    (state: IPlanningAppState) => state.vocabularies.urgency ?? EMPTY_ARRAY,
+    (urgencies) => {
+        return urgencies
+            .sort((a, b) => String(a.qcode).localeCompare(String(b.qcode)))
+            .map((urgency) => ({
+                value: {
+                    ...urgency,
+                    color: urgency.color ?? DEFAULT_URGENCY_COLORS[urgency.qcode],
+                    fieldConfig: URGENCY_CONFIG
+                }
+            }));
+    }
 );
