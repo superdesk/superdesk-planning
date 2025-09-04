@@ -10,6 +10,7 @@ interface IButtonProps {
     onClick?: () => void;
     padded?: boolean;
     testId?: string;
+    disabled?: boolean;
 }
 
 /**
@@ -24,14 +25,15 @@ export const Button: React.FC<IButtonProps> = ({
     buttonClassName,
     onClick,
     padded = false,
-    testId
+    testId,
+    disabled,
 }) => (
     <ButtonStack
         right={right}
         padded={padded}
         className={className}
     >
-        <button className={buttonClassName} onClick={onClick} data-test-id={testId}>
+        <button className={buttonClassName} onClick={onClick} data-test-id={testId} disabled={disabled}>
             {children}
         </button>
     </ButtonStack>
