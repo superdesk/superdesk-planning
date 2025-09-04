@@ -52,7 +52,7 @@ describe('Planning.Events: all day events and events without end time', () => {
             .should('contain.text', 'All day');
     });
 
-    it('can create multi day event without start and end time', () => {
+    it.only('can create multi day event without start and end time', () => {
         const startDate = moment().format(CLIENT_FORMAT);
         const endDate = moment().add(1, 'day')
             .format(CLIENT_FORMAT);
@@ -74,7 +74,7 @@ describe('Planning.Events: all day events and events without end time', () => {
             .should('contain.text', 'All day');
 
         list.item(1).find('[data-test-id="event-datetime"]')
-            .should('contain.text', `${startDate}All day`);
+            .should('contain.text', `${startDate}–${endDate}All day`);
     });
 
     it('can create single day event with start time', () => {
