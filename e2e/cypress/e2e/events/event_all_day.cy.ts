@@ -52,7 +52,7 @@ describe('Planning.Events: all day events and events without end time', () => {
             .should('contain.text', 'All day');
     });
 
-    it.only('can create multi day event without start and end time', () => {
+    it('can create multi day event without start and end time', () => {
         const startDate = moment().format(CLIENT_FORMAT);
         const endDate = moment().add(1, 'day')
             .format(CLIENT_FORMAT);
