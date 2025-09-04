@@ -26,16 +26,13 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(ts|tsx)?$/,
-                exclude: /node_modules\/(?!(superdesk-core)\/).*/,
-                loader: 'ts-loader',
-                options: {
-                    transpileOnly: true
-                }
-            },
-            {
-                test: /\.(js|jsx)?$/,
-                exclude: /node_modules\/(?!(superdesk-core)\/).*/,
+                test: /\.(ts|tsx|js|jsx)?$/,
+                include: [
+                    path.join(__dirname, 'client'),
+                    path.join(__dirname, 'index.ts'),
+                    path.join(__dirname, 'node_modules/superdesk-core'),
+                    path.join(__dirname, 'node_modules/superdesk-ui-framework/node_modules/date-fns'),
+                ],
                 loader: 'ts-loader',
                 options: {
                     transpileOnly: true
