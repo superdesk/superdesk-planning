@@ -8,7 +8,7 @@ import {Tooltip} from 'superdesk-ui-framework';
 
 interface IProps {
     item: {
-        priority?: string;
+        priority?: number;
     };
     priorities: Array<{
         name: string;

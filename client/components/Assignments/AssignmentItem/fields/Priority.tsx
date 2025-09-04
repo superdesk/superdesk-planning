@@ -9,7 +9,7 @@ export const PriorityComponent = ({assignment, ...props}: IProps) => {
 
     return (
         <PriorityLabel
-            item={{priority: assignment.priority != null ? assignment.priority.toString() : undefined}}
+            item={{priority: assignment.priority != null ? assignment.priority : undefined}}
             priorities={priorities}
             tooltipFlow="right"
             inline={true}
