@@ -12,7 +12,7 @@ interface IProps {
     };
     priorities: Array<{
         name: string;
-        qcode: string;
+        qcode: number;
         translations?: {
             name?: {[key: string]: string};
         };
