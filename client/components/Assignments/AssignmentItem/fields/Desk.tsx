@@ -1,13 +1,11 @@
 import React from 'react';
-import {get} from 'lodash';
 import {gettext} from '../../../../utils';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignedDesk: any;
-}
+type IProps = IAssignmentListItemField;
 
-export const DeskComponent = ({assignedDesk}: IProps) => {
-    const assignedDeskName = get(assignedDesk, 'name') || '-';
+export const DeskComponent = (props: IProps) => {
+    const assignedDeskName = props.fieldsProps?.desk.assignedDesk?.name ?? '-';
 
     return (
         <div className="sd-list-item__element-lm-10">

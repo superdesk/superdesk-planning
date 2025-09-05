@@ -10,7 +10,6 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {assignmentUtils} from '../../utils';
 
-import {AssignmentItem} from './AssignmentItem';
 import {AssignmentMultiTextItem} from './AssignmentItem/AssignmentMultiTextItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';

@@ -623,6 +623,8 @@ export interface ICoveragePlanningDetails {
     workflow_status_reason: string;
     priority?: number;
     multiple_content?: boolean;
+    subject?: Array<{name: string; qcode: string; scheme: string}>;
+    anpa_category?: Array<{name: string; qcode: string}>;
 }
 
 export interface ICoverageScheduledUpdate {
@@ -862,8 +864,8 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     accepted: boolean;
     planning: ICoveragePlanningDetails;
 
-    coverage_item: string;
-    planning_item: string;
+    coverage_item: IPlanningCoverageItem['coverage_id'];
+    planning_item: IPlanningItem['_id'];
     scheduled_update_id: string;
 
     assigned_to: {

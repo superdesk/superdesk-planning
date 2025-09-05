@@ -1,12 +1,10 @@
 import React from 'react';
-import {get} from 'lodash';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: any;
-}
+type IProps = IAssignmentListItemField;
 
 export const DescriptionTextComponent = ({assignment}: IProps) => {
-    const descriptionText = get(assignment, 'description_text');
+    const descriptionText = assignment.description_text;
 
     return <span>{descriptionText}</span>;
 };
