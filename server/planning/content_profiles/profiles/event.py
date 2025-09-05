@@ -30,7 +30,7 @@ class EventSchema(BaseSchema):
     internal_note = TextField(field_type="multi_line", expandable=True)
     language = LanguageField()
     links = schema.ListField()
-    location = schema.StringField()
+    location = schema.ListField()
     name = TextField(required=True, field_type="single_line")
     occur_status = schema.DictField()
     occur_status.schema["schema"] = {

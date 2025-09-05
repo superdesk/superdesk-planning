@@ -38,6 +38,7 @@ class PlanningSchema(BaseSchema):
     custom_vocabularies = schema.ListField()
     associated_event = schema.NoneField()
     coverages = schema.ListField()
+    location = schema.ListField()
 
 
 DEFAULT_PLANNING_PROFILE = {
