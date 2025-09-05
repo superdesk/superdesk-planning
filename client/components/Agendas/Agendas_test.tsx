@@ -102,7 +102,7 @@ describe('ManageAgendas', () => {
                 // Cannot create new agenda
                 const createAgendaIcon = modal.find('.icon-plus-sign');
 
-                expect(createAgendaIcon.length).toBe(0);
+                expect(createAgendaIcon.parent().props().disabled).toBeTruthy();
 
                 // No pencil icon visible on agenda items
                 expect(modal.find('.icon-pencil').length).toBe(0);
@@ -119,7 +119,7 @@ describe('ManageAgendas', () => {
                 nameField.simulate('change', {target: {value: ''}});
                 const editAgendaInstance2 = modal.find('EditAgenda').first();
 
-                expect(editAgendaInstance2.find('.btn--primary').length).toBe(0);
+                expect(editAgendaInstance2.find('.btn--primary').props().disabled).toBeTruthy();
             });
 
             it('Save updated agenda item', () => {
