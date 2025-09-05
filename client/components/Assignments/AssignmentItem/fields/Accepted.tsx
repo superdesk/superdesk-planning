@@ -1,14 +1,12 @@
 import React from 'react';
-import {get} from 'lodash';
 import {Label} from '../../..';
 import {gettext} from '../../../../utils';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: any;
-}
+type IProps = IAssignmentListItemField;
 
 export const AcceptedComponent = ({assignment}: IProps) => {
-    const isAccepted = get(assignment, 'accepted');
+    const isAccepted = assignment?.accepted ?? false;
 
     if (!isAccepted) {
         return null;

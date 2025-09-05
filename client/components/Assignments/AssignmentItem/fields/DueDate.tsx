@@ -8,13 +8,10 @@ import {superdeskApi} from '../../../../superdeskApi';
 import {assignmentUtils} from '../../../../utils';
 import {AbsoluteDate} from '../../../AbsoluteDate';
 import {TO_BE_CONFIRMED_FIELD} from '../../../../constants';
-import {IAssignmentItem} from 'interfaces';
 import classNames from 'classnames';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: IAssignmentItem;
-}
-
+type IProps = IAssignmentListItemField;
 export const DueDateComponent = ({assignment}: IProps) => {
     const {gettext} = superdeskApi.localization;
     const isOverdue = assignmentUtils.isDue(assignment);

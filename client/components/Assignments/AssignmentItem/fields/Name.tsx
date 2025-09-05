@@ -1,9 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import {IAssignmentListItemField} from '../../../../components/Assignments/interfaces';
 
-interface IProps {
-    assignment: any;
-}
+type IProps = IAssignmentListItemField;
 
 export const NameComponent = ({assignment}: IProps) => {
     const name = assignment.name;

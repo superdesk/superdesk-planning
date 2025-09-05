@@ -156,7 +156,7 @@ interface ResizeObserverCallback {
 export interface ILineConfigStandard {
     fieldId: string;
     position?: 'start' | 'end';
-    fieldOptions: any; // type of options will be different for each field type
+    fieldOptions?: any; // type of options will be different for each field type
 }
 
 export interface ILineConfigAnpaCategory extends ILineConfigStandard {
@@ -205,6 +205,15 @@ declare module 'superdesk-api' {
         // Custom vocabularies to exclude from registration as `custom_vocabulary` fields.
         vocabulariesToExcludeAsFields: Array<IVocabulary['_id']>;
 
+        /**
+         * @deprecated
+         * use `planning.assignment_list_item` instead
+         */
+        assignmentsList: {
+            firstLine: Array<string>;
+            secondLine: Array<string>;
+        };
+
         planning?: {
             dateformat?: string;
             timeformat?: string;
@@ -234,6 +243,11 @@ declare module 'superdesk-api' {
                     firstLine: Array<ILineConfig>;
                     secondLine?: Array<ILineConfig>;
                 };
+            };
+
+            assignment_list_item?: {
+                firstLine: Array<ILineConfig>;
+                secondLine?: Array<ILineConfig>;
             };
         };
 

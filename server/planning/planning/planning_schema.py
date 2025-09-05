@@ -125,7 +125,7 @@ coverage_schema = {
     },
     "workflow_status": {"type": "string"},
     "add_coverage_to_workflow": {"type": "boolean"},
-    "anpa_category": {"type": "list"},
+    "anpa_category": metadata_schema["anpa_category"],
     "previous_status": {"type": "string"},
     "assigned_to": assigned_to_schema,
     "flags": {
