@@ -83,16 +83,15 @@ export class ManageAgendasComponent extends React.Component {
                     {!!privileges[PRIVILEGES.AGENDA_MANAGEMENT] && (
                         <SubNav>
                             <StretchBar />
-                            {!this.state.editorOpen && (
-                                <Button
-                                    right={true}
-                                    buttonClassName="btn btn--primary"
-                                    onClick={this.toggleEditorOpen.bind(this)}
-                                >
-                                    <i className="icon-plus-sign icon-white" />
-                                    {gettext('Add New Agenda')}
-                                </Button>
-                            )}
+                            <Button
+                                disabled={this.state.editorOpen}
+                                right={true}
+                                buttonClassName="btn btn--primary"
+                                onClick={this.toggleEditorOpen.bind(this)}
+                            >
+                                <i className="icon-plus-sign icon-white" />
+                                {gettext('Add New Agenda')}
+                            </Button>
                         </SubNav>
                     )}
                     <ColumnBox.Box verticalScroll={true}>

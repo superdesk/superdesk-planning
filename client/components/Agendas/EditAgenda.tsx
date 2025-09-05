@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {SlideInPanel, Form, Toggle} from '../UI';
 import {gettext} from '../../utils/gettext';
+import {Button} from 'superdesk-ui-framework';
 
 export class EditAgenda extends React.Component {
     constructor(props) {
@@ -101,19 +102,20 @@ export class EditAgenda extends React.Component {
     }
 
     render() {
-        let tools = [<a className="btn" key={1} onClick={this.props.onClose}>{gettext('Cancel')}</a>];
-
-        if (!this.state.pristine && this.state.agendaName && !this.state.invalid) {
-            tools.push(
-                <a
-                    className="btn btn--primary"
-                    key={2}
-                    onClick={this.onSave.bind(this)}
-                >
-                    {gettext('Save')}
-                </a>
-            );
-        }
+        const tools = [
+            <Button
+                key={1}
+                onClick={this.props.onClose}
+                text={gettext('Cancel')}
+            />,
+            <Button
+                key={2}
+                onClick={this.onSave.bind(this)}
+                disabled={this.state.pristine || this.state.agendaName == null || this.state.invalid}
+                text={gettext('Save')}
+                type="primary"
+            />
+        ];
 
         return (
             <SlideInPanel.Panel>
