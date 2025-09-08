@@ -1,3 +1,4 @@
+/* eslint-disable react/no-multi-comp */
 import {registerEditorField} from './registerEditorFields';
 import {superdeskApi} from '../../../superdeskApi';
 import {getPrioritiesForTreeSelect, getUrgenciesForTreeSelect} from '../../../selectors/vocabs';
@@ -73,6 +74,7 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
+        // eslint-disable-next-line react/display-name
         optionTemplate: (item: any) => (
             <DropdownItemTemplate
                 option={{
@@ -102,6 +104,7 @@ registerEditorField(
         getId: (item: any) => item.qcode,
         getLabel: (item: any) => item.name,
         getOptions: () => [],
+        // eslint-disable-next-line react/display-name
         optionTemplate: (item: any) => (
             <DropdownItemTemplate
                 option={{

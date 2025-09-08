@@ -40,7 +40,7 @@ export const getPrioritiesForTreeSelect = createSelector<
     Array<{value: IVocabularyItem}>
 >(
     getPriorities,
-    (priorities) => {  
+    (priorities) => {
         return priorities
             .sort((a, b) => String(a.qcode).localeCompare(String(b.qcode)))
             .map((priority) => ({
