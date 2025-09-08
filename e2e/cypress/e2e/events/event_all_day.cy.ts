@@ -74,7 +74,7 @@ describe('Planning.Events: all day events and events without end time', () => {
             .should('contain.text', 'All day');
 
         list.item(1).find('[data-test-id="event-datetime"]')
-            .should('contain.text', `${startDate}All day`);
+            .should('contain.text', `${startDate}–${endDate}All day`);
     });
 
     it('can create single day event with start time', () => {
