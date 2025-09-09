@@ -7,6 +7,7 @@ import {
     onPublishMiddlewareResult,
     IAuthoringAction,
     IVocabularyText,
+    IVocabulary,
 } from 'superdesk-api';
 import {IPlanningAssignmentService} from './interfaces';
 import {getAssignmentService} from './utils';
@@ -287,7 +288,7 @@ const extension: IExtension = {
         const [customTextFields, restOfVocabularies] = partition(
             allVocabularies.toArray(),
             (vocabulary) => vocabulary.field_type === 'text',
-        );
+        ) as [Array<IVocabularyText>, Array<IVocabulary>];
 
         // Do not register coverage related CVs as fields, because it overrides current implementation for these fields.
         // Do not register CVs that aren't considered "custom CVs" also,
@@ -311,7 +312,7 @@ const extension: IExtension = {
             );
         });
 
-        customTextFields.forEach((field: IVocabularyText) => {
+        customTextFields.forEach((field) => {
             const isSingleLine = field.field_options?.single ?? false;
             const TextField = isSingleLine
                 ? extensionBridge.editor.fields.EditorFieldText
